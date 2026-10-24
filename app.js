@@ -10,7 +10,7 @@
   const RM = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const tap = { el: null, at: 0 };  // 마지막으로 누른 것 (뒤로 가기 방향 · 고른 칸 톡 튀기)
   const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const IC = { home: '1f3e0', hw: '1f4dd', wrong: '1f4d2', score: '1f4ca', sgb: '1f4cb', target: '1f3af', sci: '1f9ea', eng: '1f4d6', fire: '1f525', x: '274c', ok: '2705', up: '1f4c8', down: '1f4c9', star: '2b50', trophy: '1f3c6', cal: '1f4c5', retry: '1f501', bulb: '1f4a1', school: '1f3eb', grad: '1f393', ghost: '1f47b', party: '1f389', pin: '1f4cc', compass: '1f9ed', muscle: '1f4aa', brain: '1f9e0', clock: '23f0', hundred: '1f4af', think: '1f914', spark: '2728', mic: '1f3a4', books: '1f4da', pencil: '270f', write: '270d', dna: '1f9ec', pill: '1f48a', news: '1f4f0', bell: '1f514', mega: '1f4e2', memo: '1f5d2', flag: '1f6a9', q: '2753', globe: '1f30f', math: '1f4d0', abacus: '1f9ee', bank: '1f3db', run: '1f3c3', heart: '1f499', medal: '1f3c5', eyes: '1f440', scroll: '1f4dc' };
+  const IC = { home: '1f3e0', hw: '1f4dd', wrong: '1f4d2', score: '1f4ca', sgb: '1f4cb', target: '1f3af', sci: '1f9ea', eng: '1f4d6', fire: '1f525', x: '274c', ok: '2705', up: '1f4c8', down: '1f4c9', star: '2b50', trophy: '1f3c6', cal: '1f4c5', retry: '1f501', bulb: '1f4a1', school: '1f3eb', grad: '1f393', ghost: '1f47b', party: '1f389', pin: '1f4cc', compass: '1f9ed', muscle: '1f4aa', brain: '1f9e0', clock: '23f0', hundred: '1f4af', think: '1f914', spark: '2728', mic: '1f3a4', books: '1f4da', pencil: '270f', write: '270d', dna: '1f9ec', pill: '1f48a', news: '1f4f0', bell: '1f514', mega: '1f4e2', memo: '1f5d2', flag: '1f6a9', q: '2753', globe: '1f30f', math: '1f4d0', abacus: '1f9ee', bank: '1f3db', run: '1f3c3', heart: '1f499', medal: '1f3c5', eyes: '1f440', scroll: '1f4dc', tomato: '1f345', gold: '1f947', coffee: '2615', timer: '23f1', glow: '1f31f', herb: '1f33f', leaf: '1f343', headph: '1f3a7', piano: '1f3b9', violin: '1f3bb', sax: '1f3b7', rain: '1f327', wave: '1f30a' };
   const ic = (k, cls = 'ic') => `<img class="${cls}" src="icons/${IC[k] || k}.svg" alt="">`;
   const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
   const md = (s) => { const [, m, d] = String(s).split('-').map(Number); return `${m}월 ${d}일`; };
@@ -65,7 +65,7 @@
     : `<span class="emb ${size}" style="background:${esc(u.color)}">${esc((u.short || u.name).replace(/대학교|대$/, '').slice(0, 3))}</span>`;
 
   // ───────── 상태 ─────────
-  const blank = () => ({ profile: { name: U.who, school: (D.school && D.school.name) || '경화여자고등학교', grade: 1, cls: '', uni: '', major: '생명공학과', goalMock: 2, goalNaesin: 2 }, mock: {}, mockManual: [], naesin: {}, sci: { days: {} }, eng: { unit: 0, wordDay: 0, days: {} }, wrong: {}, hw: [], sgb: [], _at: {} });
+  const blank = () => ({ profile: { name: U.who, school: (D.school && D.school.name) || '경화여자고등학교', grade: 1, cls: '', uni: '', major: '생명공학과', goalMock: 2, goalNaesin: 2 }, mock: {}, mockManual: [], naesin: {}, sci: { days: {} }, eng: { unit: 0, wordDay: 0, days: {} }, wrong: {}, hw: [], sgb: [], pomo: { days: {}, goal: 4 }, _at: {} });
   let S = blank();
   try { const l = JSON.parse(localStorage.getItem(KEY)); if (l) S = Object.assign(blank(), l); } catch (e) {}
   const UI = { tab: 'home', view: null, scoreSeg: 'mock', mockId: null, mockSubj: 'kor', wrongSubj: 'all', chartSubj: 'avg', run: null, sgbArea: 'all', semester: '1-2', newsAll: false };
@@ -215,16 +215,23 @@
 
   // ───────── 바텀시트 ─────────
   // 열려 있으면 내용만 옆으로 넘기고(뒤로 가기면 왼쪽에서), 닫을 땐 내려가며 사라져요
+  // 시트 위에 시트가 열리면 앞 시트를 쌓아 두고, 맨 위 줄에 「‹ 뒤로」와 닫기(✕)를 늘 붙여요
   function sheet(html, onMount) {
     const root = $('#sheet-root'), old = $('.sheet', root), swap = old && !root.classList.contains('out');
     clearTimeout(closeSheet.t); root.classList.remove('out');
+    const tapBack = !!(tap.el && tap.el.closest('[data-back]') && Date.now() - tap.at < 800), goBack = sheet.back || tapBack; sheet.back = false;
+    if (!swap) sheet.stack = []; else if (tapBack) sheet.stack.pop(); else if (!goBack && sheet.cur) sheet.stack.push(sheet.cur);
+    sheet.cur = { html, onMount };
+    html = `<div class="sh-nav">${sheet.stack.length ? '<button class="sh-back" type="button" aria-label="뒤로">‹ 뒤로</button>' : '<span></span>'}<button class="sh-x" type="button" aria-label="닫기"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button></div>` + html;
     if (swap) {
-      const back = !!(tap.el && tap.el.closest('[data-back]') && Date.now() - tap.at < 800), h0 = old.offsetHeight;
+      const back = goBack || !!(tap.el && tap.el.closest('[data-back]') && Date.now() - tap.at < 800), h0 = old.offsetHeight;
       old.innerHTML = html; old.scrollTop = 0; old.classList.remove('swap-f', 'swap-b'); void old.offsetWidth; old.classList.add(back ? 'swap-b' : 'swap-f');
       const h1 = old.offsetHeight; if (!RM() && Math.abs(h1 - h0) > 4) old.animate([{ height: h0 + 'px' }, { height: h1 + 'px' }], { duration: 300, easing: 'cubic-bezier(.2,.8,.2,1)' });
     } else root.innerHTML = `<div class="sheet-bg"></div><div class="sheet" role="dialog" aria-modal="true">${html}</div>`;
     const close = closeSheet;
     $('.sheet-bg', root).onclick = close;
+    $('.sh-x', root).onclick = close;
+    const sb = $('.sh-back', root); if (sb) sb.onclick = () => { const p = sheet.stack.pop(); sheet.back = true; sheet.cur = null; sheet(p.html, p.onMount); };
     document.body.style.overflow = 'hidden';
     if (onMount) onMount($('.sheet', root), close);
     return close;
@@ -256,6 +263,29 @@
 
   // ───────── 홈 (대시보드) ─────────
   const CSAT = (D.events || []).find((e) => e.kind === 'csat') || { date: '2028-11-16', title: '수능 (예정)' };
+  // 5등급제 ↔ 9등급제: 교육부 등급 비율(누적 %)로 같은 위치끼리 맞춘 대략값. 공식 환산표는 없어요
+  const CUM5 = [10, 34, 66, 90, 100], CUM9 = [4, 11, 23, 40, 60, 77, 89, 96, 100];
+  const mids = (c) => c.map((v, i) => ((i ? c[i - 1] : 0) + v) / 2);
+  const lerpMid = (m, x) => { const i = Math.min(Math.max(Math.floor(x) - 1, 0), m.length - 2); return m[i] + (m[i + 1] - m[i]) * (x - 1 - i); };
+  function g5to9(g) {
+    const p = lerpMid(mids(CUM5), Math.min(Math.max(g, 1), 5)), m9 = mids(CUM9);
+    if (p <= m9[0]) return 1; if (p >= m9[8]) return 9;
+    const i = m9.findIndex((v, k) => p >= v && p <= m9[k + 1]); return i + 1 + (p - m9[i]) / (m9[i + 1] - m9[i]);
+  }
+  function gradeMapCard(cls) {
+    const my = nsTotal(), to9 = my ? g5to9(my) : null;
+    const R5 = [['1', '상위 10%', '1등급 ~ 2등급'], ['2', '10 ~ 34%', '2등급 끝 ~ 4등급'], ['3', '34 ~ 66%', '4등급 ~ 6등급'], ['4', '66 ~ 90%', '6등급 ~ 8등급'], ['5', '90 ~ 100%', '8등급 ~ 9등급']];
+    return `<section class="card ${cls}"><div class="card-h"><h2>${ic('abacus')} 5등급제와 9등급제</h2></div>
+      <p class="sub" style="margin:0 0 12px">${nameCall().replace(/^우리 /, '')} 학년부터 내신은 5등급제예요. 합격선 숫자는 아직 9등급제라 같은 위치끼리 맞춰 봤어요</p>
+      <div class="gm-wrap"><div>${my ? `<div class="gm-me"><div><span class="tiny">내 내신 (5등급제)</span><b class="num">${fmt1(my)}</b></div><span class="gm-arr">→</span><div><span class="tiny">9등급제로 치면 약</span><b class="num blue">${fmt1(to9)}</b></div></div>` : ''}<p class="tiny" style="margin:0;line-height:1.6">교육부가 정한 등급 비율로 맞춘 대략값이에요. 9등급제는 4·11·23·40·60·77·89·96%, 5등급제는 10·34·66·90%에서 끊어요. 공식 환산표는 아직 없고 대학마다 반영 방식이 달라요</p></div>
+      <table class="tbl"><thead><tr><th>5등급제</th><th>누적 비율</th><th class="r">9등급제로 치면</th></tr></thead><tbody>${R5.map(([g, p, n]) => `<tr${my && Math.round(my) === +g ? ' class="gm-on"' : ''}><td><b>${g}등급</b></td><td class="num">${p}</td><td class="r">${n}</td></tr>`).join('')}</tbody></table></div></section>`;
+  }
+  function nsCard(cls) {
+      const p = S.profile;
+      const sems = SEMS.filter((sem) => nsAvg(sem) != null);
+      const body = sems.length ? `<div class="list">${sems.map((sem) => { const rec = S.naesin[sem] || {}; const subs = nsSubjects(sem).filter((x) => nsG(rec[x.name])); const onlyMid = sem !== '1-1' && subs.every((x) => !+rec[x.name].grade && !+rec[x.name].finG); return `<div class="ns-sem"><div class="row between"><div><b>${sem.replace('-', '학년 ')}학기</b>${onlyMid ? '<span class="tiny"> · 중간고사까지</span>' : ''}</div><b class="num ns-big">${fmt1(nsAvg(sem))}<small>등급</small></b></div><div class="ns-subs">${subs.map((x) => { const g = nsG(rec[x.name]); return `<span class="ns-sub ${g <= 1 ? 'top' : ''}">${esc(x.name.replace(/[12]$/, ''))} <b class="num">${fmt1(g).replace(/\.0$/, '')}</b></span>`; }).join('')}</div></div>`; }).join('')}</div>${sems.length >= 3 ? tossLine(sems.map((sem) => ({ label: sem.replace('-', '학년 ') + '학기', v: nsAvg(sem) })), { maxG: 5, h: 160, id: 'n1', color: '#03b26c', goal: p.goalNaesin }) : ''}${p.goalNaesin ? `<p class="tiny" style="margin:12px 0 0">목표 ${p.goalNaesin}등급 · 5등급제 단위 수 가중 평균이에요</p>` : ''}` : `<div class="empty">${ic('pencil')}<b>내신 등급을 넣어 주세요</b><span>학기마다 과목 등급을 넣으면 평균이 계산돼요</span></div>`;
+      return `<section class="card ${cls}"><div class="card-h"><h2>내신 등급</h2><button class="more" data-go="score" data-seg="naesin">입력하기</button></div>${body}</section>`;
+  }
   function home() {
     const p = S.profile, u = uniOf(p.uni);
     const lm = lastMock(), mAvg = lm ? avgOf(lm.g) : null, nAvg = nsTotal();
@@ -284,14 +314,10 @@
     const wtab = `<section class="card c6"><div class="card-h"><h2>과목별 오답</h2><button class="more" data-go="wrong">전체</button></div>${subjRows.length ? `<table class="tbl"><thead><tr><th>과목</th><th class="r">틀린 문제</th><th class="r">다시 맞힘</th></tr></thead><tbody>${subjRows.map((r) => `<tr><td><span class="dot" style="background:${SUBJ_COLOR[r.k]}"></span>${r.n}</td><td class="r num">${r.all}</td><td class="r num"><b class="${r.all - r.open ? 'blue' : ''}">${r.all - r.open}</b></td></tr>`).join('')}</tbody></table>` : `<div class="empty">${ic('memo')}<b>아직 없어요</b></div>`}</section>`;
     // 내신 학기별
     const nsRows = SEMS.map((sem) => ({ label: sem.replace('-', '학년 ') + '학기', v: { n: nsAvg(sem) } })).filter((r) => r.v.n != null);
-    const nscard = (() => {
-      const sems = SEMS.filter((sem) => nsAvg(sem) != null);
-      const body = sems.length ? `<div class="list">${sems.map((sem) => { const rec = S.naesin[sem] || {}; const subs = nsSubjects(sem).filter((x) => nsG(rec[x.name])); const onlyMid = sem !== '1-1' && subs.every((x) => !+rec[x.name].grade && !+rec[x.name].finG); return `<div class="ns-sem"><div class="row between"><div><b>${sem.replace('-', '학년 ')}학기</b>${onlyMid ? '<span class="tiny"> · 중간고사까지</span>' : ''}</div><b class="num ns-big">${fmt1(nsAvg(sem))}<small>등급</small></b></div><div class="ns-subs">${subs.map((x) => { const g = nsG(rec[x.name]); return `<span class="ns-sub ${g <= 1 ? 'top' : ''}">${esc(x.name.replace(/[12]$/, ''))} <b class="num">${fmt1(g).replace(/\.0$/, '')}</b></span>`; }).join('')}</div></div>`; }).join('')}</div>${sems.length >= 3 ? tossLine(sems.map((sem) => ({ label: sem.replace('-', '학년 ') + '학기', v: nsAvg(sem) })), { maxG: 5, h: 160, id: 'n1', color: '#03b26c', goal: p.goalNaesin }) : ''}${p.goalNaesin ? `<p class="tiny" style="margin:12px 0 0">목표 ${p.goalNaesin}등급 · 5등급제 단위 수 가중 평균이에요</p>` : ''}` : `<div class="empty">${ic('pencil')}<b>내신 등급을 넣어 주세요</b><span>학기마다 과목 등급을 넣으면 평균이 계산돼요</span></div>`;
-      return `<section class="card c6"><div class="card-h"><h2>내신 등급</h2><button class="more" data-go="score" data-seg="naesin">입력하기</button></div>${body}</section>`;
-    })();
+    const nscard = nsCard('c6');
     const sgbc = sgbSummary('c6');
     const main = `<h1 class="h1">${bdayLeft() === 0 ? `${ic('party')} ${nameCall()}, 생일 축하해` : `${nameCall()}, ${greet()}`}</h1><p class="sub">${todayLine()}</p>
-      <div class="grid">${hero}${pos}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${trend}${railCards(true)}${weak}${wtab}${nscard}${sgbc}</div>`;
+      <div class="grid">${hero}${pos}${pomoCard('c12')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${weak}${wtab}${nscard}${sgbc}</div>`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -733,7 +759,7 @@
   function scoreView() {
     const seg = UI.scoreSeg;
     const top = `<h1 class="h1">성적</h1><p class="sub">모의고사는 틀린 번호만 누르면 점수·등급·약한 영역이 나와요</p><div class="row wrap between" style="gap:12px;margin-bottom:16px"><div class="seg" style="max-width:360px;flex:1 1 240px"><button type="button" class="${seg === 'mock' ? 'on' : ''}" data-seg="mock">모의고사</button><button type="button" class="${seg === 'naesin' ? 'on' : ''}" data-seg="naesin">내신</button></div>${seg === 'mock' ? '<button class="btn primary" id="qg-open" type="button">내 등급 바로 적기</button>' : ''}</div>`;
-    return top + (seg === 'mock' ? (UI.mockId ? mockDetail() : reportSection() + mockList()) : naesinView());
+    return top + (nsAvg('1-1') != null || SEMS.some((x) => nsAvg(x) != null) ? `<div class="grid" style="margin-bottom:16px">${nsCard('c12')}</div>` : '') + (seg === 'mock' ? (UI.mockId ? mockDetail() : reportSection() + mockList()) : naesinView());
   }
   function mockList() {
     const rows = examRows().slice().reverse();
@@ -1104,7 +1130,7 @@
   }
   function admitSheet() {
     const f = { v: '교과' };
-    sheet(`<h2>생명 계열 대학별 합격선</h2><p class="sub">${esc(ADMIT.note)}</p><div class="chips" id="ad-t"></div><div id="ad-b" style="margin-top:12px"></div>`, (el) => {
+    sheet(`<h2>생명 계열 대학별 합격선</h2><p class="sub">${esc(ADMIT.note)}${nsTotal() ? ` 내 내신 ${fmt1(nsTotal())}등급은 9등급제로 약 ${fmt1(g5to9(nsTotal()))}등급이에요.` : ''}</p><div class="chips" id="ad-t"></div><div id="ad-b" style="margin-top:12px"></div>`, (el) => {
       const draw = () => {
         $('#ad-t', el).innerHTML = ['교과', '종합', '정시'].map((k) => `<button class="chip ${f.v === k ? 'on' : ''}" type="button" data-at="${k}">${k}</button>`).join('');
         $$('[data-at]', el).forEach((b) => (b.onclick = () => { f.v = b.dataset.at; draw(); }));
@@ -1135,7 +1161,7 @@
       <div class="ad-nums">${nums.map(([k, v]) => `<div><span>${k}</span><b class="num">${v == null ? '-' : t.type === '정시' ? v : g2(v)}</b></div>`).join('')}${t.seats ? `<div><span>모집</span><b class="num">${t.seats}명</b></div>` : ''}</div>
       ${t.type === '정시' ? '' : `<p class="ad-min ${noMin ? '' : 'on'}"><b>수능최저</b> ${noMin ? '없음' : esc(t.min)}</p>`}${t.memo ? `<p class="ad-memo-t">${esc(t.memo)}</p>` : ''}${t.src ? `<a class="tiny" href="${esc(t.src)}" target="_blank" rel="noopener">입시 결과 원문</a>` : ''}</div>`; };
     sheet(`<div class="row" style="gap:12px;margin-bottom:8px">${u ? emb(u, 'md') : ''}<div><h2 style="margin:0">${esc(a.name)}</h2><p class="tiny" style="margin:2px 0 0">${esc(a.dept)} · ${esc(a.year)} 입결</p></div></div>
-      <div class="deep" style="margin:12px 0 16px"><p style="margin:0">${esc(ADMIT.note)}</p></div>
+      <div class="deep" style="margin:12px 0 16px"><p style="margin:0">${esc(ADMIT.note)}${nsTotal() ? ` <b>지금 내 내신 ${fmt1(nsTotal())}등급은 9등급제로 치면 약 ${fmt1(g5to9(nsTotal()))}등급</b>이에요. 이 숫자와 견줘 봐요.` : ''}</p></div>
       ${a.tracks.map(tr).join('')}
       ${subs.length ? `<div class="eyebrow" style="margin-top:20px">이 대학이 권하는 고2 과목</div><div class="list">${subs.map((x) => `<div class="li"><div class="body"><div class="t" style="font-size:15px">${esc(x.name)}</div><div class="d">${esc((x.unis || []).find((t) => t.startsWith(nm)) || '')}</div></div><span class="tag ${x.level === '핵심' ? 'blue' : ''}">${esc(x.level || '')}</span></div>`).join('')}</div>` : ''}
       ${newsRows(NEWS_ALL().filter((n) => n.uni === id).sort((p, q) => String(q.date).localeCompare(String(p.date))))}
@@ -1364,6 +1390,212 @@
     </div>`;
   }
 
+  // ───────── 토마토 타이머 (뽀모도로) ─────────
+  // 집중 25·50분을 끝내면 토마토 하나. 하루 기록은 S.pomo(서버), 도는 타이머는 이 기기에 둬서 새로 고쳐도 이어져요
+  // 남은 시간은 끝나는 시각(endAt)으로 계산해서, 탭을 가려 두거나 다른 화면에 가도 틀리지 않아요
+  const PKEY = 'mallang-univ:pomo:' + U.who, TITLE = document.title, PR = 116, PC = 2 * Math.PI * PR;
+  const PM = { f25: { t: '25분', min: 25, mode: 'focus' }, f50: { t: '50분', min: 50, mode: 'focus' }, br: { t: '쉬는 시간 5분', min: 5, mode: 'break' } };
+  const PM_SUBJ = ['오답', '숙제', '과학', '영어', '단어', '내신', '자유'];
+  const PM_FOCUS = ['폰은 잠깐 뒤집어 둬요', '지금 이 집중이 실력이 돼요', '딱 이것만 생각해요', '모르는 건 표시만 하고 넘어가요', '거의 다 왔어요, 조금만 더'];
+  const PM_BREAK = ['물 한 잔 마셔요', '창밖 먼 곳을 봐요', '기지개 한 번 쭉 켜요', '눈 감고 숨 크게 쉬어요'];
+  const pRead = () => { try { return JSON.parse(localStorage.getItem(PKEY)) || null; } catch (e) { return null; } };
+  let P = Object.assign({ pick: 'f25', subj: '자유', run: null, offer: null }, pRead() || {});
+  const pSave = () => { try { localStorage.setItem(PKEY, JSON.stringify(P)); } catch (e) {} };
+  const pomo = () => { S.pomo = S.pomo || { days: {}, goal: 4 }; S.pomo.days = S.pomo.days || {}; return S.pomo; };
+  const pGoal = () => +pomo().goal || 4;
+  const pDay = (d = today()) => pomo().days[d] || { n: 0, min: 0, subj: {} };
+  const pBack = (i) => { const d = new Date(); d.setDate(d.getDate() - i); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  // 연속: 오늘 아직 안 했으면 어제까지 이어진 날 (오늘 하나 하면 이어져요)
+  const pStreak = () => { let n = 0, i = pDay().n ? 0 : 1; while (pDay(pBack(i)).n) { n++; i++; } return n; };
+  const pBest = () => { let best = 0, run = 0, prev = null; for (const d of Object.keys(pomo().days).filter((k) => pomo().days[k].n).sort()) { run = prev && Math.round((new Date(d + 'T00:00:00') - new Date(prev + 'T00:00:00')) / 864e5) === 1 ? run + 1 : 1; best = Math.max(best, run); prev = d; } return best; };
+  const pTotal = () => Object.values(pomo().days).reduce((a, x) => a + (x.n || 0), 0);
+  const BADGES = [
+    { id: 'first', i: 'tomato', t: '첫 토마토', d: '토마토 1개', ok: () => pTotal() >= 1 },
+    { id: 't10', i: 'glow', t: '토마토 10개', d: '모두 10개', ok: () => pTotal() >= 10 },
+    { id: 't30', i: 'gold', t: '토마토 30개', d: '모두 30개', ok: () => pTotal() >= 30 },
+    { id: 't100', i: 'hundred', t: '토마토 100개', d: '모두 100개', ok: () => pTotal() >= 100 },
+    { id: 's3', i: 'fire', t: '3일 연속', d: '3일 이어서', ok: () => pBest() >= 3 },
+    { id: 's7', i: 'herb', t: '7일 연속', d: '일주일 내내', ok: () => pBest() >= 7 },
+    { id: 's14', i: 'trophy', t: '14일 연속', d: '2주 내내', ok: () => pBest() >= 14 },
+    { id: 'goal', i: 'target', t: '하루 목표 달성', d: '목표만큼 하루에', ok: () => Object.values(pomo().days).some((x) => x.n >= pGoal()) },
+    { id: 'h2', i: 'brain', t: '하루 2시간', d: '하루 집중 120분', ok: () => Object.values(pomo().days).some((x) => x.min >= 120) },
+  ];
+  const pHas = (b) => !!(pomo().badges || {})[b.id] || b.ok();
+  const pDur = () => (P.run ? P.run.dur : PM[P.pick].min * 60);
+  const pLeft = () => { const r = P.run; if (!r) return pDur(); return r.paused ? r.left : Math.max(0, Math.ceil((r.endAt - Date.now()) / 1000)); };
+  const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  const tomRow = (n, g, cls = '') => `<div class="pm-row ${cls}">${Array.from({ length: Math.max(g, n) }, (_, i) => `<img class="${i < n ? 'on' : ''}" src="icons/${IC.tomato}.svg" alt="">`).join('')}</div>`;
+  function pLine() {
+    const r = P.run, n = pDay().n, g = pGoal(), st = pStreak();
+    if (r && r.paused) return '잠깐 멈췄어요, 준비되면 이어 해요';
+    if (r && r.mode === 'break') return PM_BREAK[Math.floor((r.dur - pLeft()) / 75) % PM_BREAK.length];
+    if (r) return PM_FOCUS[Math.min(PM_FOCUS.length - 1, Math.floor((1 - pLeft() / r.dur) * PM_FOCUS.length))];
+    if (P.offer === 'break') return '토마토 하나 완성! 5분 쉬어 가요';
+    if (P.offer === 'focus') return '잘 쉬었어요, 다음 토마토 갈까요?';
+    if (!n && st) return `오늘 토마토 하나면 ${st + 1}일 연속이에요`;
+    if (!n) return '25분만 집중해 봐요, 첫 토마토가 기다려요';
+    if (n >= g) return `오늘 목표 ${g}개 달성! 정말 잘했어요`;
+    return `목표까지 토마토 ${g - n}개 남았어요`;
+  }
+  function pomoCard(cls) {
+    const n = pDay().n, g = pGoal(), st = pStreak(), r = P.run;
+    return `<section class="card ${cls} pm-home link" data-pomo><div class="pm-h-ic">${ic('tomato')}</div>
+      <div class="pm-h-b"><div class="eyebrow">토마토 타이머${st ? ` · ${ic('fire')} ${st}일 연속` : ''}</div><b class="pm-h-t">${r ? `${r.mode === 'break' ? '쉬는 중' : '집중하는 중'} <span class="num blue" id="pm-home-t">${mmss(pLeft())}</span>` : n ? `오늘 토마토 ${n}개${n >= g ? ', 목표 달성!' : ''}` : '오늘 첫 토마토를 키워 봐요'}</b><p class="tiny" style="margin:2px 0 0">${esc(pLine())}</p></div>
+      ${tomRow(n, g, 'sm')}${TEACHER ? '' : `<button class="btn primary" type="button" data-pomo>${r ? '타이머 보기' : '집중 시작'}</button>`}</section>`;
+  }
+  function pomoRun() {
+    const r = P.run, mode = r ? r.mode : PM[P.pick].mode, n = pDay().n, g = pGoal(), st = pStreak(), td = pDay();
+    const lv = (d) => { const x = pDay(d).n; return !x ? '' : x >= g ? 'l3' : x >= 2 ? 'l2' : 'l1'; };
+    const days = Array.from({ length: 28 }, (_, i) => pBack(27 - i));
+    const ctl = TEACHER ? '<p class="tiny" style="margin:0">선생님 보기에서는 기록만 볼 수 있어요</p>'
+      : !r ? `<div class="pm-btns ${P.offer ? '' : 'one'}">${P.offer ? `<button class="btn big" id="pm-skip" type="button">${P.offer === 'break' ? '바로 집중' : '더 쉬기'}</button>` : ''}<button class="btn primary big" id="pm-start" type="button">${mode === 'break' ? '쉬는 시간 시작' : '집중 시작'}</button></div>`
+      : `<div class="pm-btns"><button class="btn big" id="pm-stop" type="button">그만하기</button><button class="btn big ${r.paused ? 'primary' : 'soft'}" id="pm-pause" type="button">${r.paused ? '이어 하기' : '일시정지'}</button></div>`;
+    return `<div class="qwrap" style="max-width:760px;margin:0 auto">
+      <div class="row between"><button class="btn sm" data-go="home" type="button">‹ 홈</button><div class="row" style="gap:8px">${st ? `<span class="tag red">${ic('fire')} ${st}일 연속</span>` : ''}<button class="bell-btn ${SOUND ? 'on' : ''}" type="button" data-bell aria-label="${SOUND ? '소리 켜짐, 눌러서 무음' : '무음, 눌러서 소리 켜기'}">${bellSVG(SOUND)}</button></div></div>
+      <div><h1 class="h1" style="margin:4px 0 4px">토마토 타이머</h1><p class="sub" id="pm-line" style="margin:0">${esc(pLine())}</p></div>
+      <section class="card pm-card ${mode} ${r && !r.paused ? 'running' : ''}">
+        <div class="chips">${Object.entries(PM).map(([k, m]) => `<button class="chip ${(r ? r.pick : P.pick) === k ? 'on' : ''}" type="button" data-pm="${k}" ${r || TEACHER ? 'disabled' : ''}>${m.t}</button>`).join('')}</div>
+        <div class="pm-ring"><svg viewBox="0 0 260 260" aria-hidden="true"><circle cx="130" cy="130" r="${PR}" fill="none" stroke="var(--fill)" stroke-width="14"/><circle id="pm-arc" cx="130" cy="130" r="${PR}" fill="none" stroke="${mode === 'break' ? 'var(--green)' : 'var(--red)'}" stroke-width="14" stroke-linecap="round" stroke-dasharray="${PC}" stroke-dashoffset="${PC * (1 - pLeft() / pDur())}" transform="rotate(-90 130 130)"/></svg>
+          <div class="pm-c">${ic(mode === 'break' ? 'coffee' : 'tomato', 'pm-tom')}<b class="num" id="pm-time">${mmss(pLeft())}</b><span>${r ? (r.paused ? '잠깐 멈춤' : mode === 'break' ? '쉬는 중' : '집중하는 중') : mode === 'break' ? '쉬는 시간' : '집중 준비'}</span></div></div>
+        ${mode === 'focus' ? `<div class="pm-subj"><span class="eyebrow">무엇을 공부해요?</span><div class="chips">${PM_SUBJ.map((s) => `<button class="chip sm ${(r ? r.subj : P.subj) === s ? 'on' : ''}" type="button" data-psj="${s}" ${TEACHER ? 'disabled' : ''}>${s}</button>`).join('')}</div></div>` : ''}
+        ${ctl}
+      </section>
+      <div class="grid">${soundCards()}
+        <section class="card c6"><div class="card-h"><h2>오늘 토마토</h2><span class="tag ${n >= g ? 'blue' : ''}">${n}/${g}</span></div>${tomRow(n, g)}
+          <p class="tiny" style="margin:12px 0 0">오늘 집중 ${td.min || 0}분${Object.keys(td.subj || {}).length ? ' · ' + Object.entries(td.subj).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${esc(k)} ${v}개`).join(' · ') : ''}</p>
+          <div class="row between wrap" style="margin-top:16px;gap:8px"><span class="eyebrow">하루 목표</span><div class="chips">${[2, 4, 6, 8].map((k) => `<button class="chip sm ${g === k ? 'on' : ''}" type="button" data-pg="${k}">${k}개</button>`).join('')}</div></div></section>
+        <section class="card c6"><div class="card-h"><h2>토마토 밭</h2><span class="tag ${st ? 'red' : ''}">${st ? `${ic('fire')} ${st}일 연속` : '오늘 첫 칸을 채워요'}</span></div><div class="streak pm-field">${days.map((d) => `<i class="${lv(d)} ${d === today() ? 'today' : ''}" title="${md(d)} 토마토 ${pDay(d).n}개"></i>`).join('')}</div><p class="tiny" style="margin:12px 0 0">최근 4주 · 모두 ${pTotal()}개 · 가장 길게 ${pBest()}일 연속</p></section>
+        <section class="card c12"><div class="card-h"><h2>배지</h2><span class="tiny">${BADGES.filter(pHas).length}/${BADGES.length}개 모았어요</span></div><div class="pm-badges">${BADGES.map((b) => `<div class="pm-bd ${pHas(b) ? 'on' : ''}">${ic(b.i)}<b>${b.t}</b><span>${pHas(b) ? '획득!' : b.d}</span></div>`).join('')}</div></section>
+      </div></div>`;
+  }
+  function pPaint() {
+    const r = P.run, left = pLeft(), on = UI.run && UI.run.kind === 'pomo';
+    const t = $('#pm-time'); if (t) t.textContent = mmss(left);
+    const a = $('#pm-arc'); if (a) a.style.strokeDashoffset = PC * (1 - left / pDur());
+    const ln = $('#pm-line'); if (ln && r) ln.textContent = pLine();
+    const ht = $('#pm-home-t'); if (ht) ht.textContent = mmss(left);
+    let pill = $('#pomo-pill');
+    if ((r || listening()) && !on && !(r && ht) && !TEACHER) {
+      const k = r ? r.mode + (r.paused ? 'p' : '') + (listening() ? 'h' : '') : 'h';
+      if (!pill) { pill = document.createElement('button'); pill.id = 'pomo-pill'; pill.type = 'button'; pill.className = 'pomo-pill'; pill.setAttribute('aria-label', '토마토 타이머 열기'); pill.onclick = openPomo; document.body.appendChild(pill); }
+      if (pill.dataset.k !== k) { pill.dataset.k = k; pill.innerHTML = r ? `${ic(r.mode === 'break' ? 'coffee' : 'tomato')}<b class="num"></b><span>${r.paused ? '멈춤' : r.mode === 'break' ? '쉬는 중' : '집중 중'}</span>${listening() ? ic('headph', 'pm-hp') : ''}` : `${ic('headph')}<span>${MUS ? '음악 듣는 중' : '집중 소리 켜짐'}</span>`; }
+      if (r) $('b', pill).textContent = mmss(left);
+    } else if (pill) pill.remove();
+    document.title = r ? `${r.paused ? '⏸' : r.mode === 'break' ? '☕' : '🍅'} ${mmss(left)} · 말랑대학` : TITLE;
+  }
+  let pT = 0;
+  function pTick() { const r = P.run; if (r && !r.paused && Date.now() >= r.endAt) return pFinish(); pPaint(); }
+  function pLoop() { clearInterval(pT); pT = 0; if (P.run && !P.run.paused) pT = setInterval(pTick, 500); pTick(); }
+  const pRedraw = () => { if ((UI.run && UI.run.kind === 'pomo') || (!UI.run && UI.tab === 'home')) render(); else nav(); };
+  function openPomo() { UI.run = { kind: 'pomo' }; render(); window.scrollTo(0, 0); }
+  function pStart() {
+    if (TEACHER) return; const m = PM[P.pick], dur = m.min * 60;
+    P.run = { mode: m.mode, pick: P.pick, dur, endAt: Date.now() + dur * 1000, left: dur, paused: false, subj: P.subj }; P.offer = null;
+    pSave(); ding(1); if (navigator.vibrate) navigator.vibrate(20); render(); pLoop();
+  }
+  function pPause() { const r = P.run; if (!r) return; if (r.paused) { r.endAt = Date.now() + r.left * 1000; r.paused = false; } else { r.left = pLeft(); r.paused = true; } pSave(); render(); pLoop(); }
+  function pStop() { P.run = null; P.offer = null; pSave(); pLoop(); render(); }
+  function pStopAsk() {
+    const r = P.run; if (!r) return;
+    if (r.mode === 'break' || r.dur - pLeft() < 60) return pStop();
+    sheet(`<h2>그만할까요?</h2><p class="sub">지금 멈추면 이번 토마토는 안 익어요. ${mmss(pLeft())}만 더 하면 토마토 하나예요</p><div class="pm-btns"><button class="btn big" id="ps-no" type="button">그만하기</button><button class="btn primary big" id="ps-go" type="button">계속하기</button></div>`, (el, close) => { $('#ps-go', el).onclick = close; $('#ps-no', el).onclick = () => { close(); pStop(); }; });
+  }
+  function pFinish() {
+    const r = P.run; if (!r) return;
+    const cur = pRead(); if (cur && (!cur.run || cur.run.endAt !== r.endAt)) { P = Object.assign(P, cur); pLoop(); pRedraw(); return; }  // 다른 탭에서 이미 끝냈어요
+    P.run = null; clearInterval(pT); pT = 0;
+    const cx = innerWidth / 2, cy = innerHeight * 0.4; let nb = [], x = null;
+    if (r.mode === 'focus') {
+      const po = pomo(), d = today(); x = po.days[d] = po.days[d] || { n: 0, min: 0, subj: {} }; x.subj = x.subj || {};
+      x.n = (x.n || 0) + 1; x.min = (x.min || 0) + Math.round(r.dur / 60); x.subj[r.subj] = (x.subj[r.subj] || 0) + 1;
+      po.badges = po.badges || {}; nb = BADGES.filter((b) => b.ok() && !po.badges[b.id]); for (const b of nb) po.badges[b.id] = d;
+      save('pomo'); P.offer = 'break'; P.lastFocus = r.pick; P.pick = 'br';
+    } else { P.offer = 'focus'; P.pick = P.lastFocus || 'f25'; }
+    pSave(); pRedraw(); pPaint();
+    if (r.mode === 'focus') {
+      boom(cx, cy, 5); ding(8); if (navigator.vibrate) navigator.vibrate([80, 60, 80, 60, 160]);
+      toast(x.n === pGoal() ? `오늘 목표 ${x.n}개 달성!` : `토마토 ${x.n}개째예요! 5분 쉬어 가요`);
+      const tm = $('.pm-tom'); if (tm && !RM()) bump(tm, 'pm-pop');
+      if (nb.length) setTimeout(() => { boom(cx, innerHeight * 0.3, 3); ding(5); toast(`배지 획득! ${nb.map((b) => b.t).join(', ')}`); }, 2000);
+    } else { ding(3); if (navigator.vibrate) navigator.vibrate([60, 40, 60]); toast('쉬는 시간 끝! 다음 토마토 가요'); }
+  }
+  function bindPomo() {
+    $$('[data-pm]').forEach((b) => (b.onclick = () => { if (P.run) return; P.pick = b.dataset.pm; P.offer = null; pSave(); render(); }));
+    $$('[data-psj]').forEach((b) => (b.onclick = () => { P.subj = b.dataset.psj; if (P.run) P.run.subj = P.subj; pSave(); render(); }));
+    $$('[data-pg]').forEach((b) => (b.onclick = () => { pomo().goal = +b.dataset.pg; save('pomo'); render(); }));
+    const s = $('#pm-start'); if (s) s.onclick = pStart;
+    const k = $('#pm-skip'); if (k) k.onclick = () => { P.pick = P.offer === 'break' ? (P.lastFocus || 'f25') : 'br'; P.offer = null; pSave(); render(); };
+    const p = $('#pm-pause'); if (p) p.onclick = pPause;
+    const x = $('#pm-stop'); if (x) x.onclick = pStopAsk;
+  }
+  // ───────── 소리 (벨) · 집중 소리 · 공부 음악 ─────────
+  // 독서실에서 공부해서 효과음은 처음엔 무음이에요 (진동은 그대로). 집중 소리·음악은 직접 눌러야만 나와서 벨과 따로예요
+  const SKEY = 'mallang-univ:sound', AKEY = 'mallang-univ:amb';
+  let SOUND = false; try { SOUND = localStorage.getItem(SKEY) === '1'; } catch (e) {}
+  const bellSVG = (on) => `<svg class="bell" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">${on ? '' : '<mask id="bell-m"><rect width="24" height="24" fill="#fff"/><path d="M3.5 2.5l17 19" stroke="#000" stroke-width="4.6" stroke-linecap="round"/></mask>'}<g ${on ? '' : 'mask="url(#bell-m)"'} fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 2.8c.8 0 1.4.6 1.4 1.4v.6a6 6 0 0 1 4.6 5.8v3.6l1.5 2.2c.4.6 0 1.4-.7 1.4H5.2c-.7 0-1.1-.8-.7-1.4L6 14.2v-3.6a6 6 0 0 1 4.6-5.8v-.6c0-.8.6-1.4 1.4-1.4z"/><path d="M9.6 19.6h4.8a2.4 2.4 0 0 1-4.8 0z"/></g>${on ? '' : '<path d="M3.5 2.5l17 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'}</svg>`;
+  function toggleBell() {
+    SOUND = !SOUND; try { localStorage.setItem(SKEY, SOUND ? '1' : '0'); } catch (e) {}
+    if (SOUND) ding(2); toast(SOUND ? '소리 켰어요' : '무음으로 바꿨어요');
+    nav(); $$('[data-bell]').forEach((b) => { b.innerHTML = bellSVG(SOUND); b.classList.toggle('on', SOUND); b.setAttribute('aria-label', SOUND ? '소리 켜짐, 눌러서 무음' : '무음, 눌러서 소리 켜기'); });
+  }
+  const audio = () => { const A = ding.a || (ding.a = new (window.AudioContext || window.webkitAudioContext)()); if (A.state === 'suspended') A.resume(); return A; };
+  const AMB = [['off', '끄기', ''], ['white', '백색소음', 'leaf'], ['rain', '빗소리', 'rain'], ['brown', '갈색소음', 'books'], ['wave', '파도', 'wave']];
+  const AMB_LV = { white: 0.16, rain: 0.5, brown: 0.9, wave: 0.75 };
+  const AM = { on: null, nodes: [], out: null, vol: 0.5, last: 'brown' };
+  try { Object.assign(AM, JSON.parse(localStorage.getItem(AKEY)) || {}, { on: null, nodes: [], out: null }); } catch (e) {}
+  const amSave = () => { try { localStorage.setItem(AKEY, JSON.stringify({ vol: AM.vol, last: AM.last })); } catch (e) {} };
+  const noiseBuf = (A, brown) => { const n = A.sampleRate * 4, b = A.createBuffer(1, n, A.sampleRate), d = b.getChannelData(0); let last = 0; for (let i = 0; i < n; i++) { const w = Math.random() * 2 - 1; if (brown) { last = (last + 0.02 * w) / 1.02; d[i] = last * 3.5; } else d[i] = w; } return b; };
+  function ambStop() { for (const x of AM.nodes) { try { if (x.stop) x.stop(); x.disconnect(); } catch (e) {} } AM.nodes = []; AM.out = null; AM.on = null; }
+  function ambPlay(k) {
+    ambStop(); if (k === 'off') { pPaint(); return; }
+    let A; try { A = audio(); } catch (e) { toast('이 브라우저에서는 소리를 낼 수 없어요'); return; }
+    const keep = (...x) => (AM.nodes.push(...x), x[0]);
+    const out = keep(A.createGain()); out.gain.value = 0; out.connect(A.destination); out.gain.setTargetAtTime(AM.vol * AMB_LV[k], A.currentTime, 0.5);
+    const src = (brown) => { const s = keep(A.createBufferSource()); s.buffer = noiseBuf(A, brown); s.loop = true; s.start(); return s; };
+    const flt = (type, f, q) => { const x = keep(A.createBiquadFilter()); x.type = type; x.frequency.value = f; if (q) x.Q.value = q; return x; };
+    const gain = (v) => { const g = keep(A.createGain()); g.gain.value = v; return g; };
+    const lfo = (hz, depth, param) => { const o = keep(A.createOscillator()), g = gain(depth); o.frequency.value = hz; o.connect(g).connect(param); o.start(); };
+    if (k === 'white') src(false).connect(flt('lowpass', 9000)).connect(out);
+    if (k === 'brown') src(true).connect(flt('lowpass', 600)).connect(out);
+    if (k === 'rain') { const g = gain(0.8); src(false).connect(flt('highpass', 900)).connect(flt('lowpass', 6500)).connect(g).connect(out); lfo(0.21, 0.12, g.gain); src(true).connect(flt('lowpass', 250)).connect(gain(0.5)).connect(out); }
+    if (k === 'wave') { const f = flt('lowpass', 700), g = gain(0.55); src(true).connect(f).connect(g).connect(out); src(false).connect(flt('lowpass', 1200)).connect(gain(0.05)).connect(g); lfo(0.085, 450, f.frequency); lfo(0.085, 0.45, g.gain); }
+    AM.out = out; AM.on = k; AM.last = k; amSave(); pPaint();
+  }
+  const ambVol = (v) => { AM.vol = v; amSave(); if (AM.out && AM.on) AM.out.gain.setTargetAtTime(v * AMB_LV[AM.on], ding.a.currentTime, 0.1); };
+  // 공부 음악: 눌러야 플레이어를 불러요. 화면을 옮겨도 끊기지 않게 본문 밖 작은 플레이어에서 틀어요
+  const MUSIC = [
+    { id: 'rFZHOHl-L8A', i: 'headph', t: 'lofi 공부 라디오', d: '잔잔한 비트 · 24시간 라이브' },
+    { id: 'N0snMcR6aaA', i: 'piano', t: '잔잔한 피아노', d: '가사 없는 피아노 · 라이브' },
+    { id: 'jXAEIWcGXwE', i: 'violin', t: '클래식 라디오', d: '읽고 공부하기 좋은 클래식 · 라이브' },
+    { id: 'E2vONfzoyRI', i: 'sax', t: '재즈 lofi', d: '부드러운 재즈 비트 · 라이브' },
+    { id: 'CwPCy1GLS38', i: 'rain', t: '비 오는 날 lofi', d: '빗소리 같은 비트 · 라이브' },
+  ];
+  let MUS = null;
+  function musPlay(id) {
+    const m = MUSIC.find((x) => x.id === id); let dock = $('#yt-dock');
+    if (!m || MUS === id) { if (dock) dock.remove(); MUS = null; pPaint(); return; }
+    if (!dock) { dock = document.createElement('div'); dock.id = 'yt-dock'; dock.className = 'yt-dock'; document.body.appendChild(dock); }
+    dock.innerHTML = `<div class="yt-h">${ic(m.i)}<b>${esc(m.t)}</b><button type="button" class="yt-x" aria-label="음악 끄기">끄기</button></div><iframe src="https://www.youtube-nocookie.com/embed/${m.id}?autoplay=1&playsinline=1&rel=0&modestbranding=1" title="${esc(m.t)}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+    $('.yt-x', dock).onclick = () => { musPlay(null); if (UI.run && UI.run.kind === 'pomo') render(); };
+    MUS = id; pPaint();
+  }
+  const listening = () => !!(AM.on || MUS);
+  function soundCards() {
+    return `<section class="card c6"><div class="card-h"><h2>집중 소리</h2>${AM.on ? `<span class="tag blue">${ic('headph')} 듣는 중</span>` : ''}</div>
+      <div class="chips">${AMB.map(([k, t, i]) => `<button class="chip sm ${(AM.on || 'off') === k ? 'on' : ''}" type="button" data-amb="${k}">${i ? ic(i) + ' ' : ''}${t}</button>`).join('')}</div>
+      <div class="pm-vol"><span class="tiny">작게</span><input type="range" min="0" max="100" value="${Math.round(AM.vol * 100)}" id="amb-vol" aria-label="집중 소리 크기"><span class="tiny">크게</span></div>
+      <p class="tiny" style="margin:8px 0 0">독서실에서는 꼭 이어폰을 끼고 들어요. 갈색소음은 낮고 웅웅해서 독서실 소리랑 비슷해요</p></section>
+      <section class="card c6"><div class="card-h"><h2>공부 음악</h2>${MUS ? `<button class="more" type="button" data-mus="${MUS}">음악 끄기</button>` : '<span class="tiny">눌러야 틀어요</span>'}</div>
+      <div class="list">${MUSIC.map((m) => `<div class="li btnlike" data-mus="${m.id}"><div class="ico">${ic(m.i)}</div><div class="body"><div class="t">${esc(m.t)}</div><div class="d">${esc(m.d)}</div></div>${MUS === m.id ? '<span class="tag blue">재생 중</span>' : '<span class="chev"></span>'}</div>`).join('')}</div></section>`;
+  }
+  function bindSound() {
+    $$('[data-amb]').forEach((b) => (b.onclick = () => { ambPlay(b.dataset.amb); render(); }));
+    const v = $('#amb-vol'); if (v) v.oninput = () => ambVol(v.value / 100);
+    $$('[data-mus]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); musPlay(b.dataset.mus); render(); }));
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && P.run) pTick(); });
+  window.addEventListener('storage', (e) => { if (e.key !== PKEY) return; const cur = pRead(); if (cur) { P = Object.assign(P, cur); pLoop(); pRedraw(); } });
+
   // ───────── 틀 · 메뉴 ─────────
   const TABS = [['home', '홈', 'home'], ['hw', '숙제', 'hw'], ['wrong', '오답', 'wrong'], ['score', '성적', 'score'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna']];
   function nav() {
@@ -1372,6 +1604,8 @@
     $('#tabs-top').innerHTML = TABS.map((t) => btn(t, false)).join('');
     $('#tabs-bottom').innerHTML = TABS.map((t) => btn(t, true)).join('');
     const u = uniOf(S.profile.uni);
+    const bt = $('#bell-top'); if (bt) { bt.innerHTML = bellSVG(SOUND); bt.classList.toggle('on', SOUND); bt.setAttribute('aria-label', SOUND ? '소리 켜짐, 눌러서 무음' : '무음, 눌러서 소리 켜기'); }
+    const pt = $('#pomo-top'); if (pt) { const n = pDay().n; pt.innerHTML = `${ic('tomato')}<b class="num">${n}</b>`; pt.classList.toggle('on', !!n); pt.setAttribute('aria-label', `토마토 타이머 · 오늘 ${n}개`); }
     $('#me').innerHTML = `<span>${esc(S.profile.name)}${TEACHER ? ' · 선생님 보기' : ''}</span>${avatarHtml('sm')}`;
   }
   const main = $('#main');
@@ -1380,7 +1614,7 @@
     if (S.naesin && S.naesin['1-2'] && !S.naesin._mid12) { for (const r of Object.values(S.naesin['1-2'])) if (r && r.grade && r.midG == null && r.finG == null) { r.midG = r.grade; delete r.grade; } S.naesin._mid12 = 1; save('naesin'); }
     nav();
     let html = '';
-    if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : '';
+    if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'pomo' ? pomoRun() : '';
     else html = UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'picks' ? picksView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
     const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '');
@@ -1462,7 +1696,10 @@
     const sn = $('#sg-new'); if (sn) sn.onclick = () => sgbSheet(null);
     $$('#sg-pick, #sg-pick2').forEach((b) => (b.onclick = () => pickSheet(UI.sgbArea)));
     $$('[data-sg]').forEach((b) => (b.onclick = () => sgbSheet(b.dataset.sg)));
-    if (UI.run) { if (UI.run.kind === 'sci') bindSci(); if (UI.run.kind === 'unit') bindUnit(); if (UI.run.kind === 'words') bindWords(); if (UI.run.kind === 'retry') bindRetry(); if (UI.run.kind === 'g3') bindG3(); if (UI.run.kind === 'drill') bindDrill(); if (UI.run.kind === 'concept') bindConcept(); }
+    if (UI.run) { if (UI.run.kind === 'sci') bindSci(); if (UI.run.kind === 'unit') bindUnit(); if (UI.run.kind === 'words') bindWords(); if (UI.run.kind === 'retry') bindRetry(); if (UI.run.kind === 'g3') bindG3(); if (UI.run.kind === 'drill') bindDrill(); if (UI.run.kind === 'concept') bindConcept(); if (UI.run.kind === 'pomo') { bindPomo(); bindSound(); } }
+    $$('main [data-bell]').forEach((b) => (b.onclick = toggleBell));
+    $$('[data-pomo]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); openPomo(); }));
+    pPaint();
     $$('[data-lib]').forEach((b) => (b.onclick = () => { UI.lib = b.dataset.lib || null; UI.run = null; UI.tab = 'hw'; render(); window.scrollTo(0, 0); }));
     $$('[data-lu]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'unit', ref: +b.dataset.lu, back: 'lib' }; render(); window.scrollTo(0, 0); }));
     $$('[data-lc]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'concept', cid: b.dataset.lc }; render(); window.scrollTo(0, 0); }));
@@ -1486,6 +1723,8 @@
   $('#brand').onclick = () => go('home');
   let rsT = 0, lastW = window.innerWidth; window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (Math.abs(window.innerWidth - lastW) > 80 && !$('.sheet')) { lastW = window.innerWidth; render(); } }, 250); });
   $('#me').onclick = () => go('me');
+  $('#pomo-top').onclick = openPomo;
+  $('#bell-top').onclick = toggleBell;
 
   // ───────── 세그먼트 · 칩: 고른 칸으로 미끄러지기 ─────────
   // 다시 그리면 DOM이 새로 생겨서, 이전 자리를 기억해 두었다가 거기서 새 자리로 옮겨요
@@ -1558,6 +1797,7 @@
     ding(c);
   }
   function ding(c) {
+    if (!SOUND) return;
     try {
       const A = ding.a || (ding.a = new (window.AudioContext || window.webkitAudioContext)());
       [523, 659, 784, 1047].slice(0, Math.min(2 + Math.floor(c / 2), 4)).forEach((f, i) => {
@@ -1592,6 +1832,7 @@
   window.__univStarted = true;
   document.body.classList.add('booting'); setTimeout(() => document.body.classList.remove('booting'), 1200);
   render();
+  if (P.run) pLoop();
   const sp = $('#splash'); if (sp) { sp.classList.add('out'); setTimeout(() => sp.remove(), 320); }
   const bm = $('#boot-msg'); if (bm) bm.remove();
   if (!S.profile.uni && !TEACHER) setTimeout(uniSheet, 600);
