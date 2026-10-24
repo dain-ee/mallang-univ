@@ -269,10 +269,14 @@
     const wtab = `<section class="card c6"><div class="card-h"><h2>과목별 오답</h2><button class="more" data-go="wrong">전체</button></div>${subjRows.length ? `<table class="tbl"><thead><tr><th>과목</th><th class="r">틀린 문제</th><th class="r">다시 맞힘</th></tr></thead><tbody>${subjRows.map((r) => `<tr><td><span class="dot" style="background:${SUBJ_COLOR[r.k]}"></span>${r.n}</td><td class="r num">${r.all}</td><td class="r num"><b class="${r.all - r.open ? 'blue' : ''}">${r.all - r.open}</b></td></tr>`).join('')}</tbody></table>` : `<div class="empty">${ic('memo')}<b>아직 없어요</b></div>`}</section>`;
     // 내신 학기별
     const nsRows = SEMS.map((sem) => ({ label: sem.replace('-', '학년 ') + '학기', v: { n: nsAvg(sem) } })).filter((r) => r.v.n != null);
-    const nscard = `<section class="card c6"><div class="card-h"><h2>내신 등급</h2><button class="more" data-go="score" data-seg="naesin">입력하기</button></div>${nsRows.length ? tossLine(nsRows.map((r) => ({ label: r.label, v: r.v.n })), { maxG: 5, h: 180, id: 'n1', color: '#03b26c', goal: p.goalNaesin }) : `<div class="empty">${ic('pencil')}<b>내신 등급을 넣어 주세요</b><span>학기마다 과목 등급을 넣으면 평균이 계산돼요</span></div>`}</section>`;
+    const nscard = (() => {
+      const sems = SEMS.filter((sem) => nsAvg(sem) != null);
+      const body = sems.length ? `<div class="list">${sems.map((sem) => { const rec = S.naesin[sem] || {}; const subs = nsSubjects(sem).filter((x) => nsG(rec[x.name])); const onlyMid = sem !== '1-1' && subs.every((x) => !+rec[x.name].grade && !+rec[x.name].finG); return `<div class="ns-sem"><div class="row between"><div><b>${sem.replace('-', '학년 ')}학기</b>${onlyMid ? '<span class="tiny"> · 중간고사까지</span>' : ''}</div><b class="num ns-big">${fmt1(nsAvg(sem))}<small>등급</small></b></div><div class="ns-subs">${subs.map((x) => { const g = nsG(rec[x.name]); return `<span class="ns-sub ${g <= 1 ? 'top' : ''}">${esc(x.name.replace(/[12]$/, ''))} <b class="num">${fmt1(g).replace(/\.0$/, '')}</b></span>`; }).join('')}</div></div>`; }).join('')}</div>${sems.length >= 3 ? tossLine(sems.map((sem) => ({ label: sem.replace('-', '학년 ') + '학기', v: nsAvg(sem) })), { maxG: 5, h: 160, id: 'n1', color: '#03b26c', goal: p.goalNaesin }) : ''}${p.goalNaesin ? `<p class="tiny" style="margin:12px 0 0">목표 ${p.goalNaesin}등급 · 5등급제 단위 수 가중 평균이에요</p>` : ''}` : `<div class="empty">${ic('pencil')}<b>내신 등급을 넣어 주세요</b><span>학기마다 과목 등급을 넣으면 평균이 계산돼요</span></div>`;
+      return `<section class="card c6"><div class="card-h"><h2>내신 등급</h2><button class="more" data-go="score" data-seg="naesin">입력하기</button></div>${body}</section>`;
+    })();
     const sgbc = sgbSummary('c6');
     const main = `<h1 class="h1">${bdayLeft() === 0 ? `${ic('party')} ${nameCall()}, 생일 축하해` : `${nameCall()}, ${greet()}`}</h1><p class="sub">${todayLine()}</p>
-      <div class="grid">${qlogCard()}${hero}${pos}${insightCard('c7')}${picksCard('c5')}${admitCard('c12')}${trend}${railCards(true)}${weak}${wtab}${nscard}${sgbc}</div>`;
+      <div class="grid">${hero}${pos}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${trend}${railCards(true)}${weak}${wtab}${nscard}${sgbc}</div>`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -1130,7 +1134,20 @@
     else if (kind === 'timeline') body = `<span class="tag">${esc(x.when)}</span><h2 style="margin-top:8px">${esc(x.title)}</h2><p class="ls-p">${esc(x.what || '')}</p>${x.why ? `<div class="deep"><div class="eyebrow">왜 중요해요</div><p style="margin:4px 0 0">${esc(x.why)}</p></div>` : ''}${newsRows(newsLike((x.title || '').split(/[ ·,()]+/).filter((w) => w.length >= 3)))}`;
     else if (kind === 'checklist') body = `<span class="tag">${esc(x.area || '')}${x.term ? ' · ' + esc(x.term) : ''}</span><h2 style="margin-top:8px">${esc(x.title)}</h2><p class="ls-p">${esc(x.detail || '')}</p>`;
     else body = `<h2>${esc(x.title)}</h2><p class="tiny" style="margin:-4px 0 12px">${esc(x.author || '')}${x.level ? ' · ' + esc(x.level) : ''}${x.popular ? ' · ' + esc(x.popular) : ''}</p><p class="ls-p">${esc(x.why || '')}</p>${x.seteuk ? `<div class="deep"><div class="eyebrow">세특으로 잇기</div><p style="margin:4px 0 0">${esc(x.seteuk)}</p></div>` : ''}${x.subj ? `<p class="tiny" style="margin-top:12px">관련 과목: ${esc(x.subj)}</p>` : ''}`;
-    sheet(`<p class="eyebrow" style="margin:0 0 8px">${ic('pill')} 생명공학 픽 · ${T[kind]}</p>${body}${srcList(x.src)}<button class="btn big block" style="margin-top:20px" data-back type="button">‹ ${T[kind]} 목록</button>`, (el) => bindDetail(el, () => picksSheet(kind)));
+    sheet(`<p class="eyebrow" style="margin:0 0 8px">${ic('pill')} 생명공학 픽 · ${T[kind]}</p>${body}${srcList(x.src)}<button class="btn big block" style="margin-top:20px" data-back type="button">‹ ${kind === 'timeline' ? '일정 전체' : T[kind] + ' 목록'}</button>`, (el) => bindDetail(el, () => (kind === 'timeline' ? schedSheet() : picksSheet(kind))));
+  }
+
+  function schedCard(cls) {
+    const ev = (D.events || []).filter((e) => e.kind !== 'csat' && dday(e.date) >= 0).map((e) => ({ date: e.date, t: e.title, tag: e.kind === 'exam' ? '시험' : e.kind === 'mock' ? '모의고사' : '학교' }));
+    const tl = (PICKS.timeline || []).map((x, i) => ({ x, i, date: /^\d{4}-\d{2}$/.test(x.when) ? x.when + '-01' : x.when })).filter((o) => /^\d{4}-\d{2}-\d{2}$/.test(o.date) && (dday(o.date) >= 0 || (o.x.when.length === 7 && o.x.when === today().slice(0, 7)))).map((o) => ({ date: o.date, month: o.x.when.length === 7, t: o.x.title, tag: o.x.kind || '입시', pi: o.i }));
+    const L = [...ev, ...tl].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 6);
+    return `<section class="card ${cls}"><div class="card-h"><h2>${ic('cal')} 다가오는 일정</h2><button class="more" id="sc-all" type="button">전체</button></div>${L.length ? `<div class="list">${L.map((e) => `<div class="li ${e.pi != null ? 'btnlike' : ''}" ${e.pi != null ? `data-pk="timeline:${e.pi}"` : ''}><div class="sc-d"><b class="num">${e.month ? +e.date.slice(5, 7) + '월' : md(e.date)}</b><span>${e.month ? '중' : dday(e.date) === 0 ? '오늘' : 'D-' + dday(e.date)}</span></div><div class="body"><div class="t" style="font-size:15px">${esc(e.t)}</div><div class="d">${esc(e.tag)}</div></div>${e.pi != null ? '<span class="chev"></span>' : ''}</div>`).join('')}</div>` : `<div class="empty">${ic('cal')}<b>다가오는 일정이 없어요</b></div>`}</section>`;
+  }
+  function schedSheet() {
+    const ev = (D.events || []).filter((e) => e.kind !== 'csat' && dday(e.date) >= 0).map((e) => ({ date: e.date, t: e.title, tag: e.kind === 'exam' ? '시험' : e.kind === 'mock' ? '모의고사' : '학교' }));
+    const tl = (PICKS.timeline || []).map((x, i) => ({ date: /^\d{4}-\d{2}$/.test(x.when) ? x.when + '-01' : x.when, when: x.when, t: x.title, tag: x.kind || '입시', pi: i, d: x.what })).filter((o) => /^\d{4}-\d{2}/.test(o.date));
+    const L = [...ev, ...tl].sort((a, b) => a.date.localeCompare(b.date));
+    sheet(`<h2>일정 전체</h2><p class="sub">학교 일정과 생명공학 진학 일정을 날짜 순서로 모았어요</p><div class="list">${L.map((e) => `<div class="li ${e.pi != null ? 'btnlike' : ''}" ${e.pi != null ? `data-pk="timeline:${e.pi}"` : ''}><div class="sc-d"><b class="num">${e.when && e.when.length === 7 ? +e.date.slice(5, 7) + '월' : md(e.date)}</b><span>${e.date.slice(0, 4)}</span></div><div class="body"><div class="t" style="font-size:15px">${esc(e.t)}</div><div class="d">${esc(e.tag)}</div></div>${e.pi != null ? '<span class="chev"></span>' : ''}</div>`).join('')}</div>`, (el) => { $$('[data-pk]', el).forEach((b) => (b.onclick = () => { const [k, i] = b.dataset.pk.split(':'); pickDetail(k, +i); })); });
   }
 
   // ───────── 생명공학 픽 ─────────
@@ -1143,7 +1160,7 @@
   }
   function picksSheet(start) {
     const P = PICKS; const tab = { v: typeof start === 'string' ? start : 'subjects' };
-    const T = [['subjects', '과목 선택'], ['topics', '탐구 주제'], ['timeline', '일정'], ['checklist', '채울 것'], ['books', '책']];
+    const T = [['subjects', '과목 선택'], ['topics', '탐구 주제'], ['checklist', '채울 것'], ['books', '책']];
     sheet(`<h2>생명공학 픽</h2><p class="sub">생명공학과 가려면 무엇을 언제 챙기는지 모았어요${P.updated ? ` · ${md(P.updated)} 기준` : ''}</p><div class="chips" id="pk-t"></div><div id="pk-b" style="margin-top:12px"></div>`, (el) => {
       const draw = () => {
         $('#pk-t', el).innerHTML = T.map(([k, n]) => `<button class="chip ${tab.v === k ? 'on' : ''}" type="button" data-pt="${k}">${n}</button>`).join('');
@@ -1350,6 +1367,7 @@
     $$('[data-ins]').forEach((b) => (b.onclick = () => doInsight(b.dataset.ins)));
     const pk = $('#pk-all'); if (pk) pk.onclick = picksSheet;
     const ad = $('#ad-all'); if (ad) ad.onclick = admitSheet;
+    const sca = $('#sc-all'); if (sca) sca.onclick = schedSheet;
     $$('main [data-du]').forEach((b) => (b.onclick = () => uniDetail(b.dataset.du)));
     $$('[data-pk]').forEach((b) => (b.onclick = () => { const [k, i] = b.dataset.pk.split(':'); pickDetail(k, +i); }));
     if (!UI.run && UI.tab === 'sgb') bindLogs();

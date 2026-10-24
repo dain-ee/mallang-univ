@@ -504,3 +504,16 @@ select.inp { appearance: none; background-image: linear-gradient(45deg, transpar
 @media (min-width: 900px) { .card.c8 .lib-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 /* 버튼을 카드 바닥에 붙이기 (옆 카드에 맞춰 늘어날 때 빈칸은 위로) */
 .col-card { display: flex; flex-direction: column; }
+/* 내신 학기 요약 */
+.ns-sem { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.ns-sem:last-child { border-bottom: 0; }
+.ns-big { font-size: 24px; color: var(--green); }
+.ns-big small { font-size: 13px; color: var(--t3); margin-left: 2px; font-weight: 600; }
+.ns-subs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.ns-sub { font-size: 13px; color: var(--t2); background: var(--fill2); border-radius: 8px; padding: 4px 8px; }
+.ns-sub b { margin-left: 2px; }
+.ns-sub.top b { color: var(--green); }
+/* 일정 날짜 칸 */
+.sc-d { flex: none; width: 56px; display: flex; flex-direction: column; align-items: center; padding: 6px 0; border-radius: 12px; background: var(--fill2); }
+.sc-d b { font-size: 14px; }
+.sc-d span { font-size: 11px; color: var(--t3); font-weight: 600; }
