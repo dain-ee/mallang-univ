@@ -1044,13 +1044,13 @@
   function trackRow(t) {
     const cut = t.type === '정시' ? (t.pct70 != null ? `백분위 ${t.pct70}` : '-') : t.cut70 != null ? `70% ${g2(t.cut70)}` : t.avg != null ? `평균 ${g2(t.avg)}` : '-';
     const noMin = !t.min || /^(없음|해당 없음)/.test(t.min);
-    return `<div class="li" style="align-items:flex-start"><span class="tag ${t.type === '교과' ? 'blue' : t.type === '종합' ? 'green' : ''}" style="flex:none">${esc(t.type)}</span><div class="body"><div class="t" style="font-size:15px">${esc(t.name)}${t.seats ? ` <span class="tiny">${t.seats}명</span>` : ''}</div>${t.type === '정시' ? '' : `<div class="d" style="line-height:1.6">${noMin ? '수능최저 없음' : '수능최저 ' + esc(t.min)}</div>`}${t.memo ? `<details class="ad-memo"><summary>자세히</summary><p class="tiny">${esc(t.memo)}${t.src ? `<br><a href="${esc(t.src)}" target="_blank" rel="noopener">출처</a>` : ''}</p></details>` : ''}</div><b class="num" style="flex:none;font-size:15px">${cut}</b></div>`;
+    return `<div class="li btnlike" data-du="${esc(t._u || '')}" style="align-items:flex-start"><span class="tag ${t.type === '교과' ? 'blue' : t.type === '종합' ? 'green' : ''}" style="flex:none">${esc(t.type)}</span><div class="body"><div class="t" style="font-size:15px">${esc(t.name)}${t.seats ? ` <span class="tiny">${t.seats}명</span>` : ''}</div>${t.type === '정시' ? '' : `<div class="d" style="line-height:1.6">${noMin ? '수능최저 없음' : '수능최저 ' + esc(t.min)}</div>`}</div><b class="num" style="flex:none;font-size:15px">${cut}</b><span class="chev"></span></div>`;
   }
   function admitCard(cls) {
     if (!ADMIT) return '';
     const u = uniOf(S.profile.uni), a = u && admitOf(u.id);
     return `<section class="card ${cls}"><div class="card-h"><h2>${ic('target')} ${a ? `${esc(u.short || u.name)} ${esc(a.dept)} 합격선` : '대학별 합격선'}</h2><button class="more" id="ad-all" type="button">24개 대학 비교</button></div>
-      ${a ? `<p class="tiny" style="margin:0 0 8px">${esc(a.year)} 입결 · 9등급제 기준이라 참고용이에요</p><div class="list">${a.tracks.map(trackRow).join('')}</div>` : `<div class="empty">${ic('target')}<b>목표 대학을 고르면 그 대학 합격선이 나와요</b></div>`}</section>`;
+      ${a ? `<p class="tiny" style="margin:0 0 8px">${esc(a.year)} 입결 · 9등급제 기준이라 참고용이에요</p><div class="list">${a.tracks.map((t) => trackRow({ ...t, _u: a.id })).join('')}</div>` : `<div class="empty">${ic('target')}<b>목표 대학을 고르면 그 대학 합격선이 나와요</b></div>`}</section>`;
   }
   function admitSheet() {
     const f = { v: '교과' };
@@ -1060,34 +1060,76 @@
         $$('[data-at]', el).forEach((b) => (b.onclick = () => { f.v = b.dataset.at; draw(); }));
         const key = (t) => (f.v === '정시' ? (t.pct70 != null ? -t.pct70 : 999) : t.cut70 != null ? t.cut70 : t.avg != null ? t.avg : 999);
         const rows = ADMIT.unis.flatMap((x) => x.tracks.filter((t) => t.type === f.v).map((t) => ({ x, t }))).sort((p, q) => key(p.t) - key(q.t));
-        $('#ad-b', el).innerHTML = rows.length ? `<div class="list">${rows.map(({ x, t }) => { const u = uniOf(x.id); return `<div class="li" style="align-items:flex-start">${u ? emb(u, 'sm') : ''}<div class="body"><div class="t" style="font-size:15px">${esc((u && u.short) || x.name)} <span class="tiny">${esc(x.dept)}</span></div><div class="d" style="line-height:1.6">${esc(t.name)}${t.seats ? ` · ${t.seats}명` : ''}${f.v === '정시' ? '' : `<br>${!t.min || /^(없음|해당 없음)/.test(t.min) ? '수능최저 없음' : '수능최저 ' + esc(t.min)}`}</div></div><b class="num" style="flex:none;font-size:15px">${f.v === '정시' ? (t.pct70 != null ? t.pct70 : '-') : t.cut70 != null ? g2(t.cut70) : t.avg != null ? '평균 ' + g2(t.avg) : '-'}</b></div>`; }).join('')}</div><p class="tiny" style="margin-top:12px">${f.v === '정시' ? '국·수·탐 백분위 70%컷이에요. 높을수록 어려워요' : '숫자는 합격자 내신 70%컷(없으면 평균)이에요. 낮을수록 어려워요'} · ${esc(ADMIT.updated)} 조사</p>` : '<div class="empty"><b>자료가 없어요</b></div>';
+        $('#ad-b', el).innerHTML = rows.length ? `<div class="list">${rows.map(({ x, t }) => { const u = uniOf(x.id); return `<div class="li btnlike" data-du="${esc(x.id)}" style="align-items:flex-start">${u ? emb(u, 'sm') : ''}<div class="body"><div class="t" style="font-size:15px">${esc((u && u.short) || x.name)} <span class="tiny">${esc(x.dept)}</span></div><div class="d" style="line-height:1.6">${esc(t.name)}${t.seats ? ` · ${t.seats}명` : ''}${f.v === '정시' ? '' : `<br>${!t.min || /^(없음|해당 없음)/.test(t.min) ? '수능최저 없음' : '수능최저 ' + esc(t.min)}`}</div></div><b class="num" style="flex:none;font-size:15px">${f.v === '정시' ? (t.pct70 != null ? t.pct70 : '-') : t.cut70 != null ? g2(t.cut70) : t.avg != null ? '평균 ' + g2(t.avg) : '-'}</b><span class="chev"></span></div>`; }).join('')}</div><p class="tiny" style="margin-top:12px">눌러서 대학별 자세히 보기 · ${f.v === '정시' ? '국·수·탐 백분위 70%컷이에요. 높을수록 어려워요' : '숫자는 합격자 내신 70%컷(없으면 평균)이에요. 낮을수록 어려워요'} · ${esc(ADMIT.updated)} 조사</p>` : '<div class="empty"><b>자료가 없어요</b></div>';
+        $$('[data-du]', el).forEach((b) => (b.onclick = () => uniDetail(b.dataset.du)));
       };
       draw();
     });
+  }
+
+  // ───────── 상세 화면 (픽·합격선을 누르면) ─────────
+  const NEWS_ALL = () => (D.news && D.news.items) || [];
+  const srcList = (src) => (src || []).length ? `<div class="eyebrow" style="margin-top:20px">출처</div><div class="list">${src.map((x) => `<a class="li btnlike" href="${esc(x.url)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="ico">${ic('pin')}</div><div class="body"><div class="t" style="font-size:14px">${esc(x.name)}</div><div class="d">원문 보기</div></div><span class="chev"></span></a>`).join('')}</div>` : '';
+  const newsRows = (L) => L.length ? `<div class="eyebrow" style="margin-top:20px">관련 소식</div><div class="list">${L.slice(0, 5).map((n) => `<div class="li btnlike" data-dn="${esc(n.id)}"><div class="ico">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'sm') : ic('news')}</div><div class="body"><div class="t" style="font-size:15px">${esc(n.title)}</div><div class="d">${md(n.date)} · ${esc(n.scope || '')}</div></div><span class="chev"></span></div>`).join('')}</div>` : '';
+  const newsLike = (words) => NEWS_ALL().filter((n) => words.some((w) => w && (n.title + ' ' + n.body).includes(w))).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  function bindDetail(el, back) {
+    $$('[data-dn]', el).forEach((b) => (b.onclick = () => newsSheet(b.dataset.dn)));
+    $$('[data-du]', el).forEach((b) => (b.onclick = () => uniDetail(b.dataset.du)));
+    const bk = $('[data-back]', el); if (bk) bk.onclick = back;
+  }
+  function uniDetail(id) {
+    const u = uniOf(id), a = admitOf(id); if (!a) return;
+    const nm = (u && u.short) || a.name.replace('대학교', '대');
+    const subs = (PICKS.subjects || []).filter((x) => (x.unis || []).some((t) => t.startsWith(nm)));
+    const tr = (t) => { const noMin = !t.min || /^(없음|해당 없음)/.test(t.min); const nums = t.type === '정시' ? [['백분위 70%', t.pct70]] : [['50%컷', t.cut50], ['70%컷', t.cut70], ['평균', t.avg]]; return `<div class="ad-tr"><div class="row between" style="gap:8px"><b style="font-size:16px">${esc(t.name)}</b><span class="tag ${t.type === '교과' ? 'blue' : t.type === '종합' ? 'green' : ''}">${esc(t.type)}</span></div>
+      <div class="ad-nums">${nums.map(([k, v]) => `<div><span>${k}</span><b class="num">${v == null ? '-' : t.type === '정시' ? v : g2(v)}</b></div>`).join('')}${t.seats ? `<div><span>모집</span><b class="num">${t.seats}명</b></div>` : ''}</div>
+      ${t.type === '정시' ? '' : `<p class="ad-min ${noMin ? '' : 'on'}"><b>수능최저</b> ${noMin ? '없음' : esc(t.min)}</p>`}${t.memo ? `<p class="ad-memo-t">${esc(t.memo)}</p>` : ''}${t.src ? `<a class="tiny" href="${esc(t.src)}" target="_blank" rel="noopener">입시 결과 원문</a>` : ''}</div>`; };
+    sheet(`<div class="row" style="gap:12px;margin-bottom:8px">${u ? emb(u, 'md') : ''}<div><h2 style="margin:0">${esc(a.name)}</h2><p class="tiny" style="margin:2px 0 0">${esc(a.dept)} · ${esc(a.year)} 입결</p></div></div>
+      <div class="deep" style="margin:12px 0 16px"><p style="margin:0">${esc(ADMIT.note)}</p></div>
+      ${a.tracks.map(tr).join('')}
+      ${subs.length ? `<div class="eyebrow" style="margin-top:20px">이 대학이 권하는 고2 과목</div><div class="list">${subs.map((x) => `<div class="li"><div class="body"><div class="t" style="font-size:15px">${esc(x.name)}</div><div class="d">${esc((x.unis || []).find((t) => t.startsWith(nm)) || '')}</div></div><span class="tag ${x.level === '핵심' ? 'blue' : ''}">${esc(x.level || '')}</span></div>`).join('')}</div>` : ''}
+      ${newsRows(NEWS_ALL().filter((n) => n.uni === id).sort((p, q) => String(q.date).localeCompare(String(p.date))))}
+      <div class="row" style="margin-top:20px"><button class="btn big" style="flex:1" data-back type="button">‹ 대학 비교</button>${S.profile.uni === id ? '' : `<button class="btn primary big" style="flex:1" id="ud-goal" type="button">목표로 정하기</button>`}</div>`, (el, close) => {
+      bindDetail(el, admitSheet);
+      const g = $('#ud-goal', el); if (g) g.onclick = () => { S.profile.uni = id; save('profile'); close(); render(); toast(`${nm} 목표, 응원해요`); };
+    });
+  }
+  function pickDetail(kind, i) {
+    const x = (PICKS[kind] || [])[i]; if (!x) return;
+    const T = { subjects: '고2 과목 선택', topics: '탐구 주제', timeline: '일정', checklist: '채울 것', books: '책' };
+    let body = '';
+    if (kind === 'subjects') body = `<h2>${esc(x.name)} <span class="tag ${x.level === '핵심' ? 'blue' : ''}">${esc(x.level || '')}</span></h2><p class="ls-p">${esc(x.why || '')}</p>${x.school ? `<div class="deep"><div class="eyebrow">경화여고에서는</div><p style="margin:4px 0 0">${esc(x.school)}</p></div>` : ''}
+      ${(x.unis || []).length ? `<div class="eyebrow" style="margin-top:20px">대학마다</div><div class="list">${x.unis.map((t) => { const a = ADMIT && ADMIT.unis.find((y) => t.startsWith((uniOf(y.id) || {}).short || '@')); return `<div class="li ${a ? 'btnlike' : ''}" ${a ? `data-du="${esc(a.id)}"` : ''}>${a && uniOf(a.id) ? emb(uniOf(a.id), 'sm') : ''}<div class="body"><div class="t" style="font-size:15px">${esc(t)}</div>${a ? '<div class="d">눌러서 합격선 보기</div>' : ''}</div>${a ? '<span class="chev"></span>' : ''}</div>`; }).join('')}</div>` : ''}${newsRows(newsLike([x.name, '권장과목', '권장 과목']))}`;
+    else if (kind === 'topics') body = `<p class="tiny" style="margin:0 0 4px">${esc(x.subj)} · ${esc(x.unit)}</p><h2>${esc(x.idea)}</h2>${x.how ? `<div class="eyebrow" style="margin-top:16px">어떻게 해요</div><p class="ls-p">${esc(x.how)}</p>` : ''}${x.link ? `<div class="deep"><div class="eyebrow">생명공학과 이어지는 점</div><p style="margin:4px 0 0">${esc(x.link)}</p></div>` : ''}<p class="tiny" style="margin-top:16px">수업 발표·보고서·수행평가로 해야 세특에 적혀요. 해 본 뒤 생기부 탭에 기록해 두면 좋아요</p>`;
+    else if (kind === 'timeline') body = `<span class="tag">${esc(x.when)}</span><h2 style="margin-top:8px">${esc(x.title)}</h2><p class="ls-p">${esc(x.what || '')}</p>${x.why ? `<div class="deep"><div class="eyebrow">왜 중요해요</div><p style="margin:4px 0 0">${esc(x.why)}</p></div>` : ''}${newsRows(newsLike((x.title || '').split(/[ ·,()]+/).filter((w) => w.length >= 3)))}`;
+    else if (kind === 'checklist') body = `<span class="tag">${esc(x.area || '')}${x.term ? ' · ' + esc(x.term) : ''}</span><h2 style="margin-top:8px">${esc(x.title)}</h2><p class="ls-p">${esc(x.detail || '')}</p>`;
+    else body = `<h2>${esc(x.title)}</h2><p class="tiny" style="margin:-4px 0 12px">${esc(x.author || '')}${x.level ? ' · ' + esc(x.level) : ''}${x.popular ? ' · ' + esc(x.popular) : ''}</p><p class="ls-p">${esc(x.why || '')}</p>${x.seteuk ? `<div class="deep"><div class="eyebrow">세특으로 잇기</div><p style="margin:4px 0 0">${esc(x.seteuk)}</p></div>` : ''}${x.subj ? `<p class="tiny" style="margin-top:12px">관련 과목: ${esc(x.subj)}</p>` : ''}`;
+    sheet(`<p class="eyebrow" style="margin:0 0 8px">${ic('pill')} 생명공학 픽 · ${T[kind]}</p>${body}${srcList(x.src)}<button class="btn big block" style="margin-top:20px" data-back type="button">‹ ${T[kind]} 목록</button>`, (el) => bindDetail(el, () => picksSheet(kind)));
   }
 
   // ───────── 생명공학 픽 ─────────
   function picksCard(cls) {
     const subs = (PICKS.subjects || []).slice(0, 6), tops = (PICKS.topics || []).filter((x) => /중화|산과 염기|전기|전자기|발전|대한민국/.test((x.unit || '') + (x.idea || ''))).slice(0, 2);
     return `<section class="card ${cls}"><div class="card-h"><h2>${ic('pill')} 생명공학 픽</h2><button class="more" id="pk-all" type="button">전체 보기</button></div>
-      ${subs.length ? `<div class="eyebrow">고2에 고르면 좋은 과목</div><div class="row wrap" style="margin:8px 0 16px">${subs.map((x) => `<span class="tag ${x.level === '핵심' ? 'blue' : ''}">${esc(x.name)}${x.level ? ' · ' + esc(x.level) : ''}</span>`).join('')}</div>` : ''}
-      ${tops.length ? `<div class="eyebrow">이번 시험 범위로 해 볼 탐구</div><div class="list">${tops.map((x) => `<div class="li" style="align-items:flex-start"><div class="body"><div class="t" style="font-size:15px">${esc(x.idea)}</div><div class="d">${esc(x.subj)} · ${esc(x.unit)}</div></div></div>`).join('')}</div>` : ''}
+      ${subs.length ? `<div class="eyebrow">고2에 고르면 좋은 과목</div><div class="row wrap" style="margin:8px 0 16px">${subs.map((x, i) => `<button type="button" class="tag tag-btn ${x.level === '핵심' ? 'blue' : ''}" data-pk="subjects:${i}">${esc(x.name)}${x.level ? ' · ' + esc(x.level) : ''}</button>`).join('')}</div>` : ''}
+      ${tops.length ? `<div class="eyebrow">이번 시험 범위로 해 볼 탐구</div><div class="list">${tops.map((x) => `<div class="li btnlike" data-pk="topics:${(PICKS.topics || []).indexOf(x)}" style="align-items:flex-start"><div class="body"><div class="t" style="font-size:15px">${esc(x.idea)}</div><div class="d">${esc(x.subj)} · ${esc(x.unit)}</div></div><span class="chev"></span></div>`).join('')}</div>` : ''}
       ${!subs.length && !tops.length ? `<div class="empty">${ic('pill')}<b>생명공학 준비 자료를 모으는 중이에요</b></div>` : ''}</section>`;
   }
-  function picksSheet() {
-    const P = PICKS; const tab = { v: 'subjects' };
+  function picksSheet(start) {
+    const P = PICKS; const tab = { v: typeof start === 'string' ? start : 'subjects' };
     const T = [['subjects', '과목 선택'], ['topics', '탐구 주제'], ['timeline', '일정'], ['checklist', '채울 것'], ['books', '책']];
     sheet(`<h2>생명공학 픽</h2><p class="sub">생명공학과 가려면 무엇을 언제 챙기는지 모았어요${P.updated ? ` · ${md(P.updated)} 기준` : ''}</p><div class="chips" id="pk-t"></div><div id="pk-b" style="margin-top:12px"></div>`, (el) => {
       const draw = () => {
         $('#pk-t', el).innerHTML = T.map(([k, n]) => `<button class="chip ${tab.v === k ? 'on' : ''}" type="button" data-pt="${k}">${n}</button>`).join('');
         $$('[data-pt]', el).forEach((b) => (b.onclick = () => { tab.v = b.dataset.pt; draw(); }));
         const L = P[tab.v] || [];
-        const row = (t, d, tag) => `<div class="li" style="align-items:flex-start"><div class="body"><div class="t" style="line-height:1.5">${t}</div>${d ? `<div class="d" style="line-height:1.6;margin-top:2px">${d}</div>` : ''}</div>${tag || ''}</div>`;
-        $('#pk-b', el).innerHTML = L.length ? `<div class="list">${L.map((x) => tab.v === 'subjects' ? row(esc(x.name), esc(x.why || '') + (x.unis && x.unis.length ? `<br><span class="tiny">${esc(x.unis.join(', '))}</span>` : ''), `<span class="tag ${x.level === '핵심' ? 'blue' : ''}">${esc(x.level || '')}</span>`)
+        const row = (t, d, tag) => `<div class="li btnlike" data-pd="${L.indexOf(cur)}" style="align-items:flex-start"><div class="body"><div class="t" style="line-height:1.5">${t}</div>${d ? `<div class="d" style="line-height:1.6;margin-top:2px">${d}</div>` : ''}</div>${tag || ''}</div>`;
+        let cur; $('#pk-b', el).innerHTML = L.length ? `<div class="list">${L.map((x) => (cur = x, tab.v === 'subjects') ? row(esc(x.name), esc(x.why || '') + (x.unis && x.unis.length ? `<br><span class="tiny">${esc(x.unis.join(', '))}</span>` : ''), `<span class="tag ${x.level === '핵심' ? 'blue' : ''}">${esc(x.level || '')}</span>`)
           : tab.v === 'topics' ? row(esc(x.idea), `${esc(x.subj)} · ${esc(x.unit)}${x.how ? '<br>' + esc(x.how) : ''}${x.link ? `<br><span class="blue">${esc(x.link)}</span>` : ''}`)
           : tab.v === 'timeline' ? row(esc(x.title), esc(x.what || '') + (x.why ? '<br>' + esc(x.why) : ''), `<span class="tag">${esc(x.when)}</span>`)
           : tab.v === 'checklist' ? row(esc(x.title), esc(x.detail || ''), `<span class="tag">${esc(x.area || '')}</span>`)
           : row(`${esc(x.title)} <span class="tiny">${esc(x.author || '')}</span>`, esc(x.why || '') + (x.seteuk ? `<br><span class="tiny"><b>세특으로</b> ${esc(x.seteuk)}</span>` : '') + (x.subj ? `<br><span class="tiny">${esc(x.subj)}${x.popular ? ' · ' + esc(x.popular) : ''}</span>` : ''), x.level ? `<span class="tag ${x.level === '쉬움' ? 'green' : x.level === '도전' ? 'red' : 'blue'}">${esc(x.level)}</span>` : '')).join('')}</div>` : `<div class="empty"><b>준비 중이에요</b></div>`;
+        $$('[data-pd]', el).forEach((b) => (b.onclick = () => pickDetail(tab.v, +b.dataset.pd)));
       };
       draw();
     });
@@ -1280,6 +1322,8 @@
     $$('[data-ins]').forEach((b) => (b.onclick = () => doInsight(b.dataset.ins)));
     const pk = $('#pk-all'); if (pk) pk.onclick = picksSheet;
     const ad = $('#ad-all'); if (ad) ad.onclick = admitSheet;
+    $$('main [data-du]').forEach((b) => (b.onclick = () => uniDetail(b.dataset.du)));
+    $$('[data-pk]').forEach((b) => (b.onclick = () => { const [k, i] = b.dataset.pk.split(':'); pickDetail(k, +i); }));
     if (!UI.run && UI.tab === 'sgb') bindLogs();
     if (!UI.run && UI.tab === 'score') { if (UI.scoreSeg === 'mock' && UI.mockId) bindMock(); if (UI.scoreSeg === 'naesin') bindNaesin(); }
   }

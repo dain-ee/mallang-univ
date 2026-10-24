@@ -489,3 +489,15 @@ select.inp { appearance: none; background-image: linear-gradient(45deg, transpar
 @media (max-width: 720px) { .wd-list { grid-template-columns: 1fr; } }
 .ad-memo summary { cursor: pointer; color: var(--t3); font-size: 13px; margin-top: 4px; }
 .ad-memo p { margin: 4px 0 0; line-height: 1.6; }
+/* 상세 화면 */
+.tag-btn { border: 0; cursor: pointer; font-family: inherit; }
+.tag-btn:hover { filter: brightness(.96); }
+.ls-p { line-height: 1.8; color: var(--t2); margin: 8px 0 16px; }
+.ad-tr { padding: 16px 0; border-top: 1px solid var(--line); }
+.ad-nums { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.ad-nums div { flex: 1 1 72px; padding: 10px 12px; border-radius: 12px; background: var(--fill2); }
+.ad-nums span { display: block; font-size: 12px; color: var(--t3); }
+.ad-nums b { font-size: 18px; }
+.ad-min { margin: 0 0 8px; font-size: 14px; line-height: 1.6; color: var(--t2); }
+.ad-min.on b { color: var(--red); }
+.ad-memo-t { margin: 0 0 6px; font-size: 13px; line-height: 1.7; color: var(--t3); }
