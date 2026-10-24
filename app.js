@@ -142,9 +142,9 @@
   const conceptOf = (qid) => SCI.concepts.find((c) => (c.base || []).some((q) => q.id === qid) || (c.deep || []).some((q) => q.id === qid));
   const qById = (qid) => { for (const c of SCI.concepts) for (const q of [...(c.base || []), ...(c.deep || [])]) if (q.id === qid) return q; return null; };
   const unitOf = (id) => SCI.units.find((u) => u.id === id) || { title: '' };
-  function sciToday() {
+  function sciToday(force) {
     const t = today(); S.sci = S.sci || { days: {} }; S.sci.days = S.sci.days || {};
-    if (!S.sci.days[t] && SCI.concepts.length && onDay('sci')) {
+    if (!S.sci.days[t] && SCI.concepts.length && (onDay('sci') || force)) {
       const seen = new Set(Object.values(S.sci.days).flatMap((d) => (d.list || []).map((x) => x.c)));
       const weak = SCI.concepts.filter((c) => openWrong().some((w) => w.src === 'sci' && w.concept === c.id));
       const fresh = SCI.concepts.filter((c) => !seen.has(c.id));
@@ -347,7 +347,7 @@
     const planTxt = PLAN_KINDS.map((x) => planOf(x.k).length).every((n, i, a) => n === a[0]) ? `${planOf('sci').length === 5 && planOf('sci').every((d) => d >= 1 && d <= 5) ? '평일 매일' : planOf('sci').slice().sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7)).map((d) => DOW[d]).join('') + ` 주${planOf('sci').length}회`}` : '과제마다 다르게';
     return `<h1 class="h1">오늘의 숙제</h1><div class="row between wrap" style="gap:8px;margin-bottom:16px"><p class="sub" style="margin:0">${todayLine()}</p><button class="btn sm" id="plan-open" type="button">${ic('cal')} 숙제 요일 · ${esc(planTxt)}</button></div>
     <div class="grid">
-      <section class="card c4 link" data-task="sci"><div class="row between"><span class="eyebrow">${ic('sci')} 오늘의 과학</span><span class="tag ${st.done >= st.n && st.n ? 'blue' : ''}">${st.done}/${st.n}</span></div><p class="big" style="margin:12px 0 4px">${st.n ? (st.done >= st.n ? `${st.ok}문제 맞혔어요` : `${st.n - st.done}문제 남았어요`) : '문제 준비 중'}</p><p class="muted" style="margin:0 0 16px">틀리면 개념을 쪼개서 더 깊게 물어봐요</p><div class="progress-dots">${(sd.list || []).map((x) => `<i class="${sd.ans[x.q] ? (sd.ans[x.q].ok ? 'ok' : 'no') : ''}"></i>`).join('')}</div></section>
+      <section class="card c4 link" data-task="sci"><div class="row between"><span class="eyebrow">${ic('sci')} 오늘의 과학</span><span class="tag ${st.done >= st.n && st.n ? 'blue' : ''}">${st.done}/${st.n}</span></div><p class="big" style="margin:12px 0 4px">${st.n ? (st.done >= st.n ? `${st.ok}문제 맞혔어요` : `${st.n - st.done}문제 남았어요`) : !onDay('sci') ? '오늘은 쉬는 날' : '문제 준비 중'}</p><p class="muted" style="margin:0 0 16px">틀리면 개념을 쪼개서 더 깊게 물어봐요</p><div class="progress-dots">${(sd.list || []).map((x) => `<i class="${sd.ans[x.q] ? (sd.ans[x.q].ok ? 'ok' : 'no') : ''}"></i>`).join('')}</div></section>
       <section class="card c4 link" data-task="unit"><div class="row between"><span class="eyebrow">${ic('eng')} 천일문</span>${ed.udone ? '<span class="tag blue">완료</span>' : ''}</div><p class="big" style="margin:12px 0 4px">${un ? `Unit ${esc(un.unit)}` : '준비 중'}</p><p class="muted" style="margin:0">${un ? esc(un.title) : '자료를 넣는 중이에요'}</p></section>
       <section class="card c4 link" data-task="words"><div class="row between"><span class="eyebrow">${ic('books')} 워드마스터 하이스트</span>${wdone >= 10 ? '<span class="tag blue">완료</span>' : ''}</div><p class="big" style="margin:12px 0 4px">${wl.length ? (wdone >= wl.length ? `${Object.values(ed.wans).filter((x) => x.ok).length}/${wl.length} 맞힘` : '단어 10개 시험') : '준비 중'}</p><p class="muted" style="margin:0">${wl.length ? `Day ${wl[0].day} · 외우고 바로 시험` : '단어장을 넣는 중이에요'}</p></section>
       ${G3.length ? (() => { const g = G3[ed.g3 || 0]; return `<section class="card c12 link" data-task="g3"><div class="row between"><span class="eyebrow">${ic('eng')} 고3 영어 하루 한 문제</span>${ed.g3done ? '<span class="tag blue">완료</span>' : ed.off ? '<span class="tag">주말</span>' : ''}</div><p class="big" style="margin:12px 0 4px">${g ? esc(g.type || '독해') + ' · ' + esc(g.src || '') : '준비 중'}</p><p class="muted" style="margin:0">풀고 나면 문장마다 해석·구문 분석이 나오고, 천일문 그 유닛으로 바로 가요</p></section>`; })() : ''}
@@ -400,7 +400,7 @@
 
   // 과학 풀기
   function sciRun() {
-    const d = sciToday(); const list = d.list || [];
+    const d = sciToday(true); const list = d.list || [];
     let i = list.findIndex((x) => !d.ans[x.q]);
     if (UI.run && UI.run.i != null && d.ans[list[UI.run.i] && list[UI.run.i].q] && UI.run.showing) i = UI.run.i;
     if (i < 0) { const st = dayStat(d); return `<div class="qwrap card" style="max-width:720px;margin:0 auto">${ic('party', 'ic')}<h1 class="h1">오늘의 과학 끝!</h1><p class="sub">${st.ok}/${st.n} 맞혔어요${st.all > st.n ? `, 깊게 ${st.all - st.n}문제를 더 풀었어요` : ''}. 틀린 문제는 오답 노트에 쌓였어요.</p><div class="row"><button class="btn soft big" data-go="wrong" type="button">오답 노트 보기</button><button class="btn big" data-go="home" type="button">홈으로</button></div></div>`; }
@@ -727,7 +727,7 @@
     const draw = (el) => {
       const a = areaOf(cur), L = (S.sgb || []).filter((x) => x.area === cur).sort((p, q) => (p.at || 0) - (q.at || 0));
       const groups = cur === 'setuk' ? [...new Set(L.map((x) => x.subj || '과목 없음'))].map((g) => ({ g, L: L.filter((x) => (x.subj || '과목 없음') === g) })) : [{ g: '', L }];
-      $('#pk-body', el).innerHTML = `<div class="seg" style="margin-bottom:12px">${AREAS.map((x) => `<button type="button" class="${x.key === cur ? 'on' : ''}" data-pa="${x.key}">${esc(x.name.replace(' 및 종합의견', ''))}</button>`).join('')}</div>
+      $('#pk-body', el).innerHTML = `<div class="chips wrap" style="margin-bottom:12px">${AREAS.map((x) => `<button type="button" class="chip sm ${x.key === cur ? 'on' : ''}" data-pa="${x.key}">${esc(x.name.replace(' 및 종합의견', ''))}</button>`).join('')}</div>
         ${L.length ? groups.map(({ g, L: G }) => { const ch = G.filter((x) => x.pick).reduce((s2, x) => s2 + [...sgText(x)].length, 0); const over = ch > a.limit; return `<div class="pk-g">${g ? `<div class="row between" style="margin:12px 0 8px"><b>${esc(g)}</b></div>` : ''}<div class="row between tiny" style="margin-bottom:8px"><span>고른 글 <b class="num" style="color:${over ? 'var(--red)' : 'var(--t1)'}">${ch}</b> / ${a.limit}자${over ? ` · ${ch - a.limit}자 넘어요. 하나를 빼거나 줄여요` : ''}</span></div><div class="bar" style="margin-bottom:8px"><span style="width:${Math.min(100, (ch / a.limit) * 100)}%;${over ? 'background:var(--red)' : ''}"></span></div>${G.map((x) => { const t = sgText(x); return `<button type="button" class="pk-it ${x.pick ? 'on' : ''}" data-pk="${esc(x.id)}"><span class="ck">${x.pick ? '✓' : ''}</span><span class="body"><b>${esc(x.topic || '(제목 없음)')}</b><span class="tiny">${[...t].length}자 · ${x.final ? '다듬음' : '초안'} · ${new Date(x.at).getMonth() + 1}월 ${new Date(x.at).getDate()}일</span><span class="pk-t">${esc(t.slice(0, 90))}${t.length > 90 ? '…' : ''}</span></span></button>`; }).join('')}</div>`; }).join('') : `<div class="empty">${ic('write')}<b>${esc(a.name)} 기록이 아직 없어요</b><span>먼저 기록을 모아 두면 여기서 고를 수 있어요</span></div>`}`;
       $$('[data-pa]', el).forEach((b) => (b.onclick = () => { cur = b.dataset.pa; draw(el); }));
       $$('[data-pk]', el).forEach((b) => (b.onclick = () => { const x = S.sgb.find((y) => y.id === b.dataset.pk); x.pick = !x.pick; save('sgb'); draw(el); }));
@@ -878,9 +878,9 @@
     const pick = UI.qlSubj || '';
     return `<section class="card c12 qlog"><div class="card-h"><h2>${ic('write')} 오늘 학교에서 한 것</h2><span class="tiny">${todayN ? `오늘 ${todayN}개 적었어요` : '한 줄이면 충분해요'}</span></div>
       <p class="tiny" style="margin:-4px 0 12px">발표·토론에서 잠깐 생각한 것도 좋아요. 나중엔 기억이 안 나서 못 써요</p>
-      <div class="chips" style="margin-bottom:8px">${LOG_SUBJ.map((s) => `<button class="chip ${pick === s ? 'on' : ''}" type="button" data-qls="${s}">${s}</button>`).join('')}</div>
+      <div class="chips wrap" style="margin-bottom:8px">${LOG_SUBJ.map((s) => `<button class="chip ${pick === s ? 'on' : ''}" type="button" data-qls="${s}">${s}</button>`).join('')}</div>
       <div class="ql-row"><textarea class="inp" id="ql-t" rows="2" placeholder="예) 국어 조별 토론에서 「SNS 실명제」 반대 쪽을 맡아, 표현의 자유와 사생활을 근거로 반박했다"></textarea><button class="btn primary" id="ql-ok" type="button">적기</button></div>
-      <div class="chips" style="margin-top:8px">${LOG_KIND.map((k) => `<button class="chip sm ${UI.qlKind === k ? 'on' : ''}" type="button" data-qlk="${k}">${k}</button>`).join('')}</div>
+      <div class="chips wrap" style="margin-top:8px">${LOG_KIND.map((k) => `<button class="chip sm ${UI.qlKind === k ? 'on' : ''}" type="button" data-qlk="${k}">${k}</button>`).join('')}</div>
       ${L.length ? `<div class="list" style="margin-top:12px">${L.slice(0, 3).map((x) => `<div class="li" style="padding:8px 0"><div class="body"><div class="t" style="font-size:14px;font-weight:500">${esc(x.text)}</div><div class="d">${md(x.date)} · ${esc(x.subj || '')}${x.kind ? ' · ' + esc(x.kind) : ''}</div></div></div>`).join('')}</div><button class="more" data-go="sgb" style="margin-top:8px">기록 ${L.length}개 모두 보기</button>` : ''}</section>`;
   }
   function bindQlog() {
