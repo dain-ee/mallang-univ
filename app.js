@@ -7,6 +7,8 @@
   const KEY = 'mallang-univ:state:' + U.who;
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const RM = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const tap = { el: null, at: 0 };  // 마지막으로 누른 것 (뒤로 가기 방향 · 고른 칸 톡 튀기)
   const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const IC = { home: '1f3e0', hw: '1f4dd', wrong: '1f4d2', score: '1f4ca', sgb: '1f4cb', target: '1f3af', sci: '1f9ea', eng: '1f4d6', fire: '1f525', x: '274c', ok: '2705', up: '1f4c8', down: '1f4c9', star: '2b50', trophy: '1f3c6', cal: '1f4c5', retry: '1f501', bulb: '1f4a1', school: '1f3eb', grad: '1f393', ghost: '1f47b', party: '1f389', pin: '1f4cc', compass: '1f9ed', muscle: '1f4aa', brain: '1f9e0', clock: '23f0', hundred: '1f4af', think: '1f914', spark: '2728', mic: '1f3a4', books: '1f4da', pencil: '270f', write: '270d', dna: '1f9ec', pill: '1f48a', news: '1f4f0', bell: '1f514', mega: '1f4e2', memo: '1f5d2', flag: '1f6a9', q: '2753', globe: '1f30f', math: '1f4d0', abacus: '1f9ee', bank: '1f3db', run: '1f3c3', heart: '1f499', medal: '1f3c5', eyes: '1f440', scroll: '1f4dc' };
   const ic = (k, cls = 'ic') => `<img class="${cls}" src="icons/${IC[k] || k}.svg" alt="">`;
@@ -182,7 +184,7 @@
   const wordsFor = (k) => WORDS.slice(k * 10, k * 10 + 10);
 
   // ───────── 공통 조각 ─────────
-  function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 1800); }
+  function toast(t) { const el = $('#toast'); if (el.classList.contains('on') && !RM()) el.animate([{ scale: 1.06 }, { scale: 1 }], { duration: 260, easing: 'cubic-bezier(.3,1.5,.5,1)' }); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 1800); }
   function ringSVG(frac, color, label, val, unit, cap) {
     const r = 56, c = 2 * Math.PI * r, f = Math.max(0, Math.min(1, frac || 0));
     return `<div class="ring"><svg viewBox="0 0 132 132"><circle cx="66" cy="66" r="${r}" fill="none" stroke="var(--fill)" stroke-width="12"/><circle class="ring-arc" cx="66" cy="66" r="${r}" fill="none" stroke="${color}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - f)}" transform="rotate(-90 66 66)"/><text x="66" y="58" text-anchor="middle" style="font-size:13px;font-weight:600;fill:var(--t3)">${esc(label)}</text><text x="66" y="86" text-anchor="middle" style="font-size:26px;font-weight:800;fill:var(--t1)">${esc(val)}<tspan style="font-size:14px;font-weight:700"> ${esc(unit)}</tspan></text></svg><div class="cap">${cap || ''}</div></div>`;
@@ -200,7 +202,7 @@
     for (const k of keys) {
       const pts = rows.map((r, i) => (r.v[k.key] != null ? [x(i), y(r.v[k.key]), r.v[k.key]] : null)).filter(Boolean);
       if (!pts.length) continue;
-      s += `<path class="ln ${k.dim ? 'dim' : ''}" stroke="${k.dim ? '' : k.color}" d="${pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ')}"/>`;
+      s += `<path class="ln ${k.dim ? 'dim' : ''}" pathLength="1" stroke"${k.dim ? '' : k.color}" d="${pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ')}"/>`;
       if (!k.dim) {
         pts.forEach((p) => { s += `<circle class="pt" cx="${p[0]}" cy="${p[1]}" r="6" fill="${k.color}"/>`; });
         const L = pts[pts.length - 1], tx = fmt1(L[2]) + '등급', w = tx.length * 8 + 16;
@@ -212,15 +214,28 @@
   const goalLine = (cur, goal) => cur == null ? '' : cur <= goal ? `<span class="blue">목표 ${goal}등급 달성</span>` : `목표까지 <b class="red">${fmt1(cur - goal)}등급</b>`;
 
   // ───────── 바텀시트 ─────────
+  // 열려 있으면 내용만 옆으로 넘기고(뒤로 가기면 왼쪽에서), 닫을 땐 내려가며 사라져요
   function sheet(html, onMount) {
-    const root = $('#sheet-root');
-    root.innerHTML = `<div class="sheet-bg"></div><div class="sheet" role="dialog" aria-modal="true">${html}</div>`;
-    const close = () => { root.innerHTML = ''; document.body.style.overflow = ''; };
+    const root = $('#sheet-root'), old = $('.sheet', root), swap = old && !root.classList.contains('out');
+    clearTimeout(closeSheet.t); root.classList.remove('out');
+    if (swap) {
+      const back = !!(tap.el && tap.el.closest('[data-back]') && Date.now() - tap.at < 800), h0 = old.offsetHeight;
+      old.innerHTML = html; old.scrollTop = 0; old.classList.remove('swap-f', 'swap-b'); void old.offsetWidth; old.classList.add(back ? 'swap-b' : 'swap-f');
+      const h1 = old.offsetHeight; if (!RM() && Math.abs(h1 - h0) > 4) old.animate([{ height: h0 + 'px' }, { height: h1 + 'px' }], { duration: 300, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    } else root.innerHTML = `<div class="sheet-bg"></div><div class="sheet" role="dialog" aria-modal="true">${html}</div>`;
+    const close = closeSheet;
     $('.sheet-bg', root).onclick = close;
     document.body.style.overflow = 'hidden';
     if (onMount) onMount($('.sheet', root), close);
     return close;
   }
+  function closeSheet() {
+    const root = $('#sheet-root'); if (!root.firstChild || root.classList.contains('out')) return;
+    document.body.style.overflow = '';
+    if (RM()) { root.innerHTML = ''; return; }
+    root.classList.add('out'); closeSheet.t = setTimeout(() => { root.innerHTML = ''; root.classList.remove('out'); }, 230);
+  }
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('#sheet-root .sheet')) closeSheet(); });
   function profileSheet() {
     const p = S.profile; let pick = p.uni;
     sheet(`<h2>내 정보</h2><p class="sub">목표 대학을 고르면 홈 맨 위에 크게 붙어 있어요</p>
@@ -357,7 +372,7 @@
     const lvl = (d) => { const s = S.sci.days[d], e = S.eng.days[d]; let n = 0; if ((S.logs || []).some((x) => x.date === d)) n++; if (s && dayStat(s).done >= dayStat(s).n && dayStat(s).n) n++; if (e && e.udone) n++; if (e && Object.keys(e.wans || {}).length >= 10) n++; return n; };
     const streak = (() => { let n = 0; for (let i = days.length - 1; i >= 0; i--) { const wk = new Date(days[i] + 'T00:00:00'); if (lvl(days[i])) n++; else if (!anyTask(wk)) continue; else if (i !== days.length - 1) break; } return n; })();
     const hwList = S.hw || [];
-    return `<h1 class="h1">오늘의 숙제</h1><div class="row between wrap" style="gap:8px;margin-bottom:16px"><p class="sub" style="margin:0">${todayLine()}</p><button class="btn sm" id="plan-open" type="button">${ic('cal')} 숙제 설정</button></div>
+    return `<h1 class="h1">오늘의 숙제</h1><div class="row between wrap" style="gap:8px;margin-bottom:16px"><p class="sub" style="margin:0">${todayLine()}</p><button class="btn sm" id="plan-open" type="button"><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg> 숙제 설정</button></div>
     <div class="grid">
       <section class="card c12"><div class="card-h"><h2>선생님 숙제</h2>${TEACHER ? '<button class="btn sm soft" id="hw-add" type="button">숙제 내기</button>' : ''}</div>
         ${hwList.length ? (() => {
@@ -652,9 +667,9 @@
       <div class="chips" style="margin-bottom:16px"><button class="chip ${f === 'all' ? 'on' : ''}" data-ws="all" type="button">전체</button>${subs.map(([k, n]) => `<button class="chip ${f === k ? 'on' : ''}" data-ws="${k}" type="button">${n}</button>`).join('')}</div>
       <div class="grid">
         ${(() => { const td = todayWr().map((id) => S.wrong[id]).filter(Boolean); const nx = (S.hw || []).filter((h) => hwWr(h).length && !hwDone(h) && h.due > today()).sort((a, b) => a.due.localeCompare(b.due))[0];
-          return `<section class="card c7 col-card"><div class="card-h"><h2>오늘 풀 오답</h2></div>${td.length ? `<div class="list">${td.map(item).join('')}</div><button class="btn primary big block" id="wr-today" type="button" style="margin-top:auto">${td.length}문제 풀기</button>` : `<div class="empty">${ic('party')}<b>오늘 오답은 끝!</b>${nx ? `<span>다음 오답은 ${md(nx.due)}에 나와요</span>` : ''}</div>`}
+          return `<section class="card c7 col-card" style="align-self:start"><div class="card-h"><h2>오늘 풀 오답</h2></div>${td.length ? `<div class="list">${td.map(item).join('')}</div><button class="btn primary big block" id="wr-today" type="button" style="margin-top:auto">${td.length}문제 풀기</button>` : `<div class="empty">${ic('party')}<b>오늘 오답은 끝!</b>${nx ? `<span>다음 오답은 ${md(nx.due)}에 나와요</span>` : ''}</div>`}
           ${open.length ? `<details class="hw-more" style="margin-top:12px" ontoggle="this.firstElementChild.textContent=this.open?'접기':'모아 둔 오답 보기'"><summary>모아 둔 오답 보기</summary><div class="list">${open.slice(0, 60).map(item).join('')}</div></details>` : ''}</section>`; })()}
-        <section class="card c5"><div class="card-h"><h2>영역별</h2></div>${ar.length ? `<table class="tbl"><thead><tr><th>영역</th><th class="r">틀린 문제</th><th class="r">다시 맞힘</th></tr></thead><tbody>${ar.map(([k, v]) => { const [s, a] = k.split('|'); return `<tr><td><div style="font-weight:600">${esc(a)}</div><div class="tiny">${esc(s)}</div></td><td class="r num">${v.all}</td><td class="r num"><b class="${v.all - v.open ? 'blue' : ''}">${v.all - v.open}</b></td></tr>`; }).join('')}</tbody></table>` : `<div class="empty">${ic('memo')}<b>아직 없어요</b></div>`}</section>
+        <section class="card c5" style="align-self:start"><div class="card-h"><h2>영역별</h2></div>${ar.length ? `<table class="tbl"><thead><tr><th>영역</th><th class="r">틀린 문제</th><th class="r">다시 맞힘</th></tr></thead><tbody>${ar.map(([k, v]) => { const [s, a] = k.split('|'); return `<tr><td><div style="font-weight:600">${esc(a)}</div><div class="tiny">${esc(s)}</div></td><td class="r num">${v.all}</td><td class="r num"><b class="${v.all - v.open ? 'blue' : ''}">${v.all - v.open}</b></td></tr>`; }).join('')}</tbody></table>` : `<div class="empty">${ic('memo')}<b>아직 없어요</b></div>`}</section>
         ${done.length ? `<section class="card c12"><div class="card-h"><h2>다시 맞힌 문제 ${done.length}</h2></div><div class="list">${done.slice(0, 40).map(item).join('')}</div></section>` : ''}
       </div>`;
   }
@@ -1223,7 +1238,7 @@
   }
   // 예전 「픽 전체」 시트 자리: 이제 탭으로 가요
   function picksSheet(start) {
-    $('#sheet-root').innerHTML = ''; document.body.style.overflow = '';
+    closeSheet();
     if (typeof start === 'string') UI.pkTab = start;
     go('picks');
   }
@@ -1310,7 +1325,7 @@
     let s = `<svg class="tchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opt.label || '등급 추이')}"><defs><linearGradient id="tg${opt.id || ''}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${opt.color || '#3182f6'}" stop-opacity=".16"/><stop offset="1" stop-color="${opt.color || '#3182f6'}" stop-opacity="0"/></linearGradient></defs>`;
     if (opt.goal) s += `<line x1="${P.l}" x2="${W - P.r}" y1="${y(opt.goal)}" y2="${y(opt.goal)}" class="goal-l"/><text x="${P.l}" y="${y(opt.goal) - 6}" class="goal-t">목표 ${opt.goal}등급</text>`;
     if (opt.prev) { const pp = opt.prev.map((r, i) => (r.v != null ? `${x(i).toFixed(1)} ${y(r.v).toFixed(1)}` : null)).filter(Boolean); if (pp.length > 1) s += `<path d="M${pp.join(' L')}" class="prev-l"/>`; }
-    s += `<path d="${area}" fill="url(#tg${opt.id || ''})"/><path d="${line}" class="main-l" stroke="${opt.color || '#3182f6'}"/>`;
+    s += `<path class="area" d="${area}" fill="url(#tg${opt.id || ''})"/><path d="${line}" class="main-l" pathLength="1" stroke="${opt.color || '#3182f6'}"/>`;
     pts.slice(0, -1).forEach((p) => { s += `<circle cx="${x(p.i)}" cy="${y(p.v)}" r="4" fill="var(--card)" stroke="${opt.color || '#3182f6'}" stroke-width="2.5"/>`; });
     s += `<circle cx="${x(L.i)}" cy="${y(L.v)}" r="12" fill="${opt.color || '#3182f6'}" opacity=".18"/><circle cx="${x(L.i)}" cy="${y(L.v)}" r="6" fill="${opt.color || '#3182f6'}"/>`;
     s += `<text x="${tx}" y="${y(L.v) - 20}" text-anchor="middle" class="tip-t">${tip}</text>`;
@@ -1367,11 +1382,49 @@
     let html = '';
     if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : '';
     else html = UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'picks' ? picksView() : sgbView();
+    // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
+    const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '');
+    const depth = UI.run ? 2 : UI.lib || (UI.tab === 'score' && UI.mockId) ? 1 : 0, ti = TABS.findIndex((t) => t[0] === UI.tab);
+    const qm = html.match(/class="q-no">([\s\S]*?)<\/div>/), qk = UI.run ? (qm ? qm[1] : html.includes('done-card') ? 'done' : html.includes('class="lesson"') ? 'lesson' : '') : '';
+    const sub = [UI.wrongSubj, UI.sgbArea, UI.semester, UI.chartSubj, UI.mockSubj].join('|');
+    let dir = '';
+    if (view !== render.view) dir = render.view == null ? 'boot' : depth > render.depth ? 'push' : depth < render.depth ? 'pop' : ti !== render.ti ? ((ti < 0 ? 9 : ti) > (render.ti < 0 ? 9 : render.ti) ? 'tabR' : 'tabL') : 'side';
+    else if (qk && render.qk && qk !== render.qk) dir = 'push';
+    if (dir === 'push' || dir === 'pop') ghost(dir);
+    main.classList.remove('enter', 'soft', 'boot', 'push', 'pop', 'tabL', 'tabR', 'side');
     main.innerHTML = (TEACHER ? `<div class="teacher-band">선생님 보기 · ${esc(U.who)}의 기록을 보고 고칠 수 있어요</div>` : '') + html;
-    const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'picks' ? UI.pkTab || '' : '');
-    if (view !== render.view) { main.classList.remove('enter'); void main.offsetWidth; main.classList.add('enter'); render.view = view; cheerCheck.combo = 0; }
+    if (dir === 'side') dir = segDir() < 0 ? 'tabL' : 'tabR';
+    if (dir) { $$('main .card, main .h1, main .sub, main .seg, main .chips').forEach((c, i) => c.style.setProperty('--i', Math.min(i, 10))); void main.offsetWidth; main.classList.add('enter', dir); if (view !== render.view) cheerCheck.combo = 0; setTimeout(() => countUp(main), dir === 'boot' ? 260 : 120); }
+    else if (sub !== render.sub) { void main.offsetWidth; main.classList.add('soft'); }
+    Object.assign(render, { view, depth, ti, qk, sub });
     bind();
+    segSlide();
     cheerCheck();
+  }
+  // 나가는 화면: 지금 내용을 그대로 떼어 위에 띄운 채 옆으로 밀어 내요
+  function ghost(dir) {
+    if (RM() || !main.firstChild) return;
+    const r = main.getBoundingClientRect(), g = document.createElement('div');
+    g.className = 'main page-ghost ' + dir; g.setAttribute('aria-hidden', 'true'); g.style.top = r.top + 'px';
+    while (main.firstChild) g.appendChild(main.firstChild);
+    document.body.appendChild(g); setTimeout(() => g.remove(), 320);
+  }
+  // 같은 화면 안에서 세그먼트·칩을 바꿨을 때: 고른 칸이 오른쪽이면 +1
+  function segDir() {
+    const sg = $('main .seg, main .pk-tabs'); if (!sg || !segSlide.m) return 1;
+    const on = sg.querySelector('button.on'), fr = segSlide.m[segKey(sg)];
+    return on && fr && on.offsetLeft < fr.x ? -1 : 1;
+  }
+  // 큰 숫자는 0부터 세어 올라가요 (토스 금액처럼)
+  function countUp(root) {
+    if (RM()) return;
+    $$(':is(.done-score b, .arch .c b, .scorebox b, .stat-row b, .sgb-area .a b)', root).forEach((el) => {
+      const t = [...el.childNodes].find((n) => n.nodeType === 3 && /\d/.test(n.nodeValue)); if (!t || el.closest('.page-ghost') || /등급/.test(el.parentNode.textContent)) return;  // 등급은 0부터 세면 이상해요
+      const m = t.nodeValue.match(/^(\s*)(\d+(?:\.\d+)?)(?![\d,])([\s\S]*)$/); if (!m || !+m[2]) return;
+      const end = +m[2], dec = (m[2].split('.')[1] || '').length, t0 = performance.now(), D = 650;
+      const step = (now) => { const k = Math.min(1, (now - t0) / D); t.nodeValue = m[1] + (end * (1 - Math.pow(1 - k, 3))).toFixed(dec) + m[3]; if (k < 1 && t.isConnected) requestAnimationFrame(step); };
+      t.nodeValue = m[1] + (0).toFixed(dec) + m[3]; requestAnimationFrame(step);
+    });
   }
   function go(tab) { UI.tab = tab; UI.run = null; UI.lib = null; if (tab !== 'score') UI.mockId = null; render(); window.scrollTo(0, 0); }
   function startTask(k) {
@@ -1434,12 +1487,64 @@
   let rsT = 0, lastW = window.innerWidth; window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (Math.abs(window.innerWidth - lastW) > 80 && !$('.sheet')) { lastW = window.innerWidth; render(); } }, 250); });
   $('#me').onclick = () => go('me');
 
+  // ───────── 세그먼트 · 칩: 고른 칸으로 미끄러지기 ─────────
+  // 다시 그리면 DOM이 새로 생겨서, 이전 자리를 기억해 두었다가 거기서 새 자리로 옮겨요
+  // 위 탭 · 아래 탭바 · 세그먼트 · 한 개만 고르는 칩 줄 모두 같은 방식이에요. 가로로 넘기는 줄은 넘긴 자리도 기억해요
+  const SEG_SEL = '#tabs-top, #tabs-bottom, main .seg, main .pk-tabs, main .chips, .sheet .chips';
+  const segKey = (sg) => (sg.id || (UI.run ? 'run' : UI.tab)) + ':' + (sg.id ? '' : [...sg.querySelectorAll('button')].map((b) => b.textContent).join('|'));
+  const segOk = (sg) => sg.id || !sg.matches('.chips') || sg.matches('.pk-tabs') || sg.querySelectorAll(':scope > .chip.on').length === 1 && sg.querySelectorAll(':scope > .chip').length > 1;
+  const segPut = (ind, p) => { ind.style.transform = `translate(${p.x}px,${p.y}px)`; ind.style.width = p.w + 'px'; ind.style.height = p.h + 'px'; };
+  const segAt = (on) => ({ x: on.offsetLeft, y: on.offsetTop, w: on.offsetWidth, h: on.offsetHeight });
+  function segSlide(root = document) {
+    segSlide.m = segSlide.m || {};
+    $$(SEG_SEL, root).forEach((sg) => {
+      const on = sg.querySelector(':scope > button.on'); if (!on || !segOk(sg) || sg.querySelector(':scope > .seg-ind')) return;
+      const key = segKey(sg), fr = segSlide.m[key];
+      if (fr && fr.sl) sg.scrollLeft = fr.sl;
+      const ind = document.createElement('i'); ind.className = 'seg-ind'; sg.prepend(ind); sg.classList.add('slid');
+      const to = segAt(on); to.sl = sg.scrollLeft;
+      segPut(ind, fr || to); segSlide.m[key] = to;
+      if (sg.scrollWidth > sg.clientWidth + 2 && (to.x < sg.scrollLeft || to.x + to.w > sg.scrollLeft + sg.clientWidth)) sg.scrollTo({ left: to.x - 16, behavior: RM() ? 'auto' : 'smooth' });
+      if (fr && (fr.x !== to.x || fr.y !== to.y || fr.w !== to.w) && !RM()) { on.classList.add('pre'); requestAnimationFrame(() => requestAnimationFrame(() => { ind.classList.add('go'); segPut(ind, to); on.classList.remove('pre'); })); }
+    });
+  }
+  // 창 크기 · 글꼴이 바뀌면 자리만 다시 맞춰요 (움직임 없이)
+  function segFix() { $$('.slid').forEach((sg) => { const on = sg.querySelector(':scope > button.on'), ind = sg.querySelector(':scope > .seg-ind'); if (!on || !ind) return; ind.classList.remove('go'); const p = segAt(on); p.sl = sg.scrollLeft; segPut(ind, p); segSlide.m[segKey(sg)] = p; }); }
+  let sfT = 0; window.addEventListener('resize', () => { cancelAnimationFrame(sfT); sfT = requestAnimationFrame(segFix); });
+  if (document.fonts) document.fonts.ready.then(segFix);
+  document.addEventListener('scroll', (e) => { const sg = e.target; if (sg.classList && sg.classList.contains('slid') && segSlide.m) { const p = segSlide.m[segKey(sg)]; if (p) p.sl = sg.scrollLeft; } }, true);
+
+  new MutationObserver(() => requestAnimationFrame(() => segSlide($('#sheet-root')))).observe($('#sheet-root'), { childList: true, subtree: true });
+  // ───────── 누른 것 톡 · 접는 칸 스르륵 ─────────
+  // 다시 그려도 같은 칸을 찾아서, 새로 고른 칸·완료 동그라미·보기 정답(톡)/오답(흔들)을 움직여요
+  const tapSel = (b) => { if (b.id) return '#' + CSS.escape(b.id); const a = [...b.attributes].find((x) => x.name.startsWith('data-')); return a ? `[${a.name}="${CSS.escape(a.value)}"]` : ''; };
+  const bump = (n, cls) => { n.classList.remove(cls); void n.offsetWidth; n.classList.add(cls); n.addEventListener('animationend', () => n.classList.remove(cls), { once: true }); };
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button, [data-hwopen], .li.btnlike'); tap.el = b; tap.at = Date.now();
+    if (!b || RM()) return; const sel = tapSel(b); if (!sel) return;
+    setTimeout(() => {
+      const n = b.isConnected && !b.closest('.page-ghost') ? b : $('main ' + sel) || $('#sheet-root ' + sel); if (!n || n.closest('.slid')) return;
+      if (n.matches('.choice.wrong')) bump(n, 'shake-x');
+      else if (n.matches('.choice.right, .on, .sel, [data-hwdone], .pk-it')) bump(n, 'tap-pop');
+    }, 0);
+  }, true);
+  document.addEventListener('click', (e) => {
+    const s = e.target.closest('details > summary'); if (!s || RM()) return;
+    const d = s.parentElement; e.preventDefault(); if (d._anim) return;
+    const h0 = d.offsetHeight, opening = !d.open; if (opening) d.open = true;
+    const h1 = opening ? d.offsetHeight : s.offsetHeight;
+    d.style.overflow = 'hidden';
+    d._anim = d.animate([{ height: h0 + 'px' }, { height: h1 + 'px' }], { duration: opening ? 320 : 240, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    [...d.children].filter((c) => c !== s).forEach((c) => c.animate(opening ? [{ opacity: 0, transform: 'translateY(-6px)' }, { opacity: 1, transform: 'none' }] : [{ opacity: 1 }, { opacity: 0 }], { duration: opening ? 320 : 180, easing: 'ease-out' }));
+    d._anim.onfinish = () => { d._anim = null; d.style.overflow = ''; if (!opening) d.open = false; };
+  });
+
   // ───────── 정답 축하 (팡팡) ─────────
   // 화면에 「정답이에요」가 새로 뜨면 터뜨려요. 연속으로 맞히면 점점 크게
   const CHEER2 = ['좋아요!', '정확해요!', '센스 있어요!', '바로 그거예요!', '완벽해요!'];
   function cheerCheck() {
     const dc = $('main .done-card');
-    if (dc && !cheerCheck.done) { $$('.combo-pop').forEach((x) => x.remove()); const lv = +dc.dataset.done, r = $('.done-ic', dc).getBoundingClientRect(); if (lv) { boom(r.left + r.width / 2, r.top + r.height / 2, lv === 2 ? 5 : 2); ding(lv === 2 ? 8 : 3); } }
+    if (dc && !cheerCheck.done) { $$('.combo-pop').forEach((x) => x.remove()); dc.classList.add('in'); setTimeout(() => countUp(dc), 200); const lv = +dc.dataset.done, r = $('.done-ic', dc).getBoundingClientRect(); if (lv) { boom(r.left + r.width / 2, r.top + r.height / 2, lv === 2 ? 5 : 2); ding(lv === 2 ? 8 : 3); } }
     cheerCheck.done = !!dc;
     const v = $('main .verdict'); const was = cheerCheck.had; cheerCheck.had = !!v;
     if (!v || was) return;
@@ -1485,8 +1590,9 @@
 
   // ───────── 시작 ─────────
   window.__univStarted = true;
+  document.body.classList.add('booting'); setTimeout(() => document.body.classList.remove('booting'), 1200);
   render();
-  const sp = $('#splash'); if (sp) { sp.style.opacity = 0; setTimeout(() => sp.remove(), 320); }
+  const sp = $('#splash'); if (sp) { sp.classList.add('out'); setTimeout(() => sp.remove(), 320); }
   const bm = $('#boot-msg'); if (bm) bm.remove();
   if (!S.profile.uni && !TEACHER) setTimeout(uniSheet, 600);
   sync(true);
