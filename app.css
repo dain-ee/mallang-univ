@@ -432,3 +432,6 @@ select.inp { appearance: none; background-image: linear-gradient(45deg, transpar
 .mq-ch .choice .ct { flex: 1; font-size: 15px; }
 .mq-psg { user-select: text; -webkit-user-select: text; }
 .katex { font-size: 1.05em; }
+.psg-body table, .mq-box table, .mq-stem table { display: block; max-width: 100%; overflow-x: auto; }
+.psg-body td, .mq-box td, .mq-stem td, .psg-body th, .mq-box th, .mq-stem th { white-space: nowrap; }
+@media (max-width: 520px) { .mq-box { padding: 8px 10px; } .psg-body .box, .mq-box .box, .mq-stem .box { padding: 10px 12px; } }
