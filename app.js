@@ -254,11 +254,15 @@
     const nsRows = SEMS.map((sem) => ({ label: sem.replace('-', '학년 ') + '학기', v: { n: nsAvg(sem) } })).filter((r) => r.v.n != null);
     const nscard = `<section class="card c6"><div class="card-h"><h2>내신 등급</h2><button class="more" data-go="score" data-seg="naesin">입력하기</button></div>${nsRows.length ? tossLine(nsRows.map((r) => ({ label: r.label, v: r.v.n })), { maxG: 5, h: 180, id: 'n1', color: '#03b26c', goal: p.goalNaesin }) : `<div class="empty">${ic('pencil')}<b>내신 등급을 넣어 주세요</b><span>학기마다 과목 등급을 넣으면 평균이 계산돼요</span></div>`}</section>`;
     const sgbc = sgbSummary('c6');
-    const main = `<h1 class="h1">${bdayLeft() === 0 ? `${ic('party')} ${esc(p.name)}님, 생일 축하해요` : `${esc(p.name)}님, ${greet()}`}</h1><p class="sub">${todayLine()}</p>
+    const main = `<h1 class="h1">${bdayLeft() === 0 ? `${ic('party')} ${nameCall()}, 생일 축하해` : `${nameCall()}, ${greet()}`}</h1><p class="sub">${todayLine()}</p>
       <div class="grid">${qlogCard()}${hero}${pos}${insightCard('c7')}${picksCard('c5')}${trend}${railCards(true)}${weak}${wtab}${nscard}${sgbc}</div>`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
-  function greet() { const h = new Date().getHours(); return h < 6 ? '늦은 밤이에요' : h < 12 ? '좋은 아침이에요' : h < 18 ? '오늘도 힘내요' : '오늘 하루 수고했어요'; }
+  // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
+  const CHEER = ['오늘도 정말 수고했어', '한 문제씩 쌓이는 게 다 실력이야', '어제보다 한 걸음 더 왔어', '지금 하는 게 다 남아, 잘하고 있어', '천천히 가도 괜찮아, 멈추지만 않으면 돼', '오늘 한 줄 기록이 나중에 큰 힘이 돼', '틀린 문제는 내 편이야, 다시 풀면 내 거야', '너는 생각보다 훨씬 잘하고 있어', '꾸준함이 제일 센 무기야', '힘들면 쉬어도 돼, 그래도 내일은 또 해 보자', '오늘의 노력은 절대 사라지지 않아', '목표 대학이 조금씩 가까워지고 있어', '작은 걸 해낸 것도 꼭 칭찬해 주자', '오늘도 끝까지 해낸 거 멋있어', '모르는 걸 아는 게 공부의 시작이야', '하루 30분이 1년이면 엄청난 차이야', '네가 하는 질문 하나가 세특이 돼', '조급해하지 마, 지금 속도도 충분해', '어려운 문제 앞에서 버틴 시간이 실력이야', '선생님은 늘 정윤이 편이야', '오늘 공부한 너, 진짜 대단해', '실수는 연습일 뿐이야, 시험 땐 안 하면 돼', '한 번 더 보는 게 합격을 만들어', '지금의 너를 믿어 봐', '잘 쉬는 것도 실력이야, 푹 자', '오늘 배운 거 하나만 기억해도 성공이야'];
+  function nameCall() { const n = S.profile.name || U.who; const c = n.charCodeAt(n.length - 1); const jong = c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28 !== 0; return `우리 ${esc(n)}${jong ? '이' : ''}`; }
+  function cheer() { const t = today(); let h = 0; for (const ch of t + (S.profile.name || '')) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return CHEER[h % CHEER.length]; }
+  function greet() { return cheer(); }
   function todayLine() {
     const sd = sciToday(), st = dayStat(sd), ed = engToday();
     const left = [];
@@ -823,7 +827,7 @@
     const top = Object.entries(wa).sort((a, b) => b[1] - a[1])[0];
     if (top && top[1] >= 2) out.push({ icon: 'down', tone: 'red', t: `${top[0]} 영역이 아직 부족해요`, d: `오답 ${top[1]}문제가 남아 있어요. 다시 풀어서 파란색으로 바꿔요`, act: 'go:wrong' });
     if (!Object.keys(S.naesin['1-1'] || {}).some((k) => (S.naesin['1-1'][k] || {}).grade)) out.push({ icon: 'pencil', tone: '', t: '1학기 내신 등급을 넣어 주세요', d: '넣으면 내 위치와 목표까지 남은 등급이 보여요', act: 'naesin' });
-    for (const x of (PICKS.timeline || [])) { const d0 = /^\d{4}-\d{2}$/.test(x.when) ? x.when + '-01' : x.when; if (/^\d{4}-\d{2}-\d{2}$/.test(d0) && dday(d0) >= -20 && dday(d0) <= 60) { out.push({ icon: 'bell', tone: 'blue', t: x.title, d: x.what || '', act: 'picks' }); break; } }
+    for (const x of (PICKS.timeline || [])) { const d0 = /^\d{4}-\d{2}$/.test(x.when) ? x.when + '-01' : x.when; if (/^\d{4}-\d{2}-\d{2}$/.test(d0) && dday(d0) >= -31 && dday(d0) <= 60) { out.push({ icon: 'bell', tone: 'blue', t: x.title, d: x.what || '', act: 'picks' }); break; } }
     return out;
   }
   function insightCard(cls) {
