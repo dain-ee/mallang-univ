@@ -414,3 +414,21 @@ select.inp { appearance: none; background-image: linear-gradient(45deg, transpar
 .pl-days button { height: 44px; border: 0; border-radius: 12px; background: var(--fill2); color: var(--t2); font: inherit; font-weight: 700; font-size: 15px; cursor: pointer; }
 .pl-days button.we { color: var(--t3); }
 .pl-days button.on { background: var(--blue); color: #fff; }
+
+/* 글자로 옮긴 모의고사 문제 */
+.mq-stem, .mq-box, .mq-psg .psg-body { font-size: 16px; line-height: 1.85; color: var(--t1); word-break: keep-all; overflow-wrap: anywhere; user-select: text; -webkit-user-select: text; }
+.mq-stem { margin-top: 12px; font-weight: 500; }
+.mq-stem p, .mq-box p, .psg-body p { margin: 0 0 8px; }
+.mq-box { margin-top: 12px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--fill2); font-size: 15px; }
+.psg-body { padding: 4px 8px 8px; }
+.psg-body .box, .mq-box .box, .mq-stem .box { border: 1px solid var(--t3); border-radius: 8px; padding: 12px 16px; margin: 8px 0; }
+.psg-body table, .mq-box table, .mq-stem table { border-collapse: collapse; margin: 8px 0; font-size: 14px; }
+.psg-body td, .mq-box td, .mq-stem td, .psg-body th, .mq-box th, .mq-stem th { border: 1px solid var(--line); padding: 6px 10px; }
+.psg-body img, .mq-box img, .mq-stem img, .mq-ch img { max-width: 100%; height: auto; display: block; margin: 8px 0; }
+.psg-head { font-weight: 700; }
+.mark { font-weight: 700; }
+.mq-ch .choice { align-items: flex-start; text-align: left; height: auto; min-height: 52px; padding: 12px 16px; line-height: 1.6; user-select: text; -webkit-user-select: text; }
+.mq-ch .choice .n { flex: 0 0 auto; font-size: 18px; }
+.mq-ch .choice .ct { flex: 1; font-size: 15px; }
+.mq-psg { user-select: text; -webkit-user-select: text; }
+.katex { font-size: 1.05em; }

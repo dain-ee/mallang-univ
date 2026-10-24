@@ -544,12 +544,34 @@
         ${typeof q.answer === 'number' && q.answer <= 5 && !q.short ? `<div class="num5">${[1, 2, 3, 4, 5].map((k) => `<button class="choice ${a ? (k === q.answer ? 'right' : k === a.pick ? 'wrong' : '') : ''}" data-pick="${k}" type="button" ${a ? 'disabled' : ''}>${'①②③④⑤'[k - 1]}</button>`).join('')}</div>` : `<div class="card"><input class="inp" id="short" inputmode="numeric" placeholder="답 (숫자)" ${a ? 'disabled' : ''}>${a ? '' : '<button class="btn primary block" style="margin-top:12px" id="short-ok" type="button">확인</button>'}</div>`}
         ${a ? verdict(a.ok, a.ok ? '' : ` <span style="margin-left:auto">정답 ${typeof q.answer === 'number' && q.answer <= 5 && !q.short ? '①②③④⑤'[q.answer - 1] : esc(q.answer)}</span>`) : ''}`;
       UI.run.q = { answer: q.answer, mock: true };
-      if (q.passage && q.passage.length) { wide = true; body = `<div class="split"><div class="psg" aria-label="지문"><div class="psg-h">[${esc(String(q.set || '').replace('-', '~'))}] 지문 <span class="tiny">위아래로 넘겨 읽어요</span></div>${q.passage.map((src) => `<img src="${esc(src)}" alt="지문" loading="lazy">`).join('')}</div><div class="qside">${body}</div></div>`; }
+      if (q.t) {
+        const T = q.t, st = (ms.sets || {})[q.set], psg = st ? `${st.head ? `<p class="psg-head">${st.head}</p>` : ''}${st.passage || ''}` : T.passage || '';
+        const mc = typeof q.answer === 'number' && q.answer <= 5 && !q.short && T.choices && T.choices.length;
+        const qcard = `<div class="card mq"><div class="q-no">${esc(m.title)} · ${esc(ms.name || SUBJ_NAMES[w.subj])} ${q.no}번 <span class="tag">${esc(q.area || '')}${q.sub ? ' · ' + esc(q.sub) : ''}</span> <span class="tag">${q.points}점</span></div>
+          <div class="mq-stem">${T.stem || ''}</div>${T.box ? `<div class="mq-box">${T.box}</div>` : ''}</div>
+          ${mc ? `<div class="choices mq-ch">${T.choices.map((c, i) => `<button class="choice ${a ? (i + 1 === q.answer ? 'right' : i + 1 === a.pick ? 'wrong' : '') : ''}" data-pick="${i + 1}" type="button" ${a ? 'disabled' : ''}><span class="n">${'①②③④⑤'[i]}</span><span class="ct">${c}</span></button>`).join('')}</div>` : `<div class="card"><input class="inp" id="short" inputmode="numeric" placeholder="답 (숫자)" ${a ? 'disabled' : ''}>${a ? '' : '<button class="btn primary block" style="margin-top:12px" id="short-ok" type="button">확인</button>'}</div>`}
+          ${a ? verdict(a.ok, a.ok ? '' : ` <span style="margin-left:auto">정답 ${mc ? '①②③④⑤'[q.answer - 1] : esc(q.answer)}</span>`) : ''}`;
+        if (psg) { wide = true; body = `<div class="split"><div class="psg mq-psg" aria-label="지문"><div class="psg-h">지문 <span class="tiny">따로 위아래로 넘겨 읽어요</span></div><div class="psg-body">${psg}</div></div><div class="qside">${qcard}</div></div>`; }
+        else body = qcard;
+      } else if (q.passage && q.passage.length) { wide = true; body = `<div class="split"><div class="psg" aria-label="지문"><div class="psg-h">[${esc(String(q.set || '').replace('-', '~'))}] 지문 <span class="tiny">위아래로 넘겨 읽어요</span></div>${q.passage.map((src) => `<img src="${esc(src)}" alt="지문" loading="lazy">`).join('')}</div><div class="qside">${body}</div></div>`; }
     }
     return `<div class="qwrap" style="max-width:${wide ? 1240 : 760}px;margin:0 auto">${head}${body}${a ? `<div class="cta-bar"><button class="btn primary big block" id="next" type="button">${queue.length ? '다음 오답' : '오답 노트로'}</button></div>` : ''}</div>`;
   }
+  // 수식: 문제에 $…$ 가 있을 때만 KaTeX를 불러와 그려요
+  let katexP = null;
+  function mathify(el) {
+    if (!el || !/\$/.test(el.textContent)) return;
+    katexP = katexP || new Promise((ok) => {
+      const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css'; document.head.appendChild(css);
+      const a = document.createElement('script'); a.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js';
+      a.onload = () => { const b = document.createElement('script'); b.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js'; b.onload = ok; document.head.appendChild(b); };
+      document.head.appendChild(a);
+    });
+    katexP.then(() => window.renderMathInElement && window.renderMathInElement(el, { delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }], throwOnError: false }));
+  }
   function bindRetry() {
     const r = UI.run; if (!r || r.kind !== 'retry') return; const w = S.wrong[r.id];
+    mathify($('.qwrap'));
     const done = (ok, pick) => { r.ans = { ok, pick }; w.tries = (w.tries || 0) + 1; if (ok) clearWrong(r.id); else { w.times = (w.times || 1) + 1; w.at = Date.now(); save('wrong'); } render(); };
     $$('[data-pick]').forEach((b) => (b.onclick = () => { const k = +b.dataset.pick; done(k === r.q.answer, k); }));
     $$('[data-self]').forEach((b) => (b.onclick = () => done(b.dataset.self === '1', null)));
