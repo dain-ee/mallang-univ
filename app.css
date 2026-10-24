@@ -542,3 +542,32 @@ select.inp { appearance: none; background-image: linear-gradient(45deg, transpar
 .cal-next .chev { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); }
 .cal-next:hover { background: var(--fill); }
 .cal-next .chev::after { content: "›"; color: var(--t4); font-size: 20px; }
+.k-mine { background: #8b5cf6 !important; }
+.ss-mon { margin: 20px 0 4px; font-size: 14px; font-weight: 700; color: var(--t2); }
+.ss-d { flex: none; width: 44px; display: flex; flex-direction: column; align-items: center; }
+.ss-d b { font-size: 18px; line-height: 1.2; }
+.ss-d span { font-size: 11px; font-weight: 600; color: var(--t3); }
+.ss-d.sun b { color: var(--red); } .ss-d.sat b { color: var(--blue); }
+/* 화면 바뀔 때 · 누를 때 */
+main.enter { animation: viewIn .32s cubic-bezier(.1,.76,.55,.9); }
+@keyframes viewIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.tabs button, .tabbar button, .btn, .chip, .li.btnlike, .card.link { transition: transform .15s ease, background-color .2s, color .2s; }
+.tabs button:active, .tabbar button:active, .btn:active, .chip:active { transform: scale(.94); }
+.li.btnlike:active, .card.link:active { transform: scale(.985); }
+.tabs button.on { animation: tabOn .3s cubic-bezier(.1,.76,.55,.9); }
+.tabbar button.on img { animation: tabBounce .45s cubic-bezier(.3,1.6,.5,1); }
+@keyframes tabOn { from { transform: scale(.9); } to { transform: none; } }
+@keyframes tabBounce { 0% { transform: scale(.7); } 60% { transform: scale(1.18) translateY(-2px); } 100% { transform: translateY(-1px); } }
+/* 정답 팡팡 */
+.boom { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 300; }
+.verdict.ok { animation: okPop .5s cubic-bezier(.3,1.6,.5,1); }
+.verdict.ok img { animation: okIcon .7s cubic-bezier(.3,1.6,.5,1); }
+@keyframes okPop { 0% { transform: scale(.8); opacity: 0; } 60% { transform: scale(1.04); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes okIcon { 0% { transform: scale(0) rotate(-30deg); } 60% { transform: scale(1.6) rotate(10deg); } 100% { transform: scale(1); } }
+.verdict.shake { animation: shake .4s; }
+@keyframes shake { 0%,100% { transform: none; } 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
+.combo-pop { position: fixed; left: 50%; top: 32%; z-index: 301; display: flex; align-items: center; gap: 8px; padding: 14px 24px; font-size: 26px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #ff8a3d, #ff4d6d); border-radius: 99px; box-shadow: 0 8px 24px rgba(255,77,109,.35); pointer-events: none; animation: comboPop 1.4s cubic-bezier(.3,1.6,.5,1) forwards; }
+.combo-pop img { width: 32px; height: 32px; }
+@keyframes comboPop { 0% { transform: translate(-50%, 20px) scale(.4); opacity: 0; } 20% { transform: translate(-50%, 0) scale(1.15); opacity: 1; } 35% { transform: translate(-50%, 0) scale(1); } 80% { opacity: 1; } 100% { transform: translate(-50%, -30px) scale(1); opacity: 0; } }
+.pk-tabs .pk-n { margin-left: 6px; font-size: 12px; opacity: .6; }
+@media (prefers-reduced-motion: reduce) { main.enter, .verdict.ok, .verdict.ok img, .combo-pop, .tabbar button.on img, .tabs button.on { animation: none; } }

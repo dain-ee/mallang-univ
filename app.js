@@ -303,7 +303,7 @@
     const tasks = [];
     const off = !anyTask(new Date()) && !S.sci.days[today()] && !S.eng.days[today()];
     const has = (k) => !off && (onDay(k) || (k === 'sci' ? !!S.sci.days[today()] : !!S.eng.days[today()]));
-    if (off) tasks.push({ k: 'hw', icon: 'party', t: '오늘은 매일 과제가 쉬는 날이에요', d: '요일은 숙제 탭의 「숙제 요일」에서 바꿀 수 있어요', done: true });
+    if (off) tasks.push({ k: 'hw', icon: 'party', t: '오늘은 매일 과제가 쉬는 날이에요', d: '요일은 숙제 탭의 「숙제 설정」에서 바꿀 수 있어요', done: true });
     for (const d of openDrills().slice(0, 4)) tasks.push({ k: 'drill:' + d.id, icon: 'target', t: `${d.title || d.area} ${d.qs.length}문제`, d: '선생님이 낸 약한 영역 문제', done: false });
     if (has('g3') && G3.length) { const g = G3[ed.g3 || 0]; tasks.push({ k: 'g3', icon: 'eng', t: '고3 영어 한 문제', d: ed.g3done ? '다 풀었어요 · 문장 분석 보기' : g ? `${g.type || ''} · 문장 분석과 천일문 연결` : '', done: !!ed.g3done }); }
     if (has('sci') && SCI.concepts.length) tasks.push({ k: 'sci', icon: 'sci', t: sd.one ? `과학 개념: ${(SCI.concepts.find((x) => x.id === sd.c) || {}).title || ''}` : `오늘의 과학 ${st.n}문제`, d: sd.one && !sd.read ? `교과서 개념 보고 문제 ${st.n}개` : st.done >= st.n ? `${st.ok}/${st.n} 맞힘${st.all > st.n ? ` · 깊게 ${st.all - st.n}문제 더` : ''}` : `${st.done}/${st.n} 풀었어요`, done: st.done >= st.n });
@@ -357,8 +357,7 @@
     const lvl = (d) => { const s = S.sci.days[d], e = S.eng.days[d]; let n = 0; if ((S.logs || []).some((x) => x.date === d)) n++; if (s && dayStat(s).done >= dayStat(s).n && dayStat(s).n) n++; if (e && e.udone) n++; if (e && Object.keys(e.wans || {}).length >= 10) n++; return n; };
     const streak = (() => { let n = 0; for (let i = days.length - 1; i >= 0; i--) { const wk = new Date(days[i] + 'T00:00:00'); if (lvl(days[i])) n++; else if (!anyTask(wk)) continue; else if (i !== days.length - 1) break; } return n; })();
     const hwList = S.hw || [];
-    const planTxt = PLAN_KINDS.map((x) => planOf(x.k).length).every((n, i, a) => n === a[0]) ? `${planOf('sci').length === 5 && planOf('sci').every((d) => d >= 1 && d <= 5) ? '평일 매일' : planOf('sci').slice().sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7)).map((d) => DOW[d]).join('') + ` 주${planOf('sci').length}회`}` : '과제마다 다르게';
-    return `<h1 class="h1">오늘의 숙제</h1><div class="row between wrap" style="gap:8px;margin-bottom:16px"><p class="sub" style="margin:0">${todayLine()}</p><button class="btn sm" id="plan-open" type="button">${ic('cal')} 숙제 요일 · ${esc(planTxt)}</button></div>
+    return `<h1 class="h1">오늘의 숙제</h1><div class="row between wrap" style="gap:8px;margin-bottom:16px"><p class="sub" style="margin:0">${todayLine()}</p><button class="btn sm" id="plan-open" type="button">${ic('cal')} 숙제 설정</button></div>
     <div class="grid">
       <section class="card c12"><div class="card-h"><h2>선생님 숙제</h2>${TEACHER ? '<button class="btn sm soft" id="hw-add" type="button">숙제 내기</button>' : ''}</div>
         ${hwList.length ? (() => {
@@ -389,12 +388,12 @@
       $$('[data-pd]', el).forEach((b) => (b.onclick = () => { const [k, d] = b.dataset.pd.split(':'); const n = +d; P[k] = P[k].includes(n) ? P[k].filter((y) => y !== n) : [...P[k], n]; draw(el); }));
       $$('[data-pp]', el).forEach((b) => (b.onclick = () => { const [k, i] = b.dataset.pp.split(':'); P[k] = PRE[+i].d.slice(); draw(el); }));
     };
-    sheet(`<h2>숙제 요일</h2><p class="sub">과제마다 하는 요일을 골라요. 고른 요일에만 「오늘 할 일」에 나와요</p>
+    sheet(`<h2>숙제 설정</h2><p class="sub">과제마다 하는 요일을 골라요. 고른 요일에만 「오늘 할 일」에 나와요</p>
       <div class="row wrap" style="gap:8px;margin-bottom:12px;align-items:center"><span class="tiny">한 번에 바꾸기</span>${PRE.map((p, i) => `<button type="button" class="chip" data-all="${i}">${p.t}</button>`).join('')}</div>
       <div id="pl-body"></div><button class="btn primary big block" id="pl-ok" type="button" style="margin-top:16px">저장하기</button>`, (el, close) => {
       draw(el);
       $$('[data-all]', el).forEach((b) => (b.onclick = () => { for (const x of PLAN_KINDS) P[x.k] = PRE[+b.dataset.all].d.slice(); draw(el); }));
-      $('#pl-ok', el).onclick = () => { S.plan = P; save('plan'); close(); render(); toast('숙제 요일을 바꿨어요'); };
+      $('#pl-ok', el).onclick = () => { S.plan = P; save('plan'); close(); render(); toast('숙제 설정을 바꿨어요'); };
     });
   }
   function hwSheet(id) {
@@ -1143,7 +1142,23 @@
     const tl = (PICKS.timeline || []).map((x, i) => ({ date: x.when, month: x.when.length === 7, t: x.title, tag: x.kind || '입시', pi: i, k: 'pick' })).filter((o) => /^\d{4}-\d{2}/.test(o.date));
     // 같은 날 수능이 두 번 나오지 않게
     const out = ev.filter((e) => !(/수학능력/.test(e.t) && tl.some((o) => o.date === e.date && /수능/.test(o.t))));
-    return [...out, ...tl];
+    const mine = (S.myEvents || []).map((e) => ({ date: e.date, t: e.t, tag: e.kind || '내 일정', k: 'mine', mid: e.id }));
+    return [...out, ...tl, ...mine];
+  }
+  const schedRow = (e) => `<div class="li ${e.pi != null || e.mid ? 'btnlike' : ''}" ${e.pi != null ? `data-pk="timeline:${e.pi}"` : e.mid ? `data-me-ev="${esc(e.mid)}"` : ''}><span class="cal-bar k-${e.k}"></span><div class="body"><div class="t" style="font-size:15px">${esc(e.t)}</div><div class="d">${esc(e.tag)}</div></div>${e.pi != null || e.mid ? '<span class="chev"></span>' : ''}</div>`;
+  function myEventSheet(id, date) {
+    const ev = id ? (S.myEvents || []).find((x) => x.id === id) : null; let kind = (ev && ev.kind) || '수행평가';
+    const K = ['수행평가', '시험', '학원', '약속', '기타'];
+    sheet(`<h2>${ev ? '일정 고치기' : '내 일정 추가'}</h2><p class="sub">추가한 일정은 홈 날짜 줄에 보라색 점으로 나와요</p>
+      <div class="field"><label>무엇을</label><input class="inp" id="me-t" placeholder="예) 영어 수행평가 발표" value="${esc(ev ? ev.t : '')}"></div>
+      <div class="field"><label>언제</label><input class="inp" type="date" id="me-d" value="${esc(ev ? ev.date : date || today())}"></div>
+      <div class="field"><label>종류</label><div class="chips" id="me-k"></div></div>
+      <div class="row" style="margin-top:8px">${ev ? '<button class="btn big" style="flex:1" id="me-del" type="button">지우기</button>' : ''}<button class="btn primary big" style="flex:2" id="me-ok" type="button">${ev ? '저장' : '추가하기'}</button></div>`, (el, close) => {
+      const drawK = () => { $('#me-k', el).innerHTML = K.map((k) => `<button type="button" class="chip ${k === kind ? 'on' : ''}" data-k="${k}">${k}</button>`).join(''); $$('[data-k]', el).forEach((b) => (b.onclick = () => { kind = b.dataset.k; drawK(); })); };
+      drawK(); $('#me-t', el).focus();
+      $('#me-ok', el).onclick = () => { const t = $('#me-t', el).value.trim(), d = $('#me-d', el).value; if (!t || !d) return; S.myEvents = S.myEvents || []; if (ev) Object.assign(ev, { t, date: d, kind }); else S.myEvents.push({ id: 'e' + Date.now(), t, date: d, kind }); save('myEvents'); UI.calSel = d; close(); render(); toast(ev ? '일정을 고쳤어요' : '일정을 추가했어요'); };
+      const dl = $('#me-del', el); if (dl) dl.onclick = () => { S.myEvents = S.myEvents.filter((x) => x.id !== id); save('myEvents'); close(); render(); toast('일정을 지웠어요'); };
+    });
   }
   function schedCard(cls) {
     const all = schedItems(), days = [], t0 = new Date(today() + 'T00:00:00');
@@ -1153,18 +1168,25 @@
     const sel = UI.calSel, L = on(sel);
     const strip = days.map((d, i) => { const dt = new Date(d + 'T00:00:00'), w = dt.getDay(), es = on(d); return `${i > 0 && dt.getDate() === 1 ? `<span class="cal-m">${dt.getMonth() + 1}월</span>` : ''}<button type="button" class="cal-d ${d === sel ? 'sel' : ''} ${i === 0 ? 'today' : ''} ${w === 0 ? 'sun' : w === 6 ? 'sat' : ''}" data-cd="${d}"><span>${i === 0 ? '오늘' : DOW[w]}</span><b class="num">${dt.getDate()}</b><i>${es.slice(0, 3).map((e) => `<em class="k-${e.k}"></em>`).join('')}</i></button>`; }).join('');
     const month = all.filter((e) => e.month && e.date === sel.slice(0, 7));
-    const row = (e) => `<div class="li ${e.pi != null ? 'btnlike' : ''}" ${e.pi != null ? `data-pk="timeline:${e.pi}"` : ''}><span class="cal-bar k-${e.k}"></span><div class="body"><div class="t" style="font-size:15px">${esc(e.t)}</div><div class="d">${esc(e.tag)}</div></div>${e.pi != null ? '<span class="chev"></span>' : ''}</div>`;
+    const row = schedRow;
     const dd = dday(sel), [, mm, dn] = sel.split('-');
-    return `<section class="card ${cls}"><div class="card-h"><h2>${ic('cal')} 다가오는 일정</h2><button class="more" id="sc-all" type="button">전체</button></div>
+    return `<section class="card ${cls}"><div class="card-h"><h2>${ic('cal')} 다가오는 일정</h2><div class="row" style="gap:4px"><button class="btn sm soft" id="sc-add" type="button">+ 추가</button><button class="more" id="sc-all" type="button">전체</button></div></div>
       <div class="cal-strip" id="cal-strip">${strip}</div>
       <div class="cal-day"><b>${+mm}월 ${+dn}일</b><span class="tiny">${dd === 0 ? '오늘' : 'D-' + dd}</span></div>
       ${L.length ? `<div class="list">${L.map(row).join('')}</div>` : (() => { const nx = days.find((d) => d > sel && on(d).length); return `<p class="tiny" style="margin:4px 0 8px">이날은 일정이 없어요</p>${nx ? `<button type="button" class="cal-next" data-cd="${nx}"><span class="tiny">다음 일정 · ${md(nx)} · D-${dday(nx)}</span><b>${esc(on(nx)[0].t)}</b><span class="chev"></span></button>` : ''}`; })()}
       ${month.length ? `<div class="eyebrow" style="margin-top:16px">${+mm}월 중에 할 것</div><div class="list">${month.map(row).join('')}</div>` : ''}</section>`;
   }
   function schedSheet() {
-    const L = schedItems().map((e) => ({ ...e, when: e.date, date: e.month ? e.date + '-01' : e.date })).filter((e) => e.date >= today().slice(0, 7)).sort((a, b) => a.date.localeCompare(b.date));
-    sheet(`<h2>일정 전체</h2><p class="sub">학교 일정과 생명공학 진학 일정을 날짜 순서로 모았어요</p><div class="list">${L.map((e) => `<div class="li ${e.pi != null ? 'btnlike' : ''}" ${e.pi != null ? `data-pk="timeline:${e.pi}"` : ''}><div class="sc-d"><b class="num">${e.when && e.when.length === 7 ? +e.date.slice(5, 7) + '월' : md(e.date)}</b><span>${e.date.slice(0, 4)}</span></div><div class="body"><div class="t" style="font-size:15px">${esc(e.t)}</div><div class="d">${esc(e.tag)}</div></div>${e.pi != null ? '<span class="chev"></span>' : ''}</div>`).join('')}</div>`, (el) => { $$('[data-pk]', el).forEach((b) => (b.onclick = () => { const [k, i] = b.dataset.pk.split(':'); pickDetail(k, +i); })); });
+    const L = schedItems().map((e) => ({ ...e, sort: e.month ? e.date + '-00' : e.date })).filter((e) => (e.month ? e.sort.slice(0, 7) >= today().slice(0, 7) : e.date >= today())).sort((a, b) => a.sort.localeCompare(b.sort));
+    const months = [...new Set(L.map((e) => e.sort.slice(0, 7)))];
+    sheet(`<div class="row between"><h2 style="margin:0">일정 전체</h2><button class="btn sm soft" id="ss-add" type="button">+ 내 일정 추가</button></div><p class="sub" style="margin-top:6px">학교 일정, 진학 일정, 내가 넣은 일정을 날짜 순서로 모았어요</p>
+      ${months.map((m) => `<div class="ss-mon">${m.slice(0, 4)}년 ${+m.slice(5)}월</div><div class="list">${L.filter((e) => e.sort.slice(0, 7) === m).map((e) => { const dt = e.month ? null : new Date(e.date + 'T00:00:00'); return `<div class="li ${e.pi != null || e.mid ? 'btnlike' : ''}" ${e.pi != null ? `data-pk="timeline:${e.pi}"` : e.mid ? `data-me-ev="${esc(e.mid)}"` : ''}><div class="ss-d ${dt && dt.getDay() === 0 ? 'sun' : dt && dt.getDay() === 6 ? 'sat' : ''}"><b class="num">${dt ? dt.getDate() : +e.sort.slice(5, 7) + '월'}</b><span>${dt ? DOW[dt.getDay()] : '중'}</span></div><span class="cal-bar k-${e.k}"></span><div class="body"><div class="t" style="font-size:15px">${esc(e.t)}</div><div class="d">${esc(e.tag)}${dt && dday(e.date) >= 0 ? ` · ${dday(e.date) === 0 ? '오늘' : 'D-' + dday(e.date)}` : ''}</div></div>${e.pi != null || e.mid ? '<span class="chev"></span>' : ''}</div>`; }).join('')}</div>`).join('')}`, (el, close) => {
+      $$('[data-pk]', el).forEach((b) => (b.onclick = () => { const [k, i] = b.dataset.pk.split(':'); pickDetail(k, +i); }));
+      $$('[data-me-ev]', el).forEach((b) => (b.onclick = () => myEventSheet(b.dataset.meEv)));
+      $('#ss-add', el).onclick = () => myEventSheet(null);
+    });
   }
+
 
   // ───────── 생명공학 픽 ─────────
   function picksCard(cls) {
@@ -1174,24 +1196,30 @@
       ${tops.length ? `<div class="eyebrow">이번 시험 범위로 해 볼 탐구</div><div class="list">${tops.map((x) => `<div class="li btnlike" data-pk="topics:${(PICKS.topics || []).indexOf(x)}" style="align-items:flex-start"><div class="body"><div class="t" style="font-size:15px">${esc(x.idea)}</div><div class="d">${esc(x.subj)} · ${esc(x.unit)}</div></div><span class="chev"></span></div>`).join('')}</div>` : ''}
       ${!subs.length && !tops.length ? `<div class="empty">${ic('pill')}<b>생명공학 준비 자료를 모으는 중이에요</b></div>` : ''}</section>`;
   }
+  const PK_T = [['subjects', '과목 선택'], ['topics', '탐구 주제'], ['checklist', '채울 것'], ['books', '책']];
+  function picksBody(kind) {
+    const L = PICKS[kind] || [];
+    const row = (i, t, d, tag) => `<div class="li btnlike" data-pd="${i}" style="align-items:flex-start"><div class="body"><div class="t" style="line-height:1.5">${t}</div>${d ? `<div class="d" style="line-height:1.6;margin-top:2px">${d}</div>` : ''}</div>${tag || ''}<span class="chev"></span></div>`;
+    return L.length ? `<div class="list">${L.map((x, i) => kind === 'subjects' ? row(i, esc(x.name), esc(x.why || '') + (x.unis && x.unis.length ? `<br><span class="tiny">${esc(x.unis.join(', '))}</span>` : ''), `<span class="tag ${x.level === '핵심' ? 'blue' : ''}">${esc(x.level || '')}</span>`)
+      : kind === 'topics' ? row(i, esc(x.idea), `${esc(x.subj)} · ${esc(x.unit)}${x.how ? '<br>' + esc(x.how) : ''}${x.link ? `<br><span class="blue">${esc(x.link)}</span>` : ''}`)
+      : kind === 'checklist' ? row(i, esc(x.title), esc(x.detail || ''), `<span class="tag">${esc(x.area || '')}</span>`)
+      : row(i, `${esc(x.title)} <span class="tiny">${esc(x.author || '')}</span>`, esc(x.why || '') + (x.seteuk ? `<br><span class="tiny"><b>세특으로</b> ${esc(x.seteuk)}</span>` : '') + (x.subj ? `<br><span class="tiny">${esc(x.subj)}${x.popular ? ' · ' + esc(x.popular) : ''}</span>` : ''), x.level ? `<span class="tag ${x.level === '쉬움' ? 'green' : x.level === '도전' ? 'red' : 'blue'}">${esc(x.level)}</span>` : '')).join('')}</div>` : `<div class="empty"><b>준비 중이에요</b></div>`;
+  }
+  function picksView() {
+    const k = UI.pkTab || 'subjects';
+    return `<div style="max-width:880px;margin:0 auto"><h1 class="h1" style="margin:0 0 4px">${ic('dna')} 생명공학 픽</h1><p class="sub">생명공학과 가려면 무엇을 언제 챙기는지 모았어요${PICKS.updated ? ` · ${md(PICKS.updated)} 기준` : ''}</p>
+      <div class="chips pk-tabs">${PK_T.map(([t, n]) => `<button class="chip ${k === t ? 'on' : ''}" type="button" data-pt="${t}">${n}<span class="pk-n">${(PICKS[t] || []).length}</span></button>`).join('')}</div>
+      <section class="card pk-body" style="margin-top:12px">${picksBody(k)}</section></div>`;
+  }
+  function bindPicks() {
+    $$('[data-pt]').forEach((b) => (b.onclick = () => { UI.pkTab = b.dataset.pt; render(); }));
+    $$('main [data-pd]').forEach((b) => (b.onclick = () => pickDetail(UI.pkTab || 'subjects', +b.dataset.pd)));
+  }
+  // 예전 「픽 전체」 시트 자리: 이제 탭으로 가요
   function picksSheet(start) {
-    const P = PICKS; const tab = { v: typeof start === 'string' ? start : 'subjects' };
-    const T = [['subjects', '과목 선택'], ['topics', '탐구 주제'], ['checklist', '채울 것'], ['books', '책']];
-    sheet(`<h2>생명공학 픽</h2><p class="sub">생명공학과 가려면 무엇을 언제 챙기는지 모았어요${P.updated ? ` · ${md(P.updated)} 기준` : ''}</p><div class="chips" id="pk-t"></div><div id="pk-b" style="margin-top:12px"></div>`, (el) => {
-      const draw = () => {
-        $('#pk-t', el).innerHTML = T.map(([k, n]) => `<button class="chip ${tab.v === k ? 'on' : ''}" type="button" data-pt="${k}">${n}</button>`).join('');
-        $$('[data-pt]', el).forEach((b) => (b.onclick = () => { tab.v = b.dataset.pt; draw(); }));
-        const L = P[tab.v] || [];
-        const row = (t, d, tag) => `<div class="li btnlike" data-pd="${L.indexOf(cur)}" style="align-items:flex-start"><div class="body"><div class="t" style="line-height:1.5">${t}</div>${d ? `<div class="d" style="line-height:1.6;margin-top:2px">${d}</div>` : ''}</div>${tag || ''}</div>`;
-        let cur; $('#pk-b', el).innerHTML = L.length ? `<div class="list">${L.map((x) => (cur = x, tab.v === 'subjects') ? row(esc(x.name), esc(x.why || '') + (x.unis && x.unis.length ? `<br><span class="tiny">${esc(x.unis.join(', '))}</span>` : ''), `<span class="tag ${x.level === '핵심' ? 'blue' : ''}">${esc(x.level || '')}</span>`)
-          : tab.v === 'topics' ? row(esc(x.idea), `${esc(x.subj)} · ${esc(x.unit)}${x.how ? '<br>' + esc(x.how) : ''}${x.link ? `<br><span class="blue">${esc(x.link)}</span>` : ''}`)
-          : tab.v === 'timeline' ? row(esc(x.title), esc(x.what || '') + (x.why ? '<br>' + esc(x.why) : ''), `<span class="tag">${esc(x.when)}</span>`)
-          : tab.v === 'checklist' ? row(esc(x.title), esc(x.detail || ''), `<span class="tag">${esc(x.area || '')}</span>`)
-          : row(`${esc(x.title)} <span class="tiny">${esc(x.author || '')}</span>`, esc(x.why || '') + (x.seteuk ? `<br><span class="tiny"><b>세특으로</b> ${esc(x.seteuk)}</span>` : '') + (x.subj ? `<br><span class="tiny">${esc(x.subj)}${x.popular ? ' · ' + esc(x.popular) : ''}</span>` : ''), x.level ? `<span class="tag ${x.level === '쉬움' ? 'green' : x.level === '도전' ? 'red' : 'blue'}">${esc(x.level)}</span>` : '')).join('')}</div>` : `<div class="empty"><b>준비 중이에요</b></div>`;
-        $$('[data-pd]', el).forEach((b) => (b.onclick = () => pickDetail(tab.v, +b.dataset.pd)));
-      };
-      draw();
-    });
+    $('#sheet-root').innerHTML = ''; document.body.style.overflow = '';
+    if (typeof start === 'string') UI.pkTab = start;
+    go('picks');
   }
 
   // ───────── 내 정보 (토스 「내 정보」처럼 큰 프로필 + 한 줄씩) ─────────
@@ -1316,7 +1344,7 @@
   }
 
   // ───────── 틀 · 메뉴 ─────────
-  const TABS = [['home', '홈', 'home'], ['hw', '숙제', 'hw'], ['wrong', '오답', 'wrong'], ['score', '성적', 'score'], ['sgb', '생기부', 'sgb']];
+  const TABS = [['home', '홈', 'home'], ['hw', '숙제', 'hw'], ['wrong', '오답', 'wrong'], ['score', '성적', 'score'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna']];
   function nav() {
     const cnt = { hw: (() => { const st = dayStat(sciToday()); return (st.n - st.done > 0 ? 1 : 0) + hwNow().length; })(), wrong: todayWr().length };
     const btn = (t, bottom) => `<button type="button" class="${UI.tab === t[0] ? 'on' : ''}" data-go="${t[0]}">${bottom ? `<img src="icons/${IC[t[2]]}.svg" alt="">` : ''}${t[1]}${cnt[t[0]] ? `<span class="cnt">${cnt[t[0]] > 99 ? '99+' : cnt[t[0]]}</span>` : ''}</button>`;
@@ -1332,9 +1360,12 @@
     nav();
     let html = '';
     if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : '';
-    else html = UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : sgbView();
+    else html = UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'picks' ? picksView() : sgbView();
     main.innerHTML = (TEACHER ? `<div class="teacher-band">선생님 보기 · ${esc(U.who)}의 기록을 보고 고칠 수 있어요</div>` : '') + html;
+    const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'picks' ? UI.pkTab || '' : '');
+    if (view !== render.view) { main.classList.remove('enter'); void main.offsetWidth; main.classList.add('enter'); render.view = view; cheerCheck.combo = 0; }
     bind();
+    cheerCheck();
   }
   function go(tab) { UI.tab = tab; UI.run = null; UI.lib = null; if (tab !== 'score') UI.mockId = null; render(); window.scrollTo(0, 0); }
   function startTask(k) {
@@ -1353,6 +1384,7 @@
     $$('[data-cs]').forEach((b) => (b.onclick = () => { UI.chartSubj = b.dataset.cs; render(); }));
     const h = $('#hero'); if (h) h.onclick = uniSheet;
     if (!UI.run && UI.tab === 'me') bindMe();
+    if (!UI.run && UI.tab === 'picks') bindPicks();
     $$('[data-seg]').forEach((b) => { if (!b.dataset.go) b.onclick = () => { UI.scoreSeg = b.dataset.seg; UI.mockId = null; render(); }; });
     $$('[data-mock]').forEach((b) => (b.onclick = () => { UI.mockId = b.dataset.mock; render(); window.scrollTo(0, 0); }));
     $$('[data-mdel]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); S.mockManual = (S.mockManual || []).filter((x) => x.id !== b.dataset.mdel); save('mockManual'); render(); }));
@@ -1384,6 +1416,8 @@
     const pk = $('#pk-all'); if (pk) pk.onclick = picksSheet;
     const ad = $('#ad-all'); if (ad) ad.onclick = admitSheet;
     const sca = $('#sc-all'); if (sca) sca.onclick = schedSheet;
+    const scd = $('#sc-add'); if (scd) scd.onclick = () => myEventSheet(null, UI.calSel);
+    $$('main [data-me-ev]').forEach((b) => (b.onclick = () => myEventSheet(b.dataset.meEv)));
     $$('[data-cd]').forEach((b) => (b.onclick = () => { const st = $('#cal-strip'), x = st ? st.scrollLeft : 0; UI.calSel = b.dataset.cd; render(); const st2 = $('#cal-strip'); if (st2) { st2.scrollLeft = x; const se = $('.cal-d.sel', st2); if (se) { const l = se.offsetLeft - st2.offsetLeft; if (l < st2.scrollLeft || l + se.offsetWidth > st2.scrollLeft + st2.clientWidth) st2.scrollTo({ left: l, behavior: 'smooth' }); } } }));
     $$('main [data-du]').forEach((b) => (b.onclick = () => uniDetail(b.dataset.du)));
     $$('[data-pk]').forEach((b) => (b.onclick = () => { const [k, i] = b.dataset.pk.split(':'); pickDetail(k, +i); }));
@@ -1393,6 +1427,52 @@
   $('#brand').onclick = () => go('home');
   let rsT = 0, lastW = window.innerWidth; window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (Math.abs(window.innerWidth - lastW) > 80 && !$('.sheet')) { lastW = window.innerWidth; render(); } }, 250); });
   $('#me').onclick = () => go('me');
+
+  // ───────── 정답 축하 (팡팡) ─────────
+  // 화면에 「정답이에요」가 새로 뜨면 터뜨려요. 연속으로 맞히면 점점 크게
+  const CHEER2 = ['좋아요!', '정확해요!', '센스 있어요!', '바로 그거예요!', '완벽해요!'];
+  function cheerCheck() {
+    const v = $('main .verdict'); const was = cheerCheck.had; cheerCheck.had = !!v;
+    if (!v || was) return;
+    if (!v.classList.contains('ok')) { cheerCheck.combo = 0; v.classList.add('shake'); return; }
+    const c = (cheerCheck.combo = (cheerCheck.combo || 0) + 1);
+    const r = v.getBoundingClientRect();
+    boom(r.left + 40, r.top + r.height / 2, c);
+    const sp = v.querySelector('span'); if (sp) sp.textContent = c >= 2 ? `${c}연속 정답! ${CHEER2[Math.min(c - 2, CHEER2.length - 1)]}` : '정답이에요!';
+    if (c >= 3) { $$('.combo-pop').forEach((x) => x.remove()); const b = document.createElement('div'); b.className = 'combo-pop'; b.innerHTML = `${ic('fire')}<b>${c} COMBO</b>`; document.body.appendChild(b); setTimeout(() => b.remove(), 1400); }
+    if (navigator.vibrate) navigator.vibrate(c >= 3 ? [30, 40, 30] : 25);
+    ding(c);
+  }
+  function ding(c) {
+    try {
+      const A = ding.a || (ding.a = new (window.AudioContext || window.webkitAudioContext)());
+      [523, 659, 784, 1047].slice(0, Math.min(2 + Math.floor(c / 2), 4)).forEach((f, i) => {
+        const o = A.createOscillator(), g = A.createGain(), t = A.currentTime + i * 0.07;
+        o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+        o.connect(g).connect(A.destination); o.start(t); o.stop(t + 0.3);
+      });
+    } catch (e) {}
+  }
+  function boom(x, y, power = 1) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const cv = document.createElement('canvas'); cv.className = 'boom'; const dpr = devicePixelRatio || 1;
+    cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; document.body.appendChild(cv);
+    const g = cv.getContext('2d'); g.scale(dpr, dpr);
+    const COL = ['#3182f6', '#ffc342', '#ff6b8b', '#2ec27e', '#a77bff', '#ff8a3d'];
+    const P = []; const add = (cx, cy, n, sp) => { for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, v = sp * (0.4 + Math.random()); P.push({ x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v - sp * 0.5, r: 4 + Math.random() * 5, c: COL[i % COL.length], s: Math.random() < 0.5, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4, life: 1 }); } };
+    const n = Math.min(40 + power * 15, 110);
+    add(x, y, n, 9 + power);  // 팡
+    setTimeout(() => add(innerWidth / 2, innerHeight * 0.35, Math.round(n * 0.8), 11 + power), 160);  // 팡!
+    if (power >= 3) setTimeout(() => { add(innerWidth * 0.2, innerHeight * 0.3, 40, 10); add(innerWidth * 0.8, innerHeight * 0.3, 40, 10); }, 320);
+    const t0 = performance.now();
+    (function tick(t) {
+      g.clearRect(0, 0, innerWidth, innerHeight);
+      for (const p of P) { p.vy += 0.32; p.vx *= 0.985; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life -= 0.009;
+        g.globalAlpha = Math.max(p.life, 0); g.fillStyle = p.c; g.save(); g.translate(p.x, p.y); g.rotate(p.rot);
+        if (p.s) g.fillRect(-p.r, -p.r / 2.5, p.r * 2, p.r / 1.25); else { g.beginPath(); g.arc(0, 0, p.r / 1.6, 0, 7); g.fill(); } g.restore(); }
+      if (t - t0 < 2200) requestAnimationFrame(tick); else cv.remove();
+    })(t0);
+  }
 
   // ───────── 시작 ─────────
   window.__univStarted = true;
