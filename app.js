@@ -34,7 +34,7 @@
     { key: 'soc', name: '통합사회', total: 50, abs: null },
     { key: 'sci', name: '통합과학', total: 50, abs: null },
   ];
-  const SUBJ_COLOR = { kor: '#3182f6', math: '#f04452', eng: '#03b26c', hist: '#8b95a1', soc: '#ffb331', sci: '#a234c7' };
+  const SUBJ_COLOR = { kor: '#1fa2e6', math: '#f04452', eng: '#03b26c', hist: '#8b95a1', soc: '#ffb331', sci: '#a234c7' };
   const UNIS = D.unis && D.unis.length ? D.unis : [
     { id: 'snu', name: '서울대학교', short: '서울대', color: '#0f0f70', pharm: true },
     { id: 'yonsei', name: '연세대학교', short: '연세대', color: '#003876', pharm: true },
@@ -248,7 +248,7 @@
     const rows = examRows().map((r) => ({ label: r.title.replace(/학력평가|모의고사/g, '').trim() || md(r.date), v: { avg: avgOf(r.g), ...r.g } }));
     const ck = UI.chartSubj;
     const keys = ck === 'avg' ? [...MAIN.map((k) => ({ key: k, dim: true })), { key: 'avg', color: 'var(--blue)' }] : [{ key: 'avg', dim: true }, { key: ck, color: SUBJ_COLOR[ck] }];
-    const trend = `<section class="card c12" data-trend><div class="card-h"><h2>모의고사 등급 추이</h2><div class="seg" style="flex:0 1 auto">${[['avg', '평균'], ...MAIN.map((k) => [k, SUBJ_NAMES[k]])].map(([k, n]) => `<button type="button" class="${ck === k ? 'on' : ''}" data-cs="${k}">${n}</button>`).join('')}</div></div>${tossLine(rows.map((r) => ({ label: r.label, v: ck === 'avg' ? r.v.avg : r.v[ck] })), { goal: p.goalMock, id: 'h', color: ck === 'avg' ? '#3182f6' : SUBJ_COLOR[ck] })}</section>`;
+    const trend = `<section class="card c12" data-trend><div class="card-h"><h2>모의고사 등급 추이</h2><div class="seg" style="flex:0 1 auto">${[['avg', '평균'], ...MAIN.map((k) => [k, SUBJ_NAMES[k]])].map(([k, n]) => `<button type="button" class="${ck === k ? 'on' : ''}" data-cs="${k}">${n}</button>`).join('')}</div></div>${tossLine(rows.map((r) => ({ label: r.label, v: ck === 'avg' ? r.v.avg : r.v[ck] })), { goal: p.goalMock, id: 'h', color: ck === 'avg' ? '#1fa2e6' : SUBJ_COLOR[ck] })}</section>`;
     // 약한 영역
     const ow = openWrong(); const byArea = {};
     for (const w of ow) { const k = `${w.subjName || SUBJ_NAMES[w.subj] || w.subj}·${w.area || '기타'}`; byArea[k] = (byArea[k] || 0) + 1; }
@@ -1044,12 +1044,12 @@
     const area = `${line} L${x(pts[pts.length - 1].i).toFixed(1)} ${H - P.b} L${x(pts[0].i).toFixed(1)} ${H - P.b} Z`;
     const L = pts[pts.length - 1], tip = `${fmt1(L.v)}등급`, tw = tip.length * 9 + 20;
     const tx = Math.min(W - tw / 2, Math.max(tw / 2, x(L.i)));
-    let s = `<svg class="tchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opt.label || '등급 추이')}"><defs><linearGradient id="tg${opt.id || ''}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${opt.color || '#3182f6'}" stop-opacity=".16"/><stop offset="1" stop-color="${opt.color || '#3182f6'}" stop-opacity="0"/></linearGradient></defs>`;
+    let s = `<svg class="tchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opt.label || '등급 추이')}"><defs><linearGradient id="tg${opt.id || ''}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${opt.color || '#1fa2e6'}" stop-opacity=".16"/><stop offset="1" stop-color="${opt.color || '#1fa2e6'}" stop-opacity="0"/></linearGradient></defs>`;
     if (opt.goal) s += `<line x1="${P.l}" x2="${W - P.r}" y1="${y(opt.goal)}" y2="${y(opt.goal)}" class="goal-l"/><text x="${P.l}" y="${y(opt.goal) - 6}" class="goal-t">목표 ${opt.goal}등급</text>`;
     if (opt.prev) { const pp = opt.prev.map((r, i) => (r.v != null ? `${x(i).toFixed(1)} ${y(r.v).toFixed(1)}` : null)).filter(Boolean); if (pp.length > 1) s += `<path d="M${pp.join(' L')}" class="prev-l"/>`; }
-    s += `<path d="${area}" fill="url(#tg${opt.id || ''})"/><path d="${line}" class="main-l" stroke="${opt.color || '#3182f6'}"/>`;
-    pts.slice(0, -1).forEach((p) => { s += `<circle cx="${x(p.i)}" cy="${y(p.v)}" r="4" fill="var(--card)" stroke="${opt.color || '#3182f6'}" stroke-width="2.5"/>`; });
-    s += `<circle cx="${x(L.i)}" cy="${y(L.v)}" r="12" fill="${opt.color || '#3182f6'}" opacity=".18"/><circle cx="${x(L.i)}" cy="${y(L.v)}" r="6" fill="${opt.color || '#3182f6'}"/>`;
+    s += `<path d="${area}" fill="url(#tg${opt.id || ''})"/><path d="${line}" class="main-l" stroke="${opt.color || '#1fa2e6'}"/>`;
+    pts.slice(0, -1).forEach((p) => { s += `<circle cx="${x(p.i)}" cy="${y(p.v)}" r="4" fill="var(--card)" stroke="${opt.color || '#1fa2e6'}" stroke-width="2.5"/>`; });
+    s += `<circle cx="${x(L.i)}" cy="${y(L.v)}" r="12" fill="${opt.color || '#1fa2e6'}" opacity=".18"/><circle cx="${x(L.i)}" cy="${y(L.v)}" r="6" fill="${opt.color || '#1fa2e6'}"/>`;
     s += `<text x="${tx}" y="${y(L.v) - 20}" text-anchor="middle" class="tip-t">${tip}</text>`;
     rows.forEach((r, i) => { s += `<text x="${x(i)}" y="${H - 6}" text-anchor="middle" class="ax-t">${esc(r.label)}</text>`; });
     return s + '</svg>';

@@ -7,9 +7,9 @@
 @font-face { font-family: "Malang"; font-weight: 700; src: url("fonts/Malang-brand.woff2") format("woff2"); font-display: swap; }
 
 :root {
-  --bg: #f2f4f6; --card: #ffffff; --t1: #191f28; --t2: #4e5968; --t3: #8b95a1; --t4: #b0b8c1;
-  --line: #e5e8eb; --fill: #f2f4f6; --fill2: #f9fafb;
-  --blue: #3182f6; --blue-d: #1b64da; --blue-soft: #e8f3ff; --blue-l: #c9e2ff;
+  --bg: #eaf6fd; --card: #ffffff; --t1: #191f28; --t2: #4e5968; --t3: #8b95a1; --t4: #b0b8c1;
+  --line: #dcebf4; --fill: #e6f3fb; --fill2: #f4fafe;
+  --blue: #1fa2e6; --blue-d: #0c84c6; --blue-soft: #e2f4fd; --blue-l: #b5e2f8;
   --red: #f04452; --red-soft: #ffeeee; --green: #03b26c; --green-soft: #e5f8ef; --amber: #ffb331;
   --r-card: 20px; --r-btn: 14px; --r-sm: 10px;
   --shadow-pop: 0 2px 10px rgba(0,27,55,.1), 0 3px 20px rgba(2,32,71,.05);
@@ -20,7 +20,7 @@
   :root:not([data-theme="light"]) {
     --bg: #101013; --card: #1d1d22; --t1: #f9fafb; --t2: #c3c9d1; --t3: #8b95a1; --t4: #5f6873;
     --line: #2c2c34; --fill: #2c2c34; --fill2: #24242a;
-    --blue-soft: #1b2a44; --blue-l: #26457a; --red-soft: #3a1c22; --green-soft: #13322a;
+    --blue-soft: #12303f; --blue-l: #1d4f68; --red-soft: #3a1c22; --green-soft: #13322a;
     color-scheme: dark;
   }
 }
@@ -334,7 +334,7 @@ select.inp { appearance: none; background-image: linear-gradient(45deg, transpar
 .chip.sm { height: 30px; padding: 0 12px; font-size: 13px; }
 .li .ico.tone-red { background: #fff0f1; }
 .li .ico.tone-blue { background: #e8f3ff; }
-@media (prefers-color-scheme: dark) { .li .ico.tone-red { background: rgba(240,68,82,.16); } .li .ico.tone-blue { background: rgba(49,130,246,.16); } }
+@media (prefers-color-scheme: dark) { .li .ico.tone-red { background: rgba(240,68,82,.16); } .li .ico.tone-blue { background: rgba(31,162,230,.16); } }
 
 /* 토스 결 그래프 */
 .tchart { width: 100%; height: auto; max-height: 260px; display: block; margin-top: 8px; overflow: visible; }
@@ -403,7 +403,7 @@ select.inp { appearance: none; background-image: linear-gradient(45deg, transpar
 
 .sgb-area .a b small { font-size: 13px; font-weight: 500; color: var(--t3); margin-left: 2px; }
 .pk-it { display: flex; gap: 12px; width: 100%; text-align: left; padding: 12px; margin-bottom: 8px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); cursor: pointer; font: inherit; color: var(--t1); }
-.pk-it.on { border-color: var(--blue); background: rgba(49, 130, 246, .06); }
+.pk-it.on { border-color: var(--blue); background: rgba(31, 162, 230, .08); }
 .pk-it .ck { flex: 0 0 24px; height: 24px; border-radius: 8px; border: 2px solid var(--line); display: grid; place-items: center; color: #fff; font-size: 14px; font-weight: 800; }
 .pk-it.on .ck { background: var(--blue); border-color: var(--blue); }
 .pk-it .body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
