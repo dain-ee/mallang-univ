@@ -487,3 +487,5 @@ select.inp { appearance: none; background-image: linear-gradient(45deg, transpar
 .wd-row b { flex: none; width: 56px; font-size: 15px; }
 .wd-row .chips { gap: 6px; }
 @media (max-width: 720px) { .wd-list { grid-template-columns: 1fr; } }
+.ad-memo summary { cursor: pointer; color: var(--t3); font-size: 13px; margin-top: 4px; }
+.ad-memo p { margin: 4px 0 0; line-height: 1.6; }

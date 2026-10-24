@@ -266,7 +266,7 @@
     const nscard = `<section class="card c6"><div class="card-h"><h2>내신 등급</h2><button class="more" data-go="score" data-seg="naesin">입력하기</button></div>${nsRows.length ? tossLine(nsRows.map((r) => ({ label: r.label, v: r.v.n })), { maxG: 5, h: 180, id: 'n1', color: '#03b26c', goal: p.goalNaesin }) : `<div class="empty">${ic('pencil')}<b>내신 등급을 넣어 주세요</b><span>학기마다 과목 등급을 넣으면 평균이 계산돼요</span></div>`}</section>`;
     const sgbc = sgbSummary('c6');
     const main = `<h1 class="h1">${bdayLeft() === 0 ? `${ic('party')} ${nameCall()}, 생일 축하해` : `${nameCall()}, ${greet()}`}</h1><p class="sub">${todayLine()}</p>
-      <div class="grid">${qlogCard()}${hero}${pos}${insightCard('c7')}${picksCard('c5')}${trend}${railCards(true)}${weak}${wtab}${nscard}${sgbc}</div>`;
+      <div class="grid">${qlogCard()}${hero}${pos}${insightCard('c7')}${picksCard('c5')}${admitCard('c12')}${trend}${railCards(true)}${weak}${wtab}${nscard}${sgbc}</div>`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -1037,6 +1037,35 @@
     if (a.startsWith('mock:')) { UI.scoreSeg = 'mock'; UI.mockId = a.slice(5); UI.tab = 'score'; UI.run = null; render(); return window.scrollTo(0, 0); }
     if (a.startsWith('log:')) { UI.qlSubj = a.slice(4); UI.tab = 'home'; UI.run = null; render(); const t = $('#ql-t'); if (t) { t.scrollIntoView({ block: 'center' }); t.focus(); } }
   }
+  // ───────── 대학별 합격선 (생명 계열, 9등급제 지난 입결) ─────────
+  const ADMIT = D.admit || null;
+  const admitOf = (id) => (ADMIT && ADMIT.unis.find((x) => x.id === id)) || null;
+  const g2 = (v) => (v == null ? '-' : (+v).toFixed(2));
+  function trackRow(t) {
+    const cut = t.type === '정시' ? (t.pct70 != null ? `백분위 ${t.pct70}` : '-') : t.cut70 != null ? `70% ${g2(t.cut70)}` : t.avg != null ? `평균 ${g2(t.avg)}` : '-';
+    const noMin = !t.min || /^(없음|해당 없음)/.test(t.min);
+    return `<div class="li" style="align-items:flex-start"><span class="tag ${t.type === '교과' ? 'blue' : t.type === '종합' ? 'green' : ''}" style="flex:none">${esc(t.type)}</span><div class="body"><div class="t" style="font-size:15px">${esc(t.name)}${t.seats ? ` <span class="tiny">${t.seats}명</span>` : ''}</div>${t.type === '정시' ? '' : `<div class="d" style="line-height:1.6">${noMin ? '수능최저 없음' : '수능최저 ' + esc(t.min)}</div>`}${t.memo ? `<details class="ad-memo"><summary>자세히</summary><p class="tiny">${esc(t.memo)}${t.src ? `<br><a href="${esc(t.src)}" target="_blank" rel="noopener">출처</a>` : ''}</p></details>` : ''}</div><b class="num" style="flex:none;font-size:15px">${cut}</b></div>`;
+  }
+  function admitCard(cls) {
+    if (!ADMIT) return '';
+    const u = uniOf(S.profile.uni), a = u && admitOf(u.id);
+    return `<section class="card ${cls}"><div class="card-h"><h2>${ic('target')} ${a ? `${esc(u.short || u.name)} ${esc(a.dept)} 합격선` : '대학별 합격선'}</h2><button class="more" id="ad-all" type="button">24개 대학 비교</button></div>
+      ${a ? `<p class="tiny" style="margin:0 0 8px">${esc(a.year)} 입결 · 9등급제 기준이라 참고용이에요</p><div class="list">${a.tracks.map(trackRow).join('')}</div>` : `<div class="empty">${ic('target')}<b>목표 대학을 고르면 그 대학 합격선이 나와요</b></div>`}</section>`;
+  }
+  function admitSheet() {
+    const f = { v: '교과' };
+    sheet(`<h2>생명 계열 대학별 합격선</h2><p class="sub">${esc(ADMIT.note)}</p><div class="chips" id="ad-t"></div><div id="ad-b" style="margin-top:12px"></div>`, (el) => {
+      const draw = () => {
+        $('#ad-t', el).innerHTML = ['교과', '종합', '정시'].map((k) => `<button class="chip ${f.v === k ? 'on' : ''}" type="button" data-at="${k}">${k}</button>`).join('');
+        $$('[data-at]', el).forEach((b) => (b.onclick = () => { f.v = b.dataset.at; draw(); }));
+        const key = (t) => (f.v === '정시' ? (t.pct70 != null ? -t.pct70 : 999) : t.cut70 != null ? t.cut70 : t.avg != null ? t.avg : 999);
+        const rows = ADMIT.unis.flatMap((x) => x.tracks.filter((t) => t.type === f.v).map((t) => ({ x, t }))).sort((p, q) => key(p.t) - key(q.t));
+        $('#ad-b', el).innerHTML = rows.length ? `<div class="list">${rows.map(({ x, t }) => { const u = uniOf(x.id); return `<div class="li" style="align-items:flex-start">${u ? emb(u, 'sm') : ''}<div class="body"><div class="t" style="font-size:15px">${esc((u && u.short) || x.name)} <span class="tiny">${esc(x.dept)}</span></div><div class="d" style="line-height:1.6">${esc(t.name)}${t.seats ? ` · ${t.seats}명` : ''}${f.v === '정시' ? '' : `<br>${!t.min || /^(없음|해당 없음)/.test(t.min) ? '수능최저 없음' : '수능최저 ' + esc(t.min)}`}</div></div><b class="num" style="flex:none;font-size:15px">${f.v === '정시' ? (t.pct70 != null ? t.pct70 : '-') : t.cut70 != null ? g2(t.cut70) : t.avg != null ? '평균 ' + g2(t.avg) : '-'}</b></div>`; }).join('')}</div><p class="tiny" style="margin-top:12px">${f.v === '정시' ? '국·수·탐 백분위 70%컷이에요. 높을수록 어려워요' : '숫자는 합격자 내신 70%컷(없으면 평균)이에요. 낮을수록 어려워요'} · ${esc(ADMIT.updated)} 조사</p>` : '<div class="empty"><b>자료가 없어요</b></div>';
+      };
+      draw();
+    });
+  }
+
   // ───────── 생명공학 픽 ─────────
   function picksCard(cls) {
     const subs = (PICKS.subjects || []).slice(0, 6), tops = (PICKS.topics || []).filter((x) => /중화|산과 염기|전기|전자기|발전|대한민국/.test((x.unit || '') + (x.idea || ''))).slice(0, 2);
@@ -1250,6 +1279,7 @@
     if (!UI.run && UI.tab === 'home') bindQlog();
     $$('[data-ins]').forEach((b) => (b.onclick = () => doInsight(b.dataset.ins)));
     const pk = $('#pk-all'); if (pk) pk.onclick = picksSheet;
+    const ad = $('#ad-all'); if (ad) ad.onclick = admitSheet;
     if (!UI.run && UI.tab === 'sgb') bindLogs();
     if (!UI.run && UI.tab === 'score') { if (UI.scoreSeg === 'mock' && UI.mockId) bindMock(); if (UI.scoreSeg === 'naesin') bindNaesin(); }
   }
