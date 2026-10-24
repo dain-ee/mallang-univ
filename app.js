@@ -1171,17 +1171,44 @@
       const g = $('#ud-goal', el); if (g) g.onclick = () => { S.profile.uni = id; save('profile'); close(); render(); toast(`${nm} 목표, 응원해요`); };
     });
   }
+  // 탐구 주제 상세: 이야기로 끌어들이고 → 질문 → 따라 하는 순서(체크) → 경화여고 수업 연결 → 생기부 예시
+  const LV = { 쉬움: 'green', 보통: 'blue', 도전: 'red' };
+  function topicBody(x, i) {
+    const dn = ((S.tp || {})[i] || {}).s || [], st = x.steps || [];
+    const sch = (x.school || []).map((c) => `<div class="tp-sc"><div class="tp-sc-h"><b>${c.grade}학년${c.sem ? ` ${c.sem}학기` : ''}</b><span>${esc(c.subj)}</span>${c.group ? `<em>${esc(c.group)}</em>` : ''}</div>${c.unit ? `<div class="tiny">${esc(c.unit)}</div>` : ''}${c.perf ? `<div class="tp-perf">${ic('pencil')} 수행평가 「${esc(c.perf)}」</div>` : ''}${c.use ? `<p>${esc(c.use)}</p>` : ''}</div>`).join('');
+    return `<p class="tiny" style="margin:0 0 6px">${esc(x.subj)} · ${esc(x.unit)}</p><h2 style="line-height:1.4">${esc(x.idea)}</h2>
+      <div class="tp-meta">${x.level ? `<span class="tag ${LV[x.level] || ''}">${esc(x.level)}</span>` : ''}${x.time ? `<span class="tag">${ic('clock')} ${esc(x.time)}</span>` : ''}${x.kind ? `<span class="tag">${esc(x.kind)}</span>` : ''}</div>
+      ${x.hook ? `<div class="tp-hook"><div class="eyebrow">${ic('bulb')} 이런 얘기 들어 봤어요?</div><p>${esc(x.hook)}</p></div>` : ''}
+      ${x.question ? `<div class="tp-q"><span>탐구 질문</span><b>${esc(x.question)}</b></div>` : ''}
+      ${(x.need || []).length ? `<div class="tp-sec"><h3>준비물</h3><div class="row wrap" style="gap:6px">${x.need.map((n) => `<span class="tp-need">${esc(n)}</span>`).join('')}</div></div>` : ''}
+      ${st.length ? `<div class="tp-sec"><div class="row between"><h3>이렇게 해요</h3><span class="tiny" id="tp-n">${dn.length}/${st.length} 했어요</span></div><div class="tp-steps">${st.map((t, k) => `<button type="button" class="tp-step ${dn.includes(k) ? 'on' : ''}" data-tps="${k}"><i>${k + 1}</i><span>${esc(t)}</span></button>`).join('')}</div></div>` : x.how ? `<div class="tp-sec"><h3>어떻게 해요</h3><p class="ls-p">${esc(x.how)}</p></div>` : ''}
+      ${x.expect ? `<div class="deep"><div class="eyebrow">이런 결과가 나올 거예요</div><p style="margin:4px 0 0">${esc(x.expect)}</p></div>` : ''}
+      ${sch ? `<div class="tp-sec"><h3>${ic('school')} 경화여고 수업과 이어져요</h3><div class="tp-scs">${sch}</div></div>` : ''}
+      ${(x.deeper || []).length ? `<div class="tp-sec"><h3>더 파고들기</h3><div class="tp-deeper">${x.deeper.map((d) => `<p>${ic('q')}<span>${esc(d)}</span></p>`).join('')}</div></div>` : ''}
+      ${x.link || x.career ? `<div class="tp-sec"><h3>${ic('dna')} 생명공학으로 이어지면</h3>${x.link ? `<p class="ls-p" style="margin:0 0 6px">${esc(x.link)}</p>` : ''}${x.career ? `<p class="ls-p" style="margin:0">${esc(x.career)}</p>` : ''}</div>` : ''}
+      ${x.seteuk ? `<div class="tp-sec"><h3>생기부에 이렇게 적힐 수 있어요</h3><div class="tp-seteuk"><span class="tag">예시</span><p>${esc(x.seteuk.replace(/^\(예시\)\s*/, ''))}</p></div><p class="tiny" style="margin:8px 0 0">수업 발표·보고서·수행평가로 해야 세특에 적혀요. 해 본 뒤 생기부 탭에 기록해 둬요</p></div>` : ''}
+      ${(x.report || []).length ? `<div class="tp-sec"><h3>보고서 목차</h3><ol class="tp-ol">${x.report.map((r) => `<li>${esc(r)}</li>`).join('')}</ol></div>` : ''}
+      ${(x.read || []).length ? `<div class="tp-sec"><h3>${ic('books')} 같이 읽으면 좋아요</h3><div class="list">${x.read.map((r) => `<div class="li"><div class="body"><div class="t" style="font-size:15px">${esc(r.title)} <span class="tiny">${esc(r.by || '')}</span></div><div class="d">${esc(r.why || '')}</div></div></div>`).join('')}</div></div>` : ''}`;
+  }
+  function bindTopic(el, i) {
+    $$('[data-tps]', el).forEach((b) => (b.onclick = () => {
+      S.tp = S.tp || {}; const o = (S.tp[i] = S.tp[i] || { s: [] }), k = +b.dataset.tps;
+      o.s = o.s.includes(k) ? o.s.filter((y) => y !== k) : [...o.s, k]; save('tp');
+      b.classList.toggle('on', o.s.includes(k)); const n = $('#tp-n', el), tot = $$('[data-tps]', el).length; if (n) n.textContent = `${o.s.length}/${tot} 했어요`;
+      if (o.s.length === tot && o.s.includes(k)) { toast('탐구 순서를 다 해냈어요! 생기부에 기록해 둬요'); const r = b.getBoundingClientRect(); boom(r.left + 20, r.top, 2); }
+    }));
+  }
   function pickDetail(kind, i) {
     const x = (PICKS[kind] || [])[i]; if (!x) return;
     const T = { subjects: '고2 과목 선택', topics: '탐구 주제', timeline: '일정', checklist: '채울 것', books: '책' };
     let body = '';
     if (kind === 'subjects') body = `<h2>${esc(x.name)} <span class="tag ${x.level === '핵심' ? 'blue' : ''}">${esc(x.level || '')}</span></h2><p class="ls-p">${esc(x.why || '')}</p>${x.school ? `<div class="deep"><div class="eyebrow">경화여고에서는</div><p style="margin:4px 0 0">${esc(x.school)}</p></div>` : ''}
       ${(x.unis || []).length ? `<div class="eyebrow" style="margin-top:20px">대학마다</div><div class="list">${x.unis.map((t) => { const a = ADMIT && ADMIT.unis.find((y) => t.startsWith((uniOf(y.id) || {}).short || '@')); return `<div class="li ${a ? 'btnlike' : ''}" ${a ? `data-du="${esc(a.id)}"` : ''}>${a && uniOf(a.id) ? emb(uniOf(a.id), 'sm') : ''}<div class="body"><div class="t" style="font-size:15px">${esc(t)}</div>${a ? '<div class="d">눌러서 합격선 보기</div>' : ''}</div>${a ? '<span class="chev"></span>' : ''}</div>`; }).join('')}</div>` : ''}${newsRows(newsLike([x.name, '권장과목', '권장 과목']))}`;
-    else if (kind === 'topics') body = `<p class="tiny" style="margin:0 0 4px">${esc(x.subj)} · ${esc(x.unit)}</p><h2>${esc(x.idea)}</h2>${x.how ? `<div class="eyebrow" style="margin-top:16px">어떻게 해요</div><p class="ls-p">${esc(x.how)}</p>` : ''}${x.link ? `<div class="deep"><div class="eyebrow">생명공학과 이어지는 점</div><p style="margin:4px 0 0">${esc(x.link)}</p></div>` : ''}<p class="tiny" style="margin-top:16px">수업 발표·보고서·수행평가로 해야 세특에 적혀요. 해 본 뒤 생기부 탭에 기록해 두면 좋아요</p>`;
+    else if (kind === 'topics') body = topicBody(x, i);
     else if (kind === 'timeline') body = `<span class="tag">${esc(x.when)}</span><h2 style="margin-top:8px">${esc(x.title)}</h2><p class="ls-p">${esc(x.what || '')}</p>${x.why ? `<div class="deep"><div class="eyebrow">왜 중요해요</div><p style="margin:4px 0 0">${esc(x.why)}</p></div>` : ''}${newsRows(newsLike((x.title || '').split(/[ ·,()]+/).filter((w) => w.length >= 3)))}`;
     else if (kind === 'checklist') body = `<span class="tag">${esc(x.area || '')}${x.term ? ' · ' + esc(x.term) : ''}</span><h2 style="margin-top:8px">${esc(x.title)}</h2><p class="ls-p">${esc(x.detail || '')}</p>`;
     else body = `<h2>${esc(x.title)}</h2><p class="tiny" style="margin:-4px 0 12px">${esc(x.author || '')}${x.level ? ' · ' + esc(x.level) : ''}${x.popular ? ' · ' + esc(x.popular) : ''}</p><p class="ls-p">${esc(x.why || '')}</p>${x.seteuk ? `<div class="deep"><div class="eyebrow">세특으로 잇기</div><p style="margin:4px 0 0">${esc(x.seteuk)}</p></div>` : ''}${x.subj ? `<p class="tiny" style="margin-top:12px">관련 과목: ${esc(x.subj)}</p>` : ''}`;
-    sheet(`<p class="eyebrow" style="margin:0 0 8px">${ic('pill')} 생명공학 픽 · ${T[kind]}</p>${readPill(`pick:${kind}:${i}`, 50, '진로 픽 읽기')}${body}${srcList(x.src)}<button class="btn big block" style="margin-top:20px" data-back type="button">${kind === 'timeline' ? '일정 전체 보기' : T[kind] + ' 더 보기'}</button>`, (el) => bindDetail(el, () => (kind === 'timeline' ? schedSheet() : picksSheet(kind))));
+    sheet(`<p class="eyebrow" style="margin:0 0 8px">${ic('pill')} 생명공학 픽 · ${T[kind]}</p>${readPill(`pick:${kind}:${i}`, 50, '진로 픽 읽기')}${body}${srcList(x.src)}<button class="btn big block" style="margin-top:20px" data-back type="button">${kind === 'timeline' ? '일정 전체 보기' : T[kind] + ' 더 보기'}</button>`, (el) => { bindDetail(el, () => (kind === 'timeline' ? schedSheet() : picksSheet(kind))); if (kind === 'topics') bindTopic(el, i); });
   }
 
   // 다가오는 일정: 토스처럼 가로로 넘기는 날짜 줄 + 고른 날의 일정
@@ -1392,15 +1419,16 @@
   }
 
   // ───────── 토마토 타이머 (뽀모도로) ─────────
-  // 집중 25·50분을 끝내면 토마토 하나. 하루 기록은 S.pomo(서버), 도는 타이머는 이 기기에 둬서 새로 고쳐도 이어져요
+  // 집중 25·45분을 끝내면 토마토 하나. 하루 기록은 S.pomo(서버), 도는 타이머는 이 기기에 둬서 새로 고쳐도 이어져요
   // 남은 시간은 끝나는 시각(endAt)으로 계산해서, 탭을 가려 두거나 다른 화면에 가도 틀리지 않아요
   const PKEY = 'mallang-univ:pomo:' + U.who, TITLE = document.title, PR = 116, PC = 2 * Math.PI * PR;
-  const PM = { f25: { t: '25분', min: 25, mode: 'focus' }, f50: { t: '50분', min: 50, mode: 'focus' }, br: { t: '쉬는 시간 5분', min: 5, mode: 'break' } };
+  const PM = { f25: { t: '25분', min: 25, mode: 'focus' }, f45: { t: '45분', min: 45, mode: 'focus' }, br: { t: '쉬는 시간 5분', min: 5, mode: 'break' }, br15: { t: '쉬는 시간 15분', min: 15, mode: 'break' } };
   const PM_SUBJ = ['오답', '숙제', '과학', '영어', '단어', '내신', '자유'];
   const PM_FOCUS = ['폰은 잠깐 뒤집어 둬요', '지금 이 집중이 실력이 돼요', '딱 이것만 생각해요', '모르는 건 표시만 하고 넘어가요', '거의 다 왔어요, 조금만 더'];
   const PM_BREAK = ['물 한 잔 마셔요', '창밖 먼 곳을 봐요', '기지개 한 번 쭉 켜요', '눈 감고 숨 크게 쉬어요'];
   const pRead = () => { try { return JSON.parse(localStorage.getItem(PKEY)) || null; } catch (e) { return null; } };
   let P = Object.assign({ pick: 'f25', subj: '자유', run: null, offer: null }, pRead() || {});
+  if (!PM[P.pick]) P.pick = 'f25'; if (P.lastFocus && !PM[P.lastFocus]) P.lastFocus = 'f25';  // 예전 50분 고른 기기
   const pSave = () => { try { localStorage.setItem(PKEY, JSON.stringify(P)); } catch (e) {} };
   const pomo = () => { S.pomo = S.pomo || { days: {}, goal: 4 }; S.pomo.days = S.pomo.days || {}; return S.pomo; };
   const pGoal = () => +pomo().goal || 4;
@@ -1510,13 +1538,13 @@
       const po = pomo(), d = today(); x = po.days[d] = po.days[d] || { n: 0, min: 0, subj: {} }; x.subj = x.subj || {};
       x.n = (x.n || 0) + 1; x.min = (x.min || 0) + Math.round(r.dur / 60); x.subj[r.subj] = (x.subj[r.subj] || 0) + 1;
       po.badges = po.badges || {}; nb = BADGES.filter((b) => b.ok() && !po.badges[b.id]); for (const b of nb) po.badges[b.id] = d;
-      save('pomo'); P.offer = 'break'; P.lastFocus = r.pick; P.pick = 'br';
+      save('pomo'); P.offer = 'break'; P.lastFocus = PM[r.pick] ? r.pick : 'f25'; P.pick = r.dur >= 45 * 60 ? 'br15' : 'br';
     } else { P.offer = 'focus'; P.pick = P.lastFocus || 'f25'; }
     pSave(); pRedraw(); pPaint();
     if (r.mode === 'focus') {
       boom(cx, cy, 5); ding(8); if (navigator.vibrate) navigator.vibrate([80, 60, 80, 60, 160]);
       toast(x.n === pGoal() ? `오늘 목표 ${x.n}개 달성!` : `토마토 ${x.n}개째예요! 5분 쉬어 가요`);
-      const big = r.dur >= 50 * 60; setTimeout(() => earn('pomo:' + r.endAt, big ? 700 : 300, big ? '토마토 50분' : '토마토 25분', { from: $('.pm-tom') || $('.pm-h-ic') }), 600);
+      const big = r.dur >= 45 * 60; setTimeout(() => earn('pomo:' + r.endAt, big ? 600 : 300, big ? '토마토 45분' : '토마토 25분', { from: $('.pm-tom') || $('.pm-h-ic') }), 600);
       const tm = $('.pm-tom'); if (tm && !RM()) bump(tm, 'pm-pop');
       if (nb.length) setTimeout(() => { boom(cx, innerHeight * 0.3, 3); ding(5); toast(`배지 획득! ${nb.map((b) => b.t).join(', ')}`); }, 2000);
     } else { ding(3); if (navigator.vibrate) navigator.vibrate([60, 40, 60]); toast('쉬는 시간 끝! 다음 토마토 가요'); }
@@ -1526,7 +1554,7 @@
     $$('[data-psj]').forEach((b) => (b.onclick = () => { P.subj = b.dataset.psj; if (P.run) P.run.subj = P.subj; pSave(); render(); }));
     $$('[data-pg]').forEach((b) => (b.onclick = () => { pomo().goal = +b.dataset.pg; save('pomo'); render(); }));
     const s = $('#pm-start'); if (s) s.onclick = pStart;
-    const k = $('#pm-skip'); if (k) k.onclick = () => { P.pick = P.offer === 'break' ? (P.lastFocus || 'f25') : 'br'; P.offer = null; pSave(); render(); };
+    const k = $('#pm-skip'); if (k) k.onclick = () => { P.pick = P.offer === 'break' ? (P.lastFocus || 'f25') : (P.lastFocus === 'f45' ? 'br15' : 'br'); P.offer = null; pSave(); render(); };
     const p = $('#pm-pause'); if (p) p.onclick = pPause;
     const x = $('#pm-stop'); if (x) x.onclick = pStopAsk;
   }
@@ -1605,7 +1633,7 @@
   // 한 가지 일에는 한 번만 줘요(key). 다시 그리거나 다시 풀어도 두 번 쌓이지 않아요. 하루 1,500원까지 (보너스는 따로)
   const W_GOAL = 50000, W_CAP = 1500, W_LOGMAX = 3, W_PACE = 1100;
   const EARN = [
-    { i: 'tomato', t: '토마토 25분', a: '300원' }, { i: 'tomato', t: '토마토 50분', a: '700원' },
+    { i: 'tomato', t: '토마토 25분', a: '300원' }, { i: 'tomato', t: '토마토 45분', a: '600원' },
     { i: 'pin', t: '선생님 숙제 하나 끝내기', a: '200원' }, { i: 'sci', t: '매일 과제 끝내기', d: '과학 · 천일문 · 단어 시험 · 고3 영어 · 약한 영역', a: '하나에 200원' },
     { i: 'retry', t: '오답 다시 맞히기', a: '100원' }, { i: 'hundred', t: '문제 맞히기', a: '20원' },
     { i: 'books', t: '과학 교과서 개념 읽기', d: '10초 넘게 읽으면', a: '100원' }, { i: 'news', t: '입시 소식 하나 읽기', d: '8초 넘게 읽으면', a: '50원' }, { i: 'dna', t: '진로 픽 하나 읽기', d: '8초 넘게 읽으면', a: '50원' },
