@@ -256,7 +256,7 @@
       const draw = () => { const q = $('#pf-q', el).value.trim(); $('#pf-unis', el).innerHTML = UNIS.filter((u) => !q || u.name.includes(q) || (u.short || '').includes(q)).map((u) => `<button type="button" class="${u.id === pick ? 'on' : ''}" data-u="${u.id}">${emb(u, 'md')}<span>${esc(u.short || u.name)}</span></button>`).join(''); $$('[data-u]', el).forEach((b) => (b.onclick = () => { pick = b.dataset.u; draw(); })); };
       $('#pf-q', el).oninput = draw; draw();
       $('#pf-save', el).onclick = () => {
-        Object.assign(S.profile, { name: $('#pf-name', el).value.trim() || U.who, school: $('#pf-school', el).value.trim(), grade: +$('#pf-grade', el).value, cls: $('#pf-cls', el).value.trim(), uni: pick, major: $('#pf-major', el).value.trim(), goalMock: +$('#pf-gm', el).value, goalNaesin: +$('#pf-gn', el).value });
+        Object.assign(S.profile, { name: $('#pf-name', el).value.trim() || U.who, school: $('#pf-school', el).value.trim(), grade: +$('#pf-grade', el).value, cls: $('#pf-cls', el).value.trim(), uni: pick, major: $('#pf-major', el).value.trim(), goalMock: +$('#pf-gm', el).value, goalNaesin: +$('#pf-gn', el).value, goalSet: { ...(S.profile.goalSet || {}), ...(+$('#pf-gm', el).value !== +S.profile.goalMock ? { goalMock: true } : {}), ...(+$('#pf-gn', el).value !== +S.profile.goalNaesin ? { goalNaesin: true } : {}) } });
         save('profile'); close(); render(); toast('저장했어요');
       };
     });
@@ -273,6 +273,24 @@
     if (p <= m9[0]) return 1; if (p >= m9[8]) return 9;
     const i = m9.findIndex((v, k) => p >= v && p <= m9[k + 1]); return i + 1 + (p - m9[i]) / (m9[i + 1] - m9[i]);
   }
+  function g9to5(g9) {
+    const m9 = mids(CUM9), m5 = mids(CUM5), p = lerpMid(m9, Math.min(Math.max(g9, 1), 9));
+    if (p <= m5[0]) return 1; if (p >= m5[4]) return 5;
+    const i = m5.findIndex((v, k) => p >= v && p <= m5[k + 1]); return i + 1 + (p - m5[i]) / (m5[i + 1] - m5[i]);
+  }
+  // 목표 등급: 직접 정하지 않았으면 목표 대학 합격선에 맞춰요 (내신은 9등급제 합격선을 5등급제로, 모의고사는 수능최저 평균)
+  function autoGoals() {
+    const u = uniOf(S.profile.uni), a = u && admitOf(u.id); if (!a) return null;
+    const T = a.tracks || [], pick = (ty) => T.find((t) => t.type === ty && (t.cut70 || t.cut50));
+    const tr = pick('종합') || pick('교과'), c9 = tr && (tr.cut70 || tr.cut50);
+    let mock = null; for (const t of T) { const m = String(t.min || '').match(/(\d)개[^\d합]*합\s*(\d+)/); if (m) { const v = +m[2] / +m[1]; if (mock == null || v < mock) mock = v; } }
+    return { naesin: c9 ? Math.round(g9to5(c9) * 10) / 10 : null, mock: mock ? Math.floor(mock * 10) / 10 : null, uni: u.short || u.name, c9, tr: tr && tr.type };
+  }
+  function syncGoals() {
+    const p = S.profile, a = autoGoals(), set = p.goalSet || {}; if (!a) return;
+    if (!set.goalMock && a.mock) p.goalMock = a.mock; if (!set.goalNaesin && a.naesin) p.goalNaesin = a.naesin;
+  }
+  const goalWhy = () => { const a = autoGoals(), set = S.profile.goalSet || {}; if (!a) return '직접 정한 목표'; return set.goalMock || set.goalNaesin ? '직접 정한 목표' : `${a.uni} 합격선 기준`; };
   function gradeMapCard(cls) {
     const my = nsTotal(), to9 = my ? g5to9(my) : null;
     const R5 = [['1', '상위 10%', '1등급 ~ 2등급'], ['2', '10 ~ 34%', '2등급 끝 ~ 4등급'], ['3', '34 ~ 66%', '4등급 ~ 6등급'], ['4', '66 ~ 90%', '6등급 ~ 8등급'], ['5', '90 ~ 100%', '8등급 ~ 9등급']];
@@ -298,7 +316,7 @@
       <div class="dday"><div><span>수능까지</span><b class="num">D-${dday(CSAT.date)}</b></div><div><span>${next ? esc(next.title) : '다음 일정'}</span><b class="num">${next ? 'D-' + dday(next.date) : '-'}</b></div><div><span>${esc(p.school || '')}</span><b>${p.grade}학년${p.cls ? ' ' + esc(p.cls) + '반' : ''}</b></div></div>
     </section>`;
     const pos = `<section class="card c5"><div class="card-h"><h2>지금 내 위치</h2><button class="more" id="qg-open" type="button">등급 적기</button></div>
-      <div class="rings">${ringSVG(mAvg ? (9 - mAvg) / 8 : 0, 'var(--blue)', '모의고사', mAvg ? fmt1(mAvg) : '-', '등급', lm ? `${esc(lm.title)} 평균<br>${goalLine(mAvg, p.goalMock)}` : '채점 전')}${ringSVG(nAvg ? (5 - nAvg) / 4 : 0, 'var(--green)', '내신', nAvg ? fmt1(nAvg) : '-', '등급', nAvg ? `5등급제 평균<br>${goalLine(nAvg, p.goalNaesin)}` : '아직 안 넣었어요')}</div></section>`;
+      <div class="rings">${ringSVG(mAvg ? (9 - mAvg) / 8 : 0, 'var(--blue)', '모의고사', mAvg ? fmt1(mAvg) : '-', '등급', lm ? `${esc(lm.title)} 평균<br>${goalLine(mAvg, p.goalMock)}` : '채점 전')}${ringSVG(nAvg ? (5 - nAvg) / 4 : 0, 'var(--green)', '내신', nAvg ? fmt1(nAvg) : '-', '등급', nAvg ? `5등급제 평균<br>${goalLine(nAvg, p.goalNaesin)}` : '아직 안 넣었어요')}</div><button type="button" class="goal-why" data-go="me">목표 모의 ${S.profile.goalMock} · 내신 ${S.profile.goalNaesin}등급 · ${goalWhy()} <b>바꾸기 ›</b></button></section>`;
     // 등급 추이
     const rows = examRows().map((r) => ({ label: r.title.replace(/학력평가|모의고사/g, '').trim() || md(r.date), v: { avg: avgOf(r.g), ...r.g } }));
     const ck = UI.chartSubj;
@@ -415,7 +433,7 @@
       })()}
       ${drillCard()}
       ${libCard()}
-      <section class="card c4"><div class="card-h"><h2>꾸준히</h2><span class="tag blue">${streak}일 연속</span></div><div class="streak">${days.map((d) => `<i class="${lvl(d) ? 'l' + lvl(d) : ''} ${d === today() ? 'today' : ''}" title="${d}"></i>`).join('')}</div><p class="tiny" style="margin:12px 0 0">최근 4주 · 진할수록 많이 했어요</p></section>
+      <section class="card c4"><div class="card-h"><h2>꾸준히</h2><span class="tag blue">${streak}일 연속</span></div><div class="streak">${days.map((d) => `<i class="${lvl(d) ? 'l' + lvl(d) : ''} ${d === today() ? 'today' : ''}" title="${d}" data-day="${d}" role="button" tabindex="0"></i>`).join('')}</div><p class="tiny" style="margin:12px 0 0">최근 4주 · 진할수록 많이 했어요 · 날짜를 누르면 그날 한 것이 보여요</p></section>
     </div>`;
   }
   function planSheet() {
@@ -437,6 +455,23 @@
       $('#pl-ok', el).onclick = () => { S.plan = P; save('plan'); close(); render(); toast('숙제 설정을 바꿨어요'); };
     });
   }
+  // 지난 기록: 꾸준히 칸의 날짜를 누르면 그날 한 것
+  function daySheet(d) {
+    const out = [], s = (S.sci.days || {})[d], e = (S.eng.days || {})[d];
+    if (s) { const st = dayStat(s), c = SCI.concepts.find((x) => x.id === s.c); if (st.done) out.push({ i: 'sci', t: c ? `과학 · ${c.title}` : '오늘의 과학', d: `${st.n}문제 중 ${st.done}개 풀고 ${st.ok}개 맞힘` }); }
+    if (e) {
+      if (e.udone) { const un = CH_UNITS[e.unit]; out.push({ i: 'eng', t: `천일문 ${un ? 'Unit ' + un.unit + ' ' + (un.title || '') : ''}`.trim(), d: '다 했어요' }); }
+      const wn = Object.keys(e.wans || {}).length; if (wn) out.push({ i: 'books', t: '워드마스터 단어 시험', d: `${wn}개 중 ${Object.values(e.wans).filter((x) => x.ok).length}개 맞힘` });
+      if (e.g3done) { const g = G3[e.g3 || 0]; out.push({ i: 'write', t: '고3 영어 한 문제', d: g ? `${g.type || ''} · ${g.src || ''}` : '풀었어요' }); }
+    }
+    for (const h of S.hw || []) if (hwDone(h) && (h.doneAt ? new Date(h.doneAt).toLocaleDateString('sv') === d : h.due === d)) out.push({ i: 'pin', t: h.title, d: '선생님 숙제 · 끝냄' });
+    const pd = (pomo().days || {})[d]; if (pd && pd.n) out.push({ i: 'tomato', t: `토마토 ${pd.n}개`, d: `집중 ${pd.min || pd.n * 25}분` });
+    for (const l of (S.logs || []).filter((x) => x.date === d)) out.push({ i: 'write', t: '학교에서 한 것', d: l.text || l.t || '' });
+    const won = W().log.filter((x) => x.date === d).reduce((a, x) => a + x.amt, 0);
+    const dt = new Date(d + 'T00:00:00'), wk = '일월화수목금토'[dt.getDay()];
+    sheet(`<h2>${md(d)} (${wk})</h2><p class="sub">${d === today() ? '오늘 지금까지 한 것' : '이날 한 것'}${won ? ` · 용돈 +${won.toLocaleString()}원` : ''}</p>
+      ${out.length ? `<div class="list">${out.map((x) => `<div class="li"><div class="ico">${ic('ok')}</div><div class="body"><div class="t">${esc(x.t)}</div><div class="d">${esc(x.d)}</div></div>${ic(x.i)}</div>`).join('')}</div>` : `<div class="empty">${ic('sleepy' in IC ? 'sleepy' : 'clock')}<b>이날은 기록이 없어요</b><span>쉬는 날도 필요해요</span></div>`}`);
+  }
   function hwSheet(id) {
     const h = (S.hw || []).find((x) => x.id === id); if (!h) return;
     const key = Object.keys(SUBJ_NAMES).find((k) => SUBJ_NAMES[k] === h.subj || (h.subj === '한국사' && k === 'hist'));
@@ -446,7 +481,7 @@
     sheet(`<div class="row" style="gap:6px;margin-bottom:8px"><span class="tag">${esc(h.subj || '숙제')}</span>${h.due ? `<span class="tag ${late ? 'red' : ''}">${md(h.due)}${late ? ' · 밀림' : ''}</span>` : ''}${fin ? '<span class="tag blue">다 했어요</span>' : ''}</div>
       <h2 style="line-height:1.45">${esc(h.title)}</h2>
       ${h.memo ? `<div class="deep" style="margin:12px 0"><div class="eyebrow">이렇게 해요</div><p style="margin:4px 0 0">${esc(h.memo)}</p></div>` : ''}
-      ${ids.length ? `<div class="list" style="margin:8px 0">${ids.map((id) => { const w = S.wrong[id], t = wrTried(h, id); return `<div class="li"><div class="ico">${ic(w.cleared ? 'ok' : t ? 'x' : 'pin')}</div><div class="body"><div class="t" style="font-size:15px">${esc(w.subjName || '')} ${w.no}번</div><div class="d">${esc(w.sub || w.area || '')}</div></div><span class="tag ${w.cleared ? 'blue' : t ? 'red' : ''}">${w.cleared ? '맞혔어요' : t ? '또 틀림' : '아직'}</span></div>`; }).join('')}</div>
+      ${ids.length ? `<div class="list" style="margin:8px 0">${ids.map((id) => { const w = S.wrong[id], t = wrTried(h, id); return `<div class="li"><div class="ico">${ic(w.cleared || t ? 'ok' : 'pin')}</div><div class="body"><div class="t" style="font-size:15px">${esc(w.subjName || '')} ${w.no}번</div><div class="d">${esc(w.sub || w.area || '')}${t && !w.cleared ? ' · 나중에 한 번 더 나와요' : ''}</div></div><span class="tag ${w.cleared ? 'blue' : t ? '' : ''}">${w.cleared ? '맞혔어요' : t ? '풀었어요' : '아직'}</span></div>`; }).join('')}</div>
         <button class="btn primary big block" id="hs-go" type="button">${left.length ? `${left.length}문제 풀기` : '한 번 더 풀어 보기'}</button>` : mock ? `<p class="sub" style="margin:12px 0">10월 모의고사 ${esc(h.subj)} 문제는 오답 노트에 다 들어 있어요. 지문과 문제를 앱에서 바로 다시 풀 수 있어요</p><button class="btn soft big block" id="hs-wrong" type="button">${ic('retry')} 오답 노트에서 ${esc(SUBJ_NAMES[key])} 풀기</button>` : ''}
       <div class="row" style="margin-top:16px"><button class="btn big" style="flex:1" data-x type="button">닫기</button>${ids.length ? '' : `<button class="btn ${h.done ? '' : 'primary'} big" style="flex:1" id="hs-done" type="button">${h.done ? '안 한 걸로 되돌리기' : '다 했어요'}</button>`}</div>`, (el, close) => {
       $('[data-x]', el).onclick = close;
@@ -1339,13 +1374,14 @@
     const [label, type, opt] = F;
     const body = type === 'mbti' ? `<div class="mbti-grid">${MBTI.map((m) => `<button type="button" class="${p.mbti === m ? 'on' : ''}" data-mb="${m}">${m}</button>`).join('')}</div>`
       : type === 'grade' ? `<div class="row" style="gap:12px"><div class="field" style="flex:1"><label>학년</label><select class="inp" id="ef-g">${[1, 2, 3].map((g) => `<option ${+p.grade === g ? 'selected' : ''}>${g}</option>`).join('')}</select></div><div class="field" style="flex:1"><label>반</label><input class="inp" id="ef-c" inputmode="numeric" value="${esc(p.cls)}"></div></div>`
-      : type === 'sel' ? `<div class="chips" style="flex-wrap:wrap">${opt.map((g) => `<button type="button" class="chip ${+p[k] === g ? 'on' : ''}" data-sv="${g}">${g}등급</button>`).join('')}</div>`
+      : type === 'sel' ? `${(() => { const a = autoGoals(), v = a && (k === 'goalMock' ? a.mock : a.naesin); return v ? `<button type="button" class="li btnlike" data-sauto style="width:100%;margin:0 0 12px;padding:12px 16px;box-sizing:border-box;border:0;background:var(--blue-soft);border-radius:14px;text-align:left;font:inherit"><div class="body"><div class="t">${esc(a.uni)} 합격선에 맞추기 · ${v}등급</div><div class="d">${k === 'goalMock' ? '수시 수능최저를 과목 평균으로 바꾼 값' : `${a.tr} 합격선 ${a.c9}등급(9등급제)을 5등급제로 바꾼 값`}</div></div>${!(p.goalSet || {})[k] ? '<span class="tag blue">지금</span>' : ''}</button>` : ''; })()}<div class="chips" style="flex-wrap:wrap">${opt.map((g) => `<button type="button" class="chip ${(p.goalSet || {})[k] && +p[k] === g ? 'on' : ''}" data-sv="${g}">${g}등급</button>`).join('')}</div>`
       : `<input class="inp" id="ef-v" type="${type}" value="${esc(p[k] || '')}" placeholder="${esc(opt || '')}">`;
     sheet(`<h2>${label}</h2>${body}<div class="row" style="margin-top:20px"><button class="btn big" style="flex:1" data-x type="button">닫기</button>${type === 'mbti' || type === 'sel' ? '' : '<button class="btn primary big" style="flex:1" id="ef-ok" type="button">저장</button>'}</div>`, (el, close) => {
       const done = () => { save('profile'); close(); render(); toast('바꿨어요'); };
       $('[data-x]', el).onclick = close;
       $$('[data-mb]', el).forEach((b) => (b.onclick = () => { p.mbti = b.dataset.mb; done(); }));
-      $$('[data-sv]', el).forEach((b) => (b.onclick = () => { p[k] = +b.dataset.sv; done(); }));
+      $$('[data-sv]', el).forEach((b) => (b.onclick = () => { p[k] = +b.dataset.sv; p.goalSet = { ...(p.goalSet || {}), [k]: true }; done(); }));
+      const sa = $('[data-sauto]', el); if (sa) sa.onclick = () => { p.goalSet = { ...(p.goalSet || {}), [k]: false }; syncGoals(); done(); };
       const ok = $('#ef-ok', el); if (ok) ok.onclick = () => { if (type === 'grade') { p.grade = +$('#ef-g', el).value; p.cls = $('#ef-c', el).value.trim(); } else { const v = $('#ef-v', el).value.trim(); if (k === 'name' && !v) return; p[k] = v; } done(); };
       const inp = $('#ef-v', el); if (inp) { inp.focus(); inp.onkeydown = (e) => { if (e.key === 'Enter') ok.click(); }; }
     });
@@ -1901,6 +1937,7 @@
     if (S.naesin && S.naesin['1-2'] && !S.naesin._mid12) { for (const r of Object.values(S.naesin['1-2'])) if (r && r.grade && r.midG == null && r.finG == null) { r.midG = r.grade; delete r.grade; } S.naesin._mid12 = 1; save('naesin'); }
     nav();
     let html = '';
+    syncGoals();
     if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : '';
     else html = UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'picks' ? picksView() : UI.tab === 'news' ? newsView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
@@ -1964,6 +2001,7 @@
     $$('[data-go]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); if (b.dataset.seg) UI.scoreSeg = b.dataset.seg; go(b.dataset.go); }));
     $$('[data-task]').forEach((b) => (b.onclick = () => startTask(b.dataset.task)));
     $$('[data-news]').forEach((b) => (b.onclick = () => newsSheet(b.dataset.news)));
+    $$('[data-day]').forEach((b) => (b.onclick = () => daySheet(b.dataset.day)));
     $$('[data-nf]').forEach((b) => (b.onclick = () => { UI.newsF = b.dataset.nf; render(); }));
     $$('[data-cs]').forEach((b) => (b.onclick = () => { UI.chartSubj = b.dataset.cs; render(); }));
     const h = $('#hero'); if (h) h.onclick = uniSheet;

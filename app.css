@@ -983,3 +983,6 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .sw-v { font-size: 13px; color: var(--t3); text-align: right; }
 @media (max-width: 560px) { .sw-row { grid-template-columns: 76px 1fr; } .sw-v { grid-column: 2; text-align: left; margin-top: -8px; } .sw-v:empty { display: none; } }
 .nw-read .t { color: var(--t2); font-weight: 500; }
+.streak i[data-day] { cursor: pointer; transition: transform .15s; } .streak i[data-day]:hover { transform: scale(1.08); }
+.goal-why { display: block; width: 100%; margin-top: 12px; padding: 10px 12px; border: 0; border-radius: 12px; background: var(--fill); color: var(--t3); font: inherit; font-size: 13px; text-align: center; cursor: pointer; }
+.goal-why b { color: var(--blue); font-weight: 600; margin-left: 4px; }
