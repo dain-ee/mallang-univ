@@ -471,3 +471,19 @@ select.inp { appearance: none; background-image: linear-gradient(45deg, transpar
 .ls-chk { margin-top: 8px; font-size: 14.5px; }
 .ls-chk summary { cursor: pointer; }
 .ls-chk p { color: var(--blue-d); font-weight: 600; }
+
+/* 전체 목록 */
+@media (min-width: 900px) { .c3 { grid-column: span 3; } }
+.h2 { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+.lib-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.lib-it { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 16px; border: 0; border-radius: 16px; background: var(--fill2); color: var(--t1); font: inherit; text-align: left; cursor: pointer; }
+.lib-it:hover { background: var(--fill); }
+.lib-it .ico { margin-bottom: 4px; }
+.lib-it b { font-size: 16px; }
+@media (max-width: 720px) { .lib-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.lib-it .ico { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; background: var(--card); }
+.wd-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; }
+.wd-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.wd-row b { flex: none; width: 56px; font-size: 15px; }
+.wd-row .chips { gap: 6px; }
+@media (max-width: 720px) { .wd-list { grid-template-columns: 1fr; } }

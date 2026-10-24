@@ -355,6 +355,7 @@
       <section class="card c4 link" data-task="words"><div class="row between"><span class="eyebrow">${ic('books')} 워드마스터 하이스트</span>${wdone >= 10 ? '<span class="tag blue">완료</span>' : ''}</div><p class="big" style="margin:12px 0 4px">${wl.length ? (wdone >= wl.length ? `${Object.values(ed.wans).filter((x) => x.ok).length}/${wl.length} 맞힘` : '단어 10개 시험') : '준비 중'}</p><p class="muted" style="margin:0">${wl.length ? `Day ${wl[0].day} · 외우고 바로 시험` : '단어장을 넣는 중이에요'}</p></section>
       ${G3.length ? (() => { const g = G3[ed.g3 || 0]; return `<section class="card c12 link" data-task="g3"><div class="row between"><span class="eyebrow">${ic('eng')} 고3 영어 하루 한 문제</span>${ed.g3done ? '<span class="tag blue">완료</span>' : ed.off ? '<span class="tag">주말</span>' : ''}</div><p class="big" style="margin:12px 0 4px">${g ? esc(g.type || '독해') + ' · ' + esc(g.src || '') : '준비 중'}</p><p class="muted" style="margin:0">풀고 나면 문장마다 해석·구문 분석이 나오고, 천일문 그 유닛으로 바로 가요</p></section>`; })() : ''}
       ${drillCard()}
+      ${libCard()}
       <section class="card c8"><div class="card-h"><h2>선생님 숙제</h2>${TEACHER ? '<button class="btn sm soft" id="hw-add" type="button">숙제 내기</button>' : ''}</div>
         ${hwList.length ? (() => {
           const row = (h, later) => `<div class="li"><button class="ico" data-hwdone="${esc(h.id)}" style="border:0;cursor:pointer" aria-label="완료">${ic(h.done ? 'ok' : 'pin')}</button><div class="body"><div class="t" style="${h.done ? 'color:var(--t3);text-decoration:line-through' : later ? 'color:var(--t2);font-weight:500' : ''}">${esc(h.title)}</div><div class="d">${[h.subj, h.due ? md(h.due) + (later ? ' 숙제' : '') : '', later ? '' : h.memo].filter(Boolean).map(esc).join(' · ')}</div></div>${!h.done && !later && h.due && h.due < today() ? '<span class="tag red">밀림</span>' : ''}${TEACHER ? `<button class="btn sm" data-hwdel="${esc(h.id)}" type="button">지우기</button>` : ''}</div>`;
@@ -471,7 +472,7 @@
     if (k === 'words') {
       const days = (ENG.words && ENG.words.days) || [];
       let idx = 0;
-      return head + `<p class="sub">Day마다 10개씩 세 묶음이에요. 오늘 숙제는 ${Math.floor((ed.words || 0) / 3) + 1}일차 ${(ed.words || 0) % 3 + 1}번째 묶음이에요</p><div class="grid">${days.map((d) => { const n = Math.ceil((d.words || []).length / 10); const btns = Array.from({ length: n }, () => idx++).map((k2, j) => { const a = (S.eng.wa || {})[k2] || {}; const did = Object.keys(a).length >= 10 || k2 < (S.eng.wordDay || 0); return `<button class="chip sm ${k2 === (ed.words || 0) ? 'on' : ''}" data-lw="${k2}" type="button">${did ? '✓ ' : ''}${j * 10 + 1}~${j * 10 + 10}</button>`; }).join(''); return `<section class="card c3 tight"><div class="card-h" style="margin-bottom:8px"><h3>Day ${esc(d.day)}</h3></div><div class="chips">${btns}</div></section>`; }).join('')}</div>`;
+      return head + `<p class="sub">Day마다 10개씩 세 묶음이에요. 오늘 숙제는 ${Math.floor((ed.words || 0) / 3) + 1}일차 ${(ed.words || 0) % 3 + 1}번째 묶음이에요</p><section class="card tight"><div class="wd-list">${days.map((d) => { const n = Math.ceil((d.words || []).length / 10); const btns = Array.from({ length: n }, () => idx++).map((k2, j) => { const a = (S.eng.wa || {})[k2] || {}; const did = Object.keys(a).length >= 10 || k2 < (S.eng.wordDay || 0); return `<button class="chip sm ${k2 === (ed.words || 0) ? 'on' : ''}" data-lw="${k2}" type="button">${did ? '✓ ' : ''}${j * 10 + 1}~${j * 10 + 10}</button>`; }).join(''); return `<div class="wd-row"><b>Day ${esc(d.day)}</b><div class="chips">${btns}</div></div>`; }).join('')}</div></section>`;
     }
     if (k === 'g3') {
       return head + `<p class="sub">풀고 나면 문장마다 해석·구문 분석이 나와요</p><section class="card"><div class="list">${G3.map((g, i) => { const a = (S.eng.g3ans || {})[g.id]; return `<div class="li btnlike" data-lg="${i}"><div class="ico">${ic(a ? (a.ok ? 'ok' : 'x') : i === (S.eng.g3 || 0) ? 'pin' : 'eng')}</div><div class="body"><div class="t">${i + 1}. ${esc(g.type || '독해')}${g.level ? ' ' + '★'.repeat(g.level) : ''}</div><div class="d">${esc(g.src || '')}${i === (S.eng.g3 || 0) ? ' · 오늘 숙제' : ''}</div></div><span class="chev"></span></div>`; }).join('')}</div></section>`;
@@ -1200,12 +1201,12 @@
     if (S.naesin && S.naesin['1-2'] && !S.naesin._mid12) { for (const r of Object.values(S.naesin['1-2'])) if (r && r.grade && r.midG == null && r.finG == null) { r.midG = r.grade; delete r.grade; } S.naesin._mid12 = 1; save('naesin'); }
     nav();
     let html = '';
-    if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : '';
-    else html = UI.tab === 'home' ? home() : UI.tab === 'hw' ? hwView() : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : sgbView();
+    if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : '';
+    else html = UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : sgbView();
     main.innerHTML = (TEACHER ? `<div class="teacher-band">선생님 보기 · ${esc(U.who)}의 기록을 보고 고칠 수 있어요</div>` : '') + html;
     bind();
   }
-  function go(tab) { UI.tab = tab; UI.run = null; if (tab !== 'score') UI.mockId = null; render(); window.scrollTo(0, 0); }
+  function go(tab) { UI.tab = tab; UI.run = null; UI.lib = null; if (tab !== 'score') UI.mockId = null; render(); window.scrollTo(0, 0); }
   function startTask(k) {
     if (k === 'sci') { UI.tab = 'hw'; UI.run = { kind: 'sci' }; }
     else if (k === 'unit') { UI.tab = 'hw'; UI.run = { kind: 'unit' }; }
@@ -1238,7 +1239,12 @@
     const sn = $('#sg-new'); if (sn) sn.onclick = () => sgbSheet(null);
     $$('#sg-pick, #sg-pick2').forEach((b) => (b.onclick = () => pickSheet(UI.sgbArea)));
     $$('[data-sg]').forEach((b) => (b.onclick = () => sgbSheet(b.dataset.sg)));
-    if (UI.run) { if (UI.run.kind === 'sci') bindSci(); if (UI.run.kind === 'unit') bindUnit(); if (UI.run.kind === 'words') bindWords(); if (UI.run.kind === 'retry') bindRetry(); if (UI.run.kind === 'g3') bindG3(); if (UI.run.kind === 'drill') bindDrill(); }
+    if (UI.run) { if (UI.run.kind === 'sci') bindSci(); if (UI.run.kind === 'unit') bindUnit(); if (UI.run.kind === 'words') bindWords(); if (UI.run.kind === 'retry') bindRetry(); if (UI.run.kind === 'g3') bindG3(); if (UI.run.kind === 'drill') bindDrill(); if (UI.run.kind === 'concept') bindConcept(); }
+    $$('[data-lib]').forEach((b) => (b.onclick = () => { UI.lib = b.dataset.lib || null; UI.run = null; UI.tab = 'hw'; render(); window.scrollTo(0, 0); }));
+    $$('[data-lu]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'unit', ref: +b.dataset.lu, back: 'lib' }; render(); window.scrollTo(0, 0); }));
+    $$('[data-lc]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'concept', cid: b.dataset.lc }; render(); window.scrollTo(0, 0); }));
+    $$('[data-lw]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'words', day: +b.dataset.lw }; render(); window.scrollTo(0, 0); }));
+    $$('[data-lg]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'g3', lib: +b.dataset.lg }; render(); window.scrollTo(0, 0); }));
     const da = $('#dr-add'); if (da) da.onclick = drillAddSheet;
     $$('[data-drdel]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); S.drills = (S.drills || []).filter((x) => x.id !== b.dataset.drdel); save('drills'); render(); }));
     if (!UI.run && UI.tab === 'home') bindQlog();
