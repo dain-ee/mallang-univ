@@ -7,7 +7,7 @@
 @font-face { font-family: "Malang"; font-weight: 700; src: url("fonts/Malang-brand.woff2") format("woff2"); font-display: swap; }
 
 :root {
-  --bg: #ffffff; --card: #ffffff; --t1: #191f28; --t2: #4e5968; --t3: #8b95a1; --t4: #b0b8c1;
+  --bg: #f2f4f6; --card: #ffffff; --t1: #191f28; --t2: #4e5968; --t3: #8b95a1; --t4: #b0b8c1;
   --line: #e5e8eb; --fill: #f2f4f6; --fill2: #f9fafb;
   --blue: #3182f6; --blue-d: #1b64da; --blue-soft: #e8f3ff; --blue-l: #c9e2ff;
   --red: #f04452; --red-soft: #ffeeee; --green: #03b26c; --green-soft: #e5f8ef; --amber: #ffb331;
@@ -471,6 +471,3 @@ select.inp { appearance: none; background-image: linear-gradient(45deg, transpar
 .ls-chk { margin-top: 8px; font-size: 14.5px; }
 .ls-chk summary { cursor: pointer; }
 .ls-chk p { color: var(--blue-d); font-weight: 600; }
-
-/* 흰 바탕: 카드는 옅은 테두리로 구분 */
-.card { border: 1px solid var(--line); }
