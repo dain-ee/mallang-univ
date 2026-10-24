@@ -986,3 +986,16 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .streak i[data-day] { cursor: pointer; transition: transform .15s; } .streak i[data-day]:hover { transform: scale(1.08); }
 .goal-why { display: block; width: 100%; margin-top: 12px; padding: 10px 12px; border: 0; border-radius: 12px; background: var(--fill); color: var(--t3); font: inherit; font-size: 13px; text-align: center; cursor: pointer; }
 .goal-why b { color: var(--blue); font-weight: 600; margin-left: 4px; }
+.splash img.sp-gh { width: 220px; height: 220px; border-radius: 0; animation: none; margin-bottom: -8px; }
+.code-box img.code-gh { width: 210px; height: 210px; border-radius: 0; margin-bottom: -12px; }
+.code-ask { background: radial-gradient(120% 80% at 50% 0%, #e8f3ff 0%, var(--bg) 60%); }
+.code-box h1 { font-size: 32px; }
+.code-box input { box-shadow: 0 2px 10px rgba(0,27,55,.06); }
+.gh { display: block; object-fit: contain; }
+.done-ic img.gh-done { width: 220px; height: 220px; margin: -48px auto -32px; }
+.done-ic.gh-wrap { background: none !important; width: auto !important; height: auto !important; }
+.empty img.gh-empty { width: 160px; height: 160px; margin: -28px auto -24px; }
+.td-all img.gh-td { width: 112px; height: 112px; margin: -20px 0 -16px; }
+.td-all { flex-direction: column; gap: 0; }
+.pm-c img.pm-gh { width: 104px; height: 104px; margin: -32px 0 -18px; }
+.pm-card.running .pm-c img.pm-gh { animation: none; }

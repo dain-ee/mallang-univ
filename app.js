@@ -384,7 +384,7 @@
     const item = (n) => `<div class="li btnlike ${read(n) ? 'nw-read' : ''}" data-news="${esc(n.id)}"><div class="ico">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'sm') : ic(nIcon(n))}</div><div class="body"><div class="t">${esc(n.title)}</div><div class="d">${md(n.date)} · ${esc(nGrp(n))}${n.level === '중요' ? ' · <b class="red">중요</b>' : ''}${read(n) ? '' : ' · <b class="blue">새 소식</b>'}</div></div><span class="chev"></span></div>`;
     return `<h1 class="h1">소식</h1><p class="sub">${D.news && D.news.updated ? md(D.news.updated) + ' 업데이트 · ' : ''}입시 · 과학 · 시사 상식, 출처를 확인한 것만 모았어요. 하나 읽으면 50원</p>
       <div class="chips" style="margin-bottom:16px">${['all', ...groups].map((g) => `<button type="button" class="chip ${f === g ? 'on' : ''}" data-nf="${esc(g)}">${g === 'all' ? '전체' : esc(g)} <span class="tiny">${g === 'all' ? N.length : N.filter((n) => nGrp(n) === g).length}</span></button>`).join('')}</div>
-      <div class="grid"><section class="card c12">${L.length ? `<div class="list">${L.map(item).join('')}</div>` : `<div class="empty">${ic('news')}<b>소식을 모으는 중이에요</b></div>`}</section></div>`;
+      <div class="grid"><section class="card c12">${L.length ? `<div class="list">${L.map(item).join('')}</div>` : `<div class="empty">${gh('peek', 'gh-empty')}<b>소식을 모으는 중이에요</b></div>`}</section></div>`;
   }
   function newsCard(cls) {
     const N = (D.news && D.news.items) || [];
@@ -427,7 +427,7 @@
         const tog = (pn, label, n) => n ? `<button type="button" data-pn="${pn}" data-lb="${label} <b>${n}</b>" onclick="const s=this.closest('section'),p=s.querySelector('[data-pane='+this.dataset.pn+']'),o=p.hidden;s.querySelectorAll('.hw-pane').forEach(x=>x.hidden=true);this.parentNode.querySelectorAll('button[data-lb]').forEach(b=>{b.classList.remove('on');b.innerHTML=b.dataset.lb});if(o){p.hidden=false;this.classList.add('on');this.textContent='접기'}">${label} <b>${n}</b></button>` : '';
         return `<section class="card c12"><div class="card-h"><h2>오늘 할 것</h2>${real.length ? `<span class="tiny">${real.length}개 중 <b class="${dn === real.length ? 'blue' : ''}">${dn}개</b> 끝</span>` : ''}${TEACHER ? '<button class="btn sm soft" id="hw-add" type="button">숙제 내기</button>' : ''}</div>
           ${real.length ? `<div class="td-prog"><i style="width:${(dn / real.length) * 100}%"></i></div>` : ''}
-          ${real.length ? `<div class="list">${[...real.filter((t) => !t.done), ...real.filter((t) => t.done)].map(row).join('')}</div>${dn === real.length ? `<p class="td-all">${ic('party')} 오늘 할 것을 다 끝냈어요</p>` : ''}` : `<div class="empty" style="padding:16px 0">${ic('party')}<b>오늘은 쉬는 날이에요</b></div>`}
+          ${real.length ? `<div class="list">${[...real.filter((t) => !t.done), ...real.filter((t) => t.done)].map(row).join('')}</div>${dn === real.length ? `<div class="td-all">${gh('yay', 'gh-td')}<span>오늘 할 것을 다 끝냈어요</span></div>` : ''}` : `<div class="empty" style="padding:16px 0">${gh('sleepy', 'gh-empty')}<b>오늘은 쉬는 날이에요</b></div>`}
           ${later.length || done.length ? `<div class="hw-tog">${tog('later', '앞으로 낼 숙제', later.length)}${tog('done', '끝낸 숙제', done.length)}</div>
           ${later.length ? `<div class="hw-pane list" data-pane="later" hidden>${later.map((h) => hrow(h, true)).join('')}</div>` : ''}${done.length ? `<div class="hw-pane list" data-pane="done" hidden>${done.map((h) => hrow(h)).join('')}</div>` : ''}` : ''}</section>`;
       })()}
@@ -470,7 +470,7 @@
     const won = W().log.filter((x) => x.date === d).reduce((a, x) => a + x.amt, 0);
     const dt = new Date(d + 'T00:00:00'), wk = '일월화수목금토'[dt.getDay()];
     sheet(`<h2>${md(d)} (${wk})</h2><p class="sub">${d === today() ? '오늘 지금까지 한 것' : '이날 한 것'}${won ? ` · 용돈 +${won.toLocaleString()}원` : ''}</p>
-      ${out.length ? `<div class="list">${out.map((x) => `<div class="li"><div class="ico">${ic('ok')}</div><div class="body"><div class="t">${esc(x.t)}</div><div class="d">${esc(x.d)}</div></div>${ic(x.i)}</div>`).join('')}</div>` : `<div class="empty">${ic('sleepy' in IC ? 'sleepy' : 'clock')}<b>이날은 기록이 없어요</b><span>쉬는 날도 필요해요</span></div>`}`);
+      ${out.length ? `<div class="list">${out.map((x) => `<div class="li"><div class="ico">${ic('ok')}</div><div class="body"><div class="t">${esc(x.t)}</div><div class="d">${esc(x.d)}</div></div>${ic(x.i)}</div>`).join('')}</div>` : `<div class="empty">${gh('sleepy', 'gh-empty')}<b>이날은 기록이 없어요</b><span>쉬는 날도 필요해요</span></div>`}`);
   }
   function hwSheet(id) {
     const h = (S.hw || []).find((x) => x.id === id); if (!h) return;
@@ -509,10 +509,20 @@
     return `<div class="choices">${(q.choices || []).map((c, k) => `<button class="choice ${done ? (k === q.answer ? 'right' : k === pick ? 'wrong' : '') : ''}" data-pick="${k}" type="button" ${done ? 'disabled' : ''}><span class="n">${k + 1}</span><span>${rich(c)}</span></button>`).join('')}</div>`;
   }
   // 다 풀었을 때: 큰 흰 카드 가운데 아이콘 · 점수 · 한마디, 버튼은 아래에 크게
+  // 3D 유령: 한 번만 도는 동작은 볼 때마다 처음부터 다시 돌도록 매번 새 주소(blob)로 붙여요
+  const GH_NEXT = { hello: ['idle', 2000] }, GH_BLOB = {};
+  const gh = (n, cls = '') => `<img class="gh ${cls}" data-gh="${n}" src="assets/ghost/${n}.png" alt="">`;
+  function ghFill(root) {
+    for (const img of (root || document).querySelectorAll('img[data-gh]:not([data-ghd])')) {
+      const n = img.dataset.gh; img.dataset.ghd = '1'; if (RM()) continue;
+      (GH_BLOB[n] = GH_BLOB[n] || fetch(`assets/ghost/${n}.webp`).then((r) => r.blob())).then((b) => { const u = URL.createObjectURL(b); img.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); const nx = GH_NEXT[n]; if (nx) setTimeout(() => { if (img.isConnected) { img.dataset.gh = nx[0]; delete img.dataset.ghd; ghFill(img.parentNode); } }, nx[1]); }).catch(() => {});
+    }
+  }
+  new MutationObserver(() => ghFill(document)).observe(document.body, { childList: true, subtree: true });
   function doneCard(ok, n, sub, btns, extra = '') {
     const all = n && ok === n, icon = all ? 'trophy' : ok / (n || 1) >= 0.6 ? 'party' : 'muscle';
     const title = all ? '다 맞혔어요!' : ok / (n || 1) >= 0.6 ? '잘했어요!' : '끝까지 풀었어요!';
-    return `<div class="done-card card" data-done="${all ? 2 : ok / (n || 1) >= 0.6 ? 1 : 0}"><div class="done-ic">${ic(icon)}</div><h1 class="h1">${title}</h1><div class="done-score"><b class="num">${ok}</b><span>/ ${n} 맞힘</span></div><p class="sub">${sub}</p>${extra}<div class="done-btns">${btns}</div></div>`;
+    return `<div class="done-card card" data-done="${all ? 2 : ok / (n || 1) >= 0.6 ? 1 : 0}"><div class="done-ic gh-wrap">${gh(ok / (n || 1) >= 0.6 ? 'yay' : 'oops', 'gh-done')}</div><h1 class="h1">${title}</h1><div class="done-score"><b class="num">${ok}</b><span>/ ${n} 맞힘</span></div><p class="sub">${sub}</p>${extra}<div class="done-btns">${btns}</div></div>`;
   }
   function verdict(ok, extra = '') { return `<div class="verdict ${ok ? 'ok' : 'no'}">${ic(ok ? 'hundred' : 'think')}<span>${ok ? '정답이에요' : '아쉬워요, 다시 볼게요'}</span>${extra}</div>`; }
   function addWrong(id, w) { S.wrong = S.wrong || {}; const old = S.wrong[id]; S.wrong[id] = { ...(old || {}), ...w, at: Date.now(), times: ((old && old.times) || 0) + 1, cleared: false }; save('wrong'); }
@@ -722,7 +732,7 @@
     const areas = Object.entries(byArea).sort((a, b) => b[1] - a[1]); const tot = areas.reduce((a, b) => a + b[1], 0);
     const pal = ['var(--blue)', 'var(--red)', 'var(--amber)', 'var(--green)', 'var(--t4)'];
     const pct = (n) => Math.max(1, Math.round((n / tot) * 100)) + '%';
-    return `<section class="card ${cls}"><div class="card-h"><h2>약한 영역</h2></div>${areas.length ? `<p class="h1" style="font-size:20px;margin:0 0 16px"><em>${esc(areas[0][0].replace('·', ' '))}</em>에서<br>가장 많이 틀렸어요</p><div class="stack">${areas.slice(0, 4).map(([, n], i) => `<span style="width:${(n / tot) * 100}%;background:${pal[i]}"></span>`).join('')}${areas.length > 4 ? `<span style="width:${(areas.slice(4).reduce((a, b) => a + b[1], 0) / tot) * 100}%;background:${pal[4]}"></span>` : ''}</div><div class="list" style="margin-top:12px">${areas.slice(0, 4).map(([k, n], i) => `<div class="li" style="padding:8px 0"><div class="body"><span class="dot" style="background:${pal[i]}"></span>${esc(k.replace('·', ' · '))}</div><div class="end num">${pct(n)}</div></div>`).join('')}${areas.length > 4 ? `<div class="li" style="padding:8px 0"><div class="body"><span class="dot" style="background:${pal[4]}"></span>그 외 ${areas.length - 4}개 영역</div><div class="end num">${pct(areas.slice(4).reduce((a, b) => a + b[1], 0))}</div></div>` : ''}</div>` : `<div class="empty">${ic('muscle')}<b>쌓인 오답이 없어요</b><span>모의고사를 채점하거나 매일 문제를 풀면 약한 영역이 보여요</span></div>`}</section>`;
+    return `<section class="card ${cls}"><div class="card-h"><h2>약한 영역</h2></div>${areas.length ? `<p class="h1" style="font-size:20px;margin:0 0 16px"><em>${esc(areas[0][0].replace('·', ' '))}</em>에서<br>가장 많이 틀렸어요</p><div class="stack">${areas.slice(0, 4).map(([, n], i) => `<span style="width:${(n / tot) * 100}%;background:${pal[i]}"></span>`).join('')}${areas.length > 4 ? `<span style="width:${(areas.slice(4).reduce((a, b) => a + b[1], 0) / tot) * 100}%;background:${pal[4]}"></span>` : ''}</div><div class="list" style="margin-top:12px">${areas.slice(0, 4).map(([k, n], i) => `<div class="li" style="padding:8px 0"><div class="body"><span class="dot" style="background:${pal[i]}"></span>${esc(k.replace('·', ' · '))}</div><div class="end num">${pct(n)}</div></div>`).join('')}${areas.length > 4 ? `<div class="li" style="padding:8px 0"><div class="body"><span class="dot" style="background:${pal[4]}"></span>그 외 ${areas.length - 4}개 영역</div><div class="end num">${pct(areas.slice(4).reduce((a, b) => a + b[1], 0))}</div></div>` : ''}</div>` : `<div class="empty">${gh('peek', 'gh-empty')}<b>쌓인 오답이 없어요</b><span>모의고사를 채점하거나 매일 문제를 풀면 약한 영역이 보여요</span></div>`}</section>`;
   }
   // 과목별 오답 표
   function subjWrongCard(cls) {
@@ -741,7 +751,7 @@
       <div class="chips" style="margin-bottom:16px"><button class="chip ${f === 'all' ? 'on' : ''}" data-ws="all" type="button">전체</button>${subs.map(([k, n]) => `<button class="chip ${f === k ? 'on' : ''}" data-ws="${k}" type="button">${n}</button>`).join('')}</div>
       <div class="grid">
         ${(() => { const td = todayWr().map((id) => S.wrong[id]).filter(Boolean); const nx = (S.hw || []).filter((h) => hwWr(h).length && !hwDone(h) && h.due > today()).sort((a, b) => a.due.localeCompare(b.due))[0];
-          return `<section class="card c7 col-card"><div class="card-h"><h2>오늘 풀 오답</h2></div>${td.length ? `<div class="list">${td.map(item).join('')}</div>` : `<div class="empty">${ic('party')}<b>오늘 오답은 끝!</b>${nx ? `<span>다음 오답은 ${md(nx.due)}에 나와요</span>` : ''}</div>`}
+          return `<section class="card c7 col-card"><div class="card-h"><h2>오늘 풀 오답</h2></div>${td.length ? `<div class="list">${td.map(item).join('')}</div>` : `<div class="empty">${gh('yay', 'gh-empty')}<b>오늘 오답은 끝!</b>${nx ? `<span>다음 오답은 ${md(nx.due)}에 나와요</span>` : ''}</div>`}
           ${td.length || open.length ? `<div class="wr-acts">${td.length ? `<button class="btn primary big" id="wr-today" type="button">${td.length}문제 풀기</button>` : ''}${open.length ? `<button class="btn big soft" type="button" onclick="const l=this.closest('section').querySelector('.wr-all');l.hidden=!l.hidden;this.textContent=l.hidden?'모아 둔 오답 보기':'접기'">모아 둔 오답 보기</button>` : ''}</div>` : ''}
           ${open.length ? `<div class="list wr-all" hidden style="margin-top:12px">${open.slice(0, 60).map(item).join('')}</div>` : ''}</section>`; })()}
         ${weakCard(open, 'c5')}
@@ -1548,7 +1558,7 @@
       <section class="card pm-card ${mode} ${r && !r.paused ? 'running' : ''}">
         <div class="chips">${Object.entries(PM).map(([k, m]) => `<button class="chip ${(r ? r.pick : P.pick) === k ? 'on' : ''}" type="button" data-pm="${k}" ${r || TEACHER ? 'disabled' : ''}>${m.t}</button>`).join('')}</div>
         <div class="pm-ring"><svg viewBox="0 0 260 260" aria-hidden="true"><circle cx="130" cy="130" r="${PR}" fill="none" stroke="var(--fill)" stroke-width="14"/><circle id="pm-arc" cx="130" cy="130" r="${PR}" fill="none" stroke="${mode === 'break' ? 'var(--green)' : 'var(--red)'}" stroke-width="14" stroke-linecap="round" stroke-dasharray="${PC}" stroke-dashoffset="${PC * (1 - pLeft() / pDur())}" transform="rotate(-90 130 130)"/></svg>
-          <div class="pm-c">${ic(mode === 'break' ? 'coffee' : 'tomato', 'pm-tom')}<b class="num" id="pm-time">${mmss(pLeft())}</b><span>${r ? (r.paused ? '잠깐 멈춤' : mode === 'break' ? '쉬는 중' : '집중하는 중') : mode === 'break' ? '쉬는 시간' : '집중 준비'}</span></div></div>
+          <div class="pm-c">${r && !r.paused && mode === 'focus' ? gh('focus', 'pm-tom pm-gh') : ic(mode === 'break' ? 'coffee' : 'tomato', 'pm-tom')}<b class="num" id="pm-time">${mmss(pLeft())}</b><span>${r ? (r.paused ? '잠깐 멈춤' : mode === 'break' ? '쉬는 중' : '집중하는 중') : mode === 'break' ? '쉬는 시간' : '집중 준비'}</span></div></div>
         ${mode === 'focus' ? `<div class="pm-subj"><span class="eyebrow">무엇을 공부해요?</span><div class="chips">${PM_SUBJ.map((s) => `<button class="chip sm ${(r ? r.subj : P.subj) === s ? 'on' : ''}" type="button" data-psj="${s}" ${TEACHER ? 'disabled' : ''}>${s}</button>`).join('')}</div></div>` : ''}
         ${ctl}
       </section>
@@ -2181,7 +2191,8 @@
     setInterval(apply, 20000);
   })();
   if (P.run) pLoop();
-  const sp = $('#splash'); if (sp) { sp.classList.add('out'); setTimeout(() => sp.remove(), 320); }
+  // 첫 화면: 유령이 쑝 하고 나오는 걸 끝까지 보고 들어가요 (세션마다 한 번만)
+  const sp = $('#splash'); if (sp) { let first = true; try { first = !sessionStorage.getItem('mu:sp'); sessionStorage.setItem('mu:sp', '1'); } catch (e) {} const wait = first && !RM() ? Math.max(0, 1900 - (Date.now() - (window.__t0 || 0))) : 0; setTimeout(() => { sp.classList.add('out'); setTimeout(() => sp.remove(), 320); }, wait); }
   const bm = $('#boot-msg'); if (bm) bm.remove();
   if (!S.profile.uni && !TEACHER) setTimeout(uniSheet, 600);
   sync(true);
