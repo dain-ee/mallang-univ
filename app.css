@@ -938,3 +938,6 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .tp-seteuk .tag { position: absolute; top: 12px; right: 12px; }
 .tp-seteuk p { margin: 0; padding-right: 40px; font-size: 14.5px; line-height: 1.75; color: var(--t1); }
 .tp-ol { margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.9; color: var(--t1); }
+
+.wr-bar { display: inline-block; vertical-align: middle; width: calc(100% - 48px); height: 8px; border-radius: 99px; background: var(--g100, #f2f4f6); overflow: hidden; margin-right: 8px; }
+.wr-bar i { display: block; height: 100%; border-radius: 99px; }
