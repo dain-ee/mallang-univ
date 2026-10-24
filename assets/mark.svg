@@ -1,11 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  <!-- 말랑대학 마크: 흰 바탕 + 흰 말랑이. 하얀 몸은 옅은 회색 테두리와 그림자로 구분합니다. -->
-  <defs>
-    <filter id="gsh" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#191f28" flood-opacity=".16"/></filter>
-  </defs>
-  <rect x="74" y="74" width="876" height="876" rx="210" fill="#ffffff" stroke="#e5e8eb" stroke-width="8"/>
-  <g transform="translate(512 512) rotate(38) scale(0.72)" filter="url(#gsh)">
-    <path fill="#ffffff" stroke="#d1d6db" stroke-width="14" stroke-linejoin="round" d="M -288 -50 C -288 -300, -152 -404, 0 -404 C 152 -404, 288 -300, 288 -50 L 288 205 C 288 338, 96 338, 96 212 C 96 348, -96 348, -96 212 C -96 352, -288 358, -288 205 Z"/>
-    <g transform="translate(26 -212) rotate(-38)"><ellipse cx="-76" cy="0" rx="47" ry="60" fill="#0b0a0c"/><ellipse cx="76" cy="0" rx="47" ry="60" fill="#0b0a0c"/></g>
+  <!-- 앱 아이콘 / 파비콘 — 검정 바탕 위 흰 유령 -->
+  <rect width="1024" height="1024" fill="#000000"/>
+  <g transform="translate(512 512) rotate(38)">
+    <path fill="#FBFAF7" d="
+      M -288 -50
+      C -288 -300, -152 -404, 0 -404
+      C 152 -404, 288 -300, 288 -50
+      L 288 205
+      C 288 338, 96 338, 96 212
+      C 96 348, -96 348, -96 212
+      C -96 352, -288 358, -288 205
+      Z"/>
+    <g transform="translate(26 -212) rotate(-38)">
+      <ellipse cx="-76" cy="0" rx="47" ry="60" fill="#050505"/>
+      <ellipse cx="76" cy="0" rx="47" ry="60" fill="#050505"/>
+    </g>
   </g>
 </svg>
