@@ -23,7 +23,13 @@
   const anyEng = (d) => ['unit', 'words', 'g3'].some((k) => onDay(k, d));
   const anyTask = (d) => PLAN_KINDS.some((x) => onDay(x.k, d));
   // 선생님 숙제는 날짜가 된 것만 오늘 할 일에 보여요 (하루 한 개씩)
-  const hwNow = () => (S.hw || []).filter((h) => !h.done && (!h.due || h.due <= today()));
+  // 오답 숙제는 거기 든 문제를 다 다시 풀면(맞혔든 또 틀렸든) 끝난 걸로 봐요
+  const hwWr = (h) => (h.wr || []).filter((id) => S.wrong && S.wrong[id]);
+  const wrTried = (h, id) => { const w = S.wrong[id]; return w.cleared || (w.at || 0) > (h.at || 0); };
+  const hwDone = (h) => !!h.done || (hwWr(h).length > 0 && hwWr(h).every((id) => wrTried(h, id)));
+  // 오늘 풀 오답: 오늘까지 낸 오답 숙제에서 아직 안 푼 것만 (전체 개수는 보여 주지 않아요)
+  const todayWr = () => { const out = []; for (const h of (S.hw || []).filter((x) => !x.done && (!x.due || x.due <= today()))) for (const id of hwWr(h)) if (!wrTried(h, id) && !out.includes(id)) out.push(id); return out; };
+  const hwNow = () => (S.hw || []).filter((h) => !hwDone(h) && (!h.due || h.due <= today()));
   const rich = (t) => esc(t).replace(/&lt;(\/?)(b|u|i|em|strong)&gt;/g, '<$1$2>').replace(/&lt;br\s*\/?&gt;/g, '<br>');
   const fmt1 = (x) => (x == null || isNaN(x) ? '-' : (Math.round(x * 10) / 10).toFixed(1));
 
@@ -260,7 +266,7 @@
     const weak = `<section class="card c6"><div class="card-h"><h2>약한 영역</h2><button class="more" data-go="wrong">오답 보기</button></div>${areas.length ? `<p class="h1" style="font-size:20px;margin:0 0 16px"><em>${esc(areas[0][0].replace('·', ' '))}</em>에서<br>가장 많이 틀렸어요</p><div class="stack">${areas.slice(0, 4).map(([, n], i) => `<span style="width:${(n / tot) * 100}%;background:${pal[i]}"></span>`).join('')}${areas.length > 4 ? `<span style="width:${(areas.slice(4).reduce((a, b) => a + b[1], 0) / tot) * 100}%;background:${pal[4]}"></span>` : ''}</div><div class="list" style="margin-top:12px">${areas.slice(0, 4).map(([k, n], i) => `<div class="li" style="padding:8px 0"><div class="body"><span class="dot" style="background:${pal[i]}"></span>${esc(k.replace('·', ' · '))}</div><div class="end num">${n}문제</div></div>`).join('')}${areas.length > 4 ? `<div class="li" style="padding:8px 0"><div class="body"><span class="dot" style="background:${pal[4]}"></span>그 외 ${areas.length - 4}개 영역</div><div class="end num">${areas.slice(4).reduce((a, b) => a + b[1], 0)}문제</div></div>` : ''}</div>` : `<div class="empty">${ic('muscle')}<b>쌓인 오답이 없어요</b><span>모의고사를 채점하거나 매일 문제를 풀면 약한 영역이 보여요</span></div>`}</section>`;
     // 과목별 오답 표
     const subjRows = Object.entries(SUBJ_NAMES).map(([k, n]) => { const all = wrongList().filter((w) => w.subj === k); return { k, n, all: all.length, open: all.filter((w) => !w.cleared).length }; }).filter((r) => r.all);
-    const wtab = `<section class="card c6"><div class="card-h"><h2>과목별 오답 쌓인 것</h2><button class="more" data-go="wrong">전체</button></div>${subjRows.length ? `<table class="tbl"><thead><tr><th>과목</th><th class="r">쌓인 오답</th><th class="r">다시 맞힘</th><th class="r">남은 것</th></tr></thead><tbody>${subjRows.map((r) => `<tr><td><span class="dot" style="background:${SUBJ_COLOR[r.k]}"></span>${r.n}</td><td class="r num">${r.all}</td><td class="r num blue">${r.all - r.open}</td><td class="r num"><b class="${r.open ? 'red' : ''}">${r.open}</b></td></tr>`).join('')}</tbody></table>` : `<div class="empty">${ic('memo')}<b>아직 없어요</b></div>`}</section>`;
+    const wtab = `<section class="card c6"><div class="card-h"><h2>과목별 오답</h2><button class="more" data-go="wrong">전체</button></div>${subjRows.length ? `<table class="tbl"><thead><tr><th>과목</th><th class="r">틀린 문제</th><th class="r">다시 맞힘</th></tr></thead><tbody>${subjRows.map((r) => `<tr><td><span class="dot" style="background:${SUBJ_COLOR[r.k]}"></span>${r.n}</td><td class="r num">${r.all}</td><td class="r num"><b class="${r.all - r.open ? 'blue' : ''}">${r.all - r.open}</b></td></tr>`).join('')}</tbody></table>` : `<div class="empty">${ic('memo')}<b>아직 없어요</b></div>`}</section>`;
     // 내신 학기별
     const nsRows = SEMS.map((sem) => ({ label: sem.replace('-', '학년 ') + '학기', v: { n: nsAvg(sem) } })).filter((r) => r.v.n != null);
     const nscard = `<section class="card c6"><div class="card-h"><h2>내신 등급</h2><button class="more" data-go="score" data-seg="naesin">입력하기</button></div>${nsRows.length ? tossLine(nsRows.map((r) => ({ label: r.label, v: r.v.n })), { maxG: 5, h: 180, id: 'n1', color: '#03b26c', goal: p.goalNaesin }) : `<div class="empty">${ic('pencil')}<b>내신 등급을 넣어 주세요</b><span>학기마다 과목 등급을 넣으면 평균이 계산돼요</span></div>`}</section>`;
@@ -352,9 +358,9 @@
     <div class="grid">
       <section class="card c12"><div class="card-h"><h2>선생님 숙제</h2>${TEACHER ? '<button class="btn sm soft" id="hw-add" type="button">숙제 내기</button>' : ''}</div>
         ${hwList.length ? (() => {
-          const row = (h, later) => `<div class="li btnlike" data-hwopen="${esc(h.id)}"><button class="ico" data-hwdone="${esc(h.id)}" style="border:0;cursor:pointer" aria-label="완료">${ic(h.done ? 'ok' : 'pin')}</button><div class="body"><div class="t" style="${h.done ? 'color:var(--t3);text-decoration:line-through' : later ? 'color:var(--t2);font-weight:500' : ''}">${esc(h.title)}</div><div class="d">${[h.subj, h.due ? md(h.due) + (later ? ' 숙제' : '') : '', later ? '' : h.memo].filter(Boolean).map(esc).join(' · ')}</div></div>${!h.done && !later && h.due && h.due < today() ? '<span class="tag red">밀림</span>' : ''}${TEACHER ? `<button class="btn sm" data-hwdel="${esc(h.id)}" type="button">지우기</button>` : ''}<span class="chev"></span></div>`;
+          const row = (h, later) => `<div class="li btnlike" data-hwopen="${esc(h.id)}"><button class="ico" data-hwdone="${esc(h.id)}" style="border:0;cursor:pointer" aria-label="완료">${ic(hwDone(h) ? 'ok' : 'pin')}</button><div class="body"><div class="t" style="${hwDone(h) ? 'color:var(--t3);text-decoration:line-through' : later ? 'color:var(--t2);font-weight:500' : ''}">${esc(h.title)}</div><div class="d">${[h.subj, h.due ? md(h.due) + (later ? ' 숙제' : '') : '', later ? '' : h.memo].filter(Boolean).map(esc).join(' · ')}</div></div>${!hwDone(h) && !later && h.due && h.due < today() ? '<span class="tag red">밀림</span>' : ''}${TEACHER ? `<button class="btn sm" data-hwdel="${esc(h.id)}" type="button">지우기</button>` : ''}<span class="chev"></span></div>`;
           const by = (a, b) => String(a.due || '').localeCompare(String(b.due || ''));
-          const now = hwNow().sort(by), later = hwList.filter((h) => !h.done && h.due && h.due > today()).sort(by), done = hwList.filter((h) => h.done).sort(by).reverse();
+          const now = hwNow().sort(by), later = hwList.filter((h) => !hwDone(h) && h.due && h.due > today()).sort(by), done = hwList.filter((h) => hwDone(h)).sort(by).reverse();
           return `${now.length ? `<div class="list">${now.map((h) => row(h)).join('')}</div>` : `<div class="empty" style="padding:16px 0">${ic('party')}<b>오늘 숙제는 끝!</b>${later.length ? `<span>다음 숙제는 ${md(later[0].due)}에 나와요</span>` : ''}</div>`}
             ${later.length ? `<details class="hw-more" ontoggle="this.firstElementChild.textContent=this.open?'미리 보기 접기':'다음 숙제 ${later.length}개 미리 보기'"><summary>다음 숙제 ${later.length}개 미리 보기</summary><div class="list">${later.map((h) => row(h, true)).join('')}</div></details>` : ''}
             ${done.length ? `<details class="hw-more" ontoggle="this.firstElementChild.textContent=this.open?'끝낸 숙제 접기':'끝낸 숙제 ${done.length}개 보기'"><summary>끝낸 숙제 ${done.length}개 보기</summary><div class="list">${done.map((h) => row(h)).join('')}</div></details>` : ''}`;
@@ -391,14 +397,17 @@
     const h = (S.hw || []).find((x) => x.id === id); if (!h) return;
     const key = Object.keys(SUBJ_NAMES).find((k) => SUBJ_NAMES[k] === h.subj || (h.subj === '한국사' && k === 'hist'));
     const mock = /모의/.test(h.title) && key;
-    const late = !h.done && h.due && h.due < today();
-    sheet(`<div class="row" style="gap:6px;margin-bottom:8px"><span class="tag">${esc(h.subj || '숙제')}</span>${h.due ? `<span class="tag ${late ? 'red' : ''}">${md(h.due)}${late ? ' · 밀림' : ''}</span>` : ''}${h.done ? '<span class="tag blue">다 했어요</span>' : ''}</div>
+    const ids = hwWr(h), left = ids.filter((id) => !wrTried(h, id)), fin = hwDone(h);
+    const late = !fin && h.due && h.due < today();
+    sheet(`<div class="row" style="gap:6px;margin-bottom:8px"><span class="tag">${esc(h.subj || '숙제')}</span>${h.due ? `<span class="tag ${late ? 'red' : ''}">${md(h.due)}${late ? ' · 밀림' : ''}</span>` : ''}${fin ? '<span class="tag blue">다 했어요</span>' : ''}</div>
       <h2 style="line-height:1.45">${esc(h.title)}</h2>
       ${h.memo ? `<div class="deep" style="margin:12px 0"><div class="eyebrow">이렇게 해요</div><p style="margin:4px 0 0">${esc(h.memo)}</p></div>` : ''}
-      ${mock ? `<p class="sub" style="margin:12px 0">10월 모의고사 ${esc(h.subj)} 문제는 오답 노트에 다 들어 있어요. 지문과 문제를 앱에서 바로 다시 풀 수 있어요</p><button class="btn soft big block" id="hs-wrong" type="button">${ic('retry')} 오답 노트에서 ${esc(SUBJ_NAMES[key])} 풀기</button>` : ''}
-      <div class="row" style="margin-top:16px"><button class="btn big" style="flex:1" data-x type="button">닫기</button><button class="btn ${h.done ? '' : 'primary'} big" style="flex:1" id="hs-done" type="button">${h.done ? '안 한 걸로 되돌리기' : '다 했어요'}</button></div>`, (el, close) => {
+      ${ids.length ? `<div class="list" style="margin:8px 0">${ids.map((id) => { const w = S.wrong[id], t = wrTried(h, id); return `<div class="li"><div class="ico">${ic(w.cleared ? 'ok' : t ? 'x' : 'pin')}</div><div class="body"><div class="t" style="font-size:15px">${esc(w.subjName || '')} ${w.no}번</div><div class="d">${esc(w.sub || w.area || '')}</div></div><span class="tag ${w.cleared ? 'blue' : t ? 'red' : ''}">${w.cleared ? '맞혔어요' : t ? '또 틀림' : '아직'}</span></div>`; }).join('')}</div>
+        <button class="btn primary big block" id="hs-go" type="button">${left.length ? `${left.length}문제 풀기` : '한 번 더 풀어 보기'}</button>` : mock ? `<p class="sub" style="margin:12px 0">10월 모의고사 ${esc(h.subj)} 문제는 오답 노트에 다 들어 있어요. 지문과 문제를 앱에서 바로 다시 풀 수 있어요</p><button class="btn soft big block" id="hs-wrong" type="button">${ic('retry')} 오답 노트에서 ${esc(SUBJ_NAMES[key])} 풀기</button>` : ''}
+      <div class="row" style="margin-top:16px"><button class="btn big" style="flex:1" data-x type="button">닫기</button>${ids.length ? '' : `<button class="btn ${h.done ? '' : 'primary'} big" style="flex:1" id="hs-done" type="button">${h.done ? '안 한 걸로 되돌리기' : '다 했어요'}</button>`}</div>`, (el, close) => {
       $('[data-x]', el).onclick = close;
-      $('#hs-done', el).onclick = () => { h.done = !h.done; h.doneAt = Date.now(); save('hw'); close(); render(); if (h.done) toast('잘했어요'); };
+      const go = $('#hs-go', el); if (go) go.onclick = () => { const q = left.length ? left : ids; close(); UI.tab = 'hw'; UI.run = { kind: 'retry', id: q[0], queue: q.slice(1), back: 'hw' }; render(); window.scrollTo(0, 0); };
+      const dn = $('#hs-done', el); if (dn) dn.onclick = () => { h.done = !h.done; h.doneAt = Date.now(); save('hw'); close(); render(); if (h.done) toast('잘했어요'); };
       const w = $('#hs-wrong', el); if (w) w.onclick = () => { close(); UI.wrongSubj = key; go('wrong'); };
     });
   }
@@ -629,12 +638,14 @@
     // 영역별 표
     const area = {}; for (const w of L) { const k = (w.subjName || SUBJ_NAMES[w.subj]) + '|' + (w.area || '기타'); area[k] = area[k] || { all: 0, open: 0 }; area[k].all++; if (!w.cleared) area[k].open++; }
     const ar = Object.entries(area).sort((a, b) => b[1].open - a[1].open || b[1].all - a[1].all);
-    const item = (w) => `<div class="li btnlike" data-wr="${esc(w.id)}"><div class="ico">${ic(w.cleared ? 'ok' : w.src === 'mock' ? 'score' : w.src === 'word' ? 'books' : w.src === 'eng' ? 'eng' : 'sci')}</div><div class="body"><div class="t">${esc(w.title || w.sub || '')}</div><div class="d">${esc(w.subjName || SUBJ_NAMES[w.subj] || '')} · ${esc(w.area || '')}${w.times > 1 ? ` · ${w.times}번 틀림` : ''}</div></div>${w.cleared ? '<span class="tag blue">다시 맞힘</span>' : '<span class="tag red">다시 풀기</span>'}</div>`;
-    return `<h1 class="h1">오답 노트</h1><p class="sub">틀린 문제는 다 여기에 쌓여요. 다시 맞히면 파란색이 돼요</p>
-      <div class="chips" style="margin-bottom:16px"><button class="chip ${f === 'all' ? 'on' : ''}" data-ws="all" type="button">전체 ${all.length}</button>${subs.map(([k, n]) => `<button class="chip ${f === k ? 'on' : ''}" data-ws="${k}" type="button">${n} ${all.filter((w) => w.subj === k).length}</button>`).join('')}</div>
+    const item = (w) => `<div class="li btnlike" data-wr="${esc(w.id)}"><div class="ico">${ic(w.cleared ? 'ok' : w.src === 'mock' ? 'score' : w.src === 'word' ? 'books' : w.src === 'eng' ? 'eng' : 'sci')}</div><div class="body"><div class="t">${esc(w.title || w.sub || '')}</div><div class="d">${esc(w.subjName || SUBJ_NAMES[w.subj] || '')} · ${esc(w.area || '')}${w.times > 1 ? ` · ${w.times}번 틀림` : ''}</div></div>${w.cleared ? '<span class="tag blue">다시 맞힘</span>' : '<span class="tag">다시 풀기</span>'}</div>`;
+    return `<h1 class="h1">오답 노트</h1><p class="sub">하루에 두세 문제씩만 다시 풀어요. 다시 맞히면 파란색이 돼요</p>
+      <div class="chips" style="margin-bottom:16px"><button class="chip ${f === 'all' ? 'on' : ''}" data-ws="all" type="button">전체</button>${subs.map(([k, n]) => `<button class="chip ${f === k ? 'on' : ''}" data-ws="${k}" type="button">${n}</button>`).join('')}</div>
       <div class="grid">
-        <section class="card c7"><div class="card-h"><h2>다시 풀 문제 <span class="red">${open.length}</span></h2>${open.length ? '<button class="btn sm primary" id="wr-all" type="button">차례로 풀기</button>' : ''}</div>${open.length ? `<div class="list">${open.slice(0, 60).map(item).join('')}</div>` : `<div class="empty">${ic('party')}<b>다시 풀 문제가 없어요</b></div>`}</section>
-        <section class="card c5"><div class="card-h"><h2>영역별</h2></div>${ar.length ? `<table class="tbl"><thead><tr><th>영역</th><th class="r">쌓임</th><th class="r">남음</th></tr></thead><tbody>${ar.map(([k, v]) => { const [s, a] = k.split('|'); return `<tr><td><div style="font-weight:600">${esc(a)}</div><div class="tiny">${esc(s)}</div></td><td class="r num">${v.all}</td><td class="r num"><b class="${v.open ? 'red' : 'blue'}">${v.open}</b></td></tr>`; }).join('')}</tbody></table>` : `<div class="empty">${ic('memo')}<b>아직 없어요</b></div>`}</section>
+        ${(() => { const td = todayWr().map((id) => S.wrong[id]).filter(Boolean); const nx = (S.hw || []).filter((h) => hwWr(h).length && !hwDone(h) && h.due > today()).sort((a, b) => a.due.localeCompare(b.due))[0];
+          return `<section class="card c7 col-card"><div class="card-h"><h2>오늘 풀 오답</h2></div>${td.length ? `<div class="list">${td.map(item).join('')}</div><button class="btn primary big block" id="wr-today" type="button" style="margin-top:auto">${td.length}문제 풀기</button>` : `<div class="empty">${ic('party')}<b>오늘 오답은 끝!</b>${nx ? `<span>다음 오답은 ${md(nx.due)}에 나와요</span>` : ''}</div>`}
+          ${open.length ? `<details class="hw-more" style="margin-top:12px" ontoggle="this.firstElementChild.textContent=this.open?'접기':'모아 둔 오답 보기'"><summary>모아 둔 오답 보기</summary><div class="list">${open.slice(0, 60).map(item).join('')}</div></details>` : ''}</section>`; })()}
+        <section class="card c5"><div class="card-h"><h2>영역별</h2></div>${ar.length ? `<table class="tbl"><thead><tr><th>영역</th><th class="r">틀린 문제</th><th class="r">다시 맞힘</th></tr></thead><tbody>${ar.map(([k, v]) => { const [s, a] = k.split('|'); return `<tr><td><div style="font-weight:600">${esc(a)}</div><div class="tiny">${esc(s)}</div></td><td class="r num">${v.all}</td><td class="r num"><b class="${v.all - v.open ? 'blue' : ''}">${v.all - v.open}</b></td></tr>`; }).join('')}</tbody></table>` : `<div class="empty">${ic('memo')}<b>아직 없어요</b></div>`}</section>
         ${done.length ? `<section class="card c12"><div class="card-h"><h2>다시 맞힌 문제 ${done.length}</h2></div><div class="list">${done.slice(0, 40).map(item).join('')}</div></section>` : ''}
       </div>`;
   }
@@ -642,7 +653,7 @@
   function retryRun() {
     const id = UI.run.id, w = S.wrong[id]; if (!w) { UI.run = null; return wrongView(); }
     const queue = UI.run.queue || [];
-    const head = `<div class="row between"><button class="btn sm" data-go="wrong" type="button">‹ 오답 노트</button><span class="tiny">${esc(w.subjName || '')} · ${esc(w.area || '')}${queue.length ? ` · 남은 ${queue.length}` : ''}</span></div>`;
+    const head = `<div class="row between">${UI.run.back === 'hw' ? '<button class="btn sm" data-go="hw" type="button">‹ 숙제</button>' : '<button class="btn sm" data-go="wrong" type="button">‹ 오답 노트</button>'}<span class="tiny">${esc(w.subjName || '')} · ${esc(w.area || '')}${queue.length ? ` · 남은 ${queue.length}` : ''}</span></div>`;
     const a = UI.run.ans;
     let body = '', wide = false;
     if (w.src === 'sci') { const q = qById(w.qid); if (!q) return head; body = `<div class="card"><div class="q-no">${esc(w.sub || '')}</div><div style="margin-top:8px">${qBody(q)}</div></div>${choicesHtml(q, a ? a.pick : null)}${a ? verdict(a.ok) + (q.exp ? `<div class="explain"><b>해설</b><br>${esc(q.exp)}</div>` : '') : ''}`; UI.run.q = q; }
@@ -691,7 +702,7 @@
     $$('[data-self]').forEach((b) => (b.onclick = () => done(b.dataset.self === '1', null)));
     const so = $('#short-ok'); if (so) so.onclick = () => { const v = $('#short').value.trim(); done(String(+v) === String(r.q.answer), v); };
     $$('[data-page]').forEach((b) => (b.onclick = () => sheet(`<h2>문제지 전체 쪽</h2><img class="q-img" src="${esc(b.dataset.page)}" alt="">`)));
-    const n = $('#next'); if (n) n.onclick = () => { if (r.queue && r.queue.length) { const [nx, ...rest] = r.queue; UI.run = { kind: 'retry', id: nx, queue: rest }; } else { UI.run = null; UI.tab = 'wrong'; } render(); window.scrollTo(0, 0); };
+    const n = $('#next'); if (n) n.onclick = () => { if (r.queue && r.queue.length) { const [nx, ...rest] = r.queue; UI.run = { kind: 'retry', id: nx, queue: rest, back: r.back }; } else { UI.run = null; UI.tab = r.back || 'wrong'; if (r.back === 'hw') toast('오늘 오답 끝!'); } render(); window.scrollTo(0, 0); };
   }
 
   // ───────── 성적 탭 (모의고사 · 내신) ─────────
@@ -860,9 +871,9 @@
     return `<h1 class="h1">생기부</h1><p class="sub">학교에서 한 발표·탐구를 적으면, 합격 생기부 구조로 다듬어 줘요</p>
       <div class="grid">
         ${logsSection()}
-        <section class="card c8"><div class="card-h"><h2>영역별로 모으기</h2><button class="more" id="sg-pick" type="button">최종 고르기</button></div><p class="tiny" style="margin:-4px 0 12px">많이 적어 두고, 학기 끝에 실제로 넣을 것만 골라요. 고른 글이 칸 글자 수 안에 들어가야 해요</p>
+        <section class="card c8 col-card"><div class="card-h"><h2>영역별로 모으기</h2></div><p class="tiny" style="margin:-4px 0 12px">많이 적어 두고, 학기 끝에 실제로 넣을 것만 골라요. 고른 글이 칸 글자 수 안에 들어가야 해요</p>
           <div class="sgb-area">${AREAS.map((a) => { const n = items.filter((x) => x.area === a.key).length, ch = pickedLen(a.key); return `<button class="a" style="border:0;text-align:left;cursor:pointer;${f === a.key ? 'outline:2px solid var(--blue)' : ''}" data-sa="${a.key}" type="button"><span>${esc(a.name)}</span><b class="num">${n}<small>개 기록</small></b><div class="bar" style="margin:8px 0 6px"><span style="width:${Math.min(100, (ch / a.limit) * 100)}%;${ch > a.limit ? 'background:var(--red)' : ''}"></span></div><span>${a.key === 'setuk' ? `고른 과목 ${pickedSubjs()}개` : `고른 글 ${ch} / ${a.limit}자`}</span></button>`; }).join('')}</div>
-          <div class="row" style="gap:8px;margin-top:16px"><button class="btn primary big" style="flex:2" id="sg-new" type="button">${ic('write')} 새 활동 기록하기</button><button class="btn big" style="flex:1" id="sg-pick2" type="button">최종 고르기</button></div></section>
+          <div class="row" style="gap:8px;margin-top:auto;padding-top:16px"><button class="btn primary big" style="flex:2" id="sg-new" type="button">${ic('write')} 새 활동 기록하기</button><button class="btn big" style="flex:1" id="sg-pick2" type="button">최종 고르기</button></div></section>
         <section class="card c4"><div class="card-h"><h2>꼭 지킬 것</h2></div><div class="list">${(rules.length ? rules : [{ t: '교외 활동·수상·논문·자격증은 적지 않아요' }, { t: '부모 직업, 사교육, 특정 대학·기관 이름은 쓰지 않아요' }, { t: '세특은 과목마다 500자(1,500바이트)까지예요' }, { t: '한 일보다 「어떻게 생각했고 무엇을 배웠는지」가 중요해요' }]).slice(0, 6).map((r) => `<div class="li" style="padding:8px 0;align-items:flex-start"><div class="body"><div class="t" style="font-size:14px;font-weight:500;line-height:1.6">${esc(r.t)}</div>${r.d ? `<div class="d">${esc(r.d)}</div>` : ''}</div></div>`).join('')}</div>${SGB.src ? `<p class="tiny" style="margin:8px 0 0">${esc(SGB.src)}</p>` : ''}</section>
         <section class="card c12"><div class="card-h"><h2>${f === 'all' ? '모든 기록' : esc(areaOf(f).name)} ${L.length}</h2>${f !== 'all' ? '<button class="more" data-sa="all">전체</button>' : ''}</div>
           ${L.length ? `<div class="list">${L.map((x) => `<div class="li btnlike" data-sg="${esc(x.id)}"><div class="ico">${ic(x.final ? 'star' : 'memo')}</div><div class="body"><div class="t">${esc(x.topic || '(제목 없음)')}</div><div class="d">${esc(areaOf(x.area).name)}${x.subj ? ' · ' + esc(x.subj) : ''} · ${new Date(x.at).getMonth() + 1}월 ${new Date(x.at).getDate()}일</div></div>${x.pick ? '<span class="tag green">넣을 것</span> ' : ''}${x.final ? '<span class="tag blue">다듬음</span>' : '<span class="tag">초안</span>'}</div>`).join('')}</div>` : `<div class="empty">${ic('write')}<b>아직 기록이 없어요</b><span>발표나 수행평가를 하면 바로 적어 두세요. 기억이 생생할 때가 제일 좋아요</span></div>`}</section>
@@ -1035,7 +1046,7 @@
     for (const m of MOCKS) { const left = (m.subjects || []).filter((s) => !(((S.mock[m.id] || {})[s.key]) || {}).done); if (left.length) { out.push({ icon: 'score', tone: 'blue', t: `${m.title} ${left.map((s) => s.name).slice(0, 3).join(' · ')}${left.length > 3 ? ' 외' : ''} 채점이 남았어요`, d: '틀린 번호만 누르면 약한 영역이 나와요', act: 'mock:' + m.id }); break; } }
     const wa = {}; for (const w of openWrong()) { const k = `${w.subjName || SUBJ_NAMES[w.subj]} · ${w.area || '기타'}`; wa[k] = (wa[k] || 0) + 1; }
     const top = Object.entries(wa).sort((a, b) => b[1] - a[1])[0];
-    if (top && top[1] >= 2) out.push({ icon: 'down', tone: 'red', t: `${top[0]} 영역이 아직 부족해요`, d: `오답 ${top[1]}문제가 남아 있어요. 다시 풀어서 파란색으로 바꿔요`, act: 'go:wrong' });
+    if (top && top[1] >= 2) out.push({ icon: 'down', tone: 'red', t: `${top[0]} 영역을 조금씩 채워 가요`, d: '하루 두세 문제씩 다시 풀면 금방 파란색이 돼요', act: 'go:wrong' });
     if (!Object.keys(S.naesin['1-1'] || {}).some((k) => (S.naesin['1-1'][k] || {}).grade)) out.push({ icon: 'pencil', tone: '', t: '1학기 내신 등급을 넣어 주세요', d: '넣으면 내 위치와 목표까지 남은 등급이 보여요', act: 'naesin' });
     for (const x of (PICKS.timeline || [])) { const d0 = /^\d{4}-\d{2}$/.test(x.when) ? x.when + '-01' : x.when; if (/^\d{4}-\d{2}-\d{2}$/.test(d0) && dday(d0) >= -31 && dday(d0) <= 60) { out.push({ icon: 'bell', tone: 'blue', t: x.title, d: x.what || '', act: 'picks' }); break; } }
     return out;
@@ -1274,7 +1285,7 @@
   // ───────── 틀 · 메뉴 ─────────
   const TABS = [['home', '홈', 'home'], ['hw', '숙제', 'hw'], ['wrong', '오답', 'wrong'], ['score', '성적', 'score'], ['sgb', '생기부', 'sgb']];
   function nav() {
-    const cnt = { hw: (() => { const st = dayStat(sciToday()); return (st.n - st.done > 0 ? 1 : 0) + hwNow().length; })(), wrong: openWrong().length };
+    const cnt = { hw: (() => { const st = dayStat(sciToday()); return (st.n - st.done > 0 ? 1 : 0) + hwNow().length; })(), wrong: todayWr().length };
     const btn = (t, bottom) => `<button type="button" class="${UI.tab === t[0] ? 'on' : ''}" data-go="${t[0]}">${bottom ? `<img src="icons/${IC[t[2]]}.svg" alt="">` : ''}${t[1]}${cnt[t[0]] ? `<span class="cnt">${cnt[t[0]] > 99 ? '99+' : cnt[t[0]]}</span>` : ''}</button>`;
     $('#tabs-top').innerHTML = TABS.map((t) => btn(t, false)).join('');
     $('#tabs-bottom').innerHTML = TABS.map((t) => btn(t, true)).join('');
@@ -1316,6 +1327,7 @@
     $$('#qg-open').forEach((b) => (b.onclick = () => quickGradeSheet()));
     $$('[data-ws]').forEach((b) => (b.onclick = () => { UI.wrongSubj = b.dataset.ws; render(); }));
     $$('[data-wr]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'retry', id: b.dataset.wr, queue: [] }; render(); window.scrollTo(0, 0); }));
+    const wt = $('#wr-today'); if (wt) wt.onclick = () => { const q = todayWr(); if (q.length) { UI.run = { kind: 'retry', id: q[0], queue: q.slice(1), back: 'wrong' }; render(); window.scrollTo(0, 0); } };
     const wa = $('#wr-all'); if (wa) wa.onclick = () => { const ids = openWrong().filter((w) => UI.wrongSubj === 'all' || w.subj === UI.wrongSubj).map((w) => w.id); if (ids.length) { UI.run = { kind: 'retry', id: ids[0], queue: ids.slice(1) }; render(); window.scrollTo(0, 0); } };
     const ha = $('#hw-add'); if (ha) ha.onclick = hwAddSheet;
     const po = $('#plan-open'); if (po) po.onclick = planSheet;
