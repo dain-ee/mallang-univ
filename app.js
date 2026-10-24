@@ -1852,6 +1852,21 @@
     $('#me').innerHTML = `<span>${esc(S.profile.name)}${TEACHER ? ' · 선생님 보기' : ''}</span>${avatarHtml('sm')}`;
   }
   const main = $('#main');
+
+  // 실루엣: 카드는 흰 그대로 두고, 글줄·아이콘·단추 자리만 재서 둥근 회색 막대로 그려요
+  function skelPaint(main) {
+    $('.skel-ov', main)?.remove();
+    const base = main.getBoundingClientRect(), H = innerHeight + 120, bars = [];
+    const add = (r, rad, k) => { if (r.width < 3 || r.height < 3 || r.bottom < 0 || r.top > H || bars.length > 500) return; bars.push(`<i class="${k || ''}" style="left:${r.left - base.left}px;top:${r.top - base.top}px;width:${r.width}px;height:${r.height}px;border-radius:${rad}"></i>`); };
+    const cards = $$('.card', main), rg = document.createRange();
+    cards.forEach((c) => {
+      $$('img, svg, canvas, .ic, .avatar, .logo', c).forEach((e) => { if (e.closest('.skel-skip')) return; const r = e.getBoundingClientRect(); add(r, Math.abs(r.width - r.height) < 4 && r.width < 64 ? '50%' : '10px'); });
+      $$('button, .btn, .chip, input, select, textarea', c).forEach((e) => { const r = e.getBoundingClientRect(); if (r.height < 60) add(r, getComputedStyle(e).borderRadius, 'ghost'); });
+      const w = document.createTreeWalker(c, NodeFilter.SHOW_TEXT, { acceptNode: (n) => n.nodeValue.trim() && !n.parentElement.closest('button, .btn, .chip, svg, style, script') ? 1 : 2 });
+      for (let n; (n = w.nextNode()); ) { rg.selectNodeContents(n); for (const r of rg.getClientRects()) { const h = Math.min(r.height * 0.62, 18); add({ left: r.left, top: r.top + (r.height - h) / 2, width: r.width, height: h, right: r.right, bottom: r.bottom }, '6px'); } }
+    });
+    main.insertAdjacentHTML('beforeend', `<div class="skel-ov" aria-hidden="true">${bars.join('')}</div>`);
+  }
   function render() {
     // 1학년 2학기는 아직 학기 최종 등급이 없어서, 먼저 넣은 등급은 중간고사 등급으로 옮겨요 (한 번만)
     if (S.naesin && S.naesin['1-2'] && !S.naesin._mid12) { for (const r of Object.values(S.naesin['1-2'])) if (r && r.grade && r.midG == null && r.finG == null) { r.midG = r.grade; delete r.grade; } S.naesin._mid12 = 1; save('naesin'); }
@@ -1871,7 +1886,7 @@
     main.classList.remove('enter', 'soft', 'boot', 'push', 'pop', 'tabL', 'tabR', 'side');
     main.innerHTML = (TEACHER ? `<div class="teacher-band">선생님 보기 · ${esc(U.who)}의 기록을 보고 고칠 수 있어요</div>` : '') + html;
     // 탭·칸 바꿀 때는 밀지 않고, 카드 자리만 회색 실루엣으로 잠깐 보였다가 내용이 스르륵 떠요
-    if (dir === 'side' || dir === 'tabL' || dir === 'tabR') { dir = ''; if (!RM()) { clearTimeout(render.sk); main.classList.remove('skel-out'); main.classList.add('skel'); render.sk = setTimeout(() => { main.classList.remove('skel'); main.classList.add('skel-out'); setTimeout(() => main.classList.remove('skel-out'), 260); }, 280); } if (view !== render.view) cheerCheck.combo = 0; setTimeout(() => countUp(main), 300); }
+    if (dir === 'side' || dir === 'tabL' || dir === 'tabR') { dir = ''; if (!RM()) { clearTimeout(render.sk); main.classList.remove('skel-out'); skelPaint(main); main.classList.add('skel'); render.sk = setTimeout(() => { main.classList.remove('skel'); $('.skel-ov', main)?.remove(); main.classList.add('skel-out'); setTimeout(() => main.classList.remove('skel-out'), 260); }, 280); } if (view !== render.view) cheerCheck.combo = 0; setTimeout(() => countUp(main), 300); }
     if (dir) { $$('main .card, main .h1, main .sub, main .seg, main .chips').forEach((c, i) => c.style.setProperty('--i', Math.min(i, 10))); void main.offsetWidth; main.classList.add('enter', dir); if (view !== render.view) cheerCheck.combo = 0; setTimeout(() => countUp(main), dir === 'boot' ? 260 : 120); }
     else if (sub !== render.sub) { void main.offsetWidth; main.classList.add('soft'); }
     Object.assign(render, { view, depth, ti, qk, sub });
