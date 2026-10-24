@@ -1137,16 +1137,32 @@
     sheet(`<p class="eyebrow" style="margin:0 0 8px">${ic('pill')} 생명공학 픽 · ${T[kind]}</p>${body}${srcList(x.src)}<button class="btn big block" style="margin-top:20px" data-back type="button">‹ ${kind === 'timeline' ? '일정 전체' : T[kind] + ' 목록'}</button>`, (el) => bindDetail(el, () => (kind === 'timeline' ? schedSheet() : picksSheet(kind))));
   }
 
+  // 다가오는 일정: 토스처럼 가로로 넘기는 날짜 줄 + 고른 날의 일정
+  function schedItems() {
+    const ev = (D.events || []).filter((e) => e.kind !== 'csat').map((e) => ({ date: e.date, t: e.title, tag: e.kind === 'exam' ? '시험' : e.kind === 'mock' ? '모의고사' : '학교', k: e.kind }));
+    const tl = (PICKS.timeline || []).map((x, i) => ({ date: x.when, month: x.when.length === 7, t: x.title, tag: x.kind || '입시', pi: i, k: 'pick' })).filter((o) => /^\d{4}-\d{2}/.test(o.date));
+    // 같은 날 수능이 두 번 나오지 않게
+    const out = ev.filter((e) => !(/수학능력/.test(e.t) && tl.some((o) => o.date === e.date && /수능/.test(o.t))));
+    return [...out, ...tl];
+  }
   function schedCard(cls) {
-    const ev = (D.events || []).filter((e) => e.kind !== 'csat' && dday(e.date) >= 0).map((e) => ({ date: e.date, t: e.title, tag: e.kind === 'exam' ? '시험' : e.kind === 'mock' ? '모의고사' : '학교' }));
-    const tl = (PICKS.timeline || []).map((x, i) => ({ x, i, date: /^\d{4}-\d{2}$/.test(x.when) ? x.when + '-01' : x.when })).filter((o) => /^\d{4}-\d{2}-\d{2}$/.test(o.date) && (dday(o.date) >= 0 || (o.x.when.length === 7 && o.x.when === today().slice(0, 7)))).map((o) => ({ date: o.date, month: o.x.when.length === 7, t: o.x.title, tag: o.x.kind || '입시', pi: o.i }));
-    const L = [...ev, ...tl].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 6);
-    return `<section class="card ${cls}"><div class="card-h"><h2>${ic('cal')} 다가오는 일정</h2><button class="more" id="sc-all" type="button">전체</button></div>${L.length ? `<div class="list">${L.map((e) => `<div class="li ${e.pi != null ? 'btnlike' : ''}" ${e.pi != null ? `data-pk="timeline:${e.pi}"` : ''}><div class="sc-d"><b class="num">${e.month ? +e.date.slice(5, 7) + '월' : md(e.date)}</b><span>${e.month ? '중' : dday(e.date) === 0 ? '오늘' : 'D-' + dday(e.date)}</span></div><div class="body"><div class="t" style="font-size:15px">${esc(e.t)}</div><div class="d">${esc(e.tag)}</div></div>${e.pi != null ? '<span class="chev"></span>' : ''}</div>`).join('')}</div>` : `<div class="empty">${ic('cal')}<b>다가오는 일정이 없어요</b></div>`}</section>`;
+    const all = schedItems(), days = [], t0 = new Date(today() + 'T00:00:00');
+    for (let i = 0; i < 42; i++) { const d = new Date(t0); d.setDate(d.getDate() + i); days.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`); }
+    const on = (d) => all.filter((e) => !e.month && e.date === d);
+    if (!UI.calSel || !days.includes(UI.calSel)) UI.calSel = days[0];
+    const sel = UI.calSel, L = on(sel);
+    const strip = days.map((d, i) => { const dt = new Date(d + 'T00:00:00'), w = dt.getDay(), es = on(d); return `${i > 0 && dt.getDate() === 1 ? `<span class="cal-m">${dt.getMonth() + 1}월</span>` : ''}<button type="button" class="cal-d ${d === sel ? 'sel' : ''} ${i === 0 ? 'today' : ''} ${w === 0 ? 'sun' : w === 6 ? 'sat' : ''}" data-cd="${d}"><span>${i === 0 ? '오늘' : DOW[w]}</span><b class="num">${dt.getDate()}</b><i>${es.slice(0, 3).map((e) => `<em class="k-${e.k}"></em>`).join('')}</i></button>`; }).join('');
+    const month = all.filter((e) => e.month && e.date === sel.slice(0, 7));
+    const row = (e) => `<div class="li ${e.pi != null ? 'btnlike' : ''}" ${e.pi != null ? `data-pk="timeline:${e.pi}"` : ''}><span class="cal-bar k-${e.k}"></span><div class="body"><div class="t" style="font-size:15px">${esc(e.t)}</div><div class="d">${esc(e.tag)}</div></div>${e.pi != null ? '<span class="chev"></span>' : ''}</div>`;
+    const dd = dday(sel), [, mm, dn] = sel.split('-');
+    return `<section class="card ${cls}"><div class="card-h"><h2>${ic('cal')} 다가오는 일정</h2><button class="more" id="sc-all" type="button">전체</button></div>
+      <div class="cal-strip" id="cal-strip">${strip}</div>
+      <div class="cal-day"><b>${+mm}월 ${+dn}일</b><span class="tiny">${dd === 0 ? '오늘' : 'D-' + dd}</span></div>
+      ${L.length ? `<div class="list">${L.map(row).join('')}</div>` : (() => { const nx = days.find((d) => d > sel && on(d).length); return `<p class="tiny" style="margin:4px 0 8px">이날은 일정이 없어요</p>${nx ? `<button type="button" class="cal-next" data-cd="${nx}"><span class="tiny">다음 일정 · ${md(nx)} · D-${dday(nx)}</span><b>${esc(on(nx)[0].t)}</b><span class="chev"></span></button>` : ''}`; })()}
+      ${month.length ? `<div class="eyebrow" style="margin-top:16px">${+mm}월 중에 할 것</div><div class="list">${month.map(row).join('')}</div>` : ''}</section>`;
   }
   function schedSheet() {
-    const ev = (D.events || []).filter((e) => e.kind !== 'csat' && dday(e.date) >= 0).map((e) => ({ date: e.date, t: e.title, tag: e.kind === 'exam' ? '시험' : e.kind === 'mock' ? '모의고사' : '학교' }));
-    const tl = (PICKS.timeline || []).map((x, i) => ({ date: /^\d{4}-\d{2}$/.test(x.when) ? x.when + '-01' : x.when, when: x.when, t: x.title, tag: x.kind || '입시', pi: i, d: x.what })).filter((o) => /^\d{4}-\d{2}/.test(o.date));
-    const L = [...ev, ...tl].sort((a, b) => a.date.localeCompare(b.date));
+    const L = schedItems().map((e) => ({ ...e, when: e.date, date: e.month ? e.date + '-01' : e.date })).filter((e) => e.date >= today().slice(0, 7)).sort((a, b) => a.date.localeCompare(b.date));
     sheet(`<h2>일정 전체</h2><p class="sub">학교 일정과 생명공학 진학 일정을 날짜 순서로 모았어요</p><div class="list">${L.map((e) => `<div class="li ${e.pi != null ? 'btnlike' : ''}" ${e.pi != null ? `data-pk="timeline:${e.pi}"` : ''}><div class="sc-d"><b class="num">${e.when && e.when.length === 7 ? +e.date.slice(5, 7) + '월' : md(e.date)}</b><span>${e.date.slice(0, 4)}</span></div><div class="body"><div class="t" style="font-size:15px">${esc(e.t)}</div><div class="d">${esc(e.tag)}</div></div>${e.pi != null ? '<span class="chev"></span>' : ''}</div>`).join('')}</div>`, (el) => { $$('[data-pk]', el).forEach((b) => (b.onclick = () => { const [k, i] = b.dataset.pk.split(':'); pickDetail(k, +i); })); });
   }
 
@@ -1368,6 +1384,7 @@
     const pk = $('#pk-all'); if (pk) pk.onclick = picksSheet;
     const ad = $('#ad-all'); if (ad) ad.onclick = admitSheet;
     const sca = $('#sc-all'); if (sca) sca.onclick = schedSheet;
+    $$('[data-cd]').forEach((b) => (b.onclick = () => { const st = $('#cal-strip'), x = st ? st.scrollLeft : 0; UI.calSel = b.dataset.cd; render(); const st2 = $('#cal-strip'); if (st2) { st2.scrollLeft = x; const se = $('.cal-d.sel', st2); if (se) { const l = se.offsetLeft - st2.offsetLeft; if (l < st2.scrollLeft || l + se.offsetWidth > st2.scrollLeft + st2.clientWidth) st2.scrollTo({ left: l, behavior: 'smooth' }); } } }));
     $$('main [data-du]').forEach((b) => (b.onclick = () => uniDetail(b.dataset.du)));
     $$('[data-pk]').forEach((b) => (b.onclick = () => { const [k, i] = b.dataset.pk.split(':'); pickDetail(k, +i); }));
     if (!UI.run && UI.tab === 'sgb') bindLogs();
