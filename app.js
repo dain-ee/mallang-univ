@@ -155,9 +155,9 @@
   const seeded = (str) => { let h = 2166136261; for (const c of str) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return () => ((h = Math.imul(h ^ (h >>> 15), 2246822507) ^ Math.imul(h ^ (h >>> 13), 3266489909)) >>> 0) / 4294967296; };
   for (const u of CH_UNITS) (u.questions || []).forEach((q, k) => { if (!q.choices || typeof q.answer !== 'number' || q._mixed || q.choices.every((c) => /^[①②③④⑤]/.test(String(c).trim()))) return; const r = seeded(`${u.ch}-${u.unit}-${k}`); const perm = q.choices.map((_, i) => i); for (let i = perm.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [perm[i], perm[j]] = [perm[j], perm[i]]; } q.choices = perm.map((i) => q.choices[i]); q.answer = perm.indexOf(q.answer); q._mixed = 1; });
   const WORDS = (ENG.words && ENG.words.days ? ENG.words.days : []).flatMap((d) => (d.words || []).map((w) => ({ ...w, day: d.day })));
-  function engToday() {
+  function engToday(force) {
     const t = today(); S.eng = S.eng || { unit: 0, wordDay: 0, days: {} }; S.eng.days = S.eng.days || {};
-    if (!S.eng.days[t] && isWeekend()) return { off: true, unit: S.eng.unit || 0, words: S.eng.wordDay || 0, g3: S.eng.g3 || 0, uans: {}, wans: {} };
+    if (!S.eng.days[t] && isWeekend() && !force) return { off: true, unit: S.eng.unit || 0, words: S.eng.wordDay || 0, g3: S.eng.g3 || 0, uans: {}, wans: {} };
     if (!S.eng.days[t]) { S.eng.days[t] = { unit: S.eng.unit || 0, words: S.eng.wordDay || 0, g3: S.eng.g3 || 0, uans: {}, wans: {} }; save('eng'); }
     if (S.eng.days[t].g3 == null) S.eng.days[t].g3 = S.eng.g3 || 0;
     return S.eng.days[t];
@@ -407,7 +407,7 @@
 
   // 영어: 천일문 유닛
   function unitRun() {
-    const ed = engToday(); const ref = UI.run && UI.run.ref != null ? UI.run.ref : null, back = UI.run && UI.run.back; const un = CH_UNITS[ref != null ? ref : ed.unit];
+    const ed = engToday(true); const ref = UI.run && UI.run.ref != null ? UI.run.ref : null, back = UI.run && UI.run.back; const un = CH_UNITS[ref != null ? ref : ed.unit];
     if (!un) return `<div class="card empty">${ic('eng')}<b>천일문 자료를 넣는 중이에요</b></div>`;
     S.eng.ua = S.eng.ua || {}; const store = ref != null ? (S.eng.ua[un.ch + '-' + un.unit] = S.eng.ua[un.ch + '-' + un.unit] || {}) : ed.uans;
     const qs = un.questions || []; const qi = qs.findIndex((_, k) => !store[k]);
@@ -433,7 +433,7 @@
   }
   const normEn = (t) => String(t || '').toLowerCase().replace(/[^a-z0-9' ]/g, ' ').replace(/\s+/g, ' ').trim();
   function bindUnit() {
-    const ed = engToday(), un = CH_UNITS[ed.unit]; if (!un || !UI.run || UI.run.kind !== 'unit') return; const cur = UI.run.show; const q = (un.questions || [])[cur]; if (!q) { const n = $('#next'); if (n) n.onclick = () => { UI.run = null; render(); }; return; }
+    const ed = engToday(true), un = CH_UNITS[ed.unit]; if (!un || !UI.run || UI.run.kind !== 'unit') return; const cur = UI.run.show; const q = (un.questions || [])[cur]; if (!q) { const n = $('#next'); if (n) n.onclick = () => { UI.run = null; render(); }; return; }
     const mark = (ok, extra) => { ed.uans[cur] = { ok, at: Date.now(), ...extra }; if (!ok) addWrong(`eng:${un.ch}-${un.unit}-${cur}`, { src: 'eng', subj: 'eng', subjName: '영어', area: '천일문 ' + (un.chTitle || ''), sub: un.title, ref: { ch: un.ch, unit: un.unit, i: cur } }); else clearWrong(`eng:${un.ch}-${un.unit}-${cur}`); save('eng'); render(); };
     $$('[data-pick]').forEach((b) => (b.onclick = () => mark(+b.dataset.pick === q.answer, { pick: +b.dataset.pick })));
     const out = $('#ord-out'), picked = [];
@@ -445,7 +445,7 @@
   }
   // 영어: 단어 10개 (외우기 → 시험)
   function wordsRun() {
-    const ed = engToday(); const wl = wordsFor(ed.words);
+    const ed = engToday(true); const wl = wordsFor(ed.words);
     if (!wl.length) return `<div class="card empty">${ic('books')}<b>단어장을 넣는 중이에요</b></div>`;
     const mode = (UI.run && UI.run.kind === 'words' && UI.run.mode) || (Object.keys(ed.wans || {}).length ? 'test' : 'study');
     UI.run = { kind: 'words', mode };
@@ -465,7 +465,7 @@
       <div class="choices">${opts.map((o, k) => `<button class="choice" data-wo="${k}" type="button"><span class="n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div></div>`;
   }
   function bindWords() {
-    const ed = engToday(), wl = wordsFor(ed.words); const r = UI.run; if (!r || r.kind !== 'words') return;
+    const ed = engToday(true), wl = wordsFor(ed.words); const r = UI.run; if (!r || r.kind !== 'words') return;
     const t = $('#w-test'); if (t) t.onclick = () => { UI.run = { kind: 'words', mode: 'test' }; render(); window.scrollTo(0, 0); };
     $$('[data-wo]').forEach((b) => (b.onclick = () => {
       const w = wl[r.i], ok = r.opts[+b.dataset.wo] === w.ko;
@@ -693,19 +693,19 @@
   const G3 = (ENG.g3 && ENG.g3.items) || [];
   const unitIdx = (ch, unit) => CH_UNITS.findIndex((u) => +u.ch === +ch && String(u.unit) === String(unit));
   function g3Run() {
-    const ed = engToday(); const it = G3[ed.g3 != null ? ed.g3 : 0];
+    const ed = engToday(true); const it = G3[ed.g3 != null ? ed.g3 : 0];
     if (!it) return `<div class="card empty">${ic('eng')}<b>고3 문제를 준비하는 중이에요</b></div>`;
     S.eng.g3ans = S.eng.g3ans || {}; const a = S.eng.g3ans[it.id];
     const showWords = UI.run && UI.run.words;
     UI.run = { kind: 'g3', id: it.id, words: showWords };
     const head = `<div class="row between"><button class="btn sm" data-go="hw" type="button">‹ 숙제</button><span class="tiny">${esc(it.src || '')} · ${esc(it.type || '')}</span></div>`;
     const words = `<div class="card"><div class="card-h"><h3>이 글의 단어 ${(it.words || []).length}개</h3>${a ? '' : `<button class="more" id="g3-w" type="button">${showWords ? '접기' : '먼저 보기'}</button>`}</div>${a || showWords ? `<table class="tbl"><tbody>${(it.words || []).map((w) => `<tr><td><b>${esc(w.en)}</b></td><td style="color:var(--t2)">${esc(w.ko)}</td></tr>`).join('')}</tbody></table>` : '<p class="tiny" style="margin:0">모르는 단어가 많으면 먼저 보고 풀어도 돼요</p>'}</div>`;
-    const prob = `<div class="card"><div class="q-no">오늘의 고3 문제 <span class="tag">${esc(it.type || '')}</span>${it.level ? ` <span class="tag">${'★'.repeat(it.level)}</span>` : ''}</div><div class="q-text" style="margin-top:8px">${esc(it.q)}</div><div class="q-box" style="font-size:15.5px;line-height:1.85;font-weight:400">${esc(it.passage)}</div></div>`;
+    const prob = `<div class="card"><div class="q-no">오늘의 고3 문제 <span class="tag">${esc(it.type || '')}</span>${it.level ? ` <span class="tag">${'★'.repeat(it.level)}</span>` : ''}</div><div class="q-text" style="margin-top:8px">${esc(it.q)}</div>${it.given ? `<div class="q-box" style="font-size:15.5px;line-height:1.75;border:1.5px solid var(--t2)">${esc(it.given)}</div>` : ''}<div class="q-box" style="font-size:15.5px;line-height:1.85;font-weight:400">${esc(it.passage)}</div>${it.notes ? `<p class="tiny" style="margin:8px 0 0;white-space:pre-wrap">${esc(Array.isArray(it.notes) ? it.notes.join('\n') : it.notes)}</p>` : ''}</div>`;
     const sents = a ? `<div class="card"><div class="card-h"><h3>문장마다 뜯어보기</h3><span class="tiny">파란 칸을 누르면 천일문 그 부분으로 가요</span></div><div class="list">${(it.sentences || []).map((s, k) => `<div class="li" style="align-items:flex-start;flex-direction:column;gap:6px"><div class="t" style="font-size:15.5px;line-height:1.65"><span class="tiny num" style="margin-right:6px">${k + 1}</span>${esc(s.en)}</div><div class="d" style="font-size:14px">${esc(s.ko)}</div>${s.analysis ? `<div class="explain" style="margin:0;width:100%">${esc(s.analysis)}</div>` : ''}${(s.cheonil || []).filter((c) => unitIdx(c.ch, c.unit) >= 0).map((c) => `<button class="btn sm soft" type="button" data-cu="${c.ch}|${c.unit}">천일문 Unit ${esc(c.unit)} ${esc((CH_UNITS[unitIdx(c.ch, c.unit)] || {}).title || '')} 공부하기</button>${c.why ? `<span class="tiny">${esc(c.why)}</span>` : ''}`).join('')}</div>`).join('')}</div></div>` : '';
     return `<div class="qwrap" style="max-width:820px;margin:0 auto">${head}${prob}${choicesHtml({ choices: it.choices, answer: it.answer }, a ? a.pick : null)}${a ? verdict(a.ok) + (it.exp ? `<div class="explain"><b>해설</b><br>${esc(it.exp)}</div>` : '') : ''}${words}${sents}${a ? '<div class="cta-bar"><button class="btn primary big block" data-go="hw" type="button">숙제로 돌아가기</button></div>' : ''}</div>`;
   }
   function bindG3() {
-    const ed = engToday(), it = G3[ed.g3 || 0]; if (!it) return;
+    const ed = engToday(true), it = G3[ed.g3 || 0]; if (!it) return;
     $$('[data-pick]').forEach((b) => (b.onclick = () => {
       const k = +b.dataset.pick, ok = k === it.answer; S.eng.g3ans[it.id] = { pick: k, ok, at: Date.now() };
       if (!ed.g3done) { ed.g3done = Date.now(); S.eng.g3 = (S.eng.g3 || 0) + 1; }
