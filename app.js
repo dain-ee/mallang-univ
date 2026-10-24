@@ -353,10 +353,21 @@
     const todo = `<section class="card tight ${cls}"><div class="card-h"><h3>오늘 할 일</h3><button class="more" data-go="hw">숙제</button></div>
       <div class="arch"><svg viewBox="0 0 200 100"><path d="M20 96 A80 80 0 0 1 180 96" fill="none" stroke="var(--fill)" stroke-width="12" stroke-linecap="round"/><path class="ring-arc" d="M20 96 A80 80 0 0 1 180 96" fill="none" stroke="var(--blue)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L * (1 - frac)}"/></svg><div class="c"><span class="tiny">오늘</span><br><b class="num">${Math.round(frac * 100)}%</b> <span class="muted">완료</span></div></div>
       <div class="list">${tasks.length ? tasks.map((t) => `<div class="li btnlike" data-task="${t.k}"><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${esc(t.t)}</div><div class="d">${esc(t.d)}</div></div><span class="chev"></span></div>`).join('') : `<div class="empty">${ic('party')}<b>오늘 할 일이 없어요</b></div>`}</div></section>`;
-    const news = newsCard(cls);
-    return todo + news;
+    return todo;
   }
   const nIcon = (n) => (n.scope === '교육부' ? 'bank' : /과학|바이오/.test(n.scope || '') ? 'sci' : 'news');
+  // 소식 탭: 입시 · 과학 · 시사 상식
+  const nGrp = (n) => (/과학|바이오/.test(n.scope || '') ? '과학' : n.scope === '시사 상식' ? '시사 상식' : '입시');
+  function newsView() {
+    const N = (D.news && D.news.items) || [], f = UI.newsF || 'all';
+    const groups = ['입시', '과학', '시사 상식'].filter((g) => N.some((n) => nGrp(n) === g));
+    const L = N.filter((n) => f === 'all' || nGrp(n) === f).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    const read = (n) => wHas('news:' + n.id);
+    const item = (n) => `<div class="li btnlike ${read(n) ? 'nw-read' : ''}" data-news="${esc(n.id)}"><div class="ico">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'sm') : ic(nIcon(n))}</div><div class="body"><div class="t">${esc(n.title)}</div><div class="d">${md(n.date)} · ${esc(nGrp(n))}${n.level === '중요' ? ' · <b class="red">중요</b>' : ''}${read(n) ? '' : ' · <b class="blue">새 소식</b>'}</div></div><span class="chev"></span></div>`;
+    return `<h1 class="h1">소식</h1><p class="sub">${D.news && D.news.updated ? md(D.news.updated) + ' 업데이트 · ' : ''}입시 · 과학 · 시사 상식, 출처를 확인한 것만 모았어요. 하나 읽으면 50원</p>
+      <div class="chips" style="margin-bottom:16px">${['all', ...groups].map((g) => `<button type="button" class="chip ${f === g ? 'on' : ''}" data-nf="${esc(g)}">${g === 'all' ? '전체' : esc(g)} <span class="tiny">${g === 'all' ? N.length : N.filter((n) => nGrp(n) === g).length}</span></button>`).join('')}</div>
+      <div class="grid"><section class="card c12">${L.length ? `<div class="list">${L.map(item).join('')}</div>` : `<div class="empty">${ic('news')}<b>소식을 모으는 중이에요</b></div>`}</section></div>`;
+  }
   function newsCard(cls) {
     const N = (D.news && D.news.items) || [];
     const p = S.profile;
@@ -368,22 +379,13 @@
   }
   function newsSheet(id) {
     const N = (D.news && D.news.items) || [];
-    if (id === 'all') {
-      sheet(`<h2>소식</h2><p class="sub">${D.news && D.news.updated ? md(D.news.updated) + ' 업데이트 · ' : ''}입시 · 과학 · 시사 상식, 출처를 확인한 것만 모았어요</p><div class="chips" id="nw-f"></div><div class="list" id="nw-l" style="margin-top:12px"></div>`, (el) => {
-        let f = 'all'; const grp = (n) => (/과학|바이오/.test(n.scope || '') ? '과학' : n.scope === '시사 상식' ? '시사 상식' : '입시'); const scopes = ['all', ...['입시', '과학', '시사 상식'].filter((g) => N.some((n) => grp(n) === g))];
-        const draw = () => { $('#nw-f', el).innerHTML = scopes.map((s) => `<button type="button" class="chip ${f === s ? 'on' : ''}" data-f="${esc(s)}">${s === 'all' ? '전체' : esc(s)}</button>`).join(''); $$('[data-f]', el).forEach((b) => (b.onclick = () => { f = b.dataset.f; draw(); }));
-          $('#nw-l', el).innerHTML = N.filter((n) => f === 'all' || grp(n) === f).sort((a, b) => String(b.date).localeCompare(String(a.date))).map((n) => `<div class="li btnlike" data-n="${esc(n.id)}"><div class="ico">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'sm') : ic(nIcon(n))}</div><div class="body"><div class="t">${esc(n.title)}</div><div class="d">${md(n.date)}${n.level === '중요' ? ' · <b class="red">중요</b>' : ''}</div></div><span class="chev"></span></div>`).join('');
-          $$('[data-n]', el).forEach((b) => (b.onclick = () => newsSheet(b.dataset.n))); };
-        draw();
-      });
-      return;
-    }
+    if (id === 'all') { closeSheet(); UI.run = null; UI.tab = 'news'; render(); scrollTo(0, 0); return; }
     const n = N.find((x) => x.id === id); if (!n) return;
     sheet(`<div class="row" style="margin-bottom:12px">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'md') : `<span class="ico">${ic(nIcon(n))}</span>`}<span class="tag ${n.level === '중요' ? 'red' : ''}">${esc(n.level || '참고')}</span><span class="tiny">${md(n.date)} · ${esc(n.scope || '')}</span></div>
       <h2>${esc(n.title)}</h2>${readPill('news:' + n.id, 50, '소식 읽기')}<p style="line-height:1.8;color:var(--t2)">${esc(n.body)}</p>
       ${n.you ? `<div class="deep"><div class="eyebrow">${esc(S.profile.name)}에게는</div><p>${esc(n.you)}</p></div>` : ''}
       <div class="list" style="margin-top:16px">${(n.src || []).map((s) => `<a class="li btnlike" href="${esc(s.url)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="ico">${ic('pin')}</div><div class="body"><div class="t">${esc(s.name)}</div><div class="d">원문 보기</div></div><span class="chev"></span></a>`).join('')}</div>
-      <button class="btn big block" style="margin-top:16px" data-back type="button">목록으로</button>`, (el) => { $('[data-back]', el).onclick = () => newsSheet('all'); });
+      <button class="btn big block" style="margin-top:16px" data-close type="button">목록으로</button>`, (el) => { $('[data-close]', el).onclick = closeSheet; });
   }
 
   // ───────── 숙제 탭 ─────────
@@ -401,13 +403,13 @@
       ${(() => {
         const { tasks } = todayTasks(), real = tasks.filter((t) => t.icon !== 'party'), dn = real.filter((t) => t.done).length;
         const by = (a, b) => String(a.due || '').localeCompare(String(b.due || ''));
-        const later = hwList.filter((h) => !hwDone(h) && h.due && h.due > today()).sort(by), done = hwList.filter((h) => hwDone(h)).sort(by).reverse();
+        const later = TEACHER ? hwList.filter((h) => !hwDone(h) && h.due && h.due > today()).sort(by) : [], done = hwList.filter((h) => hwDone(h)).sort(by).reverse();
         const hrow = (h, later) => `<div class="li btnlike" data-hwopen="${esc(h.id)}"><button class="ico" data-hwdone="${esc(h.id)}" style="border:0;cursor:pointer" aria-label="완료">${ic(hwDone(h) ? 'ok' : 'pin')}</button><div class="body"><div class="t" style="${hwDone(h) ? 'color:var(--t3);text-decoration:line-through' : later ? 'color:var(--t2);font-weight:500' : ''}">${esc(h.title)}</div><div class="d">${[h.subj, h.due ? md(h.due) + (later ? ' 숙제' : '') : ''].filter(Boolean).map(esc).join(' · ')}</div></div>${TEACHER ? `<button class="btn sm" data-hwdel="${esc(h.id)}" type="button">지우기</button>` : ''}<span class="chev"></span></div>`;
         const row = (t) => `<div class="li btnlike ${t.done ? 'is-done' : ''}" ${t.hw ? `data-hwopen="${esc(t.hw)}"` : `data-task="${esc(t.k)}"`}><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${esc(t.t)}${t.hw ? ' <span class="tag">선생님</span>' : ''}</div><div class="d">${esc(t.d)}</div></div>${t.done ? '<span class="tag blue">끝</span>' : '<span class="chev"></span>'}</div>`;
-        const tog = (pn, label, n) => n ? `<button type="button" data-pn="${pn}" onclick="const s=this.closest('section'),p=s.querySelector('[data-pane='+this.dataset.pn+']'),o=p.hidden;s.querySelectorAll('.hw-pane').forEach(x=>x.hidden=true);this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));if(o){p.hidden=false;this.classList.add('on')}">${label} <b>${n}</b></button>` : `<button type="button" class="off" disabled>${label} <b>0</b></button>`;
+        const tog = (pn, label, n) => n ? `<button type="button" data-pn="${pn}" data-lb="${label} <b>${n}</b>" onclick="const s=this.closest('section'),p=s.querySelector('[data-pane='+this.dataset.pn+']'),o=p.hidden;s.querySelectorAll('.hw-pane').forEach(x=>x.hidden=true);this.parentNode.querySelectorAll('button[data-lb]').forEach(b=>{b.classList.remove('on');b.innerHTML=b.dataset.lb});if(o){p.hidden=false;this.classList.add('on');this.textContent='접기'}">${label} <b>${n}</b></button>` : '';
         return `<section class="card c12"><div class="card-h"><h2>오늘 할 것</h2>${real.length ? `<span class="tiny">${real.length}개 중 <b class="${dn === real.length ? 'blue' : ''}">${dn}개</b> 끝</span>` : ''}${TEACHER ? '<button class="btn sm soft" id="hw-add" type="button">숙제 내기</button>' : ''}</div>
           ${real.length ? `<div class="td-prog"><i style="width:${(dn / real.length) * 100}%"></i></div>` : ''}
-          ${real.length ? `<div class="list">${[...real.filter((t) => !t.done), ...real.filter((t) => t.done)].map(row).join('')}</div>${dn === real.length ? `<p class="td-all">${ic('party')} 오늘 할 것을 다 끝냈어요</p>` : ''}` : `<div class="empty" style="padding:16px 0">${ic('party')}<b>오늘은 쉬는 날이에요</b>${later.length ? `<span>다음 숙제는 ${md(later[0].due)}에 나와요</span>` : ''}</div>`}
+          ${real.length ? `<div class="list">${[...real.filter((t) => !t.done), ...real.filter((t) => t.done)].map(row).join('')}</div>${dn === real.length ? `<p class="td-all">${ic('party')} 오늘 할 것을 다 끝냈어요</p>` : ''}` : `<div class="empty" style="padding:16px 0">${ic('party')}<b>오늘은 쉬는 날이에요</b></div>`}
           ${later.length || done.length ? `<div class="hw-tog">${tog('later', '앞으로 낼 숙제', later.length)}${tog('done', '끝낸 숙제', done.length)}</div>
           ${later.length ? `<div class="hw-pane list" data-pane="later" hidden>${later.map((h) => hrow(h, true)).join('')}</div>` : ''}${done.length ? `<div class="hw-pane list" data-pane="done" hidden>${done.map((h) => hrow(h)).join('')}</div>` : ''}` : ''}</section>`;
       })()}
@@ -691,7 +693,8 @@
   function subjWrongCard(cls) {
     const subjRows = Object.entries(SUBJ_NAMES).map(([k, n]) => { const all = wrongList().filter((w) => w.subj === k); return { k, n, all: all.length, open: all.filter((w) => !w.cleared).length }; }).filter((r) => r.all);
     const subjTot = subjRows.reduce((a, r) => a + r.all, 0);
-    return `<section class="card ${cls}"><div class="card-h"><h2>과목별 오답</h2></div>${subjRows.length ? `<table class="tbl"><thead><tr><th>과목</th><th class="r">차지하는 비율</th><th style="width:40%">다시 맞힌 만큼</th></tr></thead><tbody>${subjRows.map((r) => { const done = Math.round(((r.all - r.open) / r.all) * 100); return `<tr><td><span class="dot" style="background:${SUBJ_COLOR[r.k]}"></span>${r.n}</td><td class="r num">${Math.max(1, Math.round((r.all / subjTot) * 100))}%</td><td><div class="wr-bar"><i style="width:${done}%;background:${SUBJ_COLOR[r.k]}"></i></div><span class="tiny num">${done}%</span></td></tr>`; }).join('')}</tbody></table>` : `<div class="empty">${ic('memo')}<b>아직 없어요</b></div>`}</section>`;
+    const mx = Math.max(1, ...subjRows.map((r) => r.all));
+    return `<section class="card ${cls}"><div class="card-h"><h2>과목별 오답</h2></div>${subjRows.length ? `<p class="sub" style="margin:-4px 0 16px">막대가 길수록 많이 틀린 과목이에요. 다시 맞히면 진하게 채워져요</p><div class="sw-chart">${subjRows.sort((a, b) => b.all - a.all).map((r) => { const done = r.all - r.open, c = SUBJ_COLOR[r.k]; return `<div class="sw-row"><span class="sw-n"><span class="dot" style="background:${c}"></span>${r.n}</span><div class="sw-track"><div class="sw-bar" style="width:${(r.all / mx) * 100}%;background:color-mix(in srgb, ${c} 22%, #fff)"><i style="width:${(done / r.all) * 100}%;background:${c}"></i></div></div><span class="sw-v">${done ? `<b style="color:${c}">${Math.round((done / r.all) * 100)}%</b> 다시 맞힘` : ''}</span></div>`; }).join('')}</div>` : `<div class="empty">${ic('memo')}<b>아직 없어요</b></div>`}</section>`;
   }
   function wrongView() {
     const all = wrongList(); const f = UI.wrongSubj;
@@ -1865,7 +1868,7 @@
   }
 
   // ───────── 틀 · 메뉴 ─────────
-  const TABS = [['home', '홈', 'home'], ['hw', '숙제', 'hw'], ['wrong', '오답', 'wrong'], ['score', '성적', 'score'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna']];
+  const TABS = [['home', '홈', 'home'], ['hw', '숙제', 'hw'], ['wrong', '오답', 'wrong'], ['score', '성적', 'score'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']];
   function nav() {
     const cnt = { hw: leftItems().length, wrong: todayWr().length };
     const btn = (t, bottom) => `<button type="button" class="${UI.tab === t[0] ? 'on' : ''}" data-go="${t[0]}">${bottom ? `<img src="icons/${IC[t[2]]}.svg" alt="">` : ''}${t[1]}${cnt[t[0]] ? `<span class="cnt">${cnt[t[0]] > 99 ? '99+' : cnt[t[0]]}</span>` : ''}</button>`;
@@ -1899,7 +1902,7 @@
     nav();
     let html = '';
     if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : '';
-    else html = UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'picks' ? picksView() : sgbView();
+    else html = UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'picks' ? picksView() : UI.tab === 'news' ? newsView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
     const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '');
     const depth = UI.run ? 2 : UI.lib || (UI.tab === 'score' && UI.mockId) ? 1 : 0, ti = TABS.findIndex((t) => t[0] === UI.tab);
@@ -1961,6 +1964,7 @@
     $$('[data-go]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); if (b.dataset.seg) UI.scoreSeg = b.dataset.seg; go(b.dataset.go); }));
     $$('[data-task]').forEach((b) => (b.onclick = () => startTask(b.dataset.task)));
     $$('[data-news]').forEach((b) => (b.onclick = () => newsSheet(b.dataset.news)));
+    $$('[data-nf]').forEach((b) => (b.onclick = () => { UI.newsF = b.dataset.nf; render(); }));
     $$('[data-cs]').forEach((b) => (b.onclick = () => { UI.chartSubj = b.dataset.cs; render(); }));
     const h = $('#hero'); if (h) h.onclick = uniSheet;
     if (!UI.run && UI.tab === 'me') bindMe();

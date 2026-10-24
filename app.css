@@ -652,7 +652,7 @@ main:is(.enter, .soft) .range .dot { animation: fade .3s ease both; animation-de
 
 /* 탭 · 세그먼트 · 칩: 고른 칸이 미끄러져요 */
 .tabs, .chips { position: relative; }
-.tabbar { grid-template-columns: repeat(6, 1fr); }
+.tabbar { grid-template-columns: repeat(7, 1fr); }
 .tabs .seg-ind { background: var(--fill); border-radius: 12px; }
 .tabs.slid > button.on { background: none; animation: none; }
 .tabbar .seg-ind::before { content: ""; position: absolute; inset: 6px 10px; border-radius: 16px; background: var(--fill2); }
@@ -974,3 +974,12 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .bdg-all { position: relative; margin: 0 0 4px; font-weight: 700; color: var(--blue); }
 .bdg-card .btn { position: relative; margin-top: 16px; }
 @media (prefers-reduced-motion: reduce) { .bdg-rays, .bdg-ic, .bdg-won { animation: none; } }
+.sw-chart { display: grid; gap: 12px; }
+.sw-row { display: grid; grid-template-columns: 96px 1fr 104px; align-items: center; gap: 12px; }
+.sw-n { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; }
+.sw-track { height: 24px; }
+.sw-bar { position: relative; height: 100%; min-width: 8px; border-radius: 8px; overflow: hidden; transition: width .5s cubic-bezier(.2,.8,.2,1); }
+.sw-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 8px; }
+.sw-v { font-size: 13px; color: var(--t3); text-align: right; }
+@media (max-width: 560px) { .sw-row { grid-template-columns: 76px 1fr; } .sw-v { grid-column: 2; text-align: left; margin-top: -8px; } .sw-v:empty { display: none; } }
+.nw-read .t { color: var(--t2); font-weight: 500; }
