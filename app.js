@@ -304,21 +304,12 @@
     const ck = UI.chartSubj;
     const keys = ck === 'avg' ? [...MAIN.map((k) => ({ key: k, dim: true })), { key: 'avg', color: 'var(--blue)' }] : [{ key: 'avg', dim: true }, { key: ck, color: SUBJ_COLOR[ck] }];
     const trend = `<section class="card c12" data-trend><div class="card-h"><h2>모의고사 등급 추이</h2><div class="seg" style="flex:0 1 auto">${[['avg', '평균'], ...MAIN.map((k) => [k, SUBJ_NAMES[k]])].map(([k, n]) => `<button type="button" class="${ck === k ? 'on' : ''}" data-cs="${k}">${n}</button>`).join('')}</div></div>${tossLine(rows.map((r) => ({ label: r.label, v: ck === 'avg' ? r.v.avg : r.v[ck] })), { goal: p.goalMock, id: 'h', color: ck === 'avg' ? '#3182f6' : SUBJ_COLOR[ck] })}</section>`;
-    // 약한 영역
-    const ow = openWrong(); const byArea = {};
-    for (const w of ow) { const k = `${w.subjName || SUBJ_NAMES[w.subj] || w.subj}·${w.area || '기타'}`; byArea[k] = (byArea[k] || 0) + 1; }
-    const areas = Object.entries(byArea).sort((a, b) => b[1] - a[1]); const tot = areas.reduce((a, b) => a + b[1], 0);
-    const pal = ['var(--blue)', 'var(--red)', 'var(--amber)', 'var(--green)', 'var(--t4)'];
-    const weak = `<section class="card c6"><div class="card-h"><h2>약한 영역</h2><button class="more" data-go="wrong">오답 보기</button></div>${areas.length ? `<p class="h1" style="font-size:20px;margin:0 0 16px"><em>${esc(areas[0][0].replace('·', ' '))}</em>에서<br>가장 많이 틀렸어요</p><div class="stack">${areas.slice(0, 4).map(([, n], i) => `<span style="width:${(n / tot) * 100}%;background:${pal[i]}"></span>`).join('')}${areas.length > 4 ? `<span style="width:${(areas.slice(4).reduce((a, b) => a + b[1], 0) / tot) * 100}%;background:${pal[4]}"></span>` : ''}</div><div class="list" style="margin-top:12px">${areas.slice(0, 4).map(([k, n], i) => `<div class="li" style="padding:8px 0"><div class="body"><span class="dot" style="background:${pal[i]}"></span>${esc(k.replace('·', ' · '))}</div><div class="end num">${n}문제</div></div>`).join('')}${areas.length > 4 ? `<div class="li" style="padding:8px 0"><div class="body"><span class="dot" style="background:${pal[4]}"></span>그 외 ${areas.length - 4}개 영역</div><div class="end num">${areas.slice(4).reduce((a, b) => a + b[1], 0)}문제</div></div>` : ''}</div>` : `<div class="empty">${ic('muscle')}<b>쌓인 오답이 없어요</b><span>모의고사를 채점하거나 매일 문제를 풀면 약한 영역이 보여요</span></div>`}</section>`;
-    // 과목별 오답 표
-    const subjRows = Object.entries(SUBJ_NAMES).map(([k, n]) => { const all = wrongList().filter((w) => w.subj === k); return { k, n, all: all.length, open: all.filter((w) => !w.cleared).length }; }).filter((r) => r.all);
-    const wtab = `<section class="card c6"><div class="card-h"><h2>과목별 오답</h2><button class="more" data-go="wrong">전체</button></div>${subjRows.length ? `<table class="tbl"><thead><tr><th>과목</th><th class="r">틀린 문제</th><th class="r">다시 맞힘</th></tr></thead><tbody>${subjRows.map((r) => `<tr><td><span class="dot" style="background:${SUBJ_COLOR[r.k]}"></span>${r.n}</td><td class="r num">${r.all}</td><td class="r num"><b class="${r.all - r.open ? 'blue' : ''}">${r.all - r.open}</b></td></tr>`).join('')}</tbody></table>` : `<div class="empty">${ic('memo')}<b>아직 없어요</b></div>`}</section>`;
     // 내신 학기별
     const nsRows = SEMS.map((sem) => ({ label: sem.replace('-', '학년 ') + '학기', v: { n: nsAvg(sem) } })).filter((r) => r.v.n != null);
     const nscard = nsCard('c6');
     const sgbc = sgbSummary('c6');
     const main = `<h1 class="h1">${bdayLeft() === 0 ? `${ic('party')} ${nameCall()}, 생일 축하해` : `${nameCall()}, ${greet()}`}</h1><p class="sub">${todayLine()}</p>
-      <div class="grid">${hero}${pos}${walletCard('c12')}${pomoCard('c12')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${weak}${wtab}${nscard}${sgbc}</div>`;
+      <div class="grid">${hero}${pos}${walletCard('c12')}${pomoCard('c12')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}</div>`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -681,14 +672,24 @@
   }
 
   // ───────── 오답 탭 ─────────
+  // 약한 영역 (오답 탭, 고른 과목만)
+  function weakCard(ow, cls) {
+    const byArea = {};
+    for (const w of ow) { const k = `${w.subjName || SUBJ_NAMES[w.subj] || w.subj}·${w.area || '기타'}`; byArea[k] = (byArea[k] || 0) + 1; }
+    const areas = Object.entries(byArea).sort((a, b) => b[1] - a[1]); const tot = areas.reduce((a, b) => a + b[1], 0);
+    const pal = ['var(--blue)', 'var(--red)', 'var(--amber)', 'var(--green)', 'var(--t4)'];
+    return `<section class="card ${cls}" style="align-self:start"><div class="card-h"><h2>약한 영역</h2></div>${areas.length ? `<p class="h1" style="font-size:20px;margin:0 0 16px"><em>${esc(areas[0][0].replace('·', ' '))}</em>에서<br>가장 많이 틀렸어요</p><div class="stack">${areas.slice(0, 4).map(([, n], i) => `<span style="width:${(n / tot) * 100}%;background:${pal[i]}"></span>`).join('')}${areas.length > 4 ? `<span style="width:${(areas.slice(4).reduce((a, b) => a + b[1], 0) / tot) * 100}%;background:${pal[4]}"></span>` : ''}</div><div class="list" style="margin-top:12px">${areas.slice(0, 4).map(([k, n], i) => `<div class="li" style="padding:8px 0"><div class="body"><span class="dot" style="background:${pal[i]}"></span>${esc(k.replace('·', ' · '))}</div><div class="end num">${n}문제</div></div>`).join('')}${areas.length > 4 ? `<div class="li" style="padding:8px 0"><div class="body"><span class="dot" style="background:${pal[4]}"></span>그 외 ${areas.length - 4}개 영역</div><div class="end num">${areas.slice(4).reduce((a, b) => a + b[1], 0)}문제</div></div>` : ''}</div>` : `<div class="empty">${ic('muscle')}<b>쌓인 오답이 없어요</b><span>모의고사를 채점하거나 매일 문제를 풀면 약한 영역이 보여요</span></div>`}</section>`;
+  }
+  // 과목별 오답 표
+  function subjWrongCard(cls) {
+    const subjRows = Object.entries(SUBJ_NAMES).map(([k, n]) => { const all = wrongList().filter((w) => w.subj === k); return { k, n, all: all.length, open: all.filter((w) => !w.cleared).length }; }).filter((r) => r.all);
+    return `<section class="card ${cls}"><div class="card-h"><h2>과목별 오답</h2></div>${subjRows.length ? `<table class="tbl"><thead><tr><th>과목</th><th class="r">틀린 문제</th><th class="r">다시 맞힘</th></tr></thead><tbody>${subjRows.map((r) => `<tr><td><span class="dot" style="background:${SUBJ_COLOR[r.k]}"></span>${r.n}</td><td class="r num">${r.all}</td><td class="r num"><b class="${r.all - r.open ? 'blue' : ''}">${r.all - r.open}</b></td></tr>`).join('')}</tbody></table>` : `<div class="empty">${ic('memo')}<b>아직 없어요</b></div>`}</section>`;
+  }
   function wrongView() {
     const all = wrongList(); const f = UI.wrongSubj;
     const subs = Object.entries(SUBJ_NAMES).filter(([k]) => all.some((w) => w.subj === k));
     const L = all.filter((w) => f === 'all' || w.subj === f);
     const open = L.filter((w) => !w.cleared), done = L.filter((w) => w.cleared);
-    // 영역별 표
-    const area = {}; for (const w of L) { const k = (w.subjName || SUBJ_NAMES[w.subj]) + '|' + (w.area || '기타'); area[k] = area[k] || { all: 0, open: 0 }; area[k].all++; if (!w.cleared) area[k].open++; }
-    const ar = Object.entries(area).sort((a, b) => b[1].open - a[1].open || b[1].all - a[1].all);
     const item = (w) => `<div class="li btnlike" data-wr="${esc(w.id)}"><div class="ico">${ic(w.cleared ? 'ok' : w.src === 'mock' ? 'score' : w.src === 'word' ? 'books' : w.src === 'eng' ? 'eng' : 'sci')}</div><div class="body"><div class="t">${esc(w.title || w.sub || '')}</div><div class="d">${esc(w.subjName || SUBJ_NAMES[w.subj] || '')} · ${esc(w.area || '')}${w.times > 1 ? ` · ${w.times}번 틀림` : ''}</div></div>${w.cleared ? '<span class="tag blue">다시 맞힘</span>' : '<span class="tag">다시 풀기</span>'}</div>`;
     return `<h1 class="h1">오답 노트</h1><p class="sub">하루에 두세 문제씩만 다시 풀어요. 다시 맞히면 파란색이 돼요</p>
       <div class="chips" style="margin-bottom:16px"><button class="chip ${f === 'all' ? 'on' : ''}" data-ws="all" type="button">전체</button>${subs.map(([k, n]) => `<button class="chip ${f === k ? 'on' : ''}" data-ws="${k}" type="button">${n}</button>`).join('')}</div>
@@ -696,7 +697,8 @@
         ${(() => { const td = todayWr().map((id) => S.wrong[id]).filter(Boolean); const nx = (S.hw || []).filter((h) => hwWr(h).length && !hwDone(h) && h.due > today()).sort((a, b) => a.due.localeCompare(b.due))[0];
           return `<section class="card c7 col-card" style="align-self:start"><div class="card-h"><h2>오늘 풀 오답</h2></div>${td.length ? `<div class="list">${td.map(item).join('')}</div><button class="btn primary big block" id="wr-today" type="button" style="margin-top:auto">${td.length}문제 풀기</button>` : `<div class="empty">${ic('party')}<b>오늘 오답은 끝!</b>${nx ? `<span>다음 오답은 ${md(nx.due)}에 나와요</span>` : ''}</div>`}
           ${open.length ? `<details class="hw-more" style="margin-top:12px" ontoggle="this.firstElementChild.textContent=this.open?'접기':'모아 둔 오답 보기'"><summary>모아 둔 오답 보기</summary><div class="list">${open.slice(0, 60).map(item).join('')}</div></details>` : ''}</section>`; })()}
-        <section class="card c5" style="align-self:start"><div class="card-h"><h2>영역별</h2></div>${ar.length ? `<table class="tbl"><thead><tr><th>영역</th><th class="r">틀린 문제</th><th class="r">다시 맞힘</th></tr></thead><tbody>${ar.map(([k, v]) => { const [s, a] = k.split('|'); return `<tr><td><div style="font-weight:600">${esc(a)}</div><div class="tiny">${esc(s)}</div></td><td class="r num">${v.all}</td><td class="r num"><b class="${v.all - v.open ? 'blue' : ''}">${v.all - v.open}</b></td></tr>`; }).join('')}</tbody></table>` : `<div class="empty">${ic('memo')}<b>아직 없어요</b></div>`}</section>
+        ${weakCard(open, 'c5')}
+        ${f === 'all' ? subjWrongCard('c12') : ''}
         ${done.length ? `<section class="card c12"><div class="card-h"><h2>다시 맞힌 문제 ${done.length}</h2></div><div class="list">${done.slice(0, 40).map(item).join('')}</div></section>` : ''}
       </div>`;
   }
@@ -2098,6 +2100,20 @@
   if (!TEACHER && !W().since) { W().since = Date.now(); walletScan(true); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
   document.body.classList.add('booting'); setTimeout(() => document.body.classList.remove('booting'), 1200);
   render();
+  // 새 버전이 올라오면 알아서 바뀌어요: 앱으로 돌아올 때와 10분마다 확인하고, 푸는 중이 아니면 바로 새로 고쳐요
+  (function autoUpdate() {
+    const cur = (document.querySelector('link[href*="app.css?v="]') || {}).href?.match(/v=(\d+)/)?.[1]; if (!cur) return;
+    let pending = false;
+    const safe = () => !UI.run && !$('.sheet') && !P.run && ![...document.querySelectorAll('audio')].some((a) => !a.paused) && !document.activeElement?.matches('input, textarea');
+    const apply = () => { if (!pending) return; if (safe()) location.reload(); };
+    const check = async () => {
+      if (pending) return apply();
+      try { const h = await (await fetch('./?t=' + Date.now(), { cache: 'no-store' })).text(); const v = h.match(/app\.css\?v=(\d+)/)?.[1]; if (v && v !== cur) { pending = true; if (!safe()) toast('새 버전이 있어요 · 끝나면 알아서 바뀌어요'); apply(); } } catch (e) {}
+    };
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
+    setInterval(check, 10 * 60 * 1000); setTimeout(check, 15000);
+    setInterval(apply, 20000);
+  })();
   if (P.run) pLoop();
   const sp = $('#splash'); if (sp) { sp.classList.add('out'); setTimeout(() => sp.remove(), 320); }
   const bm = $('#boot-msg'); if (bm) bm.remove();
