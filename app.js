@@ -47,7 +47,7 @@
     { id: 'snu', name: '서울대학교', short: '서울대', color: '#0f0f70', pharm: true },
     { id: 'yonsei', name: '연세대학교', short: '연세대', color: '#003876', pharm: true },
     { id: 'korea', name: '고려대학교', short: '고려대', color: '#8b0029', pharm: true },
-    { id: 'skku', name: '성균관대학교', short: '성균관대', color: '#2b5d3a', pharm: true },
+    { id: 'skku', name: '성균관대학교', short: '성균관대', color: '#6aab2e', pharm: true },
     { id: 'hanyang', name: '한양대학교', short: '한양대', color: '#0e4a84', pharm: true },
     { id: 'ewha', name: '이화여자대학교', short: '이화여대', color: '#00462a', pharm: true },
     { id: 'cau', name: '중앙대학교', short: '중앙대', color: '#2a4fa1', pharm: true },
@@ -432,6 +432,12 @@
     const done = pick != null;
     return `<div class="choices">${(q.choices || []).map((c, k) => `<button class="choice ${done ? (k === q.answer ? 'right' : k === pick ? 'wrong' : '') : ''}" data-pick="${k}" type="button" ${done ? 'disabled' : ''}><span class="n">${k + 1}</span><span>${rich(c)}</span></button>`).join('')}</div>`;
   }
+  // 다 풀었을 때: 큰 흰 카드 가운데 아이콘 · 점수 · 한마디, 버튼은 아래에 크게
+  function doneCard(ok, n, sub, btns, extra = '') {
+    const all = n && ok === n, icon = all ? 'trophy' : ok / (n || 1) >= 0.6 ? 'party' : 'muscle';
+    const title = all ? '다 맞혔어요!' : ok / (n || 1) >= 0.6 ? '잘했어요!' : '끝까지 풀었어요!';
+    return `<div class="done-card card" data-done="${all ? 2 : ok / (n || 1) >= 0.6 ? 1 : 0}"><div class="done-ic">${ic(icon)}</div><h1 class="h1">${title}</h1><div class="done-score"><b class="num">${ok}</b><span>/ ${n} 맞힘</span></div><p class="sub">${sub}</p>${extra}<div class="done-btns">${btns}</div></div>`;
+  }
   function verdict(ok, extra = '') { return `<div class="verdict ${ok ? 'ok' : 'no'}">${ic(ok ? 'hundred' : 'think')}<span>${ok ? '정답이에요' : '아쉬워요, 다시 볼게요'}</span>${extra}</div>`; }
   function addWrong(id, w) { S.wrong = S.wrong || {}; const old = S.wrong[id]; S.wrong[id] = { ...(old || {}), ...w, at: Date.now(), times: ((old && old.times) || 0) + 1, cleared: false }; save('wrong'); }
   function clearWrong(id) { if (S.wrong && S.wrong[id]) { S.wrong[id].cleared = true; S.wrong[id].clearedAt = Date.now(); save('wrong'); } }
@@ -458,7 +464,7 @@
     const head = `<div class="row between"><button class="btn sm" data-lib="sci" type="button">‹ 과학 목록</button><span class="tiny">${esc(unitOf(c.unit).title)}</span></div>`;
     if (!UI.run.read) return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<p class="eyebrow" style="margin:16px 0 4px">${ic('books')} 개념 · ${c.lesson && c.lesson.src ? esc(c.lesson.src) : '교과서'}</p><h1 class="h1" style="margin:0 0 16px">${esc(c.title)}</h1>${lessonHtml(c)}<div class="cta-bar"><button class="btn primary big block" id="cr-go" type="button">개념 다 봤어요, 문제 ${qs.length}개 풀기</button></div></div>`;
     let i = UI.run.i != null ? UI.run.i : qs.findIndex((q) => !ans[q.id]);
-    if (i < 0) { const ok = qs.filter((q) => ans[q.id] && ans[q.id].ok).length; return `<div class="qwrap" style="max-width:720px;margin:0 auto">${head}<div class="card"><h1 class="h1">${ok}/${qs.length} 맞혔어요</h1><p class="sub">틀린 문제는 오답 노트에 들어갔어요</p><div class="row"><button class="btn primary big" data-lib="sci" type="button">다른 개념 보기</button><button class="btn big" id="cr-redo" type="button">처음부터 다시</button></div></div></div>`; }
+    if (i < 0) { const ok = qs.filter((q) => ans[q.id] && ans[q.id].ok).length; return `<div class="qwrap" style="max-width:720px;margin:0 auto">${head}${doneCard(ok, qs.length, ok === qs.length ? '이 개념은 이제 내 거예요' : '틀린 문제는 오답 노트에 들어갔어요', '<button class="btn primary big block" data-lib="sci" type="button">다른 개념 보기</button><button class="btn big block" id="cr-redo" type="button">처음부터 다시</button>')}</div>`; }
     const q = qs[i], a = ans[q.id];
     return `<div class="qwrap" style="max-width:720px;margin:0 auto">${head}<details class="hw-more" style="margin:8px 0 0"><summary>개념 다시 보기</summary>${lessonHtml(c)}</details>
       <div class="progress-dots">${qs.map((x, k) => `<i class="${ans[x.id] ? (ans[x.id].ok ? 'ok' : 'no') : k === i ? 'cur' : ''}"></i>`).join('')}</div>
@@ -524,7 +530,7 @@
     }
     let i = list.findIndex((x) => !d.ans[x.q]);
     if (UI.run && UI.run.i != null && d.ans[list[UI.run.i] && list[UI.run.i].q] && UI.run.showing) i = UI.run.i;
-    if (i < 0) { const st = dayStat(d); return `<div class="qwrap card" style="max-width:720px;margin:0 auto">${ic('party', 'ic')}<h1 class="h1">오늘의 과학 끝!</h1><p class="sub">${st.ok}/${st.n} 맞혔어요${st.all > st.n ? `, 깊게 ${st.all - st.n}문제를 더 풀었어요` : ''}. 틀린 문제는 오답 노트에 쌓였어요.</p><div class="row"><button class="btn soft big" data-go="wrong" type="button">오답 노트 보기</button><button class="btn big" data-go="home" type="button">홈으로</button></div></div>`; }
+    if (i < 0) { const st = dayStat(d); return `<div class="qwrap" style="max-width:720px;margin:0 auto">${doneCard(st.ok, st.n, `오늘의 과학 끝!${st.all > st.n ? ` 깊게 ${st.all - st.n}문제를 더 풀었어요.` : ''} 틀린 문제는 오답 노트에 쌓였어요`, '<button class="btn primary big block" data-go="home" type="button">홈으로</button><button class="btn big block" data-go="wrong" type="button">오답 노트 보기</button>')}</div>`; }
     const it = list[i], q = qById(it.q), c = SCI.concepts.find((x) => x.id === it.c) || {};
     const a = d.ans[it.q];
     UI.run = { kind: 'sci', i, showing: !!a };
@@ -571,7 +577,7 @@
     if (cur < 0 || cur == null) {
       const ok = Object.values(ed.uans).filter((x) => x.ok).length;
       if (!ed.udone && qs.length) { ed.udone = Date.now(); S.eng.unit = Math.min((S.eng.unit || 0) + 1, CH_UNITS.length - 1); save('eng'); }
-      return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<div class="card">${verdict(ok === qs.length, '')}<p class="sub" style="margin:12px 0 0">${ok}/${qs.length} 맞혔어요. 내일은 다음 유닛이에요.</p><div class="row" style="margin-top:16px"><button class="btn primary big" data-task="words" type="button">단어 시험 보러 가기</button><button class="btn big" data-go="home" type="button">홈으로</button></div></div></div>`;
+      return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${doneCard(ok, qs.length, '천일문 유닛 끝! 내일은 다음 유닛이에요', '<button class="btn primary big block" data-task="words" type="button">단어 시험 보러 가기</button><button class="btn big block" data-go="home" type="button">홈으로</button>')}</div>`;
     }
     const q = qs[cur], a = ed.uans[cur];
     const isOrder = q.words && q.answerText;
@@ -609,7 +615,7 @@
     if (i < 0) {
       const ok = Object.values(wans).filter((x) => x.ok).length;
       if (day == null && !ed.wdone) { ed.wdone = Date.now(); S.eng.wordDay = (S.eng.wordDay || 0) + 1; save('eng'); }
-      return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<div class="card"><p class="big">${ok}/${wl.length} 맞혔어요</p><div class="list">${wl.map((w, k) => `<div class="li"><div class="ico">${ic(wans[k] && wans[k].ok ? 'ok' : 'x')}</div><div class="body"><div class="t">${esc(w.en)}</div><div class="d">${esc(w.ko)}</div></div></div>`).join('')}</div><button class="btn big block" style="margin-top:16px" data-go="home" type="button">홈으로</button></div></div>`;
+      return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${doneCard(ok, wl.length, '단어 시험 끝! 틀린 단어는 오답 노트에 들어갔어요', '<button class="btn primary big block" data-go="home" type="button">홈으로</button>', `<div class="list done-list">${wl.map((w, k) => `<div class="li"><div class="ico">${ic(wans[k] && wans[k].ok ? 'ok' : 'x')}</div><div class="body"><div class="t">${esc(w.en)}</div><div class="d">${esc(w.ko)}</div></div></div>`).join('')}</div>`)}</div>`;
     }
     const w = wl[i];
     const pool = WORDS.filter((x) => x.ko !== w.ko); const opts = shuffle([w.ko, ...shuffle(pool).slice(0, 3).map((x) => x.ko)]);
@@ -950,7 +956,7 @@
     const d = allDrills().find((x) => x.id === UI.run.id); if (!d) { UI.run = null; return hwView(); }
     const ans = drillAns(d.id); let i = UI.run.i != null ? UI.run.i : d.qs.findIndex((_, k) => !ans[k]);
     const head = `<div class="row between"><button class="btn sm" data-go="hw" type="button">‹ 숙제</button><span class="tiny">${esc(SUBJ_NAMES[d.subj] || d.subj)} · ${esc(d.area || '')}</span></div>`;
-    if (i < 0) { const ok = Object.values(ans).filter((x) => x.ok).length; return `<div class="qwrap" style="max-width:720px;margin:0 auto">${head}<div class="card"><h1 class="h1">${ok}/${d.qs.length} 맞혔어요</h1><p class="sub">${ok === d.qs.length ? '이 영역은 이제 괜찮아요' : '틀린 문제는 오답 노트에 들어갔어요'}</p><div class="row"><button class="btn primary big" data-go="hw" type="button">숙제로</button><button class="btn big" data-go="wrong" type="button">오답 노트</button></div></div></div>`; }
+    if (i < 0) { const ok = Object.values(ans).filter((x) => x.ok).length; return `<div class="qwrap" style="max-width:720px;margin:0 auto">${head}${doneCard(ok, d.qs.length, ok === d.qs.length ? '이 영역은 이제 괜찮아요' : '틀린 문제는 오답 노트에 들어갔어요', '<button class="btn primary big block" data-go="hw" type="button">숙제로</button><button class="btn big block" data-go="wrong" type="button">오답 노트</button>')}</div>`; }
     const q = d.qs[i], a = ans[i]; UI.run.i = i;
     return `<div class="qwrap" style="max-width:720px;margin:0 auto">${head}<div class="progress-dots">${d.qs.map((_, k) => `<i class="${ans[k] ? (ans[k].ok ? 'ok' : 'no') : k === i ? 'cur' : ''}"></i>`).join('')}</div>
       <div class="card"><div class="q-no">${i + 1}번 <span class="tag blue">${esc(d.title || '선생님이 낸 문제')}</span></div>${q.img ? `<img class="q-img" style="margin-top:12px" src="${esc(q.img)}" alt="">` : ''}<div style="margin-top:8px">${qBody(q)}</div></div>
@@ -1432,6 +1438,9 @@
   // 화면에 「정답이에요」가 새로 뜨면 터뜨려요. 연속으로 맞히면 점점 크게
   const CHEER2 = ['좋아요!', '정확해요!', '센스 있어요!', '바로 그거예요!', '완벽해요!'];
   function cheerCheck() {
+    const dc = $('main .done-card');
+    if (dc && !cheerCheck.done) { $$('.combo-pop').forEach((x) => x.remove()); const lv = +dc.dataset.done, r = $('.done-ic', dc).getBoundingClientRect(); if (lv) { boom(r.left + r.width / 2, r.top + r.height / 2, lv === 2 ? 5 : 2); ding(lv === 2 ? 8 : 3); } }
+    cheerCheck.done = !!dc;
     const v = $('main .verdict'); const was = cheerCheck.had; cheerCheck.had = !!v;
     if (!v || was) return;
     if (!v.classList.contains('ok')) { cheerCheck.combo = 0; v.classList.add('shake'); return; }
