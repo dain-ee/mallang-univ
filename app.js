@@ -22,6 +22,8 @@
   const onDay = (k, d = new Date()) => planOf(k).includes(d.getDay());
   const anyEng = (d) => ['unit', 'words', 'g3'].some((k) => onDay(k, d));
   const anyTask = (d) => PLAN_KINDS.some((x) => onDay(x.k, d));
+  // 선생님 숙제는 날짜가 된 것만 오늘 할 일에 보여요 (하루 한 개씩)
+  const hwNow = () => (S.hw || []).filter((h) => !h.done && (!h.due || h.due <= today()));
   const rich = (t) => esc(t).replace(/&lt;(\/?)(b|u|i|em|strong)&gt;/g, '<$1$2>').replace(/&lt;br\s*\/?&gt;/g, '<br>');
   const fmt1 = (x) => (x == null || isNaN(x) ? '-' : (Math.round(x * 10) / 10).toFixed(1));
 
@@ -145,11 +147,12 @@
   function sciToday(force) {
     const t = today(); S.sci = S.sci || { days: {} }; S.sci.days = S.sci.days || {};
     if (!S.sci.days[t] && SCI.concepts.length && (onDay('sci') || force)) {
-      const seen = new Set(Object.values(S.sci.days).flatMap((d) => (d.list || []).map((x) => x.c)));
+      const seen = new Set(Object.values(S.sci.days).filter((d) => d.one).map((d) => d.c));
+      const ord = (c) => (c.lesson && c.lesson.order) || 999;
+      const exam = SCI.concepts.filter((c) => c.exam).sort((a, b) => ord(a) - ord(b));
       const weak = SCI.concepts.filter((c) => openWrong().some((w) => w.src === 'sci' && w.concept === c.id));
-      const fresh = SCI.concepts.filter((c) => !seen.has(c.id));
-      const pick = [...shuffle(weak).slice(0, 1), ...fresh, ...shuffle(SCI.concepts)].filter((c, i, a) => a.indexOf(c) === i).slice(0, 4);
-      S.sci.days[t] = { list: pick.map((c) => { const used = new Set(Object.values(S.sci.days).flatMap((d) => (d.list || []).map((x) => x.q))); const q = (c.base || []).find((x) => !used.has(x.id)) || c.base[0]; return { c: c.id, q: q.id, kind: 'base' }; }), ans: {} };
+      const c = exam.find((x) => !seen.has(x.id)) || weak[0] || exam.find((x) => (x.base || []).length) || SCI.concepts[0];
+      S.sci.days[t] = { one: true, c: c.id, read: false, list: (c.base || []).map((q) => ({ c: c.id, q: q.id, kind: 'base' })), ans: {} };
       save('sci');
     }
     return S.sci.days[t] || { list: [], ans: {} };
@@ -278,7 +281,7 @@
     if (!ed.off && G3.length && !ed.g3done) left.push('고3 영어 1문제');
     if (SCI.concepts.length && st.done < st.n) left.push(`과학 ${st.n - st.done}문제`);
     if (!ed.off && WORDS.length && !Object.keys(ed.wans || {}).length) left.push('단어 10개');
-    const hw = (S.hw || []).filter((h) => !h.done).length; if (hw) left.push(`선생님 숙제 ${hw}개`);
+    const hw = hwNow().length; if (hw) left.push(`선생님 숙제 ${hw}개`);
     return left.length ? `오늘 남은 것: ${left.join(', ')}` : ed.off && !onDay('sci') ? '오늘은 정해 둔 매일 과제가 없는 날이에요' : '오늘 할 일을 다 끝냈어요';
   }
   // 오른쪽 칸 (PC) · 휴대폰에서는 본문 안에
@@ -293,10 +296,10 @@
     if (off) tasks.push({ k: 'hw', icon: 'party', t: '오늘은 매일 과제가 쉬는 날이에요', d: '요일은 숙제 탭의 「숙제 요일」에서 바꿀 수 있어요', done: true });
     for (const d of openDrills().slice(0, 4)) tasks.push({ k: 'drill:' + d.id, icon: 'target', t: `${d.title || d.area} ${d.qs.length}문제`, d: '선생님이 낸 약한 영역 문제', done: false });
     if (has('g3') && G3.length) { const g = G3[ed.g3 || 0]; tasks.push({ k: 'g3', icon: 'eng', t: '고3 영어 한 문제', d: ed.g3done ? '다 풀었어요 · 문장 분석 보기' : g ? `${g.type || ''} · 문장 분석과 천일문 연결` : '', done: !!ed.g3done }); }
-    if (has('sci') && SCI.concepts.length) tasks.push({ k: 'sci', icon: 'sci', t: `오늘의 과학 ${st.n}문제`, d: st.done >= st.n ? `${st.ok}/${st.n} 맞힘${st.all > st.n ? ` · 깊게 ${st.all - st.n}문제 더` : ''}` : `${st.done}/${st.n} 풀었어요`, done: st.done >= st.n });
+    if (has('sci') && SCI.concepts.length) tasks.push({ k: 'sci', icon: 'sci', t: sd.one ? `과학 개념: ${(SCI.concepts.find((x) => x.id === sd.c) || {}).title || ''}` : `오늘의 과학 ${st.n}문제`, d: sd.one && !sd.read ? `교과서 개념 보고 문제 ${st.n}개` : st.done >= st.n ? `${st.ok}/${st.n} 맞힘${st.all > st.n ? ` · 깊게 ${st.all - st.n}문제 더` : ''}` : `${st.done}/${st.n} 풀었어요`, done: st.done >= st.n });
     if (has('unit') && CH_UNITS.length) { const un = CH_UNITS[ed.unit] || CH_UNITS[CH_UNITS.length - 1]; tasks.push({ k: 'unit', icon: 'eng', t: `천일문 ${un.unit ? 'Unit ' + un.unit : ''} ${un.title || ''}`.trim(), d: unitDone ? '다 했어요' : '개념 · 문장 · 문제', done: !!unitDone }); }
     if (has('words') && WORDS.length) tasks.push({ k: 'words', icon: 'books', t: '워드마스터 단어 10개 시험', d: wordsDone ? `${Object.values(ed.wans).filter((x) => x.ok).length}/10 맞힘` : `Day ${(wordsFor(ed.words)[0] || {}).day || ''}`, done: !!wordsDone });
-    for (const h of (S.hw || []).filter((h) => !h.done).slice(0, 3)) tasks.push({ k: 'hw', icon: 'pin', t: h.title, d: h.due ? `${md(h.due)}까지` : '선생님 숙제', done: false });
+    for (const h of hwNow().slice(0, 3)) tasks.push({ k: 'hw', icon: 'pin', t: h.title, d: h.due && h.due < today() ? `${md(h.due)} 숙제 · 아직 안 했어요` : '오늘 선생님 숙제', done: false });
     const real = tasks.filter((t) => t.icon !== 'party'); const doneN = real.filter((t) => t.done).length, frac = real.length ? doneN / real.length : (off ? 1 : 0);
     const R = 80, L = Math.PI * R;
     const todo = `<section class="card tight ${cls}"><div class="card-h"><h3>오늘 할 일</h3><button class="more" data-go="hw">숙제</button></div>
@@ -347,13 +350,20 @@
     const planTxt = PLAN_KINDS.map((x) => planOf(x.k).length).every((n, i, a) => n === a[0]) ? `${planOf('sci').length === 5 && planOf('sci').every((d) => d >= 1 && d <= 5) ? '평일 매일' : planOf('sci').slice().sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7)).map((d) => DOW[d]).join('') + ` 주${planOf('sci').length}회`}` : '과제마다 다르게';
     return `<h1 class="h1">오늘의 숙제</h1><div class="row between wrap" style="gap:8px;margin-bottom:16px"><p class="sub" style="margin:0">${todayLine()}</p><button class="btn sm" id="plan-open" type="button">${ic('cal')} 숙제 요일 · ${esc(planTxt)}</button></div>
     <div class="grid">
-      <section class="card c4 link" data-task="sci"><div class="row between"><span class="eyebrow">${ic('sci')} 오늘의 과학</span><span class="tag ${st.done >= st.n && st.n ? 'blue' : ''}">${st.done}/${st.n}</span></div><p class="big" style="margin:12px 0 4px">${st.n ? (st.done >= st.n ? `${st.ok}문제 맞혔어요` : `${st.n - st.done}문제 남았어요`) : !onDay('sci') ? '오늘은 쉬는 날' : '문제 준비 중'}</p><p class="muted" style="margin:0 0 16px">틀리면 개념을 쪼개서 더 깊게 물어봐요</p><div class="progress-dots">${(sd.list || []).map((x) => `<i class="${sd.ans[x.q] ? (sd.ans[x.q].ok ? 'ok' : 'no') : ''}"></i>`).join('')}</div></section>
+      <section class="card c4 link" data-task="sci"><div class="row between"><span class="eyebrow">${ic('sci')} 오늘의 과학</span><span class="tag ${st.done >= st.n && st.n ? 'blue' : ''}">${st.done}/${st.n}</span></div><p class="big" style="margin:12px 0 4px">${sd.one ? esc((SCI.concepts.find((x) => x.id === sd.c) || {}).title || '') : st.n ? (st.done >= st.n ? `${st.ok}문제 맞혔어요` : `${st.n - st.done}문제 남았어요`) : !onDay('sci') ? '오늘은 쉬는 날' : '문제 준비 중'}</p><p class="muted" style="margin:0 0 16px">${sd.one ? (sd.read ? (st.done >= st.n ? `${st.ok}/${st.n} 맞혔어요` : `개념 봤어요 · 문제 ${st.n - st.done}개 남았어요`) : '교과서 개념 먼저 보고, 그 개념 문제를 풀어요') : !onDay('sci') ? '눌러서 들어가면 오늘 개념이 열려요' : '교과서 개념 먼저 보고, 그 개념 문제를 풀어요'}</p><div class="progress-dots">${(sd.list || []).map((x) => `<i class="${sd.ans[x.q] ? (sd.ans[x.q].ok ? 'ok' : 'no') : ''}"></i>`).join('')}</div></section>
       <section class="card c4 link" data-task="unit"><div class="row between"><span class="eyebrow">${ic('eng')} 천일문</span>${ed.udone ? '<span class="tag blue">완료</span>' : ''}</div><p class="big" style="margin:12px 0 4px">${un ? `Unit ${esc(un.unit)}` : '준비 중'}</p><p class="muted" style="margin:0">${un ? esc(un.title) : '자료를 넣는 중이에요'}</p></section>
       <section class="card c4 link" data-task="words"><div class="row between"><span class="eyebrow">${ic('books')} 워드마스터 하이스트</span>${wdone >= 10 ? '<span class="tag blue">완료</span>' : ''}</div><p class="big" style="margin:12px 0 4px">${wl.length ? (wdone >= wl.length ? `${Object.values(ed.wans).filter((x) => x.ok).length}/${wl.length} 맞힘` : '단어 10개 시험') : '준비 중'}</p><p class="muted" style="margin:0">${wl.length ? `Day ${wl[0].day} · 외우고 바로 시험` : '단어장을 넣는 중이에요'}</p></section>
       ${G3.length ? (() => { const g = G3[ed.g3 || 0]; return `<section class="card c12 link" data-task="g3"><div class="row between"><span class="eyebrow">${ic('eng')} 고3 영어 하루 한 문제</span>${ed.g3done ? '<span class="tag blue">완료</span>' : ed.off ? '<span class="tag">주말</span>' : ''}</div><p class="big" style="margin:12px 0 4px">${g ? esc(g.type || '독해') + ' · ' + esc(g.src || '') : '준비 중'}</p><p class="muted" style="margin:0">풀고 나면 문장마다 해석·구문 분석이 나오고, 천일문 그 유닛으로 바로 가요</p></section>`; })() : ''}
       ${drillCard()}
       <section class="card c8"><div class="card-h"><h2>선생님 숙제</h2>${TEACHER ? '<button class="btn sm soft" id="hw-add" type="button">숙제 내기</button>' : ''}</div>
-        ${hwList.length ? `<div class="list">${hwList.slice().sort((a, b) => (a.done - b.done) || String(a.due || '9').localeCompare(String(b.due || '9'))).map((h) => `<div class="li"><button class="ico" data-hwdone="${esc(h.id)}" style="border:0;cursor:pointer" aria-label="완료">${ic(h.done ? 'ok' : 'pin')}</button><div class="body"><div class="t" style="${h.done ? 'color:var(--t3);text-decoration:line-through' : ''}">${esc(h.title)}</div><div class="d">${[h.subj, h.due ? md(h.due) + '까지' : '', h.memo].filter(Boolean).map(esc).join(' · ')}</div></div>${h.due && !h.done ? `<span class="tag ${dday(h.due) <= 1 ? 'red' : ''}">D-${Math.max(0, dday(h.due))}</span>` : ''}${TEACHER ? `<button class="btn sm" data-hwdel="${esc(h.id)}" type="button">지우기</button>` : ''}</div>`).join('')}</div>` : `<div class="empty">${ic('party')}<b>받은 숙제가 없어요</b>${TEACHER ? '<span>위의 「숙제 내기」로 낼 수 있어요</span>' : ''}</div>`}</section>
+        ${hwList.length ? (() => {
+          const row = (h, later) => `<div class="li"><button class="ico" data-hwdone="${esc(h.id)}" style="border:0;cursor:pointer" aria-label="완료">${ic(h.done ? 'ok' : 'pin')}</button><div class="body"><div class="t" style="${h.done ? 'color:var(--t3);text-decoration:line-through' : later ? 'color:var(--t2);font-weight:500' : ''}">${esc(h.title)}</div><div class="d">${[h.subj, h.due ? md(h.due) + (later ? ' 숙제' : '') : '', later ? '' : h.memo].filter(Boolean).map(esc).join(' · ')}</div></div>${!h.done && !later && h.due && h.due < today() ? '<span class="tag red">밀림</span>' : ''}${TEACHER ? `<button class="btn sm" data-hwdel="${esc(h.id)}" type="button">지우기</button>` : ''}</div>`;
+          const by = (a, b) => String(a.due || '').localeCompare(String(b.due || ''));
+          const now = hwNow().sort(by), later = hwList.filter((h) => !h.done && h.due && h.due > today()).sort(by), done = hwList.filter((h) => h.done).sort(by).reverse();
+          return `${now.length ? `<div class="list">${now.map((h) => row(h)).join('')}</div>` : `<div class="empty" style="padding:16px 0">${ic('party')}<b>오늘 숙제는 끝!</b>${later.length ? `<span>다음 숙제는 ${md(later[0].due)}에 나와요</span>` : ''}</div>`}
+            ${later.length ? `<details class="hw-more"><summary>다음 숙제 ${later.length}개 미리 보기</summary><div class="list">${later.map((h) => row(h, true)).join('')}</div></details>` : ''}
+            ${done.length ? `<details class="hw-more"><summary>끝낸 숙제 ${done.length}개</summary><div class="list">${done.map((h) => row(h)).join('')}</div></details>` : ''}`;
+        })() : `<div class="empty">${ic('party')}<b>받은 숙제가 없어요</b>${TEACHER ? '<span>위의 「숙제 내기」로 낼 수 있어요</span>' : ''}</div>`}</section>
       <section class="card c4"><div class="card-h"><h2>꾸준히</h2><span class="tag blue">${streak}일 연속</span></div><div class="streak">${days.map((d) => `<i class="${lvl(d) ? 'l' + lvl(d) : ''} ${d === today() ? 'today' : ''}" title="${d}"></i>`).join('')}</div><p class="tiny" style="margin:12px 0 0">최근 4주 · 진할수록 많이 했어요</p></section>
     </div>`;
   }
@@ -399,8 +409,31 @@
   function clearWrong(id) { if (S.wrong && S.wrong[id]) { S.wrong[id].cleared = true; S.wrong[id].clearedAt = Date.now(); save('wrong'); } }
 
   // 과학 풀기
+  function lessonHtml(c) {
+    const L = c.lesson;
+    if (!L) return `<div class="card lesson"><p class="ls-body">${esc(c.summary || '')}</p></div>`;
+    return `<div class="card lesson">
+      ${L.intro ? `<p class="ls-intro">${esc(L.intro)}</p>` : ''}
+      ${(L.points || []).map((p, k) => `<div class="ls-pt"><span class="ls-n">${k + 1}</span><div><b>${esc(p.t)}</b><p>${esc(p.d)}</p></div></div>`).join('')}
+      ${L.table && L.table.length ? `<div class="tbl-wrap"><table class="q-tbl ls-tbl">${L.table.map((r, k) => `<tr>${r.map((x) => k ? `<td>${esc(x)}</td>` : `<th>${esc(x)}</th>`).join('')}</tr>`).join('')}</table></div>` : ''}
+      ${L.terms && L.terms.length ? `<div class="ls-terms">${L.terms.map((x) => `<div><b>${esc(x.w)}</b><span>${esc(x.m)}</span></div>`).join('')}</div>` : ''}
+      ${L.lab ? `<div class="ls-box"><b>교과서 탐구</b><p>${esc(L.lab)}</p></div>` : ''}
+      ${L.trap && L.trap.length ? `<div class="ls-box warn"><b>시험에서 헷갈리는 것</b>${L.trap.map((x) => `<p>· ${esc(x)}</p>`).join('')}</div>` : ''}
+      ${L.check && L.check.length ? `<div class="ls-box"><b>바로 확인</b>${L.check.map((x, k) => `<details class="ls-chk"><summary>${esc(x.q)}</summary><p>${esc(x.a)}</p></details>`).join('')}</div>` : ''}
+    </div>`;
+  }
   function sciRun() {
     const d = sciToday(true); const list = d.list || [];
+    if (d.one && !d.read) {
+      const c = SCI.concepts.find((x) => x.id === d.c) || {};
+      return `<div class="qwrap" style="max-width:760px;margin:0 auto">
+        <div class="row between"><button class="btn sm" data-go="hw" type="button">‹ 숙제</button><span class="tiny">${esc(unitOf(c.unit).title)}</span></div>
+        <p class="eyebrow" style="margin:16px 0 4px">${ic('books')} 오늘의 개념 · ${c.lesson && c.lesson.src ? esc(c.lesson.src) : '교과서'}</p>
+        <h1 class="h1" style="margin:0 0 16px">${esc(c.title || '')}</h1>
+        ${lessonHtml(c)}
+        <div class="cta-bar"><button class="btn primary big block" id="ls-done" type="button">개념 다 봤어요, 문제 ${list.length}개 풀기</button></div>
+      </div>`;
+    }
     let i = list.findIndex((x) => !d.ans[x.q]);
     if (UI.run && UI.run.i != null && d.ans[list[UI.run.i] && list[UI.run.i].q] && UI.run.showing) i = UI.run.i;
     if (i < 0) { const st = dayStat(d); return `<div class="qwrap card" style="max-width:720px;margin:0 auto">${ic('party', 'ic')}<h1 class="h1">오늘의 과학 끝!</h1><p class="sub">${st.ok}/${st.n} 맞혔어요${st.all > st.n ? `, 깊게 ${st.all - st.n}문제를 더 풀었어요` : ''}. 틀린 문제는 오답 노트에 쌓였어요.</p><div class="row"><button class="btn soft big" data-go="wrong" type="button">오답 노트 보기</button><button class="btn big" data-go="home" type="button">홈으로</button></div></div>`; }
@@ -408,7 +441,7 @@
     const a = d.ans[it.q];
     UI.run = { kind: 'sci', i, showing: !!a };
     return `<div class="qwrap" style="max-width:720px;margin:0 auto">
-      <div class="row between"><button class="btn sm" data-go="hw" type="button">‹ 숙제</button><span class="tiny">${esc(unitOf(c.unit).title)} · ${esc(c.title || '')}</span></div>
+      <div class="row between"><button class="btn sm" data-go="hw" type="button">‹ 숙제</button><span class="tiny">${esc(unitOf(c.unit).title)} · ${esc(c.title || '')}</span></div>${d.one ? `<details class="hw-more" style="margin:8px 0 0"><summary>개념 다시 보기</summary>${lessonHtml(c)}</details>` : ''}
       <div class="progress-dots">${list.map((x, k) => `<i class="${d.ans[x.q] ? (d.ans[x.q].ok ? 'ok' : 'no') : k === i ? 'cur' : ''}"></i>`).join('')}</div>
       <div class="card"><div class="q-no">${it.kind === 'base' ? `${list.slice(0, i + 1).filter((x) => x.kind === 'base').length}번` : '더 깊게'} ${it.kind !== 'base' ? '<span class="tag blue">개념 쪼개 보기</span>' : ''}</div>
         ${it.kind !== 'base' && it.first ? `<div class="deep" style="margin:12px 0"><div class="eyebrow">${ic('bulb')} 개념 다시 보기</div><p>${esc(c.summary || '')}</p></div>` : ''}
@@ -418,7 +451,9 @@
     </div>`;
   }
   function bindSci() {
-    const d = sciToday(); const r = UI.run; if (!r || r.kind !== 'sci') return;
+    const d = sciToday(true);
+    const ld = $('#ls-done'); if (ld) { ld.onclick = () => { d.read = true; save('sci'); UI.run = { kind: 'sci' }; render(); window.scrollTo(0, 0); }; return; }
+    const r = UI.run; if (!r || r.kind !== 'sci') return;
     const it = d.list[r.i]; if (!it) return; const q = qById(it.q), c = SCI.concepts.find((x) => x.id === it.c) || {};
     $$('[data-pick]').forEach((b) => (b.onclick = () => {
       const k = +b.dataset.pick, ok = k === q.answer; d.ans[it.q] = { pick: k, ok, at: Date.now() };
@@ -1089,7 +1124,7 @@
   // ───────── 틀 · 메뉴 ─────────
   const TABS = [['home', '홈', 'home'], ['hw', '숙제', 'hw'], ['wrong', '오답', 'wrong'], ['score', '성적', 'score'], ['sgb', '생기부', 'sgb']];
   function nav() {
-    const cnt = { hw: (() => { const st = dayStat(sciToday()); return (st.n - st.done > 0 ? 1 : 0) + (S.hw || []).filter((h) => !h.done).length; })(), wrong: openWrong().length };
+    const cnt = { hw: (() => { const st = dayStat(sciToday()); return (st.n - st.done > 0 ? 1 : 0) + hwNow().length; })(), wrong: openWrong().length };
     const btn = (t, bottom) => `<button type="button" class="${UI.tab === t[0] ? 'on' : ''}" data-go="${t[0]}">${bottom ? `<img src="icons/${IC[t[2]]}.svg" alt="">` : ''}${t[1]}${cnt[t[0]] ? `<span class="cnt">${cnt[t[0]] > 99 ? '99+' : cnt[t[0]]}</span>` : ''}</button>`;
     $('#tabs-top').innerHTML = TABS.map((t) => btn(t, false)).join('');
     $('#tabs-bottom').innerHTML = TABS.map((t) => btn(t, true)).join('');

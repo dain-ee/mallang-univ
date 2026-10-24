@@ -446,3 +446,28 @@ select.inp { appearance: none; background-image: linear-gradient(45deg, transpar
   .card-h .seg, .report-h ~ .seg { flex: 1 1 100% !important; flex-wrap: wrap; overflow: visible; }
   .card-h .seg button, .report-h ~ .seg button { flex: 1 1 auto; }
 }
+
+.hw-more { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
+.hw-more summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--t3); list-style: none; }
+.hw-more summary::-webkit-details-marker { display: none; }
+.hw-more summary::after { content: " ›"; }
+.hw-more[open] summary::after { content: " ⌄"; }
+
+/* 과학 개념 먼저 */
+.lesson { display: flex; flex-direction: column; gap: 16px; }
+.ls-intro { margin: 0; font-size: 16px; line-height: 1.75; color: var(--t2); }
+.ls-pt { display: flex; gap: 12px; align-items: flex-start; }
+.ls-pt b { font-size: 16px; }
+.ls-pt p { margin: 4px 0 0; font-size: 15.5px; line-height: 1.8; color: var(--t1); }
+.ls-n { flex: 0 0 28px; height: 28px; border-radius: 10px; background: var(--blue-soft); color: var(--blue-d); font-weight: 800; display: grid; place-items: center; }
+.ls-tbl th { background: var(--fill2); font-weight: 700; }
+.ls-terms { display: grid; gap: 8px; }
+.ls-terms div { padding: 10px 14px; border-radius: 12px; background: var(--fill2); font-size: 14.5px; line-height: 1.6; }
+.ls-terms b { color: var(--blue-d); margin-right: 8px; }
+.ls-box { padding: 14px 16px; border-radius: 14px; background: var(--blue-soft); }
+.ls-box.warn { background: var(--red-soft); }
+.ls-box b { display: block; margin-bottom: 4px; }
+.ls-box p { margin: 4px 0 0; line-height: 1.7; font-size: 14.5px; }
+.ls-chk { margin-top: 8px; font-size: 14.5px; }
+.ls-chk summary { cursor: pointer; }
+.ls-chk p { color: var(--blue-d); font-weight: 600; }
