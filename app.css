@@ -941,3 +941,10 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 
 .wr-bar { display: inline-block; vertical-align: middle; width: calc(100% - 48px); height: 8px; border-radius: 99px; background: var(--g100, #f2f4f6); overflow: hidden; margin-right: 8px; }
 .wr-bar i { display: block; height: 100%; border-radius: 99px; }
+.left-now { margin: -4px 0 16px; display: flex; flex-direction: column; gap: 8px; }
+.left-now .chip { display: inline-flex; align-items: center; gap: 6px; }
+.left-now .chip svg, .left-now .chip img { width: 18px; height: 18px; }
+.wr-acts { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; }
+.wr-acts .btn { flex: 1 1 0; min-width: 0; }
+.wr-acts .btn.primary { flex-grow: 1.4; }
+.wr-all[hidden] { display: none !important; }
