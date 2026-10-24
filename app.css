@@ -447,11 +447,11 @@ select.inp { appearance: none; background-image: linear-gradient(45deg, transpar
   .card-h .seg button, .report-h ~ .seg button { flex: 1 1 auto; }
 }
 
-.hw-more { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
-.hw-more summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--t3); list-style: none; }
+.hw-more { margin-top: 8px; }
+.hw-more summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: center; height: 44px; border-radius: 12px; background: var(--fill2); font-size: 14px; font-weight: 600; color: var(--t2); }
+.hw-more summary:hover { background: var(--fill); }
 .hw-more summary::-webkit-details-marker { display: none; }
-.hw-more summary::after { content: " ›"; }
-.hw-more[open] summary::after { content: " ⌄"; }
+.hw-more[open] summary { margin-bottom: 4px; }
 
 /* 과학 개념 먼저 */
 .lesson { display: flex; flex-direction: column; gap: 16px; }
