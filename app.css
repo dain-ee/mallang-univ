@@ -902,7 +902,7 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .yt-dock.wait .eq i, .yt-dock.err .eq i { animation: none; transform: scaleY(.3); opacity: .5; }
 @keyframes eq { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
 @media (prefers-reduced-motion: reduce) { .yt-dock .eq i { animation: none; } }
-.hw-tog { grid-template-columns: 1fr 1fr; }
+.hw-tog { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 1fr; }
 .hw-tog button { height: 44px; font-size: 14px; }
 .hw-tog button.off { color: var(--t3); opacity: .55; cursor: default; }
 .hw-pane[hidden] { display: none !important; }
