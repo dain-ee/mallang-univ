@@ -630,7 +630,7 @@
   }
   const myDone = (it) => Object.values(it.log || {}).reduce((a, x) => a + (x.n || 0), 0);
   // 할 요일: 수업마다 골라요(기본 월~금). 남은 할 요일 수로 나눠요
-  const myStudy = (it) => it.days || myCls(it.cls).study || [1, 2, 3, 4, 5];
+  const myStudy = (it) => myCls(it.cls).study || it.days || [1, 2, 3, 4, 5];  // 수업 할 요일을 바꾸면 이미 넣은 숙제도 따라가요
   const myDaysLeft = (due, days) => { let n = 0, t = today(); for (let i = 0; i < 60 && t <= due; i++, t = addD(t, 1)) if (days.includes(dowOf(t))) n++; return n; };
   const myLeftDays = (it) => Math.max(1, myDaysLeft(it.due, myStudy(it)));
   // 오늘 몫: 남은 양 ÷ 남은 날 (오늘 이미 한 건 빼고 계산해서 오늘 몫이 바뀌지 않게)
@@ -660,9 +660,9 @@
     return out;
   }
   function myCard(cls) {
-    const L = myOpen().sort((a, b) => a.due.localeCompare(b.due));
+    const L = myOpen().sort((a, b) => (!myToday(a).n - !myToday(b).n) || a.due.localeCompare(b.due));
     return `<section class="card ${cls}"><div class="card-h"><h2>${ic('write')} 내 숙제</h2><button class="btn sm" type="button" data-myadd>+ 숙제 넣기</button></div>
-      ${L.length ? `<div class="list my-list">${L.map((it) => { const x = myToday(it), p = Math.round((myDone(it) / it.total) * 100), dd = dday(it.due); return `<div class="li btnlike" data-task="my:${esc(it.id)}"><div class="ico">${ic('write')}</div><div class="body"><div class="t">${esc(it.unit === '건' ? it.book : it.text)} <span class="tiny">${isPlan(it) ? '일정 · ' : ''}${esc(myCls(it.cls).name)}</span></div><div class="d">${it.unit === '건' ? esc(myCls(it.cls).name) : x.n ? `오늘 ${esc(myRange(it, x))}` : '오늘 몫 끝'} · <b class="${dd <= 1 ? 'red' : ''}">${dd < 0 ? '마감 지남' : dd === 0 ? '오늘 마감' : `${md(it.due)} 마감 D-${dd}`}</b></div><div class="ik-bar"><i style="width:${p}%"></i></div></div></div>`; }).join('')}</div>` : `<p class="tiny" style="margin:12px 0 0">학원·과외·학교 숙제, 수행평가, 학생회 일까지 넣어요. 문제 수가 있으면 마감까지 매일 할 만큼 「오늘 할 일」에 나눠 줘요</p>`}</section>`;
+      ${L.length ? `<div class="list my-list">${L.map((it) => { const x = myToday(it), p = Math.round((myDone(it) / it.total) * 100), dd = dday(it.due); return `<div class="li btnlike" data-task="my:${esc(it.id)}"><div class="ico">${ic('write')}</div><div class="body"><div class="t">${esc(it.unit === '건' ? it.book : it.text)} <span class="tiny">${isPlan(it) ? '일정 · ' : ''}${esc(myCls(it.cls).name)}</span></div><div class="d">${it.unit === '건' ? esc(myCls(it.cls).name) : x.n ? `오늘 ${esc(myRange(it, x))}` : x.dn ? '오늘 몫 끝' : '오늘은 쉬는 요일'} · <b class="${dd <= 1 ? 'red' : ''}">${dd < 0 ? '마감 지남' : dd === 0 ? '오늘 마감' : `${md(it.due)} 마감 D-${dd}`}</b></div><div class="ik-bar"><i style="width:${p}%"></i></div></div></div>`; }).join('')}</div>` : `<p class="tiny" style="margin:12px 0 0">학원·과외·학교 숙제, 수행평가, 학생회 일까지 넣어요. 문제 수가 있으면 마감까지 매일 할 만큼 「오늘 할 일」에 나눠 줘요</p>`}</section>`;
   }
   // 교재: 수업마다 기억해요. 지난번 끝 번호 다음부터 이어서 채워요
   const myBooks = (cid) => { const M = myS(); M.books = M.books || [{ cls: 'c1', name: '마플 시너지' }, { cls: 'c1', name: '마더텅' }, { cls: 'c1', name: '올림포스 기출' }]; return M.books.filter((b) => b.cls === cid); };
@@ -694,7 +694,7 @@
       $('#my-due', el).innerHTML = `<button type="button" class="my-sum" id="my-sumb"><span>${DOW[dowOf(due)]}요일(${md(due)}) 마감 · ${sdT} <b class="blue">${nd}일</b>에 나눠요</span><span class="blue">${showDue ? '접기' : '바꾸기'}</span></button>
         <div class="my-sd" ${showDue ? '' : 'hidden'}><span class="tiny">마감</span><input type="date" id="my-dd" value="${due}" class="inp sm"><span class="tiny">할 요일</span><div class="pl-dots">${[1, 2, 3, 4, 5, 6, 0].map((d) => `<button type="button" data-sd="${d}" class="${sd.includes(d) ? 'on' : ''} ${d === 0 ? 'sun' : d === 6 ? 'sat' : ''}">${DOW[d]}</button>`).join('')}</div></div>`;
       $('#my-sumb', el).onclick = () => { showDue = !showDue; draw(el); };
-      $$('[data-sd]', el).forEach((b) => (b.onclick = () => { const c = myCls(cid), d = +b.dataset.sd, cur = c.study || [1, 2, 3, 4, 5]; c.study = cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d]; if (!c.study.length) c.study = [d]; save('my'); draw(el); }));
+      $$('[data-sd]', el).forEach((b) => (b.onclick = () => { const c = myCls(cid), d = +b.dataset.sd, cur = c.study || [1, 2, 3, 4, 5]; c.study = cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d]; if (!c.study.length) c.study = [d]; save('my'); sheet.dirty = true; draw(el); }));
       const n = allRows().length; $('#my-ok', el).textContent = n ? `${n}개 넣기` : '넣기';
       $$('[data-mc]', el).forEach((b) => (b.onclick = () => { if (b.dataset.mc === '+') addCls = !addCls; else cid = b.dataset.mc; draw(el); }));
       $$('.my-row', el).forEach((r) => {
