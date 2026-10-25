@@ -3,7 +3,10 @@
    화면 결은 토스 앱: 회색 바탕 · 흰 카드 · 파랑 하나. 화면 글자에 줄표를 쓰지 않습니다. */
 (() => {
   const U = window.UNIV, D = U.data || {};
-  const TEACHER = U.role === 'teacher' || U.role === 'admin';
+  const ROLE_T = U.role === 'teacher' || U.role === 'admin';
+  // 선생님이 「정윤이 화면으로 보기」를 누르면 학생 화면을 그대로 보여 줌. 보기만 하고 아무것도 저장하지 않아요
+  const PEEK = ROLE_T && (() => { try { return sessionStorage.getItem('mu:peek') === '1'; } catch (e) { return false; } })();
+  const TEACHER = ROLE_T && !PEEK;
   const KEY = 'mallang-univ:state:' + U.who;
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -71,6 +74,7 @@
   const UI = { tab: 'home', view: null, scoreSeg: 'mock', mockId: null, mockSubj: 'kor', wrongSubj: 'all', chartSubj: 'avg', run: null, sgbArea: 'all', semester: '1-2', newsAll: false };
   let pushT = null;
   function save(...keys) {
+    if (PEEK) return;
     const now = Date.now(); S._at = S._at || {}; for (const k of keys) S._at[k] = now;
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
     clearTimeout(pushT); pushT = setTimeout(() => { pushT = null; sync(); }, 1200);
@@ -99,6 +103,7 @@
       if (remote && remote._at) {
         for (const k of Object.keys(remote._at)) if ((remote._at[k] || 0) > ((S._at || {})[k] || 0)) { S[k] = remote[k]; S._at[k] = remote._at[k]; changed = true; }
       }
+      if (PEEK) { syncing = false; if (changed && redraw) render(); return; } // 미리보기: 받아 오기만
       try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
       await rpc('univ_put', { p_student: U.who, p_code: U.key, p_data: S });
       saveSt.at = Date.now(); saveSt.off = false; paintSaveSt();
@@ -1413,7 +1418,7 @@
     return `<section class="card c12 gift-card"><span class="gift-ic">${ic('gift')}</span><div class="body"><span class="eyebrow">띵동!</span><b>선물이 도착했어요</b><span class="tiny">선생님이 보낸 선물이에요</span></div><button class="btn primary" type="button" data-giftopen>열어 보기</button></section>`;
   }
   function giftCheck() {
-    const g = S.gift || {}; if (TEACHER || UI.run || !g.skin || g.open || !SKINS[g.skin] || giftCheck.on || giftCheck.seen === g.at) return;
+    const g = S.gift || {}; if (TEACHER || PEEK || UI.run || !g.skin || g.open || !SKINS[g.skin] || giftCheck.on || giftCheck.seen === g.at) return;
     giftCheck.seen = g.at; setTimeout(giftPop, 700);
   }
   function giftPop() {
@@ -1427,10 +1432,8 @@
     const inn = $('.gf-in', el);
     $('#gf-b', el).onclick = close;
     $('#gf-a', el).onclick = () => {
-      const cols = Object.values(SKINS).map((x) => x.c);
-      inn.innerHTML = page('두근두근<br>뭐가 들어 있을까요?', '', '<div class="gf-q"><b>?</b></div>', '', '');
-      const q = $('.gf-q', inn); let i = 0, d = 70;
-      const spin = () => { q.style.setProperty('--gq', cols[i++ % cols.length]); q.classList.remove('pop'); void q.offsetWidth; q.classList.add('pop'); if (i % 3 === 0) { ding(1); if (navigator.vibrate) navigator.vibrate(15); } d *= 1.13; if (d < 420) setTimeout(spin, d); else setTimeout(reveal, 450); };
+      inn.innerHTML = page('두근두근<br>뭐가 들어 있을까요?', '', `<div class="gf-box gf-open">${ic('gift')}</div>`, '', '');
+      if (navigator.vibrate) navigator.vibrate(20);
       const reveal = () => {
         S.profile.skins = [...new Set([...(S.profile.skins || []), k])]; S.gift = { ...g, open: Date.now() }; save('profile', 'gift');
         inn.innerHTML = page(`${esc(SKINS[k].n)} 테마를<br>받았어요`, '내 정보에서 언제든 바꿀 수 있어요', `${petals()}<img class="gf-pet" src="assets/pets/${k}/yay.webp" alt="" onerror="this.src='${skinPic(k)}'">`, '바로 써 볼게요', '나중에');
@@ -1439,7 +1442,7 @@
         $('#gf-a', inn).onclick = () => { S.profile.skin = k; save('profile'); close(); toast(`${SKINS[k].n} 테마로 바꿨어요`); };
         $('#gf-b', inn).onclick = close;
       };
-      setTimeout(spin, 300);
+      setTimeout(reveal, RM() ? 600 : 2200);
     };
   }
   const petBase = () => (skin() === 'ghost' ? 'assets/ghost' : 'assets/pets/' + skin());
@@ -1451,17 +1454,21 @@
   }
   // 펫: 화면 첫 카드 윗변에 창틀처럼 두 팔을 걸치고 있어요. 누르면 폴짝, 밤엔 팔에 얼굴 묻고 졸아요
   function petDock() {
-    const t = skin(), host = !UI.run && t !== 'ghost' && $('#main h1.h1');
+    const t = skin(), host = !UI.run && t !== 'ghost' && $('#main .card');
     $$('.pet-perch').forEach((x) => { if (!host || x.parentNode !== host || x.dataset.skin !== t) x.remove(); });
     if (!host || $('.pet-perch', host)) return;
-    const base = 'idle'; // 제목 옆에 서 있음 · 자는 동작은 안 씀 (사용자)
+    const base = 'perch'; // 첫 카드 왼쪽 위에 걸침 · 자는 동작은 안 씀 (사용자)
     const el = document.createElement('button'); el.type = 'button'; el.className = 'pet-perch'; el.dataset.skin = t; el.setAttribute('aria-label', SKINS[t].n);
-    el.innerHTML = `<span class="pet-say" hidden></span><img alt="" src="assets/pets/${t}/idle.png">`;
-    const im = $('img', el); im.onerror = () => el.remove();
+    el.innerHTML = `<span class="pet-say" hidden></span><img alt="" src="assets/pets/${t}/perch.png">`;
+    const im = $('img', el); im.onerror = () => { el.remove(); host.classList.remove('has-perch'); }; im.onload = () => host.classList.add('has-perch');
     host.appendChild(el);
+    // 카드 바로 위 오른쪽에 버튼이 있으면(예: 매일 과제 요일) 그 왼쪽으로 비켜 앉음
+    requestAnimationFrame(() => { const hr = host.getBoundingClientRect(), pw = el.offsetWidth; let lx = Infinity;
+      $$('#main button, #main a').forEach((b) => { if (host.contains(b)) return; const r = b.getBoundingClientRect(); if (r.width && r.bottom > hr.top - pw * 0.8 && r.top < hr.top && r.right > hr.right - pw - 40) lx = Math.min(lx, r.left); });
+      if (lx < Infinity) el.style.right = `${Math.max(16, hr.right - lx + 8)}px`; });
     const play = (n) => fetch(`assets/pets/${t}/${n}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).then((b) => { const u = URL.createObjectURL(b); im.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); }).catch(() => {});
     if (!RM()) play(base);
-    el.onclick = (e) => { e.stopPropagation(); const say = $('.pet-say', el); play('yay'); say.textContent = cheer(); say.hidden = false; clearTimeout(el.t); el.t = setTimeout(() => { say.hidden = true; play(base); }, 2600); if (navigator.vibrate) navigator.vibrate(20); };
+    el.onclick = (e) => { e.stopPropagation(); const say = $('.pet-say', el); play('perch_yay'); say.textContent = cheer(); say.hidden = false; clearTimeout(el.t); el.t = setTimeout(() => { say.hidden = true; play(base); }, 2600); if (navigator.vibrate) navigator.vibrate(20); };
   }
   function skinSheet() {
     sheet(`<h2>테마</h2><p class="sub">앱 색과 따라다니는 인형이 바뀌어요</p><div class="skin-grid">${['ghost', ...owned()].map((k) => `<button type="button" class="skin-it ${skin() === k ? 'on' : ''}" data-skin="${k}" style="--sk:${SKINS[k].c}"><span class="skin-pic"><img src="${skinPic(k)}" alt=""></span><b>${k === 'ghost' ? '기본 테마' : esc(SKINS[k].n) + ' 테마'}</b><i class="skin-sw"></i></button>`).join('')}</div>`, (el, close) => {
@@ -2425,7 +2432,7 @@
         <button class="li btnlike me-row" type="button" data-me="uni"><div class="body"><div class="t" style="font-weight:500;color:var(--t2)">목표 대학</div></div>${u ? emb(u, 'sm') : ''}<span class="me-v ${u ? '' : 'muted'}">${u ? esc(u.short || u.name) : '골라 주세요'}</span><span class="chev"></span></button>
         ${row('major', '목표 학과', p.major)}${row('goalMock', '모의고사 목표', p.goalMock ? p.goalMock + '등급' : '')}${row('goalNaesin', '내신 목표', p.goalNaesin ? p.goalNaesin + '등급' : '')}</div></section>
       ${owned().length ? `<section class="card tight"><div class="list"><button class="li btnlike me-row" type="button" id="me-skin"><div class="body"><div class="t" style="font-weight:500;color:var(--t2)">테마</div></div><span class="me-v">${skin() === 'ghost' ? '기본' : esc(SKINS[skin()].n)}</span><span class="chev"></span></button></div></section>` : ''}
-      ${TEACHER ? '' : '<button class="btn big block ghost-red" id="me-out" type="button" style="margin-top:8px">로그아웃</button>'}
+      ${PEEK ? '' : '<button class="btn big block ghost-red" id="me-out" type="button" style="margin-top:8px">로그아웃</button>'}
       <p class="tiny" style="text-align:center;margin:16px 0 0">기록은 선생님 서버에 저장돼요. 로그아웃해도 코드를 다시 넣으면 그대로예요</p></div>`;
   }
   // 목표 등급 설정: 목표 대학 합격선(종합·교과)으로 정하거나 직접 0.1씩 맞춤
@@ -2487,6 +2494,7 @@
     $$('[data-me]').forEach((b) => (b.onclick = () => (b.dataset.me === 'uni' ? uniSheet() : editField(b.dataset.me))));
     const msk = $('#me-skin'); if (msk) msk.onclick = skinSheet;
     const lo = $('#me-out'); if (lo) lo.onclick = logoutSheet;
+    const pk = $('#me-peek'); if (pk) pk.onclick = () => { try { sessionStorage.setItem('mu:peek', '1'); } catch (e) {} location.reload(); };
   }
   function uniSheet() {
     let pick = S.profile.uni;
@@ -3170,6 +3178,7 @@
   $('#brand').onclick = () => go('home');
   let rsT = 0, lastW = window.innerWidth; window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (Math.abs(window.innerWidth - lastW) > 80 && !$('.sheet')) { lastW = window.innerWidth; render(); } }, 250); });
   $('#me').onclick = () => go('me');
+  if (PEEK) { const bar = document.createElement('div'); bar.className = 'peek-bar'; bar.innerHTML = '<span>정윤이 화면 미리보기 · 눌러도 저장되지 않아요</span><button type="button">선생님 화면으로</button>'; document.body.appendChild(bar); $('button', bar).onclick = () => { try { sessionStorage.removeItem('mu:peek'); } catch (e) {} location.reload(); }; }
   $('#pomo-top').onclick = openPomo;
   $('#coin-top').onclick = openWallet;
   $('#bell-top').onclick = toggleBell;
