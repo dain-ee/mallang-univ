@@ -1301,7 +1301,7 @@
     const wl = wordsFor(ed.words), wdone = Object.keys(ed.wans || {}).length;
     // 꾸준히 (최근 28일)
     const days = []; for (let i = 27; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`); }
-    const lvl = (d) => { const s = S.sci.days[d], e = S.eng.days[d]; let n = 0; if ((S.logs || []).some((x) => x.date === d)) n++; if (s && dayStat(s).done >= dayStat(s).n && dayStat(s).n) n++; if (e && e.udone) n++; if (e && Object.keys(e.wans || {}).length >= 10) n++; return n; };
+    const lvl = (d) => Math.min(3, dayItems(d).length);
     const streak = (() => { let n = 0; for (let i = days.length - 1; i >= 0; i--) { const wk = new Date(days[i] + 'T00:00:00'); if (lvl(days[i])) n++; else if (!anyTask(wk)) continue; else if (i !== days.length - 1) break; } return n; })();
     const hwList = S.hw || [];
     return `<h1 class="h1">오늘의 숙제</h1><div class="row between wrap" style="gap:8px;margin-bottom:16px"><p class="sub" style="margin:0">꼭 할 일부터 끝내요. 학원·학교 숙제는 마감까지 나눠서 매일 할 만큼만 나와요</p><button class="btn sm" id="plan-open" type="button"><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg> 매일 과제 요일</button></div>
@@ -1346,7 +1346,7 @@
     });
   }
   // 지난 기록: 꾸준히 칸의 날짜를 누르면 그날 한 것
-  function daySheet(d) {
+  function dayItems(d) {
     const out = [], s = (S.sci.days || {})[d], e = (S.eng.days || {})[d];
     if (s) { const st = dayStat(s), c = SCI.concepts.find((x) => x.id === s.c); if (st.done) out.push({ i: 'sci', t: c ? `과학 · ${c.title}` : '오늘의 과학', d: `${st.n}문제 중 ${st.done}개 풀고 ${st.ok}개 맞힘` }); }
     if (e) {
@@ -1357,6 +1357,10 @@
     for (const h of S.hw || []) if (hwDone(h) && (h.doneAt ? new Date(h.doneAt).toLocaleDateString('sv') === d : h.due === d)) out.push({ i: 'pin', t: h.title, d: '선생님 숙제 · 끝냄' });
     const pd = (pomo().days || {})[d]; if (pd && pd.n) out.push({ i: 'tomato', t: `토마토 ${pd.n}개`, d: `집중 ${pd.min || pd.n * 25}분` });
     for (const l of (S.logs || []).filter((x) => x.date === d)) out.push({ i: 'write', t: '학교에서 한 것', d: l.text || l.t || '' });
+    return out;
+  }
+  function daySheet(d) {
+    const out = dayItems(d);
     const won = W().log.filter((x) => x.date === d).reduce((a, x) => a + x.amt, 0);
     const dt = new Date(d + 'T00:00:00'), wk = '일월화수목금토'[dt.getDay()];
     sheet(`<h2>${md(d)} (${wk})</h2><p class="sub">${d === today() ? '오늘 지금까지 한 것' : '이날 한 것'}${won ? ` · 용돈 +${won.toLocaleString()}원` : ''}</p>

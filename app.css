@@ -322,7 +322,7 @@ select.inp { appearance: none; background-image: linear-gradient(45deg, transpar
 /* 달력 (꾸준히) */
 .streak { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .streak i { aspect-ratio: 1; border-radius: 8px; background: var(--fill); }
-.streak i.l1 { background: var(--blue-l); } .streak i.l2 { background: #64a8ff; } .streak i.l3 { background: var(--blue); }
+.streak i.l1 { background: var(--blue-l); } .streak i.l2 { background: color-mix(in srgb, var(--blue) 55%, var(--blue-l)); } .streak i.l3 { background: var(--blue); }
 .streak i.today { box-shadow: inset 0 0 0 2px var(--t1); }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
