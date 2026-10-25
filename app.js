@@ -1527,7 +1527,7 @@
   const noMinOf = (t) => !t.min || /^(없음|해당 없음)/.test(t.min);
   function trackRow(t) {
     const jy = jyOf(t.rule);
-    return `<div class="li btnlike" data-du="${esc(t._u || '')}" style="align-items:flex-start"><span class="tag ${t.type === '교과' ? 'blue' : 'green'}" style="flex:none">${esc(t.type)}</span><div class="body"><div class="t" style="font-size:15px">${esc(t.name)}${t.seats ? ` <span class="tiny">${t.seats}명</span>` : ''}</div><div class="d" style="line-height:1.6">${noMinOf(t) ? '수능최저 없음' : '수능최저 있음'}${jy ? ` · 이 전형에서 내 등급 <b>${g2(jy)}</b>` : ''}</div></div><b class="num" style="flex:none;font-size:15px">${cutLbl(t)}</b><span class="chev"></span></div>`;
+    return `<div class="li btnlike" data-du="${esc(t._u || '')}" style="align-items:flex-start"><span class="tag ${t.type === '교과' ? 'blue' : 'green'}" style="flex:none">${esc(t.type)}</span><div class="body"><div class="t" style="font-size:15px">${esc(t.name)}${t.seats ? ` <span class="tiny">${t.seats}명</span>` : ''}</div><div class="d" style="line-height:1.6">${noMinOf(t) ? '수능최저 없음' : '수능최저 있음'}${jy ? ` · 내 등급 9등급으로 <b>약 ${fmt1(g5to9(jy))}</b> <span class="tiny">(5등급제 ${g2(jy)})</span>` : ''}</div></div><b class="num" style="flex:none;font-size:15px">${cutLbl(t)}</b><span class="chev"></span></div>`;
   }
   function admitCard(cls) {
     if (!ADMIT) return '';
@@ -1541,8 +1541,8 @@
     const A = ADMIT.unis.filter((x) => x.careerA);
     return `<details class="ad-guide"><summary>${ic('bulb')} 숫자 읽는 법 · 내 등급이 대학마다 다른 까닭</summary>
       <h3>70%컷은 1차 합격선이 아니에요</h3><p>그 전형에 <b>최종 등록한 학생</b>을 내신 좋은 순서로 세웠을 때 70% 자리 학생의 등급이에요. 10명이면 7번째예요. 50%컷은 가운데 학생이에요. 이 숫자보다 좋으면 붙은 학생들 사이에서도 앞쪽이라는 뜻이에요. 몇몇 대학은 컷을 안 내고 평균만 내서 「평균」으로 적었어요.</p>
-      <h3>내 등급은 대학마다 달라요</h3><p>대학은 학교에서 낸 평균을 쓰지 않고, 과목별 등급에 학점을 곱해서 자기 방식으로 다시 계산해요. 1학기만 보면 그냥 평균은 1.67, 학점을 곱하면 1.65, 국·수·영·과만 보는 대학에서는 1.50이에요.${j1 ? ` 2학기 중간 등급까지 넣은 지금 성적으로는 6과목 ${g2(j1)}${j2 ? `, 국·수·영·과 ${g2(j2)}` : ''}이에요.` : ''} 그래서 전형마다 「이 전형에서 내 등급」을 따로 적었어요. 성적을 새로 넣으면 저절로 다시 계산돼요.</p>
-      <h3>1.67을 1.6으로 쳐 주나요?</h3><p>아니에요. 이번에 찾은 대학 중 소수 첫째 자리에서 자르는 곳은 없어요. 서강대는 소수 둘째 자리 반올림, 숭실대는 넷째 자리 버림, 세종대는 여덟째 자리까지 쓰는 식이라 1.65는 1.65 그대로 들어가요.</p>
+      <h3>내 등급은 대학마다 달라요</h3><p>대학은 학교에서 낸 평균을 쓰지 않고, 과목별 등급에 학점을 곱해서 자기 방식으로 다시 계산해요. 1학기만 보면 그냥 평균은 1.67, 학점을 곱하면 1.65, 국·수·영·과만 보는 대학에서는 1.50이에요.${j1 ? ` 2학기 중간 등급까지 넣은 지금 성적으로는 6과목 ${g2(j1)}${j2 ? `, 국·수·영·과 ${g2(j2)}` : ''}이에요.` : ''} 그래서 전형마다 내 등급을 따로 적었어요. 성적을 새로 넣으면 저절로 다시 계산돼요.</p>
+      <h3>5등급제와 9등급제는 바로 견주면 안 돼요</h3><p>입결 숫자는 모두 9등급제예요. 정윤이 1.5(5등급제)는 9등급제로 치면 2점대 중반이에요. 그래서 목록에는 <b>9등급으로 바꾼 내 등급</b>을 크게, 원래 5등급제 값은 괄호에 적었어요. 바꾼 값은 교육부 등급 비율로 맞춘 대략값이에요.</p><h3>1.67을 1.6으로 쳐 주나요?</h3><p>아니에요. 이번에 찾은 대학 중 소수 첫째 자리에서 자르는 곳은 없어요. 서강대는 소수 둘째 자리 반올림, 숭실대는 넷째 자리 버림, 세종대는 여덟째 자리까지 쓰는 식이라 1.65는 1.65 그대로 들어가요.</p>
       <h3>A를 1등급으로 쳐 주는 대학</h3><p>1학년 과목(공통과목)은 5등급 석차가 나와서 해당이 없어요. 2·3학년 진로선택 과목에서 쓰여요.</p>${A.length ? `<ul>${A.map((x) => `<li><b>${esc(x.short)}</b> ${esc(x.careerA)}</li>`).join('')}</ul>` : ''}
       <h3>정윤이는 2029학년도 입시예요</h3><p>그 해 규칙은 2027년 봄에 나와요. 지금은 5등급제 첫해인 2028학년도 시행계획으로 맞춰 두었어요. 내 등급은 9등급제로 치면 대략 ${ns ? fmt1(g5to9(ns)) : '-'}등급이에요(교육부 비율로 맞춘 대략값).</p></details>`;
   }
@@ -1554,7 +1554,7 @@
         segRe($('#ad-t', el));
         $$('[data-at]', el).forEach((b) => (b.onclick = () => { f.v = b.dataset.at; draw(); }));
         const rows = ADMIT.unis.flatMap((x) => x.depts.flatMap((d) => d.tracks.filter((t) => t.type === f.v).map((t) => ({ x, d, t })))).sort((p, q) => (cutOf(p.t) ?? 99) - (cutOf(q.t) ?? 99));
-        $('#ad-b', el).innerHTML = rows.length ? `<div class="list">${rows.map(({ x, d, t }) => { const u = uniOf(x.id), jy = jyOf(t.rule); return `<div class="li btnlike" data-du="${esc(x.id)}" style="align-items:flex-start">${u ? emb(u, 'sm') : ''}<div class="body"><div class="t" style="font-size:15px">${esc(x.short)} <span class="tiny">${esc(shortDept(d.dept))}</span></div><div class="d" style="line-height:1.6">${esc(t.name)}${t.seats ? ` · ${t.seats}명` : ''} · ${noMinOf(t) ? '수능최저 없음' : '수능최저 있음'}${jy ? `<br>이 전형에서 내 등급 ${g2(jy)}` : ''}</div></div><b class="num" style="flex:none;font-size:15px">${cutLbl(t)}</b><span class="chev"></span></div>`; }).join('')}</div><p class="tiny" style="margin-top:12px">눌러서 대학별 자세히 보기 · 숫자는 합격자 내신 70%컷(없으면 평균, 9등급제)이에요. 낮을수록 어려워요 · ${esc(ADMIT.updated)} 조사</p>` : '<div class="empty"><b>자료가 없어요</b></div>';
+        $('#ad-b', el).innerHTML = rows.length ? `<div class="list">${rows.map(({ x, d, t }) => { const u = uniOf(x.id), jy = jyOf(t.rule); return `<div class="li btnlike" data-du="${esc(x.id)}" style="align-items:flex-start">${u ? emb(u, 'sm') : ''}<div class="body"><div class="t" style="font-size:15px">${esc(x.short)} <span class="tiny">${esc(shortDept(d.dept))}</span></div><div class="d" style="line-height:1.6">${esc(t.name)}${t.seats ? ` · ${t.seats}명` : ''} · ${noMinOf(t) ? '수능최저 없음' : '수능최저 있음'}${jy ? `<br>내 등급 9등급으로 <b>약 ${fmt1(g5to9(jy))}</b> <span class="tiny">(5등급제 ${g2(jy)})</span>` : ''}</div></div><b class="num" style="flex:none;font-size:15px">${cutLbl(t)}</b><span class="chev"></span></div>`; }).join('')}</div><p class="tiny" style="margin-top:12px">눌러서 대학별 자세히 보기 · 숫자는 합격자 내신 70%컷(없으면 평균, 9등급제)이에요. 낮을수록 어려워요 · ${esc(ADMIT.updated)} 조사</p>` : '<div class="empty"><b>자료가 없어요</b></div>';
         $$('[data-du]', el).forEach((b) => (b.onclick = () => uniDetail(b.dataset.du)));
       };
       draw();
@@ -1581,7 +1581,7 @@
       return `<div class="ad-tr"><div class="row between" style="gap:8px"><b style="font-size:16px">${esc(t.name)}</b><span class="tag ${t.type === '교과' ? 'blue' : 'green'}">${esc(t.type)}</span></div>
       <div class="ad-nums">${nums.length ? nums.map(([k, v]) => `<div><span>${k}</span><b class="num">${g2(v)}</b></div>`).join('') : '<div><span>컷</span><b>비공개</b></div>'}${t.seats ? `<div><span>모집</span><b class="num">${t.seats}명</b></div>` : ''}${t.rate ? `<div><span>경쟁률</span><b class="num">${t.rate}</b></div>` : ''}</div>
       ${t.cutNote ? `<p class="ad-memo-t">${esc(t.year || '')} ${esc(t.cutNote)}</p>` : ''}
-      <div class="ad-jy">${jy ? `<b>이 전형에서 내 등급 ${g2(jy)}</b><span>${esc(R.t)} · 9등급제로 대략 ${fmt1(g5to9(jy))}</span>` : `<b>이 전형에서 내 등급은 계산 못 해요</b><span>${t.type === '종합' ? '종합은 서류를 사람이 읽고 평가해서 정해진 계산식이 없어요' : '1학년 공통과목이 안 들어가거나, 성취도 점수표가 아직 안 나왔어요'}</span>`}</div>
+      <div class="ad-jy">${jy ? `<b>내 등급 9등급으로 바꾸면 약 ${fmt1(g5to9(jy))}</b><span>위 컷(9등급제)과 이 숫자를 견줘요 · 5등급제 원래 값 ${g2(jy)} · ${esc(R.t)}</span>` : `<b>이 전형에서 내 등급은 계산 못 해요</b><span>${t.type === '종합' ? '종합은 서류를 사람이 읽고 평가해서 정해진 계산식이 없어요' : '1학년 공통과목이 안 들어가거나, 성취도 점수표가 아직 안 나왔어요'}</span>`}</div>
       <p class="ad-min ${noMinOf(t) ? '' : 'on'}"><b>수능최저</b> ${noMinOf(t) ? '없음' : esc(t.min)}</p>${t.min2028 ? `<p class="ad-memo-t"><b>2028 바뀌는 점</b> ${esc(t.min2028)}</p>` : ''}
       ${c.subjects || c.career ? `<p class="ad-memo-t"><b>성적 계산</b> ${esc([c.subjects, c.career, c.fusion].filter(Boolean).join(' · '))}${c.basis ? ` (${esc(c.basis)})` : ''}</p>` : ''}
       ${t.memo ? `<p class="ad-memo-t">${esc(t.memo)}</p>` : ''}
