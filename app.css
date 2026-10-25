@@ -1294,3 +1294,5 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .my-addrow { display: flex; gap: 8px; margin-top: 12px; }
 .my-addrow .inp { flex: 1; min-width: 0; }
 .my-k { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 4px; border-radius: 9px; background: var(--blue); color: #fff; font-size: 11px; }
+.my-addrow { align-items: stretch; } .my-addrow .btn { flex: none; height: auto; min-height: 0; padding: 0 20px; font-size: 15px; }
+.my-addrow #my-bkn { margin-top: 0; }
