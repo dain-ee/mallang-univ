@@ -487,9 +487,9 @@
     $$('[data-upok]').forEach((b) => (b.onclick = () => { if (TEACHER) UI.upHide = 1; else { S.party = S.party || {}; S.party.upSeen = UPS()[0].date; save('party'); } render(); }));
     $$('[data-upall]').forEach((b) => (b.onclick = () => { UI.tab = 'news'; UI.newsF = 'all'; render(); setTimeout(() => { const el = $('#up-all'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 60); }));
     $$('[data-ready]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); readySheet(); }));
-    $$('[data-gift]').forEach((b) => (b.onclick = () => { S.gift = { skin: b.dataset.gift, at: Date.now() }; save('gift'); toast('선물을 보냈어요. 정윤이 앱에 곧 떠요'); render(); }));
-    $$('[data-giftx]').forEach((b) => (b.onclick = () => { S.gift = {}; save('gift'); toast('선물을 거둬들였어요'); render(); }));
-    $$('[data-giftopen]').forEach((b) => (b.onclick = () => { giftCheck.seen = (S.gift || {}).at; giftPop(); }));
+    $$('[data-tgift]').forEach((b) => (b.onclick = () => { const k = b.dataset.tgift; S.gifts = [...gAll().filter((x) => x.skin !== k), { skin: k, at: Date.now() }]; S.gift = {}; save('gifts', 'gift'); toast('선물을 보냈어요. 정윤이 앱에 곧 떠요'); render(); }));
+    $$('[data-giftx]').forEach((b) => (b.onclick = () => { const k = b.dataset.giftx; S.gifts = gAll().filter((x) => x.skin !== k || x.open); S.gift = {}; save('gifts', 'gift'); toast('선물을 거둬들였어요'); render(); }));
+    $$('[data-giftopen]').forEach((b) => (b.onclick = () => { giftCheck.seen = (gPend()[0] || {}).at; giftPop(); }));
     const ns = $('#nt-send'); if (ns) ns.onclick = () => { const t = $('#nt-t').value.trim(); if (!t) return toast('한마디를 적어 주세요'); S.note = { text: t, at: Date.now() }; save('note'); toast('정윤이 홈 맨 위에 띄웠어요'); render(); };
     const nd = $('#nt-del'); if (nd) nd.onclick = () => { S.note = {}; save('note'); toast('내렸어요'); render(); };
     const nt = $('#nt-thx'); if (nt) nt.onclick = () => { S.note.thx = Date.now(); save('note'); const r = nt.getBoundingClientRect(); boom(r.left + r.width / 2, r.top + r.height / 2, 2); ding(3); setTimeout(render, 500); };
@@ -1407,23 +1407,26 @@
   const owned = () => (S.profile.skins || []).filter((k) => SKINS[k]);
   const skin = () => (SKIN_DEV && SKINS[SKIN_Q] ? SKIN_Q : SKINS[S.profile.skin] && (SKIN_DEV || owned().includes(S.profile.skin)) ? S.profile.skin : 'ghost');
   // 테마 선물: 선생님이 보내면 「띵동!」 → 물음표 상자가 두근두근 → 짜잔. 열심히 하면 하나씩 받아요
-  const GIFTS = ['melody'];  // 지금 보낼 수 있는 테마 (scripts/build.py PETS_LIVE 와 같게)
+  const GIFTS = ['melody', 'kitty', 'chiikawa'];  // 지금 보낼 수 있는 테마 (scripts/build.py PETS_LIVE 와 같게)
+  // 테마 선물은 여러 개를 줄 수 있어요: S.gifts = [{ skin, at, open }] (예전 S.gift 하나도 같이 읽음)
+  const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
+  const gPend = () => gAll().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
   const skinPic = (k) => (k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
-    const g = S.gift || {}, own = owned();
-    return `<section class="card c12"><div class="card-h"><h3>${ic('gift')} 정윤이에게 테마 선물</h3></div><div class="list">${GIFTS.map((k) => { const has = own.includes(k), wait = g.skin === k && !g.open; return `<div class="li"><img src="${skinPic(k)}" alt="" style="width:48px;height:48px;object-fit:contain"><div class="body"><div class="t">${esc(SKINS[k].n)} 테마</div><div class="d">${has ? '정윤이가 받았어요' : wait ? '보냈어요 · 아직 안 열어 봤어요' : '보내면 정윤이 앱에 「띵동! 선물이 도착했어요」가 떠요'}</div></div>${has ? `<span class="tag blue">받음</span>` : wait ? `<button class="btn sm" type="button" data-giftx>취소</button>` : `<button class="btn primary sm" type="button" data-gift="${k}">선물 보내기</button>`}</div>`; }).join('')}</div></section>`;
+    const own = owned(), pend = gPend();
+    return `<section class="card c12"><div class="card-h"><h3>${ic('gift')} 정윤이에게 테마 선물</h3></div><div class="list">${GIFTS.map((k) => { const has = own.includes(k), wait = pend.some((x) => x.skin === k); return `<div class="li"><img src="${skinPic(k)}" alt="" style="width:48px;height:48px;object-fit:contain"><div class="body"><div class="t">${esc(SKINS[k].n)} 테마</div><div class="d">${has ? '정윤이가 받았어요' : wait ? '보냈어요 · 아직 안 열어 봤어요' : '보내면 정윤이 앱에 「띵동! 선물이 도착했어요」가 떠요'}</div></div>${has ? `<span class="tag blue">받음</span>` : wait ? `<button class="btn sm" type="button" data-giftx="${k}">취소</button>` : `<button class="btn primary sm" type="button" data-tgift="${k}">선물 보내기</button>`}</div>`; }).join('')}</div></section>`;
   }
   function giftHome() {
-    const g = S.gift || {}; if (TEACHER || !g.skin || g.open || !SKINS[g.skin]) return '';
+    const g = gPend()[0]; if (TEACHER || !g) return '';
     return `<section class="card c12 gift-card"><span class="gift-ic">${ic('gift')}</span><div class="body"><span class="eyebrow">띵동!</span><b>선물이 도착했어요</b><span class="tiny">선생님이 보낸 선물이에요</span></div><button class="btn primary" type="button" data-giftopen>열어 보기</button></section>`;
   }
   function giftCheck() {
-    const g = S.gift || {}; if (TEACHER || PEEK || UI.run || !g.skin || g.open || !SKINS[g.skin] || giftCheck.on || giftCheck.seen === g.at) return;
+    const g = gPend()[0]; if (TEACHER || PEEK || UI.run || !g || giftCheck.on || giftCheck.seen === g.at) return;
     giftCheck.seen = g.at; setTimeout(giftPop, 700);
   }
   function giftPop() {
-    const g = S.gift || {}, k = g.skin; if (!k || g.open || giftCheck.on) return; giftCheck.on = true;
+    const g = gPend()[0] || {}, k = g.skin; if (!k || giftCheck.on) return; giftCheck.on = true;
     const el = document.createElement('div'); el.className = 'gf';
     const close = () => { el.classList.remove('on'); setTimeout(() => { el.remove(); giftCheck.on = false; render(); }, 260); };
     const page = (title, sub, mid, btn, link) => `<div class="gf-top"><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ''}</div><div class="gf-mid">${mid}</div><div class="gf-bot">${btn ? `<button class="btn primary big block" type="button" id="gf-a">${btn}</button>` : ''}${link ? `<button class="gf-link" type="button" id="gf-b">${link}</button>` : ''}</div>`;
@@ -1436,7 +1439,7 @@
       inn.innerHTML = page('두근두근<br>뭐가 들어 있을까요?', '', `<div class="gf-box gf-open">${ic('gift')}</div>`, '', '');
       if (navigator.vibrate) navigator.vibrate(20);
       const reveal = () => {
-        S.profile.skins = [...new Set([...(S.profile.skins || []), k])]; S.gift = { ...g, open: Date.now() }; save('profile', 'gift');
+        S.profile.skins = [...new Set([...(S.profile.skins || []), k])]; S.gifts = gAll().map((x) => (x.skin === k ? { ...x, open: Date.now() } : x)); S.gift = {}; save('profile', 'gifts', 'gift');
         inn.innerHTML = page(`${esc(SKINS[k].n)} 테마를<br>받았어요`, '내 정보에서 언제든 바꿀 수 있어요', `${petals()}<img class="gf-pet" src="assets/pets/${k}/yay.webp" alt="" onerror="this.src='${skinPic(k)}'">`, '바로 써 볼게요', '나중에');
         inn.style.setProperty('--gk', SKINS[k].c); inn.classList.add('won');
         const r = $('.gf-pet', inn).getBoundingClientRect(); boom(r.left + r.width / 2, r.top + r.height / 2, 4); ding(8); if (navigator.vibrate) navigator.vibrate([60, 40, 120]);
