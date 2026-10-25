@@ -1416,3 +1416,9 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 }
 /* 아이패드처럼 넓은 화면: 아래 탭이 다 들어가게 (밀지 않아도 생기부·진로·소식까지 보여요) */
 @media (min-width: 600px) { .tabbar button { flex: 1 1 0; min-width: 0; } }
+
+.br-m { display: none; }
+@media (max-width:520px){ .br-m { display: inline; } }
+.gr-top { flex-wrap: nowrap; align-items: center; }
+.gr-top #qg-open { flex: none; white-space: nowrap; }
+@media (max-width:520px){ .gr-top #qg-open { padding: 0 14px; height: 40px; font-size: 14px; } }

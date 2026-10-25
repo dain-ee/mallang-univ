@@ -354,7 +354,7 @@
     const nsRows = SEMS.map((sem) => ({ label: sem.replace('-', '학년 ') + '학기', v: { n: nsAvg(sem) } })).filter((r) => r.v.n != null);
     const nscard = nsCard('c6');
     const sgbc = sgbSummary('c6');
-    const main = `<h1 class="h1">${bdayLeft() === 0 ? `${ic('party')} <mark class="hl-g">${nameCall()}</mark>, 생일 축하해` : `<mark class="hl-g">${nameCall()}</mark>, ${greet()}`}</h1>
+    const main = `<h1 class="h1">${bdayLeft() === 0 ? `${ic('party')} <mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> 생일 축하해` : `<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${greet()}`}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
       <div class="grid">${missCard()}${hero}${pos}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}</div>`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
@@ -1611,7 +1611,7 @@
   // ───────── 성적 탭 (모의고사 · 내신) ─────────
   function scoreView() {
     const seg = UI.scoreSeg;
-    const top = `<h1 class="h1">성적</h1><p class="sub">모의고사는 틀린 번호만 누르면 점수·등급·약한 영역이 나와요</p><div class="row wrap between" style="gap:12px;margin-bottom:16px"><div class="seg" style="max-width:360px;flex:1 1 240px"><button type="button" class="${seg === 'mock' ? 'on' : ''}" data-seg="mock">모의고사</button><button type="button" class="${seg === 'naesin' ? 'on' : ''}" data-seg="naesin">내신</button></div>${seg === 'mock' ? '<button class="btn primary" id="qg-open" type="button">내 등급 바로 적기</button>' : ''}</div>`;
+    const top = `<h1 class="h1">성적</h1><p class="sub">모의고사는 틀린 번호만 누르면 점수·등급·약한 영역이 나와요</p><div class="row between gr-top" style="gap:12px;margin-bottom:16px"><div class="seg" style="max-width:360px;flex:1 1 0;min-width:0"><button type="button" class="${seg === 'mock' ? 'on' : ''}" data-seg="mock">모의고사</button><button type="button" class="${seg === 'naesin' ? 'on' : ''}" data-seg="naesin">내신</button></div>${seg === 'mock' ? '<button class="btn primary" id="qg-open" type="button">내 등급 바로 적기</button>' : ''}</div>`;
     return top + (seg === 'naesin' && SEMS.some((x) => nsAvg(x) != null) ? `<div class="grid" style="margin-bottom:16px">${nsCard('c12')}</div>` : '') + (seg === 'mock' ? (UI.mockId ? mockDetail() : reportSection() + mockList()) : naesinView());
   }
   function mockList() {
