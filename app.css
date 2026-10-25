@@ -999,10 +999,10 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .td-all { flex-direction: column; gap: 0; }
 .pm-c img.pm-gh { width: 104px; height: 104px; margin: -32px 0 -18px; }
 .pm-card.running .pm-c img.pm-gh { animation: none; }
-.hero-goal { width: 100%; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 16px; padding: 14px 16px; border-radius: 16px; background: var(--fill); font-size: 14px; }
+.hero-goal { width: 100%; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 16px; padding: 14px 16px; border-radius: 16px; background: var(--fill); font-size: 14px; }
 .hero-goal .hg-l { color: var(--t3); display: inline-flex; gap: 4px; align-items: center; }
 .hero-goal b { font-size: 15px; }
-.hero-goal .hg-why { margin-left: auto; font-size: 12px; color: var(--blue); background: var(--blue-soft); padding: 4px 8px; border-radius: 99px; }
+.hero-goal .hg-why { white-space: nowrap; margin-left: auto; font-size: 12px; color: var(--blue); background: var(--blue-soft); padding: 4px 8px; border-radius: 99px; }
 .nw-more { margin-top: 16px; padding: 16px; border-radius: 16px; border: 1px solid var(--line); }
 .nw-more ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 8px; color: var(--t2); line-height: 1.7; }
 .keep { margin-top: 16px; padding: 16px; border-radius: 16px; background: #fffaf0; border: 1px solid #ffe8b3; }

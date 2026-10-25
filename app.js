@@ -302,7 +302,7 @@
     const p = S.profile, a = autoGoals(), set = p.goalSet || {}; if (!a) return;
     if (!set.goalMock && a.mock) p.goalMock = a.mock; if (!set.goalNaesin && a.naesin) p.goalNaesin = a.naesin;
   }
-  const goalWhy = () => { const a = autoGoals(), set = S.profile.goalSet || {}; if (!a) return '직접 정한 목표'; return set.goalMock || set.goalNaesin ? '직접 정한 목표' : `${a.uni} ${a.tr} 합격선 기준`; };
+  const goalWhy = () => { const a = autoGoals(), set = S.profile.goalSet || {}; if (!a) return '직접 정한 목표'; return set.goalMock || set.goalNaesin ? '직접 정한 목표' : `${a.uni} ${a.tr} 기준`; };
   function gradeMapCard(cls) {
     const my = nsTotal(), to9 = my ? g5to9(my) : null;
     const R5 = [['1', '상위 10%', '1등급 ~ 2등급'], ['2', '10 ~ 34%', '2등급 끝 ~ 4등급'], ['3', '34 ~ 66%', '4등급 ~ 6등급'], ['4', '66 ~ 90%', '6등급 ~ 8등급'], ['5', '90 ~ 100%', '8등급 ~ 9등급']];
@@ -326,7 +326,7 @@
       <div class="hero-band" style="background:${u ? esc(u.color) : 'var(--blue)'}"></div>
       <div class="who">${emb(u, 'xl')}<div style="min-width:0"><div class="goal-t">${esc(p.name)}의 목표${p.mbti ? ` · ${esc(p.mbti)}` : ''}</div><div class="goal-n">${u ? esc(u.name) : '목표 대학을 골라 주세요'}</div><div class="goal-m">${u ? esc(p.major || '') : '눌러서 고르기'}</div></div><span class="tag" style="margin-left:auto;flex:none">${u ? '바꾸기' : '고르기'}</span></div>
       <div class="dday"><div><span>수능까지</span><b class="num">D-${dday(CSAT.date)}</b></div><div><span>${next ? esc(next.title) : '다음 일정'}</span><b class="num">${next ? 'D-' + dday(next.date) : '-'}</b></div><div><span>${esc(p.school || '')}</span><b>${p.grade}학년${p.cls ? ' ' + esc(p.cls) + '반' : ''}</b></div></div>
-      <button type="button" class="hero-goal" data-goalset><span class="hg-l">${ic('target')} 목표 등급</span><b>모의고사 ${S.profile.goalMock}등급</b><b>내신 ${S.profile.goalNaesin}등급</b><span class="hg-why">${goalWhy()} · 바꾸기</span></button>
+      <button type="button" class="hero-goal" data-goalset><span class="hg-l">${ic('target')} 목표 등급</span><b>모의고사 ${S.profile.goalMock}등급</b><b>내신 ${S.profile.goalNaesin}등급</b><span class="hg-why">${goalWhy()} ›</span></button>
     </section>`;
     const pos = `<section class="card c5 col-card mid"><div class="card-h"><h2>지금 내 위치</h2><button class="more" id="qg-open" type="button">등급 적기</button></div>
       <div class="rings"><button type="button" class="ring-go" data-go="score" data-seg="mock" aria-label="모의고사 성적 보기">${ringSVG(mAvg ? (9 - mAvg) / 8 : 0, 'var(--blue)', '모의고사', mAvg ? fmt1(mAvg) : '-', '등급', lm ? `${esc(lm.title)} 평균<br>${goalLine(mAvg, p.goalMock)}` : '채점 전')}</button><button type="button" class="ring-go" data-go="score" data-seg="naesin" aria-label="내신 성적 보기">${ringSVG(nAvg ? (5 - nAvg) / 4 : 0, 'var(--green)', '내신', nAvg ? fmt1(nAvg) : '-', '등급', nAvg ? `5등급제 평균<br>${goalLine(nAvg, p.goalNaesin)}` : '아직 안 넣었어요')}</button></div></section>`;
@@ -1446,8 +1446,7 @@
     const draw = (el) => {
       const a = mode !== 'self' && A[mode];
       $('#gs-body', el).innerHTML = `<div class="chips" style="flex-wrap:wrap;margin-bottom:16px">${['종합', '교과'].filter((t) => A[t] && A[t].tr === t).map((t) => `<button type="button" class="chip ${mode === t ? 'on' : ''}" data-gt="${t}">${esc(A[t].uni)} ${t} 합격선</button>`).join('')}<button type="button" class="chip ${mode === 'self' ? 'on' : ''}" data-gt="self">직접 정하기</button></div>
-        ${[['gm', '모의고사', gm, 1, 9, a ? `${esc(a.minTxt)} → 과목마다 ${f1(a.mock)}등급 안쪽` : '수능최저를 맞추려면 과목 평균이 이 정도여야 해요'], ['gn', '내신', gn, 1, 5, a ? `합격선 ${a.c9}등급(9등급제) = 상위 약 ${a.pct}% → 5등급제 약 ${f1(a.naesin)}등급` : '5등급제: 1등급 상위 10%, 2등급 34%, 3등급 66%']].map(([id, nm, v, lo, hi, why]) => `<div class="gs-row"><div class="gs-l"><b>${nm}</b><span class="tiny">${why}</span></div><div class="gs-step"><button type="button" class="btn sm" data-st="${id}" data-d="-0.1" ${v <= lo ? 'disabled' : ''} aria-label="${nm} 목표 올리기">−</button><b class="num">${f1(v)}<small>등급</small></b><button type="button" class="btn sm" data-st="${id}" data-d="0.1" ${v >= hi ? 'disabled' : ''} aria-label="${nm} 목표 내리기">+</button></div></div>`).join('')}
-        <p class="tiny" style="margin:12px 0 0">숫자가 작을수록 높은 목표예요. − 를 누르면 목표가 올라가요</p>`;
+        ${[['gm', '모의고사', gm, 1, 9, a ? `${esc(a.minTxt)} → 과목마다 ${f1(a.mock)}등급 안쪽` : '수능최저를 맞추려면 과목 평균이 이 정도여야 해요'], ['gn', '내신', gn, 1, 5, a ? `합격선 ${a.c9}등급(9등급제) = 상위 약 ${a.pct}% → 5등급제 약 ${f1(a.naesin)}등급` : '5등급제: 1등급 상위 10%, 2등급 34%, 3등급 66%']].map(([id, nm, v, lo, hi, why]) => `<div class="gs-row"><div class="gs-l"><b>${nm}</b><span class="tiny">${why}</span></div><div class="gs-step"><button type="button" class="btn sm" data-st="${id}" data-d="-0.1" ${v <= lo ? 'disabled' : ''} aria-label="${nm} 목표 올리기">−</button><b class="num">${f1(v)}<small>등급</small></b><button type="button" class="btn sm" data-st="${id}" data-d="0.1" ${v >= hi ? 'disabled' : ''} aria-label="${nm} 목표 내리기">+</button></div></div>`).join('')}`;
       $$('[data-gt]', el).forEach((b) => (b.onclick = () => { mode = b.dataset.gt; if (mode !== 'self') { const x = A[mode]; if (x.mock) gm = x.mock; if (x.naesin) gn = x.naesin; } draw(el); }));
       $$('[data-st]', el).forEach((b) => (b.onclick = () => { const d = +b.dataset.d; if (b.dataset.st === 'gm') gm = Math.min(9, Math.max(1, Math.round((gm + d) * 10) / 10)); else gn = Math.min(5, Math.max(1, Math.round((gn + d) * 10) / 10)); mode = 'self'; draw(el); }));
     };
