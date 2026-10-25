@@ -825,9 +825,9 @@
       <div class="ik-bar" style="height:8px"><i style="width:${Math.round((myDone(it) / it.total) * 100)}%"></i></div><p class="tiny" style="margin:6px 0 16px">${myDone(it)} / ${it.total}${it.unit === '쪽' ? '쪽' : '문제'} 했어요</p>
       ${it.unit === '건' ? '' : `<div class="my-today"><span class="tiny">오늘 할 것${myAvg() ? ` · 보통 하루 ${myAvg()}문제 해요` : ''}</span><b>${x.skip ? '내일로 미뤘어요' : x.n ? esc(myRange(it, x)) : '오늘 몫은 없어요'}</b>${it.orig ? `<span class="tiny">원래 ${md(it.orig)} 마감 → ${md(it.due)}로 미뤄짐</span>` : ''}${!dt && (x.n || x.skip) ? `<button type="button" class="my-skip" id="my-skip">${x.skip ? '미룬 것 취소' : '내일로 미루기'}</button>` : ''}</div>
       <div class="my-amt"><span>오늘 한 만큼</span><button type="button" class="btn sm" data-ma="-1">−</button><input class="inp sm" id="my-n" type="number" inputmode="numeric" min="0" value="${dt ? dt.n : x.n}"><button type="button" class="btn sm" data-ma="1">+</button></div>
-      <div class="my-st" id="my-st" hidden><span class="tiny">오늘 푼 첫 번호를 적으면 번호 단추가 나와요</span><input class="inp" type="number" inputmode="numeric" id="my-s0" placeholder="예: 1225" value="${dt && dt.s ? dt.s : ''}"></div>
+      <div class="my-st" id="my-st" hidden><span class="tiny">틀린 번호를 고르려면 오늘 푼 첫 번호를 적어요</span><input class="inp" type="number" inputmode="numeric" id="my-s0" placeholder="예: 1225" value="${dt && dt.s ? dt.s : ''}"></div>
       <div class="my-wcw" id="my-wcw"><div class="tiny" style="margin-top:14px">틀린 번호를 눌러요 · 나중에 오답 탭에서 다시 풀어요</div><div class="my-wc" id="my-wc"></div></div>
-      <label class="field" style="margin-top:8px"><span class="tiny" id="my-wl">번호가 목록에 없으면 직접 적어요 (띄어 쓰기)</span><input class="inp" id="my-w" inputmode="numeric" placeholder="예: 1225 1231 1240" value="${esc((dt && dt.w || []).join(' '))}"></label>`}
+      <input type="hidden" id="my-w" inputmode="numeric" placeholder="예: 1225 1231 1240" value="${esc((dt && dt.w || []).join(' '))}">`}
       <button class="btn primary big block" id="my-ok" type="button" style="margin-top:16px">${it.unit === '건' ? (myFin(it) ? '아직 안 끝났어요' : '끝냈어요') : dt ? '고쳐서 저장' : '오늘 것 끝냈어요'}</button>
       <div class="row" style="gap:8px;margin-top:8px">${it.unit === '건' ? `<button class="btn block" id="my-plan" type="button">${isPlan(it) ? '꼭 할 일로 바꾸기' : '일정으로 바꾸기'}</button>` : `<button class="btn block" id="my-fin" type="button">${it.fin ? '다시 하기' : '다 끝났어요'}</button>`}<button class="btn block" id="my-del" type="button">지우기</button></div>
       <details class="my-edit"><summary>범위·마감 고치기</summary><div class="my-ed">${it.unit === '건' ? '' : it.from != null ? `<span class="my-in">${it.unit === '쪽' ? '<span>p.</span>' : ''}<input class="inp" type="number" inputmode="numeric" id="my-ea" value="${it.from}"><span>~</span><input class="inp" type="number" inputmode="numeric" id="my-eb" value="${it.to}"><span>${it.unit === '쪽' ? '쪽' : '번'}</span></span>` : `<span class="my-in"><input class="inp" type="number" inputmode="numeric" id="my-ec" value="${it.total}"><span>문제</span></span>`}
@@ -846,7 +846,7 @@
       // 오늘 한 번호를 단추로 펼쳐서 틀린 것만 눌러요 (스페이스로 치지 않게)
       const wc = () => { const box = $('#my-wc', el), wi = $('#my-w', el); if (!box || !wi) return; const s0 = +($('#my-s0', el) || {}).value || 0, a0 = x.a != null ? x.a : dt && it.from != null ? it.from + myDone(it) - dt.n : s0 || null, n = +($('#my-n', el) || {}).value || 0;
         $('#my-st', el).hidden = it.from != null;
-        const has = !(a0 == null || !n || n > 80); $('#my-wcw', el).hidden = !has; $('#my-wl', el).textContent = has ? '번호가 목록에 없으면 직접 적어요 (띄어 쓰기)' : '틀린 번호 (띄어 쓰기) · 나중에 오답 탭에서 다시 풀어요';
+        const has = !(a0 == null || !n || n > 80); $('#my-wcw', el).hidden = !has; 
         if (!has) { box.innerHTML = ''; return; }
         const W = new Set((wi.value.match(/\d+/g) || []).map(Number)), z = Math.min(it.to != null ? it.to : Infinity, a0 + n - 1);
         box.innerHTML = Array.from({ length: z - a0 + 1 }, (_, k) => a0 + k).map((v) => `<button type="button" class="${W.has(v) ? 'on' : ''}" data-wn="${v}">${v}</button>`).join('');

@@ -1394,3 +1394,4 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 .grow-b .ic, .grow-b img { width: 16px; height: 16px; }
 .grow-b.on { filter: none; opacity: 1; background: #fff8e6; color: var(--t1); }
 @media (max-width: 720px) { .grow-top { grid-template-columns: 1fr; } .grow-ts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.my-st[hidden], .my-wcw[hidden] { display: none; }
