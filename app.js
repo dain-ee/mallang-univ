@@ -651,6 +651,8 @@
     const t = today(), out = [];
     for (const it of myS().items) {
       const x = myToday(it), doneT = !!(it.log && it.log[t]);
+      // 수행평가 전날: 「수행 준비하기」가 꼭 할 일로 올라와요
+      if (/수행/.test(myCls(it.cls).name + it.book) && !myFin(it) && dday(it.due) === 1) out.push({ k: 'myprep:' + it.id, icon: 'target', t: `수행 준비하기: ${it.book}`, d: `내일 ${myCls(it.cls).name} · 준비 끝나면 눌러요`, done: it.prep === t });
       if (isPlan(it)) { const dd = dday(it.due); if (dd >= 0 && (!myFin(it) || doneT)) out.push({ k: 'my:' + it.id, icon: 'cal', t: it.book, d: `일정 · ${myCls(it.cls).name} · ${dd === 0 ? '오늘' : `${md(it.due)} ${DOW[dowOf(it.due)]}요일 D-${dd}`}`, done: myFin(it), memo: true }); continue; }  // 일정: 끝날 때까지 늘 보이지만 오늘 할 일 셈에는 안 들어가요
       if (myFin(it) && !doneT) continue; if (!x.n && !doneT) continue;
       if (it.unit === '건' && !doneT && dday(it.due) > 1) continue;  // 한 번에 끝내는 일은 마감 전날·당일에만 오늘 할 일로 (그 전엔 「내 숙제」 칸에 D-day로)
@@ -856,7 +858,7 @@
   }
   document.addEventListener('click', (e) => { const r = e.target.closest('[data-exsub]'); if (r) return exSheet(r.dataset.exsub); if (e.target.closest('[data-exmemo]')) return exSheet('_memo'); if (e.target.closest('[data-exadd]')) exSheet(); });
   function bookView() {
-    return `<h1 class="h1">기말 교과서</h1><p class="sub">기말 범위를 적고, 시험 범위 교과서를 읽으면서 형광펜·밑줄을 긋고, 모르는 곳은 선생님께 물어봐요</p><div class="grid">${examCard()}${bookCard() || `<section class="card c12"><div class="empty">${gh('sleepy', 'gh-empty')}<b>아직 교과서가 없어요</b></div></section>`}</div>`;
+    return `<h1 class="h1">기말 교재</h1><p class="sub">기말 범위를 적고, 시험 범위 교과서·문제집을 읽으면서 형광펜·밑줄을 긋고, 모르는 곳은 선생님께 물어봐요</p><div class="grid">${examCard()}${bookCard() || `<section class="card c12"><div class="empty">${gh('sleepy', 'gh-empty')}<b>아직 교과서가 없어요</b></div></section>`}</div>`;
   }
   function bookOpen(id, cid, n, mk) {
     const b = EB.books.find((x) => x.id === id); if (!b) return;
@@ -883,7 +885,7 @@
     const pg = (p) => { const pin = bkS().pin[`${p.c.id}:${p.n}`]; const u = ebUrl.get(p.f); return `<div class="bk-pg ${u ? 'ok' : ''}" data-pg="${p.n}" data-r="${p.r}"><img alt="${p.n}쪽" draggable="false" ${u ? `src="${u}"` : ''}><div class="bk-ly" data-ly="${p.n}"></div><button type="button" class="bk-pin ${pin ? 'on' : ''}" data-pin="${p.n}" aria-label="이 쪽 나중에 다시 보기">${pin ? '★' : '☆'}</button><span class="bk-no">${p.n}쪽</span></div>`; };
     const first = sp[0] === 0, last = sp[sp.length - 1] >= P.length - 1;
     return `<div class="bk-wrap ${tool !== 'read' ? 'pen' : ''} ${bkOne() && innerWidth >= 1100 ? 'one' : ''}">
-      <div class="bk-top"><button class="btn sm" type="button" data-bkback>‹ ${esc((TABS.find((t) => t[0] === (r.back || 'book')) || ['', '교과서'])[1])}</button><div class="bk-hd"><b>${esc(b.title)}</b><span>${esc(c.no)} ${esc(c.t)}${c.ref ? ' <span class="tag">참고</span>' : ''}</span></div>${innerWidth >= 1100 ? `<button class="btn sm" type="button" id="bk-one">${bkOne() ? '두 쪽 보기' : '한 쪽 크게'}</button>` : ''}<button class="btn sm" type="button" id="bk-toc">목차</button></div>
+      <div class="bk-top"><button class="btn sm" type="button" data-bkback>‹ ${esc((TABS.find((t) => t[0] === (r.back || 'book')) || ['', '교재'])[1])}</button><div class="bk-hd"><b>${esc(b.title)}</b><span>${esc(c.no)} ${esc(c.t)}${c.ref ? ' <span class="tag">참고</span>' : ''}</span></div>${innerWidth >= 1100 ? `<button class="btn sm" type="button" id="bk-one">${bkOne() ? '두 쪽 보기' : '한 쪽 크게'}</button>` : ''}<button class="btn sm" type="button" id="bk-toc">목차</button></div>
       <aside class="bk-side"><div class="row between" style="padding:0 8px 8px"><span class="tiny">${esc(b.pub)} · ${esc(b.range)}</span><button class="btn sm" type="button" id="bk-tocx">닫기</button></div>${toc}</aside>
       <div class="bk-stage" id="bk-stage"><button type="button" class="bk-arr l" data-turn="-1" ${first ? 'disabled' : ''} aria-label="앞 쪽">‹</button><div class="bk-spread ${sp.length > 1 ? 'two' : ''}" id="bk-spread">${sp.map((k) => pg(P[k])).join('')}</div><button type="button" class="bk-arr r" data-turn="1" ${last ? 'disabled' : ''} aria-label="다음 쪽">›</button></div>
       <div class="bk-bar"><input type="range" class="bk-sl" id="bk-sl" min="0" max="${P.length - 1}" value="${sp[0]}" aria-label="쪽 고르기"><span class="bk-pn num">${sp.map((k) => P[k].n).join('~')}쪽 <span class="tiny">/ ${P.length}쪽 중 ${sp[sp.length - 1] + 1}</span></span></div>
@@ -2630,7 +2632,7 @@
   }
 
   // ───────── 틀 · 메뉴 ─────────
-  const TABS = [['home', '홈', 'home'], ['hw', '숙제', 'hw'], ['wrong', '오답', 'wrong'], ['book', '교과서', 'books'], ['score', '성적', 'score'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']];
+  const TABS = [['home', '홈', 'home'], ['hw', '숙제', 'hw'], ['wrong', '오답', 'wrong'], ['book', '교재', 'books'], ['score', '성적', 'score'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']];
   function nav() {
     const bm = Object.values(bkS().marks), cnt = { hw: leftItems().length, wrong: todayWr().length, book: TEACHER ? bm.filter((m) => m.q && !m.ans).length : bm.filter((m) => m.q && m.ans && !m.ansSeen).length };
     const btn = (t, bottom) => `<button type="button" class="${UI.tab === t[0] ? 'on' : ''}" data-go="${t[0]}">${bottom ? `<img src="icons/${IC[t[2]]}.svg" alt="">` : ''}${t[1]}${cnt[t[0]] ? `<span class="cnt">${cnt[t[0]] > 99 ? '99+' : cnt[t[0]]}</span>` : ''}</button>`;
@@ -2725,6 +2727,7 @@
     else if (k === 'g3') { UI.tab = 'hw'; UI.run = { kind: 'g3' }; }
     else if (k.startsWith('news:')) return newsSheet(k.slice(5));
     else if (k.startsWith('my:')) return mySheet(k.slice(3));
+    else if (k.startsWith('myprep:')) { const it = myS().items.find((x) => x.id === k.slice(7)); if (!it) return; const t = today(); if (it.prep === t) { it.prep = null; toast('준비 표시를 지웠어요'); } else { it.prep = t; earn('myprep:' + it.id, 100, '수행 준비'); boom(innerWidth / 2, innerHeight * 0.4, 2); toast('준비 끝! 내일 잘해요'); } save('my'); render(); return; }
     else if (k.startsWith('ink:')) { const [, c, n] = k.split(':'); return inkLec(c, n); }
     else if (k.startsWith('drill:')) { UI.tab = 'hw'; UI.run = { kind: 'drill', id: k.slice(6) }; }
     else { UI.tab = 'hw'; UI.run = null; }
