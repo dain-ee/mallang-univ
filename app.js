@@ -483,11 +483,12 @@
   const BK_IC = { hist: 'scroll', sci: 'sci', eng: 'eng' };
   function bookCard() {
     if (!EB.books.length) return '';
-    const s = bkS(), n = Object.keys(s.marks).length, qn = Object.values(s.marks).filter((m) => m.q && !m.ans).length, ln = Object.values(s.marks).filter((m) => m.later).length + Object.keys(s.pin).length;
-    return `<section class="card c12 bk-card"><div class="card-h"><h2>시험 범위 책</h2><span class="tiny">기말고사 <b class="blue">D-${dday(EB_EXAM)}</b> · ${md(EB_EXAM)}부터 · 시험 범위만 담았어요</span></div>
-      <div class="bk-books">${EB.books.map((b) => { const p = bkProg(b), last = s.last[b.id], lc = last && ebFind(last.c); return `<button type="button" class="bk-b" data-book="${b.id}"><span class="bk-ic">${ic(BK_IC[b.id] || 'books')}</span><span class="bk-bt"><b>${esc(b.title)}</b><span class="tiny">${esc(b.pub)}</span><span class="bk-rg">${esc(b.range)}</span><span class="bk-pr"><i style="width:${p.pct}%"></i></span><span class="tiny">${p.seen ? `${p.pct}% 읽음${lc ? ` · ${last.n}쪽부터 이어 읽기` : ''}` : `${p.all}쪽 · 처음부터 읽기`}</span></span></button>`; }).join('')}
-        <div class="bk-b soon"><span class="bk-ic">${ic('eng')}</span><span class="bk-bt"><b>공통영어2</b><span class="tiny">능률 · 민병천</span><span class="bk-rg">Lesson 3~4 · 부교재</span><span class="tiny">준비 중이에요</span></span></div></div>
-      <div class="bk-acts"><button class="btn soft" type="button" data-bklist="all">${ic('pencil')} 칠한 곳 모아 보기${n ? ` <b class="num">${n}</b>` : ''}</button><button class="btn soft" type="button" data-bklist="later">${ic('star')} 나중에 다시 보기${ln ? ` <b class="num">${ln}</b>` : ''}</button><button class="btn soft" type="button" data-bklist="q">${ic('q')} ${TEACHER ? '답할 질문' : '선생님께 질문'}${qn ? ` <b class="num red">${qn}</b>` : ''}</button></div></section>`;
+    const s = bkS(), M = Object.values(s.marks), n = M.length, qn = M.filter((m) => m.q).length, qa = M.filter((m) => m.q && (TEACHER ? !m.ans : m.ans && !m.ansSeen)).length, ln = M.filter((m) => m.later).length + Object.keys(s.pin).length;
+    const book = (b) => { const p = bkProg(b), last = s.last[b.id]; return `<button class="lib-it bk-it" data-book="${b.id}" type="button"><span class="ico">${ic(BK_IC[b.id] || 'books')}</span><b>${esc(b.title)}</b><span class="tiny">${esc(b.pub)}</span><span class="bk-rg">${esc(b.range)}</span><span class="bk-pr"><i style="width:${p.pct}%"></i></span><span class="tiny">${p.seen ? `${p.pct}% 읽음${last ? ` · ${last.n}쪽부터` : ''}` : `${p.all}쪽 · 처음부터 읽기`}</span></button>`; };
+    const row = (k, icn, t, d, cnt, red) => `<div class="li btnlike" data-bklist="${k}"><div class="ico">${ic(icn)}</div><div class="body"><div class="t">${t}</div><div class="d">${d}</div></div>${cnt ? `<span class="tag ${red ? 'red' : 'blue'}">${cnt}</span>` : ''}</div>`;
+    return `<section class="card c8"><div class="card-h"><h2>시험 범위 책</h2><span class="tiny">기말고사 <b class="blue">D-${dday(EB_EXAM)}</b> · ${md(EB_EXAM)}부터</span></div>
+      <div class="lib-grid bk-grid">${EB.books.map(book).join('')}<div class="lib-it bk-it soon"><span class="ico">${ic('eng')}</span><b>공통영어2</b><span class="tiny">능률 · 민병천</span><span class="bk-rg">Lesson 3~4 · 부교재</span><span class="tiny">준비 중이에요</span></div></div></section>
+      <section class="card c4"><div class="card-h"><h2>내 표시</h2></div><div class="list">${row('all', 'pencil', '칠한 곳', n ? `형광펜·밑줄 ${n}곳` : '단어를 끌어서 칠해요', n)}${row('later', 'star', '나중에 다시 보기', ln ? `${ln}곳 모아 뒀어요` : '☆ 를 누르면 모여요', ln)}${row('q', 'q', TEACHER ? '학생 질문' : '선생님께 질문', TEACHER ? (qa ? `답할 질문 ${qa}개` : qn ? '다 답했어요' : '아직 없어요') : qa ? `새 답 ${qa}개` : qn ? `질문 ${qn}개` : '칠한 곳을 눌러 물어봐요', qa, true)}</div></section>`;
   }
   function bookView() {
     return `<h1 class="h1">기말 교과서</h1><p class="sub">시험 범위 교과서를 읽으면서 형광펜·밑줄을 긋고, 모르는 곳은 선생님께 물어봐요</p><div class="grid">${bookCard() || `<section class="card c12"><div class="empty">${gh('sleepy', 'gh-empty')}<b>아직 교과서가 없어요</b></div></section>`}</div>`;
@@ -501,7 +502,8 @@
   }
   // 책 한 권의 쪽을 단원 구분 없이 이어서 (넘기면 다음 단원으로 그대로 이어짐)
   const bkPages = (b) => b.ch.flatMap((c) => c.pages.map((p) => ({ ...p, c })));
-  const bkWide = () => innerWidth >= 1100;
+  const bkOne = () => { if (UI.bkOne == null) { try { UI.bkOne = localStorage.getItem('mu:bk1') === '1'; } catch (e) { UI.bkOne = false; } } return UI.bkOne; };
+  const bkWide = () => innerWidth >= 1100 && !bkOne();
   // 펼침: 짝수 쪽이 왼쪽 (교과서처럼), 바로 다음 쪽이 이어질 때만 두 쪽
   function bkSpread(P, i) {
     if (!bkWide()) return [i];
@@ -514,8 +516,8 @@
     const toc = b.ch.map((x) => { const sn = x.pages.filter((p) => bkS().seen[`${b.id}:${p.n}`]).length, mk = Object.values(bkS().marks).filter((m) => m.c === x.id).length; return `<button type="button" class="bk-ti ${x.id === c.id ? 'on' : ''} ${x.ref ? 'ref' : ''}" data-bkn="${x.pages[0].n}"><span class="bk-tn">${esc(x.no)}</span><span class="bk-tt">${esc(x.t)}<span class="tiny">${x.a}~${x.b}쪽${mk ? ` · 칠한 곳 ${mk}` : ''}</span></span><span class="bk-td ${sn >= x.pages.length ? 'all' : sn ? 'some' : ''}"></span></button>`; }).join('');
     const pg = (p) => { const pin = bkS().pin[`${p.c.id}:${p.n}`]; return `<div class="bk-pg" data-pg="${p.n}" data-r="${p.r}"><img alt="${p.n}쪽" draggable="false"><div class="bk-ly" data-ly="${p.n}"></div><button type="button" class="bk-pin ${pin ? 'on' : ''}" data-pin="${p.n}" aria-label="이 쪽 나중에 다시 보기">${pin ? '★' : '☆'}</button><span class="bk-no">${p.n}쪽</span></div>`; };
     const first = sp[0] === 0, last = sp[sp.length - 1] >= P.length - 1;
-    return `<div class="bk-wrap ${tool !== 'read' ? 'pen' : ''}">
-      <div class="bk-top"><button class="btn sm" type="button" data-bkback>‹ ${esc((TABS.find((t) => t[0] === (r.back || 'book')) || ['', '교과서'])[1])}</button><div class="bk-hd"><b>${esc(b.title)}</b><span>${esc(c.no)} ${esc(c.t)}${c.ref ? ' <span class="tag">참고</span>' : ''}</span></div><button class="btn sm" type="button" id="bk-toc">목차</button></div>
+    return `<div class="bk-wrap ${tool !== 'read' ? 'pen' : ''} ${bkOne() && innerWidth >= 1100 ? 'one' : ''}">
+      <div class="bk-top"><button class="btn sm" type="button" data-bkback>‹ ${esc((TABS.find((t) => t[0] === (r.back || 'book')) || ['', '교과서'])[1])}</button><div class="bk-hd"><b>${esc(b.title)}</b><span>${esc(c.no)} ${esc(c.t)}${c.ref ? ' <span class="tag">참고</span>' : ''}</span></div>${innerWidth >= 1100 ? `<button class="btn sm" type="button" id="bk-one">${bkOne() ? '두 쪽 보기' : '한 쪽 크게'}</button>` : ''}<button class="btn sm" type="button" id="bk-toc">목차</button></div>
       <aside class="bk-side"><div class="row between" style="padding:0 8px 8px"><span class="tiny">${esc(b.pub)} · ${esc(b.range)}</span><button class="btn sm" type="button" id="bk-tocx">닫기</button></div>${toc}</aside>
       <div class="bk-stage" id="bk-stage"><button type="button" class="bk-arr l" data-turn="-1" ${first ? 'disabled' : ''} aria-label="앞 쪽">‹</button><div class="bk-spread ${sp.length > 1 ? 'two' : ''}" id="bk-spread">${sp.map((k) => pg(P[k])).join('')}</div><button type="button" class="bk-arr r" data-turn="1" ${last ? 'disabled' : ''} aria-label="다음 쪽">›</button></div>
       <div class="bk-bar"><input type="range" class="bk-sl" id="bk-sl" min="0" max="${P.length - 1}" value="${sp[0]}" aria-label="쪽 고르기"><span class="bk-pn num">${sp.map((k) => P[k].n).join('~')}쪽 <span class="tiny">/ ${P.length}쪽 중 ${sp[sp.length - 1] + 1}</span></span></div>
@@ -541,11 +543,12 @@
     const r = UI.run, b = EB.books.find((x) => x.id === r.b); if (!b) return;
     const s = bkS(), P = bkPages(b), i0 = Math.max(0, P.findIndex((p) => p.n === r.n)), sp = bkSpread(P, i0);
     s.last[b.id] = { c: P[sp[0]].c.id, n: P[sp[0]].n };
-    const go = (n, dir) => { if (n === r.n) return; UI.run = { ...r, n, mk: null, dir }; const y = scrollY; render(); window.scrollTo(0, y); };
+    const go = (n, dir) => { if (n === r.n) return; UI.run = { ...r, n, mk: null, dir }; const y = scrollY; render(); window.scrollTo(0, bkOne() && innerWidth >= 1100 ? 0 : y); };
     const turn = (d) => { const k = d > 0 ? sp[sp.length - 1] + 1 : sp[0] - 1; if (P[k]) go(P[k].n, d); };
     $('[data-bkback]').onclick = () => { UI.run = null; UI.tab = r.back || 'book'; document.onkeydown = null; render(); };
     $$('[data-bkn]').forEach((x) => (x.onclick = () => go(+x.dataset.bkn, 0)));
     $('#bk-toc').onclick = () => $('.bk-side').classList.toggle('open');
+    const one = $('#bk-one'); if (one) one.onclick = () => { UI.bkOne = !bkOne(); try { localStorage.setItem('mu:bk1', UI.bkOne ? '1' : '0'); } catch (e) {} render(); };
     $('#bk-tocx').onclick = () => $('.bk-side').classList.remove('open');
     $$('[data-turn]').forEach((x) => (x.onclick = () => turn(+x.dataset.turn)));
     const sl = $('#bk-sl'); sl.oninput = () => { $('.bk-pn').firstChild.textContent = `${P[+sl.value].n}쪽 `; }; sl.onchange = () => go(P[+sl.value].n, 0);
@@ -554,7 +557,7 @@
     $$('[data-pin]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); const p = P.find((q) => q.n === +x.dataset.pin), k = `${p.c.id}:${p.n}`; if (s.pin[k]) delete s.pin[k]; else s.pin[k] = Date.now(); save('book'); const on = !!s.pin[k]; x.classList.toggle('on', on); x.textContent = on ? '★' : '☆'; toast(on ? `${p.n}쪽을 나중에 다시 볼게요` : '뺐어요'); }));
     // 화면에 꼭 맞게 쪽 크기 정하기
     const stage = $('#bk-stage'), spread = $('#bk-spread');
-    const fit = () => { if (!stage.isConnected) { removeEventListener('resize', fit); return; } const pgs = $$('.bk-pg', spread), W = stage.clientWidth - (bkWide() ? 112 : 0), H = Math.max(320, innerHeight - stage.getBoundingClientRect().top - (innerWidth < 900 ? 230 : 150)); for (const pg of pgs) { const rr = +pg.dataset.r, w = Math.min(W / pgs.length, H / rr); pg.style.width = w + 'px'; pg.style.height = w * rr + 'px'; } };
+    const fit = () => { if (!stage.isConnected) { removeEventListener('resize', fit); return; } const pgs = $$('.bk-pg', spread), W = stage.clientWidth - (bkWide() ? 112 : 0), H = Math.max(320, innerHeight - stage.getBoundingClientRect().top - (innerWidth < 900 ? 230 : 150)); for (const pg of pgs) { const rr = +pg.dataset.r, w = bkOne() && innerWidth >= 1100 ? Math.min(W, 1000) : Math.min(W / pgs.length, H / rr); pg.style.width = w + 'px'; pg.style.height = w * rr + 'px'; } };
     fit(); addEventListener('resize', fit);
     if (r.dir && !RM()) { spread.classList.add(r.dir > 0 ? 'in-r' : 'in-l'); r.dir = 0; }
     // 쪽 그림·글자 불러오기 (앞뒤 쪽은 미리)
