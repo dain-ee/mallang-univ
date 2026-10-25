@@ -73,14 +73,22 @@
   function save(...keys) {
     const now = Date.now(); S._at = S._at || {}; for (const k of keys) S._at[k] = now;
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
-    clearTimeout(pushT); pushT = setTimeout(sync, 1200);
+    clearTimeout(pushT); pushT = setTimeout(() => { pushT = null; sync(); }, 1200);
   }
   async function rpc(fn, body) {
-    const r = await fetch(`${U.sync.url}/rest/v1/rpc/${fn}`, { method: 'POST', headers: { apikey: U.sync.key, Authorization: `Bearer ${U.sync.key}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const r = await fetch(`${U.sync.url}/rest/v1/rpc/${fn}`, { method: 'POST', keepalive: true, headers: { apikey: U.sync.key, Authorization: `Bearer ${U.sync.key}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     if (!r.ok) throw new Error(fn + ' ' + r.status);
     const t = await r.text(); return t ? JSON.parse(t) : null;
   }
   let syncing = false;
+  // 저장 상태 표시 (내신 입력처럼 저장 단추가 없는 곳)
+  const saveSt = { at: 0, off: false, wait: false };
+  const saveStText = () => saveSt.wait ? '저장하는 중' : saveSt.off ? '인터넷이 안 돼 이 기기에만 저장했어요' : saveSt.at ? `저장됐어요 · ${String(new Date(saveSt.at).getHours()).padStart(2, '0')}:${String(new Date(saveSt.at).getMinutes()).padStart(2, '0')}` : '적으면 바로 저장돼요';
+  function paintSaveSt() { if (!saveSt.off && saveSt.at) saveSt.wait = false; $$('[data-savest]').forEach((x) => { x.textContent = saveStText(); x.classList.toggle('ok', !saveSt.wait && !saveSt.off && !!saveSt.at); x.classList.toggle('off', saveSt.off); }); }
+  // 화면을 닫거나 다른 앱으로 넘어가면 기다리던 저장을 바로 보냄
+  const flush = () => { if (pushT) { clearTimeout(pushT); pushT = null; sync(); } };
+  addEventListener('pagehide', flush);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
   async function sync(redraw) {
     if (syncing) { clearTimeout(pushT); pushT = setTimeout(sync, 1500); return; }
     syncing = true;
@@ -92,8 +100,9 @@
       }
       try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
       await rpc('univ_put', { p_student: U.who, p_code: U.key, p_data: S });
+      saveSt.at = Date.now(); saveSt.off = false; paintSaveSt();
       if (changed && redraw) render();
-    } catch (e) { /* 연결이 안 되면 이 기기에만 저장하고, 다음에 다시 맞춤 */ }
+    } catch (e) { /* 연결이 안 되면 이 기기에만 저장하고, 다음에 다시 맞춤 */ saveSt.off = true; saveSt.wait = false; paintSaveSt(); }
     syncing = false;
   }
 
@@ -328,7 +337,7 @@
     const nscard = nsCard('c6');
     const sgbc = sgbSummary('c6');
     const main = `<h1 class="h1">${bdayLeft() === 0 ? `${ic('party')} ${nameCall()}, 생일 축하해` : `${nameCall()}, ${greet()}`}</h1><p class="sub">${todayLine()}</p>
-      <div class="grid">${hero}${pos}${walletCard('c12')}${pomoCard('c12')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}</div>`;
+      <div class="grid">${hero}${pos}${walletCard('c12')}${pomoCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}</div>`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -364,6 +373,20 @@
     for (const h of (S.hw || []).filter((x) => hwDone(x) && x.due === today())) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: '선생님 숙제 · 끝냈어요', done: true });
     return { tasks, off, sd, st, ed, wordsDone, unitDone };
   }
+  // 오른쪽 칸 위젯: 지금 시각 · 디데이
+  const WK = '일월화수목금토';
+  function clockWidget() {
+    const d = new Date(), pm = pDay().min || 0;
+    return `<section class="card tight w-clock"><div><div class="w-date">${d.getMonth() + 1}월 ${d.getDate()}일 ${WK[d.getDay()]}요일</div><div class="w-sub">${pm ? `오늘 집중 ${pm}분` : greetTime(d)}</div></div><b class="w-time num" data-clock>${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}</b></section>`;
+  }
+  const greetTime = (d) => { const h = d.getHours(); return h < 6 ? '늦었어요, 조금만 하고 자요' : h < 12 ? '좋은 아침이에요' : h < 18 ? '오후도 힘내요' : h < 22 ? '저녁 공부 시간이에요' : '오늘도 수고했어요'; };
+  function ddayWidget() {
+    const t = today(), ev = [{ title: CSAT.title || '수능', date: CSAT.date, big: true }, ...[...(D.events || []), ...(S.myEvents || []).map((e) => ({ ...e, mine: true }))].filter((e) => e.date >= t && e.kind !== 'csat')].sort((a, b) => a.date.localeCompare(b.date));
+    const L = [ev[0], ...ev.slice(1).slice(0, 3)].filter(Boolean);
+    return `<section class="card tight w-dday"><div class="card-h"><h3>디데이</h3><button class="more" type="button" id="w-sched">일정</button></div>
+      <div class="w-dl">${L.map((e) => { const n = dday(e.date); return `<div class="w-di ${e.big ? 'big' : ''}"><span class="w-dn">${esc(e.title)}</span><span class="w-dd">${md(e.date)}</span><b class="num ${n <= 7 ? 'red' : n <= 30 ? 'blue' : ''}">${n === 0 ? 'D-DAY' : 'D-' + n}</b></div>`; }).join('')}</div></section>`;
+  }
+  setInterval(() => { const d = new Date(), v = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; $$('[data-clock]').forEach((x) => { if (x.textContent !== v) x.textContent = v; }); }, 5000);
   function railCards(inline) {
     const cls = inline ? 'rail-inline c12' : '';
     const { tasks, off } = todayTasks();
@@ -372,7 +395,7 @@
     const todo = `<section class="card tight ${cls}"><div class="card-h"><h3>오늘 할 일</h3><button class="more" data-go="hw">숙제</button></div>
       <div class="arch"><svg viewBox="0 0 200 100"><path d="M20 96 A80 80 0 0 1 180 96" fill="none" stroke="var(--fill)" stroke-width="12" stroke-linecap="round"/><path class="ring-arc" d="M20 96 A80 80 0 0 1 180 96" fill="none" stroke="var(--blue)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L * (1 - frac)}"/></svg><div class="c"><span class="tiny">오늘</span><br><b class="num">${Math.round(frac * 100)}%</b> <span class="muted">완료</span></div></div>
       <div class="list">${tasks.length ? tasks.map((t) => `<div class="li btnlike" data-task="${t.k}"><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${esc(t.t)}</div><div class="d">${esc(t.d)}</div></div><span class="chev"></span></div>`).join('') : `<div class="empty">${ic('party')}<b>오늘 할 일이 없어요</b></div>`}</div></section>`;
-    return todo;
+    return inline ? todo : clockWidget() + pomoCard('pm-rail') + todo + ddayWidget();
   }
   const nIcon = (n) => (n.scope === '교육부' ? 'bank' : /과학|바이오/.test(n.scope || '') ? 'sci' : 'news');
   // 소식 탭: 입시 · 과학 · 시사 상식
@@ -938,7 +961,7 @@
     return `<div class="grid">
       <section class="card c4"><div class="eyebrow">전체 평균 (단위 수 반영)</div><div class="big num" style="font-size:40px;margin:8px 0 4px">${tot ? fmt1(tot) : '-'}<span style="font-size:18px"> 등급</span></div><p class="muted" style="margin:0">${goalLine(tot, S.profile.goalNaesin) || '과목 등급을 넣으면 계산돼요'}</p><hr class="sep"><div class="tiny">2022 개정 교육과정은 내신이 <b>5등급</b>이에요. 1등급은 상위 10%, 2등급은 34%까지예요.</div></section>
       <section class="card c8"><div class="card-h"><h2>학기별 평균</h2></div>${rows.length ? tossLine(rows.map((r) => ({ label: r.label, v: r.v.n })), { maxG: 5, h: 180, id: 'n2', color: '#03b26c', goal: S.profile.goalNaesin }) : `<div class="empty">${ic('up')}<b>아직 없어요</b></div>`}</section>
-      <section class="card c12"><div class="card-h"><h2>과목별 입력</h2><div class="seg" style="flex:0 1 auto">${SEMS.map((s) => `<button type="button" class="${sem === s ? 'on' : ''}" data-sem="${s}">${s.replace('-', '학년 ')}학기</button>`).join('')}</div></div>
+      <section class="card c12"><div class="card-h"><h2>과목별 입력 <span class="save-st" data-savest>${saveStText()}</span></h2><div class="seg" style="flex:0 1 auto">${SEMS.map((s) => `<button type="button" class="${sem === s ? 'on' : ''}" data-sem="${s}">${s.replace('-', '학년 ')}학기</button>`).join('')}</div></div>
         <div class="tbl-wrap"><table class="tbl"><thead><tr><th>과목</th><th class="r">단위</th>${split ? '<th class="r">중간 점수</th><th class="r">중간 등급</th><th class="r">기말 점수</th><th class="r">기말 등급</th><th class="r">학기 최종 등급</th>' : '<th class="r">원점수</th><th class="r">과목 평균</th><th class="r">등급 (1~5)</th>'}<th class="r">성취도</th></tr></thead><tbody>
         ${subs.map((s) => { const r = rec[s.name] || {}; return `<tr><td style="font-weight:600">${esc(s.name)}${s.noGrade ? '<div class="tiny">등급 없음</div>' : ''}</td><td class="r"><input class="inp sm num" style="width:56px" data-ns="${esc(s.name)}" data-f="credits" value="${esc(r.credits || s.credits || '')}" inputmode="numeric"></td>${split ? [['mid', 'midG'], ['fin', 'finG'], [null, 'grade']].map(([sc, gf]) => (sc ? `<td class="r"><input class="inp sm num" style="width:64px" data-ns="${esc(s.name)}" data-f="${sc}" value="${esc(r[sc] ?? '')}" inputmode="decimal" placeholder="점수"></td>` : '') + `<td class="r">${s.noGrade ? '-' : gsel(s.name, gf, r[gf])}</td>`).join('') : `<td class="r"><input class="inp sm num" style="width:72px" data-ns="${esc(s.name)}" data-f="raw" value="${esc(r.raw || '')}" inputmode="decimal"></td><td class="r"><input class="inp sm num" style="width:72px" data-ns="${esc(s.name)}" data-f="avg" value="${esc(r.avg || '')}" inputmode="decimal"></td><td class="r">${s.noGrade ? '-' : gsel(s.name, 'grade', r.grade)}</td>`}<td class="r"><select class="inp sm" style="width:64px" data-ns="${esc(s.name)}" data-f="ach"><option value="">-</option>${['A', 'B', 'C', 'D', 'E', 'P'].map((g) => `<option ${r.ach === g ? 'selected' : ''}>${g}</option>`).join('')}</select></td></tr>`; }).join('')}
         </tbody></table></div>
@@ -948,6 +971,8 @@
   }
   function bindNaesin() {
     $$('[data-sem]').forEach((b) => (b.onclick = () => { UI.semester = b.dataset.sem; render(); }));
+    const nsSet = (x) => { const sem = UI.semester; S.naesin[sem] = S.naesin[sem] || {}; const r = (S.naesin[sem][x.dataset.ns] = S.naesin[sem][x.dataset.ns] || {}); const v = x.value.trim(); r[x.dataset.f] = x.dataset.f === 'ach' ? v : v === '' ? '' : +v; };
+    $$('input[data-ns]').forEach((x) => (x.oninput = () => { if (x.value.trim() !== '' && isNaN(+x.value.trim())) return; nsSet(x); saveSt.wait = true; paintSaveSt(); save('naesin'); }));
     $$('[data-ns]').forEach((x) => (x.onchange = () => { const sem = UI.semester; S.naesin[sem] = S.naesin[sem] || {}; const r = (S.naesin[sem][x.dataset.ns] = S.naesin[sem][x.dataset.ns] || {}); const v = x.value.trim(); r[x.dataset.f] = x.dataset.f === 'ach' ? v : v === '' ? '' : +v; save('naesin'); render(); }));
     const a = $('#ns-add'); if (a) a.onclick = () => sheet(`<h2>과목 더하기</h2><div class="field"><label>과목 이름</label><input class="inp" id="na-n"></div><div class="field"><label>단위 수</label><input class="inp" id="na-c" inputmode="numeric" value="2"></div><button class="btn primary big block" id="na-ok" type="button">더하기</button>`, (el, close) => { $('#na-ok', el).onclick = () => { const n = $('#na-n', el).value.trim(); if (!n) return; const sem = UI.semester; S.naesin[sem] = S.naesin[sem] || {}; S.naesin[sem][n] = { credits: +$('#na-c', el).value || 1 }; save('naesin'); close(); render(); }; });
   }
@@ -1575,7 +1600,7 @@
   function pomoCard(cls) {
     const n = pDay().n, g = pGoal(), st = pStreak(), r = P.run;
     return `<section class="card ${cls} pm-home link" data-pomo><div class="pm-h-ic">${ic('tomato')}</div>
-      <div class="pm-h-b"><div class="eyebrow">토마토 타이머${st ? ` · ${ic('fire')} ${st}일 연속` : ''}</div><b class="pm-h-t">${r ? `${r.mode === 'break' ? '쉬는 중' : '집중하는 중'} <span class="num blue" id="pm-home-t">${mmss(pLeft())}</span>` : n ? `오늘 토마토 ${n}개${n >= g ? ', 목표 달성!' : ''}` : '오늘 첫 토마토를 키워 봐요'}</b><p class="tiny" style="margin:2px 0 0">${esc(pLine())}</p></div>
+      <div class="pm-h-b"><div class="eyebrow">토마토 타이머${st ? ` · ${ic('fire')} ${st}일 연속` : ''}</div><b class="pm-h-t">${r ? `${r.mode === 'break' ? '쉬는 중' : '집중하는 중'} <span class="num blue" data-pmt>${mmss(pLeft())}</span>` : n ? `오늘 토마토 ${n}개${n >= g ? ', 목표 달성!' : ''}` : '오늘 첫 토마토를 키워 봐요'}</b><p class="tiny" style="margin:2px 0 0">${esc(pLine())}</p></div>
       ${tomRow(n, g, 'sm')}${TEACHER ? '' : `<button class="btn primary" type="button" data-pomo>${r ? '타이머 보기' : '집중 시작'}</button>`}</section>`;
   }
   function pomoRun() {
@@ -1608,7 +1633,7 @@
     const t = $('#pm-time'); if (t) t.textContent = mmss(left);
     const a = $('#pm-arc'); if (a) a.style.strokeDashoffset = PC * (1 - left / pDur());
     const ln = $('#pm-line'); if (ln && r) ln.textContent = pLine();
-    const ht = $('#pm-home-t'); if (ht) ht.textContent = mmss(left);
+    $$('[data-pmt]').forEach((ht) => (ht.textContent = mmss(left)));
     let pill = $('#pomo-pill');
     if ((r || listening()) && !on && !(r && ht) && !TEACHER) {
       const k = r ? r.mode + (r.paused ? 'p' : '') + (listening() ? 'h' : '') : 'h';
@@ -2045,6 +2070,7 @@
     $$('[data-task]').forEach((b) => (b.onclick = () => startTask(b.dataset.task)));
     $$('[data-news]').forEach((b) => (b.onclick = () => newsSheet(b.dataset.news)));
     $$('[data-day]').forEach((b) => (b.onclick = () => daySheet(b.dataset.day)));
+    $$('#w-sched').forEach((b) => (b.onclick = () => schedSheet()));
     $$('[data-kopen]').forEach((b) => (b.onclick = () => { const [k, r] = b.dataset.kopen.split('|'); openKept(k, r); }));
     $$('[data-nf]').forEach((b) => (b.onclick = () => { UI.newsF = b.dataset.nf; render(); }));
     $$('[data-cs]').forEach((b) => (b.onclick = () => { UI.chartSubj = b.dataset.cs; render(); }));
