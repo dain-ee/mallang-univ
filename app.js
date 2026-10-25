@@ -603,7 +603,7 @@
     if (!TEACHER && m.ans && !m.ansSeen) { m.ansSeen = true; save('book'); nav(); }
     sheet(`<p class="eyebrow" style="margin:0 0 8px">${esc(b ? b.title : '')} · ${esc(f ? f.c.no + ' ' + f.c.t : '')} · ${m.p}쪽</p>
       <blockquote class="bk-quote ${m.k}">${esc(m.txt)}</blockquote>
-      <div class="chips" style="flex-wrap:wrap;margin:12px 0"><button type="button" class="chip ${m.k === 'hl' ? 'on' : ''}" data-mkk="hl">형광펜</button><button type="button" class="chip ${m.k === 'ul' ? 'on' : ''}" data-mkk="ul">밑줄</button><button type="button" class="chip ${m.later ? 'on' : ''}" data-mkl>★ 나중에 다시 보기</button><button type="button" class="chip ${m.q ? 'on' : ''}" data-mkq>? 선생님께 질문</button></div>
+      <div class="chips multi" style="flex-wrap:wrap;margin:12px 0"><button type="button" class="chip ${m.k === 'hl' ? 'on' : ''}" data-mkk="hl">형광펜</button><button type="button" class="chip ${m.k === 'ul' ? 'on' : ''}" data-mkk="ul">밑줄</button><button type="button" class="chip ${m.later ? 'on' : ''}" data-mkl>★ 나중에 다시 보기</button><button type="button" class="chip ${m.q ? 'on' : ''}" data-mkq>? 선생님께 질문</button></div>
       <div class="field"><label>${m.q ? '선생님께 물어볼 것' : '내 생각 · 메모'}</label><textarea class="inp" id="mk-note" rows="3" placeholder="${m.q ? '예) 신탁 통치 반대와 찬성이 왜 갈렸는지 모르겠어요' : '예) 이 부분은 연표로 외우기'}" ${TEACHER ? 'readonly' : ''}>${esc(m.note || '')}</textarea></div>
       ${TEACHER ? `<div class="field"><label>선생님 답</label><textarea class="inp" id="mk-ans" rows="3" placeholder="답을 적으면 학생 화면에 보여요">${esc(m.ans || '')}</textarea></div>` : m.ans ? `<div class="explain"><b>선생님 답</b><br>${esc(m.ans)}</div>` : ''}
       <div class="row" style="margin-top:20px"><button class="btn big" style="flex:1" id="mk-del" type="button">지우기</button><button class="btn primary big" style="flex:1" id="mk-ok" type="button">저장</button></div>
@@ -632,7 +632,7 @@
         $$('[data-bkmk]', el).forEach((x) => (x.onclick = () => { const m = s.marks[x.dataset.bkmk]; close(); bookOpen(m.b, m.c, m.p, x.dataset.bkmk); }));
         $$('[data-bkpg]', el).forEach((x) => (x.onclick = () => { const [cid, n] = x.dataset.bkpg.split('|'); const f = ebFind(cid); close(); bookOpen(f.b.id, cid, +n); }));
       };
-      $$('[data-bkf]', el).forEach((x) => (x.onclick = () => { const f = x.dataset.bkf; $$('[data-bkf]', el).forEach((y) => y.classList.toggle('on', y === x)); $('#bkl-h', el).textContent = T[f]; $('#bkl', el).innerHTML = body(f); bindL(); }));
+      $$('[data-bkf]', el).forEach((x) => (x.onclick = () => { const f = x.dataset.bkf; $$('[data-bkf]', el).forEach((y) => y.classList.toggle('on', y === x)); segRe(x.parentNode); $('#bkl-h', el).textContent = T[f]; $('#bkl', el).innerHTML = body(f); bindL(); }));
       bindL();
     });
   }
@@ -2331,7 +2331,7 @@
   // 위 탭 · 아래 탭바 · 세그먼트 · 한 개만 고르는 칩 줄 모두 같은 방식이에요. 가로로 넘기는 줄은 넘긴 자리도 기억해요
   const SEG_SEL = '#tabs-top, #tabs-bottom, main .seg, main .pk-tabs, main .chips, .sheet .chips';
   const segKey = (sg) => (sg.id || (UI.run ? 'run' : UI.tab)) + ':' + (sg.id ? '' : [...sg.querySelectorAll('button')].map((b) => b.textContent).join('|'));
-  const segOk = (sg) => sg.id || !sg.matches('.chips') || sg.matches('.pk-tabs') || sg.querySelectorAll(':scope > .chip.on').length === 1 && sg.querySelectorAll(':scope > .chip').length > 1;
+  const segOk = (sg) => sg.id || !sg.matches('.chips') || !sg.matches('.multi') && sg.matches('.pk-tabs') || sg.querySelectorAll(':scope > .chip.on').length === 1 && sg.querySelectorAll(':scope > .chip').length > 1;
   const segPut = (ind, p) => { ind.style.transform = `translate(${p.x}px,${p.y}px)`; ind.style.width = p.w + 'px'; ind.style.height = p.h + 'px'; };
   const segAt = (on) => ({ x: on.offsetLeft, y: on.offsetTop, w: on.offsetWidth, h: on.offsetHeight });
   function segSlide(root = document) {
@@ -2347,6 +2347,8 @@
       if (fr && (fr.x !== to.x || fr.y !== to.y || fr.w !== to.w) && !RM()) { on.classList.add('pre'); requestAnimationFrame(() => requestAnimationFrame(() => { ind.classList.add('go'); segPut(ind, to); on.classList.remove('pre'); })); }
     });
   }
+  // 그 자리에서 on 만 바꾼 줄: 표시를 새 칸으로 옮겨요
+  function segRe(sg) { const ind = sg.querySelector(':scope > .seg-ind'); if (ind) ind.remove(); sg.classList.remove('slid'); segSlide(sg.parentNode); }
   // 창 크기 · 글꼴이 바뀌면 자리만 다시 맞춰요 (움직임 없이)
   function segFix() { $$('.slid').forEach((sg) => { const on = sg.querySelector(':scope > button.on'), ind = sg.querySelector(':scope > .seg-ind'); if (!on || !ind) return; ind.classList.remove('go'); const p = segAt(on); p.sl = sg.scrollLeft; segPut(ind, p); segSlide.m[segKey(sg)] = p; }); }
   let sfT = 0; window.addEventListener('resize', () => { cancelAnimationFrame(sfT); sfT = requestAnimationFrame(segFix); });
