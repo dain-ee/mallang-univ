@@ -362,7 +362,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${missCard()}${giftHome()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${missCard()}${giftHome()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -1453,12 +1453,13 @@
     petDock();
   }
   // 펫: 화면 첫 카드 윗변에 창틀처럼 두 팔을 걸치고 있어요. 누르면 폴짝, 밤엔 팔에 얼굴 묻고 졸아요
+  const PET_WINK = new Set(['melody']); // 찡긋 표정이 있는 펫
   function petDock() {
     const t = skin(), host = !UI.run && t !== 'ghost' && $('#main .card');
     $$('.pet-perch').forEach((x) => { if (!host || x.parentNode !== host || x.dataset.skin !== t) x.remove(); });
     if (!host || $('.pet-perch', host)) return;
     const base = 'perch'; // 첫 카드 왼쪽 위에 걸침 · 자는 동작은 안 씀 (사용자)
-    const el = document.createElement('button'); el.type = 'button'; el.className = 'pet-perch'; el.dataset.skin = t; el.setAttribute('aria-label', SKINS[t].n);
+    const el = document.createElement('button'); el.type = 'button'; el.className = 'pet-perch' + (petDock.shown ? ' still' : ''); petDock.shown = true; el.dataset.skin = t; el.setAttribute('aria-label', SKINS[t].n);
     el.innerHTML = `<span class="pet-say" hidden></span><img alt="" src="assets/pets/${t}/perch.png">`;
     const im = $('img', el); im.onerror = () => { el.remove(); host.classList.remove('has-perch'); }; im.onload = () => host.classList.add('has-perch');
     host.appendChild(el);
@@ -1469,7 +1470,7 @@
     const play = (n) => fetch(`assets/pets/${t}/${n}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).then((b) => { const u = URL.createObjectURL(b); im.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); }).catch(() => {});
     if (!RM()) play(base);
     // 같은 표정만 있으면 심심해서, 가끔 혼자 기뻐해요
-    clearInterval(petDock.iv); if (!RM()) petDock.iv = setInterval(() => { if (!el.isConnected) return clearInterval(petDock.iv); if (document.hidden || !$('.pet-say', el).hidden) return; play('perch_yay'); setTimeout(() => { if (el.isConnected && $('.pet-say', el).hidden) play(base); }, 2600); }, 14000 + Math.random() * 8000);
+    clearInterval(petDock.iv); if (!RM()) petDock.iv = setInterval(() => { if (!el.isConnected) return clearInterval(petDock.iv); if (document.hidden || !$('.pet-say', el).hidden) return; play(petDock.alt = petDock.alt === 'perch_yay' && PET_WINK.has(t) ? 'perch_wink' : 'perch_yay'); setTimeout(() => { if (el.isConnected && $('.pet-say', el).hidden) play(base); }, 2600); }, 9000 + Math.random() * 8000);
     el.onclick = (e) => { e.stopPropagation(); const say = $('.pet-say', el); play('perch_yay'); say.textContent = cheer(); say.hidden = false; clearTimeout(el.t); el.t = setTimeout(() => { say.hidden = true; play(base); }, 2600); if (navigator.vibrate) navigator.vibrate(20); };
   }
   function skinSheet() {

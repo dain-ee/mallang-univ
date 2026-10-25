@@ -1574,3 +1574,7 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 /* 탭을 넘길 때 카드가 아래에서 차례로 올라오면 어지러워서(사용자) 살짝 나타나기만 */
 main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, .sub, .seg, .chips) { animation: viewFade .18s ease-out both; animation-delay: 0ms; }
 @keyframes viewFade { from { opacity: 0; } }
+.pet-perch.still { animation: none; }
+.tabs button.on { animation: none; }
+.home-set button { display: inline-flex; align-items: center; gap: 6px; }
+.home-set .gear { flex: none; }
