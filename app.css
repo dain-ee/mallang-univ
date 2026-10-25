@@ -1580,3 +1580,9 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .grow-bar i { justify-self: center; width: 100%; max-width: 28px; background: color-mix(in srgb, var(--blue) 16%, transparent); }
 .grow-bar.on i { background: var(--blue); }
 .grow-top { align-items: end; }
+/* 위 메뉴는 좁아져도 글자가 세로로 꺾이지 않게 (쪽지함이 들어가며 자리가 모자람) */
+.top .brand, .top .brand *, .tabs button, .top button { white-space: nowrap; }
+.tabs button .cnt, .top .cnt { flex: none; }
+:root[data-skin]:not([data-skin="ghost"]) .top .brand { background: none; }
+@media (max-width: 1360px) { .nc-top .nc-tl { display: none; } .top .me > span:first-child { display: none; } }
+@media (max-width: 1180px) { .coin-top span, .pomo-top span { font-size: 14px; } .tabs button { padding-left: 10px; padding-right: 10px; } }
