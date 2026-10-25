@@ -1370,3 +1370,27 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 
 .my-st { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
 .my-st .inp { width: 120px; height: 44px; text-align: center; font-size: 16px; font-weight: 700; }
+
+.grow-st { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 99px; background: #fff1e6; color: #e8590c; font-size: 13px; font-weight: 700; }
+.grow-st .ic, .grow-st img { width: 16px; height: 16px; }
+.grow-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: end; }
+.grow-big b { font-size: 48px; line-height: 1.1; font-weight: 800; color: var(--blue); letter-spacing: -1px; }
+.grow-big .grow-u { margin-left: 4px; font-size: 18px; font-weight: 700; color: var(--t2); }
+.grow-big .tiny { display: block; margin-bottom: 4px; }
+.grow-big p { margin: 6px 0 0; font-size: 14px; color: var(--t2); }
+.grow-wk { display: grid; gap: 6px; }
+.grow-bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; height: 96px; }
+.grow-bar { display: grid; grid-template-rows: 1fr auto; gap: 4px; text-align: center; }
+.grow-bar i { align-self: end; display: block; border-radius: 6px 6px 3px 3px; background: #d6e6fd; }
+.grow-bar.on i { background: var(--blue); }
+.grow-bar span { font-size: 12px; color: var(--t3); }
+.grow-ts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
+.grow-t { display: grid; gap: 2px; padding: 12px 14px; border-radius: 14px; background: var(--fill2); }
+.grow-t b { font-size: 22px; font-weight: 800; }
+.grow-next { margin-top: 16px; padding: 14px 16px; border-radius: 14px; background: var(--blue-soft); font-size: 14px; }
+.grow-bd { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.grow-b { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px 4px 6px; border-radius: 99px; background: var(--fill); font-size: 12px; color: var(--t4); filter: grayscale(1); opacity: .6; }
+.grow-b em { font-style: normal; font-weight: 600; }
+.grow-b .ic, .grow-b img { width: 16px; height: 16px; }
+.grow-b.on { filter: none; opacity: 1; background: #fff8e6; color: var(--t1); }
+@media (max-width: 720px) { .grow-top { grid-template-columns: 1fr; } .grow-ts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

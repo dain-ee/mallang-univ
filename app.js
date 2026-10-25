@@ -356,7 +356,7 @@
     const sgbc = sgbSummary('c6');
     const main = `<h1 class="h1">${bdayLeft() === 0 ? `${ic('party')} <mark class="hl-g">${nameCall()}</mark>, 생일 축하해` : `<mark class="hl-g">${nameCall()}</mark>, ${greet()}`}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${missCard()}${hero}${pos}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}</div>`;
+      <div class="grid">${missCard()}${hero}${pos}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}</div>`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -367,6 +367,49 @@
   // 오늘 남은 것: 홈 문구 · 숙제 탭 배지 · 숙제 탭 맨 위 단추가 모두 이 목록 하나를 써요
   function leftItems() {
     return todayTasks().tasks.filter((t) => !t.done && t.icon !== 'party' && !t.memo).map((t) => ({ t: t.t, ic: t.icon, task: t.k, hw: t.hw }));
+  }
+  // 내가 쌓아 온 것: 지금까지 푼 문제·공부한 날·연속·배지 (포기하지 않게, 쌓인 게 눈에 보이게)
+  function growStats() {
+    const day = {}, add = (d, n) => { if (d && n > 0) day[d] = (day[d] || 0) + n; };
+    let math = 0, eng = 0, sci = 0, pages = 0;
+    for (const it of myS().items) for (const [d, x] of Object.entries(it.log || {})) { if (it.unit === '건' || !x.n) continue; if (it.unit === '쪽') { pages += x.n; add(d, 1); continue; } if (/수학/.test(myCls(it.cls).name) || MB_ID(it.book)) math += x.n; add(d, x.n); }
+    for (const [d, v] of Object.entries((S.sci || {}).days || {})) { const n = Object.keys(v.ans || {}).length; sci += n; add(d, n); }
+    for (const [d, v] of Object.entries((S.eng || {}).days || {})) { const n = Object.keys(v.uans || {}).length + Object.keys(v.wans || {}).length; eng += n; add(d, n); }
+    const L = W().log, act = new Set([...Object.keys(day), ...L.filter((x) => !String(x.key).startsWith('badge') && !String(x.key).startsWith('bonus')).map((x) => x.date)]);
+    let st = 0, d = act.has(today()) ? today() : addD(today(), -1); while (act.has(d)) { st++; d = addD(d, -1); }
+    const wr = Object.values(S.wrong || {}).filter((x) => x.cleared).length + myS().items.reduce((a, it) => a + (it.redo || []).length, 0);
+    const keys = (p) => new Set(L.filter((x) => String(x.key).startsWith(p)).map((x) => x.key)).size;
+    const wk = (o) => { let n = 0; for (let i = 0; i < 7; i++) n += day[addD(today(), -i - o)] || 0; return n; };
+    return { day, math, eng, sci, pages, all: math + eng + sci, days: act.size, st, wr, ink: keys('ink:'), news: keys('news:'), min: Object.values(pomo().days || {}).reduce((a, x) => a + (x.min || 0), 0), money: L.reduce((a, x) => a + (x.amt || 0), 0), w0: wk(0), w1: wk(7) };
+  }
+  const GROW_MS = [
+    { id: 'g-p50', k: 'all', n: 50, i: 'pencil', t: '문제 50개' }, { id: 'g-p100', k: 'all', n: 100, i: 'hundred', t: '문제 100개' }, { id: 'g-p300', k: 'all', n: 300, i: 'books', t: '문제 300개' }, { id: 'g-p500', k: 'all', n: 500, i: 'glow', t: '문제 500개' }, { id: 'g-p1000', k: 'all', n: 1000, i: 'trophy', t: '문제 1000개' }, { id: 'g-p3000', k: 'all', n: 3000, i: 'crown', t: '문제 3000개' },
+    { id: 'g-m100', k: 'math', n: 100, i: 'math', t: '수학 100문제' }, { id: 'g-m500', k: 'math', n: 500, i: 'math', t: '수학 500문제' }, { id: 'g-m1000', k: 'math', n: 1000, i: 'gold', t: '수학 1000문제' },
+    { id: 'g-s3', k: 'st', n: 3, i: 'fire', t: '3일 연속' }, { id: 'g-s7', k: 'st', n: 7, i: 'fire', t: '7일 연속' }, { id: 'g-s30', k: 'st', n: 30, i: 'fire', t: '30일 연속' },
+    { id: 'g-d10', k: 'days', n: 10, i: 'cal', t: '공부한 날 10일' }, { id: 'g-d50', k: 'days', n: 50, i: 'cal', t: '공부한 날 50일' }, { id: 'g-d100', k: 'days', n: 100, i: 'herb', t: '공부한 날 100일' },
+    { id: 'g-w10', k: 'wr', n: 10, i: 'target', t: '오답 10개 정복' }, { id: 'g-w50', k: 'wr', n: 50, i: 'target', t: '오답 50개 정복' },
+  ];
+  // 처음 켤 땐 이미 넘은 배지를 조용히 채워 두고, 그다음부터 새로 넘을 때만 크게 축하해요
+  function growCheck(g) {
+    S.party = S.party || {}; const fresh = GROW_MS.filter((m) => g[m.k] >= m.n && !S.party['ms:' + m.id]); if (!fresh.length) return;
+    fresh.forEach((m) => (S.party['ms:' + m.id] = Date.now())); save('party');
+    if (!S.party.msInit) { S.party.msInit = Date.now(); save('party'); return; }
+    if (TEACHER) return;
+    setTimeout(() => badgePop(fresh.map((m) => ({ id: m.id, w: 300, i: m.i, t: m.t, d: '지금까지 쌓은 게 여기까지 왔어요' }))), 1200);
+  }
+  function growCard(cls) {
+    const g = growStats(); growCheck(g);
+    const next = GROW_MS.filter((m) => g[m.k] < m.n).sort((a, b) => a.n - g[a.k] - (b.n - g[b.k]))[0];
+    const D7 = Array.from({ length: 7 }, (_, i) => addD(today(), i - 6)), mx = Math.max(5, ...D7.map((d) => g.day[d] || 0));
+    const csat = Math.floor(g.all / 45), up = g.w1 ? Math.round(((g.w0 - g.w1) / g.w1) * 100) : null;
+    const line = !g.all ? '오늘 한 문제부터 시작해요. 쌓이는 게 여기 다 보여요' : up != null && up > 0 ? `지난주보다 ${up}% 더 했어요. 이 속도면 충분해요` : g.st >= 3 ? `${g.st}일째 이어 가고 있어요. 오늘도 하나만 더` : csat ? `수능 국어 한 회가 45문제예요. 벌써 ${csat}회 분량을 풀었어요` : '조금씩이라도 매일이 제일 세요';
+    const T = [['math', '수학 문제', g.math, '문제'], ['eng', '영어 문장·단어', g.eng, '개'], ['sci', '과학 문제', g.sci, '문제'], ['wr', '다시 맞힌 오답', g.wr, '개'], ['days', '공부한 날', g.days, '일'], ['min', '집중한 시간', Math.round(g.min / 6) / 10, '시간'], ['ink', '들은 인강', g.ink, '강'], ['news', '읽은 기사', g.news, '개']];
+    return `<section class="card ${cls} grow"><div class="card-h"><h2>${ic('trophy')} 정윤이가 쌓아 온 것</h2>${g.st ? `<span class="grow-st">${ic('fire')} ${g.st}일 연속</span>` : ''}</div>
+      <div class="grow-top"><div class="grow-big"><span class="tiny">지금까지 푼 문제</span><b class="num">${g.all}</b><span class="grow-u">문제</span><p>${esc(line)}</p></div>
+        <div class="grow-wk"><div class="grow-bars">${D7.map((d) => { const n = g.day[d] || 0; return `<div class="grow-bar ${d === today() ? 'on' : ''}"><i style="height:${Math.max(n ? 8 : 3, Math.round((n / mx) * 100))}%"></i><span>${DOW[dowOf(d)]}</span></div>`; }).join('')}</div><span class="tiny">이번 주 ${g.w0}문제${g.w1 ? ` · 지난주 ${g.w1}문제` : ''}</span></div></div>
+      <div class="grow-ts">${T.filter((x) => x[2] > 0).map(([k, t, v, u]) => `<div class="grow-t"><span class="tiny">${t}</span><b class="num">${v}</b><span class="tiny">${u}</span></div>`).join('')}</div>
+      ${next ? `<div class="grow-next"><div class="row between"><span>다음 배지 <b>${esc(next.t)}</b></span><span class="tiny">${next.n - g[next.k]}${next.k === 'st' || next.k === 'days' ? '일' : '개'} 남았어요</span></div><div class="ik-bar" style="height:8px;margin-top:8px"><i style="width:${Math.round((g[next.k] / next.n) * 100)}%"></i></div></div>` : ''}
+      <div class="grow-bd">${GROW_MS.map((m) => `<span class="grow-b ${g[m.k] >= m.n ? 'on' : ''}" title="${esc(m.t)}">${ic(m.i)}<em>${esc(m.t)}</em></span>`).join('')}</div></section>`;
   }
   // 홈 제목 아래 한 줄: 오늘 꼭 할 일 몇 개 끝냈는지 · 기말까지
   function homeLine() {
@@ -2816,7 +2859,7 @@
   // 큰 숫자는 0부터 세어 올라가요 (토스 금액처럼)
   function countUp(root) {
     if (RM()) return;
-    $$(':is(.done-score b, .arch .c b, .scorebox b, .stat-row b, .sgb-area .a b)', root).forEach((el) => {
+    $$(':is(.grow-big b, .grow-t b, .done-score b, .arch .c b, .scorebox b, .stat-row b, .sgb-area .a b)', root).forEach((el) => {
       const t = [...el.childNodes].find((n) => n.nodeType === 3 && /\d/.test(n.nodeValue)); if (!t || el.closest('.page-ghost') || /등급/.test(el.parentNode.textContent)) return;  // 등급은 0부터 세면 이상해요
       if (el.dataset.cu) return; // 이미 세는 중이거나 센 숫자 — 다시 세면 중간값을 끝값으로 읽어요
       const m = t.nodeValue.match(/^(\s*)(\d+(?:\.\d+)?)(?![\d,])([\s\S]*)$/); if (!m || !+m[2]) return;
