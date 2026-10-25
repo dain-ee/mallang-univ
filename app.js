@@ -481,14 +481,14 @@
   const ebTx = (c) => ebMemo(c.tx, () => ebGet(c.tx).then((u) => new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'))).json()).then((j) => { const o = {}; for (const [n, lines] of Object.entries(j)) { const W = []; lines.forEach(([y0, y1, f], l) => { for (let i = 0; i < f.length; i += 3) W.push({ x0: f[i], x1: f[i + 1], y0, y1, t: f[i + 2], l }); }); o[n] = W; } return o; }));
   const bkMarks = (cid, n) => Object.entries(bkS().marks).filter(([, m]) => m.c === cid && m.p === n);
   const bkProg = (b) => { const all = b.ch.filter((c) => !c.ref).flatMap((c) => c.pages.map((p) => `${b.id}:${p.n}`)); const seen = all.filter((k) => bkS().seen[k]).length; return { seen, all: all.length, pct: all.length ? Math.round((seen / all.length) * 100) : 0 }; };
-  const BK_IC = { hist: 'scroll', sci: 'sci', eng: 'eng' };
+  const BK_IC = { hist: 'scroll', sci: 'sci', eng: 'eng', eng2: 'books' };
   function bookCard() {
     if (!EB.books.length) return '';
     const s = bkS(), M = Object.values(s.marks), n = M.length, qn = M.filter((m) => m.q).length, qa = M.filter((m) => m.q && (TEACHER ? !m.ans : m.ans && !m.ansSeen)).length, ln = M.filter((m) => m.later).length + Object.keys(s.pin).length;
     const book = (b) => { const p = bkProg(b), last = s.last[b.id]; return `<button class="lib-it bk-it" data-book="${b.id}" type="button"><span class="ico">${ic(BK_IC[b.id] || 'books')}</span><b>${esc(b.title)}</b><span class="tiny">${esc(b.pub)}</span><span class="bk-rg">${esc(b.range)}</span><span class="bk-pr"><i style="width:${p.pct}%"></i></span><span class="tiny">${p.seen ? `${p.pct}% 읽음${last ? ` · ${last.n}쪽부터` : ''}` : `${p.all}쪽 · 처음부터 읽기`}</span></button>`; };
     const row = (k, icn, t, d, cnt, red) => `<div class="li btnlike" data-bklist="${k}"><div class="ico">${ic(icn)}</div><div class="body"><div class="t">${t}</div><div class="d">${d}</div></div>${cnt ? `<span class="tag ${red ? 'red' : 'blue'}">${cnt}</span>` : ''}</div>`;
     return `<section class="card c8"><div class="card-h"><h2>시험 범위 책</h2><span class="tiny">기말고사 <b class="blue">D-${dday(EB_EXAM)}</b> · ${md(EB_EXAM)}부터</span></div>
-      <div class="lib-grid bk-grid">${EB.books.map(book).join('')}<div class="lib-it bk-it soon"><span class="ico">${ic('eng')}</span><b>공통영어2</b><span class="tiny">능률 · 민병천</span><span class="bk-rg">Lesson 3~4 · 부교재</span><span class="tiny">준비 중이에요</span></div></div></section>
+      <div class="lib-grid bk-grid">${EB.books.map(book).join('')}</div></section>
       <section class="card c4"><div class="card-h"><h2>내 표시</h2></div><div class="list">${row('all', 'pencil', '칠한 곳', n ? `형광펜·밑줄 ${n}곳` : '단어를 끌어서 칠해요', n)}${row('later', 'star', '나중에 다시 보기', ln ? `${ln}곳 모아 뒀어요` : '☆ 를 누르면 모여요', ln)}${row('q', 'q', TEACHER ? '학생 질문' : '선생님께 질문', TEACHER ? (qa ? `답할 질문 ${qa}개` : qn ? '다 답했어요' : '아직 없어요') : qa ? `새 답 ${qa}개` : qn ? `질문 ${qn}개` : '칠한 곳을 눌러 물어봐요', qa, true)}</div></section>`;
   }
   // ───────── 기말 범위: 학교 교과서 목록으로 출판사를 미리 채우고, 범위는 학생이 들은 대로 적어요 ─────────
@@ -496,7 +496,7 @@
   const EX_DEF = [
     ['kor', '공통국어2', '천재교과서 · 김수학', ''],
     ['math', '공통수학2', '비상교육 · 김원경', '평가계획서에는 Ⅲ. 함수 (유리함수·무리함수)까지'],
-    ['eng', '공통영어2', '능률 · 민병천', 'Lesson 3~4 + 부교재 올림포스 영어독해의 기본2 (1~2강인지 1~3강인지 확인)'],
+    ['eng', '공통영어2', '능률 · 민병천', '교과서 Lesson 3~4 (1년 통틀어 7~8과) + 부교재 올림포스 영어독해의 기본2 3강이나 4강부터 (어디까지인지 확인)'],
     ['soc', '통합사회2', '지학사 · 안재섭', ''],
     ['hist', '한국사2', '동아출판 · 노대환', 'Ⅱ. 대한민국의 발전 ~ Ⅲ. 오늘날의 대한민국 (70~157쪽)'],
     ['sci', '통합과학2', '비상교육 · 심규철', '화학 중화 반응부터 (42~59쪽) · 물리 발전기와 전력, 신재생 에너지 (88~109쪽)'],

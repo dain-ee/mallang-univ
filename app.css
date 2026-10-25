@@ -1063,7 +1063,7 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .gs-step b small { font-size: 13px; margin-left: 2px; font-weight: 600; }
 
 /* 기말 교과서 e-book */
-.bk-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+.bk-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 .bk-it { gap: 2px; }
 .bk-it .ico { margin-bottom: 8px; }
 .bk-it.soon { cursor: default; color: var(--t3); }
