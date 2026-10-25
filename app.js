@@ -985,6 +985,38 @@
       $$('[data-mbk]', el).forEach((b) => (b.onclick = () => open(b.dataset.mbk)));
     });
   }
+  // 문제집 오답 다시 풀기: 모의고사 지문 화면처럼 왼쪽 문제 · 오른쪽 풀이. 맞히면 다음 오답으로 바로 넘어가요
+  const mbwList = () => myS().items.filter((it) => MB_ID(it.book)).flatMap((it) => (it.wrong || []).map((v) => ({ id: it.id, v: String(v) })));
+  function mbwGo(id, v, k) { UI.run = { kind: 'mbw', id, v: String(v), k: k || null, back: UI.run && UI.run.kind === 'mbw' ? UI.run.back : UI.tab }; render(); scrollTo(0, 0); }
+  function mbwRun() {
+    const r = UI.run, it = myS().items.find((x) => x.id === r.id), L = mbwList(), i = L.findIndex((x) => x.id === r.id && x.v === r.v);
+    const head = `<div class="row between"><button class="btn sm" data-go="${esc(r.back || 'wrong')}" type="button">‹ 돌아가기</button><span class="tiny">${L.length ? (i >= 0 ? `오답 ${i + 1} / ${L.length}` : `남은 오답 ${L.length}개`) : '남은 오답이 없어요'}</span></div>`;
+    if (!it) return `<div class="qwrap">${head}</div>`;
+    const bk = EB.books.find((x) => x.id === MB_ID(it.book)), sb = bk && (EB.sol || []).find((x) => x.id === bk.id + '-s'), keys = bk ? mbKeys(it, r.v) : [], k = r.k || (keys.length === 1 ? keys[0] : null);
+    const wrong = (it.wrong || []).includes(+r.v), nx = L.length ? L[(i + 1) % L.length] : null, pv = i > 0 ? L[i - 1] : null;
+    const btns = `<button class="btn primary big block" id="mbw-ok" type="button">${wrong ? '다시 풀어서 맞혔어요' : '다시 틀렸어요'}</button>
+      <div class="row" style="gap:8px;margin-top:8px">${pv ? `<button class="btn big" style="flex:1" type="button" data-mbw="${esc(pv.id)}:${esc(pv.v)}">‹ 이전</button>` : ''}${nx && !(nx.id === r.id && nx.v === r.v) ? `<button class="btn big" style="flex:1" type="button" data-mbw="${esc(nx.id)}:${esc(nx.v)}">다음 오답 ›</button>` : ''}</div>`;
+    const top = `${head}<div class="mbw-h"><h2>${esc(r.v)}번 다시 풀기</h2><span class="tag">${esc(bk ? bk.title : it.book)}</span>${k && k !== String(r.v).padStart(4, '0') ? `<span class="tiny">${esc(k)}</span>` : ''}</div>`;
+    if (!k && keys.length > 1) return `<div class="qwrap" style="max-width:720px;margin:0 auto">${top}<p class="sub">이 책은 단원마다 번호가 다시 시작해요. 어느 단원이에요?</p><div class="card tight"><div class="list">${keys.map((x) => `<button type="button" class="li btnlike" data-mbk="${esc(x)}"><div class="body"><div class="t">${esc(x)}</div><div class="d">${bk.q[x][0]}쪽</div></div><span class="chev"></span></button>`).join('')}</div></div></div>`;
+    const c = k && mbCrop(bk, k), sc = k && sb && mbCrop(sb, k);
+    if (!c) return `<div class="qwrap" style="max-width:720px;margin:0 auto">${top}<div class="empty">${ic('think')}<b>이 번호는 문제집에서 못 찾았어요</b><span>책을 펴서 풀고 맞혔으면 아래를 눌러요</span></div>${btns}</div>`;
+    return `<div class="qwrap mbw" style="max-width:1200px;margin:0 auto">${top}<div class="split mbw-split">
+      <div class="psg" aria-label="문제"><div class="psg-h">문제 <span class="tiny">${c.p}쪽</span></div>${mbCut(c, 'mbw-q')}<button class="btn sm" id="mbw-pg" type="button" style="margin-top:8px">쪽 전체 보기</button></div>
+      <div class="qside">${btns}<div class="card mbw-sol"><div class="psg-h" style="padding:0 0 8px">${bk.id === 'mdt' ? '정답' : '풀이'}</div>${sc ? mbCut(sc, 'mbw-s') : '<p class="tiny">풀이 자리를 못 찾았어요</p>'}</div></div></div></div>`;
+  }
+  function bindMbw() {
+    const r = UI.run, it = myS().items.find((x) => x.id === r.id); if (!it) return;
+    const bk = EB.books.find((x) => x.id === MB_ID(it.book)), sb = bk && (EB.sol || []).find((x) => x.id === bk.id + '-s'), keys = bk ? mbKeys(it, r.v) : [], k = r.k || (keys.length === 1 ? keys[0] : null);
+    const c = k && mbCrop(bk, k), sc = k && sb && mbCrop(sb, k);
+    if (c) ebImg(c.pg.f).then((u) => { const im = $('#mbw-q'); if (im) im.src = u; });
+    if (sc) ebImg(sc.pg.f).then((u) => { const im = $('#mbw-s'); if (im) im.src = u; });
+    $$('[data-mbk]').forEach((b) => (b.onclick = () => { UI.run.k = b.dataset.mbk; render(); }));
+    $$('[data-mbw]').forEach((b) => (b.onclick = () => { const [id, v] = b.dataset.mbw.split(':'); mbwGo(id, v); }));
+    const pg = $('#mbw-pg'); if (pg) pg.onclick = () => bookOpen(bk.id, null, c.p);
+    $('#mbw-ok').onclick = () => { const was = (it.wrong || []).includes(+r.v), i = mbwList().findIndex((x) => x.id === r.id && x.v === r.v); myWrongFlip(it, +r.v); if (!was) return render();
+      const L = mbwList(); if (!L.length) { UI.run = null; UI.tab = r.back || 'wrong'; toast('오답을 다 맞혔어요!'); render(); return; }
+      const after = L[i] || L[0]; setTimeout(() => mbwGo(after.id, after.v), 500); };
+  }
   function myWrongFlip(it, n) {
     if ((it.wrong || []).includes(n)) { it.wrong = it.wrong.filter((x) => x !== n); it.redo = [...(it.redo || []), n]; earn('myw:' + it.id + ':' + n, 50, '학원 오답 다시 맞힘'); toast('맞혔어요! 50원'); }
     else { it.redo = (it.redo || []).filter((x) => x !== n); it.wrong = [...(it.wrong || []), n].sort((a, c) => a - c); }
@@ -2895,7 +2927,7 @@
     let html = '';
     syncGoals();
     redoFix();
-    if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : '';
+    if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : '';
     else html = UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'picks' ? picksView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
     const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '');
@@ -2973,7 +3005,7 @@
       else if (k === 'did') { it.log[d] = { n: +was, at: Date.now() }; toast(`${md(d)}에 ${was}${u} 한 걸로 적었어요`); }
       else toast(`남은 날에 다시 나눴어요 · 오늘은 ${myToday(it).n}${u}`);
       save('my'); render(); }));
-    $$('[data-mw]').forEach((b) => (b.onclick = () => { const [id, v] = b.dataset.mw.split(':'); mbSheet(id, v); }));
+    $$('[data-mw]').forEach((b) => (b.onclick = () => { const [id, v] = b.dataset.mw.split(':'); const it = myS().items.find((x) => x.id === id); if (it && MB_ID(it.book)) mbwGo(id, v); else mbSheet(id, v); }));
     $$('[data-news]').forEach((b) => (b.onclick = () => newsSheet(b.dataset.news)));
     $$('[data-day]').forEach((b) => (b.onclick = () => daySheet(b.dataset.day)));
     $$('#w-sched').forEach((b) => (b.onclick = () => schedSheet()));
@@ -3001,7 +3033,7 @@
     const sn = $('#sg-new'); if (sn) sn.onclick = () => sgbSheet(null);
     $$('#sg-pick, #sg-pick2').forEach((b) => (b.onclick = () => pickSheet(UI.sgbArea)));
     $$('[data-sg]').forEach((b) => (b.onclick = () => sgbSheet(b.dataset.sg)));
-    if (UI.run) { if (UI.run.kind === 'sci') bindSci(); if (UI.run.kind === 'unit') bindUnit(); if (UI.run.kind === 'words') bindWords(); if (UI.run.kind === 'retry') bindRetry(); if (UI.run.kind === 'g3') bindG3(); if (UI.run.kind === 'drill') bindDrill(); if (UI.run.kind === 'concept') bindConcept(); if (UI.run.kind === 'book') bindBook(); if (UI.run.kind === 'pomo') { bindPomo(); bindSound(); } }
+    if (UI.run) { if (UI.run.kind === 'sci') bindSci(); if (UI.run.kind === 'unit') bindUnit(); if (UI.run.kind === 'words') bindWords(); if (UI.run.kind === 'retry') bindRetry(); if (UI.run.kind === 'g3') bindG3(); if (UI.run.kind === 'drill') bindDrill(); if (UI.run.kind === 'concept') bindConcept(); if (UI.run.kind === 'book') bindBook(); if (UI.run.kind === 'mbw') bindMbw(); if (UI.run.kind === 'pomo') { bindPomo(); bindSound(); } }
     $$('main [data-bell]').forEach((b) => (b.onclick = toggleBell));
     $$('[data-pomo]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); openPomo(); }));
     $$('main [data-wallet]').forEach((b) => (b.onclick = openWallet));

@@ -1460,3 +1460,13 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
   .nt-from { flex-wrap: wrap; }
   .nt-from .btn { width: 100%; }
 }
+/* 문제집 오답: 왼쪽 문제 · 오른쪽 풀이 */
+.mbw-split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+@media (max-width: 720px) { .mbw-split { grid-template-columns: 1fr; } .mbw-split .psg { position: static; max-height: none; box-shadow: none; } }
+.mbw-split .psg { padding: 0 16px 16px; }
+.mbw-sol { margin: 0 0 12px; padding: 16px; }
+.mbw-split .mb-cut { border-radius: 12px; }
+.mbw-h { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin: 8px 0 0; }
+.mbw-h h2 { margin: 0; font-size: 22px; }
+.mbw .split { margin-top: 12px; }
+.mbw-sol { margin: 12px 0 0; }
