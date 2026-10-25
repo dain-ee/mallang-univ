@@ -1340,3 +1340,11 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 .my-h2 span { flex: none; display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: var(--t3); }
 .my-h2 span .ic, .my-h2 span img { width: 16px; height: 16px; }
 .my-h2:focus-within span { display: none; }
+
+.my-prev[data-rprev] { cursor: pointer; text-decoration: underline; text-decoration-color: var(--t4); text-underline-offset: 3px; }
+.my-edit { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+.my-edit summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--t2); }
+.my-ed { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
+.my-ed .my-in .inp { width: 88px; height: 44px; text-align: center; font-size: 16px; font-weight: 700; }
+.my-ed input[type=date] { width: 160px; height: 44px; }
+.my-ed .btn { margin-left: auto; }
