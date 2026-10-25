@@ -65,7 +65,7 @@
     : `<span class="emb ${size}" style="background:${esc(u.color)}">${esc((u.short || u.name).replace(/대학교|대$/, '').slice(0, 3))}</span>`;
 
   // ───────── 상태 ─────────
-  const blank = () => ({ profile: { name: U.who, school: (D.school && D.school.name) || '경화여자고등학교', grade: 1, cls: '', uni: '', major: '생명공학과', goalMock: 2, goalNaesin: 2 }, mock: {}, mockManual: [], naesin: {}, sci: { days: {} }, eng: { unit: 0, wordDay: 0, days: {} }, wrong: {}, hw: [], sgb: [], pomo: { days: {}, goal: 4 }, wallet: { log: [], paid: [], req: null, seen: {} }, _at: {} });
+  const blank = () => ({ profile: { name: U.who, school: (D.school && D.school.name) || '경화여자고등학교', grade: 1, cls: '', uni: '', major: '생명공학과', goalMock: 2, goalNaesin: 2 }, mock: {}, mockManual: [], naesin: {}, sci: { days: {} }, eng: { unit: 0, wordDay: 0, days: {} }, wrong: {}, hw: [], sgb: [], pomo: { days: {}, goal: 4 }, wallet: { log: [], paid: [], req: null, seen: {} }, book: { marks: {}, seen: {}, pin: {}, last: {} }, _at: {} });
   let S = blank();
   try { const l = JSON.parse(localStorage.getItem(KEY)); if (l) S = Object.assign(blank(), l); } catch (e) {}
   const UI = { tab: 'home', view: null, scoreSeg: 'mock', mockId: null, mockSubj: 'kor', wrongSubj: 'all', chartSubj: 'avg', run: null, sgbArea: 'all', semester: '1-2', newsAll: false };
@@ -465,6 +465,163 @@
   }
 
   // ───────── 숙제 탭 ─────────
+  // ───────── 기말 교과서 e-book: 쪽 그림 위에 단어 위치를 겹쳐 형광펜·밑줄·질문·나중에 보기 ─────────
+  const EB = D.ebook || { books: [] };
+  const EB_EXAM = ((D.events || []).find((e) => /기말/.test(e.title || '') && e.date >= '2026-11-01') || {}).date || '2026-12-10';
+  const bkS = () => { S.book = S.book || {}; S.book.marks = S.book.marks || {}; S.book.seen = S.book.seen || {}; S.book.pin = S.book.pin || {}; S.book.last = S.book.last || {}; return S.book; };
+  const ebFind = (cid) => { for (const b of EB.books) { const c = b.ch.find((x) => x.id === cid); if (c) return { b, c }; } return null; };
+  let ebKeyP = null;
+  const ebKey = () => ebKeyP || (ebKeyP = crypto.subtle.importKey('raw', new Uint8Array(EB.key.match(/../g).map((x) => parseInt(x, 16))), 'AES-CTR', false, ['decrypt']));
+  async function ebGet(f) { const r = await fetch(f); if (!r.ok) throw new Error(f); const buf = new Uint8Array(await r.arrayBuffer()); return new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-CTR', counter: buf.slice(0, 16), length: 64 }, await ebKey(), buf.slice(16))); }
+  const ebC = new Map();
+  const ebMemo = (k, fn) => { if (!ebC.has(k)) ebC.set(k, fn().catch((e) => { ebC.delete(k); throw e; })); return ebC.get(k); };
+  const ebImg = (f) => ebMemo(f, () => ebGet(f).then((u) => URL.createObjectURL(new Blob([u], { type: 'image/webp' }))));
+  // 한 단원의 쪽별 단어: [{x0,x1,y0,y1,t,l}] (쪽 크기 대비 0~10000, l = 줄 번호)
+  const ebTx = (c) => ebMemo(c.tx, () => ebGet(c.tx).then((u) => new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'))).json()).then((j) => { const o = {}; for (const [n, lines] of Object.entries(j)) { const W = []; lines.forEach(([y0, y1, f], l) => { for (let i = 0; i < f.length; i += 3) W.push({ x0: f[i], x1: f[i + 1], y0, y1, t: f[i + 2], l }); }); o[n] = W; } return o; }));
+  const bkMarks = (cid, n) => Object.entries(bkS().marks).filter(([, m]) => m.c === cid && m.p === n);
+  const bkProg = (b) => { const all = b.ch.filter((c) => !c.ref).flatMap((c) => c.pages.map((p) => `${b.id}:${p.n}`)); const seen = all.filter((k) => bkS().seen[k]).length; return { seen, all: all.length, pct: all.length ? Math.round((seen / all.length) * 100) : 0 }; };
+  const BK_IC = { hist: 'scroll', sci: 'sci', eng: 'eng' };
+  function bookCard() {
+    if (!EB.books.length) return '';
+    const s = bkS(), n = Object.keys(s.marks).length, qn = Object.values(s.marks).filter((m) => m.q && !m.ans).length, ln = Object.values(s.marks).filter((m) => m.later).length + Object.keys(s.pin).length;
+    return `<section class="card c12 bk-card"><div class="card-h"><h2>시험 범위 책</h2><span class="tiny">기말고사 <b class="blue">D-${dday(EB_EXAM)}</b> · ${md(EB_EXAM)}부터 · 시험 범위만 담았어요</span></div>
+      <div class="bk-books">${EB.books.map((b) => { const p = bkProg(b), last = s.last[b.id], lc = last && ebFind(last.c); return `<button type="button" class="bk-b" data-book="${b.id}"><span class="bk-ic">${ic(BK_IC[b.id] || 'books')}</span><span class="bk-bt"><b>${esc(b.title)}</b><span class="tiny">${esc(b.pub)}</span><span class="bk-rg">${esc(b.range)}</span><span class="bk-pr"><i style="width:${p.pct}%"></i></span><span class="tiny">${p.seen ? `${p.pct}% 읽음${lc ? ` · ${last.n}쪽부터 이어 읽기` : ''}` : `${p.all}쪽 · 처음부터 읽기`}</span></span></button>`; }).join('')}
+        <div class="bk-b soon"><span class="bk-ic">${ic('eng')}</span><span class="bk-bt"><b>공통영어2</b><span class="tiny">능률 · 민병천</span><span class="bk-rg">Lesson 3~4 · 부교재</span><span class="tiny">준비 중이에요</span></span></div></div>
+      <div class="bk-acts"><button class="btn soft" type="button" data-bklist="all">${ic('pencil')} 칠한 곳 모아 보기${n ? ` <b class="num">${n}</b>` : ''}</button><button class="btn soft" type="button" data-bklist="later">${ic('star')} 나중에 다시 보기${ln ? ` <b class="num">${ln}</b>` : ''}</button><button class="btn soft" type="button" data-bklist="q">${ic('q')} ${TEACHER ? '답할 질문' : '선생님께 질문'}${qn ? ` <b class="num red">${qn}</b>` : ''}</button></div></section>`;
+  }
+  function bookView() {
+    return `<h1 class="h1">기말 교과서</h1><p class="sub">시험 범위 교과서를 읽으면서 형광펜·밑줄을 긋고, 모르는 곳은 선생님께 물어봐요</p><div class="grid">${bookCard() || `<section class="card c12"><div class="empty">${gh('sleepy', 'gh-empty')}<b>아직 교과서가 없어요</b></div></section>`}</div>`;
+  }
+  function bookOpen(id, cid, n, mk) {
+    const b = EB.books.find((x) => x.id === id); if (!b) return;
+    const last = bkS().last[id], c = cid && ebFind(cid) ? ebFind(cid).c : null;
+    const pn = n != null ? n : c ? c.pages[0].n : last && last.n ? last.n : (b.ch.find((x) => !x.ref) || b.ch[0]).pages[0].n;
+    UI.run = { kind: 'book', b: id, n: pn, mk, back: UI.run && UI.run.kind === 'book' ? UI.run.back : UI.tab };
+    render(); window.scrollTo(0, 0);
+  }
+  // 책 한 권의 쪽을 단원 구분 없이 이어서 (넘기면 다음 단원으로 그대로 이어짐)
+  const bkPages = (b) => b.ch.flatMap((c) => c.pages.map((p) => ({ ...p, c })));
+  const bkWide = () => innerWidth >= 1100;
+  // 펼침: 짝수 쪽이 왼쪽 (교과서처럼), 바로 다음 쪽이 이어질 때만 두 쪽
+  function bkSpread(P, i) {
+    if (!bkWide()) return [i];
+    if (P[i].n % 2 && P[i - 1] && P[i - 1].n === P[i].n - 1) i -= 1;
+    return P[i + 1] && P[i + 1].n === P[i].n + 1 && P[i].n % 2 === 0 ? [i, i + 1] : [i];
+  }
+  function bookRun() {
+    const r = UI.run, b = EB.books.find((x) => x.id === r.b); if (!b) return '';
+    const P = bkPages(b), i = Math.max(0, P.findIndex((p) => p.n === r.n)), sp = bkSpread(P, i), c = P[sp[0]].c, tool = UI.bkTool || 'read';
+    const toc = b.ch.map((x) => { const sn = x.pages.filter((p) => bkS().seen[`${b.id}:${p.n}`]).length, mk = Object.values(bkS().marks).filter((m) => m.c === x.id).length; return `<button type="button" class="bk-ti ${x.id === c.id ? 'on' : ''} ${x.ref ? 'ref' : ''}" data-bkn="${x.pages[0].n}"><span class="bk-tn">${esc(x.no)}</span><span class="bk-tt">${esc(x.t)}<span class="tiny">${x.a}~${x.b}쪽${mk ? ` · 칠한 곳 ${mk}` : ''}</span></span><span class="bk-td ${sn >= x.pages.length ? 'all' : sn ? 'some' : ''}"></span></button>`; }).join('');
+    const pg = (p) => { const pin = bkS().pin[`${p.c.id}:${p.n}`]; return `<div class="bk-pg" data-pg="${p.n}" data-r="${p.r}"><img alt="${p.n}쪽" draggable="false"><div class="bk-ly" data-ly="${p.n}"></div><button type="button" class="bk-pin ${pin ? 'on' : ''}" data-pin="${p.n}" aria-label="이 쪽 나중에 다시 보기">${pin ? '★' : '☆'}</button><span class="bk-no">${p.n}쪽</span></div>`; };
+    const first = sp[0] === 0, last = sp[sp.length - 1] >= P.length - 1;
+    return `<div class="bk-wrap ${tool !== 'read' ? 'pen' : ''}">
+      <div class="bk-top"><button class="btn sm" type="button" data-bkback>‹ ${esc((TABS.find((t) => t[0] === (r.back || 'book')) || ['', '교과서'])[1])}</button><div class="bk-hd"><b>${esc(b.title)}</b><span>${esc(c.no)} ${esc(c.t)}${c.ref ? ' <span class="tag">참고</span>' : ''}</span></div><button class="btn sm" type="button" id="bk-toc">목차</button></div>
+      <aside class="bk-side"><div class="row between" style="padding:0 8px 8px"><span class="tiny">${esc(b.pub)} · ${esc(b.range)}</span><button class="btn sm" type="button" id="bk-tocx">닫기</button></div>${toc}</aside>
+      <div class="bk-stage" id="bk-stage"><button type="button" class="bk-arr l" data-turn="-1" ${first ? 'disabled' : ''} aria-label="앞 쪽">‹</button><div class="bk-spread ${sp.length > 1 ? 'two' : ''}" id="bk-spread">${sp.map((k) => pg(P[k])).join('')}</div><button type="button" class="bk-arr r" data-turn="1" ${last ? 'disabled' : ''} aria-label="다음 쪽">›</button></div>
+      <div class="bk-bar"><input type="range" class="bk-sl" id="bk-sl" min="0" max="${P.length - 1}" value="${sp[0]}" aria-label="쪽 고르기"><span class="bk-pn num">${sp.map((k) => P[k].n).join('~')}쪽 <span class="tiny">/ ${P.length}쪽 중 ${sp[sp.length - 1] + 1}</span></span></div>
+      <div class="bk-tools" role="toolbar" aria-label="읽기 도구">${[['read', '읽기'], ['hl', '형광펜'], ['ul', '밑줄']].map(([k, t]) => `<button type="button" class="bk-tl ${tool === k ? 'on' : ''}" data-tool="${k}"><i class="bk-sw ${k}"></i>${t}</button>`).join('')}<span class="bk-sep"></span><button type="button" class="bk-tl" data-bklist="all">모아 보기</button></div>
+      <p class="bk-hint">${tool === 'read' ? '옆으로 밀어 넘겨요 · 칠한 곳을 누르면 질문을 남겨요' : '단어 위를 쭉 끌어 칠해요 · 넘기려면 「읽기」'}</p></div>`;
+  }
+  function bkDraw(ly, W, cid, n, tmp) {
+    const seg = (s, e) => { const L = {}; for (let i = Math.min(s, e); i <= Math.max(s, e); i++) { const w = W[i]; if (!w) continue; const o = L[w.l] || (L[w.l] = { x0: w.x0, x1: w.x1, y0: w.y0, y1: w.y1 }); o.x0 = Math.min(o.x0, w.x0); o.x1 = Math.max(o.x1, w.x1); o.y0 = Math.min(o.y0, w.y0); o.y1 = Math.max(o.y1, w.y1); } return Object.values(L); };
+    const box = (o, cls, id, last, badge) => `<div class="bk-mk ${cls}" ${id ? `data-mk="${id}"` : ''} style="left:${o.x0 / 100 - 0.3}%;top:${o.y0 / 100 - 0.2}%;width:${(o.x1 - o.x0) / 100 + 0.6}%;height:${(o.y1 - o.y0) / 100 + 0.4}%">${last && badge ? `<span class="bk-bd">${badge}</span>` : ''}</div>`;
+    let h = '';
+    for (const [id, m] of bkMarks(cid, n)) { const sg = seg(m.s, m.e); sg.forEach((o, k) => (h += box(o, m.k + (UI.run && UI.run.mk === id ? ' flash' : ''), id, k === sg.length - 1, (m.later ? '★' : '') + (m.q ? '?' : m.note ? '✎' : '') + (m.ans ? '✓' : '')))); }
+    if (tmp) seg(tmp.s, tmp.e).forEach((o) => (h += box(o, tmp.k + ' tmp')));
+    ly.innerHTML = h;
+  }
+  // 칠한 글자: 단어 사이가 좁으면 붙여 쓰고(1945년), 넓으면 띄움, 줄이 바뀌면 띄움
+  const bkTxt = (W, a, z) => { let t = ''; for (let i = a; i <= z; i++) { const w = W[i], p = W[i - 1]; if (i > a) t += p.l !== w.l || w.x0 - p.x1 > (w.y1 - w.y0) * 0.1 ? ' ' : ''; t += w.t; } return t.slice(0, 300); };
+  function bkHit(W, x, y) {
+    let best = -1, bd = 1e9;
+    for (let i = 0; i < W.length; i++) { const w = W[i]; const dy = y < w.y0 ? w.y0 - y : y > w.y1 ? y - w.y1 : 0; const dx = x < w.x0 ? w.x0 - x : x > w.x1 ? x - w.x1 : 0; const d = dy * 4 + dx; if (d < bd) { bd = d; best = i; } }
+    return bd < 600 ? best : -1;
+  }
+  function bindBook() {
+    const r = UI.run, b = EB.books.find((x) => x.id === r.b); if (!b) return;
+    const s = bkS(), P = bkPages(b), i0 = Math.max(0, P.findIndex((p) => p.n === r.n)), sp = bkSpread(P, i0);
+    s.last[b.id] = { c: P[sp[0]].c.id, n: P[sp[0]].n };
+    const go = (n, dir) => { if (n === r.n) return; UI.run = { ...r, n, mk: null, dir }; const y = scrollY; render(); window.scrollTo(0, y); };
+    const turn = (d) => { const k = d > 0 ? sp[sp.length - 1] + 1 : sp[0] - 1; if (P[k]) go(P[k].n, d); };
+    $('[data-bkback]').onclick = () => { UI.run = null; UI.tab = r.back || 'book'; document.onkeydown = null; render(); };
+    $$('[data-bkn]').forEach((x) => (x.onclick = () => go(+x.dataset.bkn, 0)));
+    $('#bk-toc').onclick = () => $('.bk-side').classList.toggle('open');
+    $('#bk-tocx').onclick = () => $('.bk-side').classList.remove('open');
+    $$('[data-turn]').forEach((x) => (x.onclick = () => turn(+x.dataset.turn)));
+    const sl = $('#bk-sl'); sl.oninput = () => { $('.bk-pn').firstChild.textContent = `${P[+sl.value].n}쪽 `; }; sl.onchange = () => go(P[+sl.value].n, 0);
+    document.onkeydown = (e) => { if (!UI.run || UI.run.kind !== 'book' || $('.sheet') || /INPUT|TEXTAREA/.test((document.activeElement || {}).tagName)) return; if (e.key === 'ArrowRight') turn(1); if (e.key === 'ArrowLeft') turn(-1); };
+    $$('[data-tool]').forEach((x) => (x.onclick = () => { UI.bkTool = x.dataset.tool; render(); }));
+    $$('[data-pin]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); const p = P.find((q) => q.n === +x.dataset.pin), k = `${p.c.id}:${p.n}`; if (s.pin[k]) delete s.pin[k]; else s.pin[k] = Date.now(); save('book'); const on = !!s.pin[k]; x.classList.toggle('on', on); x.textContent = on ? '★' : '☆'; toast(on ? `${p.n}쪽을 나중에 다시 볼게요` : '뺐어요'); }));
+    // 화면에 꼭 맞게 쪽 크기 정하기
+    const stage = $('#bk-stage'), spread = $('#bk-spread');
+    const fit = () => { if (!stage.isConnected) { removeEventListener('resize', fit); return; } const pgs = $$('.bk-pg', spread), W = stage.clientWidth - (bkWide() ? 112 : 0), H = Math.max(320, innerHeight - stage.getBoundingClientRect().top - (innerWidth < 900 ? 230 : 150)); for (const pg of pgs) { const rr = +pg.dataset.r, w = Math.min(W / pgs.length, H / rr); pg.style.width = w + 'px'; pg.style.height = w * rr + 'px'; } };
+    fit(); addEventListener('resize', fit);
+    if (r.dir && !RM()) { spread.classList.add(r.dir > 0 ? 'in-r' : 'in-l'); r.dir = 0; }
+    // 쪽 그림·글자 불러오기 (앞뒤 쪽은 미리)
+    for (const k of sp) {
+      const p = P[k], pg = $(`.bk-pg[data-pg="${p.n}"]`);
+      ebImg(p.f).then((u) => { const im = $('img', pg); im.onload = () => pg.classList.add('ok'); im.src = u; }).catch(() => pg.classList.add('err'));
+      ebTx(p.c).then((T) => { pg.W = T[p.n] || []; bkDraw($('.bk-ly', pg), pg.W, p.c.id, p.n); });
+    }
+    for (const k of [sp[0] - 2, sp[0] - 1, sp[sp.length - 1] + 1, sp[sp.length - 1] + 2]) if (P[k]) ebImg(P[k].f).catch(() => {});
+    clearTimeout(bindBook.seen); bindBook.seen = setTimeout(() => { let ch = false; for (const k of sp) { const key = `${b.id}:${P[k].n}`; if (!s.seen[key]) { s.seen[key] = 1; ch = true; } } if (ch) save('book'); }, 1200);
+    // 밀어서 넘기기 (읽기 모드)
+    let sw = null;
+    stage.onpointerdown = (e) => { if ((UI.bkTool || 'read') !== 'read' || e.target.closest('[data-mk],button,input') || e.pointerType === 'mouse' && e.button) return; sw = { x: e.clientX, y: e.clientY, id: e.pointerId }; };
+    stage.onpointermove = (e) => { if (!sw || e.pointerId !== sw.id) return; const dx = e.clientX - sw.x, dy = e.clientY - sw.y; if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) spread.style.transform = `translateX(${dx * 0.6}px)`; };
+    stage.onpointerup = stage.onpointercancel = (e) => { if (!sw) return; const dx = e.clientX - sw.x, dy = e.clientY - sw.y; sw = null; spread.style.transform = ''; if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.3) turn(dx < 0 ? 1 : -1); };
+    // 칠하기
+    $$('.bk-ly').forEach((ly) => {
+      const pg = ly.closest('.bk-pg'), n = +ly.dataset.ly, c = P.find((q) => q.n === n).c;
+      ly.onclick = (e) => { const mk = e.target.closest('[data-mk]'); if (mk && (UI.bkTool || 'read') === 'read') bkMarkSheet(mk.dataset.mk, null); };
+      let drag = null;
+      const pos = (e) => { const rc = ly.getBoundingClientRect(); return [((e.clientX - rc.left) / rc.width) * 10000, ((e.clientY - rc.top) / rc.height) * 10000]; };
+      ly.onpointerdown = (e) => { const tool = UI.bkTool || 'read'; if (tool === 'read' || !pg.W || !pg.W.length) return; const i = bkHit(pg.W, ...pos(e)); if (i < 0) return; e.preventDefault(); e.stopPropagation(); ly.setPointerCapture(e.pointerId); drag = { s: i, e: i, k: tool }; bkDraw(ly, pg.W, c.id, n, drag); };
+      ly.onpointermove = (e) => { if (!drag) return; const i = bkHit(pg.W, ...pos(e)); if (i >= 0 && i !== drag.e) { drag.e = i; bkDraw(ly, pg.W, c.id, n, drag); } };
+      ly.onpointerup = ly.onpointercancel = (e) => {
+        if (!drag) return; e.stopPropagation(); const d = drag; drag = null;
+        const a = Math.min(d.s, d.e), z = Math.max(d.s, d.e), id = 'm' + Date.now().toString(36);
+        s.marks[id] = { b: b.id, c: c.id, p: n, s: a, e: z, k: d.k, txt: bkTxt(pg.W, a, z), at: Date.now() };
+        save('book'); bkDraw(ly, pg.W, c.id, n); toast(d.k === 'hl' ? '칠했어요 · 「읽기」에서 누르면 질문을 남길 수 있어요' : '밑줄 그었어요');
+      };
+    });
+  }
+  function bkMarkSheet(id, onBack) {
+    const s = bkS(), m = s.marks[id]; if (!m) return;
+    const f = ebFind(m.c), b = f && f.b;
+    if (!TEACHER && m.ans && !m.ansSeen) { m.ansSeen = true; save('book'); nav(); }
+    sheet(`<p class="eyebrow" style="margin:0 0 8px">${esc(b ? b.title : '')} · ${esc(f ? f.c.no + ' ' + f.c.t : '')} · ${m.p}쪽</p>
+      <blockquote class="bk-quote ${m.k}">${esc(m.txt)}</blockquote>
+      <div class="chips" style="flex-wrap:wrap;margin:12px 0"><button type="button" class="chip ${m.k === 'hl' ? 'on' : ''}" data-mkk="hl">형광펜</button><button type="button" class="chip ${m.k === 'ul' ? 'on' : ''}" data-mkk="ul">밑줄</button><button type="button" class="chip ${m.later ? 'on' : ''}" data-mkl>★ 나중에 다시 보기</button><button type="button" class="chip ${m.q ? 'on' : ''}" data-mkq>? 선생님께 질문</button></div>
+      <div class="field"><label>${m.q ? '선생님께 물어볼 것' : '내 생각 · 메모'}</label><textarea class="inp" id="mk-note" rows="3" placeholder="${m.q ? '예) 신탁 통치 반대와 찬성이 왜 갈렸는지 모르겠어요' : '예) 이 부분은 연표로 외우기'}" ${TEACHER ? 'readonly' : ''}>${esc(m.note || '')}</textarea></div>
+      ${TEACHER ? `<div class="field"><label>선생님 답</label><textarea class="inp" id="mk-ans" rows="3" placeholder="답을 적으면 학생 화면에 보여요">${esc(m.ans || '')}</textarea></div>` : m.ans ? `<div class="explain"><b>선생님 답</b><br>${esc(m.ans)}</div>` : ''}
+      <div class="row" style="margin-top:20px"><button class="btn big" style="flex:1" id="mk-del" type="button">지우기</button><button class="btn primary big" style="flex:1" id="mk-ok" type="button">저장</button></div>
+      ${onBack ? '' : `<button class="btn block" style="margin-top:8px" type="button" id="mk-go">이 쪽 펼치기</button>`}`, (el, close) => {
+      const keep = () => { const nt = $('#mk-note', el); if (nt && !TEACHER) m.note = nt.value.trim(); const an = $('#mk-ans', el); if (an && an.value.trim() !== (m.ans || '')) { m.ans = an.value.trim(); m.ansSeen = false; } };
+      const redraw = () => { const ly = $(`.bk-ly[data-ly="${m.p}"]`), pg = ly && ly.closest('.bk-pg'); if (ly && pg.W) bkDraw(ly, pg.W, m.c, m.p); };
+      $$('[data-mkk]', el).forEach((x) => (x.onclick = () => { m.k = x.dataset.mkk; $$('[data-mkk]', el).forEach((y) => y.classList.toggle('on', y === x)); }));
+      $('[data-mkl]', el).onclick = (e) => { m.later = !m.later; e.currentTarget.classList.toggle('on', m.later); };
+      $('[data-mkq]', el).onclick = (e) => { m.q = !m.q; e.currentTarget.classList.toggle('on', m.q); };
+      $('#mk-ok', el).onclick = () => { keep(); save('book'); close(); redraw(); if (onBack) onBack(); else if (!UI.run || UI.run.kind !== 'book') render(); toast(m.q && !TEACHER ? '질문을 남겼어요. 선생님이 답하면 여기 보여요' : '저장했어요'); };
+      $('#mk-del', el).onclick = () => { delete s.marks[id]; save('book'); close(); redraw(); if (onBack) onBack(); else if (!UI.run || UI.run.kind !== 'book') render(); toast('지웠어요'); };
+      const go = $('#mk-go', el); if (go) go.onclick = () => { keep(); save('book'); close(); bookOpen(m.b, m.c, m.p, id); };
+    });
+  }
+  function bkListSheet(flt) {
+    const s = bkS();
+    const items = [...Object.entries(s.marks).map(([id, m]) => ({ id, ...m })), ...Object.entries(s.pin).map(([k, at]) => { const [cid, n] = [k.slice(0, k.lastIndexOf(':')), +k.slice(k.lastIndexOf(':') + 1)]; const f = ebFind(cid); return f ? { pin: true, b: f.b.id, c: cid, p: n, at, later: true } : null; }).filter(Boolean)]
+      .filter((x) => flt === 'all' ? !x.pin : flt === 'later' ? x.later : flt === 'q' ? x.q : true)
+      .sort((a, b) => a.b.localeCompare(b.b) || a.p - b.p || a.at - b.at);
+    const T = { all: '칠한 곳', later: '나중에 다시 보기', q: TEACHER ? '학생 질문' : '선생님께 질문' };
+    sheet(`<h2>${T[flt]}</h2><div class="chips" style="margin:0 0 12px">${Object.entries(T).map(([k, t]) => `<button type="button" class="chip ${flt === k ? 'on' : ''}" data-bkf="${k}">${t}</button>`).join('')}</div>
+      ${items.length ? `<div class="list bk-list">${items.map((x) => { const f = ebFind(x.c); return `<button type="button" class="li btnlike" ${x.pin ? `data-bkpg="${esc(x.c)}|${x.p}"` : `data-bkmk="${esc(x.id)}"`}><div class="body"><div class="tiny">${esc(f.b.title)} · ${esc(f.c.no)} · ${x.p}쪽${x.later ? ' · ★' : ''}${x.q ? (x.ans ? ' · <b class="blue">답 왔어요</b>' : ' · <b class="red">질문</b>') : ''}</div><div class="t">${x.pin ? '이 쪽 전체' : `<span class="bk-qt ${x.k}">${esc(x.txt)}</span>`}</div>${x.note ? `<div class="d">${esc(x.note)}</div>` : ''}${x.ans ? `<div class="d blue">선생님: ${esc(x.ans)}</div>` : ''}</div></button>`; }).join('')}</div>`
+        : `<div class="empty">${gh('peek', 'gh-empty')}<b>아직 없어요</b><span>${flt === 'q' ? '칠한 곳을 눌러 「선생님께 질문」을 고르면 여기 모여요' : flt === 'later' ? '쪽 오른쪽 위 ☆ 이나 칠한 곳의 「나중에 다시 보기」를 누르면 모여요' : '교과서에서 형광펜이나 밑줄을 고르고 단어를 끌어 보세요'}</span></div>`}`, (el, close) => {
+      $$('[data-bkf]', el).forEach((x) => (x.onclick = () => { close(); bkListSheet(x.dataset.bkf); }));
+      $$('[data-bkmk]', el).forEach((x) => (x.onclick = () => { const m = s.marks[x.dataset.bkmk]; close(); bookOpen(m.b, m.c, m.p, x.dataset.bkmk); }));
+      $$('[data-bkpg]', el).forEach((x) => (x.onclick = () => { const [cid, n] = x.dataset.bkpg.split('|'); const f = ebFind(cid); close(); bookOpen(f.b.id, cid, +n); }));
+    });
+  }
+  document.addEventListener('click', (e) => { const bl = e.target.closest('[data-bklist]'); if (bl) { e.stopPropagation(); bkListSheet(bl.dataset.bklist); return; } const bb = e.target.closest('[data-book]'); if (bb) bookOpen(bb.dataset.book); });
   function hwView() {
     const sd = sciToday(), st = dayStat(sd), ed = engToday();
     const un = CH_UNITS[ed.unit];
@@ -1995,12 +2152,13 @@
   }
 
   // ───────── 틀 · 메뉴 ─────────
-  const TABS = [['home', '홈', 'home'], ['hw', '숙제', 'hw'], ['wrong', '오답', 'wrong'], ['score', '성적', 'score'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']];
+  const TABS = [['home', '홈', 'home'], ['hw', '숙제', 'hw'], ['wrong', '오답', 'wrong'], ['book', '교과서', 'books'], ['score', '성적', 'score'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']];
   function nav() {
-    const cnt = { hw: leftItems().length, wrong: todayWr().length };
+    const bm = Object.values(bkS().marks), cnt = { hw: leftItems().length, wrong: todayWr().length, book: TEACHER ? bm.filter((m) => m.q && !m.ans).length : bm.filter((m) => m.q && m.ans && !m.ansSeen).length };
     const btn = (t, bottom) => `<button type="button" class="${UI.tab === t[0] ? 'on' : ''}" data-go="${t[0]}">${bottom ? `<img src="icons/${IC[t[2]]}.svg" alt="">` : ''}${t[1]}${cnt[t[0]] ? `<span class="cnt">${cnt[t[0]] > 99 ? '99+' : cnt[t[0]]}</span>` : ''}</button>`;
     $('#tabs-top').innerHTML = TABS.map((t) => btn(t, false)).join('');
-    $('#tabs-bottom').innerHTML = TABS.map((t) => btn(t, true)).join('');
+    const tb = $('#tabs-bottom'), sl = tb.scrollLeft; tb.innerHTML = TABS.map((t) => btn(t, true)).join(''); tb.scrollLeft = sl;
+    const on = $('button.on', tb); if (on && (on.offsetLeft < tb.scrollLeft || on.offsetLeft + on.offsetWidth > tb.scrollLeft + tb.clientWidth)) tb.scrollTo({ left: on.offsetLeft - (tb.clientWidth - on.offsetWidth) / 2, behavior: RM() ? 'auto' : 'smooth' });
     const u = uniOf(S.profile.uni);
     const bt = $('#bell-top'); if (bt) { bt.innerHTML = bellSVG(SOUND); bt.classList.toggle('on', SOUND); bt.setAttribute('aria-label', SOUND ? '소리 켜짐, 눌러서 무음' : '무음, 눌러서 소리 켜기'); }
     const ct = $('#coin-top'); if (ct) { if (!coinPend) coinShown = wBal(); ct.innerHTML = `${ic('coin')}<b class="num">${won(coinShown)}</b>`; ct.setAttribute('aria-label', `말랑 용돈 ${won(coinShown)}`); ct.classList.toggle('on', UI.run && UI.run.kind === 'wallet'); }
@@ -2029,8 +2187,8 @@
     nav();
     let html = '';
     syncGoals();
-    if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : '';
-    else html = UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'picks' ? picksView() : UI.tab === 'news' ? newsView() : sgbView();
+    if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : '';
+    else html = UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'picks' ? picksView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
     const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '');
     const depth = UI.run ? 2 : UI.lib || (UI.tab === 'score' && UI.mockId) ? 1 : 0, ti = TABS.findIndex((t) => t[0] === UI.tab);
@@ -2119,7 +2277,7 @@
     const sn = $('#sg-new'); if (sn) sn.onclick = () => sgbSheet(null);
     $$('#sg-pick, #sg-pick2').forEach((b) => (b.onclick = () => pickSheet(UI.sgbArea)));
     $$('[data-sg]').forEach((b) => (b.onclick = () => sgbSheet(b.dataset.sg)));
-    if (UI.run) { if (UI.run.kind === 'sci') bindSci(); if (UI.run.kind === 'unit') bindUnit(); if (UI.run.kind === 'words') bindWords(); if (UI.run.kind === 'retry') bindRetry(); if (UI.run.kind === 'g3') bindG3(); if (UI.run.kind === 'drill') bindDrill(); if (UI.run.kind === 'concept') bindConcept(); if (UI.run.kind === 'pomo') { bindPomo(); bindSound(); } }
+    if (UI.run) { if (UI.run.kind === 'sci') bindSci(); if (UI.run.kind === 'unit') bindUnit(); if (UI.run.kind === 'words') bindWords(); if (UI.run.kind === 'retry') bindRetry(); if (UI.run.kind === 'g3') bindG3(); if (UI.run.kind === 'drill') bindDrill(); if (UI.run.kind === 'concept') bindConcept(); if (UI.run.kind === 'book') bindBook(); if (UI.run.kind === 'pomo') { bindPomo(); bindSound(); } }
     $$('main [data-bell]').forEach((b) => (b.onclick = toggleBell));
     $$('[data-pomo]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); openPomo(); }));
     $$('main [data-wallet]').forEach((b) => (b.onclick = openWallet));

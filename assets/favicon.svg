@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <!-- 앱 아이콘 / 파비콘 — 검정 바탕 위 흰 유령 -->
-  <rect width="1024" height="1024" fill="#000000"/>
+  <rect width="1024" height="1024" rx="232" fill="#000000"/>
   <g transform="translate(512 512) rotate(38)">
     <path fill="#FBFAF7" d="
       M -288 -50
