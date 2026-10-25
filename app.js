@@ -263,6 +263,7 @@
   function closeSheet() {
     const root = $('#sheet-root'); if (!root.firstChild || root.classList.contains('out')) return;
     document.body.style.overflow = '';
+    if (sheet.dirty) { sheet.dirty = false; const y = scrollY; render(); scrollTo(0, y); }
     if (RM()) { root.innerHTML = ''; return; }
     root.classList.add('out'); closeSheet.t = setTimeout(() => { root.innerHTML = ''; root.classList.remove('out'); }, 230);
   }
@@ -432,19 +433,20 @@
     const KL = Object.entries(KK).sort((a, b) => (b[1].at || 0) - (a[1].at || 0)), KN = { news: '소식', uni: '대학', pick: '진로' };
     const kept = KL.length ? `<div class="list">${KL.map(([k, v]) => `<div class="li btnlike" data-kopen="${esc(v.kind)}|${esc(v.ref)}"><div class="ico">${ic(v.kind === 'uni' ? 'school' : v.kind === 'pick' ? 'dna' : 'news')}</div><div class="body"><div class="t">${v.kept ? '★ ' : ''}${esc(v.t || '')}</div><div class="d">${KN[v.kind] || ''}${v.text ? ` · <span class="kp-note">${esc(v.text.replace(/\s+/g, ' ').slice(0, 60))}${v.text.length > 60 ? '…' : ''}</span>` : ''}</div></div><span class="chev"></span></div>`).join('')}</div>` : `<div class="empty">${gh('idle', 'gh-empty')}<b>아직 담은 게 없어요</b><span>소식·대학·진로 픽에서 「☆ 담기」를 누르거나 내 생각을 남겨 보세요</span></div>`;
     const read = (n) => wHas('news:' + n.id);
-    const item = (n) => `<div class="li btnlike ${read(n) ? 'nw-read' : ''}" data-news="${esc(n.id)}"><div class="ico">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'sm') : ic(nIcon(n))}</div><div class="body"><div class="t">${esc(n.title)}</div><div class="d">${md(n.date)} · ${esc(nGrp(n))}${n.must ? '' : n.level === '중요' ? ' · <b class="red">중요</b>' : ''}${read(n) ? '' : ' · <b class="blue">새 소식</b>'}</div></div>${n.must ? '<span class="tag must">꼭 읽기</span>' : ''}<span class="chev"></span></div>`;
+    const item = (n) => `<div class="li btnlike ${read(n) ? 'nw-read' : ''}" data-news="${esc(n.id)}"><div class="ico">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'sm') : ic(nIcon(n))}</div><div class="body"><div class="t">${esc(n.title)}</div><div class="d">${md(n.date)} · ${esc(nGrp(n))}${n.must ? '' : n.level === '중요' ? ' · <b class="red">중요</b>' : ''}${read(n) ? '' : ' · <b class="blue">새 소식</b>'}</div></div>${read(n) ? NW_DONE : n.must ? '<span class="tag must">꼭 읽기</span>' : ''}<span class="chev"></span></div>`;
     const MUST = N.filter((n) => n.must).sort((a, b) => read(a) - read(b) || String(b.date).localeCompare(String(a.date))).slice(0, 5);
     return `<h1 class="h1">소식</h1><p class="sub">${D.news && D.news.updated ? md(D.news.updated) + ' 업데이트 · ' : ''}입시 · 과학 · 시사 상식, 출처를 확인한 것만 모았어요. 하나 읽으면 50원</p>
       <div class="chips" style="margin-bottom:16px">${['all', ...groups].map((g) => `<button type="button" class="chip ${f === g ? 'on' : ''}" data-nf="${esc(g)}">${g === 'all' ? '전체' : esc(g)} <span class="tiny">${g === 'all' ? N.length : N.filter((n) => nGrp(n) === g).length}</span></button>`).join('')}<button type="button" class="chip ${f === 'keep' ? 'on' : ''}" data-nf="keep">★ 담은 것 · 내 생각 <span class="tiny">${KL.length}</span></button></div>
       <div class="grid">${f !== 'keep' && MUST.length ? `<section class="card c12 nw-must"><div class="card-h"><h2>${ic('fire')} 꼭 읽어야 할 대이슈</h2><span class="tiny">${MUST.filter((n) => !read(n)).length ? `안 읽은 것 ${MUST.filter((n) => !read(n)).length}개` : '다 읽었어요'}</span></div><div class="list">${MUST.map(item).join('')}</div></section>` : ''}<section class="card c12">${f === 'keep' ? kept : L.length ? `<div class="list">${L.map(item).join('')}</div>` : `<div class="empty">${gh('idle', 'gh-empty')}<b>소식을 모으는 중이에요</b></div>`}</section></div>`;
   }
+  const NW_DONE = '<span class="tag nw-done"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>읽음</span>';
   function newsCard(cls) {
     const N = (D.news && D.news.items) || [];
     const p = S.profile;
     const mine = N.slice().sort((a, b) => (!!b.must - !!a.must) || (b.level === '중요') - (a.level === '중요') || String(b.date).localeCompare(String(a.date)));
     const top = mine.filter((n) => !n.uni || n.uni === p.uni || n.scope !== '대학').slice(0, 4);
     return `<section class="card tight ${cls}"><div class="card-h"><h3>소식</h3><button class="more" data-news="all">전체 ${N.length}</button></div>
-      ${top.length ? `<div class="list">${top.map((n) => `<div class="li btnlike" data-news="${esc(n.id)}"><div class="ico">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'sm') : ic(nIcon(n))}</div><div class="body"><div class="t">${esc(n.title)}</div><div class="d">${md(n.date)} · ${esc(n.scope || '')}${n.level === '중요' && !n.must ? ' · <b class="red">중요</b>' : ''}</div></div>${n.must ? '<span class="tag must">꼭 읽기</span>' : ''}</div>`).join('')}</div>` : `<div class="empty">${ic('news')}<b>소식을 모으는 중이에요</b></div>`}
+      ${top.length ? `<div class="list">${top.map((n) => `<div class="li btnlike" data-news="${esc(n.id)}"><div class="ico">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'sm') : ic(nIcon(n))}</div><div class="body"><div class="t">${esc(n.title)}</div><div class="d">${md(n.date)} · ${esc(n.scope || '')}${n.level === '중요' && !n.must ? ' · <b class="red">중요</b>' : ''}</div></div>${wHas('news:' + n.id) ? NW_DONE : n.must ? '<span class="tag must">꼭 읽기</span>' : ''}</div>`).join('')}</div>` : `<div class="empty">${ic('news')}<b>소식을 모으는 중이에요</b></div>`}
       ${D.news && D.news.updated ? `<p class="tiny" style="margin:8px 0 0">${md(D.news.updated)} 업데이트</p>` : ''}</section>`;
   }
   // 담기 · 내 생각: 소식·대학·진로 픽마다 담아 두고 짧게 생각을 남겨요 (나중에 세특·면접 소재)
@@ -2333,7 +2335,7 @@
         if (!p.isConnected) return clearInterval(iv);
         if (document.hidden) return;
         readProg[key] = (readProg[key] || 0) + 0.25; paint();
-        if (readProg[key] >= sec) { clearInterval(iv); const got = earn(key, amt, p.dataset.why, { from: p }); set(got ? 'done' : 'cap', got ? `+${won(got)} 받았어요 · ${p.dataset.why}` : '오늘 용돈은 다 모았어요, 내일 또 만나요', 1); if (got && !RM()) bump(p, 'tap-pop'); }
+        if (readProg[key] >= sec) { clearInterval(iv); const got = earn(key, amt, p.dataset.why, { from: p }); sheet.dirty = true; set(got ? 'done' : 'cap', got ? `+${won(got)} 받았어요 · ${p.dataset.why}` : '오늘 용돈은 다 모았어요, 내일 또 만나요', 1); if (got && !RM()) bump(p, 'tap-pop'); }
       }, 250);
     });
   }

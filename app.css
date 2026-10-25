@@ -1203,3 +1203,5 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .hot-ic img { width: 28px; height: 28px; }
 .hot-b { min-width: 0; }
 .hot-t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 16px; line-height: 1.45; margin-top: 2px; }
+
+.tag.nw-done { flex: none; gap: 3px; color: var(--t3); }
