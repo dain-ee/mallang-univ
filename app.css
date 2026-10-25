@@ -1495,7 +1495,7 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 .pet-perch img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 .pet-perch .pet-say { position: absolute; right: 88%; top: 8%; width: max-content; max-width: 220px; padding: 8px 12px; border-radius: 14px 14px 4px 14px; background: var(--card); color: var(--t1); font-size: 13px; font-weight: 600; box-shadow: var(--shadow-pop); text-align: left; }
 @keyframes perch-in { from { transform: translateY(-20%); opacity: 0; } }
-@media (max-width: 520px) { .pet-perch { width: 96px; height: 96px; right: 16px; } }
+@media (max-width: 520px) { .pet-perch { width: 84px; height: 84px; right: 12px; } .card.has-perch { margin-top: 52px; } }
 /* 소리 크기·쪽 고르기 슬라이더: 진한 테두리 없이 옅은 트랙 + 채워진 만큼 강조색 */
 .pm-vol input, .bk-sl { -webkit-appearance: none; appearance: none; height: 24px; background: transparent; cursor: pointer; --p: 50%; }
 .pm-vol input::-webkit-slider-runnable-track, .bk-sl::-webkit-slider-runnable-track { height: 6px; border: 0; border-radius: 99px; background: linear-gradient(90deg, var(--blue) var(--p), var(--fill) var(--p)); }
