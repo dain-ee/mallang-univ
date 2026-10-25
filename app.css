@@ -1578,3 +1578,7 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .tabs button.on { animation: none; }
 .home-set button { display: inline-flex; align-items: center; gap: 6px; }
 .home-set .gear { flex: none; }
+/* 막대가 큰 덩어리로 보이지 않게 폭을 줄이고, 왼쪽 글과 아래를 맞춤 */
+.grow-bar i { justify-self: center; width: 100%; max-width: 28px; background: color-mix(in srgb, var(--blue) 16%, transparent); }
+.grow-bar.on i { background: var(--blue); }
+.grow-top { align-items: end; }
