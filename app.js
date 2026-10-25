@@ -3331,8 +3331,8 @@
   // 첫 화면: 유령이 쑝 하고 나오는 걸 끝까지 보고 들어가요 (세션마다 한 번만)
   const sp = $('#splash'); if (sp) { let first = true; try { first = !sessionStorage.getItem('mu:sp'); sessionStorage.setItem('mu:sp', '1'); } catch (e) {} const wait = first && !RM() ? Math.max(0, 1900 - (Date.now() - (window.__t0 || 0))) : 0; setTimeout(() => { sp.classList.add('out'); setTimeout(() => sp.remove(), 320); }, wait); }
   const bm = $('#boot-msg'); if (bm) bm.remove();
-  if (!S.profile.uni && !TEACHER) setTimeout(uniSheet, 600);
-  sync(true);
+  // 새로 로그인한 기기는 이 기기에 기록이 비어 있어요. 서버에서 받아 온 뒤에도 목표 대학이 없을 때만 고르는 창을 띄워요
+  sync(true).finally(() => { if (!S.profile.uni && !TEACHER && !PEEK) setTimeout(uniSheet, 600); });
   setInterval(() => sync(true), 60000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(true); });
   // 선생님 보기에서 테마 확인용: ?theme=dark
