@@ -618,18 +618,22 @@
       const go = $('#mk-go', el); if (go) go.onclick = () => { keep(); save('book'); close(); bookOpen(m.b, m.c, m.p, id); };
     });
   }
-  function bkListSheet(flt) {
-    const s = bkS();
-    const items = [...Object.entries(s.marks).map(([id, m]) => ({ id, ...m })), ...Object.entries(s.pin).map(([k, at]) => { const [cid, n] = [k.slice(0, k.lastIndexOf(':')), +k.slice(k.lastIndexOf(':') + 1)]; const f = ebFind(cid); return f ? { pin: true, b: f.b.id, c: cid, p: n, at, later: true } : null; }).filter(Boolean)]
-      .filter((x) => flt === 'all' ? !x.pin : flt === 'later' ? x.later : flt === 'q' ? x.q : true)
-      .sort((a, b) => a.b.localeCompare(b.b) || a.p - b.p || a.at - b.at);
-    const T = { all: '칠한 곳', later: '나중에 다시 보기', q: TEACHER ? '학생 질문' : '선생님께 질문' };
-    sheet(`<h2>${T[flt]}</h2><div class="chips" style="margin:0 0 12px">${Object.entries(T).map(([k, t]) => `<button type="button" class="chip ${flt === k ? 'on' : ''}" data-bkf="${k}">${t}</button>`).join('')}</div>
-      ${items.length ? `<div class="list bk-list">${items.map((x) => { const f = ebFind(x.c); return `<button type="button" class="li btnlike" ${x.pin ? `data-bkpg="${esc(x.c)}|${x.p}"` : `data-bkmk="${esc(x.id)}"`}><div class="body"><div class="tiny">${esc(f.b.title)} · ${esc(f.c.no)} · ${x.p}쪽${x.later ? ' · ★' : ''}${x.q ? (x.ans ? ' · <b class="blue">답 왔어요</b>' : ' · <b class="red">질문</b>') : ''}</div><div class="t">${x.pin ? '이 쪽 전체' : `<span class="bk-qt ${x.k}">${esc(x.txt)}</span>`}</div>${x.note ? `<div class="d">${esc(x.note)}</div>` : ''}${x.ans ? `<div class="d blue">선생님: ${esc(x.ans)}</div>` : ''}</div></button>`; }).join('')}</div>`
-        : `<div class="empty">${gh('idle', 'gh-empty')}<b>아직 없어요</b><span>${flt === 'q' ? '칠한 곳을 눌러 「선생님께 질문」을 고르면 여기 모여요' : flt === 'later' ? '쪽 오른쪽 위 ☆ 이나 칠한 곳의 「나중에 다시 보기」를 누르면 모여요' : '교과서에서 형광펜이나 밑줄을 고르고 단어를 끌어 보세요'}</span></div>`}`, (el, close) => {
-      $$('[data-bkf]', el).forEach((x) => (x.onclick = () => { close(); bkListSheet(x.dataset.bkf); }));
-      $$('[data-bkmk]', el).forEach((x) => (x.onclick = () => { const m = s.marks[x.dataset.bkmk]; close(); bookOpen(m.b, m.c, m.p, x.dataset.bkmk); }));
-      $$('[data-bkpg]', el).forEach((x) => (x.onclick = () => { const [cid, n] = x.dataset.bkpg.split('|'); const f = ebFind(cid); close(); bookOpen(f.b.id, cid, +n); }));
+  function bkListSheet(flt0) {
+    const s = bkS(), T = { all: '칠한 곳', later: '나중에 다시 보기', q: TEACHER ? '학생 질문' : '선생님께 질문' };
+    const body = (flt) => {
+      const items = [...Object.entries(s.marks).map(([id, m]) => ({ id, ...m })), ...Object.entries(s.pin).map(([k, at]) => { const cid = k.slice(0, k.lastIndexOf(':')), n = +k.slice(k.lastIndexOf(':') + 1), f = ebFind(cid); return f ? { pin: true, b: f.b.id, c: cid, p: n, at, later: true } : null; }).filter(Boolean)]
+        .filter((x) => flt === 'all' ? !x.pin : flt === 'later' ? x.later : x.q)
+        .sort((a, b) => a.b.localeCompare(b.b) || a.p - b.p || a.at - b.at);
+      return items.length ? `<div class="list bk-list">${items.map((x) => { const f = ebFind(x.c); return `<button type="button" class="li btnlike" ${x.pin ? `data-bkpg="${esc(x.c)}|${x.p}"` : `data-bkmk="${esc(x.id)}"`}><div class="body"><div class="tiny">${esc(f.b.title)} · ${esc(f.c.no)} · ${x.p}쪽${x.later ? ' · ★' : ''}${x.q ? (x.ans ? ' · <b class="blue">답 왔어요</b>' : ' · <b class="red">질문</b>') : ''}</div><div class="t">${x.pin ? '이 쪽 전체' : `<span class="bk-qt ${x.k}">${esc(x.txt)}</span>`}</div>${x.note ? `<div class="d">${esc(x.note)}</div>` : ''}${x.ans ? `<div class="d blue">선생님: ${esc(x.ans)}</div>` : ''}</div></button>`; }).join('')}</div>`
+        : `<div class="empty">${gh('idle', 'gh-empty')}<b>아직 없어요</b><span>${flt === 'q' ? '칠한 곳을 눌러 「선생님께 질문」을 고르면 여기 모여요' : flt === 'later' ? '쪽 오른쪽 위 ☆ 이나 칠한 곳의 「나중에 다시 보기」를 누르면 모여요' : '교과서에서 형광펜이나 밑줄을 고르고 단어를 끌어 보세요'}</span></div>`;
+    };
+    sheet(`<h2 id="bkl-h">${T[flt0]}</h2><div class="chips" style="margin:0 0 12px">${Object.entries(T).map(([k, t]) => `<button type="button" class="chip ${flt0 === k ? 'on' : ''}" data-bkf="${k}">${t}</button>`).join('')}</div><div id="bkl">${body(flt0)}</div>`, (el, close) => {
+      const bindL = () => {
+        $$('[data-bkmk]', el).forEach((x) => (x.onclick = () => { const m = s.marks[x.dataset.bkmk]; close(); bookOpen(m.b, m.c, m.p, x.dataset.bkmk); }));
+        $$('[data-bkpg]', el).forEach((x) => (x.onclick = () => { const [cid, n] = x.dataset.bkpg.split('|'); const f = ebFind(cid); close(); bookOpen(f.b.id, cid, +n); }));
+      };
+      $$('[data-bkf]', el).forEach((x) => (x.onclick = () => { const f = x.dataset.bkf; $$('[data-bkf]', el).forEach((y) => y.classList.toggle('on', y === x)); $('#bkl-h', el).textContent = T[f]; $('#bkl', el).innerHTML = body(f); bindL(); }));
+      bindL();
     });
   }
   document.addEventListener('click', (e) => { const bl = e.target.closest('[data-bklist]'); if (bl) { e.stopPropagation(); bkListSheet(bl.dataset.bklist); return; } const bb = e.target.closest('[data-book]'); if (bb) bookOpen(bb.dataset.book); });
