@@ -1027,9 +1027,11 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .w-clock .w-date { font-size: 15px; font-weight: 700; color: var(--t1); }
 .w-clock .w-time { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; line-height: 1; color: var(--t1); }
 .w-clock .w-sub { font-size: 13px; color: var(--t3); margin-top: 2px; }
-.pm-rail { flex-direction: column; align-items: stretch; text-align: left; gap: 12px; }
-.pm-rail .pm-h-ic { display: none; }
-.pm-rail .pm-h-b { flex: none; }
+.pm-rail { display: grid; grid-template-columns: 48px minmax(0, 1fr); align-items: center; text-align: left; gap: 12px 14px; }
+.pm-rail .pm-h-ic { width: 48px; height: 48px; border-radius: 14px; }
+.pm-rail .pm-h-ic img { width: 30px; height: 30px; }
+.pm-rail .pm-h-t { font-size: 17px; }
+.pm-rail > :not(.pm-h-ic):not(.pm-h-b) { grid-column: 1 / -1; }
 .pm-rail .btn { width: 100%; height: 44px; }
 .w-dl { display: grid; gap: 4px; }
 .w-di { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; column-gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
