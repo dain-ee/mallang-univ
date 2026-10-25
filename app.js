@@ -780,8 +780,9 @@
     sheet(`<div class="row" style="gap:8px;margin-bottom:8px"><span class="tag">${esc(myCls(it.cls).name)}</span><span class="tiny">${md(it.due)} 마감 · D-${Math.max(0, dday(it.due))}</span></div>
       <label class="my-h2"><input id="my-bt" value="${esc(it.book)}" aria-label="제목 바꾸기"><span>수정</span></label><p class="tiny" style="margin:0 0 12px;line-height:1.6">${esc(it.text)}</p>
       <div class="ik-bar" style="height:8px"><i style="width:${Math.round((myDone(it) / it.total) * 100)}%"></i></div><p class="tiny" style="margin:6px 0 16px">${myDone(it)} / ${it.total}${it.unit === '쪽' ? '쪽' : '문제'} 했어요</p>
-      ${it.unit === '건' ? '' : `<div class="my-today"><span class="tiny">오늘 할 것${myAvg() ? ` · 보통 하루 ${myAvg()}문제 해요` : ''}</span><b>${x.skip ? '내일로 미뤘어요' : x.n ? esc(myRange(it, x)) : '오늘 몫은 없어요'}</b>${it.orig ? `<span class="tiny">원래 ${md(it.orig)} 마감 → ${md(it.due)}로 미뤄짐</span>` : ''}${!dt && (x.n || x.skip) ? `<button type="button" class="my-skip" id="my-skip">${x.skip ? '미룬 것 취소' : '오늘은 못 해요 · 내일로 미루기'}</button>` : ''}</div>
+      ${it.unit === '건' ? '' : `<div class="my-today"><span class="tiny">오늘 할 것${myAvg() ? ` · 보통 하루 ${myAvg()}문제 해요` : ''}</span><b>${x.skip ? '내일로 미뤘어요' : x.n ? esc(myRange(it, x)) : '오늘 몫은 없어요'}</b>${it.orig ? `<span class="tiny">원래 ${md(it.orig)} 마감 → ${md(it.due)}로 미뤄짐</span>` : ''}${!dt && (x.n || x.skip) ? `<button type="button" class="my-skip" id="my-skip">${x.skip ? '미룬 것 취소' : '내일로 미루기'}</button>` : ''}</div>
       <div class="my-amt"><span>오늘 한 만큼</span><button type="button" class="btn sm" data-ma="-1">−</button><input class="inp sm" id="my-n" type="number" inputmode="numeric" min="0" value="${dt ? dt.n : x.n}"><button type="button" class="btn sm" data-ma="1">+</button></div>
+      <div class="my-st" id="my-st" hidden><span class="tiny">오늘 푼 첫 번호를 적으면 번호 단추가 나와요</span><input class="inp" type="number" inputmode="numeric" id="my-s0" placeholder="예: 1225" value="${dt && dt.s ? dt.s : ''}"></div>
       <div class="my-wcw" id="my-wcw"><div class="tiny" style="margin-top:14px">틀린 번호를 눌러요 · 나중에 오답 탭에서 다시 풀어요</div><div class="my-wc" id="my-wc"></div></div>
       <label class="field" style="margin-top:8px"><span class="tiny" id="my-wl">번호가 목록에 없으면 직접 적어요 (띄어 쓰기)</span><input class="inp" id="my-w" inputmode="numeric" placeholder="예: 1225 1231 1240" value="${esc((dt && dt.w || []).join(' '))}"></label>`}
       <button class="btn primary big block" id="my-ok" type="button" style="margin-top:16px">${it.unit === '건' ? (myFin(it) ? '아직 안 끝났어요' : '끝냈어요') : dt ? '고쳐서 저장' : '오늘 것 끝냈어요'}</button>
@@ -800,18 +801,20 @@
       $('#my-bt', el).onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) e.target.blur(); };
       const mp = $('#my-plan', el); if (mp) mp.onclick = () => { it.plan = !isPlan(it); save('my'); close(); render(); toast(it.plan ? '일정으로 바꿨어요 · 오늘 할 일 셈에서 빠져요' : '꼭 할 일로 바꿨어요'); };
       // 오늘 한 번호를 단추로 펼쳐서 틀린 것만 눌러요 (스페이스로 치지 않게)
-      const wc = () => { const box = $('#my-wc', el), wi = $('#my-w', el); if (!box || !wi) return; const a0 = x.a != null ? x.a : dt && it.from != null ? it.from + myDone(it) - dt.n : null, n = +($('#my-n', el) || {}).value || 0;
+      const wc = () => { const box = $('#my-wc', el), wi = $('#my-w', el); if (!box || !wi) return; const s0 = +($('#my-s0', el) || {}).value || 0, a0 = x.a != null ? x.a : dt && it.from != null ? it.from + myDone(it) - dt.n : s0 || null, n = +($('#my-n', el) || {}).value || 0;
+        $('#my-st', el).hidden = it.from != null;
         const has = !(a0 == null || !n || n > 80); $('#my-wcw', el).hidden = !has; $('#my-wl', el).textContent = has ? '번호가 목록에 없으면 직접 적어요 (띄어 쓰기)' : '틀린 번호 (띄어 쓰기) · 나중에 오답 탭에서 다시 풀어요';
         if (!has) { box.innerHTML = ''; return; }
-        const W = new Set((wi.value.match(/\d+/g) || []).map(Number)), z = Math.min(it.to, a0 + n - 1);
+        const W = new Set((wi.value.match(/\d+/g) || []).map(Number)), z = Math.min(it.to != null ? it.to : Infinity, a0 + n - 1);
         box.innerHTML = Array.from({ length: z - a0 + 1 }, (_, k) => a0 + k).map((v) => `<button type="button" class="${W.has(v) ? 'on' : ''}" data-wn="${v}">${v}</button>`).join('');
         $$('[data-wn]', box).forEach((b) => (b.onclick = () => { const v = +b.dataset.wn; W.has(v) ? W.delete(v) : W.add(v); wi.value = [...W].sort((p, q) => p - q).join(' '); b.classList.toggle('on', W.has(v)); })); };
+      if ($('#my-s0', el)) $('#my-s0', el).addEventListener('input', wc);
       if ($('#my-w', el)) { $('#my-w', el).addEventListener('input', wc); $('#my-n', el).addEventListener('input', wc); wc(); }
       $$('[data-ma]', el).forEach((b) => (b.onclick = () => { const i = $('#my-n', el); i.value = Math.max(0, (+i.value || 0) + +b.dataset.ma); wc(); }));
       $('#my-ok', el).onclick = () => {
         if (it.unit === '건') { if (myFin(it)) { it.log = {}; it.fin = false; } else { it.log[t] = { n: 1, at: Date.now() }; if (!isPlan(it)) earn('my:' + it.id + ':' + t, 100, '내 숙제'); boom(innerWidth / 2, innerHeight * 0.4, 2); } save('my'); close(); render(); return; }
         const n = Math.max(0, +$('#my-n', el).value || 0), w = ($('#my-w', el).value.match(/\d+/g) || []).map(Number);
-        it.log[t] = { n, w, at: Date.now() }; it.wrong = [...new Set([...(it.wrong || []).filter((v) => !(dt && (dt.w || []).includes(v))), ...w])].sort((a, b) => a - b);
+        it.log[t] = { n, w, at: Date.now(), ...(+($('#my-s0', el) || {}).value ? { s: +$('#my-s0', el).value } : {}) }; it.wrong = [...new Set([...(it.wrong || []).filter((v) => !(dt && (dt.w || []).includes(v))), ...w])].sort((a, b) => a - b);
         save('my'); close(); render(); if (n) earn('my:' + it.id + ':' + t, 100, '학원·과외 숙제'); toast(w.length ? `틀린 ${w.length}문제는 오답 탭에 모아 뒀어요` : '오늘 것 끝! 잘했어요');
         if (myFin(it)) { const r = document.body.getBoundingClientRect(); boom(innerWidth / 2, innerHeight * 0.4, 4); }
       };
