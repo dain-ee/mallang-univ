@@ -801,7 +801,34 @@
     }
   }
   new MutationObserver(() => ghFill(document)).observe(document.body, { childList: true, subtree: true });
+  // ───────── 다 푼 뒤 「다시 풀기」 ─────────
+  // 푼 답은 S.redo 에 잠깐 맡겨 두고 처음부터 다시 풀어요. 끝까지 다시 풀면 새 답이 남고,
+  // 중간에 나가면 안 푼 문제는 맡겨 둔 답으로 되돌려요 (숙제가 「안 함」으로 바뀌지 않게)
+  const redoKey = () => { const r = UI.run; if (!r) return ''; if (r.kind === 'sci') return 'sci:' + today(); if (r.kind === 'drill') return 'dr:' + r.id; if (r.kind === 'unit') { const un = CH_UNITS[r.ref != null ? r.ref : engToday(true).unit]; return r.ref != null ? 'ua:' + un.ch + '-' + un.unit : 'ud:' + today(); } if (r.kind === 'words') return r.day != null ? 'wa:' + r.day : 'wd:' + today(); return ''; };
+  function redoStore(key) {
+    const i = key.indexOf(':'), k = key.slice(0, i), a = key.slice(i + 1);
+    return k === 'sci' ? [(S.sci.days[a] || {}).ans, 'sci'] : k === 'dr' ? [(S.drillAns || {})[a], 'drillAns'] : k === 'ud' ? [(S.eng.days[a] || {}).uans, 'eng'] : k === 'ua' ? [(S.eng.ua || {})[a], 'eng'] : k === 'wd' ? [(S.eng.days[a] || {}).wans, 'eng'] : k === 'wa' ? [(S.eng.wa || {})[a], 'eng'] : [null];
+  }
+  function redoStart() {
+    const key = redoKey(), [st, sk] = redoStore(key); if (!st) return;
+    S.redo = S.redo || {}; S.redo[key] = { ...(S.redo[key] || {}), ...st };
+    for (const k of Object.keys(st)) delete st[k];
+    UI.redoKey = key; UI.run = { ...UI.run, i: null, show: null, showing: false, mode: UI.run.kind === 'words' ? 'test' : UI.run.mode };
+    save(sk, 'redo'); render(); window.scrollTo(0, 0);
+  }
+  // 지금 다시 푸는 중이 아닌 것은 안 푼 칸만 맡겨 둔 답으로 채우고 정리해요
+  function redoFix() {
+    if (!S.redo) return; let ch = false;
+    for (const key of Object.keys(S.redo)) {
+      if (key === UI.redoKey && redoKey() === key) continue;
+      const [st, sk] = redoStore(key); if (st) { for (const [k, v] of Object.entries(S.redo[key])) if (!st[k]) st[k] = v; save(sk); }
+      delete S.redo[key]; ch = true;
+    }
+    if (ch) save('redo');
+  }
+  document.addEventListener('click', (e) => { if (e.target.closest('[data-redo-run]')) redoStart(); });
   function doneCard(ok, n, sub, btns, extra = '') {
+    if (redoKey() && !TEACHER) { btns = btns.replace(/(<\/button>)/, '$1<button class="btn big block" data-redo-run type="button">다시 풀기</button>'); if (S.redo && S.redo[redoKey()]) { delete S.redo[redoKey()]; UI.redoKey = null; save('redo'); } }
     const all = n && ok === n, icon = all ? 'trophy' : ok / (n || 1) >= 0.6 ? 'party' : 'muscle';
     const title = all ? '다 맞혔어요!' : ok / (n || 1) >= 0.6 ? '잘했어요!' : '끝까지 풀었어요!';
     return `<div class="done-card card" data-done="${all ? 2 : ok / (n || 1) >= 0.6 ? 1 : 0}"><div class="done-ic gh-wrap">${gh(ok / (n || 1) >= 0.6 ? 'yay' : 'oops', 'gh-done')}</div><h1 class="h1">${title}</h1><div class="done-score"><b class="num">${ok}</b><span>/ ${n} 맞힘</span></div><p class="sub">${sub}</p>${extra}<div class="done-btns">${btns}</div></div>`;
@@ -2254,6 +2281,7 @@
     nav();
     let html = '';
     syncGoals();
+    redoFix();
     if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : '';
     else html = UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'picks' ? picksView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
@@ -2297,10 +2325,12 @@
     if (RM()) return;
     $$(':is(.done-score b, .arch .c b, .scorebox b, .stat-row b, .sgb-area .a b)', root).forEach((el) => {
       const t = [...el.childNodes].find((n) => n.nodeType === 3 && /\d/.test(n.nodeValue)); if (!t || el.closest('.page-ghost') || /등급/.test(el.parentNode.textContent)) return;  // 등급은 0부터 세면 이상해요
+      if (el.dataset.cu) return; // 이미 세는 중이거나 센 숫자 — 다시 세면 중간값을 끝값으로 읽어요
       const m = t.nodeValue.match(/^(\s*)(\d+(?:\.\d+)?)(?![\d,])([\s\S]*)$/); if (!m || !+m[2]) return;
+      el.dataset.cu = '1';
       const end = +m[2], dec = (m[2].split('.')[1] || '').length, t0 = performance.now(), D = 650;
       const step = (now) => { const k = Math.min(1, (now - t0) / D); t.nodeValue = m[1] + (end * (1 - Math.pow(1 - k, 3))).toFixed(dec) + m[3]; if (k < 1 && t.isConnected) requestAnimationFrame(step); };
-      t.nodeValue = m[1] + (0).toFixed(dec) + m[3]; requestAnimationFrame(step);
+      t.nodeValue = m[1] + (0).toFixed(dec) + m[3]; requestAnimationFrame(step); setTimeout(() => { if (t.isConnected) t.nodeValue = m[1] + m[2] + m[3]; }, D + 150); // 탭이 가려져 그리기가 멈춰도 끝값은 꼭
     });
   }
   function go(tab) { UI.tab = tab; UI.run = null; UI.lib = null; if (tab !== 'score') UI.mockId = null; render(); window.scrollTo(0, 0); }
