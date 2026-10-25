@@ -183,14 +183,27 @@
   const seeded = (str) => { let h = 2166136261; for (const c of str) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return () => ((h = Math.imul(h ^ (h >>> 15), 2246822507) ^ Math.imul(h ^ (h >>> 13), 3266489909)) >>> 0) / 4294967296; };
   for (const u of CH_UNITS) (u.questions || []).forEach((q, k) => { if (!q.choices || typeof q.answer !== 'number' || q._mixed || q.choices.every((c) => /^[①②③④⑤]/.test(String(c).trim()))) return; const r = seeded(`${u.ch}-${u.unit}-${k}`); const perm = q.choices.map((_, i) => i); for (let i = perm.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [perm[i], perm[j]] = [perm[j], perm[i]]; } q.choices = perm.map((i) => q.choices[i]); q.answer = perm.indexOf(q.answer); q._mixed = 1; });
   const WORDS = (ENG.words && ENG.words.days ? ENG.words.days : []).flatMap((d) => (d.words || []).map((w) => ({ ...w, day: d.day })));
+  const G3 = (ENG.g3 && ENG.g3.items) || [];
   function engToday(force) {
     const t = today(); S.eng = S.eng || { unit: 0, wordDay: 0, days: {} }; S.eng.days = S.eng.days || {};
     if (!S.eng.days[t] && !anyEng() && !force) return { off: true, unit: S.eng.unit || 0, words: S.eng.wordDay || 0, g3: S.eng.g3 || 0, uans: {}, wans: {} };
     if (!S.eng.days[t]) { S.eng.days[t] = { unit: S.eng.unit || 0, words: S.eng.wordDay || 0, g3: S.eng.g3 || 0, uans: {}, wans: {} }; save('eng'); }
     if (S.eng.days[t].g3 == null) S.eng.days[t].g3 = S.eng.g3 || 0;
+    engSkip(t);
     return S.eng.days[t];
   }
   const wordsFor = (k) => WORDS.slice(k * 10, k * 10 + 10);
+  // 지난 날 못 한 것은 이어 하지 않고 날짜대로 다음 것으로 넘어가요 (선생님 결정 10/25). 오늘 것을 하나도 안 풀었을 때만 옮겨요
+  function engSkip(t) {
+    const d = S.eng.days[t], prev = Object.keys(S.eng.days).filter((k) => k < t).map((k) => S.eng.days[k]); let ch = false;
+    const top = (f) => Math.max(...prev.map((v) => +v[f] || 0));
+    if (!prev.length) return;
+    if (!Object.keys(d.wans || {}).length && !d.wdone && prev.some((v) => v.words === d.words) && WORDS.length) { d.words = Math.min(top('words') + 1, Math.ceil(WORDS.length / 10) - 1); S.eng.wordDay = Math.max(S.eng.wordDay || 0, d.words); ch = true; }
+    if (!Object.keys(d.uans || {}).length && !d.udone && prev.some((v) => v.unit === d.unit) && CH_UNITS.length) { d.unit = Math.min(top('unit') + 1, CH_UNITS.length - 1); S.eng.unit = Math.max(S.eng.unit || 0, d.unit); ch = true; }
+    const g3a = (i) => G3[i] && (S.eng.g3ans || {})[G3[i].id];
+    if (!d.g3done && !g3a(d.g3) && prev.some((v) => v.g3 === d.g3) && G3.length) { d.g3 = Math.min(top('g3') + 1, G3.length - 1); S.eng.g3 = Math.max(S.eng.g3 || 0, d.g3); ch = true; }
+    if (ch) save('eng');
+  }
 
   // ───────── 공통 조각 ─────────
   function toast(t) { const el = $('#toast'); if (el.classList.contains('on') && !RM()) el.animate([{ scale: 1.06 }, { scale: 1 }], { duration: 260, easing: 'cubic-bezier(.3,1.5,.5,1)' }); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 1800); }
@@ -1005,7 +1018,7 @@
     const mode = (UI.run && UI.run.kind === 'words' && UI.run.mode) || (Object.keys(wans || {}).length ? 'test' : 'study');
     UI.run = { kind: 'words', mode, day };
     const head = `<div class="row between">${day != null ? '<button class="btn sm" data-lib="words" type="button">‹ 단어 목록</button>' : '<button class="btn sm" data-go="hw" type="button">‹ 숙제</button>'}<span class="tiny">워드마스터 하이스트 · Day ${esc(wl[0].day)}</span></div>`;
-    if (mode === 'study') return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<h1 class="h1">${day != null ? '단어 10개' : '오늘의 단어 10개'}</h1>${day == null && Object.entries(S.eng.days).some(([d, v]) => d < today() && v.words === ed.words) ? '<div class="deep" style="margin:8px 0 12px"><p style="margin:0"><b>지난번에 본 단어랑 같아요.</b> 그날 시험을 안 봐서 그대로 남았어요. 시험까지 끝내야 다음 10개로 넘어가요</p></div>' : '<p class="sub">한 번 훑고 바로 시험 봐요</p>'}<div class="card"><table class="tbl"><tbody>${wl.map((w, k) => `<tr><td class="num muted" style="width:28px">${k + 1}</td><td><b style="font-size:16px">${esc(w.en)}</b> <span class="tiny">${esc(w.pos || '')}</span>${w.ex ? `<div class="tiny" style="margin-top:2px">${esc(w.ex)}</div>` : ''}</td><td style="color:var(--t2)">${esc(w.ko)}</td></tr>`).join('')}</tbody></table></div><div class="cta-bar"><button class="btn primary big block" id="w-test" type="button">시험 보기</button></div></div>`;
+    if (mode === 'study') return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<h1 class="h1">${day != null ? '단어 10개' : '오늘의 단어 10개'}</h1><p class="sub">한 번 훑고 바로 시험 봐요</p><div class="card"><table class="tbl"><tbody>${wl.map((w, k) => `<tr><td class="num muted" style="width:28px">${k + 1}</td><td><b style="font-size:16px">${esc(w.en)}</b> <span class="tiny">${esc(w.pos || '')}</span>${w.ex ? `<div class="tiny" style="margin-top:2px">${esc(w.ex)}</div>` : ''}</td><td style="color:var(--t2)">${esc(w.ko)}</td></tr>`).join('')}</tbody></table></div><div class="cta-bar"><button class="btn primary big block" id="w-test" type="button">시험 보기</button></div></div>`;
     const i = wl.findIndex((_, k) => !wans[k]);
     if (i < 0) {
       const ok = Object.values(wans).filter((x) => x.ok).length;
@@ -1332,7 +1345,6 @@
   }
 
   // ───────── 고3 영어 하루 한 문제 (문장 분석 · 천일문 연결) ─────────
-  const G3 = (ENG.g3 && ENG.g3.items) || [];
   const unitIdx = (ch, unit) => CH_UNITS.findIndex((u) => +u.ch === +ch && String(u.unit) === String(unit));
   function g3Run() {
     const ed = engToday(true); const li = UI.run && UI.run.kind === 'g3' && UI.run.lib != null ? UI.run.lib : null; const it = G3[li != null ? li : ed.g3 != null ? ed.g3 : 0];
