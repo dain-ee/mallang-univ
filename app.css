@@ -1568,3 +1568,9 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 :root[data-skin]:not([data-skin="ghost"]) .top { --fill: var(--card); }
 :root[data-skin]:not([data-skin="ghost"]) .tabs button.on { background: var(--card); color: var(--blue-d); box-shadow: 0 1px 4px color-mix(in srgb, var(--blue) 14%, transparent); }
 :root[data-skin]:not([data-skin="ghost"]) #main .btn:not(.primary):not(.card *):not(.sheet *) { background: var(--card); }
+.home-set { display: flex; justify-content: center; margin: 32px 0 8px; }
+.home-set button { padding: 8px 16px; border: 0; border-radius: 999px; background: var(--fill); color: var(--t2); font: inherit; font-size: 14px; font-weight: 600; }
+:root[data-skin]:not([data-skin="ghost"]) .home-set button { background: var(--card); }
+/* 탭을 넘길 때 카드가 아래에서 차례로 올라오면 어지러워서(사용자) 살짝 나타나기만 */
+main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, .sub, .seg, .chips) { animation: viewFade .18s ease-out both; animation-delay: 0ms; }
+@keyframes viewFade { from { opacity: 0; } }
