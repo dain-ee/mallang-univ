@@ -475,7 +475,8 @@
   async function ebGet(f) { const r = await fetch(f); if (!r.ok) throw new Error(f); const buf = new Uint8Array(await r.arrayBuffer()); return new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-CTR', counter: buf.slice(0, 16), length: 64 }, await ebKey(), buf.slice(16))); }
   const ebC = new Map();
   const ebMemo = (k, fn) => { if (!ebC.has(k)) ebC.set(k, fn().catch((e) => { ebC.delete(k); throw e; })); return ebC.get(k); };
-  const ebImg = (f) => ebMemo(f, () => ebGet(f).then((u) => URL.createObjectURL(new Blob([u], { type: 'image/webp' }))));
+  const ebUrl = new Map();
+  const ebImg = (f) => ebMemo(f, () => ebGet(f).then((u) => { const x = URL.createObjectURL(new Blob([u], { type: 'image/webp' })); ebUrl.set(f, x); return x; }));
   // 한 단원의 쪽별 단어: [{x0,x1,y0,y1,t,l}] (쪽 크기 대비 0~10000, l = 줄 번호)
   const ebTx = (c) => ebMemo(c.tx, () => ebGet(c.tx).then((u) => new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'))).json()).then((j) => { const o = {}; for (const [n, lines] of Object.entries(j)) { const W = []; lines.forEach(([y0, y1, f], l) => { for (let i = 0; i < f.length; i += 3) W.push({ x0: f[i], x1: f[i + 1], y0, y1, t: f[i + 2], l }); }); o[n] = W; } return o; }));
   const bkMarks = (cid, n) => Object.entries(bkS().marks).filter(([, m]) => m.c === cid && m.p === n);
@@ -510,19 +511,20 @@
     if (P[i].n % 2 && P[i - 1] && P[i - 1].n === P[i].n - 1) i -= 1;
     return P[i + 1] && P[i + 1].n === P[i].n + 1 && P[i].n % 2 === 0 ? [i, i + 1] : [i];
   }
+  const bkHint = (tool) => tool === 'read' ? '옆으로 밀거나 ‹ › 로 넘겨요 · 칠한 곳을 누르면 질문을 남겨요' : `단어 위를 쭉 끌어 ${tool === 'hl' ? '칠해요' : '밑줄을 그어요'} · 끄려면 ${tool === 'hl' ? '형광펜' : '밑줄'}을 한 번 더 눌러요`;
   function bookRun() {
     const r = UI.run, b = EB.books.find((x) => x.id === r.b); if (!b) return '';
     const P = bkPages(b), i = Math.max(0, P.findIndex((p) => p.n === r.n)), sp = bkSpread(P, i), c = P[sp[0]].c, tool = UI.bkTool || 'read';
     const toc = b.ch.map((x) => { const sn = x.pages.filter((p) => bkS().seen[`${b.id}:${p.n}`]).length, mk = Object.values(bkS().marks).filter((m) => m.c === x.id).length; return `<button type="button" class="bk-ti ${x.id === c.id ? 'on' : ''} ${x.ref ? 'ref' : ''}" data-bkn="${x.pages[0].n}"><span class="bk-tn">${esc(x.no)}</span><span class="bk-tt">${esc(x.t)}<span class="tiny">${x.a}~${x.b}쪽${mk ? ` · 칠한 곳 ${mk}` : ''}</span></span><span class="bk-td ${sn >= x.pages.length ? 'all' : sn ? 'some' : ''}"></span></button>`; }).join('');
-    const pg = (p) => { const pin = bkS().pin[`${p.c.id}:${p.n}`]; return `<div class="bk-pg" data-pg="${p.n}" data-r="${p.r}"><img alt="${p.n}쪽" draggable="false"><div class="bk-ly" data-ly="${p.n}"></div><button type="button" class="bk-pin ${pin ? 'on' : ''}" data-pin="${p.n}" aria-label="이 쪽 나중에 다시 보기">${pin ? '★' : '☆'}</button><span class="bk-no">${p.n}쪽</span></div>`; };
+    const pg = (p) => { const pin = bkS().pin[`${p.c.id}:${p.n}`]; const u = ebUrl.get(p.f); return `<div class="bk-pg ${u ? 'ok' : ''}" data-pg="${p.n}" data-r="${p.r}"><img alt="${p.n}쪽" draggable="false" ${u ? `src="${u}"` : ''}><div class="bk-ly" data-ly="${p.n}"></div><button type="button" class="bk-pin ${pin ? 'on' : ''}" data-pin="${p.n}" aria-label="이 쪽 나중에 다시 보기">${pin ? '★' : '☆'}</button><span class="bk-no">${p.n}쪽</span></div>`; };
     const first = sp[0] === 0, last = sp[sp.length - 1] >= P.length - 1;
     return `<div class="bk-wrap ${tool !== 'read' ? 'pen' : ''} ${bkOne() && innerWidth >= 1100 ? 'one' : ''}">
       <div class="bk-top"><button class="btn sm" type="button" data-bkback>‹ ${esc((TABS.find((t) => t[0] === (r.back || 'book')) || ['', '교과서'])[1])}</button><div class="bk-hd"><b>${esc(b.title)}</b><span>${esc(c.no)} ${esc(c.t)}${c.ref ? ' <span class="tag">참고</span>' : ''}</span></div>${innerWidth >= 1100 ? `<button class="btn sm" type="button" id="bk-one">${bkOne() ? '두 쪽 보기' : '한 쪽 크게'}</button>` : ''}<button class="btn sm" type="button" id="bk-toc">목차</button></div>
       <aside class="bk-side"><div class="row between" style="padding:0 8px 8px"><span class="tiny">${esc(b.pub)} · ${esc(b.range)}</span><button class="btn sm" type="button" id="bk-tocx">닫기</button></div>${toc}</aside>
       <div class="bk-stage" id="bk-stage"><button type="button" class="bk-arr l" data-turn="-1" ${first ? 'disabled' : ''} aria-label="앞 쪽">‹</button><div class="bk-spread ${sp.length > 1 ? 'two' : ''}" id="bk-spread">${sp.map((k) => pg(P[k])).join('')}</div><button type="button" class="bk-arr r" data-turn="1" ${last ? 'disabled' : ''} aria-label="다음 쪽">›</button></div>
       <div class="bk-bar"><input type="range" class="bk-sl" id="bk-sl" min="0" max="${P.length - 1}" value="${sp[0]}" aria-label="쪽 고르기"><span class="bk-pn num">${sp.map((k) => P[k].n).join('~')}쪽 <span class="tiny">/ ${P.length}쪽 중 ${sp[sp.length - 1] + 1}</span></span></div>
-      <div class="bk-tools" role="toolbar" aria-label="읽기 도구">${[['read', '읽기'], ['hl', '형광펜'], ['ul', '밑줄']].map(([k, t]) => `<button type="button" class="bk-tl ${tool === k ? 'on' : ''}" data-tool="${k}"><i class="bk-sw ${k}"></i>${t}</button>`).join('')}<span class="bk-sep"></span><button type="button" class="bk-tl" data-bklist="all">모아 보기</button></div>
-      <p class="bk-hint">${tool === 'read' ? '옆으로 밀어 넘겨요 · 칠한 곳을 누르면 질문을 남겨요' : '단어 위를 쭉 끌어 칠해요 · 넘기려면 「읽기」'}</p></div>`;
+      <div class="bk-tools" role="toolbar" aria-label="읽기 도구">${[['hl', '형광펜'], ['ul', '밑줄']].map(([k, t]) => `<button type="button" class="bk-tl ${tool === k ? 'on' : ''}" data-tool="${k}" aria-pressed="${tool === k}"><i class="bk-sw ${k}"></i>${t}</button>`).join('')}<span class="bk-sep"></span><button type="button" class="bk-tl" data-bklist="all">모아 보기</button></div>
+      <p class="bk-hint">${bkHint(tool)}</p></div>`;
   }
   function bkDraw(ly, W, cid, n, tmp) {
     const seg = (s, e) => { const L = {}; for (let i = Math.min(s, e); i <= Math.max(s, e); i++) { const w = W[i]; if (!w) continue; const o = L[w.l] || (L[w.l] = { x0: w.x0, x1: w.x1, y0: w.y0, y1: w.y1 }); o.x0 = Math.min(o.x0, w.x0); o.x1 = Math.max(o.x1, w.x1); o.y0 = Math.min(o.y0, w.y0); o.y1 = Math.max(o.y1, w.y1); } return Object.values(L); };
@@ -553,7 +555,12 @@
     $$('[data-turn]').forEach((x) => (x.onclick = () => turn(+x.dataset.turn)));
     const sl = $('#bk-sl'); sl.oninput = () => { $('.bk-pn').firstChild.textContent = `${P[+sl.value].n}쪽 `; }; sl.onchange = () => go(P[+sl.value].n, 0);
     document.onkeydown = (e) => { if (!UI.run || UI.run.kind !== 'book' || $('.sheet') || /INPUT|TEXTAREA/.test((document.activeElement || {}).tagName)) return; if (e.key === 'ArrowRight') turn(1); if (e.key === 'ArrowLeft') turn(-1); };
-    $$('[data-tool]').forEach((x) => (x.onclick = () => { UI.bkTool = x.dataset.tool; render(); }));
+    $$('[data-tool]').forEach((x) => (x.onclick = () => {
+      UI.bkTool = (UI.bkTool || 'read') === x.dataset.tool ? 'read' : x.dataset.tool;
+      const t = UI.bkTool; $('.bk-wrap').classList.toggle('pen', t !== 'read');
+      $$('[data-tool]').forEach((y) => { y.classList.toggle('on', y.dataset.tool === t); y.setAttribute('aria-pressed', y.dataset.tool === t); });
+      $('.bk-hint').textContent = bkHint(t);
+    }));
     $$('[data-pin]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); const p = P.find((q) => q.n === +x.dataset.pin), k = `${p.c.id}:${p.n}`; if (s.pin[k]) delete s.pin[k]; else s.pin[k] = Date.now(); save('book'); const on = !!s.pin[k]; x.classList.toggle('on', on); x.textContent = on ? '★' : '☆'; toast(on ? `${p.n}쪽을 나중에 다시 볼게요` : '뺐어요'); }));
     // 화면에 꼭 맞게 쪽 크기 정하기
     const stage = $('#bk-stage'), spread = $('#bk-spread');
@@ -563,7 +570,7 @@
     // 쪽 그림·글자 불러오기 (앞뒤 쪽은 미리)
     for (const k of sp) {
       const p = P[k], pg = $(`.bk-pg[data-pg="${p.n}"]`);
-      ebImg(p.f).then((u) => { const im = $('img', pg); im.onload = () => pg.classList.add('ok'); im.src = u; }).catch(() => pg.classList.add('err'));
+      if (!pg.classList.contains('ok')) ebImg(p.f).then((u) => { const im = $('img', pg); im.onload = () => pg.classList.add('ok'); im.src = u; }).catch(() => pg.classList.add('err'));
       ebTx(p.c).then((T) => { pg.W = T[p.n] || []; bkDraw($('.bk-ly', pg), pg.W, p.c.id, p.n); });
     }
     for (const k of [sp[0] - 2, sp[0] - 1, sp[sp.length - 1] + 1, sp[sp.length - 1] + 2]) if (P[k]) ebImg(P[k].f).catch(() => {});
@@ -584,8 +591,9 @@
       ly.onpointerup = ly.onpointercancel = (e) => {
         if (!drag) return; e.stopPropagation(); const d = drag; drag = null;
         const a = Math.min(d.s, d.e), z = Math.max(d.s, d.e), id = 'm' + Date.now().toString(36);
+        if (a === z) { const hit = bkMarks(c.id, n).find(([, m]) => a >= m.s && a <= m.e); if (hit) { bkDraw(ly, pg.W, c.id, n); bkMarkSheet(hit[0], null); return; } }
         s.marks[id] = { b: b.id, c: c.id, p: n, s: a, e: z, k: d.k, txt: bkTxt(pg.W, a, z), at: Date.now() };
-        save('book'); bkDraw(ly, pg.W, c.id, n); toast(d.k === 'hl' ? '칠했어요 · 「읽기」에서 누르면 질문을 남길 수 있어요' : '밑줄 그었어요');
+        save('book'); bkDraw(ly, pg.W, c.id, n); toast(d.k === 'hl' ? '칠했어요 · 칠한 곳을 누르면 질문을 남길 수 있어요' : '밑줄 그었어요');
       };
     });
   }

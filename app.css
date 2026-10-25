@@ -1127,7 +1127,7 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .bk-pn { flex: none; font-weight: 700; font-size: 14px; }
 .bk-tools { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 40; display: flex; align-items: center; gap: 4px; padding: 6px; background: #191f28; border-radius: 99px; box-shadow: 0 8px 24px rgba(0, 27, 55, .25); }
 .bk-tl { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px; border: 0; border-radius: 99px; background: none; color: #b0b8c1; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-.bk-tl.on { background: #fff; color: #191f28; }
+.bk-tl.on { background: #fff; color: #191f28; box-shadow: 0 0 0 2px #3182f6; }
 .bk-sw { width: 14px; height: 14px; border-radius: 4px; }
 .bk-sw.read { background: none; border: 2px solid currentColor; border-radius: 50%; width: 12px; height: 12px; }
 .bk-sw.hl { background: #ffd200; }
