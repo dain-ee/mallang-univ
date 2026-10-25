@@ -364,10 +364,8 @@
     const wordsDone = Object.keys(ed.wans || {}).length >= Math.min(10, wordsFor(ed.words).length) && wordsFor(ed.words).length;
     const unitDone = ed.udone;
     const tasks = [];
-    const off = !anyTask(new Date()) && !(S.sci.days[today()] && Object.keys(S.sci.days[today()].ans || {}).length) && !(S.eng.days[today()] && ['unit', 'words', 'g3'].some((k) => (k === 'unit' ? ed.udone || Object.keys(ed.uans || {}).length : k === 'words' ? Object.keys(ed.wans || {}).length : ed.g3done)));
-    // 쉬는 요일엔 「전체 목록」에서 열어 보기만 한 건 숙제로 치지 않아요 (실제로 푼 것만 보여요)
-    const did = (k) => k === 'sci' ? !!(S.sci.days[today()] && Object.keys(S.sci.days[today()].ans || {}).length) : k === 'unit' ? !!(ed.udone || Object.keys(ed.uans || {}).length) : k === 'words' ? !!Object.keys(ed.wans || {}).length : !!ed.g3done;
-    const has = (k) => !off && (onDay(k) || ((k === 'sci' ? S.sci.days[today()] : S.eng.days[today()]) && did(k)));
+    const off = !anyTask(new Date()) && !S.sci.days[today()] && !S.eng.days[today()];
+    const has = (k) => !off && (onDay(k) || !!(k === 'sci' ? S.sci.days[today()] : S.eng.days[today()]));
     // 지난번에 다 못 한 건 그대로 이어서 나와요 · 어제와 같은 숙제처럼 보이지 않게 알려 줘요
     const prevEng = Object.entries(S.eng.days).filter(([dk]) => dk < today()).sort().map(([, v]) => v);
     const carried = (k) => k === 'unit' ? !unitDone && prevEng.some((v) => v.unit === ed.unit) : k === 'words' ? !wordsDone && prevEng.some((v) => v.words === ed.words) : !ed.g3done && prevEng.some((v) => v.g3 === ed.g3);
