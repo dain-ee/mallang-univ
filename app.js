@@ -786,11 +786,13 @@
   }
   function missCard() {
     const L = myMissed(); if (!L.length) return '';
-    const avg = myAvg(), u = (it) => (it.unit === '쪽' ? '쪽' : '문제');
-    return `<section class="card c12 miss-card">${L.slice(0, 3).map(({ it, d, was, now, nd }) => `<div class="miss-it"><div class="miss-t"><b>${md(d)} ${DOW[dowOf(d)]}요일에 「${esc(it.book)}」 못 했나요?</b>
-      <span class="tiny">${nd ? `남은 ${nd}일에 나누면 하루 ${was}${u(it)} → <b class="${avg && now > avg ? 'red' : 'blue'}">${now}${u(it)}</b>` : '마감까지 남은 할 날이 없어요'}${avg ? ` · 보통 하루 ${avg}문제 해요` : ''}</span></div>
-      <div class="miss-b"><button class="btn sm primary" type="button" data-miss="split|${esc(it.id)}|${d}">${nd ? '남은 날에 나눠요' : '오늘 다 할게요'}</button><button class="btn sm" type="button" data-miss="push|${esc(it.id)}|${d}">마감 미루기</button><button class="btn sm" type="button" data-miss="did|${esc(it.id)}|${d}|${was}">했는데 안 눌렀어요</button></div></div>`).join('')}</section>`;
+    const avg = myAvg(), u = (it) => (it.unit === '쪽' ? '쪽' : '문제'), ds = [...new Set(L.slice(0, 3).map((x) => x.d))];
+    const when = ds.length === 1 ? `${md(ds[0])} ${DOW[dowOf(ds[0])]}요일에` : '지난번에';
+    return `<section class="card c12 miss-card"><div class="card-h"><h2>${when} 못 한 숙제가 있어요</h2><span class="tiny">${Math.min(L.length, 3)}개</span></div><div class="list">${L.slice(0, 3).map(({ it, d, was, now, nd }) => `<div class="li miss-it"><div class="body"><div class="t">${esc(it.book)}</div>
+      <div class="d">${ds.length > 1 ? `${md(d)} · ` : ''}${nd ? `남은 ${nd}일에 나누면 하루 ${was}${u(it)} → <b class="${avg && now > avg ? 'red' : 'blue'}">${now}${u(it)}</b>` : '마감까지 남은 날이 없어요'}</div></div>
+      <div class="miss-b"><button class="btn sm primary" type="button" data-miss="split|${esc(it.id)}|${d}">${nd ? '나눠 하기' : '오늘 할게요'}</button><button class="btn sm" type="button" data-miss="push|${esc(it.id)}|${d}">미루기</button><button class="btn sm" type="button" data-miss="did|${esc(it.id)}|${d}|${was}">했어요</button></div></div>`).join('')}</div></section>`;
   }
+
   // 마감을 다음 할 요일로 하루 미뤄요
   function myPush(it) { const old = it.due; let d = addD(it.due, 1); for (let i = 0; i < 7 && !myStudy(it).includes(dowOf(d)); i++) d = addD(d, 1); it.orig = it.orig || old; it.due = d; return `원래 ${md(it.orig)}까지였는데 ${md(d)} ${DOW[dowOf(d)]}요일까지로 미뤄졌어요`; }
   // 오늘 몫: 남은 양 ÷ 남은 날 (오늘 이미 한 건 빼고 계산해서 오늘 몫이 바뀌지 않게)
