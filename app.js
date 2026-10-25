@@ -677,11 +677,11 @@
     const allRows = () => Object.entries(D0).flatMap(([c, o]) => Object.entries(o).filter(([, x]) => filled(x)).map(([n, x]) => ({ c, n, x })));
     const unitOf = (m) => m === '쪽' ? '쪽' : '문제';
     const UL = { '번': '번', '쪽': '쪽', '문제': '문제' }, NX = { '번': '쪽', '쪽': '문제', '문제': '번' };
-    const rowHtml = (n, x) => `<div class="my-row ${filled(x) ? 'ok' : ''}" data-rn="${esc(n)}"><b class="my-bn">${filled(x) ? '<i class="my-dot"></i>' : ''}${esc(base(n))}${n !== base(n) ? ` <span class="tiny">${n.match(/\d+$/)[0]}번째</span>` : ''}</b>
+    const rowHtml = (n, x) => `<div class="my-row ${filled(x) ? 'ok' : ''}" data-rn="${esc(n)}"><b class="my-bn">${filled(x) ? '<i class="my-dot"></i>' : ''}${esc(base(n))}</b>
       ${x.mode === '건' ? `<span class="my-in"><button type="button" class="my-u" data-rplan title="꼭 할 일인지 일정인지">${x.plan !== false ? '일정' : '꼭 할 일'}</button><button type="button" class="my-one ${x.on ? 'on' : ''}" data-ron>${x.on ? '✓ 넣어요' : '넣기'}</button></span>` : `<span class="my-in">${x.mode === '쪽' ? '<span>p.</span>' : ''}${x.mode === '문제' ? `<input class="inp" type="number" inputmode="numeric" data-rf="c" value="${esc(x.c)}" placeholder="몇">` : `<input class="inp" type="number" inputmode="numeric" data-rf="a" value="${esc(x.a)}" placeholder="시작"><span>~</span><input class="inp" type="number" inputmode="numeric" data-rf="b" value="${esc(x.b)}" placeholder="끝">`}<button type="button" class="my-u" data-rm="${NX[x.mode]}" title="번호·쪽·문제 수 바꾸기">${UL[x.mode]}</button></span>
-      ${x.lt && x.lt.to != null && x.mode !== '문제' && !x.b ? `<button type="button" class="my-same" data-rsame>지난번만큼 ${x.lt.total}${unitOf(x.lt.unit)}</button>` : ''}`}
-      ${x.lt && x.mode !== '건' && n === base(n) ? `<span class="my-prev">지난번 ${x.lt.unit === '쪽' ? `p.${x.lt.from}~${x.lt.to}` : x.lt.from != null ? `${x.lt.from}~${x.lt.to}번` : `${x.lt.total}문제`} · ${md(new Date(x.lt.at).toISOString().slice(0, 10))} 넣음</span>` : ''}
-      ${x.mode !== '건' && n === base(n) ? `<button type="button" class="my-more" data-rmore>+ 같은 교재 한 줄 더</button>` : ''}</div>`;
+`}
+      ${x.mode !== '건' ? `<input class="inp my-ttl" data-rf="memo" value="${esc(x.memo || '')}" placeholder="제목 적기 (안 써도 돼요 · 예: 명제)">` : ''}
+      ${x.mode !== '건' ? `<div class="my-ft">${x.lt && n === base(n) ? `<span class="my-prev">지난번 ${x.lt.unit === '쪽' ? `p.${x.lt.from}~${x.lt.to}` : x.lt.from != null ? `${x.lt.from}~${x.lt.to}번` : `${x.lt.total}문제`} · ${md(new Date(x.lt.at).toISOString().slice(0, 10))} 넣음</span>` : ''}<span class="my-ftb">${x.lt && x.lt.to != null && x.mode !== '문제' && !x.b ? `<button type="button" class="my-same" data-rsame>지난번만큼 ${x.lt.total}${unitOf(x.lt.unit)}</button>` : ''}${n === base(n) ? `<button type="button" class="my-more" data-rmore>+ 같은 교재 한 줄 더</button>` : ''}</span></div>` : ''}</div>`;
     const draw = (el) => {
       const due = dueOf[cid] || (dueOf[cid] = myDue(myCls(cid)));
       $('#my-cls', el).innerHTML = M.cls.map((c) => { const k = Object.values(D0[c.id] || {}).filter(filled).length; return `<button type="button" class="chip ${c.id === cid ? 'on' : ''}" data-mc="${c.id}">${esc(c.name)}${k ? ` <b class="my-k">${k}</b>` : ''}</button>`; }).join('') + `<button type="button" class="chip" data-mc="+">+ 수업</button>`;
@@ -725,10 +725,10 @@
       $('#my-ok', el).onclick = () => {
         const R = allRows(); if (!R.length) { toast('교재 옆에 번호를 적어요'); return; }
         for (let { c, n, x } of R) {
-          const due = dueOf[c] || myDue(myCls(c)); n = base(n);
+          const due = dueOf[c] || myDue(myCls(c)); n = base(n); const tt = (x.memo || '').trim(), bn = tt ? `${n} ${tt}` : n;
           if (x.mode !== '건' && !myBooks(c).some((b) => b.name === n)) M.books.push({ cls: c, name: n });
-          if (x.mode === '번' || x.mode === '쪽') push(c, due, { book: n, text: `${n} ${x.mode === '쪽' ? `p.${x.a}~${x.b}` : `${x.a}~${x.b}번`}`, unit: x.mode, from: +x.a, to: +x.b, total: x.b - x.a + 1 });
-          else if (x.mode === '문제') push(c, due, { book: n, text: `${n} ${x.c}문제${x.memo ? ' · ' + x.memo : ''}`, unit: '문제', from: null, to: null, total: +x.c });
+          if (x.mode === '번' || x.mode === '쪽') push(c, due, { book: bn, text: `${bn} ${x.mode === '쪽' ? `p.${x.a}~${x.b}` : `${x.a}~${x.b}번`}`, unit: x.mode, from: +x.a, to: +x.b, total: x.b - x.a + 1 });
+          else if (x.mode === '문제') push(c, due, { book: bn, text: `${bn} ${x.c}문제`, unit: '문제', from: null, to: null, total: +x.c });
           else push(c, due, { book: n, text: n, unit: '건', from: null, to: null, total: 1, plan: x.plan !== false });
         }
         for (const k of Object.keys(D0)) for (const [nn, y] of Object.entries(D0[k])) if (filled(y)) delete D0[k][nn];
