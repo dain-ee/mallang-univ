@@ -658,32 +658,58 @@
       <button class="btn primary big block my-add" type="button" data-myadd>+ 숙제 넣기</button>
       ${L.length ? `<div class="list my-list">${L.map((it) => { const x = myToday(it), p = Math.round((myDone(it) / it.total) * 100), dd = dday(it.due); return `<div class="li btnlike" data-task="my:${esc(it.id)}"><div class="ico">${ic('write')}</div><div class="body"><div class="t">${esc(it.book)} <span class="tiny">${esc(myCls(it.cls).name)}</span></div><div class="d">${it.unit === '건' ? esc(myCls(it.cls).name) : x.n ? `오늘 ${esc(myRange(it, x))}` : '오늘 몫 끝'} · <b class="${dd <= 1 ? 'red' : ''}">${dd < 0 ? '마감 지남' : dd === 0 ? '오늘 마감' : `${md(it.due)} 마감 D-${dd}`}</b></div><div class="ik-bar"><i style="width:${p}%"></i></div></div></div>`; }).join('')}</div>` : `<p class="tiny" style="margin:12px 0 0">학원·과외·학교 숙제, 수행평가, 학생회 일까지 넣어요. 문제 수가 있으면 마감까지 매일 할 만큼 「오늘 할 일」에 나눠 줘요</p>`}</section>`;
   }
+  // 교재: 수업마다 기억해요. 지난번 끝 번호 다음부터 이어서 채워요
+  const myBooks = (cid) => { const M = myS(); M.books = M.books || [{ cls: 'c1', name: '마플 시너지' }, { cls: 'c1', name: '마더텅' }, { cls: 'c1', name: '올림포스 기출' }]; return M.books.filter((b) => b.cls === cid); };
+  const myLast = (cid, name) => myS().items.filter((it) => it.cls === cid && it.book.startsWith(name) && it.to != null).sort((a, b) => b.at - a.at)[0];
   function myAdd() {
-    const M = myS(); let cid = (M.last && M.cls.find((c) => c.id === M.last) ? M.last : M.cls[0].id), due = myDue(myCls(cid)), addCls = false;
+    const M = myS(); let cid = (M.last && M.cls.find((c) => c.id === M.last) ? M.last : M.cls[0].id), due = myDue(myCls(cid)), bk = null, mode = '번', addCls = false, added = 0;
     const draw = (el) => {
-      const lines = $('#my-ta', el).value.split('\n').map(myParse).filter(Boolean);
-      $('#my-cls', el).innerHTML = M.cls.map((c) => `<button type="button" class="chip ${c.id === cid ? 'on' : ''}" data-mc="${c.id}">${esc(c.name)}</button>`).join('') + `<button type="button" class="chip" data-mc="+">+ 수업 추가</button>`;
+      const B = myBooks(cid), lt = bk ? myLast(cid, bk) : null;
+      $('#my-cls', el).innerHTML = M.cls.map((c) => `<button type="button" class="chip ${c.id === cid ? 'on' : ''}" data-mc="${c.id}">${esc(c.name)}</button>`).join('') + `<button type="button" class="chip" data-mc="+">+ 수업</button>`;
       $('#my-new', el).hidden = !addCls;
+      $('#my-bk', el).innerHTML = B.map((b) => `<button type="button" class="chip ${b.name === bk ? 'on' : ''}" data-mb="${esc(b.name)}">${esc(b.name)}</button>`).join('') + `<button type="button" class="chip ${bk === '' ? 'on' : ''}" data-mb="">${B.length ? '+ 다른 것' : '직접 적기'}</button>`;
+      $('#my-bkn', el).hidden = bk !== '';
+      $('#my-mode', el).innerHTML = [['번', '번호'], ['쪽', '쪽'], ['문제', '문제 수'], ['건', '한 번에 끝']].map(([k, n]) => `<button type="button" class="chip ${mode === k ? 'on' : ''}" data-mm="${k}">${n}</button>`).join('');
+      const fr = $('#my-a', el); if (fr && !fr.dataset.touched) fr.value = lt && (mode === '번' || mode === '쪽') && lt.unit === mode ? lt.to + 1 : '';
+      $('#my-rng', el).hidden = !(mode === '번' || mode === '쪽'); $('#my-cnt', el).hidden = mode !== '문제';
+      $('#my-u1', el).textContent = mode === '쪽' ? 'p.' : ''; $('#my-u2', el).textContent = mode === '쪽' ? '쪽' : '번';
+      $('#my-lt', el).innerHTML = lt ? `지난번 ${lt.unit === '쪽' ? 'p.' : ''}${esc(lt.to)}${lt.unit === '쪽' ? '' : '번'}까지 했어요 · 이어서 채웠어요 <button type="button" class="chip sm" id="my-same">지난번만큼 (${lt.total}${lt.unit === '쪽' ? '쪽' : '문제'})</button>` : '';
+      if (lt) $('#my-same', el).onclick = () => { const a = $('#my-a', el); if (!a.value) a.value = lt.to + 1; $('#my-b', el).value = +a.value + lt.total - 1; };
       $('#my-due', el).innerHTML = `<span>${md(due)} ${DOW[dowOf(due)]}요일까지 · <b class="blue">D-${dday(due)}</b></span><input type="date" id="my-dd" value="${due}" class="inp sm">`;
-      $('#my-prev', el).innerHTML = lines.length ? `<p class="tiny" style="margin:0 0 6px">이렇게 나눠요 · 숫자가 틀리면 고쳐요</p>${lines.map((l, i) => `<div class="my-pv"><div class="body"><b>${esc(l.book)}</b><span class="tiny">${esc(l.text)}</span></div>${l.unit === '건' ? '<span class="tiny">한 번에 끝내는 일</span>' : `<label><input class="inp sm" type="number" min="1" inputmode="numeric" data-mn="${i}" value="${l.total}"> ${l.unit === '쪽' ? '쪽' : '문제'}</label>`}<span class="tiny">${l.unit === '건' ? '' : `하루 ${Math.ceil(l.total / Math.max(1, dday(due) + 1))}`}</span></div>`).join('')}` : '';
-      $('#my-ok', el).disabled = !lines.length; $('#my-ok', el).textContent = lines.length ? `${lines.length}개 넣기` : '숙제를 붙여넣어요';
-      $$('[data-mc]', el).forEach((b) => (b.onclick = () => { if (b.dataset.mc === '+') addCls = !addCls; else { cid = b.dataset.mc; due = myDue(myCls(cid)); } draw(el); }));
+      $('#my-done', el).textContent = added ? `${added}개 넣었어요 · 다른 교재도 이어서 넣어요` : '';
+      $$('[data-mc]', el).forEach((b) => (b.onclick = () => { if (b.dataset.mc === '+') addCls = !addCls; else { cid = b.dataset.mc; due = myDue(myCls(cid)); bk = null; if (myCls(cid).day == null) mode = '건'; } draw(el); }));
+      $$('[data-mb]', el).forEach((b) => (b.onclick = () => { bk = b.dataset.mb; const a = $('#my-a', el); a.dataset.touched = ''; const l2 = bk ? myLast(cid, bk) : null; if (l2 && (l2.unit === '번' || l2.unit === '쪽')) mode = l2.unit; draw(el); if (bk === '') $('#my-bkn', el).focus(); else if (mode === '번' || mode === '쪽') (a.value ? $('#my-b', el) : a).focus(); else if (mode === '문제') $('#my-c', el).focus(); }));
+      $$('[data-mm]', el).forEach((b) => (b.onclick = () => { mode = b.dataset.mm; draw(el); }));
       $('#my-dd', el).onchange = (e) => { if (e.target.value) { due = e.target.value; draw(el); } };
     };
-    sheet(`<h2>숙제 넣기</h2><p class="sub">받은 숙제를 그대로 붙여넣어요. 한 줄에 하나씩, 쪽·번호·문제 수는 알아서 읽어요. 수행평가처럼 한 번에 끝내는 일도 그냥 적어요</p>
-      <div class="chips multi" id="my-cls" style="flex-wrap:wrap;margin:12px 0 8px"></div>
-      <div id="my-new" class="my-new" hidden><input class="inp" id="my-nn" placeholder="예: 국어 과외"><div class="pl-dots" style="margin:8px 0 0">${[1, 2, 3, 4, 5, 6, 0].map((d) => `<button type="button" data-nd="${d}" class="${d === 0 ? 'sun' : d === 6 ? 'sat' : ''}">${DOW[d]}</button>`).join('')}</div><p class="tiny" style="margin:6px 0 0">수업 요일을 고르면 그 전날이 마감이에요</p></div>
-      <textarea class="inp my-ta" id="my-ta" rows="5" placeholder="마플 시너지 01함수 p.216~232 (1221번~1328번)&#10;올림포스 기출 홀수번 51문제&#10;통합사회 수행평가 보고서 쓰기"></textarea>
-      <div class="my-due" id="my-due"></div><div id="my-prev"></div>
-      <button class="btn primary big block" id="my-ok" type="button" style="margin-top:16px" disabled>숙제를 붙여넣어요</button>`, (el, close) => {
-      draw(el); let nd = null;
-      $('#my-ta', el).oninput = () => draw(el);
-      $$('[data-nd]', el).forEach((b) => (b.onclick = () => { nd = +b.dataset.nd; $$('[data-nd]', el).forEach((x) => x.classList.toggle('on', x === b)); const n = $('#my-nn', el).value.trim(); if (n) { const c = { id: 'c' + Date.now().toString(36), name: n, day: nd }; M.cls.push(c); cid = c.id; due = myDue(c); addCls = false; $('#my-nn', el).value = ''; save('my'); draw(el); } else toast('수업 이름을 먼저 적어요'); }));
+    sheet(`<h2>숙제 넣기</h2>
+      <p class="my-lb">수업</p><div class="chips multi my-chips" id="my-cls"></div>
+      <div id="my-new" class="my-new" hidden><input class="inp" id="my-nn" placeholder="예: 국어 과외"><div class="pl-dots" style="margin:8px 0 0">${[1, 2, 3, 4, 5, 6, 0].map((d) => `<button type="button" data-nd="${d}" class="${d === 0 ? 'sun' : d === 6 ? 'sat' : ''}">${DOW[d]}</button>`).join('')}</div><p class="tiny" style="margin:6px 0 0">수업 요일을 누르면 추가돼요. 그 전날이 마감이에요</p><button type="button" class="btn sm" id="my-nod" style="margin-top:8px">요일 없이 추가 (학교 숙제처럼)</button></div>
+      <p class="my-lb">교재·할 일</p><div class="chips multi my-chips" id="my-bk"></div><input class="inp" id="my-bkn" placeholder="교재 이름 또는 할 일 (예: 수행평가 보고서)" hidden>
+      <p class="my-lb">얼마나</p><div class="chips multi my-chips" id="my-mode"></div>
+      <div class="my-rng" id="my-rng"><span id="my-u1"></span><input class="inp" id="my-a" type="number" inputmode="numeric" placeholder="시작"><span>~</span><input class="inp" id="my-b" type="number" inputmode="numeric" placeholder="끝"><span id="my-u2">번</span></div>
+      <p class="tiny" id="my-lt" style="margin:6px 0 0"></p>
+      <div class="my-rng" id="my-cnt" hidden><input class="inp" id="my-c" type="number" inputmode="numeric" placeholder="몇 문제"><span>문제</span><input class="inp" id="my-memo" placeholder="메모 (예: 홀수번만)" style="flex:2"></div>
+      <div class="my-due" id="my-due"></div>
+      <button class="btn primary big block" id="my-ok" type="button">넣기</button><p class="tiny blue" id="my-done" style="text-align:center;margin:8px 0 0"></p>
+      <details class="my-paste"><summary>여러 줄을 한꺼번에 붙여넣기</summary><textarea class="inp my-ta" id="my-ta" rows="4" placeholder="받은 숙제를 그대로 붙여넣어요. 한 줄에 하나씩"></textarea><button class="btn block" id="my-pok" type="button" style="margin-top:8px">붙여넣은 것 넣기</button></details>`, (el, close) => {
+      draw(el);
+      $('#my-a', el).oninput = (e) => { e.target.dataset.touched = 1; };
+      const addC = (day) => { const n = $('#my-nn', el).value.trim(); if (!n) { toast('수업 이름을 먼저 적어요'); return; } const c = { id: 'c' + Date.now().toString(36), name: n, day }; M.cls.push(c); cid = c.id; due = myDue(c); addCls = false; bk = null; $('#my-nn', el).value = ''; save('my'); draw(el); };
+      $$('[data-nd]', el).forEach((b) => (b.onclick = () => addC(+b.dataset.nd)));
+      $('#my-nod', el).onclick = () => addC(null);
+      const push = (it) => { M.items.push({ id: 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 4), cls: cid, due, at: Date.now(), log: {}, wrong: [], ...it }); M.last = cid; added++; save('my'); };
       $('#my-ok', el).onclick = () => {
-        const lines = $('#my-ta', el).value.split('\n').map(myParse).filter(Boolean); if (!lines.length) return;
-        lines.forEach((l, i) => { const v = +($(`[data-mn="${i}"]`, el) || {}).value || l.total; if (v !== l.total) { l.total = v; if (l.from != null) l.to = l.from + v - 1; } M.items.push({ id: 'm' + Date.now().toString(36) + i, cls: cid, ...l, due, at: Date.now(), log: {}, wrong: [] }); });
-        M.last = cid; save('my'); close(); render(); toast(`숙제 ${lines.length}개를 넣었어요 · 오늘 할 일에 나눠 넣었어요`);
+        const name = bk === '' ? $('#my-bkn', el).value.trim() : bk; if (!name) { toast('교재를 골라요'); return; }
+        if (bk === '' && !myBooks(cid).some((b) => b.name === name) && mode !== '건') M.books.push({ cls: cid, name });
+        let it;
+        if (mode === '번' || mode === '쪽') { const a = +$('#my-a', el).value, b = +$('#my-b', el).value; if (!a || !b || b < a) { toast('시작과 끝 번호를 적어요'); return; } it = { book: name, text: `${name} ${mode === '쪽' ? `p.${a}~${b}` : `${a}~${b}번`}`, unit: mode, from: a, to: b, total: b - a + 1 }; }
+        else if (mode === '문제') { const c = +$('#my-c', el).value; if (!c) { toast('몇 문제인지 적어요'); return; } const m = $('#my-memo', el).value.trim(); it = { book: name, text: `${name} ${c}문제${m ? ' · ' + m : ''}`, unit: '문제', from: null, to: null, total: c }; }
+        else it = { book: name, text: name, unit: '건', from: null, to: null, total: 1 };
+        push(it); render(); toast(`넣었어요 · ${it.unit === '건' ? md(due) + '까지' : `하루 ${Math.ceil(it.total / Math.max(1, dday(due) + 1))}${it.unit === '쪽' ? '쪽' : '문제'}씩`}`);
+        bk = null; ['#my-a', '#my-b', '#my-c', '#my-memo', '#my-bkn'].forEach((q) => { const x = $(q, el); x.value = ''; x.dataset.touched = ''; }); draw(el);
       };
+      $('#my-pok', el).onclick = () => { const L = $('#my-ta', el).value.split('\n').map(myParse).filter(Boolean); if (!L.length) return; L.forEach((l) => push(l)); $('#my-ta', el).value = ''; render(); draw(el); toast(`${L.length}개 넣었어요`); };
     });
   }
   function mySheet(id) {
