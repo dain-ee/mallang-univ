@@ -354,8 +354,9 @@
     const nsRows = SEMS.map((sem) => ({ label: sem.replace('-', '학년 ') + '학기', v: { n: nsAvg(sem) } })).filter((r) => r.v.n != null);
     const nscard = nsCard('c6');
     const sgbc = sgbSummary('c6');
-    const main = `<h1 class="h1 home-h1">${bdayLeft() === 0 ? `${ic('party')} <mark class="hl-g">${nameCall()}</mark>, 생일 축하해` : `<mark class="hl-g">${nameCall()}</mark>, ${greet()}`}</h1>
-      <div class="grid">${hero}${pos}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}</div>`;
+    const main = `<h1 class="h1">${bdayLeft() === 0 ? `${ic('party')} <mark class="hl-g">${nameCall()}</mark>, 생일 축하해` : `<mark class="hl-g">${nameCall()}</mark>, ${greet()}`}</h1>
+      <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
+      <div class="grid">${missCard()}${hero}${pos}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}</div>`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -366,6 +367,12 @@
   // 오늘 남은 것: 홈 문구 · 숙제 탭 배지 · 숙제 탭 맨 위 단추가 모두 이 목록 하나를 써요
   function leftItems() {
     return todayTasks().tasks.filter((t) => !t.done && t.icon !== 'party' && !t.memo).map((t) => ({ t: t.t, ic: t.icon, task: t.k, hw: t.hw }));
+  }
+  // 홈 제목 아래 한 줄: 오늘 꼭 할 일 몇 개 끝냈는지 · 기말까지
+  function homeLine() {
+    const real = todayTasks().tasks.filter((t) => t.icon !== 'party' && !t.memo), dn = real.filter((t) => t.done).length, ex = typeof EB_EXAM === 'string' && EB_EXAM ? dday(EB_EXAM) : null;
+    const a = !real.length ? '오늘은 쉬는 날이에요' : dn >= real.length ? `오늘 할 일 ${real.length}개를 다 끝냈어요` : `오늘 할 일 ${real.length}개 중 ${dn}개 끝냈어요, ${real.length - dn}개 남았어요`;
+    return a + (ex != null && ex >= 0 ? ` · 기말고사까지 ${ex}일` : '');
   }
   function todayLine() {
     const ed = engToday(), L = leftItems(), hw = L.filter((x) => x.hw).length;
@@ -631,12 +638,39 @@
   const myDone = (it) => Object.values(it.log || {}).reduce((a, x) => a + (x.n || 0), 0);
   // 할 요일: 수업마다 골라요(기본 월~금). 남은 할 요일 수로 나눠요
   const myStudy = (it) => myCls(it.cls).study || it.days || [1, 2, 3, 4, 5];  // 수업 할 요일을 바꾸면 이미 넣은 숙제도 따라가요
-  const myDaysLeft = (due, days) => { let n = 0, t = today(); for (let i = 0; i < 60 && t <= due; i++, t = addD(t, 1)) if (days.includes(dowOf(t))) n++; return n; };
-  const myLeftDays = (it) => Math.max(1, myDaysLeft(it.due, myStudy(it)));
+  const myDaysLeft = (due, days, from) => { let n = 0, t = from || today(); for (let i = 0; i < 60 && t <= due; i++, t = addD(t, 1)) if (days.includes(dowOf(t))) n++; return n; };
+  const mySkip = (it, d) => !!(it.skip && it.skip[d || today()]);  // 그날은 미뤘어요
+  const myLeftDays = (it) => Math.max(1, myDaysLeft(it.due, myStudy(it), mySkip(it) ? addD(today(), 1) : today()));
+  // 내 평균: 최근 3주에 숙제를 한 날, 하루에 푼 문제 수
+  function myAvg() { const by = {}, from = addD(today(), -21); for (const it of myS().items) if (it.unit !== '건') for (const [d, x] of Object.entries(it.log || {})) if (d >= from && d < today() && x.n) by[d] = (by[d] || 0) + x.n; const v = Object.values(by); return v.length >= 2 ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null; }
+  // 지난 할 요일에 안 했으면 다음 날 물어봐요: 남은 날에 나눌지, 마감을 미룰지
+  function myMissed() {
+    const out = [], t = today();
+    for (const it of myOpen()) {
+      if (it.unit === '건' || !it.at) continue;
+      const made = new Date(it.at), md0 = `${made.getFullYear()}-${String(made.getMonth() + 1).padStart(2, '0')}-${String(made.getDate()).padStart(2, '0')}`;
+      let d = addD(t, -1); for (let i = 0; i < 7 && !myStudy(it).includes(dowOf(d)); i++) d = addD(d, -1);
+      if (d < md0 || d > it.due || (it.log || {})[d] || mySkip(it, d) || (it.ack || {})[d]) continue;
+      const left = it.total - myDone(it); if (left <= 0) continue;
+      const was = Math.ceil(left / Math.max(1, myDaysLeft(it.due, myStudy(it), d))), now = Math.ceil(left / myLeftDays(it)), nd = myDaysLeft(it.due, myStudy(it));
+      out.push({ it, d, was, now, nd });
+    }
+    return out;
+  }
+  function missCard() {
+    const L = myMissed(); if (!L.length) return '';
+    const avg = myAvg(), u = (it) => (it.unit === '쪽' ? '쪽' : '문제');
+    return `<section class="card c12 miss-card">${L.slice(0, 3).map(({ it, d, was, now, nd }) => `<div class="miss-it"><div class="miss-t"><b>${md(d)} ${DOW[dowOf(d)]}요일에 「${esc(it.book)}」 못 했나요?</b>
+      <span class="tiny">${nd ? `남은 ${nd}일에 나누면 하루 ${was}${u(it)} → <b class="${avg && now > avg ? 'red' : 'blue'}">${now}${u(it)}</b>` : '마감까지 남은 할 날이 없어요'}${avg ? ` · 보통 하루 ${avg}문제 해요` : ''}</span></div>
+      <div class="miss-b"><button class="btn sm primary" type="button" data-miss="split|${esc(it.id)}|${d}">${nd ? '남은 날에 나눠요' : '오늘 다 할게요'}</button><button class="btn sm" type="button" data-miss="push|${esc(it.id)}|${d}">마감 미루기</button><button class="btn sm" type="button" data-miss="did|${esc(it.id)}|${d}|${was}">했는데 안 눌렀어요</button></div></div>`).join('')}</section>`;
+  }
+  // 마감을 다음 할 요일로 하루 미뤄요
+  function myPush(it) { const old = it.due; let d = addD(it.due, 1); for (let i = 0; i < 7 && !myStudy(it).includes(dowOf(d)); i++) d = addD(d, 1); it.orig = it.orig || old; it.due = d; return `원래 ${md(it.orig)}까지였는데 ${md(d)} ${DOW[dowOf(d)]}요일까지로 미뤄졌어요`; }
   // 오늘 몫: 남은 양 ÷ 남은 날 (오늘 이미 한 건 빼고 계산해서 오늘 몫이 바뀌지 않게)
   function myToday(it) {
     const t = today(), dn = it.log && it.log[t] ? it.log[t].n : 0, left = it.total - (myDone(it) - dn);
     if (left <= 0) return { n: 0, a: null, b: null, dn };
+    if (mySkip(it) && !dn) return { n: 0, a: null, b: null, dn, skip: true };
     const off = dday(it.due) >= 0 && !myStudy(it).includes(dowOf(t)) && myDaysLeft(it.due, myStudy(it)) > 0;  // 오늘은 안 하는 날
     const n = off ? 0 : dday(it.due) < 0 ? left : Math.ceil(left / myLeftDays(it));
     const a = it.from != null ? it.from + (myDone(it) - dn) : null;
@@ -746,7 +780,7 @@
     sheet(`<div class="row" style="gap:8px;margin-bottom:8px"><span class="tag">${esc(myCls(it.cls).name)}</span><span class="tiny">${md(it.due)} 마감 · D-${Math.max(0, dday(it.due))}</span></div>
       <label class="my-h2"><input id="my-bt" value="${esc(it.book)}" aria-label="제목 바꾸기"><span>수정</span></label><p class="tiny" style="margin:0 0 12px;line-height:1.6">${esc(it.text)}</p>
       <div class="ik-bar" style="height:8px"><i style="width:${Math.round((myDone(it) / it.total) * 100)}%"></i></div><p class="tiny" style="margin:6px 0 16px">${myDone(it)} / ${it.total}${it.unit === '쪽' ? '쪽' : '문제'} 했어요</p>
-      ${it.unit === '건' ? '' : `<div class="my-today"><span class="tiny">오늘 할 것</span><b>${x.n ? esc(myRange(it, x)) : '오늘 몫은 없어요'}</b></div>
+      ${it.unit === '건' ? '' : `<div class="my-today"><span class="tiny">오늘 할 것${myAvg() ? ` · 보통 하루 ${myAvg()}문제 해요` : ''}</span><b>${x.skip ? '내일로 미뤘어요' : x.n ? esc(myRange(it, x)) : '오늘 몫은 없어요'}</b>${it.orig ? `<span class="tiny">원래 ${md(it.orig)} 마감 → ${md(it.due)}로 미뤄짐</span>` : ''}${!dt && (x.n || x.skip) ? `<button type="button" class="my-skip" id="my-skip">${x.skip ? '미룬 것 취소' : '오늘은 못 해요 · 내일로 미루기'}</button>` : ''}</div>
       <div class="my-amt"><span>오늘 한 만큼</span><button type="button" class="btn sm" data-ma="-1">−</button><input class="inp sm" id="my-n" type="number" inputmode="numeric" min="0" value="${dt ? dt.n : x.n}"><button type="button" class="btn sm" data-ma="1">+</button></div>
       <label class="field" style="margin-top:12px"><span class="tiny">틀린 번호 (띄어 쓰거나 쉼표로) · 나중에 오답 탭에서 다시 풀어요</span><input class="inp" id="my-w" inputmode="numeric" placeholder="예: 1225 1231 1240" value="${esc((dt && dt.w || []).join(' '))}"></label>`}
       <button class="btn primary big block" id="my-ok" type="button" style="margin-top:16px">${it.unit === '건' ? (myFin(it) ? '아직 안 끝났어요' : '끝냈어요') : dt ? '고쳐서 저장' : '오늘 것 끝냈어요'}</button>
@@ -757,6 +791,10 @@
         if (a && b) { const f = +a.value, z = +b.value; if (!(f > 0 && z >= f)) { toast('시작과 끝 번호를 확인해요'); return; } it.from = f; it.to = z; it.total = z - f + 1; it.text = `${it.book} ${it.unit === '쪽' ? `p.${f}~${z}` : `${f}~${z}번`}`; }
         if (c) { if (!(+c.value > 0)) { toast('문제 수를 적어요'); return; } it.total = +c.value; }
         if (d) it.due = d; save('my'); sheet.dirty = true; const bb = $('#sheet-root .sh-back'); if (bb) bb.click(); else close(); toast('고쳤어요'); };
+      const sk = $('#my-skip', el); if (sk) sk.onclick = () => { const t = today(); it.skip = { ...(it.skip || {}) }; if (it.skip[t]) { delete it.skip[t]; save('my'); close(); render(); toast('미룬 걸 취소했어요'); return; }
+        it.skip[t] = 1; let msg = ''; if (!myDaysLeft(it.due, myStudy(it), addD(t, 1))) msg = myPush(it) + ' · ';
+        const n = myToday({ ...it, skip: {} }).n, nd = myDaysLeft(it.due, myStudy(it), addD(t, 1)), left = it.total - myDone(it), per = Math.ceil(left / Math.max(1, nd)), avg = myAvg();
+        save('my'); close(); render(); toast(msg + `내일부터 남은 ${nd}일, 하루 ${per}${it.unit === '쪽' ? '쪽' : '문제'}${avg ? ` (보통 하루 ${avg}문제)` : ''}`); };
       $('#my-bt', el).onchange = (e) => { const v = e.target.value.trim(); if (!v || v === it.book) return; it.text = it.text.startsWith(it.book) ? v + it.text.slice(it.book.length) : it.text; it.book = v; save('my'); sheet.dirty = true; toast('제목을 바꿨어요'); };
       $('#my-bt', el).onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) e.target.blur(); };
       const mp = $('#my-plan', el); if (mp) mp.onclick = () => { it.plan = !isPlan(it); save('my'); close(); render(); toast(it.plan ? '일정으로 바꿨어요 · 오늘 할 일 셈에서 빠져요' : '꼭 할 일로 바꿨어요'); };
@@ -773,6 +811,53 @@
     });
   }
   // 오답 탭: 학원·과외에서 틀린 번호 모음. 누르면 다시 맞힌 걸로
+  // 수학 문제집: 틀린 번호 → 그 문제 자리(쪽 그림을 잘라 보여 줘요)와 풀이
+  const MB_ID = (book) => /마플/.test(book) ? 'mpl' : /마더텅/.test(book) ? 'mdt' : /올림포스/.test(book) ? 'oly' : null;
+  function mbKeys(it, v) {
+    const b = EB.books.find((x) => x.id === MB_ID(it.book)); if (!b || !b.q) return [];
+    if (b.id === 'mpl') { const k = String(v).padStart(4, '0'); return b.q[k] ? [k] : []; }
+    const pad = String(v).padStart(b.id === 'mdt' ? 3 : 2, '0'), all = Object.keys(b.q).filter((k) => k.endsWith('-' + pad));
+    const HINT = { mdt: [['명제', '명제'], ['유리', '유리식과 유리함수'], ['무리', '무리식과 무리함수'], ['함수', '함수']], oly: [['명제', '09-'], ['유리', '11-'], ['무리', '11-'], ['함수', '10-'], ['개념', '-개념-'], ['유형', '-유형-'], ['도전', '-도전-']] }[b.id];
+    let L = all; for (const [w, pre] of HINT) if ((it.book + ' ' + it.text).includes(w)) { const f = L.filter((k) => k.includes(pre)); if (f.length) L = f; }
+    return L;
+  }
+  function mbCrop(bk, k) {
+    const q = bk.q[k]; if (!q) return null; const [p, y, x] = q, same = Object.values(bk.q).filter((o) => o[0] === p);
+    const below = same.filter((o) => Math.abs(o[2] - x) < 400 && o[1] > y + 60).map((o) => o[1]), right = same.filter((o) => o[2] > x + 400).map((o) => o[2]);
+    const pg = bk.ch.flatMap((c) => c.pages).find((g) => g.n === p); if (!pg) return null;
+    const T = Math.max(0, y - 120), B = below.length ? Math.min(...below) - 40 : 9800, L = Math.max(0, x - 150), Rr = right.length ? Math.min(...right) - 60 : 9900;
+    return { pg, T: T / 1e4, B: Math.max(B, y + 600) / 1e4, L: L / 1e4, R: Rr / 1e4, p };
+  }
+  const mbCut = (c, id) => `<div class="mb-cut" style="aspect-ratio:${((c.R - c.L) / ((c.B - c.T) * c.pg.r)).toFixed(4)}"><img id="${id}" alt="" style="width:${(100 / (c.R - c.L)).toFixed(3)}%;left:${(-c.L / (c.R - c.L) * 100).toFixed(3)}%;top:${(-c.T / (c.B - c.T) * 100).toFixed(3)}%"></div>`;
+  function mbSheet(itId, v) {
+    const it = myS().items.find((x) => x.id === itId); if (!it) return;
+    const keys = mbKeys(it, v), bk = EB.books.find((x) => x.id === MB_ID(it.book)), sb = bk && (EB.sol || []).find((x) => x.id === bk.id + '-s');
+    const open = (k) => {
+      const c = mbCrop(bk, k), sc = sb && mbCrop(sb, k), wrong = (it.wrong || []).includes(+v);
+      sheet(`<div class="row" style="gap:8px;margin-bottom:8px"><span class="tag">${esc(bk.title)}</span><span class="tiny">${esc(k)}번 · ${c ? c.p + '쪽' : ''}</span></div>
+        <h2 style="margin:0 0 12px">${esc(String(v))}번 다시 풀기</h2>
+        <div class="chips" id="mb-tab" style="margin:0 0 12px"><button type="button" class="chip on" data-mbt="q">문제</button>${sc ? `<button type="button" class="chip" data-mbt="s">${bk.id === 'mdt' ? '정답' : '풀이'}</button>` : ''}</div>
+        <div id="mb-q">${c ? mbCut(c, 'mb-qi') : '<p class="tiny">문제 자리를 못 찾았어요</p>'}</div><div id="mb-s" hidden>${sc ? mbCut(sc, 'mb-si') : ''}</div>
+        <button class="btn primary big block" id="mb-ok" type="button" style="margin-top:16px">${wrong ? '다시 풀어서 맞혔어요' : '다시 틀렸어요'}</button>
+        ${c ? `<button class="btn block" id="mb-pg" type="button" style="margin-top:8px">쪽 전체 보기</button>` : ''}`, (el, close) => {
+        if (c) ebImg(c.pg.f).then((u) => { const i = $('#mb-qi', el); if (i) i.src = u; });
+        if (sc) ebImg(sc.pg.f).then((u) => { const i = $('#mb-si', el); if (i) i.src = u; });
+        $$('[data-mbt]', el).forEach((b) => (b.onclick = () => { $$('[data-mbt]', el).forEach((y) => y.classList.toggle('on', y === b)); segRe(b.parentNode); $('#mb-q', el).hidden = b.dataset.mbt !== 'q'; $('#mb-s', el).hidden = b.dataset.mbt !== 's'; }));
+        $('#mb-ok', el).onclick = () => { myWrongFlip(it, +v); close(); render(); };
+        const pg = $('#mb-pg', el); if (pg) pg.onclick = () => { close(); bookOpen(bk.id, null, c.p); };
+      });
+    };
+    if (keys.length === 1) return open(keys[0]);
+    if (!keys.length) { myWrongFlip(it, +v); render(); return; }
+    sheet(`<h2>${esc(String(v))}번이 어느 단원이에요?</h2><p class="sub">이 책은 단원마다 번호가 다시 시작해요</p><div class="list">${keys.map((k) => `<button type="button" class="li btnlike" data-mbk="${esc(k)}"><div class="body"><div class="t">${esc(k)}</div><div class="d">${bk.q[k][0]}쪽</div></div></button>`).join('')}</div>`, (el) => {
+      $$('[data-mbk]', el).forEach((b) => (b.onclick = () => open(b.dataset.mbk)));
+    });
+  }
+  function myWrongFlip(it, n) {
+    if ((it.wrong || []).includes(n)) { it.wrong = it.wrong.filter((x) => x !== n); it.redo = [...(it.redo || []), n]; earn('myw:' + it.id + ':' + n, 50, '학원 오답 다시 맞힘'); toast('맞혔어요! 50원'); }
+    else { it.redo = (it.redo || []).filter((x) => x !== n); it.wrong = [...(it.wrong || []), n].sort((a, c) => a - c); }
+    save('my');
+  }
   function myWrongCard(cls) {
     const L = myS().items.filter((it) => (it.wrong || []).length || (it.redo || []).length); if (!L.length) return '';
     return `<section class="card ${cls}"><div class="card-h"><h2>${ic('write')} 학원·과외 틀린 문제</h2><span class="tiny">다시 풀어 맞히면 눌러요</span></div>
@@ -796,7 +881,7 @@
       ${L.length ? `<div class="list ik-list">${L.map((c) => { const cf = inkCfg(c), P = c.lectures.filter((l) => cf.pick.includes(l.no)), dn = P.filter((l) => inkSt(c, l)).length, nx = inkQueue(c)[0], f = inkFinish(c, cf); return `<div class="li btnlike" ${nx ? `data-task="ink:${c.id}:${nx.no}"` : 'data-inkset'}><div class="ico">${ic(INK_IC[c.id] || 'books')}</div><div class="body"><div class="t">${esc(c.subj)} · ${esc(inkName(c))} <span class="tiny">${esc(c.teacher)} · ${dn}/${P.length}강</span></div><div class="d">${nx ? `다음: ${esc(nx.title)}` : '고른 강의를 다 들었어요'}${f.date && f.date > EB_EXAM ? ' · <b class="red">기말보다 늦어요</b>' : ''}</div><div class="ik-bar"><i style="width:${P.length ? (dn / P.length) * 100 : 0}%"></i></div></div></div>`; }).join('')}</div>` : `<div class="empty"><b>듣는 인강이 없어요</b><span>「인강 설정」에서 골라요</span></div>`}</section>`;
   }
   const bkS = () => { S.book = S.book || {}; S.book.marks = S.book.marks || {}; S.book.seen = S.book.seen || {}; S.book.pin = S.book.pin || {}; S.book.last = S.book.last || {}; return S.book; };
-  const ebFind = (cid) => { for (const b of EB.books) { const c = b.ch.find((x) => x.id === cid); if (c) return { b, c }; } return null; };
+  const ebFind = (cid) => { for (const b of EB.books) { const c = b.ch.find((x) => x.id === cid); if (c) return { b, c }; } const [bid, pn] = String(cid).split(':'), b = EB.books.find((x) => x.id === bid), c = b && b.ch.find((x) => x.pages.some((pg) => pg.n === +pn)); return c ? { b, c } : null; };  // 단원 나눔이 바뀌어도 쪽으로 찾아요
   let ebKeyP = null;
   const ebKey = () => ebKeyP || (ebKeyP = crypto.subtle.importKey('raw', new Uint8Array(EB.key.match(/../g).map((x) => parseInt(x, 16))), 'AES-CTR', false, ['decrypt']));
   async function ebGet(f) { const r = await fetch(f); if (!r.ok) throw new Error(f); const buf = new Uint8Array(await r.arrayBuffer()); return new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-CTR', counter: buf.slice(0, 16), length: 64 }, await ebKey(), buf.slice(16))); }
@@ -806,7 +891,7 @@
   const ebImg = (f) => ebMemo(f, () => ebGet(f).then((u) => { const x = URL.createObjectURL(new Blob([u], { type: 'image/webp' })); ebUrl.set(f, x); return x; }));
   // 한 단원의 쪽별 단어: [{x0,x1,y0,y1,t,l}] (쪽 크기 대비 0~10000, l = 줄 번호)
   const ebTx = (c) => ebMemo(c.tx, () => ebGet(c.tx).then((u) => new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'))).json()).then((j) => { const o = {}; for (const [n, lines] of Object.entries(j)) { const W = []; lines.forEach(([y0, y1, f], l) => { for (let i = 0; i < f.length; i += 3) W.push({ x0: f[i], x1: f[i + 1], y0, y1, t: f[i + 2], l }); }); o[n] = W; } return o; }));
-  const bkMarks = (cid, n) => Object.entries(bkS().marks).filter(([, m]) => m.c === cid && m.p === n);
+  const bkMarks = (cid, n) => Object.entries(bkS().marks).filter(([, m]) => m.p === n && (m.c === cid || (ebFind(m.c) || { c: {} }).c.id === cid));
   const bkProg = (b) => { const all = b.ch.filter((c) => !c.ref).flatMap((c) => c.pages.map((p) => `${b.id}:${p.n}`)); const seen = all.filter((k) => bkS().seen[k]).length; return { seen, all: all.length, pct: all.length ? Math.round((seen / all.length) * 100) : 0 }; };
   const BK_IC = { hist: 'scroll', sci: 'sci', eng: 'eng', eng2: 'books', kor: 'write', math: 'math', soc: 'globe' };
   function bookCard() {
@@ -997,7 +1082,8 @@
     const s = bkS(), T = { all: '칠한 곳', later: '나중에 다시 보기', q: TEACHER ? '학생 질문' : '선생님께 질문' };
     const body = (flt) => {
       const items = [...Object.entries(s.marks).map(([id, m]) => ({ id, ...m })), ...Object.entries(s.pin).map(([k, at]) => { const cid = k.slice(0, k.lastIndexOf(':')), n = +k.slice(k.lastIndexOf(':') + 1), f = ebFind(cid); return f ? { pin: true, b: f.b.id, c: cid, p: n, at, later: true } : null; }).filter(Boolean)]
-        .filter((x) => flt === 'all' ? !x.pin : flt === 'later' ? x.later : x.q)
+        .map((x) => { if (!ebFind(x.c)) { const b = EB.books.find((y) => y.id === x.b), c = b && b.ch.find((y) => y.pages.some((pg) => pg.n === x.p)); if (c) x.c = c.id; } return x; })
+        .filter((x) => ebFind(x.c) && (flt === 'all' ? !x.pin : flt === 'later' ? x.later : x.q))  // 책이 바뀌어 없어진 단원의 표시는 빼요 (없으면 화면이 안 떴어요)
         .sort((a, b) => a.b.localeCompare(b.b) || a.p - b.p || a.at - b.at);
       return items.length ? `<div class="list bk-list">${items.map((x) => { const f = ebFind(x.c); return `<button type="button" class="li btnlike" ${x.pin ? `data-bkpg="${esc(x.c)}|${x.p}"` : `data-bkmk="${esc(x.id)}"`}><div class="body"><div class="tiny">${esc(f.b.title)} · ${esc(f.c.no)} · ${x.p}쪽${x.later ? ' · ★' : ''}${x.q ? (x.ans ? ' · <b class="blue">답 왔어요</b>' : ' · <b class="red">질문</b>') : ''}</div><div class="t">${x.pin ? '이 쪽 전체' : `<span class="bk-qt ${x.k}">${esc(x.txt)}</span>`}</div>${x.note ? `<div class="d">${esc(x.note)}</div>` : ''}${x.ans ? `<div class="d blue">선생님: ${esc(x.ans)}</div>` : ''}</div></button>`; }).join('')}</div>`
         : `<div class="empty">${gh('idle', 'gh-empty')}<b>아직 없어요</b><span>${flt === 'q' ? '칠한 곳을 눌러 「선생님께 질문」을 고르면 여기 모여요' : flt === 'later' ? '쪽 오른쪽 위 ☆ 이나 칠한 곳의 「나중에 다시 보기」를 누르면 모여요' : '교과서에서 형광펜이나 밑줄을 고르고 단어를 끌어 보세요'}</span></div>`;
@@ -1022,7 +1108,7 @@
     const streak = (() => { let n = 0; for (let i = days.length - 1; i >= 0; i--) { const wk = new Date(days[i] + 'T00:00:00'); if (lvl(days[i])) n++; else if (!anyTask(wk)) continue; else if (i !== days.length - 1) break; } return n; })();
     const hwList = S.hw || [];
     return `<h1 class="h1">오늘의 숙제</h1><div class="row between wrap" style="gap:8px;margin-bottom:16px"><p class="sub" style="margin:0">꼭 할 일부터 끝내요. 학원·학교 숙제는 마감까지 나눠서 매일 할 만큼만 나와요</p><button class="btn sm" id="plan-open" type="button"><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg> 매일 과제 요일</button></div>
-    <div class="grid">
+    <div class="grid">${missCard()}
       ${(() => {
         const { tasks } = todayTasks(), real = tasks.filter((t) => t.icon !== 'party' && !t.memo), dn = real.filter((t) => t.done).length;
         const by = (a, b) => String(a.due || '').localeCompare(String(b.due || ''));
@@ -2748,7 +2834,13 @@
     $$('[data-task]').forEach((b) => (b.onclick = () => startTask(b.dataset.task)));
     $$('#ink-set, [data-inkset]').forEach((b) => (b.onclick = inkSettings));
     $$('[data-myadd]').forEach((b) => (b.onclick = myAdd));
-    $$('[data-mw]').forEach((b) => (b.onclick = () => { const [id, v] = b.dataset.mw.split(':'), it = myS().items.find((x) => x.id === id); if (!it) return; const n = +v; if ((it.wrong || []).includes(n)) { it.wrong = it.wrong.filter((x) => x !== n); it.redo = [...(it.redo || []), n]; earn('myw:' + id + ':' + n, 50, '학원 오답 다시 맞힘'); } else { it.redo = (it.redo || []).filter((x) => x !== n); it.wrong = [...(it.wrong || []), n].sort((a, c) => a - c); } save('my'); render(); }));
+    $$('[data-miss]').forEach((b) => (b.onclick = () => { const [k, id, d, was] = b.dataset.miss.split('|'), it = myS().items.find((x) => x.id === id); if (!it) return; it.ack = { ...(it.ack || {}), [d]: 1 };
+      const u = it.unit === '쪽' ? '쪽' : '문제';
+      if (k === 'push') toast(myPush(it));
+      else if (k === 'did') { it.log[d] = { n: +was, at: Date.now() }; toast(`${md(d)}에 ${was}${u} 한 걸로 적었어요`); }
+      else toast(`남은 날에 다시 나눴어요 · 오늘은 ${myToday(it).n}${u}`);
+      save('my'); render(); }));
+    $$('[data-mw]').forEach((b) => (b.onclick = () => { const [id, v] = b.dataset.mw.split(':'); mbSheet(id, v); }));
     $$('[data-news]').forEach((b) => (b.onclick = () => newsSheet(b.dataset.news)));
     $$('[data-day]').forEach((b) => (b.onclick = () => daySheet(b.dataset.day)));
     $$('#w-sched').forEach((b) => (b.onclick = () => schedSheet()));
