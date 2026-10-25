@@ -364,14 +364,20 @@
     const wordsDone = Object.keys(ed.wans || {}).length >= Math.min(10, wordsFor(ed.words).length) && wordsFor(ed.words).length;
     const unitDone = ed.udone;
     const tasks = [];
-    const off = !anyTask(new Date()) && !S.sci.days[today()] && !S.eng.days[today()];
-    const has = (k) => !off && (onDay(k) || (k === 'sci' ? !!S.sci.days[today()] : !!S.eng.days[today()]));
+    const off = !anyTask(new Date()) && !(S.sci.days[today()] && Object.keys(S.sci.days[today()].ans || {}).length) && !(S.eng.days[today()] && ['unit', 'words', 'g3'].some((k) => (k === 'unit' ? ed.udone || Object.keys(ed.uans || {}).length : k === 'words' ? Object.keys(ed.wans || {}).length : ed.g3done)));
+    // 쉬는 요일엔 「전체 목록」에서 열어 보기만 한 건 숙제로 치지 않아요 (실제로 푼 것만 보여요)
+    const did = (k) => k === 'sci' ? !!(S.sci.days[today()] && Object.keys(S.sci.days[today()].ans || {}).length) : k === 'unit' ? !!(ed.udone || Object.keys(ed.uans || {}).length) : k === 'words' ? !!Object.keys(ed.wans || {}).length : !!ed.g3done;
+    const has = (k) => !off && (onDay(k) || ((k === 'sci' ? S.sci.days[today()] : S.eng.days[today()]) && did(k)));
+    // 지난번에 다 못 한 건 그대로 이어서 나와요 · 어제와 같은 숙제처럼 보이지 않게 알려 줘요
+    const prevEng = Object.entries(S.eng.days).filter(([dk]) => dk < today()).sort().map(([, v]) => v);
+    const carried = (k) => k === 'unit' ? !unitDone && prevEng.some((v) => v.unit === ed.unit) : k === 'words' ? !wordsDone && prevEng.some((v) => v.words === ed.words) : !ed.g3done && prevEng.some((v) => v.g3 === ed.g3);
+    const cdesc = (k, d) => (carried(k) ? `지난번에 못 한 것 · 이어서 해요 · ${d}` : d);
     if (off) tasks.push({ k: 'hw', icon: 'party', t: '오늘은 매일 과제가 쉬는 날이에요', d: '요일은 숙제 탭의 「숙제 설정」에서 바꿀 수 있어요', done: true });
     for (const d of openDrills().slice(0, 4)) tasks.push({ k: 'drill:' + d.id, icon: 'target', t: `${d.title || d.area} ${d.qs.length}문제`, d: '선생님이 낸 약한 영역 문제', done: false });
-    if (has('g3') && G3.length) { const g = G3[ed.g3 || 0]; tasks.push({ k: 'g3', icon: 'eng', t: '고3 영어 한 문제', d: ed.g3done ? '다 풀었어요 · 문장 분석 보기' : g ? `${g.type || ''} · 문장 분석과 천일문 연결` : '', done: !!ed.g3done }); }
+    if (has('g3') && G3.length) { const g = G3[ed.g3 || 0]; tasks.push({ k: 'g3', icon: 'eng', t: '고3 영어 한 문제', d: ed.g3done ? '다 풀었어요 · 문장 분석 보기' : cdesc('g3', g ? `${g.type || ''} · 문장 분석과 천일문 연결` : ''), done: !!ed.g3done }); }
     if (has('sci') && SCI.concepts.length) tasks.push({ k: 'sci', icon: 'sci', t: sd.one ? `과학 개념: ${(SCI.concepts.find((x) => x.id === sd.c) || {}).title || ''}` : `오늘의 과학 ${st.n}문제`, d: sd.one && !sd.read ? `교과서 개념 보고 문제 ${st.n}개` : st.done >= st.n ? `${st.ok}/${st.n} 맞힘${st.all > st.n ? ` · 깊게 ${st.all - st.n}문제 더` : ''}` : `${st.done}/${st.n} 풀었어요`, done: st.done >= st.n });
-    if (has('unit') && CH_UNITS.length) { const un = CH_UNITS[ed.unit] || CH_UNITS[CH_UNITS.length - 1]; tasks.push({ k: 'unit', icon: 'eng', t: `천일문 ${un.unit ? 'Unit ' + un.unit : ''} ${un.title || ''}`.trim(), d: unitDone ? '다 했어요' : '개념 · 문장 · 문제', done: !!unitDone }); }
-    if (has('words') && WORDS.length) tasks.push({ k: 'words', icon: 'books', t: '워드마스터 단어 10개 시험', d: wordsDone ? `${Object.values(ed.wans).filter((x) => x.ok).length}/10 맞힘` : `Day ${(wordsFor(ed.words)[0] || {}).day || ''}`, done: !!wordsDone });
+    if (has('unit') && CH_UNITS.length) { const un = CH_UNITS[ed.unit] || CH_UNITS[CH_UNITS.length - 1]; tasks.push({ k: 'unit', icon: 'eng', t: `천일문 ${un.unit ? 'Unit ' + un.unit : ''} ${un.title || ''}`.trim(), d: unitDone ? '다 했어요' : cdesc('unit', '개념 · 문장 · 문제'), done: !!unitDone }); }
+    if (has('words') && WORDS.length) tasks.push({ k: 'words', icon: 'books', t: '워드마스터 단어 10개 시험', d: wordsDone ? `${Object.values(ed.wans).filter((x) => x.ok).length}/10 맞힘` : cdesc('words', `Day ${(wordsFor(ed.words)[0] || {}).day || ''}`), done: !!wordsDone });
     for (const h of hwNow()) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due && h.due < today() ? `${md(h.due)} 숙제 · 아직 안 했어요` : '오늘 선생님 숙제', done: false });
     for (const h of (S.hw || []).filter((x) => hwDone(x) && x.due === today())) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: '선생님 숙제 · 끝냈어요', done: true });
     return { tasks, off, sd, st, ed, wordsDone, unitDone };
