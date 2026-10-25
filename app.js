@@ -661,55 +661,61 @@
   // 교재: 수업마다 기억해요. 지난번 끝 번호 다음부터 이어서 채워요
   const myBooks = (cid) => { const M = myS(); M.books = M.books || [{ cls: 'c1', name: '마플 시너지' }, { cls: 'c1', name: '마더텅' }, { cls: 'c1', name: '올림포스 기출' }]; return M.books.filter((b) => b.cls === cid); };
   const myLast = (cid, name) => myS().items.filter((it) => it.cls === cid && it.book.startsWith(name) && it.to != null).sort((a, b) => b.at - a.at)[0];
+  // 숙제 넣기: 고른 수업의 교재가 줄로 다 펼쳐져요. 줄마다 적어 두면(수업을 바꿔도) 남아 있고, 한 번에 넣어요
   function myAdd() {
-    const M = myS(); let cid = (M.last && M.cls.find((c) => c.id === M.last) ? M.last : M.cls[0].id), due = myDue(myCls(cid)), bk = null, mode = '번', addCls = false, added = 0;
+    const M = myS(); let cid = (M.last && M.cls.find((c) => c.id === M.last) ? M.last : M.cls[0].id), addCls = false;
+    const D0 = {}, dueOf = {};  // D0[cid][name] = {mode,a,b,c,memo}
+    const dr = (c, n) => { D0[c] = D0[c] || {}; if (!D0[c][n]) { const lt = myLast(c, n), m = lt && lt.unit !== '건' ? lt.unit : (myCls(c).day == null ? '건' : '번'); D0[c][n] = { mode: m, a: lt && lt.to != null ? lt.to + 1 : '', b: '', c: '', memo: '', lt }; } return D0[c][n]; };
+    const filled = (x) => x.mode === '건' ? !!x.on : x.mode === '문제' ? +x.c > 0 : +x.a > 0 && +x.b >= +x.a;
+    const allRows = () => Object.entries(D0).flatMap(([c, o]) => Object.entries(o).filter(([, x]) => filled(x)).map(([n, x]) => ({ c, n, x })));
+    const unitOf = (m) => m === '쪽' ? '쪽' : '문제';
+    const rowHtml = (n, x) => `<div class="my-row ${filled(x) ? 'ok' : ''}" data-rn="${esc(n)}"><div class="my-rh"><b>${esc(n)}</b>${x.mode === '건' ? '' : `<span class="my-seg">${[['번', '번호'], ['쪽', '쪽'], ['문제', '문제 수']].map(([k, t]) => `<button type="button" class="${x.mode === k ? 'on' : ''}" data-rm="${k}">${t}</button>`).join('')}</span>`}<span class="my-ck">${filled(x) ? '✓ 들어가요' : ''}</span></div>
+      ${x.mode === '건' ? `<button type="button" class="chip ${x.on ? 'on' : ''}" data-ron>${x.on ? '✓ 넣어요' : '이 일 넣기'}</button>` : x.mode === '문제' ? `<div class="my-rng"><input class="inp" type="number" inputmode="numeric" data-rf="c" value="${esc(x.c)}" placeholder="몇"><span>문제</span><input class="inp" data-rf="memo" value="${esc(x.memo)}" placeholder="메모 (예: 홀수번만)" style="flex:2"></div>` : `<div class="my-rng"><span>${x.mode === '쪽' ? 'p.' : ''}</span><input class="inp" type="number" inputmode="numeric" data-rf="a" value="${esc(x.a)}" placeholder="시작"><span>~</span><input class="inp" type="number" inputmode="numeric" data-rf="b" value="${esc(x.b)}" placeholder="끝"><span>${x.mode === '쪽' ? '쪽' : '번'}</span></div>
+      ${x.lt && x.lt.to != null ? `<p class="tiny my-lt">지난번 ${x.lt.unit === '쪽' ? 'p.' : ''}${esc(x.lt.to)}${x.lt.unit === '쪽' ? '' : '번'}까지 · <button type="button" class="linkbtn" data-rsame>지난번만큼 ${x.lt.total}${unitOf(x.lt.unit)}</button></p>` : ''}`}</div>`;
     const draw = (el) => {
-      const B = myBooks(cid), lt = bk ? myLast(cid, bk) : null;
-      $('#my-cls', el).innerHTML = M.cls.map((c) => `<button type="button" class="chip ${c.id === cid ? 'on' : ''}" data-mc="${c.id}">${esc(c.name)}</button>`).join('') + `<button type="button" class="chip" data-mc="+">+ 수업</button>`;
+      const due = dueOf[cid] || (dueOf[cid] = myDue(myCls(cid)));
+      $('#my-cls', el).innerHTML = M.cls.map((c) => { const k = Object.values(D0[c.id] || {}).filter(filled).length; return `<button type="button" class="chip ${c.id === cid ? 'on' : ''}" data-mc="${c.id}">${esc(c.name)}${k ? ` <b class="my-k">${k}</b>` : ''}</button>`; }).join('') + `<button type="button" class="chip" data-mc="+">+ 수업</button>`;
       $('#my-new', el).hidden = !addCls;
-      $('#my-bk', el).innerHTML = B.map((b) => `<button type="button" class="chip ${b.name === bk ? 'on' : ''}" data-mb="${esc(b.name)}">${esc(b.name)}</button>`).join('') + `<button type="button" class="chip ${bk === '' ? 'on' : ''}" data-mb="">${B.length ? '+ 다른 것' : '직접 적기'}</button>`;
-      $('#my-bkn', el).hidden = bk !== '';
-      $('#my-mode', el).innerHTML = [['번', '번호'], ['쪽', '쪽'], ['문제', '문제 수'], ['건', '한 번에 끝']].map(([k, n]) => `<button type="button" class="chip ${mode === k ? 'on' : ''}" data-mm="${k}">${n}</button>`).join('');
-      const fr = $('#my-a', el); if (fr && !fr.dataset.touched) fr.value = lt && (mode === '번' || mode === '쪽') && lt.unit === mode ? lt.to + 1 : '';
-      $('#my-rng', el).hidden = !(mode === '번' || mode === '쪽'); $('#my-cnt', el).hidden = mode !== '문제';
-      $('#my-u1', el).textContent = mode === '쪽' ? 'p.' : ''; $('#my-u2', el).textContent = mode === '쪽' ? '쪽' : '번';
-      $('#my-lt', el).innerHTML = lt ? `지난번 ${lt.unit === '쪽' ? 'p.' : ''}${esc(lt.to)}${lt.unit === '쪽' ? '' : '번'}까지 했어요 · 이어서 채웠어요 <button type="button" class="chip sm" id="my-same">지난번만큼 (${lt.total}${lt.unit === '쪽' ? '쪽' : '문제'})</button>` : '';
-      if (lt) $('#my-same', el).onclick = () => { const a = $('#my-a', el); if (!a.value) a.value = lt.to + 1; $('#my-b', el).value = +a.value + lt.total - 1; };
-      $('#my-due', el).innerHTML = `<span>${md(due)} ${DOW[dowOf(due)]}요일까지 · <b class="blue">D-${dday(due)}</b></span><input type="date" id="my-dd" value="${due}" class="inp sm">`;
-      $('#my-done', el).textContent = added ? `${added}개 넣었어요 · 다른 교재도 이어서 넣어요` : '';
-      $$('[data-mc]', el).forEach((b) => (b.onclick = () => { if (b.dataset.mc === '+') addCls = !addCls; else { cid = b.dataset.mc; due = myDue(myCls(cid)); bk = null; if (myCls(cid).day == null) mode = '건'; } draw(el); }));
-      $$('[data-mb]', el).forEach((b) => (b.onclick = () => { bk = b.dataset.mb; const a = $('#my-a', el); a.dataset.touched = ''; const l2 = bk ? myLast(cid, bk) : null; if (l2 && (l2.unit === '번' || l2.unit === '쪽')) mode = l2.unit; draw(el); if (bk === '') $('#my-bkn', el).focus(); else if (mode === '번' || mode === '쪽') (a.value ? $('#my-b', el) : a).focus(); else if (mode === '문제') $('#my-c', el).focus(); }));
-      $$('[data-mm]', el).forEach((b) => (b.onclick = () => { mode = b.dataset.mm; draw(el); }));
-      $('#my-dd', el).onchange = (e) => { if (e.target.value) { due = e.target.value; draw(el); } };
+      const names = [...myBooks(cid).map((b) => b.name), ...Object.keys(D0[cid] || {}).filter((n) => !myBooks(cid).some((b) => b.name === n))];
+      $('#my-rows', el).innerHTML = names.map((n) => rowHtml(n, dr(cid, n))).join('') + `<div class="my-addrow"><input class="inp" id="my-bkn" placeholder="${myCls(cid).day == null ? '할 일 적기 (예: 수행평가 보고서)' : '다른 교재 이름'}"><button type="button" class="btn sm" id="my-bka">추가</button></div>`;
+      $('#my-due', el).innerHTML = `<span>${esc(myCls(cid).name)} 마감 ${md(due)} ${DOW[dowOf(due)]}요일 · <b class="blue">D-${dday(due)}</b></span><input type="date" id="my-dd" value="${due}" class="inp sm">`;
+      const n = allRows().length; $('#my-ok', el).disabled = !n; $('#my-ok', el).textContent = n ? `${n}개 넣기` : '번호를 적으면 넣을 수 있어요';
+      $$('[data-mc]', el).forEach((b) => (b.onclick = () => { if (b.dataset.mc === '+') addCls = !addCls; else cid = b.dataset.mc; draw(el); }));
+      $$('.my-row', el).forEach((r) => {
+        const x = dr(cid, r.dataset.rn), sync = () => { r.classList.toggle('ok', filled(x)); $('.my-ck', r).textContent = filled(x) ? '✓ 들어가요' : ''; const k = allRows().length; $('#my-ok', el).disabled = !k; $('#my-ok', el).textContent = k ? `${k}개 넣기` : '번호를 적으면 넣을 수 있어요'; const cb = $(`[data-mc="${cid}"]`, el); const kk = Object.values(D0[cid]).filter(filled).length; if (cb) cb.innerHTML = `${esc(myCls(cid).name)}${kk ? ` <b class="my-k">${kk}</b>` : ''}`; };
+        $$('[data-rf]', r).forEach((inp) => (inp.oninput = () => { x[inp.dataset.rf] = inp.value; sync(); }));
+        $$('[data-rm]', r).forEach((b) => (b.onclick = () => { x.mode = b.dataset.rm; if (x.lt && x.lt.unit === x.mode && !x.a) x.a = x.lt.to + 1; draw(el); }));
+        const on = $('[data-ron]', r); if (on) on.onclick = () => { x.on = !x.on; draw(el); };
+        const sm = $('[data-rsame]', r); if (sm) sm.onclick = () => { if (!x.a) x.a = x.lt.to + 1; x.b = +x.a + x.lt.total - 1; x.mode = x.lt.unit; draw(el); };
+      });
+      $('#my-bka', el).onclick = () => { const v = $('#my-bkn', el).value.trim(); if (!v) return; const x = dr(cid, v); if (myCls(cid).day == null) { x.mode = '건'; x.on = true; } draw(el); };
+      $('#my-bkn', el).onkeydown = (e) => { if (e.key === 'Enter') $('#my-bka', el).click(); };
+      $('#my-dd', el).onchange = (e) => { if (e.target.value) { dueOf[cid] = e.target.value; draw(el); } };
     };
-    sheet(`<h2>숙제 넣기</h2>
-      <p class="my-lb">수업</p><div class="chips multi my-chips" id="my-cls"></div>
+    sheet(`<h2>숙제 넣기</h2><p class="sub">수업을 고르고 교재마다 번호만 적어요. 다른 수업으로 바꿔도 적은 건 남아 있어요</p>
+      <div class="chips multi my-chips" id="my-cls" style="margin-top:12px"></div>
       <div id="my-new" class="my-new" hidden><input class="inp" id="my-nn" placeholder="예: 국어 과외"><div class="pl-dots" style="margin:8px 0 0">${[1, 2, 3, 4, 5, 6, 0].map((d) => `<button type="button" data-nd="${d}" class="${d === 0 ? 'sun' : d === 6 ? 'sat' : ''}">${DOW[d]}</button>`).join('')}</div><p class="tiny" style="margin:6px 0 0">수업 요일을 누르면 추가돼요. 그 전날이 마감이에요</p><button type="button" class="btn sm" id="my-nod" style="margin-top:8px">요일 없이 추가 (학교 숙제처럼)</button></div>
-      <p class="my-lb">교재·할 일</p><div class="chips multi my-chips" id="my-bk"></div><input class="inp" id="my-bkn" placeholder="교재 이름 또는 할 일 (예: 수행평가 보고서)" hidden>
-      <p class="my-lb">얼마나</p><div class="chips multi my-chips" id="my-mode"></div>
-      <div class="my-rng" id="my-rng"><span id="my-u1"></span><input class="inp" id="my-a" type="number" inputmode="numeric" placeholder="시작"><span>~</span><input class="inp" id="my-b" type="number" inputmode="numeric" placeholder="끝"><span id="my-u2">번</span></div>
-      <p class="tiny" id="my-lt" style="margin:6px 0 0"></p>
-      <div class="my-rng" id="my-cnt" hidden><input class="inp" id="my-c" type="number" inputmode="numeric" placeholder="몇 문제"><span>문제</span><input class="inp" id="my-memo" placeholder="메모 (예: 홀수번만)" style="flex:2"></div>
       <div class="my-due" id="my-due"></div>
-      <button class="btn primary big block" id="my-ok" type="button">넣기</button><p class="tiny blue" id="my-done" style="text-align:center;margin:8px 0 0"></p>
+      <div id="my-rows"></div>
+      <button class="btn primary big block" id="my-ok" type="button" style="margin-top:16px" disabled></button>
       <details class="my-paste"><summary>여러 줄을 한꺼번에 붙여넣기</summary><textarea class="inp my-ta" id="my-ta" rows="4" placeholder="받은 숙제를 그대로 붙여넣어요. 한 줄에 하나씩"></textarea><button class="btn block" id="my-pok" type="button" style="margin-top:8px">붙여넣은 것 넣기</button></details>`, (el, close) => {
       draw(el);
-      $('#my-a', el).oninput = (e) => { e.target.dataset.touched = 1; };
-      const addC = (day) => { const n = $('#my-nn', el).value.trim(); if (!n) { toast('수업 이름을 먼저 적어요'); return; } const c = { id: 'c' + Date.now().toString(36), name: n, day }; M.cls.push(c); cid = c.id; due = myDue(c); addCls = false; bk = null; $('#my-nn', el).value = ''; save('my'); draw(el); };
+      const addC = (day) => { const n = $('#my-nn', el).value.trim(); if (!n) { toast('수업 이름을 먼저 적어요'); return; } const c = { id: 'c' + Date.now().toString(36), name: n, day }; M.cls.push(c); cid = c.id; addCls = false; $('#my-nn', el).value = ''; save('my'); draw(el); };
       $$('[data-nd]', el).forEach((b) => (b.onclick = () => addC(+b.dataset.nd)));
       $('#my-nod', el).onclick = () => addC(null);
-      const push = (it) => { M.items.push({ id: 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 4), cls: cid, due, at: Date.now(), log: {}, wrong: [], ...it }); M.last = cid; added++; save('my'); };
+      const push = (c, due, it) => M.items.push({ id: 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), cls: c, due, at: Date.now(), log: {}, wrong: [], ...it });
       $('#my-ok', el).onclick = () => {
-        const name = bk === '' ? $('#my-bkn', el).value.trim() : bk; if (!name) { toast('교재를 골라요'); return; }
-        if (bk === '' && !myBooks(cid).some((b) => b.name === name) && mode !== '건') M.books.push({ cls: cid, name });
-        let it;
-        if (mode === '번' || mode === '쪽') { const a = +$('#my-a', el).value, b = +$('#my-b', el).value; if (!a || !b || b < a) { toast('시작과 끝 번호를 적어요'); return; } it = { book: name, text: `${name} ${mode === '쪽' ? `p.${a}~${b}` : `${a}~${b}번`}`, unit: mode, from: a, to: b, total: b - a + 1 }; }
-        else if (mode === '문제') { const c = +$('#my-c', el).value; if (!c) { toast('몇 문제인지 적어요'); return; } const m = $('#my-memo', el).value.trim(); it = { book: name, text: `${name} ${c}문제${m ? ' · ' + m : ''}`, unit: '문제', from: null, to: null, total: c }; }
-        else it = { book: name, text: name, unit: '건', from: null, to: null, total: 1 };
-        push(it); render(); toast(`넣었어요 · ${it.unit === '건' ? md(due) + '까지' : `하루 ${Math.ceil(it.total / Math.max(1, dday(due) + 1))}${it.unit === '쪽' ? '쪽' : '문제'}씩`}`);
-        bk = null; ['#my-a', '#my-b', '#my-c', '#my-memo', '#my-bkn'].forEach((q) => { const x = $(q, el); x.value = ''; x.dataset.touched = ''; }); draw(el);
+        const R = allRows(); if (!R.length) return;
+        for (const { c, n, x } of R) {
+          const due = dueOf[c] || myDue(myCls(c));
+          if (x.mode !== '건' && !myBooks(c).some((b) => b.name === n)) M.books.push({ cls: c, name: n });
+          if (x.mode === '번' || x.mode === '쪽') push(c, due, { book: n, text: `${n} ${x.mode === '쪽' ? `p.${x.a}~${x.b}` : `${x.a}~${x.b}번`}`, unit: x.mode, from: +x.a, to: +x.b, total: x.b - x.a + 1 });
+          else if (x.mode === '문제') push(c, due, { book: n, text: `${n} ${x.c}문제${x.memo ? ' · ' + x.memo : ''}`, unit: '문제', from: null, to: null, total: +x.c });
+          else push(c, due, { book: n, text: n, unit: '건', from: null, to: null, total: 1 });
+        }
+        M.last = cid; save('my'); close(); render(); toast(`숙제 ${R.length}개를 넣었어요 · 마감까지 매일 나눠 줘요`);
       };
-      $('#my-pok', el).onclick = () => { const L = $('#my-ta', el).value.split('\n').map(myParse).filter(Boolean); if (!L.length) return; L.forEach((l) => push(l)); $('#my-ta', el).value = ''; render(); draw(el); toast(`${L.length}개 넣었어요`); };
+      $('#my-pok', el).onclick = () => { const L = $('#my-ta', el).value.split('\n').map(myParse).filter(Boolean); if (!L.length) return; const due = dueOf[cid] || myDue(myCls(cid)); L.forEach((l) => push(cid, due, l)); M.last = cid; save('my'); close(); render(); toast(`${L.length}개 넣었어요`); };
     });
   }
   function mySheet(id) {
