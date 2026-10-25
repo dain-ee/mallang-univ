@@ -1159,3 +1159,17 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 /* 기말 범위 */
 .ex-row .d.ex-rg, .ex-memo .d.ex-rg { color: var(--t1); white-space: pre-wrap; line-height: 1.5; }
 .ex-memo { margin-top: 4px; }
+
+/* 합격선: 숫자 읽는 법 · 전형별 내 등급 */
+.ad-guide { margin: 12px 0 0; padding: 14px 16px; border-radius: 16px; background: var(--fill2); }
+.ad-guide summary { cursor: pointer; font-weight: 700; font-size: 15px; list-style: none; display: flex; align-items: center; gap: 6px; }
+.ad-guide summary::-webkit-details-marker { display: none; }
+.ad-guide summary::after { content: '펼치기'; margin-left: auto; font-size: 13px; font-weight: 600; color: var(--t3); }
+.ad-guide[open] summary::after { content: '접기'; }
+.ad-guide h3 { margin: 16px 0 4px; font-size: 15px; }
+.ad-guide p, .ad-guide li { margin: 0; font-size: 14px; line-height: 1.7; color: var(--t2); }
+.ad-guide ul { margin: 6px 0 0; padding-left: 18px; }
+.ad-jy { display: flex; flex-direction: column; gap: 2px; margin: 0 0 10px; padding: 10px 12px; border-radius: 12px; background: var(--blue-bg, #e8f3ff); }
+.ad-jy b { font-size: 15px; color: var(--blue, #3182f6); }
+.ad-jy span { font-size: 13px; color: var(--t2); line-height: 1.6; }
+.ad-dept { margin: 24px 0 0; font-size: 17px; }

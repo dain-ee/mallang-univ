@@ -303,7 +303,7 @@
   // 목표 등급: 직접 정하지 않았으면 목표 대학 합격선에 맞춰요 (내신은 9등급제 합격선을 5등급제로, 모의고사는 수능최저 평균)
   function autoGoals(track) {
     const u = uniOf(S.profile.uni), a = u && admitOf(u.id); if (!a) return null;
-    const T = a.tracks || [], pick = (ty) => T.find((t) => t.type === ty && (t.cut70 || t.cut50));
+    const T = adMain(a).tracks || [], pick = (ty) => T.find((t) => t.type === ty && (t.cut70 || t.cut50));
     const want = track || S.profile.goalTrack || '종합';
     const tr = pick(want) || pick(want === '종합' ? '교과' : '종합'), c9 = tr && (tr.cut70 || tr.cut50);
     const mm = (t) => String((t && t.min) || '').match(/(\d)개[^\d합]*합\s*(\d+)/);
@@ -1496,30 +1496,65 @@
     if (a.startsWith('mock:')) { UI.scoreSeg = 'mock'; UI.mockId = a.slice(5); UI.tab = 'score'; UI.run = null; render(); return window.scrollTo(0, 0); }
     if (a.startsWith('log:')) { UI.qlSubj = a.slice(4); UI.tab = 'home'; UI.run = null; render(); const t = $('#ql-t'); if (t) { t.scrollIntoView({ block: 'center' }); t.focus(); } }
   }
-  // ───────── 대학별 합격선 (생명 계열, 9등급제 지난 입결) ─────────
+  // ───────── 대학별 합격선 (생명 계열, 2026 수시 결과 9등급제 · 2026-10-25 공식 자료로 다시 확인) ─────────
   const ADMIT = D.admit || null;
   const admitOf = (id) => (ADMIT && ADMIT.unis.find((x) => x.id === id)) || null;
+  const adMain = (a) => (a && a.depts && a.depts[0]) || { dept: '', tracks: [] };
   const g2 = (v) => (v == null ? '-' : (+v).toFixed(2));
+  const shortDept = (d) => String(d || '').replace(/\s*\(.*$/, '');
+  // 대학마다 넣는 과목이 달라서 정윤이 등급도 전형마다 달라요 (2028 시행계획 기준으로 맞춘 규칙)
+  const JY_RULE = {
+    all: { g: ['국', '수', '영', '한', '사', '과'], t: '국·수·영·사·과·한국사를 학점 곱해 평균' },
+    'all-s': { g: ['국', '수', '영', '한', '사', '과'], simple: true, t: '국·수·영·사·과·한국사를 과목 수로 평균' },
+    kesm: { g: ['국', '수', '영', '과'], t: '국·수·영·과만 학점 곱해 평균' },
+    kesmh: { g: ['국', '수', '영', '한', '과'], t: '국·수·영·과·한국사 (사회 빼고)' },
+    kesms: { g: ['국', '수', '영', '사', '과'], t: '국·수·영·사·과 (한국사 빼고)' },
+    'all+lab': { g: ['국', '수', '영', '한', '사', '과'], lab: true, t: '6과목 + 과학탐구실험(A를 1등급으로)' },
+  };
+  const subjGrp = (n) => /과학탐구실험/.test(n) ? 'lab' : /^한국사/.test(n) ? '한' : /국어|문학|독서|화법|작문|매체/.test(n) ? '국' : /수학|미적분|확률|기하/.test(n) ? '수' : /영어/.test(n) ? '영' : /사회|지리|역사|윤리|정치|경제|법과/.test(n) ? '사' : /과학|물리|화학|생명|지구/.test(n) ? '과' : '';
+  function jyOf(rule) {
+    const R = JY_RULE[rule]; if (!R) return null; let a = 0, c = 0;
+    for (const sem of SEMS) { const rec = S.naesin[sem] || {}; for (const s of nsSubjects(sem)) {
+      const r = rec[s.name], grp = subjGrp(s.name);
+      if (grp === 'lab') { const g = R.lab && r && { A: 1, B: 2, C: 3, D: 4, E: 5 }[r.ach]; if (g) { a += g; c += 1; } continue; }
+      if (!R.g.includes(grp)) continue; const g = nsG(r); if (!g) continue; const w = R.simple ? 1 : +(r.credits || s.credits || 1); a += g * w; c += w;
+    } }
+    return c ? a / c : null;
+  }
+  const SRC_T = { official: '대학 공식 자료', adiga: '대학어디가', other: '다른 사이트 값' };
+  const cutOf = (t) => (t.cut70 != null ? t.cut70 : t.avg != null ? t.avg : null);
+  const cutLbl = (t) => (t.cut70 != null ? `70% ${g2(t.cut70)}` : t.avg != null ? `평균 ${g2(t.avg)}` : '비공개');
+  const noMinOf = (t) => !t.min || /^(없음|해당 없음)/.test(t.min);
   function trackRow(t) {
-    const cut = t.type === '정시' ? (t.pct70 != null ? `백분위 ${t.pct70}` : '-') : t.cut70 != null ? `70% ${g2(t.cut70)}` : t.avg != null ? `평균 ${g2(t.avg)}` : '-';
-    const noMin = !t.min || /^(없음|해당 없음)/.test(t.min);
-    return `<div class="li btnlike" data-du="${esc(t._u || '')}" style="align-items:flex-start"><span class="tag ${t.type === '교과' ? 'blue' : t.type === '종합' ? 'green' : ''}" style="flex:none">${esc(t.type)}</span><div class="body"><div class="t" style="font-size:15px">${esc(t.name)}${t.seats ? ` <span class="tiny">${t.seats}명</span>` : ''}</div>${t.type === '정시' ? '' : `<div class="d" style="line-height:1.6">${noMin ? '수능최저 없음' : '수능최저 ' + esc(t.min)}</div>`}</div><b class="num" style="flex:none;font-size:15px">${cut}</b><span class="chev"></span></div>`;
+    const jy = jyOf(t.rule);
+    return `<div class="li btnlike" data-du="${esc(t._u || '')}" style="align-items:flex-start"><span class="tag ${t.type === '교과' ? 'blue' : 'green'}" style="flex:none">${esc(t.type)}</span><div class="body"><div class="t" style="font-size:15px">${esc(t.name)}${t.seats ? ` <span class="tiny">${t.seats}명</span>` : ''}</div><div class="d" style="line-height:1.6">${noMinOf(t) ? '수능최저 없음' : '수능최저 있음'}${jy ? ` · 이 전형에서 내 등급 <b>${g2(jy)}</b>` : ''}</div></div><b class="num" style="flex:none;font-size:15px">${cutLbl(t)}</b><span class="chev"></span></div>`;
   }
   function admitCard(cls) {
     if (!ADMIT) return '';
-    const u = uniOf(S.profile.uni), a = u && admitOf(u.id);
-    return `<section class="card ${cls}"><div class="card-h"><h2>${ic('target')} ${a ? `${esc(u.short || u.name)} ${esc(a.dept)} 합격선` : '대학별 합격선'}</h2><button class="more" id="ad-all" type="button">24개 대학 비교</button></div>
-      ${a ? `<p class="tiny" style="margin:0 0 8px">${esc(a.year)} 입결 · 9등급제 기준이라 참고용이에요</p><div class="list">${a.tracks.map((t) => trackRow({ ...t, _u: a.id })).join('')}</div>` : `<div class="empty">${ic('target')}<b>목표 대학을 고르면 그 대학 합격선이 나와요</b></div>`}</section>`;
+    const u = uniOf(S.profile.uni), a = u && admitOf(u.id), m = adMain(a);
+    return `<section class="card ${cls}"><div class="card-h"><h2>${ic('target')} ${a ? `${esc(u.short || u.name)} ${esc(shortDept(m.dept))} 합격선` : '대학별 합격선'}</h2><button class="more" id="ad-all" type="button">${ADMIT.unis.length}개 대학 비교</button></div>
+      ${a ? `<p class="tiny" style="margin:0 0 8px">2026 수시 결과 · 9등급제라 참고용이에요</p><div class="list">${m.tracks.map((t) => trackRow({ ...t, _u: a.id })).join('')}</div>` : `<div class="empty">${ic('target')}<b>목표 대학을 고르면 그 대학 합격선이 나와요</b></div>`}</section>`;
+  }
+  // 숫자 읽는 법: 70%컷 · 대학마다 다른 내 등급 · 소수점 · A=1등급
+  function adGuide() {
+    const ns = nsTotal(), j1 = jyOf('all'), j2 = jyOf('kesm');
+    const A = ADMIT.unis.filter((x) => x.careerA);
+    return `<details class="ad-guide"><summary>${ic('bulb')} 숫자 읽는 법 · 내 등급이 대학마다 다른 까닭</summary>
+      <h3>70%컷은 1차 합격선이 아니에요</h3><p>그 전형에 <b>최종 등록한 학생</b>을 내신 좋은 순서로 세웠을 때 70% 자리 학생의 등급이에요. 10명이면 7번째예요. 50%컷은 가운데 학생이에요. 이 숫자보다 좋으면 붙은 학생들 사이에서도 앞쪽이라는 뜻이에요. 몇몇 대학은 컷을 안 내고 평균만 내서 「평균」으로 적었어요.</p>
+      <h3>내 등급은 대학마다 달라요</h3><p>대학은 학교에서 낸 평균을 쓰지 않고, 과목별 등급에 학점을 곱해서 자기 방식으로 다시 계산해요. 1학기만 보면 그냥 평균은 1.67, 학점을 곱하면 1.65, 국·수·영·과만 보는 대학에서는 1.50이에요.${j1 ? ` 2학기 중간 등급까지 넣은 지금 성적으로는 6과목 ${g2(j1)}${j2 ? `, 국·수·영·과 ${g2(j2)}` : ''}이에요.` : ''} 그래서 전형마다 「이 전형에서 내 등급」을 따로 적었어요. 성적을 새로 넣으면 저절로 다시 계산돼요.</p>
+      <h3>1.67을 1.6으로 쳐 주나요?</h3><p>아니에요. 이번에 찾은 대학 중 소수 첫째 자리에서 자르는 곳은 없어요. 서강대는 소수 둘째 자리 반올림, 숭실대는 넷째 자리 버림, 세종대는 여덟째 자리까지 쓰는 식이라 1.65는 1.65 그대로 들어가요.</p>
+      <h3>A를 1등급으로 쳐 주는 대학</h3><p>1학년 과목(공통과목)은 5등급 석차가 나와서 해당이 없어요. 2·3학년 진로선택 과목에서 쓰여요.</p>${A.length ? `<ul>${A.map((x) => `<li><b>${esc(x.short)}</b> ${esc(x.careerA)}</li>`).join('')}</ul>` : ''}
+      <h3>정윤이는 2029학년도 입시예요</h3><p>그 해 규칙은 2027년 봄에 나와요. 지금은 5등급제 첫해인 2028학년도 시행계획으로 맞춰 두었어요. 내 등급은 9등급제로 치면 대략 ${ns ? fmt1(g5to9(ns)) : '-'}등급이에요(교육부 비율로 맞춘 대략값).</p></details>`;
   }
   function admitSheet() {
     const f = { v: '교과' };
-    sheet(`<h2>생명 계열 대학별 합격선</h2><p class="sub">${esc(ADMIT.note)}${nsTotal() ? ` 내 내신 ${fmt1(nsTotal())}등급은 9등급제로 약 ${fmt1(g5to9(nsTotal()))}등급이에요.` : ''}</p><div class="chips" id="ad-t"></div><div id="ad-b" style="margin-top:12px"></div>`, (el) => {
+    sheet(`<h2>생명 계열 대학별 합격선</h2><p class="sub">${esc(ADMIT.note)}</p>${adGuide()}<div class="chips" id="ad-t" style="margin-top:12px"></div><div id="ad-b" style="margin-top:12px"></div>`, (el) => {
       const draw = () => {
-        $('#ad-t', el).innerHTML = ['교과', '종합', '정시'].map((k) => `<button class="chip ${f.v === k ? 'on' : ''}" type="button" data-at="${k}">${k}</button>`).join('');
+        $('#ad-t', el).innerHTML = ['교과', '종합'].map((k) => `<button class="chip ${f.v === k ? 'on' : ''}" type="button" data-at="${k}">${k}</button>`).join('');
+        segRe($('#ad-t', el));
         $$('[data-at]', el).forEach((b) => (b.onclick = () => { f.v = b.dataset.at; draw(); }));
-        const key = (t) => (f.v === '정시' ? (t.pct70 != null ? -t.pct70 : 999) : t.cut70 != null ? t.cut70 : t.avg != null ? t.avg : 999);
-        const rows = ADMIT.unis.flatMap((x) => x.tracks.filter((t) => t.type === f.v).map((t) => ({ x, t }))).sort((p, q) => key(p.t) - key(q.t));
-        $('#ad-b', el).innerHTML = rows.length ? `<div class="list">${rows.map(({ x, t }) => { const u = uniOf(x.id); return `<div class="li btnlike" data-du="${esc(x.id)}" style="align-items:flex-start">${u ? emb(u, 'sm') : ''}<div class="body"><div class="t" style="font-size:15px">${esc((u && u.short) || x.name)} <span class="tiny">${esc(x.dept)}</span></div><div class="d" style="line-height:1.6">${esc(t.name)}${t.seats ? ` · ${t.seats}명` : ''}${f.v === '정시' ? '' : `<br>${!t.min || /^(없음|해당 없음)/.test(t.min) ? '수능최저 없음' : '수능최저 ' + esc(t.min)}`}</div></div><b class="num" style="flex:none;font-size:15px">${f.v === '정시' ? (t.pct70 != null ? t.pct70 : '-') : t.cut70 != null ? g2(t.cut70) : t.avg != null ? '평균 ' + g2(t.avg) : '-'}</b><span class="chev"></span></div>`; }).join('')}</div><p class="tiny" style="margin-top:12px">눌러서 대학별 자세히 보기 · ${f.v === '정시' ? '국·수·탐 백분위 70%컷이에요. 높을수록 어려워요' : '숫자는 합격자 내신 70%컷(없으면 평균)이에요. 낮을수록 어려워요'} · ${esc(ADMIT.updated)} 조사</p>` : '<div class="empty"><b>자료가 없어요</b></div>';
+        const rows = ADMIT.unis.flatMap((x) => x.depts.flatMap((d) => d.tracks.filter((t) => t.type === f.v).map((t) => ({ x, d, t })))).sort((p, q) => (cutOf(p.t) ?? 99) - (cutOf(q.t) ?? 99));
+        $('#ad-b', el).innerHTML = rows.length ? `<div class="list">${rows.map(({ x, d, t }) => { const u = uniOf(x.id), jy = jyOf(t.rule); return `<div class="li btnlike" data-du="${esc(x.id)}" style="align-items:flex-start">${u ? emb(u, 'sm') : ''}<div class="body"><div class="t" style="font-size:15px">${esc(x.short)} <span class="tiny">${esc(shortDept(d.dept))}</span></div><div class="d" style="line-height:1.6">${esc(t.name)}${t.seats ? ` · ${t.seats}명` : ''} · ${noMinOf(t) ? '수능최저 없음' : '수능최저 있음'}${jy ? `<br>이 전형에서 내 등급 ${g2(jy)}` : ''}</div></div><b class="num" style="flex:none;font-size:15px">${cutLbl(t)}</b><span class="chev"></span></div>`; }).join('')}</div><p class="tiny" style="margin-top:12px">눌러서 대학별 자세히 보기 · 숫자는 합격자 내신 70%컷(없으면 평균, 9등급제)이에요. 낮을수록 어려워요 · ${esc(ADMIT.updated)} 조사</p>` : '<div class="empty"><b>자료가 없어요</b></div>';
         $$('[data-du]', el).forEach((b) => (b.onclick = () => uniDetail(b.dataset.du)));
       };
       draw();
@@ -1538,17 +1573,27 @@
   }
   function uniDetail(id) {
     const u = uniOf(id), a = admitOf(id); if (!a) return;
-    const nm = (u && u.short) || a.name.replace('대학교', '대');
+    const nm = (u && u.short) || a.short;
     const subs = (PICKS.subjects || []).filter((x) => (x.unis || []).some((t) => t.startsWith(nm)));
-    const tr = (t) => { const noMin = !t.min || /^(없음|해당 없음)/.test(t.min); const nums = t.type === '정시' ? [['백분위 70%', t.pct70]] : [['50%컷', t.cut50], ['70%컷', t.cut70], ['평균', t.avg]]; return `<div class="ad-tr"><div class="row between" style="gap:8px"><b style="font-size:16px">${esc(t.name)}</b><span class="tag ${t.type === '교과' ? 'blue' : t.type === '종합' ? 'green' : ''}">${esc(t.type)}</span></div>
-      <div class="ad-nums">${nums.map(([k, v]) => `<div><span>${k}</span><b class="num">${v == null ? '-' : t.type === '정시' ? v : g2(v)}</b></div>`).join('')}${t.seats ? `<div><span>모집</span><b class="num">${t.seats}명</b></div>` : ''}</div>
-      ${t.type === '정시' ? '' : `<p class="ad-min ${noMin ? '' : 'on'}"><b>수능최저</b> ${noMin ? '없음' : esc(t.min)}</p>`}${t.memo ? `<p class="ad-memo-t">${esc(t.memo)}</p>` : ''}${t.src ? `<a class="tiny" href="${esc(t.src)}" target="_blank" rel="noopener">입시 결과 원문</a>` : ''}</div>`; };
-    sheet(`<div class="row" style="gap:12px;margin-bottom:8px">${u ? emb(u, 'md') : ''}<div><h2 style="margin:0">${esc(a.name)}</h2><p class="tiny" style="margin:2px 0 0">${esc(a.dept)} · ${esc(a.year)} 입결</p></div></div>
-      <div class="deep" style="margin:12px 0 16px"><p style="margin:0">${esc(ADMIT.note)}${nsTotal() ? ` <b>지금 내 내신 ${fmt1(nsTotal())}등급은 9등급제로 치면 약 ${fmt1(g5to9(nsTotal()))}등급</b>이에요. 이 숫자와 견줘 봐요.` : ''}</p></div>
-      ${a.tracks.map(tr).join('')}
+    const tr = (t) => {
+      const jy = jyOf(t.rule), R = JY_RULE[t.rule], c = t.calc || {};
+      const nums = [['50%컷', t.cut50], ['70%컷', t.cut70], ['평균', t.avg]].filter(([, v]) => v != null);
+      return `<div class="ad-tr"><div class="row between" style="gap:8px"><b style="font-size:16px">${esc(t.name)}</b><span class="tag ${t.type === '교과' ? 'blue' : 'green'}">${esc(t.type)}</span></div>
+      <div class="ad-nums">${nums.length ? nums.map(([k, v]) => `<div><span>${k}</span><b class="num">${g2(v)}</b></div>`).join('') : '<div><span>컷</span><b>비공개</b></div>'}${t.seats ? `<div><span>모집</span><b class="num">${t.seats}명</b></div>` : ''}${t.rate ? `<div><span>경쟁률</span><b class="num">${t.rate}</b></div>` : ''}</div>
+      ${t.cutNote ? `<p class="ad-memo-t">${esc(t.year || '')} ${esc(t.cutNote)}</p>` : ''}
+      <div class="ad-jy">${jy ? `<b>이 전형에서 내 등급 ${g2(jy)}</b><span>${esc(R.t)} · 9등급제로 대략 ${fmt1(g5to9(jy))}</span>` : `<b>이 전형에서 내 등급은 계산 못 해요</b><span>${t.type === '종합' ? '종합은 서류를 사람이 읽고 평가해서 정해진 계산식이 없어요' : '1학년 공통과목이 안 들어가거나, 성취도 점수표가 아직 안 나왔어요'}</span>`}</div>
+      <p class="ad-min ${noMinOf(t) ? '' : 'on'}"><b>수능최저</b> ${noMinOf(t) ? '없음' : esc(t.min)}</p>${t.min2028 ? `<p class="ad-memo-t"><b>2028 바뀌는 점</b> ${esc(t.min2028)}</p>` : ''}
+      ${c.subjects || c.career ? `<p class="ad-memo-t"><b>성적 계산</b> ${esc([c.subjects, c.career, c.fusion].filter(Boolean).join(' · '))}${c.basis ? ` (${esc(c.basis)})` : ''}</p>` : ''}
+      ${t.memo ? `<p class="ad-memo-t">${esc(t.memo)}</p>` : ''}
+      <p class="tiny" style="margin:6px 0 0"><span class="tag ${t.srcType === 'other' ? 'red' : ''}">${esc(SRC_T[t.srcType] || '출처')}</span> ${(Array.isArray(t.src) ? t.src : t.src ? [t.src] : []).map((s, k) => `<a href="${esc(s)}" target="_blank" rel="noopener">원문 ${k + 1}</a>`).join(' · ')}</p></div>`;
+    };
+    sheet(`<div class="row" style="gap:12px;margin-bottom:8px">${u ? emb(u, 'md') : ''}<div><h2 style="margin:0">${esc(a.name)}</h2><p class="tiny" style="margin:2px 0 0">생명 계열 ${a.depts.length}개 학과 · 2026 수시 결과</p></div></div>
+      <div class="deep" style="margin:12px 0 16px"><p style="margin:0">${esc(ADMIT.note)}</p>${a.careerA ? `<p style="margin:8px 0 0"><b>A를 1등급으로</b> ${esc(a.careerA)}</p>` : ''}${a.rounding ? `<p style="margin:8px 0 0"><b>소수점</b> ${esc(a.rounding)}</p>` : ''}</div>
+      ${a.depts.map((d) => `<h3 class="ad-dept">${esc(d.dept)}</h3>${d.tracks.map(tr).join('')}`).join('')}
+      ${a.notes ? `<div class="eyebrow" style="margin-top:20px">알아 둘 것</div><p class="ad-memo-t" style="font-size:14px">${esc(a.notes)}</p>` : ''}
       ${subs.length ? `<div class="eyebrow" style="margin-top:20px">이 대학이 권하는 고2 과목</div><div class="list">${subs.map((x) => `<div class="li"><div class="body"><div class="t" style="font-size:15px">${esc(x.name)}</div><div class="d">${esc((x.unis || []).find((t) => t.startsWith(nm)) || '')}</div></div><span class="tag ${x.level === '핵심' ? 'blue' : ''}">${esc(x.level || '')}</span></div>`).join('')}</div>` : ''}
       ${newsRows(NEWS_ALL().filter((n) => n.uni === id).sort((p, q) => String(q.date).localeCompare(String(p.date))))}
-      ${keepBox('uni:' + id, `${nm} ${a.dept}`, 'uni', id, ['이 대학·학과에 끌리는 점은 무엇인가요?', '합격선까지 무엇을 더 채우면 될까요?'])}
+      ${keepBox('uni:' + id, `${nm} ${shortDept(adMain(a).dept)}`, 'uni', id, ['이 대학·학과에 끌리는 점은 무엇인가요?', '합격선까지 무엇을 더 채우면 될까요?'])}
       <div class="row" style="margin-top:20px"><button class="btn big" style="flex:1" data-back type="button">다른 대학도 보기</button>${S.profile.uni === id ? '' : `<button class="btn primary big" style="flex:1" id="ud-goal" type="button">목표로 정하기</button>`}</div>`, (el, close) => {
       bindDetail(el, admitSheet);
       const g = $('#ud-goal', el); if (g) g.onclick = () => { S.profile.uni = id; save('profile'); close(); render(); toast(`${nm} 목표, 응원해요`); };
