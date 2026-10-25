@@ -743,13 +743,15 @@
     const it = myS().items.find((x) => x.id === id); if (!it) return;
     const t = today(), x = myToday(it), dt = it.log[t];
     sheet(`<div class="row" style="gap:8px;margin-bottom:8px"><span class="tag">${esc(myCls(it.cls).name)}</span><span class="tiny">${md(it.due)} 마감 · D-${Math.max(0, dday(it.due))}</span></div>
-      <h2 style="margin:0 0 4px">${esc(it.book)}</h2><p class="tiny" style="margin:0 0 12px;line-height:1.6">${esc(it.text)}</p>
+      <label class="my-h2"><input id="my-bt" value="${esc(it.book)}" aria-label="제목 바꾸기"><span>${ic('write')} 바꾸기</span></label><p class="tiny" style="margin:0 0 12px;line-height:1.6">${esc(it.text)}</p>
       <div class="ik-bar" style="height:8px"><i style="width:${Math.round((myDone(it) / it.total) * 100)}%"></i></div><p class="tiny" style="margin:6px 0 16px">${myDone(it)} / ${it.total}${it.unit === '쪽' ? '쪽' : '문제'} 했어요</p>
       ${it.unit === '건' ? '' : `<div class="my-today"><span class="tiny">오늘 할 것</span><b>${x.n ? esc(myRange(it, x)) : '오늘 몫은 없어요'}</b></div>
       <div class="my-amt"><span>오늘 한 만큼</span><button type="button" class="btn sm" data-ma="-1">−</button><input class="inp sm" id="my-n" type="number" inputmode="numeric" min="0" value="${dt ? dt.n : x.n}"><button type="button" class="btn sm" data-ma="1">+</button></div>
       <label class="field" style="margin-top:12px"><span class="tiny">틀린 번호 (띄어 쓰거나 쉼표로) · 나중에 오답 탭에서 다시 풀어요</span><input class="inp" id="my-w" inputmode="numeric" placeholder="예: 1225 1231 1240" value="${esc((dt && dt.w || []).join(' '))}"></label>`}
       <button class="btn primary big block" id="my-ok" type="button" style="margin-top:16px">${it.unit === '건' ? (myFin(it) ? '아직 안 끝났어요' : '끝냈어요') : dt ? '고쳐서 저장' : '오늘 것 끝냈어요'}</button>
       <div class="row" style="gap:8px;margin-top:8px">${it.unit === '건' ? `<button class="btn block" id="my-plan" type="button">${isPlan(it) ? '꼭 할 일로 바꾸기' : '일정으로 바꾸기'}</button>` : `<button class="btn block" id="my-fin" type="button">${it.fin ? '다시 하기' : '다 끝났어요'}</button>`}<button class="btn block" id="my-del" type="button">지우기</button></div>`, (el, close) => {
+      $('#my-bt', el).onchange = (e) => { const v = e.target.value.trim(); if (!v || v === it.book) return; it.text = it.text.startsWith(it.book) ? v + it.text.slice(it.book.length) : it.text; it.book = v; save('my'); sheet.dirty = true; toast('제목을 바꿨어요'); };
+      $('#my-bt', el).onkeydown = (e) => { if (e.key === 'Enter') e.target.blur(); };
       const mp = $('#my-plan', el); if (mp) mp.onclick = () => { it.plan = !isPlan(it); save('my'); close(); render(); toast(it.plan ? '일정으로 바꿨어요 · 오늘 할 일 셈에서 빠져요' : '꼭 할 일로 바꿨어요'); };
       $$('[data-ma]', el).forEach((b) => (b.onclick = () => { const i = $('#my-n', el); i.value = Math.max(0, (+i.value || 0) + +b.dataset.ma); }));
       $('#my-ok', el).onclick = () => {

@@ -1240,7 +1240,10 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .my-today b { font-size: 20px; color: var(--blue); }
 .my-amt { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 14px; color: var(--t2); }
 .my-amt span { margin-right: auto; }
-.my-amt input { width: 72px; text-align: center; }
+.my-amt input { width: 72px; height: 44px; text-align: center; font-size: 17px; font-weight: 700; }
+.my-amt .btn { width: 44px; height: 44px; padding: 0; font-size: 20px; border-radius: 12px; }
+input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .my-wr { padding: 10px 0; border-top: 1px solid var(--line); }
 .my-wr:first-of-type { border-top: 0; }
 .my-wn { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
@@ -1330,3 +1333,10 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .my-due { display: block; margin: 12px 0 0; }
 .my-addrow { margin-top: 12px; }
 @media (max-width: 420px) { .my-in .inp { width: 64px; } }
+
+.my-h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; border-radius: 12px; cursor: text; }
+.my-h2 input { flex: 1; min-width: 0; border: 0; background: none; font: inherit; font-size: 22px; font-weight: 700; color: var(--t1); padding: 4px 0; border-radius: 10px; outline: none; }
+.my-h2 input:focus { background: var(--fill); padding: 4px 10px; }
+.my-h2 span { flex: none; display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: var(--t3); }
+.my-h2 span .ic, .my-h2 span img { width: 16px; height: 16px; }
+.my-h2:focus-within span { display: none; }
