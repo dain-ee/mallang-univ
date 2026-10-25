@@ -1475,10 +1475,11 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 :root[data-skin="monchhichi"] { --blue: #e2333d; --blue-d: #bf2630; --blue-soft: #fdeceb; --blue-l: #f8c6c3; --bg: #f4f1ed; --hl: rgba(255, 170, 120, .4); --skin-bg: radial-gradient(circle, rgba(226, 51, 61, .10) 0 2px, transparent 3px) 0 0 / 28px 28px; --skin-band: repeating-linear-gradient(90deg, rgba(226, 51, 61, .55) 0 12px, transparent 12px 24px), repeating-linear-gradient(0deg, rgba(226, 51, 61, .55) 0 12px, #fff 12px 24px); }
 :root[data-skin="melody"] { --blue: #e8679f; --blue-d: #c94a82; --blue-soft: #ffeef6; --blue-l: #ffd0e5; --bg: #f5f1f4; --hl: rgba(255, 105, 180, .42); --skin-bg: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, .95) 0 3px, rgba(200, 225, 255, .35) 4px 14px, rgba(255, 255, 255, .7) 15px, transparent 16px) 0 0 / 120px 140px, radial-gradient(circle at 35% 35%, rgba(255, 255, 255, .9) 0 2px, rgba(200, 225, 255, .3) 3px 8px, rgba(255, 255, 255, .6) 9px, transparent 10px) 60px 70px / 120px 140px; --skin-band: linear-gradient(90deg, #ffd0e5, #d6ecff, #ffd0e5); }
 :root[data-skin="chiikawa"] { --blue: #ef8aa0; --blue-d: #d86a83; --blue-soft: #fff0f3; --blue-l: #ffd6df; --bg: #f4f3ef; --hl: rgba(255, 196, 210, .55); --skin-bg: radial-gradient(circle, rgba(255, 196, 210, .45) 0 3px, transparent 4px) 0 0 / 44px 44px, radial-gradient(circle, rgba(190, 225, 245, .5) 0 3px, transparent 4px) 22px 22px / 44px 44px; --skin-band: repeating-linear-gradient(90deg, #ffe4ea 0 24px, #e6f4fb 24px 48px, #fff4cf 48px 72px); }
+:root[data-skin="cinnamoroll"] { --blue: #5aa6e6; --blue-d: #3d8ad0; --blue-soft: #eef6fd; --blue-l: #cfe6fa; --bg: #f1f5f9; --hl: rgba(140, 200, 245, .45); --skin-bg: radial-gradient(ellipse 22px 12px at 50% 50%, rgba(255, 255, 255, .95) 0 98%, transparent) 0 0 / 120px 90px, radial-gradient(ellipse 14px 9px at 50% 50%, rgba(255, 255, 255, .85) 0 98%, transparent) 60px 45px / 120px 90px; --skin-band: linear-gradient(90deg, #cfe6fa, #ffffff, #cfe6fa); }
 :root[data-skin]:not([data-skin="ghost"]) body { background: var(--bg); }
 :root[data-skin]:not([data-skin="ghost"]) .top { background: var(--bg); }
 @media (prefers-color-scheme: dark) {
-  :root[data-skin="kitty"]:not([data-theme="light"]), :root[data-skin="monchhichi"]:not([data-theme="light"]), :root[data-skin="melody"]:not([data-theme="light"]), :root[data-skin="chiikawa"]:not([data-theme="light"]) { --bg: #101013; --blue-soft: color-mix(in srgb, var(--blue) 18%, #1d1d22); --blue-l: color-mix(in srgb, var(--blue) 35%, #1d1d22); }
+  :root[data-skin="kitty"]:not([data-theme="light"]), :root[data-skin="monchhichi"]:not([data-theme="light"]), :root[data-skin="melody"]:not([data-theme="light"]), :root[data-skin="chiikawa"]:not([data-theme="light"]), :root[data-skin="cinnamoroll"]:not([data-theme="light"]) { --bg: #101013; --blue-soft: color-mix(in srgb, var(--blue) 18%, #1d1d22); --blue-l: color-mix(in srgb, var(--blue) 35%, #1d1d22); }
 }
 :root[data-skin]:not([data-skin="ghost"]) .hl-g { background: linear-gradient(transparent 55%, var(--hl) 55%); }
 :root[data-skin]:not([data-skin="ghost"]) .card { box-shadow: 0 1px 0 color-mix(in srgb, var(--blue) 8%, transparent); }
@@ -1497,7 +1498,13 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 .pet-perch .pet-say.motto { animation: say-in .4s .5s ease both; }
 @keyframes say-in { from { opacity: 0; transform: translateY(4px); } }
 @keyframes perch-in { from { transform: translateY(-20%); opacity: 0; } }
+.pet-perch[data-skin="cinnamoroll"] { width: 150px; height: 150px; right: 56px; } /* 귀가 길어 몸이 작게 그려져서, 귀가 칸을 넘쳐도 크게 (사용자) */
+.pet-perch[data-skin="cinnamoroll"] img { transform: scale(1.75); transform-origin: 50% 78%; }
+:root[data-skin="cinnamoroll"]:not([data-skin="ghost"]) img.gh { transform: scale(1.9); transform-origin: 50% 80%; }
+:root[data-skin="cinnamoroll"]:not([data-skin="ghost"]) img.gh-nt { margin-right: 28px; }
+:root[data-skin="cinnamoroll"]:not([data-skin="ghost"]) img.gh-done, :root[data-skin="cinnamoroll"]:not([data-skin="ghost"]) img.gh-empty { transform: scale(1.4); }
 @media (max-width: 520px) { .pet-perch { width: 84px; height: 84px; right: 12px; } .card.has-perch { margin-top: 52px; } }
+@media (max-width: 520px) { .pet-perch[data-skin="cinnamoroll"] { width: 104px; height: 104px; right: 40px; } }
 /* 소리 크기·쪽 고르기 슬라이더: 진한 테두리 없이 옅은 트랙 + 채워진 만큼 강조색 */
 .pm-vol input, .bk-sl { -webkit-appearance: none; appearance: none; height: 24px; background: transparent; cursor: pointer; --p: 50%; }
 .pm-vol input::-webkit-slider-runnable-track, .bk-sl::-webkit-slider-runnable-track { height: 6px; border: 0; border-radius: 99px; background: linear-gradient(90deg, var(--blue) var(--p), var(--fill) var(--p)); }
