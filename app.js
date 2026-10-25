@@ -491,8 +491,56 @@
       <div class="lib-grid bk-grid">${EB.books.map(book).join('')}<div class="lib-it bk-it soon"><span class="ico">${ic('eng')}</span><b>공통영어2</b><span class="tiny">능률 · 민병천</span><span class="bk-rg">Lesson 3~4 · 부교재</span><span class="tiny">준비 중이에요</span></div></div></section>
       <section class="card c4"><div class="card-h"><h2>내 표시</h2></div><div class="list">${row('all', 'pencil', '칠한 곳', n ? `형광펜·밑줄 ${n}곳` : '단어를 끌어서 칠해요', n)}${row('later', 'star', '나중에 다시 보기', ln ? `${ln}곳 모아 뒀어요` : '☆ 를 누르면 모여요', ln)}${row('q', 'q', TEACHER ? '학생 질문' : '선생님께 질문', TEACHER ? (qa ? `답할 질문 ${qa}개` : qn ? '다 답했어요' : '아직 없어요') : qa ? `새 답 ${qa}개` : qn ? `질문 ${qn}개` : '칠한 곳을 눌러 물어봐요', qa, true)}</div></section>`;
   }
+  // ───────── 기말 범위: 학교 교과서 목록으로 출판사를 미리 채우고, 범위는 학생이 들은 대로 적어요 ─────────
+  // (선생님이 나중에 이걸 보고 교과서 PDF·문제를 맞춰요)
+  const EX_DEF = [
+    ['kor', '공통국어2', '천재교과서 · 김수학', ''],
+    ['math', '공통수학2', '비상교육 · 김원경', '평가계획서에는 Ⅲ. 함수 (유리함수·무리함수)까지'],
+    ['eng', '공통영어2', '능률 · 민병천', 'Lesson 3~4 + 부교재 올림포스 영어독해의 기본2 (1~2강인지 1~3강인지 확인)'],
+    ['soc', '통합사회2', '지학사 · 안재섭', ''],
+    ['hist', '한국사2', '동아출판 · 노대환', 'Ⅱ. 대한민국의 발전 ~ Ⅲ. 오늘날의 대한민국 (70~157쪽)'],
+    ['sci', '통합과학2', '비상교육 · 심규철', '화학 중화 반응부터 (42~59쪽) · 물리 발전기와 전력, 신재생 에너지 (88~109쪽)'],
+  ];
+  const EX_IC = { kor: 'write', math: 'math', eng: 'eng', soc: 'globe', hist: 'scroll', sci: 'sci' };
+  function exS() {
+    if (!S.exam) S.exam = { subs: EX_DEF.map(([id, name, pub, range]) => ({ id, name, pub, range, by: 't' })), memo: '' };
+    return S.exam;
+  }
+  function examCard() {
+    const x = exS();
+    const row = (u) => `<div class="li btnlike ex-row" data-exsub="${esc(u.id)}"><div class="ico">${ic(EX_IC[u.id] || 'books')}</div><div class="body"><div class="t">${esc(u.name)}${u.pub ? ` <span class="tiny">${esc(u.pub)}</span>` : ''}</div><div class="d ${u.range ? 'ex-rg' : ''}">${u.range ? esc(u.range) : '범위를 아직 몰라요 · 눌러서 적어요'}</div></div>${u.by === 's' ? `<span class="tag blue">${TEACHER ? '학생이 적음' : '내가 적음'}</span>` : u.range ? '<span class="tag">맞는지 확인</span>' : ''}</div>`;
+    return `<section class="card c12"><div class="card-h"><h2>${ic('cal')} 기말 범위</h2><span class="tiny">기말고사 <b class="blue">D-${dday(EB_EXAM)}</b></span></div>
+      <p class="sub" style="margin:0 0 8px">${TEACHER ? '「학생이 적음」 과목을 보고 교과서·문제를 맞춰요. 선생님이 고치면 학생에게 「맞는지 확인」으로 보여요' : '선생님이 말한 범위를 들은 대로 적어 주세요. 대충 줄글로 써도 돼요'}</p>
+      <div class="list">${x.subs.map(row).join('')}</div>
+      <div class="ex-memo li btnlike" data-exmemo><div class="ico">${ic('memo')}</div><div class="body"><div class="t">그 밖에 들은 것</div><div class="d ${x.memo ? 'ex-rg' : ''}">${x.memo ? esc(x.memo) : '수행평가, 서술형, 프린트처럼 과목에 안 맞는 것도 여기 적어요'}</div></div></div>
+      <button class="btn block" type="button" data-exadd style="margin-top:12px">＋ 과목 더하기</button></section>`;
+  }
+  function exSheet(id) {
+    const x = exS(), add = !id, u = add ? { id: 'x' + Date.now().toString(36), name: '', pub: '', range: '' } : id === '_memo' ? null : x.subs.find((y) => y.id === id);
+    if (id !== '_memo' && !u) return;
+    const html = id === '_memo'
+      ? `<h2>그 밖에 들은 것</h2><div class="field"><textarea class="inp" id="ex-memo" rows="6" placeholder="예) 국어 수행평가 다음 주 화요일, 영어 서술형은 본문 그대로 나온대">${esc(x.memo || '')}</textarea></div>`
+      : `<h2>${add ? '과목 더하기' : esc(u.name)}</h2>
+        <div class="field"><label>과목</label><input class="inp" id="ex-name" value="${esc(u.name)}" placeholder="예) 과학탐구실험2"></div>
+        <div class="field"><label>교과서 · 출판사</label><input class="inp" id="ex-pub" value="${esc(u.pub)}" placeholder="몰라도 괜찮아요"></div>
+        <div class="field"><label>시험 범위</label><textarea class="inp" id="ex-range" rows="5" placeholder="선생님이 말한 대로 대충 적어도 돼요. 예) 3과 본문이랑 올림포스 1~2강, 프린트 7장까지">${esc(u.range)}</textarea></div>`;
+    const btns = `<div class="row" style="gap:8px">${!add && id !== '_memo' ? '<button class="btn" type="button" id="ex-del">빼기</button>' : ''}<button class="btn primary block" type="button" id="ex-ok" style="flex:1">저장</button></div>`;
+    sheet(html + btns, (el, close) => {
+      const ok = $('#ex-ok', el); if (ok) ok.onclick = () => {
+        if (id === '_memo') x.memo = $('#ex-memo', el).value.trim();
+        else {
+          const name = $('#ex-name', el).value.trim(); if (!name) { toast('과목 이름을 적어 주세요'); return; }
+          const nu = { ...u, name, pub: $('#ex-pub', el).value.trim(), range: $('#ex-range', el).value.trim(), by: TEACHER ? 't' : 's', at: Date.now() };
+          if (add) x.subs.push(nu); else x.subs[x.subs.indexOf(u)] = nu;
+        }
+        save('exam'); close(); render(); toast(TEACHER ? '저장했어요' : '저장했어요 · 선생님도 볼 수 있어요');
+      };
+      const del = $('#ex-del', el); if (del) del.onclick = () => { if (del.dataset.sure) { x.subs.splice(x.subs.indexOf(u), 1); save('exam'); close(); render(); toast('뺐어요'); } else { del.dataset.sure = '1'; del.textContent = '정말 빼기'; } };
+    });
+  }
+  document.addEventListener('click', (e) => { const r = e.target.closest('[data-exsub]'); if (r) return exSheet(r.dataset.exsub); if (e.target.closest('[data-exmemo]')) return exSheet('_memo'); if (e.target.closest('[data-exadd]')) exSheet(); });
   function bookView() {
-    return `<h1 class="h1">기말 교과서</h1><p class="sub">시험 범위 교과서를 읽으면서 형광펜·밑줄을 긋고, 모르는 곳은 선생님께 물어봐요</p><div class="grid">${bookCard() || `<section class="card c12"><div class="empty">${gh('sleepy', 'gh-empty')}<b>아직 교과서가 없어요</b></div></section>`}</div>`;
+    return `<h1 class="h1">기말 교과서</h1><p class="sub">기말 범위를 적고, 시험 범위 교과서를 읽으면서 형광펜·밑줄을 긋고, 모르는 곳은 선생님께 물어봐요</p><div class="grid">${examCard()}${bookCard() || `<section class="card c12"><div class="empty">${gh('sleepy', 'gh-empty')}<b>아직 교과서가 없어요</b></div></section>`}</div>`;
   }
   function bookOpen(id, cid, n, mk) {
     const b = EB.books.find((x) => x.id === id); if (!b) return;

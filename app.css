@@ -1155,3 +1155,7 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .bk-wrap.one .bk-arr { position: fixed; top: 50%; transform: translateY(-50%); z-index: 30; }
 .bk-wrap.one .bk-arr.l { left: max(16px, calc(50% - 572px)); }
 .bk-wrap.one .bk-arr.r { right: max(16px, calc(50% - 572px)); }
+
+/* 기말 범위 */
+.ex-row .d.ex-rg, .ex-memo .d.ex-rg { color: var(--t1); white-space: pre-wrap; line-height: 1.5; }
+.ex-memo { margin-top: 4px; }
