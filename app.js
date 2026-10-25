@@ -498,7 +498,7 @@
   const ebTx = (c) => ebMemo(c.tx, () => ebGet(c.tx).then((u) => new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'))).json()).then((j) => { const o = {}; for (const [n, lines] of Object.entries(j)) { const W = []; lines.forEach(([y0, y1, f], l) => { for (let i = 0; i < f.length; i += 3) W.push({ x0: f[i], x1: f[i + 1], y0, y1, t: f[i + 2], l }); }); o[n] = W; } return o; }));
   const bkMarks = (cid, n) => Object.entries(bkS().marks).filter(([, m]) => m.c === cid && m.p === n);
   const bkProg = (b) => { const all = b.ch.filter((c) => !c.ref).flatMap((c) => c.pages.map((p) => `${b.id}:${p.n}`)); const seen = all.filter((k) => bkS().seen[k]).length; return { seen, all: all.length, pct: all.length ? Math.round((seen / all.length) * 100) : 0 }; };
-  const BK_IC = { hist: 'scroll', sci: 'sci', eng: 'eng', eng2: 'books' };
+  const BK_IC = { hist: 'scroll', sci: 'sci', eng: 'eng', eng2: 'books', kor: 'write', math: 'math', soc: 'globe' };
   function bookCard() {
     if (!EB.books.length) return '';
     const s = bkS(), M = Object.values(s.marks), n = M.length, qn = M.filter((m) => m.q).length, qa = M.filter((m) => m.q && (TEACHER ? !m.ans : m.ans && !m.ansSeen)).length, ln = M.filter((m) => m.later).length + Object.keys(s.pin).length;
