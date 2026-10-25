@@ -710,7 +710,7 @@
         const sm = $('[data-rsame]', r); if (sm) sm.onclick = () => { if (!x.a) x.a = x.lt.to + 1; x.b = +x.a + x.lt.total - 1; x.mode = x.lt.unit; draw(el); };
       });
       $('#my-bka', el).onclick = () => { const v = $('#my-bkn', el).value.trim(); if (!v) return; const x = dr(cid, v); if (myCls(cid).day == null) { x.mode = '건'; x.on = true; } draw(el); };
-      $('#my-bkn', el).onkeydown = (e) => { if (e.key === 'Enter') $('#my-bka', el).click(); };
+      $('#my-bkn', el).onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) $('#my-bka', el).click(); };
       $('#my-dd', el).onchange = (e) => { if (e.target.value) { dueOf[cid] = e.target.value; draw(el); } };
     };
     sheet(`<h2>숙제 넣기</h2>
@@ -744,7 +744,7 @@
     const it = myS().items.find((x) => x.id === id); if (!it) return;
     const t = today(), x = myToday(it), dt = it.log[t];
     sheet(`<div class="row" style="gap:8px;margin-bottom:8px"><span class="tag">${esc(myCls(it.cls).name)}</span><span class="tiny">${md(it.due)} 마감 · D-${Math.max(0, dday(it.due))}</span></div>
-      <label class="my-h2"><input id="my-bt" value="${esc(it.book)}" aria-label="제목 바꾸기"><span>${ic('write')} 바꾸기</span></label><p class="tiny" style="margin:0 0 12px;line-height:1.6">${esc(it.text)}</p>
+      <label class="my-h2"><input id="my-bt" value="${esc(it.book)}" aria-label="제목 바꾸기"><span>수정</span></label><p class="tiny" style="margin:0 0 12px;line-height:1.6">${esc(it.text)}</p>
       <div class="ik-bar" style="height:8px"><i style="width:${Math.round((myDone(it) / it.total) * 100)}%"></i></div><p class="tiny" style="margin:6px 0 16px">${myDone(it)} / ${it.total}${it.unit === '쪽' ? '쪽' : '문제'} 했어요</p>
       ${it.unit === '건' ? '' : `<div class="my-today"><span class="tiny">오늘 할 것</span><b>${x.n ? esc(myRange(it, x)) : '오늘 몫은 없어요'}</b></div>
       <div class="my-amt"><span>오늘 한 만큼</span><button type="button" class="btn sm" data-ma="-1">−</button><input class="inp sm" id="my-n" type="number" inputmode="numeric" min="0" value="${dt ? dt.n : x.n}"><button type="button" class="btn sm" data-ma="1">+</button></div>
@@ -758,7 +758,7 @@
         if (c) { if (!(+c.value > 0)) { toast('문제 수를 적어요'); return; } it.total = +c.value; }
         if (d) it.due = d; save('my'); sheet.dirty = true; const bb = $('#sheet-root .sh-back'); if (bb) bb.click(); else close(); toast('고쳤어요'); };
       $('#my-bt', el).onchange = (e) => { const v = e.target.value.trim(); if (!v || v === it.book) return; it.text = it.text.startsWith(it.book) ? v + it.text.slice(it.book.length) : it.text; it.book = v; save('my'); sheet.dirty = true; toast('제목을 바꿨어요'); };
-      $('#my-bt', el).onkeydown = (e) => { if (e.key === 'Enter') e.target.blur(); };
+      $('#my-bt', el).onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) e.target.blur(); };
       const mp = $('#my-plan', el); if (mp) mp.onclick = () => { it.plan = !isPlan(it); save('my'); close(); render(); toast(it.plan ? '일정으로 바꿨어요 · 오늘 할 일 셈에서 빠져요' : '꼭 할 일로 바꿨어요'); };
       $$('[data-ma]', el).forEach((b) => (b.onclick = () => { const i = $('#my-n', el); i.value = Math.max(0, (+i.value || 0) + +b.dataset.ma); }));
       $('#my-ok', el).onclick = () => {
@@ -2112,7 +2112,7 @@
       $$('[data-sv]', el).forEach((b) => (b.onclick = () => { p[k] = +b.dataset.sv; p.goalSet = { ...(p.goalSet || {}), [k]: true }; done(); }));
       const sa = $('[data-sauto]', el); if (sa) sa.onclick = () => { p.goalSet = { ...(p.goalSet || {}), [k]: false }; syncGoals(); done(); };
       const ok = $('#ef-ok', el); if (ok) ok.onclick = () => { if (type === 'grade') { p.grade = +$('#ef-g', el).value; p.cls = $('#ef-c', el).value.trim(); } else { const v = $('#ef-v', el).value.trim(); if (k === 'name' && !v) return; p[k] = v; } done(); };
-      const inp = $('#ef-v', el); if (inp) { inp.focus(); inp.onkeydown = (e) => { if (e.key === 'Enter') ok.click(); }; }
+      const inp = $('#ef-v', el); if (inp) { inp.focus(); inp.onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) ok.click(); }; }
     });
   }
   function avatarSheet() {

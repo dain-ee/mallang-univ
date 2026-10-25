@@ -1335,9 +1335,9 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 @media (max-width: 420px) { .my-in .inp { width: 64px; } }
 
 .my-h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; border-radius: 12px; cursor: text; }
-.my-h2 input { flex: 1; min-width: 0; border: 0; background: none; font: inherit; font-size: 22px; font-weight: 700; color: var(--t1); padding: 4px 0; border-radius: 10px; outline: none; }
+.my-h2 input { flex: 1; min-width: 0; border: 0; background: none; font: inherit; font-size: 22px; font-weight: 700; line-height: 1.3; color: var(--t1); padding: 4px 0; border-radius: 10px; outline: none; }
 .my-h2 input:focus { background: var(--fill); padding: 4px 10px; }
-.my-h2 span { flex: none; display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: var(--t3); }
+.my-h2 span { flex: none; font-size: 14px; font-weight: 600; color: var(--t3); line-height: 1; }
 .my-h2 span .ic, .my-h2 span img { width: 16px; height: 16px; }
 .my-h2:focus-within span { display: none; }
 
