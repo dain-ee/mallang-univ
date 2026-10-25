@@ -354,7 +354,7 @@
     const nscard = nsCard('c6');
     const sgbc = sgbSummary('c6');
     const main = `<h1 class="h1">${bdayLeft() === 0 ? `${ic('party')} ${nameCall()}, 생일 축하해` : `${nameCall()}, ${greet()}`}</h1><p class="sub">${todayLine()}</p>
-      <div class="grid">${hero}${pos}${walletCard('c12')}${pomoCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}</div>`;
+      <div class="grid">${hero}${pos}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}</div>`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -418,7 +418,7 @@
     const todo = `<section class="card tight ${cls}"><div class="card-h"><h3>오늘 할 일</h3><button class="more" data-go="hw">숙제</button></div>
       <div class="arch"><svg viewBox="0 0 200 100"><path d="M20 96 A80 80 0 0 1 180 96" fill="none" stroke="var(--fill)" stroke-width="12" stroke-linecap="round"/><path class="ring-arc" d="M20 96 A80 80 0 0 1 180 96" fill="none" stroke="var(--blue)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L * (1 - frac)}"/></svg><div class="c"><span class="tiny">오늘</span><br><b class="num">${Math.round(frac * 100)}%</b> <span class="muted">완료</span></div></div>
       <div class="list">${tasks.length ? tasks.map((t) => `<div class="li btnlike" data-task="${t.k}"><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${esc(t.t)}</div><div class="d">${esc(t.d)}</div></div><span class="chev"></span></div>`).join('') : `<div class="empty">${ic('party')}<b>오늘 할 일이 없어요</b></div>`}</div></section>`;
-    return inline ? todo : clockWidget() + pomoCard('pm-rail') + todo + ddayWidget();
+    return inline ? todo : clockWidget() + pomoCard('pm-rail') + hotCard('') + todo + ddayWidget();
   }
   const nIcon = (n) => (n.scope === '교육부' ? 'bank' : /과학|바이오/.test(n.scope || '') ? 'sci' : 'news');
   // 소식 탭: 입시 · 과학 · 시사 상식
@@ -565,12 +565,12 @@
       $('#ik-set', el).innerHTML = INK.map((c) => {
         const cf = P[c.id], f = inkFinish(c, cf), late = f.date && f.date > EB_EXAM;
         const sum = !cf.on ? '안 들어요' : !f.n ? '고른 강의를 다 들었어요' : !cf.days.length ? `남은 ${f.n}강 · 요일을 골라요` : `남은 ${f.n}강 · ${md(f.date)}에 끝나요 · ${late ? `<b class="red">기말(${md(EB_EXAM)})보다 늦어요</b>` : '<b class="blue">기말 전에 끝나요</b>'}`;
-        return `<div class="pl-item ik-item"><div class="row between" style="gap:8px"><div class="pl-h">${ic(INK_IC[c.id] || 'books')}<div><b>${esc(c.subj)} · ${esc(c.teacher)}</b><span class="tiny">${esc(c.range)}</span></div></div><button type="button" class="chip sm ${cf.on ? 'on' : ''}" data-ion="${c.id}">${cf.on ? '듣기' : '안 듣기'}</button></div>
-          ${cf.on ? `<div class="pl-dots" style="margin-top:10px">${order.map((d) => `<button type="button" class="${cf.days.includes(d) ? 'on' : ''} ${d === 0 ? 'sun' : d === 6 ? 'sat' : ''}" data-idw="${c.id}:${d}">${DOW[d]}</button>`).join('')}</div>
+        return `<div class="pl-item ik-item"><div class="row between" style="gap:8px"><div class="pl-h">${ic(INK_IC[c.id] || 'books')}<div><b>${esc(c.subj)} · ${esc(inkName(c))}</b><span class="tiny">${esc(c.teacher)} · ${esc(c.range)}</span></div></div><button type="button" class="ik-sw ${cf.on ? 'on' : ''}" data-ion="${c.id}" aria-pressed="${cf.on}">${cf.on ? '듣는 중' : '안 들어요'}</button></div>
+          <div class="ik-in">${cf.on ? `<div class="pl-dots">${order.map((d) => `<button type="button" class="${cf.days.includes(d) ? 'on' : ''} ${d === 0 ? 'sun' : d === 6 ? 'sat' : ''}" data-idw="${c.id}:${d}">${DOW[d]}</button>`).join('')}</div>
           <div class="row" style="gap:6px;margin-top:10px;align-items:center"><span class="tiny">하루에</span>${[1, 2, 3].map((n) => `<button type="button" class="chip sm ${cf.per === n ? 'on' : ''}" data-iper="${c.id}:${n}">${n}강</button>`).join('')}</div>` : ''}
           <p class="tiny" style="margin:10px 0 0">${sum}</p>
           <button type="button" class="btn sm" data-ipk="${c.id}" style="margin-top:8px">${open[c.id] ? '강의 목록 접기' : `들을 강의 고르기 · ${cf.pick.length}강 골랐어요`}</button>
-          ${open[c.id] ? `<div class="ik-lecs">${c.lectures.map((l) => { const s = inkSt(c, l), on = cf.pick.includes(l.no); return `<button type="button" class="ik-lec ${on ? 'on' : ''}" data-ilp="${c.id}:${l.no}"><i>${on ? '✓' : ''}</i><span><b>${esc(l.title)}</b><em>${l.min ? l.min + '분' : ''}${s === 'done' ? ' · 들었어요' : s === 'skip' ? ' · 안 들어요' : l.pct ? ` · ${l.pct}% 들음` : ''}</em></span></button>`; }).join('')}</div>` : ''}</div>`;
+          ${open[c.id] ? `<div class="ik-lecs">${c.lectures.map((l) => { const s = inkSt(c, l), on = cf.pick.includes(l.no); return `<button type="button" class="ik-lec ${on ? 'on' : ''}" data-ilp="${c.id}:${l.no}"><i>${on ? '✓' : ''}</i><span><b>${esc(l.title)}</b><em>${l.min ? l.min + '분' : ''}${s === 'done' ? ' · 들었어요' : s === 'skip' ? ' · 안 들어요' : l.pct ? ` · ${l.pct}% 들음` : ''}</em></span></button>`; }).join('')}</div>` : ''}</div></div>`;
       }).join('');
       $$('[data-ion]', el).forEach((b) => (b.onclick = () => { const x = P[b.dataset.ion]; x.on = !x.on; draw(el); }));
       $$('[data-idw]', el).forEach((b) => (b.onclick = () => { const [id, d] = b.dataset.idw.split(':'), x = P[id], n = +d; x.days = x.days.includes(n) ? x.days.filter((y) => y !== n) : [...x.days, n]; draw(el); }));
@@ -583,11 +583,13 @@
       $('#ik-ok', el).onclick = () => { const s = inkS(); s.cfg = P; delete s.days[today()]; save('ink'); close(); render(); toast('인강 계획을 바꿨어요'); };
     });
   }
+  const INK_NM = { kor: '공통국어2 내신', sci: 'AXIS 개념완성', hist: '내신완성', hist2: '라디오북', soc: '올인원 개념완성', soc2: '고양이 기출분석' };
+  const inkName = (c) => INK_NM[c.id] || c.teacher;
   function inkCard(cls) {
     if (!INK.length) return '';
     const L = INK.filter((c) => inkCfg(c).on);
     return `<section class="card ${cls}"><div class="card-h"><h2>${ic('1f3a7')} 인강</h2><button class="more" id="ink-set" type="button">인강 설정</button></div>
-      ${L.length ? `<div class="list">${L.map((c) => { const cf = inkCfg(c), P = c.lectures.filter((l) => cf.pick.includes(l.no)), dn = P.filter((l) => inkSt(c, l)).length, nx = inkQueue(c)[0], f = inkFinish(c, cf); return `<div class="li btnlike" ${nx ? `data-task="ink:${c.id}:${nx.no}"` : 'data-inkset'}><div class="ico">${ic(INK_IC[c.id] || 'books')}</div><div class="body"><div class="t">${esc(c.subj)} · ${esc(c.teacher)} <span class="tiny">${dn}/${P.length}강</span></div><div class="d">${nx ? `다음: ${esc(nx.title)}` : '고른 강의를 다 들었어요'}${f.date && f.date > EB_EXAM ? ' · <b class="red">기말보다 늦어요</b>' : ''}</div><div class="ik-bar"><i style="width:${P.length ? (dn / P.length) * 100 : 0}%"></i></div></div><span class="chev"></span></div>`; }).join('')}</div>` : `<div class="empty"><b>듣는 인강이 없어요</b><span>「인강 설정」에서 골라요</span></div>`}</section>`;
+      ${L.length ? `<div class="list ik-list">${L.map((c) => { const cf = inkCfg(c), P = c.lectures.filter((l) => cf.pick.includes(l.no)), dn = P.filter((l) => inkSt(c, l)).length, nx = inkQueue(c)[0], f = inkFinish(c, cf); return `<div class="li btnlike" ${nx ? `data-task="ink:${c.id}:${nx.no}"` : 'data-inkset'}><div class="ico">${ic(INK_IC[c.id] || 'books')}</div><div class="body"><div class="t">${esc(c.subj)} · ${esc(inkName(c))} <span class="tiny">${esc(c.teacher)} · ${dn}/${P.length}강</span></div><div class="d">${nx ? `다음: ${esc(nx.title)}` : '고른 강의를 다 들었어요'}${f.date && f.date > EB_EXAM ? ' · <b class="red">기말보다 늦어요</b>' : ''}</div><div class="ik-bar"><i style="width:${P.length ? (dn / P.length) * 100 : 0}%"></i></div></div><span class="chev"></span></div>`; }).join('')}</div>` : `<div class="empty"><b>듣는 인강이 없어요</b><span>「인강 설정」에서 골라요</span></div>`}</section>`;
   }
   const bkS = () => { S.book = S.book || {}; S.book.marks = S.book.marks || {}; S.book.seen = S.book.seen || {}; S.book.pin = S.book.pin || {}; S.book.last = S.book.last || {}; return S.book; };
   const ebFind = (cid) => { for (const b of EB.books) { const c = b.ch.find((x) => x.id === cid); if (c) return { b, c }; } return null; };
@@ -830,7 +832,7 @@
           ${later.length || done.length ? `<div class="hw-tog">${tog('later', '앞으로 낼 숙제', later.length)}${tog('done', '끝낸 숙제', done.length)}</div>
           ${later.length ? `<div class="hw-pane list" data-pane="later" hidden>${later.map((h) => hrow(h, true)).join('')}</div>` : ''}${done.length ? `<div class="hw-pane list" data-pane="done" hidden>${done.map((h) => hrow(h)).join('')}</div>` : ''}` : ''}</section>`;
       })()}
-      ${inkCard('c8')}
+      ${inkCard('c12')}
       ${drillCard()}
       ${libCard()}
       <section class="card c4 col-card mid"><div class="card-h"><h2>꾸준히</h2><span class="tag blue">${streak}일 연속</span></div><div class="streak">${days.map((d) => `<i class="${lvl(d) ? 'l' + lvl(d) : ''} ${d === today() ? 'today' : ''}" title="${d}" data-day="${d}" role="button" tabindex="0"></i>`).join('')}</div><p class="tiny" style="margin:12px 0 0">최근 4주 · 진할수록 많이 했어요 · 날짜를 누르면 그날 한 것이 보여요</p></section>
@@ -2033,6 +2035,14 @@
     if (n >= g) return `오늘 목표 ${g}개 달성! 정말 잘했어요`;
     return `목표까지 토마토 ${g - n}개 남았어요`;
   }
+  // 홈 핫뉴스 한 개: 안 읽은 대이슈 → 안 읽은 최신 → 최신
+  function hotCard(cls) {
+    const N = ((D.news && D.news.items) || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    const un = N.filter((n) => !wHas('news:' + n.id)), n = un.find((x) => x.must) || un[0] || N[0];
+    if (!n) return '';
+    const rd = wHas('news:' + n.id);
+    return `<section class="card ${cls} hot-card link" data-news="${esc(n.id)}"><div class="hot-ic">${ic('fire')}</div><div class="hot-b"><div class="eyebrow">핫뉴스${n.must ? ' · <b class="red">꼭 읽기</b>' : ''}</div><b class="hot-t">${esc(n.title)}</b><p class="tiny" style="margin:2px 0 0">${md(n.date)} · ${esc(n.scope || '')}${rd ? ' · 읽었어요' : ' · 읽으면 50원'}</p></div></section>`;
+  }
   function pomoCard(cls) {
     const n = pDay().n, g = pGoal(), st = pStreak(), r = P.run;
     return `<section class="card ${cls} pm-home link" data-pomo><div class="pm-h-ic">${ic('tomato')}</div>
@@ -2197,8 +2207,8 @@
 
   // ───────── 말랑 용돈 ─────────
   // 공부하면 1원씩 쌓이고, 5만원이 되면 선생님이 진짜 돈으로 바꿔 줘요 (1포인트 = 1원)
-  // 한 가지 일에는 한 번만 줘요(key). 다시 그리거나 다시 풀어도 두 번 쌓이지 않아요. 하루 1,500원까지 (보너스는 따로)
-  const W_GOAL = 50000, W_CAP = 1500, W_LOGMAX = 3, W_PACE = 1100;
+  // 한 가지 일에는 한 번만 줘요(key). 다시 그리거나 다시 풀어도 두 번 쌓이지 않아요. 하루 2,000원까지 (보너스는 따로)
+  const W_GOAL = 50000, W_CAP = 2000, W_LOGMAX = 3, W_PACE = 1100;
   const EARN = [
     { i: 'tomato', t: '토마토 25분', a: '300원' }, { i: 'tomato', t: '토마토 45분', a: '600원' },
     { i: 'pin', t: '선생님 숙제 하나 끝내기', a: '200원' }, { i: 'sci', t: '매일 과제 끝내기', d: '과학 · 천일문 · 단어 시험 · 고3 영어 · 약한 영역', a: '하나에 200원' },
