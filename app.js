@@ -498,12 +498,12 @@
   // ───────── 기말 범위: 학교 교과서 목록으로 출판사를 미리 채우고, 범위는 학생이 들은 대로 적어요 ─────────
   // (선생님이 나중에 이걸 보고 교과서 PDF·문제를 맞춰요)
   const EX_DEF = [
-    ['kor', '공통국어2', '천재교과서 · 김수학', ''],
-    ['math', '공통수학2', '비상교육 · 김원경', '평가계획서에는 Ⅲ. 함수 (유리함수·무리함수)까지'],
-    ['eng', '공통영어2', '능률 · 민병천', '교과서 Lesson 3~4 (1년 통틀어 7~8과) + 부교재 올림포스 영어독해의 기본2 3강이나 4강부터 (어디까지인지 확인)'],
-    ['soc', '통합사회2', '지학사 · 안재섭', ''],
-    ['hist', '한국사2', '동아출판 · 노대환', 'Ⅱ. 대한민국의 발전 ~ Ⅲ. 오늘날의 대한민국 (70~157쪽)'],
-    ['sci', '통합과학2', '비상교육 · 심규철', '화학 중화 반응부터 (42~59쪽) · 물리 발전기와 전력, 신재생 에너지 (88~109쪽)'],
+    ['kor', '공통국어2', '비상교육 · 강호영', ''],
+    ['math', '공통수학2', '동아출판 · 고호경', ''],
+    ['eng', '공통영어2', '비상교육 · 홍민표', ''],
+    ['soc', '통합사회2', '천재교과서 · 박윤경', ''],
+    ['hist', '한국사2', '미래엔 · 강승호', ''],
+    ['sci', '통합과학2', '동아출판 · 김호련', ''],
   ];
   const EX_IC = { kor: 'write', math: 'math', eng: 'eng', soc: 'globe', hist: 'scroll', sci: 'sci' };
   function exS() {
@@ -1005,7 +1005,7 @@
     const mode = (UI.run && UI.run.kind === 'words' && UI.run.mode) || (Object.keys(wans || {}).length ? 'test' : 'study');
     UI.run = { kind: 'words', mode, day };
     const head = `<div class="row between">${day != null ? '<button class="btn sm" data-lib="words" type="button">‹ 단어 목록</button>' : '<button class="btn sm" data-go="hw" type="button">‹ 숙제</button>'}<span class="tiny">워드마스터 하이스트 · Day ${esc(wl[0].day)}</span></div>`;
-    if (mode === 'study') return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<h1 class="h1">${day != null ? '단어 10개' : '오늘의 단어 10개'}</h1><p class="sub">한 번 훑고 바로 시험 봐요</p><div class="card"><table class="tbl"><tbody>${wl.map((w, k) => `<tr><td class="num muted" style="width:28px">${k + 1}</td><td><b style="font-size:16px">${esc(w.en)}</b> <span class="tiny">${esc(w.pos || '')}</span>${w.ex ? `<div class="tiny" style="margin-top:2px">${esc(w.ex)}</div>` : ''}</td><td style="color:var(--t2)">${esc(w.ko)}</td></tr>`).join('')}</tbody></table></div><div class="cta-bar"><button class="btn primary big block" id="w-test" type="button">시험 보기</button></div></div>`;
+    if (mode === 'study') return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<h1 class="h1">${day != null ? '단어 10개' : '오늘의 단어 10개'}</h1>${day == null && Object.entries(S.eng.days).some(([d, v]) => d < today() && v.words === ed.words) ? '<div class="deep" style="margin:8px 0 12px"><p style="margin:0"><b>지난번에 본 단어랑 같아요.</b> 그날 시험을 안 봐서 그대로 남았어요. 시험까지 끝내야 다음 10개로 넘어가요</p></div>' : '<p class="sub">한 번 훑고 바로 시험 봐요</p>'}<div class="card"><table class="tbl"><tbody>${wl.map((w, k) => `<tr><td class="num muted" style="width:28px">${k + 1}</td><td><b style="font-size:16px">${esc(w.en)}</b> <span class="tiny">${esc(w.pos || '')}</span>${w.ex ? `<div class="tiny" style="margin-top:2px">${esc(w.ex)}</div>` : ''}</td><td style="color:var(--t2)">${esc(w.ko)}</td></tr>`).join('')}</tbody></table></div><div class="cta-bar"><button class="btn primary big block" id="w-test" type="button">시험 보기</button></div></div>`;
     const i = wl.findIndex((_, k) => !wans[k]);
     if (i < 0) {
       const ok = Object.values(wans).filter((x) => x.ok).length;
