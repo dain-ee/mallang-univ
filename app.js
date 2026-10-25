@@ -1487,6 +1487,8 @@
       (GH_BLOB[petBase() + n] = GH_BLOB[petBase() + n] || fetch(`${petBase()}/${n}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).catch(() => fetch(`assets/ghost/${n}.webp`).then((r) => r.blob()))).then((b) => { const u = URL.createObjectURL(b); img.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); const nx = GH_NEXT[n]; if (nx) setTimeout(() => { if (img.isConnected) { img.dataset.gh = nx[0]; delete img.dataset.ghd; ghFill(img.parentNode); } }, nx[1]); }).catch(() => {});
     }
   }
+  // 배포 중이거나 인터넷이 잠깐 끊겨 그림을 못 받으면 조금 뒤 두 번까지 다시 받아요 (깨진 그림이 남지 않게)
+  document.addEventListener('error', (e) => { const im = e.target; if (!(im instanceof HTMLImageElement) || im.src.startsWith('blob:') || im.src.startsWith('data:')) return; const n = +(im.dataset.retry || 0); if (n >= 2) return; im.dataset.retry = n + 1; const u = im.getAttribute('src').replace(/[?&]r=\d+$/, ''); setTimeout(() => { im.src = u + (u.includes('?') ? '&' : '?') + 'r=' + Date.now(); }, 1200 * (n + 1)); }, true);
   document.addEventListener('input', (e) => { const r = e.target; if (r.type === 'range') r.style.setProperty('--p', `${(r.value - r.min) / ((r.max - r.min) || 1) * 100}%`); });
   new MutationObserver(() => ghFill(document)).observe(document.body, { childList: true, subtree: true });
   // ───────── 다 푼 뒤 「다시 풀기」 ─────────
