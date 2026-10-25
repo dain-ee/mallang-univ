@@ -314,9 +314,10 @@
       <div class="hero-band" style="background:${u ? esc(u.color) : 'var(--blue)'}"></div>
       <div class="who">${emb(u, 'xl')}<div style="min-width:0"><div class="goal-t">${esc(p.name)}의 목표${p.mbti ? ` · ${esc(p.mbti)}` : ''}</div><div class="goal-n">${u ? esc(u.name) : '목표 대학을 골라 주세요'}</div><div class="goal-m">${u ? esc(p.major || '') : '눌러서 고르기'}</div></div><span class="tag" style="margin-left:auto;flex:none">${u ? '바꾸기' : '고르기'}</span></div>
       <div class="dday"><div><span>수능까지</span><b class="num">D-${dday(CSAT.date)}</b></div><div><span>${next ? esc(next.title) : '다음 일정'}</span><b class="num">${next ? 'D-' + dday(next.date) : '-'}</b></div><div><span>${esc(p.school || '')}</span><b>${p.grade}학년${p.cls ? ' ' + esc(p.cls) + '반' : ''}</b></div></div>
+      <div class="hero-goal"><span class="hg-l">${ic('target')} 목표 등급</span><b>모의고사 ${S.profile.goalMock}등급</b><b>내신 ${S.profile.goalNaesin}등급</b><span class="hg-why">${goalWhy()}</span></div>
     </section>`;
-    const pos = `<section class="card c5"><div class="card-h"><h2>지금 내 위치</h2><button class="more" id="qg-open" type="button">등급 적기</button></div>
-      <div class="rings">${ringSVG(mAvg ? (9 - mAvg) / 8 : 0, 'var(--blue)', '모의고사', mAvg ? fmt1(mAvg) : '-', '등급', lm ? `${esc(lm.title)} 평균<br>${goalLine(mAvg, p.goalMock)}` : '채점 전')}${ringSVG(nAvg ? (5 - nAvg) / 4 : 0, 'var(--green)', '내신', nAvg ? fmt1(nAvg) : '-', '등급', nAvg ? `5등급제 평균<br>${goalLine(nAvg, p.goalNaesin)}` : '아직 안 넣었어요')}</div><button type="button" class="goal-why" data-go="me">목표 모의 ${S.profile.goalMock} · 내신 ${S.profile.goalNaesin}등급 · ${goalWhy()} <b>바꾸기 ›</b></button></section>`;
+    const pos = `<section class="card c5 col-card mid"><div class="card-h"><h2>지금 내 위치</h2><button class="more" id="qg-open" type="button">등급 적기</button></div>
+      <div class="rings">${ringSVG(mAvg ? (9 - mAvg) / 8 : 0, 'var(--blue)', '모의고사', mAvg ? fmt1(mAvg) : '-', '등급', lm ? `${esc(lm.title)} 평균<br>${goalLine(mAvg, p.goalMock)}` : '채점 전')}${ringSVG(nAvg ? (5 - nAvg) / 4 : 0, 'var(--green)', '내신', nAvg ? fmt1(nAvg) : '-', '등급', nAvg ? `5등급제 평균<br>${goalLine(nAvg, p.goalNaesin)}` : '아직 안 넣었어요')}</div></section>`;
     // 등급 추이
     const rows = examRows().map((r) => ({ label: r.title.replace(/학력평가|모의고사/g, '').trim() || md(r.date), v: { avg: avgOf(r.g), ...r.g } }));
     const ck = UI.chartSubj;
@@ -380,11 +381,15 @@
     const N = (D.news && D.news.items) || [], f = UI.newsF || 'all';
     const groups = ['입시', '과학', '시사 상식'].filter((g) => N.some((n) => nGrp(n) === g));
     const L = N.filter((n) => f === 'all' || nGrp(n) === f).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    const KK = { ...(S.keep || {}) }; for (const [k, v] of Object.entries(S.notes || {})) KK[k] = { ...(KK[k] || {}), ...v, kept: !!(S.keep || {})[k] };
+    for (const k of Object.keys(S.keep || {})) KK[k].kept = true;
+    const KL = Object.entries(KK).sort((a, b) => (b[1].at || 0) - (a[1].at || 0)), KN = { news: '소식', uni: '대학', pick: '진로' };
+    const kept = KL.length ? `<div class="list">${KL.map(([k, v]) => `<div class="li btnlike" data-kopen="${esc(v.kind)}|${esc(v.ref)}"><div class="ico">${ic(v.kind === 'uni' ? 'school' : v.kind === 'pick' ? 'dna' : 'news')}</div><div class="body"><div class="t">${v.kept ? '★ ' : ''}${esc(v.t || '')}</div><div class="d">${KN[v.kind] || ''}${v.text ? ` · <span class="kp-note">${esc(v.text.replace(/\s+/g, ' ').slice(0, 60))}${v.text.length > 60 ? '…' : ''}</span>` : ''}</div></div><span class="chev"></span></div>`).join('')}</div>` : `<div class="empty">${gh('peek', 'gh-empty')}<b>아직 담은 게 없어요</b><span>소식·대학·진로 픽에서 「☆ 담기」를 누르거나 내 생각을 남겨 보세요</span></div>`;
     const read = (n) => wHas('news:' + n.id);
     const item = (n) => `<div class="li btnlike ${read(n) ? 'nw-read' : ''}" data-news="${esc(n.id)}"><div class="ico">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'sm') : ic(nIcon(n))}</div><div class="body"><div class="t">${esc(n.title)}</div><div class="d">${md(n.date)} · ${esc(nGrp(n))}${n.level === '중요' ? ' · <b class="red">중요</b>' : ''}${read(n) ? '' : ' · <b class="blue">새 소식</b>'}</div></div><span class="chev"></span></div>`;
     return `<h1 class="h1">소식</h1><p class="sub">${D.news && D.news.updated ? md(D.news.updated) + ' 업데이트 · ' : ''}입시 · 과학 · 시사 상식, 출처를 확인한 것만 모았어요. 하나 읽으면 50원</p>
-      <div class="chips" style="margin-bottom:16px">${['all', ...groups].map((g) => `<button type="button" class="chip ${f === g ? 'on' : ''}" data-nf="${esc(g)}">${g === 'all' ? '전체' : esc(g)} <span class="tiny">${g === 'all' ? N.length : N.filter((n) => nGrp(n) === g).length}</span></button>`).join('')}</div>
-      <div class="grid"><section class="card c12">${L.length ? `<div class="list">${L.map(item).join('')}</div>` : `<div class="empty">${gh('peek', 'gh-empty')}<b>소식을 모으는 중이에요</b></div>`}</section></div>`;
+      <div class="chips" style="margin-bottom:16px">${['all', ...groups].map((g) => `<button type="button" class="chip ${f === g ? 'on' : ''}" data-nf="${esc(g)}">${g === 'all' ? '전체' : esc(g)} <span class="tiny">${g === 'all' ? N.length : N.filter((n) => nGrp(n) === g).length}</span></button>`).join('')}<button type="button" class="chip ${f === 'keep' ? 'on' : ''}" data-nf="keep">★ 담은 것 · 내 생각 <span class="tiny">${KL.length}</span></button></div>
+      <div class="grid"><section class="card c12">${f === 'keep' ? kept : L.length ? `<div class="list">${L.map(item).join('')}</div>` : `<div class="empty">${gh('peek', 'gh-empty')}<b>소식을 모으는 중이에요</b></div>`}</section></div>`;
   }
   function newsCard(cls) {
     const N = (D.news && D.news.items) || [];
@@ -395,6 +400,31 @@
       ${top.length ? `<div class="list">${top.map((n) => `<div class="li btnlike" data-news="${esc(n.id)}"><div class="ico">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'sm') : ic(nIcon(n))}</div><div class="body"><div class="t">${esc(n.title)}</div><div class="d">${md(n.date)} · ${esc(n.scope || '')}${n.level === '중요' ? ' · <b class="red">중요</b>' : ''}</div></div></div>`).join('')}</div>` : `<div class="empty">${ic('news')}<b>소식을 모으는 중이에요</b></div>`}
       ${D.news && D.news.updated ? `<p class="tiny" style="margin:8px 0 0">${md(D.news.updated)} 업데이트</p>` : ''}</section>`;
   }
+  // 담기 · 내 생각: 소식·대학·진로 픽마다 담아 두고 짧게 생각을 남겨요 (나중에 세특·면접 소재)
+  function keepBox(key, t, kind, ref, asks = []) {
+    const k = (S.keep || {})[key], n = (S.notes || {})[key];
+    return `<div class="keep" data-kk="${esc(key)}" data-kt="${esc(t)}" data-kind="${esc(kind)}" data-ref="${esc(ref)}">
+      <div class="keep-h"><b>${ic('write')} 내 생각</b><button type="button" class="keep-btn ${k ? 'on' : ''}" data-keep>${k ? '★ 담았어요' : '☆ 담기'}</button></div>
+      ${asks.length ? `<div class="keep-ask">${asks.map((q) => `<button type="button" data-ask>${esc(q)}</button>`).join('')}</div>` : ''}
+      <textarea class="inp keep-ta" data-note rows="3" placeholder="짧게 내 생각을 남겨요. 나중에 세특·면접 소재가 돼요">${esc((n && n.text) || '')}</textarea>
+      <p class="tiny keep-st">${n && n.text ? `${md(new Date(n.at).toLocaleDateString('sv'))}에 남겼어요` : '처음 남기면 +100원'}</p></div>`;
+  }
+  function keepMeta(box) { return { t: box.dataset.kt, kind: box.dataset.kind, ref: box.dataset.ref }; }
+  document.addEventListener('click', (e) => {
+    const kb = e.target.closest('[data-keep]'); if (kb) { const box = kb.closest('.keep'), key = box.dataset.kk; S.keep = S.keep || {}; if (S.keep[key]) delete S.keep[key]; else S.keep[key] = { ...keepMeta(box), at: Date.now() }; save('keep'); const on = !!S.keep[key]; kb.classList.toggle('on', on); kb.textContent = on ? '★ 담았어요' : '☆ 담기'; if (on && !RM()) bump(kb, 'pm-pop'); toast(on ? '담았어요 · 소식 탭 「담은 것」에서 다시 봐요' : '담기를 뺐어요'); return; }
+    const qa = e.target.closest('[data-ask]'); if (qa) { const ta = $('[data-note]', qa.closest('.keep')); ta.value = (ta.value ? ta.value.trimEnd() + '\n\n' : '') + 'Q. ' + qa.textContent + '\n'; ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); ta.dispatchEvent(new Event('input', { bubbles: true })); }
+  });
+  let noteT = 0;
+  document.addEventListener('input', (e) => {
+    const ta = e.target.closest && e.target.closest('[data-note]'); if (!ta) return;
+    clearTimeout(noteT); noteT = setTimeout(() => {
+      const box = ta.closest('.keep'), key = box.dataset.kk, v = ta.value.trim(); S.notes = S.notes || {};
+      if (v) S.notes[key] = { ...keepMeta(box), text: v, at: Date.now() }; else delete S.notes[key];
+      save('notes'); const st = $('.keep-st', box); if (st) st.textContent = v ? '저장했어요' : '처음 남기면 +100원';
+      if (v.length >= 15) earn('note:' + key, 100, '내 생각 남기기', { from: st });
+    }, 700);
+  });
+  function openKept(kind, ref) { if (kind === 'news') newsSheet(ref); else if (kind === 'uni') uniDetail(ref); else if (kind === 'pick') { const [k, i] = String(ref).split(':'); pickDetail(k, +i); } }
   function newsSheet(id) {
     const N = (D.news && D.news.items) || [];
     if (id === 'all') { closeSheet(); UI.run = null; UI.tab = 'news'; render(); scrollTo(0, 0); return; }
@@ -402,6 +432,8 @@
     sheet(`<div class="row" style="margin-bottom:12px">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'md') : `<span class="ico">${ic(nIcon(n))}</span>`}<span class="tag ${n.level === '중요' ? 'red' : ''}">${esc(n.level || '참고')}</span><span class="tiny">${md(n.date)} · ${esc(n.scope || '')}</span></div>
       <h2>${esc(n.title)}</h2>${readPill('news:' + n.id, 50, '소식 읽기')}<p style="line-height:1.8;color:var(--t2)">${esc(n.body)}</p>
       ${n.you ? `<div class="deep"><div class="eyebrow">${esc(S.profile.name)}에게는</div><p>${esc(n.you)}</p></div>` : ''}
+      ${(n.more || []).length ? `<div class="nw-more"><div class="eyebrow">${ic('bulb')} 더 깊이 알아보기</div><ul>${n.more.map((m) => `<li>${esc(m)}</li>`).join('')}</ul></div>` : ''}
+      ${keepBox('news:' + n.id, n.title, 'news', n.id, n.ask || [])}
       <div class="list" style="margin-top:16px">${(n.src || []).map((s) => `<a class="li btnlike" href="${esc(s.url)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="ico">${ic('pin')}</div><div class="body"><div class="t">${esc(s.name)}</div><div class="d">원문 보기</div></div><span class="chev"></span></a>`).join('')}</div>
       <button class="btn big block" style="margin-top:16px" data-close type="button">목록으로</button>`, (el) => { $('[data-close]', el).onclick = closeSheet; });
   }
@@ -433,7 +465,7 @@
       })()}
       ${drillCard()}
       ${libCard()}
-      <section class="card c4"><div class="card-h"><h2>꾸준히</h2><span class="tag blue">${streak}일 연속</span></div><div class="streak">${days.map((d) => `<i class="${lvl(d) ? 'l' + lvl(d) : ''} ${d === today() ? 'today' : ''}" title="${d}" data-day="${d}" role="button" tabindex="0"></i>`).join('')}</div><p class="tiny" style="margin:12px 0 0">최근 4주 · 진할수록 많이 했어요 · 날짜를 누르면 그날 한 것이 보여요</p></section>
+      <section class="card c4 col-card mid"><div class="card-h"><h2>꾸준히</h2><span class="tag blue">${streak}일 연속</span></div><div class="streak">${days.map((d) => `<i class="${lvl(d) ? 'l' + lvl(d) : ''} ${d === today() ? 'today' : ''}" title="${d}" data-day="${d}" role="button" tabindex="0"></i>`).join('')}</div><p class="tiny" style="margin:12px 0 0">최근 4주 · 진할수록 많이 했어요 · 날짜를 누르면 그날 한 것이 보여요</p></section>
     </div>`;
   }
   function planSheet() {
@@ -1129,10 +1161,10 @@
     const sem = semOf(today()); const yr = today().slice(0, 4);
     const cover = LOG_SUBJ.filter((s) => s !== '기타').map((s) => ({ s, n: L.filter((x) => x.subj === s && x.date.startsWith(yr.slice(0, 4)) && semOf(x.date) === sem).length }));
     const byDate = {}; for (const x of LL) (byDate[x.date] = byDate[x.date] || []).push(x);
-    return `<section class="card c8"><div class="card-h"><h2>매일 기록 ${L.length}</h2></div>
+    return `<section class="card c12"><div class="card-h"><h2>매일 기록 ${L.length}</h2></div>
         <div class="chips" style="margin-bottom:12px"><button class="chip ${f === 'all' ? 'on' : ''}" data-lf="all" type="button">전체</button>${[...new Set(L.map((x) => x.subj))].map((s) => `<button class="chip ${f === s ? 'on' : ''}" data-lf="${esc(s)}" type="button">${esc(s)}</button>`).join('')}</div>
         ${LL.length ? Object.entries(byDate).map(([d, xs]) => `<div class="eyebrow" style="margin:12px 0 4px">${md(d)}</div><div class="list">${xs.map((x) => `<div class="li"><div class="body"><div class="t" style="font-size:15px;font-weight:500;line-height:1.6">${esc(x.text)}</div><div class="d">${esc(x.subj)}${x.kind ? ' · ' + esc(x.kind) : ''}${x.used ? ' · <span class="blue">세특으로 키움</span>' : ''}</div></div><button class="btn sm soft" type="button" data-grow="${esc(x.id)}">세특으로 키우기</button><button class="btn sm" type="button" data-ldel="${esc(x.id)}" aria-label="지우기">지우기</button></div>`).join('')}</div>`).join('') : `<div class="empty">${ic('write')}<b>아직 기록이 없어요</b><span>홈 맨 위 칸에 오늘 한 것을 한 줄씩 적어 보세요</span></div>`}</section>
-      <section class="card c4"><div class="card-h"><h2>${sem}학기 과목별 기록</h2></div><p class="tiny" style="margin:-4px 0 8px">공통과목 세특은 1·2학기가 500자 한 칸을 나눠 써요. 학기마다 거리가 있어야 해요</p><div class="list">${cover.map((c) => `<div class="li" style="padding:8px 0"><div class="body"><span class="t" style="font-size:14px">${esc(c.s)}</span></div><span class="tag ${c.n ? 'blue' : 'red'}">${c.n ? c.n + '개' : '아직 없음'}</span></div>`).join('')}</div></section>`;
+      <section class="card c12"><div class="card-h"><h2>${sem}학기 과목별 기록</h2></div><p class="tiny" style="margin:-4px 0 8px">공통과목 세특은 1·2학기가 500자 한 칸을 나눠 써요. 학기마다 거리가 있어야 해요</p><div class="list two-col">${cover.map((c) => `<div class="li" style="padding:8px 0"><div class="body"><span class="t" style="font-size:14px">${esc(c.s)}</span></div><span class="tag ${c.n ? 'blue' : 'red'}">${c.n ? c.n + '개' : '아직 없음'}</span></div>`).join('')}</div></section>`;
   }
   function bindLogs() {
     $$('[data-lf]').forEach((b) => (b.onclick = () => { UI.logSubj = b.dataset.lf; render(); }));
@@ -1225,6 +1257,7 @@
       ${a.tracks.map(tr).join('')}
       ${subs.length ? `<div class="eyebrow" style="margin-top:20px">이 대학이 권하는 고2 과목</div><div class="list">${subs.map((x) => `<div class="li"><div class="body"><div class="t" style="font-size:15px">${esc(x.name)}</div><div class="d">${esc((x.unis || []).find((t) => t.startsWith(nm)) || '')}</div></div><span class="tag ${x.level === '핵심' ? 'blue' : ''}">${esc(x.level || '')}</span></div>`).join('')}</div>` : ''}
       ${newsRows(NEWS_ALL().filter((n) => n.uni === id).sort((p, q) => String(q.date).localeCompare(String(p.date))))}
+      ${keepBox('uni:' + id, `${nm} ${a.dept}`, 'uni', id, ['이 대학·학과에 끌리는 점은 무엇인가요?', '합격선까지 무엇을 더 채우면 될까요?'])}
       <div class="row" style="margin-top:20px"><button class="btn big" style="flex:1" data-back type="button">다른 대학도 보기</button>${S.profile.uni === id ? '' : `<button class="btn primary big" style="flex:1" id="ud-goal" type="button">목표로 정하기</button>`}</div>`, (el, close) => {
       bindDetail(el, admitSheet);
       const g = $('#ud-goal', el); if (g) g.onclick = () => { S.profile.uni = id; save('profile'); close(); render(); toast(`${nm} 목표, 응원해요`); };
@@ -1267,7 +1300,7 @@
     else if (kind === 'timeline') body = `<span class="tag">${esc(x.when)}</span><h2 style="margin-top:8px">${esc(x.title)}</h2><p class="ls-p">${esc(x.what || '')}</p>${x.why ? `<div class="deep"><div class="eyebrow">왜 중요해요</div><p style="margin:4px 0 0">${esc(x.why)}</p></div>` : ''}${newsRows(newsLike((x.title || '').split(/[ ·,()]+/).filter((w) => w.length >= 3)))}`;
     else if (kind === 'checklist') body = `<span class="tag">${esc(x.area || '')}${x.term ? ' · ' + esc(x.term) : ''}</span><h2 style="margin-top:8px">${esc(x.title)}</h2><p class="ls-p">${esc(x.detail || '')}</p>`;
     else body = `<h2>${esc(x.title)}</h2><p class="tiny" style="margin:-4px 0 12px">${esc(x.author || '')}${x.level ? ' · ' + esc(x.level) : ''}${x.popular ? ' · ' + esc(x.popular) : ''}</p><p class="ls-p">${esc(x.why || '')}</p>${x.seteuk ? `<div class="deep"><div class="eyebrow">세특으로 잇기</div><p style="margin:4px 0 0">${esc(x.seteuk)}</p></div>` : ''}${x.subj ? `<p class="tiny" style="margin-top:12px">관련 과목: ${esc(x.subj)}</p>` : ''}`;
-    sheet(`<p class="eyebrow" style="margin:0 0 8px">${ic('pill')} 생명공학 픽 · ${T[kind]}</p>${readPill(`pick:${kind}:${i}`, 50, '진로 픽 읽기')}${body}${srcList(x.src)}<button class="btn big block" style="margin-top:20px" data-back type="button">${kind === 'timeline' ? '일정 전체 보기' : T[kind] + ' 더 보기'}</button>`, (el) => { bindDetail(el, () => (kind === 'timeline' ? schedSheet() : picksSheet(kind))); if (kind === 'topics') bindTopic(el, i); });
+    sheet(`<p class="eyebrow" style="margin:0 0 8px">${ic('pill')} 생명공학 픽 · ${T[kind]}</p>${readPill(`pick:${kind}:${i}`, 50, '진로 픽 읽기')}${body}${keepBox(`pick:${kind}:${i}`, x.title || x.name || '', 'pick', `${kind}:${i}`, kind === 'topics' ? ['이 탐구를 한다면 무엇을 바꿔 보고 싶나요?'] : kind === 'books' ? ['읽고 나서 가장 남는 한 문장은?'] : [])}${srcList(x.src)}<button class="btn big block" style="margin-top:20px" data-back type="button">${kind === 'timeline' ? '일정 전체 보기' : T[kind] + ' 더 보기'}</button>`, (el) => { bindDetail(el, () => (kind === 'timeline' ? schedSheet() : picksSheet(kind))); if (kind === 'topics') bindTopic(el, i); });
   }
 
   // 다가오는 일정: 토스처럼 가로로 넘기는 날짜 줄 + 고른 날의 일정
@@ -1324,10 +1357,10 @@
 
   // ───────── 생명공학 픽 ─────────
   function picksCard(cls) {
-    const subs = (PICKS.subjects || []).slice(0, 6), tops = (PICKS.topics || []).filter((x) => /중화|산과 염기|전기|전자기|발전|대한민국/.test((x.unit || '') + (x.idea || ''))).slice(0, 2);
+    const subs = (PICKS.subjects || []).slice(0, 6), tops = (PICKS.topics || []).filter((x) => /중화|산과 염기|전기|전자기|발전|대한민국/.test((x.unit || '') + (x.idea || ''))).slice(0, 3);
     return `<section class="card ${cls}"><div class="card-h"><h2>${ic('pill')} 생명공학 픽</h2><button class="more" id="pk-all" type="button">전체 보기</button></div>
       ${subs.length ? `<div class="eyebrow">고2에 고르면 좋은 과목</div><div class="row wrap" style="margin:8px 0 16px">${subs.map((x, i) => `<button type="button" class="tag tag-btn ${x.level === '핵심' ? 'blue' : ''}" data-pk="subjects:${i}">${esc(x.name)}${x.level ? ' · ' + esc(x.level) : ''}</button>`).join('')}</div>` : ''}
-      ${tops.length ? `<div class="eyebrow">이번 시험 범위로 해 볼 탐구</div><div class="list">${tops.map((x) => `<div class="li btnlike" data-pk="topics:${(PICKS.topics || []).indexOf(x)}" style="align-items:flex-start"><div class="body"><div class="t" style="font-size:15px">${esc(x.idea)}</div><div class="d">${esc(x.subj)} · ${esc(x.unit)}</div></div><span class="chev"></span></div>`).join('')}</div>` : ''}
+      ${tops.length ? `<div class="eyebrow">이번 시험 범위로 해 볼 탐구</div><div class="list">${tops.map((x, ti) => `<div class="li btnlike ${ti === 2 ? 'pk-3' : ''}" data-pk="topics:${(PICKS.topics || []).indexOf(x)}" style="align-items:flex-start"><div class="body"><div class="t" style="font-size:15px">${esc(x.idea)}</div><div class="d">${esc(x.subj)} · ${esc(x.unit)}</div></div><span class="chev"></span></div>`).join('')}</div>` : ''}
       ${!subs.length && !tops.length ? `<div class="empty">${ic('pill')}<b>생명공학 준비 자료를 모으는 중이에요</b></div>` : ''}</section>`;
   }
   const PK_T = [['subjects', '과목 선택'], ['topics', '탐구 주제'], ['checklist', '채울 것'], ['books', '책']];
@@ -1450,7 +1483,7 @@
     // 시세의 「최저·최고」 막대처럼: 0점 ~ 만점 위에 내 점수 점, 다음 등급컷 눈금
     const rows = (m.subjects || []).map((ms) => { const r = mockResult(m, ms.key); if (!r) return null; const c = (ms.cuts && ms.cuts.length ? ms.cuts : subjInfo(ms.key).abs) || null; const next = c && r.grade > 1 ? c[r.grade - 2] : null; return { ms, r, next, need: next != null ? Math.max(0, +(next - r.raw).toFixed(1)) : null }; }).filter(Boolean);
     if (!rows.length) return '';
-    return `<section class="card c6"><div class="card-h"><h2>한 등급 올리려면</h2></div><div class="list">${rows.map(({ ms, r, next, need }) => `<div class="li" style="flex-direction:column;align-items:stretch;gap:8px;padding:12px 0"><div class="row between"><b style="font-size:15px">${esc(ms.name)} <span class="muted" style="font-weight:500">${r.grade}등급 · ${r.raw}점</span></b><span class="${need ? 'blue' : 'muted'}" style="font-size:14px;font-weight:700">${r.grade === 1 ? '1등급이에요' : need != null ? `${r.grade - 1}등급까지 ${need}점` : ''}</span></div><div class="range"><span class="fill" style="width:${(r.raw / r.total) * 100}%"></span>${next != null ? `<i class="cut" style="left:${(next / r.total) * 100}%"></i>` : ''}<i class="dot" style="left:${(r.raw / r.total) * 100}%"></i></div><div class="row between tiny"><span>0점</span><span>${r.total}점</span></div></div>`).join('')}</div></section>`;
+    return `<section class="card c12"><div class="card-h"><h2>한 등급 올리려면</h2></div><div class="list two-col">${rows.map(({ ms, r, next, need }) => `<div class="li" style="flex-direction:column;align-items:stretch;gap:8px;padding:12px 0"><div class="row between"><b style="font-size:15px">${esc(ms.name)} <span class="muted" style="font-weight:500">${r.grade}등급 · ${r.raw}점</span></b><span class="${need ? 'blue' : 'muted'}" style="font-size:14px;font-weight:700">${r.grade === 1 ? '1등급이에요' : need != null ? `${r.grade - 1}등급까지 ${need}점` : ''}</span></div><div class="range"><span class="fill" style="width:${(r.raw / r.total) * 100}%"></span>${next != null ? `<i class="cut" style="left:${(next / r.total) * 100}%"></i>` : ''}<i class="dot" style="left:${(r.raw / r.total) * 100}%"></i></div><div class="row between tiny"><span>0점</span><span>${r.total}점</span></div></div>`).join('')}</div></section>`;
   }
   function gradeBars(g, goal) {
     const L = MOCK_SUBJ.filter((s) => g[s.key]);
@@ -1473,7 +1506,7 @@
       <section class="card c12"><div class="row between wrap" style="gap:12px"><p class="report-h">${head}</p><div class="seg" style="flex:0 1 auto">${[['avg', '평균'], ...MAIN.map((k) => [k, SUBJ_NAMES[k]])].map(([k, n]) => `<button type="button" class="${ck === k ? 'on' : ''}" data-cs="${k}">${n}</button>`).join('')}</div></div>
         <div class="stat-row"><div><span>이번</span><b class="num">${ca != null ? fmt1(ca) : '-'}<small>등급</small></b></div><div><span>지난번</span><b class="num">${pa != null ? fmt1(pa) : '-'}<small>등급</small></b></div><div><span>목표</span><b class="num blue">${goal}<small>등급</small></b></div></div>
         ${tossLine(series, { goal, id: 'm', label: '모의고사 등급 추이', empty: '틀린 번호만 누르면 등급이 그려져요' })}</section>
-      ${cur ? `<section class="card c6"><div class="card-h"><h2>과목별 등급</h2><span class="tiny">${esc(cur.title)}</span></div>${gradeBars(cur.g, goal)}</section>` : ''}
+      ${cur ? `<section class="card c12"><div class="card-h"><h2>과목별 등급</h2><span class="tiny">${esc(cur.title)}</span></div>${gradeBars(cur.g, goal)}</section>` : ''}
       ${m ? cutBars(m) : ''}
     </div>`;
   }
@@ -1563,7 +1596,7 @@
         ${ctl}
       </section>
       <div class="grid">${soundCards()}
-        <section class="card c6"><div class="card-h"><h2>오늘 토마토</h2><span class="tag ${n >= g ? 'blue' : ''}">${n}/${g}</span></div>${tomRow(n, g)}
+        <section class="card c6 col-card mid"><div class="card-h"><h2>오늘 토마토</h2><span class="tag ${n >= g ? 'blue' : ''}">${n}/${g}</span></div>${tomRow(n, g)}
           <p class="tiny" style="margin:12px 0 0">오늘 집중 ${td.min || 0}분${Object.keys(td.subj || {}).length ? ' · ' + Object.entries(td.subj).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${esc(k)} ${v}개`).join(' · ') : ''}</p>
           <div class="row between wrap" style="margin-top:16px;gap:8px"><span class="eyebrow">하루 목표</span><div class="chips">${[2, 4, 6, 8].map((k) => `<button class="chip sm ${g === k ? 'on' : ''}" type="button" data-pg="${k}">${k}개</button>`).join('')}</div></div></section>
         <section class="card c6"><div class="card-h"><h2>토마토 밭</h2><span class="tag ${st ? 'red' : ''}">${st ? `${ic('fire')} ${st}일 연속` : '오늘 첫 칸을 채워요'}</span></div><div class="streak pm-field">${days.map((d) => `<i class="${lv(d)} ${d === today() ? 'today' : ''}" title="${md(d)} 토마토 ${pDay(d).n}개"></i>`).join('')}</div><p class="tiny" style="margin:12px 0 0">최근 4주 · 모두 ${pTotal()}개 · 가장 길게 ${pBest()}일 연속</p></section>
@@ -1686,12 +1719,12 @@
   }
   const listening = () => !!(AM.on || MUS);
   function soundCards() {
-    return `<section class="card c6"><div class="card-h"><h2>집중 소리</h2>${AM.on ? `<span class="tag blue">${ic('headph')} 듣는 중</span>` : ''}</div>
+    return `<section class="card c12"><div class="card-h"><h2>집중 소리</h2>${AM.on ? `<span class="tag blue">${ic('headph')} 듣는 중</span>` : ''}</div>
       <div class="chips">${AMB.map(([k, t, i]) => `<button class="chip sm ${(AM.on || 'off') === k ? 'on' : ''}" type="button" data-amb="${k}">${i ? ic(i) + ' ' : ''}${t}</button>`).join('')}</div>
       <div class="pm-vol"><span class="tiny">작게</span><input type="range" min="0" max="100" value="${Math.round(AM.vol * 100)}" id="amb-vol" aria-label="집중 소리 크기"><span class="tiny">크게</span></div>
       <p class="tiny" style="margin:8px 0 0">독서실에서는 꼭 이어폰을 끼고 들어요. 갈색소음은 낮고 웅웅해서 독서실 소리랑 비슷해요</p></section>
-      <section class="card c6"><div class="card-h"><h2>공부 음악</h2>${MUS ? `<button class="more" type="button" data-mus="${MUS}">음악 끄기</button>` : '<span class="tiny">광고 없는 라디오예요</span>'}</div>
-      <div class="list">${MUSIC.map((m) => `<div class="li btnlike" data-mus="${m.id}"><div class="ico">${ic(m.i)}</div><div class="body"><div class="t">${esc(m.t)}</div><div class="d">${esc(m.d)}</div></div>${MUS === m.id ? '<span class="tag blue">재생 중</span>' : '<span class="chev"></span>'}</div>`).join('')}</div></section>`;
+      <section class="card c12"><div class="card-h"><h2>공부 음악</h2>${MUS ? `<button class="more" type="button" data-mus="${MUS}">음악 끄기</button>` : '<span class="tiny">광고 없는 라디오예요</span>'}</div>
+      <div class="list two-col">${MUSIC.map((m) => `<div class="li btnlike" data-mus="${m.id}"><div class="ico">${ic(m.i)}</div><div class="body"><div class="t">${esc(m.t)}</div><div class="d">${esc(m.d)}</div></div>${MUS === m.id ? '<span class="tag blue">재생 중</span>' : '<span class="chev"></span>'}</div>`).join('')}</div></section>`;
   }
   function bindSound() {
     $$('[data-amb]').forEach((b) => (b.onclick = () => { ambPlay(b.dataset.amb); render(); }));
@@ -1873,13 +1906,13 @@
         <div class="wl-meta"><span>${rem ? `5만원까지 앞으로 <b>${won(rem)}</b>` : '<b>5만원을 다 모았어요!</b>'}</span><span class="num">${pct}%</span></div>
         <p class="tiny" style="margin:0">${rem && eta ? `지금 속도면 <b style="color:var(--t2)">${eta}쯤</b> 5만원이 돼요` : rem || w.req || TEACHER ? '' : '아래 버튼을 누르면 선생님께 알려요'}</p>
         ${ex}</section>
-      <section class="card c5"><div class="card-h"><h2>오늘</h2>${st ? `<span class="tag red">${ic('fire')} ${st}일 연속</span>` : ''}</div>
+      <section class="card c12 wl-today"><div class="card-h"><h2>오늘</h2>${st ? `<span class="tag red">${ic('fire')} ${st}일 연속</span>` : ''}</div>
         <div class="row between" style="align-items:baseline"><b class="num" style="font-size:24px">${won(day)}</b><span class="tiny">하루 ${won(W_CAP)}까지</span></div>
         <div class="wl-bar sm" style="margin:10px 0 12px"><span style="width:${Math.min(100, (day / W_CAP) * 100)}%"></span></div>
         <p class="tiny" style="margin:0">${!wLeft() ? '오늘은 다 모았어요, 내일 또 만나요' : `오늘 최대 ${won(W_CAP)}까지 모을 수 있어요. ${won(wLeft())} 남았어요`}</p>
         <p class="tiny" style="margin:8px 0 0">${st >= 3 ? `연속 7일이 되면 보너스 1,000원이에요` : `3일 연속 공부하면 보너스 300원, 7일이면 1,000원이에요`}</p></section>
-      <section class="card c7"><div class="card-h"><h2>이렇게 모아요</h2><span class="tiny">한 가지는 한 번만 쌓여요</span></div>
-        <div class="list">${EARN.map((x) => `<div class="li" style="padding:8px 0"><div class="ico">${ic(x.i)}</div><div class="body"><div class="t" style="font-size:15px">${esc(x.t)}</div>${x.d ? `<div class="d">${esc(x.d)}</div>` : ''}</div><span class="num wl-plus">${esc(x.a)}</span></div>`).join('')}</div></section>
+      <section class="card c12"><div class="card-h"><h2>이렇게 모아요</h2><span class="tiny">한 가지는 한 번만 쌓여요</span></div>
+        <div class="list earn-grid">${EARN.map((x) => `<div class="li" style="padding:8px 0"><div class="ico">${ic(x.i)}</div><div class="body"><div class="t" style="font-size:15px">${esc(x.t)}</div>${x.d ? `<div class="d">${esc(x.d)}</div>` : ''}</div><span class="num wl-plus">${esc(x.a)}</span></div>`).join('')}</div></section>
       ${teach}
       <section class="card c12"><div class="card-h"><h2>모은 기록</h2><span class="tiny">${dates.length ? `${dates.length}일 동안 ${won(w.log.reduce((a, x) => a + x.amt, 0))}` : ''}</span></div>
         ${dates.length ? dates.slice(0, 7).map(dayBlock).join('') + (dates.length > 7 ? `<details class="hw-more"><summary>지난 기록 ${dates.length - 7}일 더 보기</summary>${dates.slice(7).map(dayBlock).join('')}</details>` : '') : `<div class="empty">${ic('coin')}<b>아직 모은 돈이 없어요</b><span>토마토 하나, 소식 하나부터 시작해요</span></div>`}</section>
@@ -2012,6 +2045,7 @@
     $$('[data-task]').forEach((b) => (b.onclick = () => startTask(b.dataset.task)));
     $$('[data-news]').forEach((b) => (b.onclick = () => newsSheet(b.dataset.news)));
     $$('[data-day]').forEach((b) => (b.onclick = () => daySheet(b.dataset.day)));
+    $$('[data-kopen]').forEach((b) => (b.onclick = () => { const [k, r] = b.dataset.kopen.split('|'); openKept(k, r); }));
     $$('[data-nf]').forEach((b) => (b.onclick = () => { UI.newsF = b.dataset.nf; render(); }));
     $$('[data-cs]').forEach((b) => (b.onclick = () => { UI.chartSubj = b.dataset.cs; render(); }));
     const h = $('#hero'); if (h) h.onclick = uniSheet;
