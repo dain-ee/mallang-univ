@@ -580,7 +580,21 @@
     };
     sheet(`<h2>인강 설정</h2><p class="sub">강좌마다 듣는 요일과 하루에 몇 강 들을지 정해요. 들을 강의만 골라 두면 안 들은 것부터 「오늘 할 일」에 나와요. 순서대로 안 들어도 괜찮아요</p><div id="ik-set"></div><button class="btn primary big block" id="ik-ok" type="button" style="margin-top:20px">저장하기</button>`, (el, close) => {
       draw(el);
-      $('#ik-ok', el).onclick = () => { const s = inkS(); s.cfg = P; delete s.days[today()]; save('ink'); close(); render(); toast('인강 계획을 바꿨어요'); };
+      $('#ik-ok', el).onclick = () => {
+        // 바꾼 설정으로 오늘 들을 강의가 새로 생기면 오늘부터 할지 물어요
+        const s = inkS(), t = today(), before = inkToday(), cnt = (d) => Object.values(d || {}).reduce((a, x) => a + x.length, 0);
+        s.cfg = P; delete s.days[t]; const after = inkToday();
+        const added = Object.entries(after).flatMap(([cid, nos]) => nos.filter((no) => !(before[cid] || []).includes(no)).map((no) => ({ c: inkC(cid), l: inkL(inkC(cid), no) }))).filter((a) => a.l && !inkSt(a.c, a.l));
+        close();
+        if (!added.length) { save('ink'); render(); toast('인강 계획을 바꿨어요'); return; }
+        s.days[t] = before; save('ink'); render();
+        setTimeout(() => sheet(`<h2>오늘부터 할까요?</h2><p class="sub">오늘(${DOW[new Date().getDay()]}요일)도 듣는 날로 골랐어요. 오늘부터 하면 아래 ${added.length}강이 「오늘 할 일」에 들어가요</p>
+          <div class="list">${added.map((a) => `<div class="li"><div class="ico">${ic(INK_IC[a.c.id] || 'books')}</div><div class="body"><div class="t">${esc(a.l.title)}</div><div class="d">${esc(a.c.subj)} · ${esc(inkName(a.c))}</div></div></div>`).join('')}</div>
+          <button class="btn primary big block" id="ik-now" type="button" style="margin-top:20px">오늘부터 할게요</button><button class="btn big block" id="ik-later" type="button" style="margin-top:8px">내일부터 할게요</button>`, (el2, close2) => {
+          $('#ik-now', el2).onclick = () => { s.days[t] = after; save('ink'); close2(); render(); toast(`오늘 인강 ${cnt(after)}강이 들어갔어요`); };
+          $('#ik-later', el2).onclick = () => { close2(); toast('내일부터 할게요'); };
+        }), 250);
+      };
     });
   }
   const INK_NM = { kor: '공통국어2 내신', sci: 'AXIS 개념완성', hist: '내신완성', hist2: '라디오북', soc: '올인원 개념완성', soc2: '고양이 기출분석' };
