@@ -1348,3 +1348,6 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 .my-ed .my-in .inp { width: 88px; height: 44px; text-align: center; font-size: 16px; font-weight: 700; }
 .my-ed input[type=date] { width: 160px; height: 44px; }
 .my-ed .btn { margin-left: auto; }
+
+.home-h1 { margin-bottom: 52px; }
+.hl-g { background: linear-gradient(transparent 55%, rgba(124, 214, 92, .38) 55%); color: inherit; padding: 0 2px; border-radius: 2px; }
