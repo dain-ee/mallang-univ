@@ -626,6 +626,7 @@
   // ───────── 숙제 탭 ─────────
   // ───────── 기말 교과서 e-book: 쪽 그림 위에 단어 위치를 겹쳐 형광펜·밑줄·질문·나중에 보기 ─────────
   const EB = D.ebook || { books: [] };
+  const MANS = D.mathans || {};
   const EB_EXAM = ((D.events || []).find((e) => /기말/.test(e.title || '') && e.date >= '2026-11-01') || {}).date || '2026-12-10';
   // ───────── 인강: 정윤이가 고른 강의를 요일·하루 몇 강으로 나눠 오늘 할 일에 넣어요 (2026-10-25) ─────────
   // 강의 상태는 사이트에서 읽어 온 진도로 시작하고, 앱에서 「들었어요 / 안 들을래요」로 바꿔요. 순서대로 안 들어도 돼요
@@ -988,32 +989,56 @@
   // 문제집 오답 다시 풀기: 모의고사 지문 화면처럼 왼쪽 문제 · 오른쪽 풀이. 맞히면 다음 오답으로 바로 넘어가요
   const mbwList = () => myS().items.filter((it) => MB_ID(it.book)).flatMap((it) => (it.wrong || []).map((v) => ({ id: it.id, v: String(v) })));
   function mbwGo(id, v, k) { UI.run = { kind: 'mbw', id, v: String(v), k: k || null, back: UI.run && UI.run.kind === 'mbw' ? UI.run.back : UI.tab }; render(); scrollTo(0, 0); }
+  // 오답 다시 풀기: 답을 먼저 골라요. 맞히면 풀이가 열리고, 틀리면 다시 해보거나 해설을 봐요
+  const mbAns = (bk, k) => bk && k && (MANS[bk.id] || {})[k];
+  const mbNorm = (x) => String(x).replace(/\s+/g, '').replace(/[①②③④⑤]/g, (c) => '①②③④⑤'.indexOf(c) + 1).replace(/−/g, '-');
+  const mbWc = (it, v) => 1 + ((it.wc || {})[v] || 0);
   function mbwRun() {
     const r = UI.run, it = myS().items.find((x) => x.id === r.id), L = mbwList(), i = L.findIndex((x) => x.id === r.id && x.v === r.v);
     const head = `<div class="row between"><button class="btn sm" data-go="${esc(r.back || 'wrong')}" type="button">‹ 돌아가기</button><span class="tiny">${L.length ? (i >= 0 ? `오답 ${i + 1} / ${L.length}` : `남은 오답 ${L.length}개`) : '남은 오답이 없어요'}</span></div>`;
     if (!it) return `<div class="qwrap">${head}</div>`;
     const bk = EB.books.find((x) => x.id === MB_ID(it.book)), sb = bk && (EB.sol || []).find((x) => x.id === bk.id + '-s'), keys = bk ? mbKeys(it, r.v) : [], k = r.k || (keys.length === 1 ? keys[0] : null);
-    const wrong = (it.wrong || []).includes(+r.v), nx = L.length ? L[(i + 1) % L.length] : null, pv = i > 0 ? L[i - 1] : null;
-    const btns = `<button class="btn primary big block" id="mbw-ok" type="button">${wrong ? '다시 풀어서 맞혔어요' : '다시 틀렸어요'}</button>
-      <div class="row" style="gap:8px;margin-top:8px">${pv ? `<button class="btn big" style="flex:1" type="button" data-mbw="${esc(pv.id)}:${esc(pv.v)}">‹ 이전</button>` : ''}${nx && !(nx.id === r.id && nx.v === r.v) ? `<button class="btn big" style="flex:1" type="button" data-mbw="${esc(nx.id)}:${esc(nx.v)}">다음 오답 ›</button>` : ''}</div>`;
-    const top = `${head}<div class="mbw-h"><h2>${esc(r.v)}번 다시 풀기</h2><span class="tag">${esc(bk ? bk.title : it.book)}</span>${k && k !== String(r.v).padStart(4, '0') ? `<span class="tiny">${esc(k)}</span>` : ''}</div>`;
+    const wrong = (it.wrong || []).includes(+r.v), nx = r.nx || (L.length ? L[(i + 1) % L.length] : null), pv = i > 0 ? L[i - 1] : null, ans = mbAns(bk, k);
+    const nav = `<div class="row" style="gap:8px;margin-top:8px">${pv ? `<button class="btn big" style="flex:1" type="button" data-mbw="${esc(pv.id)}:${esc(pv.v)}">‹ 이전</button>` : ''}${nx && !(nx.id === r.id && nx.v === r.v) ? `<button class="btn big ${r.st === 'ok' || r.show ? 'primary' : ''}" style="flex:1" type="button" data-mbw="${esc(nx.id)}:${esc(nx.v)}">다음 오답 ›</button>` : (r.st === 'ok' || r.show) ? `<button class="btn big primary" style="flex:1" type="button" data-go="${esc(r.back || 'wrong')}">오답 목록으로</button>` : ''}</div>`;
+    const wc = mbWc(it, r.v);
+    const top = `${head}<div class="mbw-h"><h2>${esc(r.v)}번 다시 풀기</h2><span class="tag">${esc(bk ? bk.title : it.book)}</span>${wrong || r.st ? `<span class="tag mbw-wc">${wc}번 틀림</span>` : ''}${k && k !== String(r.v).padStart(4, '0') ? `<span class="tiny">${esc(k)}</span>` : ''}</div>`;
+    let btns;
+    if (!ans) btns = `<button class="btn primary big block" id="mbw-ok" type="button">${wrong ? '다시 풀어서 맞혔어요' : '다시 틀렸어요'}</button>${r.show ? '' : `<button class="btn big block" id="mbw-show" type="button" style="margin-top:8px">풀이 보기</button>`}${nav}`;
+    else if (r.st === 'ok') btns = `<div class="mbw-res ok"><b>맞았어요!</b><span>정답 ${/^[1-5]$/.test(ans) ? '①②③④⑤'[ans - 1] : esc(ans)} · 풀이로 한 번 더 확인해요</span></div>${wrong ? '' : `<button class="btn big block" id="mbw-keep" type="button">다시 오답노트에 담기</button>`}${nav}`;
+    else if (r.st === 'no') btns = `<div class="mbw-res no"><b>아쉬워요, 아직 아니에요</b><span>${r.show ? `정답은 ${/^[1-5]$/.test(ans) ? '①②③④⑤'[ans - 1] : esc(ans)}이에요. 풀이를 보고 다시 풀어 봐요` : '다시 풀어 보거나 해설을 봐요'}</span></div><div class="row" style="gap:8px"><button class="btn primary big" style="flex:1" id="mbw-again" type="button">다시 해보기</button>${r.show ? '' : `<button class="btn big" style="flex:1" id="mbw-show" type="button">해설 보기</button>`}</div>${nav}`;
+    else btns = `<div class="mbw-pick"><div class="psg-h" style="padding:0 0 8px">답 고르기</div><div class="mbw-ch">${[1, 2, 3, 4, 5].map((n) => `<button type="button" class="mbw-c" data-mba="${n}">${'①②③④⑤'[n - 1]}</button>`).join('')}</div><form class="mbw-in" id="mbw-f"><input class="inp" id="mbw-a" inputmode="text" autocomplete="off" placeholder="주관식이면 답을 적어요"><button class="btn" type="submit">확인</button></form></div>${nav}`;
     if (!k && keys.length > 1) return `<div class="qwrap" style="max-width:720px;margin:0 auto">${top}<p class="sub">이 책은 단원마다 번호가 다시 시작해요. 어느 단원이에요?</p><div class="card tight"><div class="list">${keys.map((x) => `<button type="button" class="li btnlike" data-mbk="${esc(x)}"><div class="body"><div class="t">${esc(x)}</div><div class="d">${bk.q[x][0]}쪽</div></div><span class="chev"></span></button>`).join('')}</div></div></div>`;
-    const c = k && mbCrop(bk, k), sc = k && sb && mbCrop(sb, k);
+    const c = k && mbCrop(bk, k), sc = k && sb && mbCrop(sb, k), open = r.st === 'ok' || r.show;
     if (!c) return `<div class="qwrap" style="max-width:720px;margin:0 auto">${top}<div class="empty">${ic('think')}<b>이 번호는 문제집에서 못 찾았어요</b><span>책을 펴서 풀고 맞혔으면 아래를 눌러요</span></div>${btns}</div>`;
     return `<div class="qwrap mbw" style="max-width:1200px;margin:0 auto">${top}<div class="split mbw-split">
       <div class="psg" aria-label="문제"><div class="psg-h">문제 <span class="tiny">${c.p}쪽</span></div>${mbCut(c, 'mbw-q')}<button class="btn sm" id="mbw-pg" type="button" style="margin-top:8px">쪽 전체 보기</button></div>
-      <div class="qside">${btns}<div class="card mbw-sol"><div class="psg-h" style="padding:0 0 8px">${bk.id === 'mdt' ? '정답' : '풀이'}</div>${sc ? mbCut(sc, 'mbw-s') : '<p class="tiny">풀이 자리를 못 찾았어요</p>'}</div></div></div></div>`;
+      <div class="qside">${btns}${open ? `<div class="card mbw-sol"><div class="psg-h" style="padding:0 0 8px">${bk.id === 'mdt' ? '정답' : '풀이'}</div>${sc ? mbCut(sc, 'mbw-s') : '<p class="tiny">풀이 자리를 못 찾았어요</p>'}</div>` : `<div class="mbw-lock">${ic('think')}<span>답을 맞히면 풀이가 열려요</span></div>`}</div></div></div>`;
   }
   function bindMbw() {
     const r = UI.run, it = myS().items.find((x) => x.id === r.id); if (!it) return;
     const bk = EB.books.find((x) => x.id === MB_ID(it.book)), sb = bk && (EB.sol || []).find((x) => x.id === bk.id + '-s'), keys = bk ? mbKeys(it, r.v) : [], k = r.k || (keys.length === 1 ? keys[0] : null);
-    const c = k && mbCrop(bk, k), sc = k && sb && mbCrop(sb, k);
+    const c = k && mbCrop(bk, k), sc = k && sb && mbCrop(sb, k), ans = mbAns(bk, k);
     if (c) ebImg(c.pg.f).then((u) => { const im = $('#mbw-q'); if (im) im.src = u; });
     if (sc) ebImg(sc.pg.f).then((u) => { const im = $('#mbw-s'); if (im) im.src = u; });
     $$('[data-mbk]').forEach((b) => (b.onclick = () => { UI.run.k = b.dataset.mbk; render(); }));
     $$('[data-mbw]').forEach((b) => (b.onclick = () => { const [id, v] = b.dataset.mbw.split(':'); mbwGo(id, v); }));
     const pg = $('#mbw-pg'); if (pg) pg.onclick = () => bookOpen(bk.id, null, c.p);
-    $('#mbw-ok').onclick = () => { const was = (it.wrong || []).includes(+r.v), i = mbwList().findIndex((x) => x.id === r.id && x.v === r.v); myWrongFlip(it, +r.v); if (!was) return render();
+    const keep = () => { const y = window.scrollY; render(); scrollTo(0, y); };
+    const check = (a) => {
+      if (!String(a).trim()) return;
+      if (mbNorm(a) === mbNorm(ans)) {
+        const L = mbwList(), i = L.findIndex((x) => x.id === r.id && x.v === r.v); r.nx = L.length > 1 ? L[(i + 1) % L.length] : null;
+        r.st = 'ok'; if ((it.wrong || []).includes(+r.v)) myWrongFlip(it, +r.v); else toast('맞혔어요!');
+        if (navigator.vibrate) navigator.vibrate(20);
+      } else { r.st = 'no'; it.wc = { ...(it.wc || {}), [r.v]: ((it.wc || {})[r.v] || 0) + 1 }; save('my'); if (navigator.vibrate) navigator.vibrate([30, 40, 30]); }
+      keep();
+    };
+    $$('[data-mba]').forEach((b) => (b.onclick = () => check(b.dataset.mba)));
+    const f = $('#mbw-f'); if (f) f.onsubmit = (e) => { e.preventDefault(); check($('#mbw-a').value); };
+    const ag = $('#mbw-again'); if (ag) ag.onclick = () => { r.st = null; r.show = false; keep(); };
+    const sh = $('#mbw-show'); if (sh) sh.onclick = () => { r.show = true; keep(); };
+    const kp = $('#mbw-keep'); if (kp) kp.onclick = () => { myWrongFlip(it, +r.v); toast('오답노트에 다시 담았어요'); keep(); };
+    const ok = $('#mbw-ok'); if (ok) ok.onclick = () => { const was = (it.wrong || []).includes(+r.v), i = mbwList().findIndex((x) => x.id === r.id && x.v === r.v); myWrongFlip(it, +r.v); if (!was) return render();
       const L = mbwList(); if (!L.length) { UI.run = null; UI.tab = r.back || 'wrong'; toast('오답을 다 맞혔어요!'); render(); return; }
       const after = L[i] || L[0]; setTimeout(() => mbwGo(after.id, after.v), 500); };
   }
@@ -1146,7 +1171,7 @@
       <div class="bk-top"><button class="btn sm" type="button" data-bkback>‹ ${esc((TABS.find((t) => t[0] === (r.back || 'book')) || ['', '교재'])[1])}</button><div class="bk-hd"><b>${esc(b.title)}</b><span>${esc(c.no)} ${esc(c.t)}${c.ref ? ' <span class="tag">참고</span>' : ''}</span></div>${innerWidth >= 1100 ? `<button class="btn sm" type="button" id="bk-one">${bkOne() ? '두 쪽 보기' : '한 쪽 크게'}</button>` : ''}<button class="btn sm" type="button" id="bk-toc">목차</button></div>
       <aside class="bk-side"><div class="row between" style="padding:0 8px 8px"><span class="tiny">${esc(b.pub)} · ${esc(b.range)}</span><button class="btn sm" type="button" id="bk-tocx">닫기</button></div>${toc}</aside>
       <div class="bk-stage" id="bk-stage"><button type="button" class="bk-arr l" data-turn="-1" ${first ? 'disabled' : ''} aria-label="앞 쪽">‹</button><div class="bk-spread ${sp.length > 1 ? 'two' : ''}" id="bk-spread">${sp.map((k) => pg(P[k])).join('')}</div><button type="button" class="bk-arr r" data-turn="1" ${last ? 'disabled' : ''} aria-label="다음 쪽">›</button></div>
-      <div class="bk-bar"><input type="range" class="bk-sl" id="bk-sl" min="0" max="${P.length - 1}" value="${sp[0]}" aria-label="쪽 고르기"><span class="bk-pn num">${sp.map((k) => P[k].n).join('~')}쪽 <span class="tiny">/ ${P.length}쪽 중 ${sp[sp.length - 1] + 1}</span></span></div>
+      <div class="bk-bar"><input type="range" class="bk-sl" id="bk-sl" min="0" max="${P.length - 1}" value="${sp[0]}" style="--p:${P.length > 1 ? sp[0] / (P.length - 1) * 100 : 0}%" aria-label="쪽 고르기"><span class="bk-pn num">${sp.map((k) => P[k].n).join('~')}쪽 <span class="tiny">/ ${P.length}쪽 중 ${sp[sp.length - 1] + 1}</span></span></div>
       <div class="bk-tools" role="toolbar" aria-label="읽기 도구">${[['hl', '형광펜'], ['ul', '밑줄']].map(([k, t]) => `<button type="button" class="bk-tl ${tool === k ? 'on' : ''}" data-tool="${k}" aria-pressed="${tool === k}"><i class="bk-sw ${k}"></i>${t}</button>`).join('')}<span class="bk-sep"></span><button type="button" class="bk-tl" data-bklist="all">모아 보기</button></div>
       <p class="bk-hint">${bkHint(tool)}</p></div>`;
   }
@@ -1406,6 +1431,7 @@
       (GH_BLOB[petBase() + n] = GH_BLOB[petBase() + n] || fetch(`${petBase()}/${n}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).catch(() => fetch(`assets/ghost/${n}.webp`).then((r) => r.blob()))).then((b) => { const u = URL.createObjectURL(b); img.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); const nx = GH_NEXT[n]; if (nx) setTimeout(() => { if (img.isConnected) { img.dataset.gh = nx[0]; delete img.dataset.ghd; ghFill(img.parentNode); } }, nx[1]); }).catch(() => {});
     }
   }
+  document.addEventListener('input', (e) => { const r = e.target; if (r.type === 'range') r.style.setProperty('--p', `${(r.value - r.min) / ((r.max - r.min) || 1) * 100}%`); });
   new MutationObserver(() => ghFill(document)).observe(document.body, { childList: true, subtree: true });
   // ───────── 다 푼 뒤 「다시 풀기」 ─────────
   // 푼 답은 S.redo 에 잠깐 맡겨 두고 처음부터 다시 풀어요. 끝까지 다시 풀면 새 답이 남고,
@@ -2696,7 +2722,7 @@
   function soundCards() {
     return `<section class="card c12"><div class="card-h"><h2>집중 소리</h2>${AM.on ? `<span class="tag blue">${ic('headph')} 듣는 중</span>` : ''}</div>
       <div class="chips">${AMB.map(([k, t, i]) => `<button class="chip sm ${(AM.on || 'off') === k ? 'on' : ''}" type="button" data-amb="${k}">${i ? ic(i) + ' ' : ''}${t}</button>`).join('')}</div>
-      <div class="pm-vol"><span class="tiny">작게</span><input type="range" min="0" max="100" value="${Math.round(AM.vol * 100)}" id="amb-vol" aria-label="집중 소리 크기"><span class="tiny">크게</span></div>
+      <div class="pm-vol"><span class="tiny">작게</span><input type="range" min="0" max="100" value="${Math.round(AM.vol * 100)}" id="amb-vol" style="--p:${Math.round(AM.vol * 100)}%" aria-label="집중 소리 크기"><span class="tiny">크게</span></div>
       <p class="tiny" style="margin:8px 0 0">독서실에서는 꼭 이어폰을 끼고 들어요. 갈색소음은 낮고 웅웅해서 독서실 소리랑 비슷해요</p></section>
       <section class="card c12"><div class="card-h"><h2>공부 음악</h2>${MUS ? `<button class="more" type="button" data-mus="${MUS}">음악 끄기</button>` : '<span class="tiny">광고 없는 라디오예요</span>'}</div>
       <div class="list two-col">${MUSIC.map((m) => `<div class="li btnlike" data-mus="${m.id}"><div class="ico">${ic(m.i)}</div><div class="body"><div class="t">${esc(m.t)}</div><div class="d">${esc(m.d)}</div></div>${MUS === m.id ? '<span class="tag blue">재생 중</span>' : '<span class="chev"></span>'}</div>`).join('')}</div></section>`;
@@ -2978,6 +3004,7 @@
     Object.assign(render, { view, depth, ti, qk, sub });
     bind();
     segSlide();
+    petDock();
     cheerCheck();
     startReads(main);
     walletScan();

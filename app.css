@@ -1498,3 +1498,33 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 .pet-perch .pet-say { position: absolute; right: 88%; top: 8%; width: max-content; max-width: 220px; padding: 8px 12px; border-radius: 14px 14px 4px 14px; background: var(--card); color: var(--t1); font-size: 13px; font-weight: 600; box-shadow: var(--shadow-pop); text-align: left; }
 @keyframes perch-in { from { transform: translateY(-20%); opacity: 0; } }
 @media (max-width: 520px) { .pet-perch { width: 96px; height: 96px; right: 16px; } .card.has-perch { margin-top: 52px; } }
+/* 소리 크기·쪽 고르기 슬라이더: 진한 테두리 없이 옅은 트랙 + 채워진 만큼 강조색 */
+.pm-vol input, .bk-sl { -webkit-appearance: none; appearance: none; height: 24px; background: transparent; cursor: pointer; --p: 50%; }
+.pm-vol input::-webkit-slider-runnable-track, .bk-sl::-webkit-slider-runnable-track { height: 6px; border: 0; border-radius: 99px; background: linear-gradient(90deg, var(--blue) var(--p), var(--fill) var(--p)); }
+.pm-vol input::-moz-range-track, .bk-sl::-moz-range-track { height: 6px; border: 0; border-radius: 99px; background: var(--fill); }
+.pm-vol input::-moz-range-progress, .bk-sl::-moz-range-progress { height: 6px; border-radius: 99px; background: var(--blue); }
+.pm-vol input::-webkit-slider-thumb, .bk-sl::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: -7px; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .18), 0 0 0 1px rgba(0, 0, 0, .04); }
+.pm-vol input::-moz-range-thumb, .bk-sl::-moz-range-thumb { width: 20px; height: 20px; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .18); }
+/* 캐릭터 테마 펫은 그림 안에서 작게 그려져 있어 크게 보이도록 */
+.gh-nt { width: 72px; height: 72px; }
+:root[data-skin]:not([data-skin="ghost"]) .gh-nt { width: 88px; height: 88px; margin: -12px -8px -12px -12px; }
+:root[data-skin]:not([data-skin="ghost"]) .gh { transform: scale(1.15); }
+@media (max-width: 520px) { :root[data-skin]:not([data-skin="ghost"]) .gh-nt { width: 72px; height: 72px; } }
+/* 오답 다시 풀기: 답 고르기 · 결과 · 잠긴 풀이 */
+.mbw-pick { padding: 16px; border-radius: 20px; background: var(--card); }
+.mbw-ch { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.mbw-c { height: 56px; border: 0; border-radius: 14px; background: var(--fill); font: inherit; font-size: 24px; color: var(--t1); cursor: pointer; transition: transform .15s var(--ease), background .15s; }
+.mbw-c:hover { background: var(--blue-soft); color: var(--blue); }
+.mbw-c:active { transform: scale(.94); }
+.mbw-in { display: flex; gap: 8px; margin-top: 12px; }
+.mbw-in .inp { flex: 1; min-width: 0; }
+.mbw-in .btn { height: 52px; }
+.mbw-res { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; padding: 16px; border-radius: 16px; animation: fade .3s ease both; }
+.mbw-res b { font-size: 19px; }
+.mbw-res span { font-size: 14px; color: var(--t2); }
+.mbw-res.ok { background: #e8f7ee; } .mbw-res.ok b { color: #1a9d55; }
+.mbw-res.no { background: #fff0f0; } .mbw-res.no b { color: #e5484d; }
+.mbw-lock { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 12px; padding: 32px 16px; border-radius: 20px; background: var(--fill); color: var(--t2); font-size: 14px; }
+.mbw-lock svg { width: 28px; height: 28px; }
+.mbw-wc { background: #fff0f0; color: #e5484d; }
+.qside .btn:not(.primary) { background: var(--card); }
