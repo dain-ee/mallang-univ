@@ -1464,11 +1464,12 @@
   const PET_WINK = new Set(['melody']); // 찡긋 표정이 있는 펫
   function petDock() {
     const t = skin(), host = !UI.run && t !== 'ghost' && $('#main .card');
-    $$('.pet-perch').forEach((x) => { if (!host || x.parentNode !== host || x.dataset.skin !== t) x.remove(); });
+    $$('.pet-perch').forEach((x) => { if (!host || x.parentNode !== host || x.dataset.skin !== t || x.dataset.mo !== ((S.profile || {}).motto || '').trim()) x.remove(); });
     if (!host || $('.pet-perch', host)) return;
     const base = 'perch'; // 첫 카드 왼쪽 위에 걸침 · 자는 동작은 안 씀 (사용자)
-    const el = document.createElement('button'); el.type = 'button'; el.className = 'pet-perch' + (petDock.shown ? ' still' : ''); petDock.shown = true; el.dataset.skin = t; el.setAttribute('aria-label', SKINS[t].n);
-    el.innerHTML = `<span class="pet-say" hidden></span><img alt="" src="assets/pets/${t}/perch.png">`;
+    const el = document.createElement('button'); el.type = 'button'; el.className = 'pet-perch' + (petDock.shown ? ' still' : ''); petDock.shown = true; el.dataset.skin = t; el.dataset.mo = ((S.profile || {}).motto || '').trim(); el.setAttribute('aria-label', SKINS[t].n);
+    const motto = ((S.profile || {}).motto || '').trim(); // 나의 한마디를 말풍선으로 늘 띄워요
+    el.innerHTML = `<span class="pet-say ${motto ? 'motto' : ''}" ${motto ? '' : 'hidden'}>${esc(motto)}</span><img alt="" src="assets/pets/${t}/perch.png">`;
     const im = $('img', el); im.onerror = () => { el.remove(); host.classList.remove('has-perch'); }; im.onload = () => host.classList.add('has-perch');
     host.appendChild(el);
     // 카드 바로 위 오른쪽에 버튼이 있으면(예: 매일 과제 요일) 그 왼쪽으로 비켜 앉음
@@ -1478,8 +1479,8 @@
     const play = (n) => fetch(`assets/pets/${t}/${n}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).then((b) => { const u = URL.createObjectURL(b); im.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); }).catch(() => {});
     if (!RM()) play(base);
     // 같은 표정만 있으면 심심해서, 가끔 혼자 기뻐해요
-    clearInterval(petDock.iv); if (!RM()) petDock.iv = setInterval(() => { if (!el.isConnected) return clearInterval(petDock.iv); if (document.hidden || !$('.pet-say', el).hidden) return; play(petDock.alt = petDock.alt === 'perch_yay' && PET_WINK.has(t) ? 'perch_wink' : 'perch_yay'); setTimeout(() => { if (el.isConnected && $('.pet-say', el).hidden) play(base); }, 2600); }, 9000 + Math.random() * 8000);
-    el.onclick = (e) => { e.stopPropagation(); const say = $('.pet-say', el); play('perch_yay'); say.textContent = cheer(); say.hidden = false; clearTimeout(el.t); el.t = setTimeout(() => { say.hidden = true; play(base); }, 2600); if (navigator.vibrate) navigator.vibrate(20); };
+    clearInterval(petDock.iv); if (!RM()) petDock.iv = setInterval(() => { if (!el.isConnected) return clearInterval(petDock.iv); if (document.hidden || el.t) return; play(petDock.alt = petDock.alt === 'perch_yay' && PET_WINK.has(t) ? 'perch_wink' : 'perch_yay'); setTimeout(() => { if (el.isConnected && !el.t) play(base); }, 2600); }, 9000 + Math.random() * 8000);
+    el.onclick = (e) => { e.stopPropagation(); const say = $('.pet-say', el); play('perch_yay'); say.textContent = cheer(); say.hidden = false; say.classList.remove('motto'); clearTimeout(el.t); el.t = setTimeout(() => { el.t = 0; say.textContent = motto; say.hidden = !motto; say.classList.toggle('motto', !!motto); play(base); }, 2600); if (navigator.vibrate) navigator.vibrate(20); };
   }
   function skinSheet() {
     sheet(`<h2>홈 화면 설정</h2><p class="sub">테마를 고르면 앱 색과 따라다니는 인형이 바뀌어요</p><div class="skin-grid">${['ghost', ...owned()].map((k) => `<button type="button" class="skin-it ${skin() === k ? 'on' : ''}" data-skin="${k}" style="--sk:${SKINS[k].c}"><span class="skin-pic"><img src="${skinPic(k)}" alt=""></span><b>${k === 'ghost' ? '기본 테마' : esc(SKINS[k].n) + ' 테마'}</b><i class="skin-sw"></i></button>`).join('')}</div>`, (el, close) => {
