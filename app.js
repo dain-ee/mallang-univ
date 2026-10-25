@@ -288,18 +288,21 @@
     const i = m5.findIndex((v, k) => p >= v && p <= m5[k + 1]); return i + 1 + (p - m5[i]) / (m5[i + 1] - m5[i]);
   }
   // 목표 등급: 직접 정하지 않았으면 목표 대학 합격선에 맞춰요 (내신은 9등급제 합격선을 5등급제로, 모의고사는 수능최저 평균)
-  function autoGoals() {
+  function autoGoals(track) {
     const u = uniOf(S.profile.uni), a = u && admitOf(u.id); if (!a) return null;
     const T = a.tracks || [], pick = (ty) => T.find((t) => t.type === ty && (t.cut70 || t.cut50));
-    const tr = pick('종합') || pick('교과'), c9 = tr && (tr.cut70 || tr.cut50);
-    let mock = null; for (const t of T) { const m = String(t.min || '').match(/(\d)개[^\d합]*합\s*(\d+)/); if (m) { const v = +m[2] / +m[1]; if (mock == null || v < mock) mock = v; } }
-    return { naesin: c9 ? Math.round(g9to5(c9) * 10) / 10 : null, mock: mock ? Math.floor(mock * 10) / 10 : null, uni: u.short || u.name, c9, tr: tr && tr.type };
+    const want = track || S.profile.goalTrack || '종합';
+    const tr = pick(want) || pick(want === '종합' ? '교과' : '종합'), c9 = tr && (tr.cut70 || tr.cut50);
+    const mm = (t) => String((t && t.min) || '').match(/(\d)개[^\d합]*합\s*(\d+)/);
+    let m = mm(tr); if (!m) for (const t of T) { const x = mm(t); if (x && (!m || +x[2] / +x[1] < +m[2] / +m[1])) m = x; }
+    const mock = m ? +m[2] / +m[1] : null;
+    return { naesin: c9 ? Math.round(g9to5(c9) * 10) / 10 : null, mock: mock ? Math.floor(mock * 10) / 10 : null, uni: u.short || u.name, c9, tr: tr && tr.type, pct: c9 ? Math.round(lerpMid(mids(CUM9), c9)) : null, minTxt: m ? `수능최저 ${m[1]}개 합 ${m[2]}` : '' };
   }
   function syncGoals() {
     const p = S.profile, a = autoGoals(), set = p.goalSet || {}; if (!a) return;
     if (!set.goalMock && a.mock) p.goalMock = a.mock; if (!set.goalNaesin && a.naesin) p.goalNaesin = a.naesin;
   }
-  const goalWhy = () => { const a = autoGoals(), set = S.profile.goalSet || {}; if (!a) return '직접 정한 목표'; return set.goalMock || set.goalNaesin ? '직접 정한 목표' : `${a.uni} 합격선 기준`; };
+  const goalWhy = () => { const a = autoGoals(), set = S.profile.goalSet || {}; if (!a) return '직접 정한 목표'; return set.goalMock || set.goalNaesin ? '직접 정한 목표' : `${a.uni} ${a.tr} 합격선 기준`; };
   function gradeMapCard(cls) {
     const my = nsTotal(), to9 = my ? g5to9(my) : null;
     const R5 = [['1', '상위 10%', '1등급 ~ 2등급'], ['2', '10 ~ 34%', '2등급 끝 ~ 4등급'], ['3', '34 ~ 66%', '4등급 ~ 6등급'], ['4', '66 ~ 90%', '6등급 ~ 8등급'], ['5', '90 ~ 100%', '8등급 ~ 9등급']];
@@ -323,10 +326,10 @@
       <div class="hero-band" style="background:${u ? esc(u.color) : 'var(--blue)'}"></div>
       <div class="who">${emb(u, 'xl')}<div style="min-width:0"><div class="goal-t">${esc(p.name)}의 목표${p.mbti ? ` · ${esc(p.mbti)}` : ''}</div><div class="goal-n">${u ? esc(u.name) : '목표 대학을 골라 주세요'}</div><div class="goal-m">${u ? esc(p.major || '') : '눌러서 고르기'}</div></div><span class="tag" style="margin-left:auto;flex:none">${u ? '바꾸기' : '고르기'}</span></div>
       <div class="dday"><div><span>수능까지</span><b class="num">D-${dday(CSAT.date)}</b></div><div><span>${next ? esc(next.title) : '다음 일정'}</span><b class="num">${next ? 'D-' + dday(next.date) : '-'}</b></div><div><span>${esc(p.school || '')}</span><b>${p.grade}학년${p.cls ? ' ' + esc(p.cls) + '반' : ''}</b></div></div>
-      <div class="hero-goal"><span class="hg-l">${ic('target')} 목표 등급</span><b>모의고사 ${S.profile.goalMock}등급</b><b>내신 ${S.profile.goalNaesin}등급</b><span class="hg-why">${goalWhy()}</span></div>
+      <button type="button" class="hero-goal" data-goalset><span class="hg-l">${ic('target')} 목표 등급</span><b>모의고사 ${S.profile.goalMock}등급</b><b>내신 ${S.profile.goalNaesin}등급</b><span class="hg-why">${goalWhy()} · 바꾸기</span></button>
     </section>`;
     const pos = `<section class="card c5 col-card mid"><div class="card-h"><h2>지금 내 위치</h2><button class="more" id="qg-open" type="button">등급 적기</button></div>
-      <div class="rings">${ringSVG(mAvg ? (9 - mAvg) / 8 : 0, 'var(--blue)', '모의고사', mAvg ? fmt1(mAvg) : '-', '등급', lm ? `${esc(lm.title)} 평균<br>${goalLine(mAvg, p.goalMock)}` : '채점 전')}${ringSVG(nAvg ? (5 - nAvg) / 4 : 0, 'var(--green)', '내신', nAvg ? fmt1(nAvg) : '-', '등급', nAvg ? `5등급제 평균<br>${goalLine(nAvg, p.goalNaesin)}` : '아직 안 넣었어요')}</div></section>`;
+      <div class="rings"><button type="button" class="ring-go" data-go="score" data-seg="mock" aria-label="모의고사 성적 보기">${ringSVG(mAvg ? (9 - mAvg) / 8 : 0, 'var(--blue)', '모의고사', mAvg ? fmt1(mAvg) : '-', '등급', lm ? `${esc(lm.title)} 평균<br>${goalLine(mAvg, p.goalMock)}` : '채점 전')}</button><button type="button" class="ring-go" data-go="score" data-seg="naesin" aria-label="내신 성적 보기">${ringSVG(nAvg ? (5 - nAvg) / 4 : 0, 'var(--green)', '내신', nAvg ? fmt1(nAvg) : '-', '등급', nAvg ? `5등급제 평균<br>${goalLine(nAvg, p.goalNaesin)}` : '아직 안 넣었어요')}</button></div></section>`;
     // 등급 추이
     const rows = examRows().map((r) => ({ label: r.title.replace(/학력평가|모의고사/g, '').trim() || md(r.date), v: { avg: avgOf(r.g), ...r.g } }));
     const ck = UI.chartSubj;
@@ -1434,7 +1437,28 @@
       ${TEACHER ? '' : '<button class="btn big block ghost-red" id="me-out" type="button" style="margin-top:8px">로그아웃</button>'}
       <p class="tiny" style="text-align:center;margin:16px 0 0">기록은 선생님 서버에 저장돼요. 로그아웃해도 코드를 다시 넣으면 그대로예요</p></div>`;
   }
+  // 목표 등급 설정: 목표 대학 합격선(종합·교과)으로 정하거나 직접 0.1씩 맞춤
+  function goalSheet() {
+    const p = S.profile, set = p.goalSet || {};
+    let mode = set.goalMock || set.goalNaesin ? 'self' : (p.goalTrack || '종합'), gm = +p.goalMock || 2, gn = +p.goalNaesin || 2;
+    const A = { 종합: autoGoals('종합'), 교과: autoGoals('교과') };
+    const f1 = (v) => (Math.round(v * 10) / 10).toFixed(1);
+    const draw = (el) => {
+      const a = mode !== 'self' && A[mode];
+      $('#gs-body', el).innerHTML = `<div class="chips" style="flex-wrap:wrap;margin-bottom:16px">${['종합', '교과'].filter((t) => A[t] && A[t].tr === t).map((t) => `<button type="button" class="chip ${mode === t ? 'on' : ''}" data-gt="${t}">${esc(A[t].uni)} ${t} 합격선</button>`).join('')}<button type="button" class="chip ${mode === 'self' ? 'on' : ''}" data-gt="self">직접 정하기</button></div>
+        ${[['gm', '모의고사', gm, 1, 9, a ? `${esc(a.minTxt)} → 과목마다 ${f1(a.mock)}등급 안쪽` : '수능최저를 맞추려면 과목 평균이 이 정도여야 해요'], ['gn', '내신', gn, 1, 5, a ? `합격선 ${a.c9}등급(9등급제) = 상위 약 ${a.pct}% → 5등급제 약 ${f1(a.naesin)}등급` : '5등급제: 1등급 상위 10%, 2등급 34%, 3등급 66%']].map(([id, nm, v, lo, hi, why]) => `<div class="gs-row"><div class="gs-l"><b>${nm}</b><span class="tiny">${why}</span></div><div class="gs-step"><button type="button" class="btn sm" data-st="${id}" data-d="-0.1" ${v <= lo ? 'disabled' : ''} aria-label="${nm} 목표 올리기">−</button><b class="num">${f1(v)}<small>등급</small></b><button type="button" class="btn sm" data-st="${id}" data-d="0.1" ${v >= hi ? 'disabled' : ''} aria-label="${nm} 목표 내리기">+</button></div></div>`).join('')}
+        <p class="tiny" style="margin:12px 0 0">숫자가 작을수록 높은 목표예요. − 를 누르면 목표가 올라가요</p>`;
+      $$('[data-gt]', el).forEach((b) => (b.onclick = () => { mode = b.dataset.gt; if (mode !== 'self') { const x = A[mode]; if (x.mock) gm = x.mock; if (x.naesin) gn = x.naesin; } draw(el); }));
+      $$('[data-st]', el).forEach((b) => (b.onclick = () => { const d = +b.dataset.d; if (b.dataset.st === 'gm') gm = Math.min(9, Math.max(1, Math.round((gm + d) * 10) / 10)); else gn = Math.min(5, Math.max(1, Math.round((gn + d) * 10) / 10)); mode = 'self'; draw(el); }));
+    };
+    sheet(`<h2>목표 등급</h2><p class="muted" style="margin:-4px 0 16px">목표 대학 합격선으로 정하거나, 직접 맞춰요</p><div id="gs-body"></div><div class="row" style="margin-top:20px"><button class="btn big" style="flex:1" data-x type="button">닫기</button><button class="btn primary big" style="flex:1" id="gs-ok" type="button">저장</button></div>`, (el, close) => {
+      draw(el);
+      $('[data-x]', el).onclick = close;
+      $('#gs-ok', el).onclick = () => { const self = mode === 'self'; if (!self) p.goalTrack = mode; p.goalSet = { goalMock: self, goalNaesin: self }; p.goalMock = gm; p.goalNaesin = gn; save('profile'); close(); render(); toast('목표를 바꿨어요'); };
+    });
+  }
   function editField(k) {
+    if (k === 'goalMock' || k === 'goalNaesin') return goalSheet();
     const p = S.profile; const F = {
       name: ['이름', 'text'], birth: ['생일', 'date'], mbti: ['MBTI', 'mbti'], motto: ['나의 한마디', 'text', '예) 오늘 한 줄이 내일의 세특'], likes: ['좋아하는 과목', 'text', '예) 통합과학, 영어'], school: ['학교', 'text'], grade: ['학년·반', 'grade'], major: ['목표 학과', 'text', '예) 생명공학과'],
       goalMock: ['모의고사 목표 등급', 'sel', [1, 1.5, 2, 2.5, 3, 3.5, 4]], goalNaesin: ['내신 목표 등급', 'sel', [1, 1.2, 1.5, 1.8, 2, 2.5, 3]] }[k];
@@ -2067,6 +2091,7 @@
   }
   function bind() {
     $$('[data-go]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); if (b.dataset.seg) UI.scoreSeg = b.dataset.seg; go(b.dataset.go); }));
+    $$('[data-goalset]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); goalSheet(); }));
     $$('[data-task]').forEach((b) => (b.onclick = () => startTask(b.dataset.task)));
     $$('[data-news]').forEach((b) => (b.onclick = () => newsSheet(b.dataset.news)));
     $$('[data-day]').forEach((b) => (b.onclick = () => daySheet(b.dataset.day)));

@@ -999,7 +999,7 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .td-all { flex-direction: column; gap: 0; }
 .pm-c img.pm-gh { width: 104px; height: 104px; margin: -32px 0 -18px; }
 .pm-card.running .pm-c img.pm-gh { animation: none; }
-.hero-goal { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 16px; padding: 14px 16px; border-radius: 16px; background: var(--fill); font-size: 14px; }
+.hero-goal { width: 100%; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 16px; padding: 14px 16px; border-radius: 16px; background: var(--fill); font-size: 14px; }
 .hero-goal .hg-l { color: var(--t3); display: inline-flex; gap: 4px; align-items: center; }
 .hero-goal b { font-size: 15px; }
 .hero-goal .hg-why { margin-left: auto; font-size: 12px; color: var(--blue); background: var(--blue-soft); padding: 4px 8px; border-radius: 99px; }
@@ -1046,3 +1046,16 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .save-st { font-size: 13px; color: var(--t3); white-space: nowrap; }
 .save-st.ok { color: #03b26c; }
 .save-st.off { color: var(--t2); }
+
+/* 내 위치 원 누르면 성적 탭 · 목표 설정 */
+.ring-go { border: 0; background: none; font: inherit; color: inherit; padding: 8px 0; border-radius: 20px; cursor: pointer; transition: background .15s, transform .15s; }
+.ring-go:hover { background: var(--fill); }
+.ring-go:active { transform: scale(.97); }
+.hero-goal:hover { background: var(--line); }
+.gs-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+.gs-l { display: grid; gap: 2px; min-width: 0; }
+.gs-l b { font-size: 16px; }
+.gs-step { display: flex; align-items: center; gap: 8px; flex: none; }
+.gs-step .btn { width: 40px; height: 40px; padding: 0; font-size: 20px; }
+.gs-step b { min-width: 72px; text-align: center; font-size: 22px; }
+.gs-step b small { font-size: 13px; margin-left: 2px; font-weight: 600; }
