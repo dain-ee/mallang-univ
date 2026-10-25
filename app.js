@@ -416,30 +416,28 @@
       <div class="grow-bd">${GROW_MS.slice().sort((a, b) => (g[b.k] >= b.n) - (g[a.k] >= a.n)).map((m) => `<span class="grow-b ${g[m.k] >= m.n ? 'on' : ''}" title="${esc(m.t)}">${ic(m.i)}<em>${esc(m.t)}</em></span>`).join('')}</div></section>`;
   }
   // ───────── 늘 같이 바뀌는 앱: 시즌 선물 · 업데이트 소식 · 선생님 한마디 · 목표 준비도 · 주간 기록 (2026-10-25) ─────────
-  // 그날이 오면 홈 맨 위에 카드가 뜨고 「선물 열기」로 용돈(하루 한도와 따로). 2주 전부터는 「D-n」 예고만
+  // 깜짝 선물: 예고 없이 그날(연휴는 그 며칠)에만 홈 맨 위에 카드가 뜨고 「선물 열기」로 용돈(하루 한도와 따로)
   const SEASONS = [
-    { id: 'hw26', from: '2026-10-29', to: '2026-10-31', day: '2026-10-31', i: 'pumpkin', t: '할로윈', hi: '해피 할로윈', msg: '사탕 대신 용돈 선물이 왔어요', gift: 500, c: '#ff8a00' },
-    { id: 'pp26', from: '2026-11-09', to: '2026-11-11', day: '2026-11-11', i: 'choco', t: '빼빼로데이', hi: '빼빼로데이야', msg: '공부하느라 고생한 정윤이에게 빼빼로 대신 용돈', gift: 500, c: '#b5651d' },
-    { id: 'cs26', from: '2026-11-17', to: '2026-11-19', day: '2026-11-19', i: 'flag', t: '선배들 수능날', hi: '오늘은 수능날이야', msg: '2년 뒤엔 정윤이 차례예요. 오늘은 응원 보너스', gift: 300, c: '#3182f6' },
-    { id: 'xm26', from: '2026-12-19', to: '2026-12-25', day: '2026-12-25', i: 'tree', t: '크리스마스', hi: '메리 크리스마스', msg: '산타 선생님이 선물을 두고 갔어요', gift: 1000, c: '#03b26c', fx: 'snow' },
-    { id: 'ny27', from: '2026-12-31', to: '2027-01-03', day: '2027-01-01', i: 'fireworks', t: '새해', hi: '새해 복 많이 받아', msg: '2027년, 2학년을 향해 같이 가요', gift: 1000, c: '#f04452' },
-    { id: 'sl27', from: '2027-02-05', to: '2027-02-09', day: '2027-02-06', i: 'clover', t: '설날', hi: '설날 복 많이 받아', msg: '세뱃돈 조금 넣어 뒀어요', gift: 1000, c: '#f04452' },
-    { id: 'vd27', from: '2027-02-13', to: '2027-02-14', day: '2027-02-14', i: 'love', t: '발렌타인데이', hi: '달콤한 하루 보내', msg: '초콜릿 대신 용돈 한 조각', gift: 300, c: '#f06595' },
-    { id: 'g2-27', from: '2027-03-02', to: '2027-03-04', day: '2027-03-02', i: 'spark', t: '2학년 시작', hi: '2학년 된 걸 축하해', msg: '새 학년 첫 주, 출발 선물', gift: 500, c: '#3182f6' },
+    { id: 'hw26', from: '2026-10-31', to: '2026-10-31', day: '2026-10-31', i: 'pumpkin', t: '할로윈', hi: '해피 할로윈', msg: '사탕 대신 용돈 선물이 왔어요', gift: 500, c: '#ff8a00' },
+    { id: 'pp26', from: '2026-11-11', to: '2026-11-11', day: '2026-11-11', i: 'choco', t: '빼빼로데이', hi: '빼빼로데이야', msg: '공부하느라 고생한 정윤이에게 빼빼로 대신 용돈', gift: 500, c: '#b5651d' },
+    { id: 'cs26', from: '2026-11-19', to: '2026-11-19', day: '2026-11-19', i: 'flag', t: '선배들 수능날', hi: '오늘은 수능날이야', msg: '2년 뒤엔 정윤이 차례예요. 오늘은 응원 보너스', gift: 300, c: '#3182f6' },
+    { id: 'xm26', from: '2026-12-24', to: '2026-12-25', day: '2026-12-25', i: 'tree', t: '크리스마스', hi: '메리 크리스마스', msg: '산타 선생님이 선물을 두고 갔어요', gift: 1000, c: '#03b26c', fx: 'snow' },
+    { id: 'ny27', from: '2027-01-01', to: '2027-01-02', day: '2027-01-01', i: 'fireworks', t: '새해', hi: '새해 복 많이 받아', msg: '2027년, 2학년을 향해 같이 가요', gift: 1000, c: '#f04452' },
+    { id: 'sl27', from: '2027-02-06', to: '2027-02-08', day: '2027-02-06', i: 'clover', t: '설날', hi: '설날 복 많이 받아', msg: '세뱃돈 조금 넣어 뒀어요', gift: 1000, c: '#f04452' },
+    { id: 'vd27', from: '2027-02-14', to: '2027-02-14', day: '2027-02-14', i: 'love', t: '발렌타인데이', hi: '달콤한 하루 보내', msg: '초콜릿 대신 용돈 한 조각', gift: 300, c: '#f06595' },
+    { id: 'g2-27', from: '2027-03-02', to: '2027-03-02', day: '2027-03-02', i: 'spark', t: '2학년 시작', hi: '2학년 된 걸 축하해', msg: '새 학년 첫 주, 출발 선물', gift: 500, c: '#3182f6' },
   ];
   function seasonList() {
-    const L = SEASONS.slice(), b = S.profile.birth;
+    const L = SEASONS.slice(), b = S.profile.birth || BIRTH;
     if (b) { const [, m, d] = b.split('-'), y0 = +today().slice(0, 4); for (const y of [y0, y0 + 1]) { const day = `${y}-${m}-${d}`; L.push({ id: 'bd' + y, from: day, to: day, day, i: 'cake', t: '생일', hi: '생일 축하해', msg: '선생님이 생일 선물을 보냈어요', gift: 2000, c: '#f06595' }); } }
-    return L.sort((a, b) => a.from.localeCompare(b.from));
+    return L.sort((a, b) => a.from.localeCompare(b.from) || (b.id.startsWith('bd') - a.id.startsWith('bd')));
   }
-  const seasonNow = () => seasonList().find((s) => s.from <= today() && today() <= s.to) || null;
-  const seasonNext = () => seasonList().find((s) => s.from > today() && dday(s.day) <= 14) || null;
+  const BIRTH = '2010-01-03';  // 정윤 생일 (내 정보에 안 넣었을 때)
+  const seasonNow = () => { const L = seasonList().filter((s) => s.from <= today() && today() <= s.to); return L.find((s) => s.id.startsWith('bd')) || L[0] || null; };
   function seasonCard() {
-    const s = seasonNow(), nx = !s && seasonNext();
-    if (nx) return `<section class="card c12 ss-soon"><span class="ss-ic">${ic(nx.i)}</span><div class="body"><b>${esc(nx.t)}까지 D-${dday(nx.day)}</b><span class="tiny">그날 말랑대학에 선물이 와요</span></div></section>`;
-    if (!s) return '';
+    const s = seasonNow(); if (!s) return '';
     const got = wHas('season:' + s.id), dd = dday(s.day);
-    return `<section class="card c12 ss-card" style="--ss:${s.c}">${s.fx === 'snow' ? '<i class="ss-snow" aria-hidden="true"></i>' : ''}<span class="ss-ic big">${ic(s.i)}</span><div class="body"><span class="eyebrow">${dd > 0 ? `${esc(s.t)}까지 D-${dd}` : `오늘은 ${esc(s.t)}`}</span><b class="ss-t">${esc(s.hi)}</b><p class="tiny" style="margin:2px 0 0">${got ? '선물 받았어요' : esc(s.msg)}</p></div>${TEACHER ? `<span class="tag">학생 선물 ${won(s.gift)}</span>` : got ? '<span class="tag">받음</span>' : `<button class="btn primary" type="button" data-gift="${s.id}">${ic('gift')} 선물 열기</button>`}</section>`;
+    return `<section class="card c12 ss-card" style="--ss:${s.c}">${s.fx === 'snow' ? '<i class="ss-snow" aria-hidden="true"></i>' : ''}<span class="ss-ic big">${ic(s.i)}</span><div class="body"><span class="eyebrow">${dd > 0 ? `${esc(s.t)} 이브` : dd === 0 ? `오늘은 ${esc(s.t)}` : esc(s.t)}</span><b class="ss-t">${esc(s.hi)}</b><p class="tiny" style="margin:2px 0 0">${got ? '선물 받았어요' : esc(s.msg)}</p></div>${TEACHER ? `<span class="tag">학생 선물 ${won(s.gift)}</span>` : got ? '<span class="tag">받음</span>' : `<button class="btn primary" type="button" data-gift="${s.id}">${ic('gift')} 선물 열기</button>`}</section>`;
   }
   // 앱이 새로워진 것: content/updates.json 맨 위 것을 아직 안 봤으면 홈에, 전체는 소식 탭 맨 아래
   const UPS = () => ((D.updates || {}).items || []);
@@ -2279,7 +2277,7 @@
   const AVATARS = [['1f43b', '#ffe8c8'], ['1f43c', '#e5e8eb'], ['1f428', '#dfe6ee'], ['1f430', '#ffe4ec'], ['1f431', '#fff1cc'], ['1f436', '#f6e7d8'], ['1f98a', '#ffe3d1'], ['1f427', '#dceeff'], ['1f425', '#fff6c2'], ['1f984', '#f1e5ff'], ['1f439', '#ffeedd'], ['1f42f', '#ffefd0'], ['1f433', '#d9efff'], ['1f337', '#ffe2e8'], ['1f338', '#ffe8f0'], ['1f340', '#ddf6e6'], ['1f9ec', '#e8f3ff'], ['1f60a', '#fff3c4']];
   const MBTI = ['ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP', 'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'];
   const avatarHtml = (cls = '') => { const p = S.profile, a = AVATARS.find((x) => x[0] === p.avatar); return a ? `<span class="avatar ${cls}" style="background:${a[1]}"><img src="icons/${a[0]}.svg" alt=""></span>` : `<span class="avatar ${cls}" style="background:var(--blue);color:#fff">${esc((p.name || '나').slice(-2))}</span>`; };
-  const bdayLeft = () => { const b = S.profile.birth; if (!b) return null; const [, m, d] = b.split('-').map(Number); const t = new Date(today() + 'T00:00:00'); let n = new Date(t.getFullYear(), m - 1, d); if (n < t) n = new Date(t.getFullYear() + 1, m - 1, d); return Math.round((n - t) / 864e5); };
+  const bdayLeft = () => { const b = S.profile.birth || BIRTH; if (!b) return null; const [, m, d] = b.split('-').map(Number); const t = new Date(today() + 'T00:00:00'); let n = new Date(t.getFullYear(), m - 1, d); if (n < t) n = new Date(t.getFullYear() + 1, m - 1, d); return Math.round((n - t) / 864e5); };
   function meView() {
     const p = S.profile, u = uniOf(p.uni), bl = bdayLeft();
     const row = (k, label, val, empty = '없음') => `<button class="li btnlike me-row" type="button" data-me="${k}"><div class="body"><div class="t" style="font-weight:500;color:var(--t2)">${label}</div></div><span class="me-v ${val ? '' : 'muted'}">${val ? esc(val) : empty}</span><span class="chev"></span></button>`;
