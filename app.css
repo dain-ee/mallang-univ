@@ -1173,3 +1173,20 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .ad-jy b { font-size: 15px; color: var(--blue, #3182f6); }
 .ad-jy span { font-size: 13px; color: var(--t2); line-height: 1.6; }
 .ad-dept { margin: 24px 0 0; font-size: 17px; }
+
+/* 소식: 꼭 읽어야 할 대이슈 */
+.tag.must { background: var(--red); color: #fff; font-weight: 700; flex: none; }
+.nw-must { box-shadow: inset 0 0 0 2px var(--red); }
+
+/* 인강 */
+.ik-bar { height: 4px; border-radius: 4px; background: var(--fill); margin-top: 8px; overflow: hidden; }
+.ik-bar i { display: block; height: 100%; background: var(--blue); border-radius: 4px; }
+.ik-lecs { margin-top: 8px; display: grid; gap: 4px; max-height: 360px; overflow: auto; overscroll-behavior: contain; }
+.ik-lec { display: flex; gap: 10px; align-items: flex-start; width: 100%; padding: 8px 10px; border: 0; border-radius: 12px; background: var(--fill2); text-align: left; cursor: pointer; font: inherit; color: var(--t2); }
+.ik-lec i { flex: none; width: 20px; height: 20px; border-radius: 6px; box-shadow: inset 0 0 0 1.5px var(--t4); display: grid; place-items: center; font-style: normal; font-size: 13px; font-weight: 800; color: #fff; }
+.ik-lec.on { color: var(--t1); }
+.ik-lec.on i { background: var(--blue); box-shadow: none; }
+.ik-lec span { display: grid; gap: 2px; font-size: 14px; line-height: 1.45; }
+.ik-lec em { font-style: normal; font-size: 12px; color: var(--t3); }
+.ik-ch.ik-ok { background: #e8f3ff !important; border-radius: 12px; }
+.ik-ch.ik-no { background: #ffeeee !important; border-radius: 12px; }
