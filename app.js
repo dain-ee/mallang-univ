@@ -407,9 +407,9 @@
     return `<section class="card ${cls} grow"><div class="card-h"><h2>${ic('trophy')} 정윤이가 쌓아 온 것</h2>${g.st ? `<span class="grow-st">${ic('fire')} ${g.st}일 연속</span>` : ''}</div>
       <div class="grow-top"><div class="grow-big"><span class="tiny">지금까지 푼 문제</span><b class="num">${g.all}</b><span class="grow-u">문제</span><p>${esc(line)}</p></div>
         <div class="grow-wk"><div class="grow-bars">${D7.map((d) => { const n = g.day[d] || 0; return `<div class="grow-bar ${d === today() ? 'on' : ''}"><i style="height:${Math.max(n ? 8 : 3, Math.round((n / mx) * 100))}%"></i><span>${DOW[dowOf(d)]}</span></div>`; }).join('')}</div><span class="tiny">이번 주 ${g.w0}문제${g.w1 ? ` · 지난주 ${g.w1}문제` : ''}</span></div></div>
-      <div class="grow-ts">${T.filter((x) => x[2] > 0).map(([k, t, v, u]) => `<div class="grow-t"><span class="tiny">${t}</span><b class="num">${v}</b><span class="tiny">${u}</span></div>`).join('')}</div>
+      <div class="grow-ts">${T.filter((x) => x[2] > 0).map(([k, t, v, u]) => `<div class="grow-t"><span class="tiny">${t}</span><b class="num">${v}<small>${u}</small></b></div>`).join('')}</div>
       ${next ? `<div class="grow-next"><div class="row between"><span>다음 배지 <b>${esc(next.t)}</b></span><span class="tiny">${next.n - g[next.k]}${next.k === 'st' || next.k === 'days' ? '일' : '개'} 남았어요</span></div><div class="ik-bar" style="height:8px;margin-top:8px"><i style="width:${Math.round((g[next.k] / next.n) * 100)}%"></i></div></div>` : ''}
-      <div class="grow-bd">${GROW_MS.map((m) => `<span class="grow-b ${g[m.k] >= m.n ? 'on' : ''}" title="${esc(m.t)}">${ic(m.i)}<em>${esc(m.t)}</em></span>`).join('')}</div></section>`;
+      <div class="grow-bd">${GROW_MS.slice().sort((a, b) => (g[b.k] >= b.n) - (g[a.k] >= a.n)).map((m) => `<span class="grow-b ${g[m.k] >= m.n ? 'on' : ''}" title="${esc(m.t)}">${ic(m.i)}<em>${esc(m.t)}</em></span>`).join('')}</div></section>`;
   }
   // 홈 제목 아래 한 줄: 오늘 꼭 할 일 몇 개 끝냈는지 · 기말까지
   function homeLine() {

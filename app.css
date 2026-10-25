@@ -443,8 +443,8 @@ select.inp { appearance: none; background-image: linear-gradient(45deg, transpar
 .card-h h2 { white-space: nowrap; }
 @media (max-width: 520px) { .sgb-area { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sgb-area .a { padding: 12px; } }
 @media (max-width: 720px) {
-  .card-h .seg, .report-h ~ .seg { flex: 1 1 100% !important; flex-wrap: wrap; overflow: visible; }
-  .card-h .seg button, .report-h ~ .seg button { flex: 1 1 auto; }
+  .card-h .seg, .report-h ~ .seg { flex: 1 1 100% !important; flex-wrap: nowrap; overflow-x: auto; }
+  .card-h .seg button, .report-h ~ .seg button { flex: 1 0 auto; padding: 0 10px; }
 }
 
 .hw-more { margin-top: 8px; }
@@ -1395,3 +1395,24 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 .grow-b.on { filter: none; opacity: 1; background: #fff8e6; color: var(--t1); }
 @media (max-width: 720px) { .grow-top { grid-template-columns: 1fr; } .grow-ts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .my-st[hidden], .my-wcw[hidden] { display: none; }
+
+@media (max-width: 520px) {
+  .grow-big b { font-size: 40px; }
+  .grow-ts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
+  .grow-t { padding: 10px; border-radius: 12px; gap: 0; }
+  .grow-t b { font-size: 20px; }
+  .grow-t .tiny { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .grow-bd { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-right: -20px; padding-right: 20px; }
+  .grow-bd::-webkit-scrollbar { display: none; }
+  .grow-b { flex: none; }
+  .grow-next { margin-top: 12px; padding: 12px 14px; }
+}
+
+.grow-t b small { margin-left: 2px; font-size: 13px; font-weight: 600; color: var(--t3); }
+@media (max-width: 520px) {
+  .grow-bars { height: 64px; }
+  .grow-top { gap: 12px; }
+  .card-h .seg button, .report-h ~ .seg button { padding: 0 8px; font-size: 13.5px; }
+}
+/* 아이패드처럼 넓은 화면: 아래 탭이 다 들어가게 (밀지 않아도 생기부·진로·소식까지 보여요) */
+@media (min-width: 600px) { .tabbar button { flex: 1 1 0; min-width: 0; } }
