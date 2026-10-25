@@ -357,8 +357,8 @@
     const sgbc = sgbSummary('c6');
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
-      <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${missCard()}${seasonCard()}${noteCard()}${upCard()}${hero}${pos}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}</div>`;
+      <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p>${SKIN_DEV ? `<button class="btn sm skin-btn" type="button" data-skinset>${ic('spark')} 테마</button>` : ''}</div>
+      <div class="grid">${missCard()}${seasonCard()}${noteCard()}${hero}${pos}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}</div>`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -569,7 +569,7 @@
     const MUST = N.filter((n) => n.must).sort((a, b) => read(a) - read(b) || String(b.date).localeCompare(String(a.date))).slice(0, 5);
     return `<h1 class="h1">소식</h1><p class="sub">${D.news && D.news.updated ? md(D.news.updated) + ' 업데이트 · ' : ''}입시 · 과학 · 시사 상식, 출처를 확인한 것만 모았어요. 하나 읽으면 50원</p>
       <div class="chips" style="margin-bottom:16px">${['all', ...groups].map((g) => `<button type="button" class="chip ${f === g ? 'on' : ''}" data-nf="${esc(g)}">${g === 'all' ? '전체' : esc(g)} <span class="tiny">${g === 'all' ? N.length : N.filter((n) => nGrp(n) === g).length}</span></button>`).join('')}<button type="button" class="chip ${f === 'keep' ? 'on' : ''}" data-nf="keep">★ 담은 것 · 내 생각 <span class="tiny">${KL.length}</span></button></div>
-      <div class="grid">${f !== 'keep' && MUST.length ? `<section class="card c12 nw-must"><div class="card-h"><h2>${ic('fire')} 꼭 읽어야 할 대이슈</h2><span class="tiny">${MUST.filter((n) => !read(n)).length ? `안 읽은 것 ${MUST.filter((n) => !read(n)).length}개` : '다 읽었어요'}</span></div><div class="list">${MUST.map(item).join('')}</div></section>` : ''}<section class="card c12">${f === 'keep' ? kept : L.length ? `<div class="list">${L.map(item).join('')}</div>` : `<div class="empty">${gh('idle', 'gh-empty')}<b>소식을 모으는 중이에요</b></div>`}</section></div>` + upList();
+      <div class="grid">${f !== 'keep' && MUST.length ? `<section class="card c12 nw-must"><div class="card-h"><h2>${ic('fire')} 꼭 읽어야 할 대이슈</h2><span class="tiny">${MUST.filter((n) => !read(n)).length ? `안 읽은 것 ${MUST.filter((n) => !read(n)).length}개` : '다 읽었어요'}</span></div><div class="list">${MUST.map(item).join('')}</div></section>` : ''}<section class="card c12">${f === 'keep' ? kept : L.length ? `<div class="list">${L.map(item).join('')}</div>` : `<div class="empty">${gh('idle', 'gh-empty')}<b>소식을 모으는 중이에요</b></div>`}</section></div>`;
   }
   const NW_DONE = '<span class="tag nw-done"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>읽음</span>';
   function newsCard(cls) {
@@ -1367,12 +1367,43 @@
   }
   // 다 풀었을 때: 큰 흰 카드 가운데 아이콘 · 점수 · 한마디, 버튼은 아래에 크게
   // 3D 유령: 한 번만 도는 동작은 볼 때마다 처음부터 다시 돌도록 매번 새 주소(blob)로 붙여요
+  // ───────── 테마: 색 전체 + 3D 인형 펫 (아직 로컬 시험 중: localStorage mu:themes=1 일 때만 보여요) ─────────
+  const SKIN_DEV = (() => { try { return localStorage.getItem('mu:themes') === '1'; } catch (e) { return false; } })();
+  const SKINS = { ghost: { n: '말랑 유령', c: '#3182f6', d: '기본' }, kitty: { n: '헬로키티', c: '#e8384f', d: '빨간 리본' }, monchhichi: { n: '몬치치', c: '#a0673d', d: '복슬복슬 갈색' }, melody: { n: '마이멜로디', c: '#e35d93', d: '분홍 두건' }, chiikawa: { n: '치이카와', c: '#e07686', d: '말랑 하양' } };
+  const SKIN_Q = new URLSearchParams(location.search).get('skin');  // 시험용: 탭마다 다른 테마 (?skin=kitty)
+  const skin = () => (SKIN_DEV && SKINS[SKIN_Q] ? SKIN_Q : SKIN_DEV && SKINS[S.profile.skin] ? S.profile.skin : 'ghost');
+  const petBase = () => (skin() === 'ghost' ? 'assets/ghost' : 'assets/pets/' + skin());
+  function applySkin() {
+    const t = skin();
+    if (document.documentElement.dataset.skin !== t) document.documentElement.dataset.skin = t;
+    // 로고는 테마와 상관없이 말랑 로고 그대로
+    petDock();
+  }
+  // 펫: 화면 첫 카드 윗변에 창틀처럼 두 팔을 걸치고 있어요. 누르면 폴짝, 밤엔 팔에 얼굴 묻고 졸아요
+  function petDock() {
+    const t = skin(), host = !UI.run && t !== 'ghost' && $('#main .card');
+    $$('.pet-perch').forEach((x) => { if (!host || x.parentNode !== host || x.dataset.skin !== t) x.remove(); });
+    if (!host || $('.pet-perch', host)) return;
+    const h = new Date().getHours(), base = h >= 23 || h < 6 ? 'perch_sleepy' : 'perch';
+    const el = document.createElement('button'); el.type = 'button'; el.className = 'pet-perch'; el.dataset.skin = t; el.setAttribute('aria-label', SKINS[t].n);
+    el.innerHTML = `<span class="pet-say" hidden></span><img alt="" src="assets/pets/${t}/${base}.png">`;
+    const im = $('img', el); im.onerror = () => { el.remove(); host.classList.remove('has-perch'); }; im.onload = () => host.classList.add('has-perch');
+    host.appendChild(el);
+    const play = (n) => fetch(`assets/pets/${t}/${n}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).then((b) => { const u = URL.createObjectURL(b); im.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); }).catch(() => {});
+    if (!RM()) play(base);
+    el.onclick = (e) => { e.stopPropagation(); const say = $('.pet-say', el); play('perch_yay'); say.textContent = cheer(); say.hidden = false; clearTimeout(el.t); el.t = setTimeout(() => { say.hidden = true; play(base); }, 2600); if (navigator.vibrate) navigator.vibrate(20); };
+  }
+  function skinSheet() {
+    sheet(`<h2>테마 바꾸기</h2><p class="sub">앱 색과 따라다니는 인형이 바뀌어요</p><div class="skin-grid">${Object.entries(SKINS).map(([k, v]) => `<button type="button" class="skin-it ${skin() === k ? 'on' : ''}" data-skin="${k}" style="--sk:${v.c}"><span class="skin-pic"><img src="${k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`}" alt="" onerror="this.src='assets/ghost/idle.png'"></span><b>${esc(v.n)}</b><span class="tiny">${esc(v.d)}</span><i class="skin-sw"></i></button>`).join('')}</div>`, (el, close) => {
+      $$('[data-skin]', el).forEach((b) => (b.onclick = () => { S.profile.skin = b.dataset.skin; save('profile'); close(); render(); toast(`${SKINS[b.dataset.skin].n} 테마로 바꿨어요`); }));
+    });
+  }
   const GH_NEXT = { hello: ['idle', 2000] }, GH_BLOB = {};
-  const gh = (n, cls = '') => `<img class="gh ${cls}" data-gh="${n}" src="assets/ghost/${n}.png" alt="">`;
+  const gh = (n, cls = '') => `<img class="gh ${cls}" data-gh="${n}" src="${petBase()}/${n}.png" onerror="this.onerror=null;this.src='assets/ghost/${n}.png'" alt="">`;
   function ghFill(root) {
     for (const img of (root || document).querySelectorAll('img[data-gh]:not([data-ghd])')) {
       const n = img.dataset.gh; img.dataset.ghd = '1'; if (RM()) continue;
-      (GH_BLOB[n] = GH_BLOB[n] || fetch(`assets/ghost/${n}.webp`).then((r) => r.blob())).then((b) => { const u = URL.createObjectURL(b); img.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); const nx = GH_NEXT[n]; if (nx) setTimeout(() => { if (img.isConnected) { img.dataset.gh = nx[0]; delete img.dataset.ghd; ghFill(img.parentNode); } }, nx[1]); }).catch(() => {});
+      (GH_BLOB[petBase() + n] = GH_BLOB[petBase() + n] || fetch(`${petBase()}/${n}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).catch(() => fetch(`assets/ghost/${n}.webp`).then((r) => r.blob()))).then((b) => { const u = URL.createObjectURL(b); img.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); const nx = GH_NEXT[n]; if (nx) setTimeout(() => { if (img.isConnected) { img.dataset.gh = nx[0]; delete img.dataset.ghd; ghFill(img.parentNode); } }, nx[1]); }).catch(() => {});
     }
   }
   new MutationObserver(() => ghFill(document)).observe(document.body, { childList: true, subtree: true });
@@ -2923,7 +2954,7 @@
   function render() {
     // 1학년 2학기는 아직 학기 최종 등급이 없어서, 먼저 넣은 등급은 중간고사 등급으로 옮겨요 (한 번만)
     if (S.naesin && S.naesin['1-2'] && !S.naesin._mid12) { for (const r of Object.values(S.naesin['1-2'])) if (r && r.grade && r.midG == null && r.finG == null) { r.midG = r.grade; delete r.grade; } S.naesin._mid12 = 1; save('naesin'); }
-    nav();
+    nav(); applySkin();
     let html = '';
     syncGoals();
     redoFix();
@@ -2999,6 +3030,7 @@
     $$('#ink-set, [data-inkset]').forEach((b) => (b.onclick = inkSettings));
     $$('[data-myadd]').forEach((b) => (b.onclick = myAdd));
     bindAlive();
+    $$('[data-skinset]').forEach((b) => (b.onclick = skinSheet));
     $$('[data-miss]').forEach((b) => (b.onclick = () => { const [k, id, d, was] = b.dataset.miss.split('|'), it = myS().items.find((x) => x.id === id); if (!it) return; it.ack = { ...(it.ack || {}), [d]: 1 };
       const u = it.unit === '쪽' ? '쪽' : '문제';
       if (k === 'push') toast(myPush(it));
