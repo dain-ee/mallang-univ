@@ -2209,3 +2209,22 @@ a.btn, a.btn:hover { text-decoration: none; }
 .tsk img { width: 44px; height: 44px; object-fit: contain; }
 .tsk span { font-size: 12px; line-height: 1.3; word-break: keep-all; text-align: center; }
 .tsk.on { background: var(--blue-soft); color: var(--blue); box-shadow: inset 0 0 0 2px var(--blue); }
+.pf-body { font-size: 15px; line-height: 1.75; }
+.pf-body .pf-h2 { margin: 20px 0 8px; padding: 8px 12px; border-radius: 12px; background: var(--fill); font-size: 16px; }
+.pf-body .pf-h2:first-child { margin-top: 0; }
+.pf-body h3:not(.pf-h2) { margin: 14px 0 4px; font-size: 15px; color: var(--blue); }
+.pf-body .ans, .pf-body .box { margin: 4px 0 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; }
+.pf-body .ans p, .pf-body .box p { margin: 0 0 6px; }
+.pf-body .ans p:last-child, .pf-body .box p:last-child { margin: 0; }
+.pf-body b { color: var(--t1); background: linear-gradient(transparent 60%, rgba(49,130,246,.18) 0); }
+.pf-body .src, .pf-body .tip, .pf-body .lead, .pf-body .top { font-size: 13px; color: var(--t3); }
+.pf-body .flow { padding: 10px 12px; border-radius: 12px; background: var(--blue-soft); font-weight: 600; font-size: 14px; }
+.pf-body table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.pf-body td, .pf-body th { padding: 8px; border: 1px solid var(--line); vertical-align: top; text-align: left; }
+.pf-body th { background: var(--fill); }
+.pf-body ul { margin: 0; padding-left: 18px; }
+.pf-body h1 { font-size: 18px; text-align: center; margin: 4px 0; }
+.pf-kv { gap: 12px; align-items: flex-start; }
+.pf-kv span { flex: none; width: 104px; color: var(--t2); font-size: 14px; }
+.pf-kv b { flex: 1; min-width: 0; text-align: left; font-weight: 600; font-size: 14px; line-height: 1.6; }
+.pf-img { display: block; width: 100%; border-radius: 12px; border: 1px solid var(--line); margin-top: 12px; }

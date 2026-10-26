@@ -477,7 +477,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${TUTOR ? `${lessonHero()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${giftHome()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${finCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${TUTOR ? `${lessonHero()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${giftHome()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${perfCard()}${finCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -1441,7 +1441,7 @@
     const lvl = (d) => Math.min(3, dayItems(d).length);
     const streak = (() => { let n = 0; for (let i = days.length - 1; i >= 0; i--) { const wk = new Date(days[i] + 'T00:00:00'); if (lvl(days[i])) n++; else if (!anyTask(wk)) continue; else if (i !== days.length - 1) break; } return n; })();
     const hwList = S.hw || [];
-    return `<h1 class="h1">오늘의 숙제</h1><div class="row between wrap" style="gap:8px;margin-bottom:16px"><p class="sub" style="margin:0">${TUTOR ? '지난 수업에서 배운 것을 다음 수업 전까지 풀어요' : '꼭 할 일부터 끝내요. 학원·학교 숙제는 마감까지 나눠서 매일 할 만큼만 나와요'}</p>${TUTOR ? '' : `<button class="btn sm" id="plan-open" type="button"><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg> 매일 과제 요일</button>`}</div>
+    return `<h1 class="h1">오늘의 숙제</h1>${perfCard()}<div class="row between wrap" style="gap:8px;margin-bottom:16px"><p class="sub" style="margin:0">${TUTOR ? '지난 수업에서 배운 것을 다음 수업 전까지 풀어요' : '꼭 할 일부터 끝내요. 학원·학교 숙제는 마감까지 나눠서 매일 할 만큼만 나와요'}</p>${TUTOR ? '' : `<button class="btn sm" id="plan-open" type="button"><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg> 매일 과제 요일</button>`}</div>
     <div class="grid">${TUTOR ? '' : missCard()}
       ${(() => {
         const { tasks } = todayTasks(), real = tasks.filter((t) => t.icon !== 'party' && !t.memo), dn = real.filter((t) => t.done).length;
@@ -1772,6 +1772,31 @@
   }
   const finEndTxt = (sj) => { const e = finEndDay(sj); return e ? `${md(e)}이면 다 끝나요` : '다 끝냈어요'; };
   // 홈: 선생님이 매일 내는 기말 예습(구몬처럼) 한눈에 · 과목마다 한 일/전체 · 오늘 남은 것 · 끝나는 날 (10/26)
+  // 수행평가 준비 (content/perf.json): 학교 수행평가를 바로 준비하게 모범 답안 · 외울 것 · 빈칸 · 교과서 사진
+  const PERF = U.who === '정윤' ? (D.perf || []) : [];
+  const perfLive = () => PERF.filter((x) => today() <= (x.until || '9999'));
+  const perfQ = (x) => { const B = x.sum ? finBlanks(x) : [], A = finS().ans[x.id] || {}; return { n: B.length, k: B.filter((b) => A[b.k]).length, ok: B.filter((b) => A[b.k] && A[b.k].ok).length }; };
+  function perfCard() {
+    const L = perfLive(); if (!L.length) return '';
+    return `<section class="card c12"><div class="card-h"><h2>${ic('pencil')} 수행평가 준비</h2></div><div class="list">${L.map((x) => { const q = perfQ(x); return `<div class="li btnlike" data-perf="${esc(x.id)}"><div class="ico">${ic(x.icon || 'books')}</div><div class="body"><div class="t">${esc(x.title)}</div><div class="d">${esc(x.d)}${q.n ? ` · 빈칸 ${q.k}/${q.n}` : ''}</div></div><span class="chev"></span></div>`; }).join('')}</div></section>`;
+  }
+  function perfRun() {
+    const r = UI.run, x = PERF.find((y) => y.id === r.id); if (!x) return '';
+    const tab = x.tabs.find((t) => t.k === r.tab) || x.tabs[0];
+    let body = '';
+    if (tab.html) body = `<section class="card pf-body">${tab.html}</section>`;
+    else if (tab.rows) body = `<section class="card"><div class="list">${tab.rows.map(([k, v]) => `<div class="sv-row pf-kv"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div></section>`;
+    else if (tab.imgs) body = `<section class="card"><div class="card-h"><h2>교과서</h2><span class="tiny">${esc(tab.cap || '')}</span></div>${tab.imgs.map((s) => `<img class="pf-img" src="${esc(s)}" alt="${esc(tab.cap || '교과서')}" loading="lazy">`).join('')}</section>`;
+    else if (tab.k === 'quiz') { const q = perfQ(x); body = `${finBlankHtml(x)}${q.k >= q.n ? `<div class="ls-box" style="margin-top:12px"><b>${q.ok}/${q.n} 맞혔어요</b><p>틀린 것은 「외울 것」에서 한 번 더 보고 다시 풀어요</p><button class="btn soft" id="pf-redo" type="button" style="margin-top:8px">빈칸 다시 풀기</button></div>` : ''}`; }
+    return `<div class="qwrap" style="max-width:760px;margin:0 auto"><div class="row between" style="margin-bottom:8px"><button class="btn sm ghost" data-pfback type="button">‹ 숙제</button><span class="tiny">${esc(x.d)}</span></div><h1 class="h1" style="margin:8px 0">${esc(x.title)}</h1>${x.tabs.length > 1 ? `<div class="seg" style="margin:0 0 16px">${x.tabs.map((t) => `<button type="button" class="${t === tab ? 'on' : ''}" data-pft="${t.k}">${esc(t.n)}</button>`).join('')}</div>` : ''}${body}</div>`;
+  }
+  function bindPerf() {
+    const r = UI.run, x = PERF.find((y) => y.id === r.id), top = () => { render(); window.scrollTo(0, 0); }; if (!x) return;
+    $$('[data-pfback]').forEach((b) => (b.onclick = () => { UI.run = null; UI.tab = 'hw'; top(); }));
+    $$('[data-pft]').forEach((b) => (b.onclick = () => { r.tab = b.dataset.pft; top(); }));
+    $$('[data-fb]').forEach((b) => (b.onclick = () => { const bk = finBlanks(x).find((y) => y.k === b.dataset.fb), A = finA(x.id); if (!bk || A[bk.k]) return; const p = b.dataset.o; A[bk.k] = { p, ok: p === bk.t, at: Date.now() }; save('fin'); const y = window.scrollY; render(); window.scrollTo(0, y); }));
+    const rd = $('#pf-redo'); if (rd) rd.onclick = () => { finS().ans[x.id] = {}; save('fin'); top(); };
+  }
   function finCard() {
     if (!FIN_ON) return '';
     const T = finToday();
@@ -1793,7 +1818,7 @@
   function finBlanks(c) {
     const src = finSrc(c), terms = [...new Set(src.flatMap((x) => (x.t.match(/<b>(.*?)<\/b>/g) || []).map((y) => y.slice(3, -4))))], out = [], used = new Set();
     for (const x of src) {
-      const t = (x.t.match(/<b>(.*?)<\/b>/g) || []).map((y) => y.slice(3, -4)).find((y) => !used.has(y)); if (!t || out.length >= 6) continue;
+      const t = (x.t.match(/<b>(.*?)<\/b>/g) || []).map((y) => y.slice(3, -4)).find((y) => !used.has(y)); if (!t || out.length >= (c.nb || 6)) continue;
       used.add(t); const others = terms.filter((y) => y !== t), h = [...(c.id + t)].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) % 9973, 7);
       const ds = others.length ? [others[h % others.length], others[(h * 7 + 3) % others.length]].filter((y, i, A) => A.indexOf(y) === i) : [];
       const ops = [t, ...ds]; for (let i = ops.length - 1; i > 0; i--) { const j = (h + i * 13) % (i + 1); [ops[i], ops[j]] = [ops[j], ops[i]]; }
@@ -4333,7 +4358,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610262130'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610262230'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -4993,7 +5018,7 @@
     let html = '';
     syncGoals();
     redoFix();
-    if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'nx' ? nxRun() : UI.run.kind === 'nxw' ? nxwRun() : '';
+    if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'nx' ? nxRun() : UI.run.kind === 'nxw' ? nxwRun() : '';
     else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'tme' ? tmeView() : UI.tab === 'picks' ? picksView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'exam' ? examView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
     const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'hw' ? (UI.nxUnit || '') + (UI.nxSubj || '') : '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '');
@@ -5107,6 +5132,7 @@
     const h = $('#hero'); if (h) h.onclick = uniSheet;
     if (!UI.run && UI.tab === 'me') bindMe();
     if (!UI.run && UI.tab === 'tme') bindTme();
+    $$('[data-perf]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'perf', id: b.dataset.perf }; render(); window.scrollTo(0, 0); }));
     if (!UI.run && UI.tab === 'picks') bindPicks();
     if (!UI.run && UI.tab === 'uni') bindUniTab();
     if (!UI.run && UI.tab === 'tgrade') $$('[data-gsw]').forEach((x) => (x.onclick = () => { UI.gStu = x.dataset.gsw; render(); }));
@@ -5128,7 +5154,7 @@
     const sn = $('#sg-new'); if (sn) sn.onclick = () => sgbSheet(null);
     $$('#sg-pick, #sg-pick2').forEach((b) => (b.onclick = () => pickSheet(UI.sgbArea)));
     $$('[data-sg]').forEach((b) => (b.onclick = () => sgbSheet(b.dataset.sg)));
-    if (UI.run) { if (UI.run.kind === 'sci') bindSci(); if (UI.run.kind === 'unit') bindUnit(); if (UI.run.kind === 'gram') bindGram(); if (UI.run.kind === 'jl') bindJl(); if (UI.run.kind === 'jr') bindJr(); if (UI.run.kind === 'jw') bindJw(); if (UI.run.kind === 'words') bindWords(); if (UI.run.kind === 'retry') bindRetry(); if (UI.run.kind === 'g3') bindG3(); if (UI.run.kind === 'drill') bindDrill(); if (UI.run.kind === 'concept') bindConcept(); if (UI.run.kind === 'fin') bindFin(); if (UI.run.kind === 'book') bindBook(); if (UI.run.kind === 'mbw') bindMbw(); if (UI.run.kind === 'pomo') { bindPomo(); bindSound(); } }
+    if (UI.run) { if (UI.run.kind === 'sci') bindSci(); if (UI.run.kind === 'unit') bindUnit(); if (UI.run.kind === 'gram') bindGram(); if (UI.run.kind === 'jl') bindJl(); if (UI.run.kind === 'jr') bindJr(); if (UI.run.kind === 'jw') bindJw(); if (UI.run.kind === 'words') bindWords(); if (UI.run.kind === 'retry') bindRetry(); if (UI.run.kind === 'g3') bindG3(); if (UI.run.kind === 'drill') bindDrill(); if (UI.run.kind === 'concept') bindConcept(); if (UI.run.kind === 'fin') bindFin(); if (UI.run.kind === 'perf') bindPerf(); if (UI.run.kind === 'book') bindBook(); if (UI.run.kind === 'mbw') bindMbw(); if (UI.run.kind === 'pomo') { bindPomo(); bindSound(); } }
     nxBind();
     $$('main [data-bell]').forEach((b) => (b.onclick = toggleBell));
     $$('[data-pomo]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); openPomo(); }));
