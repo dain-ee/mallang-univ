@@ -677,7 +677,7 @@
   const inkL = (c, no) => c && c.lectures.find((l) => l.no === +no);
   const inkCfg = (c) => inkS().cfg[c.id] || { on: c.pick.length > 0, days: [1, 2, 3, 4, 5], per: 1, pick: c.pick.slice() };
   const inkSt = (c, l) => { const v = inkS().st[c.id + ':' + l.no]; return v === 'none' ? '' : v || (l.done ? 'done' : ''); };
-  const inkQueue = (c, cf = inkCfg(c)) => c.lectures.filter((l) => cf.pick.includes(l.no) && !inkSt(c, l));
+  const inkQueue = (c, cf = inkCfg(c)) => cf.pick.map((no) => inkL(c, no)).filter((l) => l && !inkSt(c, l));  // 고른 순서대로 (2026-10-26 정윤: 순서대로 말고 듣고 싶은 것부터)
   function inkToday() {
     const s = inkS(), t = today(), dw = new Date().getDay();
     if (!s.days[t]) {
@@ -740,22 +740,31 @@
   function inkSettings() {
     const P = {}; for (const c of INK) { const cf = inkCfg(c); P[c.id] = { ...cf, days: cf.days.slice(), pick: cf.pick.slice() }; }
     const order = [1, 2, 3, 4, 5, 6, 0], open = {};
+    const sumOf = (c) => { const cf = P[c.id], f = inkFinish(c, cf), late = f.date && f.date > EB_EXAM; return !cf.on ? '안 들어요' : !f.n ? '고른 강의를 다 들었어요' : !cf.days.length ? `남은 ${f.n}강 · 요일을 골라요` : `남은 ${f.n}강 · ${md(f.date)}에 끝나요 · ${late ? `<b class="red">기말(${md(EB_EXAM)})보다 늦어요</b>` : '<b class="blue">기말 전에 끝나요</b>'}`; };
+    const lecMark = (cf, l, c) => { if (!cf.pick.includes(l.no)) return ''; if (inkSt(c, l)) return '✓'; return String(inkQueue(c, cf).indexOf(l) + 1); };  // 안 들은 것만 1·2·3 순서
+    // 다시 그려도 보던 자리 그대로 (2026-10-26 정윤: 체크할 때마다 맨 위로 올라가서 힘들어)
+    const keep = (el, fn) => { const sc = [el, el.closest('.sheet'), ...$$('.sheet, .sheet-b, .sheet-in', document)].filter(Boolean), at = sc.map((x) => x.scrollTop), li = {}; $$('[data-ilid]', el).forEach((x) => (li[x.dataset.ilid] = x.scrollTop)); fn(); sc.forEach((x, i) => { x.scrollTop = at[i]; }); $$('[data-ilid]', el).forEach((x) => { if (li[x.dataset.ilid]) x.scrollTop = li[x.dataset.ilid]; }); };
+    const draw0 = (el) => keep(el, () => draw(el));
     const draw = (el) => {
       $('#ik-set', el).innerHTML = INK.map((c) => {
-        const cf = P[c.id], f = inkFinish(c, cf), late = f.date && f.date > EB_EXAM;
-        const sum = !cf.on ? '안 들어요' : !f.n ? '고른 강의를 다 들었어요' : !cf.days.length ? `남은 ${f.n}강 · 요일을 골라요` : `남은 ${f.n}강 · ${md(f.date)}에 끝나요 · ${late ? `<b class="red">기말(${md(EB_EXAM)})보다 늦어요</b>` : '<b class="blue">기말 전에 끝나요</b>'}`;
+        const cf = P[c.id], sum = sumOf(c);
         return `<div class="pl-item ik-item"><div class="row between" style="gap:8px"><div class="pl-h">${ic(INK_IC[c.id] || 'books')}<div><b>${esc(c.subj)} · ${esc(inkName(c))}</b><span class="tiny">${esc(c.teacher)} · ${esc(c.range)}</span></div></div><button type="button" class="ik-sw ${cf.on ? 'on' : ''}" data-ion="${c.id}" aria-pressed="${cf.on}">${cf.on ? '듣는 중' : '안 들어요'}</button></div>
           <div class="ik-in">${cf.on ? `<div class="pl-dots">${order.map((d) => `<button type="button" class="${cf.days.includes(d) ? 'on' : ''} ${d === 0 ? 'sun' : d === 6 ? 'sat' : ''}" data-idw="${c.id}:${d}">${DOW[d]}</button>`).join('')}</div>
           <div class="row" style="gap:6px;margin-top:10px;align-items:center"><span class="tiny">하루에</span>${[1, 2, 3].map((n) => `<button type="button" class="chip sm ${cf.per === n ? 'on' : ''}" data-iper="${c.id}:${n}">${n}강</button>`).join('')}</div>` : ''}
-          <p class="tiny" style="margin:10px 0 0">${sum}</p>
-          <button type="button" class="btn sm" data-ipk="${c.id}" style="margin-top:8px">${open[c.id] ? '강의 목록 접기' : `들을 강의 고르기 · ${cf.pick.length}강 골랐어요`}</button>
-          ${open[c.id] ? `<div class="ik-lecs">${c.lectures.map((l) => { const s = inkSt(c, l), on = cf.pick.includes(l.no); return `<button type="button" class="ik-lec ${on ? 'on' : ''}" data-ilp="${c.id}:${l.no}"><i>${on ? '✓' : ''}</i><span><b>${esc(l.title)}</b><em>${l.min ? l.min + '분' : ''}${s === 'done' ? ' · 들었어요' : s === 'skip' ? ' · 안 들어요' : l.pct ? ` · ${l.pct}% 들음` : ''}</em></span></button>`; }).join('')}</div>` : ''}</div></div>`;
+          <p class="tiny" style="margin:10px 0 0" data-isum="${c.id}">${sum}</p>
+          <button type="button" class="btn sm" data-ipk="${c.id}" style="margin-top:8px">${open[c.id] ? '강의 목록 접기' : `들을 강의 고르기 · ${cf.pick.length}강 골랐어요`}</button>${open[c.id] ? '<p class="tiny" style="margin:8px 0 0">누른 순서대로 들어요. 숫자가 듣는 순서예요</p>' : ''}
+          ${open[c.id] ? `<div class="ik-lecs" data-ilid="${c.id}">${c.lectures.map((l) => { const s = inkSt(c, l), on = cf.pick.includes(l.no); return `<button type="button" class="ik-lec ${on ? 'on' : ''}" data-ilp="${c.id}:${l.no}"><i>${lecMark(cf, l, c)}</i><span><b>${esc(l.title)}</b><em>${l.min ? l.min + '분' : ''}${s === 'done' ? ' · 들었어요' : s === 'skip' ? ' · 안 들어요' : l.pct ? ` · ${l.pct}% 들음` : ''}</em></span></button>`; }).join('')}</div>` : ''}</div></div>`;
       }).join('');
-      $$('[data-ion]', el).forEach((b) => (b.onclick = () => { const x = P[b.dataset.ion]; x.on = !x.on; draw(el); }));
-      $$('[data-idw]', el).forEach((b) => (b.onclick = () => { const [id, d] = b.dataset.idw.split(':'), x = P[id], n = +d; x.days = x.days.includes(n) ? x.days.filter((y) => y !== n) : [...x.days, n]; draw(el); }));
-      $$('[data-iper]', el).forEach((b) => (b.onclick = () => { const [id, n] = b.dataset.iper.split(':'); P[id].per = +n; draw(el); }));
-      $$('[data-ipk]', el).forEach((b) => (b.onclick = () => { open[b.dataset.ipk] = !open[b.dataset.ipk]; draw(el); }));
-      $$('[data-ilp]', el).forEach((b) => (b.onclick = () => { const [id, no] = b.dataset.ilp.split(':'), x = P[id], n = +no; x.pick = x.pick.includes(n) ? x.pick.filter((y) => y !== n) : [...x.pick, n].sort((p, q) => p - q); draw(el); }));
+      $$('[data-ion]', el).forEach((b) => (b.onclick = () => { const x = P[b.dataset.ion]; x.on = !x.on; draw0(el); }));
+      $$('[data-idw]', el).forEach((b) => (b.onclick = () => { const [id, d] = b.dataset.idw.split(':'), x = P[id], n = +d; x.days = x.days.includes(n) ? x.days.filter((y) => y !== n) : [...x.days, n]; draw0(el); }));
+      $$('[data-iper]', el).forEach((b) => (b.onclick = () => { const [id, n] = b.dataset.iper.split(':'); P[id].per = +n; draw0(el); }));
+      $$('[data-ipk]', el).forEach((b) => (b.onclick = () => { open[b.dataset.ipk] = !open[b.dataset.ipk]; draw0(el); }));
+      // 강의 체크는 다시 그리지 않고 그 자리에서만 바꿔요
+      $$('[data-ilp]', el).forEach((b) => (b.onclick = () => {
+        const [id, no] = b.dataset.ilp.split(':'), x = P[id], n = +no, c = inkC(id); x.pick = x.pick.includes(n) ? x.pick.filter((y) => y !== n) : [...x.pick, n];
+        $$(`[data-ilp^="${id}:"]`, el).forEach((y) => { const l = inkL(c, y.dataset.ilp.split(':')[1]); y.classList.toggle('on', x.pick.includes(l.no)); y.querySelector('i').textContent = lecMark(x, l, c); });
+        const sm = $(`[data-isum="${id}"]`, el); if (sm) sm.innerHTML = sumOf(c);
+      }));
     };
     sheet(`<h2>인강 설정</h2><p class="sub">강좌마다 듣는 요일과 하루에 몇 강 들을지 정해요. 들을 강의만 골라 두면 안 들은 것부터 「오늘 할 일」에 나와요. 순서대로 안 들어도 괜찮아요</p><div id="ik-set"></div><button class="btn primary big block" id="ik-ok" type="button" style="margin-top:20px">저장하기</button>`, (el, close) => {
       draw(el);
