@@ -3513,7 +3513,8 @@
   if (BRAND !== '말랑대학') { document.title = BRAND; $$('#brand span, #splash b').forEach((e) => (e.textContent = BRAND)); }
   function teacherBand() {
     const chips = ROSTER.length > 1 ? `<div class="tb-stu">${ROSTER.map((r) => `<button type="button" class="${r.name === U.who ? 'on' : ''}" data-stu="${esc(r.name)}">${esc(r.name)}${r.edition === 'english' ? ' <small>영어</small>' : ''}</button>`).join('')}</div>` : '';
-    return `<div class="teacher-band"><span>선생님 보기 · ${esc(U.who)}의 기록을 보고 고칠 수 있어요</span>${chips}</div>`;
+    const rep = !TUTOR && ST.edition !== 'english' ? `<button class="btn sm primary" type="button" data-prep>${esc((ST.lesson && ST.lesson.parent) || '어머니')}께 공부 리포트</button>` : '';
+    return `<div class="teacher-band"><span>선생님 보기 · ${esc(U.who)}의 기록을 보고 고칠 수 있어요</span>${rep}${chips}</div>`;
   }
   function switchStu(n) {
     if (n === U.who) return;
@@ -3565,10 +3566,12 @@
     ['예체능', ['디자인학과', '체육교육과', '실용음악과', '미술학과', '연극영화과'], '실기 준비와 함께 미술·음악·체육 관련 과목'],
   ];
   const utRoad = () => {
-    const g = +(ST.grade || S.profile.grade || 3), y1 = new Date().getFullYear() + (4 - g), entry = y1 + 3;
+    // 고등학생(정윤 고1)은 지금 학년부터. 예전엔 중학생 기준만 있어 정윤 화면이 2028년 중3으로 나왔어요 (10/27)
+    const lv = String(ST.level || ''), hs = /^고/.test(lv) || (!lv && !TUTOR), g = +(lv.replace(/\D/g, '') || ST.grade || S.profile.grade || (hs ? 1 : 3));
+    const y1 = new Date().getFullYear() + (hs ? 1 - g : 4 - g), entry = y1 + 3, now = (y, t) => (y === new Date().getFullYear() ? `지금 · ${t}` : `${y}년 · ${t}`);
     return { y1, entry, steps: [
-      [g === 3 ? '지금 · 중3' : `${y1 - 1}년 · 중3`, '고등학교 고르기', '특목고·자사고는 일반고보다 먼저 원서를 내요. 2학기 성적까지 들어가요'],
-      [`${y1}년 · 고1`, '공통과목 내신', '국어·수학·영어·한국사·통합사회·통합과학을 모두 같이 배워요. 내신은 5등급이에요'],
+      ...(hs ? [] : [[g === 3 ? '지금 · 중3' : `${y1 - 1}년 · 중3`, '고등학교 고르기', '특목고·자사고는 일반고보다 먼저 원서를 내요. 2학기 성적까지 들어가요']]),
+      [hs && g === 1 ? now(y1, '고1') : `${y1}년 · 고1`, '공통과목 내신', '국어·수학·영어·한국사·통합사회·통합과학을 모두 같이 배워요. 내신은 5등급이에요'],
       [`${y1 + 1}~${y1 + 2}년 · 고2·고3`, '내가 고른 과목', '고교학점제라 가고 싶은 학과에 맞춰 과목을 골라 들어요. 고른 과목이 생기부에 남아요'],
       [`${y1 + 2}년 9월 · 고3`, '수시 원서 6장', '내신·생기부로 가는 길이에요. 학생부교과·학생부종합이 많아요'],
       [`${y1 + 2}년 11월 · 고3`, '수능, 정시 원서 3장', `${entry}학년도 수능이에요. 수능 점수로 가는 길이에요`],
@@ -3590,7 +3593,7 @@
         <div class="ut-tip">${ic('bulb')}<div><b>${esc(fd[0])} 계열은 고등학교에서 이런 과목을 들으면 좋아요</b><span>${esc(fd[2])}. 대학마다 권하는 과목이 조금씩 달라서 고1 때 목표 대학 안내를 같이 봐요</span></div></div>` : '<p class="tiny" style="margin:12px 0 0">계열을 누르면 학과가 나와요</p>'}</section>
       <section class="card c12"><div class="card-h"><h2>${ic('cal')} ${esc(NMI())}의 입시 길</h2><span class="tag blue">${R.entry}학년도</span></div>
         <div class="ut-road">${R.steps.map(([w, t, d]) => `<div class="ut-st"><i></i><div><span>${esc(w)}</span><b>${esc(t)}</b><p>${esc(d)}</p></div></div>`).join('')}</div>
-        <p class="tiny" style="margin:12px 0 0">지금 정해진 2028학년도 대입 제도 기준이에요. 바뀌면 소식 탭에 올라와요</p></section>
+        <p class="tiny" style="margin:12px 0 0">2028학년도부터 바뀐 대입 제도(통합형 수능·내신 5등급) 기준이에요. 바뀌면 소식 탭에 올라와요</p></section>
       ${news.length ? `<section class="card c12"><div class="card-h"><h2>${ic('news')} 관련 소식</h2></div><div class="list">${news.map((n) => `<div class="li btnlike" data-news="${esc(n.id)}"><div class="ico">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'sm') : ic('news')}</div><div class="body"><div class="t">${esc(n.title)}</div><div class="d">${md(n.date)} · ${esc(n.scope || '')}</div></div><span class="chev"></span></div>`).join('')}</div></section>` : ''}
     </div>`;
   }
@@ -4461,7 +4464,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610270142'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610270204'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -4481,6 +4484,173 @@
       const sh = $('#rp-share', el); if (sh) sh.onclick = async () => { try { await navigator.share({ files: [file] }); sent(); toast('보냈어요'); } catch (e) { if (e && e.name !== 'AbortError') toast('공유가 안 돼요. 그림 복사로 보내 주세요'); } };
       $('#rp-copy', el).onclick = async () => { try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); sent(); toast(`복사했어요. 카톡 ${who} 방에 붙여 넣어요`); } catch (e) { toast('복사가 안 돼요. 그림 저장으로 보내 주세요'); } };
       $('#rp-save', el).onclick = () => setTimeout(sent, 300);
+    });
+  }
+
+  // ───────── 엄마 리포트 (10/27 선생님: 기간만 고르면 그동안 한 공부와 성장을 그림 한 장으로 · 정윤 엄마가 걱정이 많아요) ─────────
+  // 앱에 남은 기록만 써요. 0인 칸은 빼고, 지난 같은 길이 기간과 견줘요. 선생님 한마디는 기간마다 S.rptNote 에 남아요
+  const dSpan = (a, b) => { const o = []; for (let d = a; d <= b && o.length < 400; d = addD(d, 1)) o.push(d); return o; };
+  const wdOf = (d) => '일월화수목금토'[new Date(d + 'T00:00:00').getDay()];
+  const mdw = (d) => `${md(d)} (${wdOf(d)})`;
+  function prPeriods() {
+    const t = today(), mon = addD(t, -((new Date(t + 'T00:00:00').getDay() + 6) % 7));
+    return [['today', '오늘', t, t], ['yday', '어제', addD(t, -1), addD(t, -1)], ['week', '이번 주', mon, t], ['lweek', '지난주', addD(mon, -7), addD(mon, -1)], ['d7', '최근 7일', addD(t, -6), t], ['month', '이번 달', t.slice(0, 8) + '01', t], ['own', '직접 고르기']];
+  }
+  const prCat = (it) => {
+    const g = String(it.go || '');
+    if (it.i === 'clock' || it.i === 'tomato') return null;
+    if (g.startsWith('fincid:')) return '기말 예습'; if (g.startsWith('ink:')) return '인강'; if (g.startsWith('my:')) return '학원·학교 숙제';
+    if (g.startsWith('news:')) return '기사 읽기'; if (g.startsWith('perf:')) return '수행평가 준비'; if (it.i === 'sci') return '과학 문제';
+    if (it.i === 'pin') return '선생님 숙제'; if (it.t === '학교에서 한 것') return '학교 기록'; return '영어';
+  };
+  function prStats(a, b) {
+    const days = dSpan(a, b), inR = (d) => !!d && d >= a && d <= b, atR = (at) => !!at && inR(dOf(at));
+    const mins = days.map((d) => sMin(d)), tot = mins.reduce((x, y) => x + y, 0), on = mins.filter((m) => m > 0).length;
+    let run = 0, best = 0; for (const m of mins) { run = m > 0 ? run + 1 : 0; best = Math.max(best, run); }
+    const items = days.flatMap((d) => dayItems(d).map((it) => ({ ...it, day: d, cat: prCat(it) }))).filter((x) => x.cat);
+    const cats = {}; for (const it of items) (cats[it.cat] = cats[it.cat] || []).push(it);
+    const acc = [], add = (t, n, ok) => { if (n) acc.push({ t, n, ok }); };
+    { const I = inkS(); let n = 0, ok = 0; for (const [k, v] of Object.entries(I.at)) if (inR(v) && I.st[k] === 'done' && I.q[k]) { n += I.q[k].n || 0; ok += I.q[k].ok || 0; } add('인강 미니 퀴즈', n, ok); }
+    { let n = 0, ok = 0, wn = 0, wok = 0; for (const d of days) { const e = (S.eng.days || {})[d]; if (!e) continue; for (const o of [e.uans, e.uans2]) for (const v of Object.values(o || {})) { n++; if (v && v.ok) ok++; } for (const v of Object.values(e.wans || {})) { wn++; if (v && v.ok) wok++; } } add('천일문 문제', n, ok); add('워드마스터 단어', wn, wok); }
+    { let n = 0, ok = 0; for (const v of Object.values(S.eng.g3ans || {})) if (v && atR(v.at)) { n++; if (v.ok) ok++; } add('고3 영어 문제', n, ok); }
+    { let n = 0, ok = 0; for (const d of days) for (const v of Object.values(((S.sci.days || {})[d] || {}).ans || {})) { n++; if (v && v.ok) ok++; } add('과학 문제', n, ok); }
+    { let n = 0, ok = 0; for (const A of Object.values(finS().ans)) for (const v of Object.values(A || {})) if (v && typeof v === 'object' && atR(v.at) && 'ok' in v) { n++; if (v.ok) ok++; } add('기말 예습 문제', n, ok); }
+    const wrOk = Object.values(S.wrong || {}).filter((w) => w.cleared && atR(w.clearedAt)).length;
+    const mocks = []; for (const m of MOCKS) for (const s of m.subjects || []) { const r = (S.mock[m.id] || {})[s.key]; if (r && r.done && atR(r.at)) { const x = mockResult(m, s.key); if (x) mocks.push({ t: `${m.title.replace(/학력평가/, '학평')} ${s.name || SUBJ_NAMES[s.key]}`, raw: x.raw, total: x.total, grade: x.grade }); } }
+    const perf = PERF.filter((x) => inR((S.perfDone || {})[x.id])).map((x) => x.title);
+    const tom = days.reduce((x, d) => x + ((pomo().days[d] || {}).n || 0), 0);
+    const qn = acc.reduce((x, r) => x + r.n, 0), qok = acc.reduce((x, r) => x + r.ok, 0);
+    return { a, b, days, mins, tot, on, best, items, cats, acc, qn, qok, wrOk, mocks, perf, tom };
+  }
+  // 그림: 먼저 높이를 재고(ops 에 그릴 일을 쌓고) 그다음 한 번에 그려요. 엄마가 휴대폰 카톡에서 보니까 글자를 크게
+  function prDraw(R, P, note, name) {
+    const W = 720, M = 36, CW = W - M * 2, SC = 2, FF = '"Pretendard", "Apple SD Gothic Neo", system-ui, sans-serif', fnt = (w, s) => `${w} ${s}px ${FF}`;
+    const C = { t1: '#191f28', t2: '#4e5968', t3: '#8b95a1', line: '#e5e8eb', fill: '#f2f4f6', blue: '#3182f6', bsoft: '#e8f3ff', green: '#03b26c', gsoft: '#e5f8ef' };
+    const mc = document.createElement('canvas').getContext('2d'), ops = []; let y = M;
+    const wrap = (t, w, f) => { mc.font = f; const out = []; for (const para of String(t || '').split('\n')) { let line = ''; for (const tk of para.split(/(\s+)/)) { if (mc.measureText(line + tk).width <= w) { line += tk; continue; } if (line.trim()) out.push(line.trimEnd()); line = tk.trimStart(); while (mc.measureText(line).width > w) { let k = line.length; while (k > 1 && mc.measureText(line.slice(0, k)).width > w) k--; out.push(line.slice(0, k)); line = line.slice(k); } } out.push(line.trimEnd()); } return out; };
+    const rr = (c, x, yy, w, h, r) => { c.beginPath(); c.moveTo(x + r, yy); c.arcTo(x + w, yy, x + w, yy + h, r); c.arcTo(x + w, yy + h, x, yy + h, r); c.arcTo(x, yy + h, x, yy, r); c.arcTo(x, yy, x + w, yy, r); c.closePath(); };
+    const text = (t, x, yy, f, col, al = 'left') => ops.push((c) => { c.font = f; c.fillStyle = col; c.textAlign = al; c.textBaseline = 'alphabetic'; c.fillText(t, x, yy); });
+    const box = (x, yy, w, h, r, col) => ops.push((c) => { rr(c, x, yy, w, h, r); c.fillStyle = col; c.fill(); });
+    const head = (t, right) => { y += 36; text(t, M, y, fnt(800, 21), C.t1); if (right) text(right, W - M, y, fnt(700, 16), C.blue, 'right'); y += 18; };
+    const len = R.days.length, one = len === 1;
+    // 머리
+    text('말랑대학 · 공부 리포트', M, y + 14, fnt(700, 15), C.blue); y += 52;
+    text(`${name} 공부 리포트`, M, y, fnt(800, 32), C.t1); y += 34;
+    text(one ? mdw(R.a) : `${mdw(R.a)} ~ ${mdw(R.b)} · ${len}일`, M, y, fnt(500, 17), C.t3); y += 26;
+    // 큰 숫자 세 칸
+    const tiles = [];
+    if (R.tot) tiles.push(['공부 시간', hm(R.tot), one ? '직접 적은 시간·타이머' : `${len}일 모두 합해서`]);
+    if (!one && R.on) tiles.push(['공부한 날', `${R.on}일`, `${len}일 중`]);
+    if (!one && R.on) tiles.push(['하루 평균', hm(R.tot / R.on), '공부한 날 기준']);
+    if (tiles.length < 3 && R.items.length) tiles.push(['끝낸 공부', `${R.items.length}개`, '숙제·인강·문제']);
+    if (tiles.length < 3 && R.qn) tiles.push(['푼 문제', `${R.qn}문제`, `${Math.round((R.qok / R.qn) * 100)}% 맞힘`]);
+    if (tiles.length) {
+      const n = Math.min(3, tiles.length), g = 12, tw = (CW - g * (n - 1)) / n, th = 124;
+      tiles.slice(0, 3).forEach(([l, v, s], k) => { const x = M + k * (tw + g); box(x, y, tw, th, 18, k === 0 ? C.bsoft : C.fill); text(l, x + 20, y + 34, fnt(600, 15), C.t2); text(v, x + 20, y + 76, fnt(800, v.length > 7 ? 24 : 30), k === 0 ? C.blue : C.t1); text(s, x + 20, y + 104, fnt(500, 13), C.t3); });
+      y += th;
+    } else { y += 12; text('이 기간에는 앱에 남은 기록이 없어요', M, y + 20, fnt(600, 18), C.t2); y += 28; }
+    // 성장: 바로 앞 같은 길이 기간과 견줘요
+    const g = [];
+    const cmp = (l, a0, b0, f) => { if (!a0) return; /* 앞 기간 기록이 없으면(앱 쓰기 전) 「안 했다」로 읽히니 견주지 않아요 */ const up = b0 > a0, pct = a0 ? Math.round(((b0 - a0) / a0) * 100) : null; g.push({ l, s: `${f(a0)} → ${f(b0)}`, d: a0 ? (pct > 0 ? `+${pct}%` : pct < 0 ? `${pct}%` : '같아요') : b0 ? '새로 시작' : '', up: up || pct === 0 }); };
+    if (P.tot || P.items.length || P.qn) {
+      cmp('공부 시간', P.tot, R.tot, (m) => (m ? hm(m) : '0분'));
+      cmp('끝낸 공부', P.items.length, R.items.length, (n) => `${n}개`);
+      cmp('푼 문제', P.qn, R.qn, (n) => `${n}문제`);
+      if (P.qn >= 5 && R.qn >= 5) { const pa = Math.round((P.qok / P.qn) * 100), pb = Math.round((R.qok / R.qn) * 100); g.push({ l: '맞힌 비율', s: `${pa}% → ${pb}%`, d: pb > pa ? `+${pb - pa}%p` : pb < pa ? `${pb - pa}%p` : '같아요', up: pb >= pa }); }
+    }
+    if (g.length || R.best >= 2) {
+      head('지난번보다', one ? `${md(P.a)}과 견줘서` : `${md(P.a)}~${md(P.b)}과 견줘서`);
+      for (const r of g) { y += 10; box(M, y, CW, 60, 14, r.up ? C.gsoft : C.fill); text(r.l, M + 20, y + 38, fnt(700, 17), C.t1); text(r.s, M + 150, y + 38, fnt(500, 16), C.t2); text(r.d, W - M - 20, y + 38, fnt(800, 18), r.up ? C.green : C.t3, 'right'); y += 60; }
+      if (R.best >= 2) { y += 10; box(M, y, CW, 60, 14, C.bsoft); text('이어서 공부한 날', M + 20, y + 38, fnt(700, 17), C.t1); text(`${R.best}일 연속`, W - M - 20, y + 38, fnt(800, 18), C.blue, 'right'); y += 60; }
+    }
+    // 날짜별 막대
+    if (R.tot && !one) {
+      head('날짜별 공부 시간', `가장 많이 ${hm(Math.max(...R.mins))}`);
+      const ch = 170, top = y + 34, base = top + ch, mx = Math.max(...R.mins), bw = CW / len, w0 = Math.min(44, bw * 0.62), lab = len <= 10;
+      ops.push((c) => { c.strokeStyle = C.line; c.lineWidth = 1; c.beginPath(); c.moveTo(M, base + 0.5); c.lineTo(W - M, base + 0.5); c.stroke(); });
+      R.days.forEach((d, k) => {
+        const m = R.mins[k], h = m ? Math.max(6, (m / mx) * ch) : 0, cx = M + bw * k + bw / 2;
+        if (h) box(cx - w0 / 2, base - h, w0, h, Math.min(8, w0 / 2), m === mx ? C.blue : '#90c2ff');
+        if (lab && m) text(hm(m).replace(' ', ''), cx, base - h - 8, fnt(700, len > 7 ? 11 : 13), m === mx ? C.blue : C.t2, 'center');
+        if (lab || k % Math.ceil(len / 10) === 0 || k === len - 1) { text(lab ? `${+d.slice(8)}일` : `${+d.slice(5, 7)}/${+d.slice(8)}`, cx, base + 22, fnt(600, 13), C.t2, 'center'); if (lab) text(wdOf(d), cx, base + 40, fnt(500, 12), C.t3, 'center'); }
+      });
+      y = base + (lab ? 44 : 26);
+    }
+    // 끝낸 공부 (과목·종류별)
+    if (R.items.length) {
+      head('끝낸 공부', `모두 ${R.items.length}개`);
+      for (const [cat, L] of Object.entries(R.cats).sort((p, q) => q[1].length - p[1].length)) {
+        const ex = [...new Set(L.map((x) => x.t.replace(/^(국어|과학|한국사|사회|역사|통합사회|통합과학)\s*인강 · /, '$1 · ')))], lines = ex.slice(0, 3).flatMap((t) => wrap('· ' + t, CW - 40, fnt(500, 15)).slice(0, 2));
+        if (ex.length > 3) lines.push(`외 ${ex.length - 3}개`);
+        const h = 58 + lines.length * 24;
+        y += 10; box(M, y, CW, h, 16, C.fill);
+        text(cat, M + 20, y + 36, fnt(700, 18), C.t1); text(`${L.length}개`, W - M - 20, y + 36, fnt(800, 18), C.blue, 'right');
+        lines.forEach((l, k) => text(l, M + 20, y + 64 + k * 24, fnt(500, 15), C.t2));
+        y += h;
+      }
+    }
+    // 문제 푼 결과
+    if (R.acc.length || R.wrOk) {
+      head('문제 푼 결과', R.qn ? `${R.qn}문제 중 ${R.qok}개 맞힘` : '');
+      for (const r of R.acc) {
+        const p = Math.round((r.ok / r.n) * 100); y += 10;
+        text(r.t, M, y + 22, fnt(600, 16), C.t1); text(`${r.n}개 중 ${r.ok}개 · ${p}%`, W - M, y + 22, fnt(700, 16), C.t2, 'right');
+        box(M, y + 34, CW, 10, 5, C.fill); if (r.ok) box(M, y + 34, Math.max(10, (CW * r.ok) / r.n), 10, 5, p >= 80 ? C.blue : '#90c2ff');
+        y += 48;
+      }
+      if (R.wrOk) { y += 10; box(M, y, CW, 60, 14, C.gsoft); text('틀렸던 문제 다시 풀어서 맞힘', M + 20, y + 38, fnt(700, 17), C.t1); text(`${R.wrOk}문제`, W - M - 20, y + 38, fnt(800, 18), C.green, 'right'); y += 60; }
+    }
+    if (R.mocks.length) { head('모의고사'); for (const m of R.mocks) { y += 10; box(M, y, CW, 56, 14, C.fill); text(m.t, M + 20, y + 35, fnt(600, 16), C.t1); text(`${m.raw}점${m.grade ? ` · ${m.grade}등급` : ''}`, W - M - 20, y + 35, fnt(800, 17), C.blue, 'right'); y += 56; } }
+    if (R.perf.length) { head('수행평가 준비 끝'); for (const t of R.perf) for (const l of wrap('· ' + t, CW, fnt(500, 16))) { y += 26; text(l, M, y, fnt(500, 16), C.t2); } y += 4; }
+    if (R.tom) { y += 20; text(`타이머로 집중한 토마토 ${R.tom}개`, M, y + 4, fnt(600, 15), C.t3); }
+    // 선생님 한마디
+    if (note) {
+      const ls = wrap(note, CW - 48, fnt(500, 17)), h = 70 + ls.length * 28;
+      y += 36; box(M, y, CW, h, 18, C.bsoft);
+      text('선생님 한마디', M + 24, y + 38, fnt(800, 17), C.blue);
+      ls.forEach((l, k) => text(l, M + 24, y + 72 + k * 28, fnt(500, 17), C.t1));
+      y += h;
+    }
+    y += 34; text(`${name}가 말랑대학에 남긴 기록으로 만들었어요`, W / 2, y, fnt(500, 13), C.t3, 'center'); y += M;
+    const cv = document.createElement('canvas'); cv.width = W * SC; cv.height = Math.ceil(y) * SC;
+    const c = cv.getContext('2d'); c.scale(SC, SC); c.fillStyle = '#ffffff'; c.fillRect(0, 0, W, y);
+    for (const f of ops) f(c);
+    return cv;
+  }
+  function parentReport() {
+    const who = (ST.lesson && ST.lesson.parent) || '어머니', name = NMI();
+    let sel = UI.prSel || 'week', A, B, draft = null;
+    const range = () => { const p = prPeriods().find((x) => x[0] === sel); if (p && p[2]) { A = p[2]; B = p[3]; } else { A = UI.prA || addD(today(), -6); B = UI.prB || today(); if (A > B) [A, B] = [B, A]; } };
+    const nk = () => `${A}~${B}`, notes = () => (S.rptNote = S.rptNote || {});
+    const body = () => { range(); const R = prStats(A, B); const sum = [R.tot && `공부 ${hm(R.tot)}`, R.on && R.days.length > 1 && `${R.on}일 공부`, R.items.length && `끝낸 공부 ${R.items.length}개`, R.qn && `문제 ${R.qn}개`].filter(Boolean);
+      return `<div class="chips" style="margin-bottom:12px">${prPeriods().map((p) => `<button class="chip ${p[0] === sel ? 'on' : ''}" type="button" data-prp="${p[0]}">${p[1]}</button>`).join('')}</div>
+        ${sel === 'own' ? `<div class="row" style="gap:8px;margin-bottom:12px"><input class="inp" type="date" id="pr-a" value="${A}" max="${today()}"><span class="tiny">~</span><input class="inp" type="date" id="pr-b" value="${B}" max="${today()}"></div>` : ''}
+        <div class="explain" style="margin-bottom:12px"><b>${A === B ? esc(mdw(A)) : `${esc(mdw(A))} ~ ${esc(mdw(B))}`}</b><br>${sum.length ? esc(sum.join(' · ')) : '이 기간에는 앱에 남은 기록이 없어요'}</div>
+        <div class="field"><label>선생님 한마디 <span class="tiny">기간마다 따로 남아요</span></label><textarea class="inp" id="pr-note" rows="4" placeholder="예) 이번 주는 기말 예습을 거의 매일 했어요. 수학은 다음 주부터 같이 잡아 볼게요">${esc(draft != null ? draft : notes()[nk()] || '')}</textarea></div>
+        <button class="btn primary big block" id="pr-go" type="button">리포트 만들기</button>`; };
+    sheet(`<h2>${esc(who)}께 보낼 공부 리포트</h2><p class="sub">기간을 고르면 그동안 ${esc(name)}가 한 공부와 늘어난 것을 그림 한 장으로 만들어요</p><div id="pr-body"></div>`, (el) => {
+      const draw = () => {
+        $('#pr-body', el).innerHTML = body();
+        const ta = $('#pr-note', el); ta.oninput = () => { draft = ta.value; };
+        $$('[data-prp]', el).forEach((b) => (b.onclick = () => { sel = UI.prSel = b.dataset.prp; range(); draft = notes()[nk()] != null ? null : draft; draw(); }));
+        ['#pr-a', '#pr-b'].forEach((s, k) => { const i = $(s, el); if (i) i.onchange = () => { if (!i.value) return; if (k) UI.prB = i.value; else UI.prA = i.value; draw(); }; });
+        $('#pr-go', el).onclick = async () => {
+          range(); const note = ta.value.trim(); if (note) notes()[nk()] = note; else delete notes()[nk()]; save('rptNote'); draft = null;
+          try { await document.fonts.load('800 20px Pretendard'); await document.fonts.load('500 16px Pretendard'); } catch (e) {}
+          const len = dSpan(A, B).length, cv = prDraw(prStats(A, B), prStats(addD(A, -len), addD(A, -1)), note, name);
+          const blob = await new Promise((r) => cv.toBlob(r, 'image/png')), file = new File([blob], `${NM()}_공부리포트_${A === B ? A : A + '_' + B}.png`, { type: 'image/png' });
+          const url = URL.createObjectURL(blob), canShare = !!(navigator.canShare && navigator.canShare({ files: [file] }));
+          sheet(`<h2>${esc(who)}께 보내기</h2><p class="sub">${canShare ? '「카톡으로 보내기」를 누르고 ' + esc(who) + (jongOf(who) ? '을' : '를') + ' 고르면 돼요' : '「그림 복사」 뒤 카카오톡 ' + esc(who) + ' 방에 붙여 넣으면(⌘V) 돼요'}</p>
+            <img class="rp-img" src="${url}" alt="공부 리포트">
+            ${canShare ? '<button class="btn primary big block" id="pr-share" type="button">카톡으로 보내기</button>' : ''}
+            <button class="btn ${canShare ? '' : 'primary'} big block" id="pr-copy" type="button" style="margin-top:8px">그림 복사</button>
+            <a class="btn big block" style="text-decoration:none;margin-top:8px" href="${url}" download="${esc(file.name)}">그림 저장</a>`, (e2) => {
+            const sh = $('#pr-share', e2); if (sh) sh.onclick = async () => { try { await navigator.share({ files: [file] }); toast('보냈어요'); } catch (e) { if (e && e.name !== 'AbortError') toast('공유가 안 돼요. 그림 복사로 보내 주세요'); } };
+            $('#pr-copy', e2).onclick = async () => { try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); toast(`복사했어요. 카톡 ${who} 방에 붙여 넣어요`); } catch (e) { toast('복사가 안 돼요. 그림 저장으로 보내 주세요'); } };
+          });
+        };
+      };
+      draw();
     });
   }
 
@@ -5280,6 +5450,7 @@
     $$('[data-drdel]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); S.drills = (S.drills || []).filter((x) => x.id !== b.dataset.drdel); save('drills'); render(); }));
     if (!UI.run && UI.tab === 'home') bindQlog();
     $$('[data-stu]').forEach((b) => (b.onclick = () => switchStu(b.dataset.stu)));
+    $$('[data-prep]').forEach((b) => (b.onclick = () => { if (TEACHER) parentReport(); }));
     const co = $('#career-ok'); if (co) co.onclick = () => { S.profile._careerSeen = S.profile._careerAt; save('profile'); render(); };
     $$('[data-ins]').forEach((b) => (b.onclick = () => doInsight(b.dataset.ins)));
     const pk = $('#pk-all'); if (pk) pk.onclick = picksSheet;
