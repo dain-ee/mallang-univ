@@ -1765,3 +1765,9 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .sj-g::-webkit-scrollbar { display: none; }
 .sj { flex: 1 0 auto; height: 36px; padding: 0 12px; border: 0; border-radius: 9px; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--t3); cursor: pointer; }
 .sj.on { background: var(--card); color: var(--t1); box-shadow: 0 1px 3px rgba(0,27,55,.1); }
+/* 체크: 동그라미 정가운데 (SVG) */
+.tk i { display: grid; place-items: center; }
+.tk i::after { content: ""; position: static; width: 14px; height: 14px; border: 0; transform: none; background: center / 14px 14px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 7.2l2.7 2.7L11 4.6' fill='none' stroke='%23b0b8c1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.tk.on i::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 7.2l2.7 2.7L11 4.6' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.dform select.inp { text-align: left; text-align-last: left; padding: 0 40px 0 14px; min-width: 200px; height: 44px; font-size: 15px; font-weight: 600; }
+.dform .d-meta select.inp { min-width: 88px; height: 36px; font-size: 14px; }

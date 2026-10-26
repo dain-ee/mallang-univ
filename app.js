@@ -3236,7 +3236,7 @@
   const LS0 = ST.lesson || {};
   const MONTHLY = LS0.count === 'month';
   const ymOf = (d) => String(d).slice(0, 7);
-  function cls() { if (!S.cls) S.cls = { wd: LS0.wd || [], time: LS0.time || '', level: LS0.level || 'std', off: [], mtot: { ...(LS0.mtot || {}) }, list: (LS0.list || []).map((x, i) => ({ id: 'l' + i, ...x })) }; const c = S.cls; c.off = c.off || []; c.mtot = c.mtot || {}; return c; }
+  function cls() { if (!S.cls) S.cls = { wd: LS0.wd || [], time: LS0.time || '', level: LS0.level || 'std', off: [], mtot: { ...(LS0.mtot || {}) }, list: (LS0.list || []).map((x, i) => ({ id: 'l' + i, ...x })) }; const c = S.cls; c.off = c.off || []; c.mtot = c.mtot || {}; seedFix(LS0, c.list); return c; }
   function qIds(un) { const all = (un.questions || []).map((_, k) => k); if (!TUTOR || cls().level !== 'basic') return all; const e = all.filter((k) => EASY.includes(un.questions[k].type)); return e.length >= 3 ? e : all; }
   const lsnDone = (l) => !l.plan && !!(l.held || l.lesson || (l.units || []).length || (l.gram || []).length || l.sent);
   const lessonWhen = (l) => `${md(l.date)}(${WDK[new Date(l.date + 'T00:00:00').getDay()]})${l.time ? ' ' + timeKo(l.time) : ''}`;
@@ -3351,7 +3351,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261148'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261154'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -3376,7 +3376,9 @@
 
   // ───────── 선생님 화면 (선생님으로 들어오면 첫 화면 · 학생 관리) ─────────
   // 탭: 홈(이번 주 · 할 일 · 학생) · 수업 일정(달력) · 리포트(보낸 것 · 안 보낸 것) · 학생(코드 · 수업 설정). 학생 화면은 새 탭으로 열어요
-  const dCls = (r, d) => { const L = r.lesson || {}, c = d && d.cls; return { total: (c && c.total) || '', cyc: (c && c.cyc) || '', wd: c ? c.wd || [] : L.wd || [], time: c ? c.time || '' : L.time || '', off: (c && c.off) || [], mtot: (c && c.mtot) || { ...(L.mtot || {}) }, list: c ? c.list || [] : (L.list || []).map((x, i) => ({ id: 'l' + i, ...x })) }; };
+  // 처음 기록(students.json lesson.list)의 「보냄」은 서버에 먼저 저장된 옛 기록에 없을 수 있어서 같이 읽어요
+  function seedFix(lz, list) { (lz.list || []).forEach((s0, i) => { const it = s0.sent && list.find((l) => l.id === 'l' + i && l.date === s0.date); if (it && !it.sent) it.sent = s0.sent; }); return list; }
+  const dCls = (r, d) => { const L = r.lesson || {}, c = d && d.cls; if (c && c.list) seedFix(L, c.list); return { total: (c && c.total) || '', cyc: (c && c.cyc) || '', wd: c ? c.wd || [] : L.wd || [], time: c ? c.time || '' : L.time || '', off: (c && c.off) || [], mtot: (c && c.mtot) || { ...(L.mtot || {}) }, list: c ? c.list || [] : (L.list || []).map((x, i) => ({ id: 'l' + i, ...x })) }; };
   function solvedSince(d, t0) {
     if (!d) return 0; let n = 0; const at = (x) => x && typeof x === 'object' && (x.at || 0) >= t0;
     const each = (o) => { for (const v of Object.values(o || {})) if (at(v)) n++; };
