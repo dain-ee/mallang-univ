@@ -2231,3 +2231,8 @@ a.btn, a.btn:hover { text-decoration: none; }
 .pf-fig { margin: 0 0 12px; }
 .pf-fig .pf-img { margin-top: 0; max-height: 420px; object-fit: contain; background: var(--fill); }
 .pf-fig figcaption { margin-top: 4px; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+.pf-body { min-width: 0; overflow-wrap: anywhere; }
+.pf-body table { table-layout: fixed; }
+.pf-body th { width: 64px; word-break: keep-all; }
+.pf-body td { word-break: keep-all; overflow-wrap: anywhere; }
