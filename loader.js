@@ -56,8 +56,10 @@ window.__boot = [];
     if (!st.syncKey) { ask(); return; }
     let data = null;
     try {
-      const fid = (await hex('univ:' + st.syncKey)).slice(0, 20);
-      const r = await fetch('c/' + fid + '.bin?v=' + Date.now());
+      // 선생님은 고른 학생의 묶음을 받아요 (학생 바꾸기). 없으면 예전 묶음
+      const tch = st.role === 'teacher' || st.role === 'admin';
+      let r = tch ? await fetch('c/' + (await hex('univ:' + st.syncKey + ':' + (st.who || '정윤'))).slice(0, 20) + '.bin?v=' + Date.now()) : null;
+      if (!r || !r.ok) r = await fetch('c/' + (await hex('univ:' + st.syncKey)).slice(0, 20) + '.bin?v=' + Date.now());
       if (!r.ok) throw new Error('content ' + r.status);
       data = JSON.parse(await gunzip(await decrypt(new Uint8Array(await r.arrayBuffer()), await hex(st.syncKey))));
       try { localStorage.setItem(CKEY, JSON.stringify(data)); } catch (e) {}

@@ -1601,3 +1601,20 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 /* 천일문 표: 틀린 형태 줄은 빨갛게, 예문은 줄 그어서 (맞는 걸로 착각하지 않게) */
 .cl-t tr.cl-no td { background: color-mix(in srgb, var(--red) 8%, transparent); color: var(--red); font-weight: 600; }
 .cl-t tr.cl-no td:nth-child(2) { text-decoration: line-through; text-decoration-thickness: 2px; }
+
+/* 선생님: 학생 바꾸기 · 우리 학생들 (2026-10-26) */
+.teacher-band { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.tb-stu { display: flex; gap: 4px; flex-wrap: wrap; }
+.tb-stu button { border: 0; padding: 6px 12px; border-radius: 999px; background: var(--card); color: var(--t2); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.tb-stu button.on { background: var(--blue); color: #fff; }
+.tb-stu small { font-size: 11px; opacity: .8; }
+.roster .li { width: 100%; text-align: left; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; }
+.ro-av { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--blue-soft); color: var(--blue); font-weight: 700; font-size: 14px; }
+.career-new { border: 1.5px solid var(--blue-l); }
+/* 과외 수업 카드 */
+.lesson .ls-next { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; background: var(--fill); border-radius: 14px; }
+.lesson .ls-next > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.lesson .ls-next b { font-size: 17px; }
+.lesson .ls-last { margin-top: 16px; }
+.lesson .ls-ul { margin: 6px 0 0; padding-left: 18px; color: var(--t2); line-height: 1.7; }
+.rp-img { display: block; width: 100%; max-width: 420px; margin: 0 auto 16px; border: 1px solid var(--line); border-radius: 12px; }
