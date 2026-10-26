@@ -190,7 +190,7 @@
   }
   // 오답 묶음
   const wrongList = () => Object.entries(S.wrong || {}).map(([id, w]) => ({ id, ...w })).sort((a, b) => (b.at || 0) - (a.at || 0));
-  const openWrong = () => wrongList().filter((w) => !w.cleared);
+  const openWrong = () => wrongList().filter((w) => !w.cleared && !(w.src === 'eng' && w.ref && w.ref.v !== 2 && CH_UNITS.some((u) => u.v2)));
   const SUBJ_NAMES = { kor: '국어', math: '수학', eng: '영어', hist: '한국사', soc: '통합사회', sci: '통합과학' };
   if (TUTOR) Object.assign(SUBJ_NAMES, { hist: '역사', sci: '과학' });  // 과외 학생(윤건) 시험 오답은 중학교 역사·과학
 
@@ -216,7 +216,15 @@
 
   // ───────── 영어 매일 (천일문 유닛 1개 + 단어 10개 시험) ─────────
   const ENG = D.english || {};
-  const CH_UNITS = (ENG.cheonil || []).flatMap((ch) => (ch.units || []).map((u) => ({ ...u, ch: ch.ch, chTitle: ch.title })));
+  // 새 천일문(2026-10-26): 유닛마다 개념 → 빈칸 → 문제 → 짧은 독해. 윤건(lesson.level basic)은 기본, 정윤·지원은 수능 수준(std). 예전 문제는 버렸어요
+  const CH_LV = TUTOR && (ST.lesson || {}).level === 'basic' ? 'basic' : 'std';
+  const ch2Qs = (L) => !L ? [] : [
+    ...(L.blanks || []).map((b) => ({ type: '빈칸', q: `빈칸에 알맞은 말을 쓰세요<br><b>${String(b.en).replace('___', '______')}</b>`, ko: b.ko, hint: b.hint, answerText: (b.answers || [])[0] || '', accept: b.answers || [], exp: [b.ko, b.hint].filter(Boolean).join(' · '), _mixed: 1 })),
+    ...(L.qs || []).map((q) => ({ ...q, _mixed: 1 })),
+    ...((L.read && L.read.qs) || []).map((q) => ({ ...q, type: '독해', passage: L.read.passage, ptitle: L.read.title, pko: L.read.ko, _mixed: 1 })),
+  ];
+  const CH_UNITS = (ENG.cheonil || []).flatMap((ch) => (ch.units || []).map((u) => (u.q2 ? { ...u, questions: ch2Qs(u.q2[CH_LV] || u.q2.std), concept: u.q2.concept || u.concept, v2: 1, ch: ch.ch, chTitle: ch.title } : { ...u, ch: ch.ch, chTitle: ch.title })));
+  const uKey = (un) => un.ch + '-' + un.unit + (un.v2 ? ':2' : '');  // 새 문제는 기록 칸을 따로 (예전 기록과 번호가 안 섞이게)
   // 정답이 앞쪽 보기에 몰려 있어서, 문제마다 늘 같은 순서로 섞어 보여 줌
   const seeded = (str) => { let h = 2166136261; for (const c of str) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return () => ((h = Math.imul(h ^ (h >>> 15), 2246822507) ^ Math.imul(h ^ (h >>> 13), 3266489909)) >>> 0) / 4294967296; };
   for (const u of CH_UNITS) (u.questions || []).forEach((q, k) => { if (!q.choices || typeof q.answer !== 'number' || q._mixed || q.choices.every((c) => /^[①②③④⑤]/.test(String(c).trim()))) return; const r = seeded(`${u.ch}-${u.unit}-${k}`); const perm = q.choices.map((_, i) => i); for (let i = perm.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [perm[i], perm[j]] = [perm[j], perm[i]]; } q.choices = perm.map((i) => q.choices[i]); q.answer = perm.indexOf(q.answer); q._mixed = 1; });
@@ -1475,7 +1483,7 @@
 
   // ───────── 문제 풀기 화면 (과학 · 영어 · 오답 다시 풀기 공용) ─────────
   function qBody(q) {
-    return `${q.q ? `<div class="q-text">${rich(q.q)}</div>` : ''}${q.box && q.box.length ? `<div class="q-box">${q.box.map((b) => `<div>${esc(b)}</div>`).join('')}</div>` : ''}${q.table && q.table.length ? `<div class="tbl-wrap"><table class="q-tbl">${q.table.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table></div>` : ''}`;
+    return `${q.q ? `<div class="q-text">${rich(q.q)}</div>` : ''}${q.passage ? `<div class="q-box" style="font-size:15.5px;line-height:1.85;font-weight:400">${q.ptitle ? `<b>${esc(q.ptitle)}</b><br>` : ''}${rich(q.passage)}</div>` : ''}${q.box && q.box.length ? `<div class="q-box">${q.box.map((b) => `<div>${esc(b)}</div>`).join('')}</div>` : ''}${q.table && q.table.length ? `<div class="tbl-wrap"><table class="q-tbl">${q.table.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table></div>` : ''}`;
   }
   function choicesHtml(q, pick) {
     const done = pick != null;
@@ -1767,7 +1775,7 @@
   function unitCtx() {
     const ed = engToday(true), ref = UI.run && UI.run.ref != null && UI.run.ref >= 0 ? UI.run.ref : null, un = CH_UNITS[ref != null ? ref : ed.unit];
     if (!un) return { ed, ref, un };
-    S.eng.ua = S.eng.ua || {}; const store = ref != null ? (S.eng.ua[un.ch + '-' + un.unit] = S.eng.ua[un.ch + '-' + un.unit] || {}) : ed.uans;
+    S.eng.ua = S.eng.ua || {}; const store = ref != null ? (S.eng.ua[uKey(un)] = S.eng.ua[uKey(un)] || {}) : ed.uans;
     return { ed, ref, un, store, ids: qIds(un) };
   }
   function unitRun() {
@@ -1801,7 +1809,8 @@
     if (!UI.run || UI.run.kind !== 'unit') return;
     const { un, store, ids, ref } = unitCtx(); if (!un) return; const cur = UI.run.show; const q = (un.questions || [])[cur]; if (!q) { const n = $('#next'); if (n) n.onclick = () => { UI.run = null; render(); }; return; }
     const keep = { kind: 'unit', ref, back: UI.run.back, g3lib: UI.run.g3lib };
-    const mark = (ok, extra) => { store[cur] = { ok, at: Date.now(), ...extra }; if (!ok) addWrong(`eng:${un.ch}-${un.unit}-${cur}`, { src: 'eng', subj: 'eng', subjName: '영어', area: '천일문 ' + (un.chTitle || ''), sub: un.title, ref: { ch: un.ch, unit: un.unit, i: cur } }); else { gotIt(`eng:${un.ch}-${un.unit}-${cur}`); clearWrong(`eng:${un.ch}-${un.unit}-${cur}`); } save('eng'); render(); };
+    const wk = `eng:${uKey(un)}-${cur}`;
+    const mark = (ok, extra) => { store[cur] = { ok, at: Date.now(), ...extra }; if (!ok) addWrong(wk, { src: 'eng', subj: 'eng', subjName: '영어', area: '천일문 ' + (un.chTitle || ''), sub: un.title, ref: { ch: un.ch, unit: un.unit, i: cur, v: un.v2 ? 2 : 0 } }); else { gotIt(wk); clearWrong(wk); } save('eng'); render(); };
     $$('[data-pick]').forEach((b) => (b.onclick = () => mark(+b.dataset.pick === q.answer, { pick: +b.dataset.pick })));
     const out = $('#ord-out'), picked = [];
     $$('[data-w]').forEach((b) => (b.onclick = () => { picked.push(q.words[+b.dataset.w]); b.remove(); out.textContent = picked.join(' '); }));
@@ -1891,7 +1900,7 @@
     let body = '', wide = false;
     if (w.src === 'sci') { const q = qById(w.qid); if (!q) return head; body = `<div class="card"><div class="q-no">${esc(w.sub || '')}</div><div style="margin-top:8px">${qBody(q)}</div></div>${choicesHtml(q, a ? a.pick : null)}${a ? verdict(a.ok) + (q.exp ? `<div class="explain"><b>해설</b><br>${esc(q.exp)}</div>` : '') : ''}`; UI.run.q = q; }
     else if (w.src === 'jg') { const u = jgU(w.ref.u), q = u && u.questions.find((x) => x.id === w.ref.id); if (!q) return head; body = `<div class="card"><div class="q-no">Grammar Unit ${esc(u.no)} · ${esc(q.section || '')}</div><div class="q-text jg-q" style="margin-top:8px">${q.prompt}</div>${a ? '' : q.choices ? `<div class="jg-ops">${q.choices.map((c, j) => `<button type="button" class="chip jg-op" data-jro="${j}">${esc(c)}</button>`).join('')}</div>` : '<div class="row" style="gap:8px"><input class="inp" id="jr-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="답을 써요"><button class="btn primary" id="jr-ok" type="button">확인</button></div>'}</div>${a ? verdict(a.ok) + `<div class="explain"><b>정답</b> ${esc(q.answers[0])}${q.why ? '<br>' + esc(q.why) : ''}</div>` : ''}`; UI.run.q = q; }
-    else if (w.src === 'eng') { const un = CH_UNITS.find((u) => u.ch === w.ref.ch && u.unit === w.ref.unit); const q = un && un.questions[w.ref.i]; if (!q) return head; body = `<div class="card"><div class="q-no">천일문 Unit ${esc(un.unit)} · ${esc(un.title)}</div><div style="margin-top:8px">${qBody(q)}</div></div>${q.choices ? choicesHtml(q, a ? a.pick : null) : `<div class="explain"><b>정답</b> ${esc(q.answerText || '')}</div><div class="row"><button class="btn soft" data-self="1" type="button">맞혔어요</button><button class="btn" data-self="0" type="button">아직이에요</button></div>`}${a ? verdict(a.ok) + (q.exp ? `<div class="explain">${esc(q.exp)}</div>` : '') : ''}`; UI.run.q = q; }
+    else if (w.src === 'eng') { const un = CH_UNITS.find((u) => u.ch === w.ref.ch && u.unit === w.ref.unit); const q = un && (!!un.v2 === (w.ref.v === 2)) && un.questions[w.ref.i]; if (!q) return head; body = `<div class="card"><div class="q-no">천일문 Unit ${esc(un.unit)} · ${esc(un.title)}</div><div style="margin-top:8px">${qBody(q)}</div></div>${q.choices ? choicesHtml(q, a ? a.pick : null) : `<div class="explain"><b>정답</b> ${esc(q.answerText || '')}</div><div class="row"><button class="btn soft" data-self="1" type="button">맞혔어요</button><button class="btn" data-self="0" type="button">아직이에요</button></div>`}${a ? verdict(a.ok) + (q.exp ? `<div class="explain">${esc(q.exp)}</div>` : '') : ''}`; UI.run.q = q; }
     else if (w.src === 'word') { const ww = w.word; const opts = UI.run.opts || (UI.run.opts = shuffle([ww.ko, ...shuffle(WORDS.filter((x) => x.ko !== ww.ko)).slice(0, 3).map((x) => x.ko)])); body = `<div class="card" style="text-align:center;padding:40px"><div style="font-size:32px;font-weight:800">${esc(ww.en)}</div></div><div class="choices">${opts.map((o, k) => `<button class="choice ${a ? (o === ww.ko ? 'right' : k === a.pick ? 'wrong' : '') : ''}" data-pick="${k}" type="button" ${a ? 'disabled' : ''}><span class="n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div>${a ? verdict(a.ok) : ''}`; UI.run.q = { answer: opts.indexOf(ww.ko) }; }
     else if (w.src === 'g3') { const it = G3.find((x) => x.id === w.g3) || MM.find((x) => x.id === w.g3); if (!it) return head; body = `<div class="card"><div class="q-no">${esc(it.src || '')} <span class="tag">${esc(it.type || '')}</span></div><div class="q-text" style="margin-top:8px">${esc(it.q)}</div><div class="q-box" style="font-size:15.5px;line-height:1.85;font-weight:400">${esc(it.passage)}</div></div>${choicesHtml(it, a ? a.pick : null)}${a ? verdict(a.ok) + (it.exp ? `<div class="explain">${esc(it.exp)}</div>` : '') : ''}`; UI.run.q = it; }
     else if (w.src === 'drill') { const d = allDrills().find((x) => x.id === w.set), q = d && d.qs[w.i]; if (!q) return head; body = `<div class="card"><div class="q-no">${esc(d.title || '')} ${w.i + 1}번</div><div style="margin-top:8px">${qBody(q)}</div></div>${choicesHtml(q, a ? a.pick : null)}${a ? verdict(a.ok) + (q.exp ? `<div class="explain">${esc(q.exp)}</div>` : '') : ''}`; UI.run.q = q; }
@@ -3824,7 +3833,7 @@
   const nxSubjOf = (i) => (NXSETS[(NXQ[i] || {}).set] || {}).subj || 'eng';
   const nxPerm = (q, perm, g) => ({ ...q, ...(perm && q.t === 'mc' && perm.length === q.ch.length ? { ch: perm.map((k) => q.ch[k]), a: perm.indexOf(q.a) } : {}), perm: perm || null, g: g || '', subj: nxSubjOf(q.i) });
   // 천일문(지원) · 그래머 책 덮고(주아) 문제도 시험 문항 꼴로 (오답 노트에서 다시 풀 수 있게 NXQ 에 넣어 둬요)
-  const NX_CH = !(NXD.subjects || []).length && !NXD.words && TUTOR ? CH_UNITS.flatMap((u) => (u.questions || []).map((z, k) => [u, k, z]).filter(([, , z]) => z && Array.isArray(z.choices) && z.choices.length > 1 && z.answer != null).map(([u, k, z]) => ({ i: `ch:${u.unit}:${k}`, t: 'mc', q: z.q, ch: z.choices, a: +z.answer, exp: z.exp || '', cat: `Unit ${u.unit} ${z.type || ''}`.trim(), ty: z.type, unit: u.unit }))) : [];
+  const NX_CH = !(NXD.subjects || []).length && !NXD.words && TUTOR ? CH_UNITS.flatMap((u) => (u.questions || []).map((z, k) => [u, k, z]).filter(([, , z]) => z && Array.isArray(z.choices) && z.choices.length > 1 && z.answer != null).map(([u, k, z]) => ({ i: `${u.v2 ? 'ch2' : 'ch'}:${u.unit}:${k}`, t: 'mc', q: z.q, p: z.passage || '', ch: z.choices, a: +z.answer, exp: z.exp || '', cat: `Unit ${u.unit} ${z.type || ''}`.trim(), ty: z.type, unit: u.unit }))) : [];
   const NX_JG = NXD.words ? JG.flatMap((u) => jgQs(u, 4).map((z) => { const a = z.choices ? z.choices.findIndex((c) => jgNorm(c) === jgNorm((z.answers || [])[0])) : -1; return { i: `jg4:${u.no}:${z.id}`, t: a >= 0 ? 'mc' : 'short', q: z.prompt, ch: a >= 0 ? z.choices : undefined, a: a >= 0 ? a : z.answers || [], exp: z.why || '', cat: `Unit ${u.no}${z.tag ? ' ' + z.tag : ''}`, jg: z, unit: u.no }; })) : [];
   for (const q of [...NX_CH, ...NX_JG]) if (!NXQ[q.i]) NXQ[q.i] = { q, set: 'ls' };
   const nxStore = (s, r) => (r && r.tmp) || (s.kind === 'lesson' ? (nxS().la[s.id] = nxS().la[s.id] || {}) : nxS().a);
@@ -3866,7 +3875,7 @@
       G.push({ g: '단어', n: 10, pool: (NXD.words.words || []).map((w) => ({ q: NXQ[`jw:${rnd() < 0.5 ? 'ko' : 'en'}:${w.id}`].q, w: 1 })) });
     } else {
       const re = /Unit\s*(\d+)(?:\s*[~\-–]\s*(\d+))?/gi, hotU = nums(hotT, re), allU = nums(allT, re);
-      const lv = cls().level === 'basic' ? NX_CH.filter((q) => EASY.includes(q.ty)) : NX_CH, base = lv.length >= 20 ? lv : NX_CH, ch = base.filter((q) => allU.has(+q.unit));
+      const lv = cls().level === 'basic' && !CH_UNITS.some((u) => u.v2) ? NX_CH.filter((q) => EASY.includes(q.ty)) : NX_CH, base = lv.length >= 20 ? lv : NX_CH, ch = base.filter((q) => allU.has(+q.unit));
       G.push({ g: '천일문', n: 16, pool: (ch.length ? ch : base).map((q) => ({ q, w: hotU.has(+q.unit) ? 3 : 1 })) });
       G.push({ g: '모의 빈칸', n: 4, pool: (NXD.mocks || []).flatMap((m) => m.qs.map((q) => ({ q, w: 1 }))) });
     }
@@ -3958,7 +3967,7 @@
   const MONTHLY = LS0.count === 'month';
   const ymOf = (d) => String(d).slice(0, 7);
   function cls() { if (!S.cls) S.cls = { wd: LS0.wd || [], time: LS0.time || '', level: LS0.level || 'std', off: [], mtot: { ...(LS0.mtot || {}) }, list: (LS0.list || []).map((x, i) => ({ id: 'l' + i, ...x })) }; const c = S.cls; c.off = c.off || []; c.mtot = c.mtot || {}; seedFix(LS0, c.list); return c; }
-  function qIds(un) { const all = (un.questions || []).map((_, k) => k); if (!TUTOR || cls().level !== 'basic') return all; const e = all.filter((k) => EASY.includes(un.questions[k].type)); return e.length >= 3 ? e : all; }
+  function qIds(un) { const all = (un.questions || []).map((_, k) => k); if (!TUTOR || cls().level !== 'basic' || un.v2) return all; const e = all.filter((k) => EASY.includes(un.questions[k].type)); return e.length >= 3 ? e : all; }
   const lsnDone = (l) => !l.plan && !!(l.held || l.lesson || (l.units || []).length || (l.gram || []).length || l.sent);
   const lessonWhen = (l) => `${md(l.date)}(${WDK[new Date(l.date + 'T00:00:00').getDay()]})${l.time ? ' ' + timeKo(l.time) : ''}`;
   // 앞으로의 수업 날: 매주 요일(쉬는 날 빼고) + 따로 넣은 보강·추가 수업
@@ -3989,7 +3998,7 @@
     const nx = nextLesson();
     const cu = (L.units || []).map((no) => {
       const un = cuByNo(no); if (!un) return null;
-      const st = (S.eng.ua || {})[un.ch + '-' + un.unit] || {}, ids = qIds(un), n = ids.filter((k) => st[k]).length, ok = ids.filter((k) => st[k] && st[k].ok).length;
+      const st = (S.eng.ua || {})[uKey(un)] || {}, ids = qIds(un), n = ids.filter((k) => st[k]).length, ok = ids.filter((k) => st[k] && st[k].ok).length;
       return { k: 'cu:' + un.unit, icon: 'eng', t: `천일문 Unit ${un.unit} ${un.title || ''}`.trim(), d: n >= ids.length ? `${ok}/${ids.length} 맞힘` : `${md(L.date)} 수업 · 문제 ${ids.length}개${n ? ` 중 ${n}개 풀었어요` : ''}${nx ? ` · ${md(nx.date)} 수업 전까지` : ''}`, done: n >= ids.length };
     }).filter(Boolean);
     return [...cu, ...jgTasks(L, nx)];
@@ -4072,7 +4081,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261417'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261432'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
