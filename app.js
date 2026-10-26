@@ -624,17 +624,12 @@
   }
   // 오른쪽 칸 (PC) · 휴대폰에서는 본문 안에
   // 오늘 할 일 하나의 목록: 홈 「오늘 할 일」, 숙제 탭, 배지가 모두 이걸 써요
-  // 말랑 내신 숙제 (윤건): 오늘 것만 할 일에 띄우고, 끝났는지는 말랑 내신 기록을 읽기만 해요
-  const NHW = D.naesin || null; let NHW_DONE = {};
-  const nhwToday = () => NHW && NHW.days.find((x) => x.date === today()) || null;
-  async function nhwPull() { if (!NHW) return; try { const r = await rpc('naesin_get', { p_student: U.who, p_code: NHW.key }); const d = (r && r.hwDone) || {}; if (JSON.stringify(d) !== JSON.stringify(NHW_DONE)) { NHW_DONE = d; syncRedraw(); } } catch (e) {} }
-  if (NHW) { setTimeout(nhwPull, 1500); document.addEventListener('visibilitychange', () => { if (!document.hidden) nhwPull(); }); }
   function todayTasks() {
     const sd = sciToday(), st = dayStat(sd), ed = engToday();
     const wordsDone = Object.keys(ed.wans || {}).length >= Math.min(10, wordsFor(ed.words).length) && wordsFor(ed.words).length;
     const unitDone = uDone(ed);
     const tasks = [];
-    if (TUTOR) { const nd = nhwToday(); if (nd) tasks.push({ k: 'nhw', icon: 'pin', t: `말랑 내신 숙제 ${nd.tasks.length}개`, d: NHW_DONE[nd.id] ? '다 했어요' : nd.goal, done: !!NHW_DONE[nd.id] }); for (const t of tutorTasks()) tasks.push(t); for (const h of (S.hw || []).filter((x) => !hwDone(x) && !(x.grp && x.due > today()))) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due && h.due < today() ? `${md(h.due)} 숙제 · 아직 안 했어요` : `${h.subj && h.subj !== '영어' ? h.subj + ' · ' : ''}${h.due ? md(h.due) + '까지' : '선생님 숙제'}`, done: false }); for (const h of (S.hw || []).filter((x) => hwDone(x) && x.due === today())) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: '선생님 숙제 · 끝냈어요', done: true }); return { tasks, off: false }; }
+    if (TUTOR) { for (const t of tutorTasks()) tasks.push(t); for (const h of (S.hw || []).filter((x) => !hwDone(x) && !(x.grp && x.due > today()))) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due && h.due < today() ? `${md(h.due)} 숙제 · 아직 안 했어요` : `${h.subj && h.subj !== '영어' ? h.subj + ' · ' : ''}${h.due ? md(h.due) + '까지' : '선생님 숙제'}`, done: false }); for (const h of (S.hw || []).filter((x) => hwDone(x) && x.due === today())) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: '선생님 숙제 · 끝냈어요', done: true }); return { tasks, off: false }; }
     const off = !anyTask(new Date()) && !S.sci.days[today()] && !S.eng.days[today()];
     const has = (k) => !off && (onDay(k) || !!(k === 'sci' ? S.sci.days[today()] : S.eng.days[today()]));
     // 지난번에 다 못 한 건 그대로 이어서 나와요 · 어제와 같은 숙제처럼 보이지 않게 알려 줘요
@@ -3765,6 +3760,8 @@
     }
     const WD = NXD.words; if (WD) for (const m of ['ko', 'en']) add({ id: 'jw:' + m, title: m === 'ko' ? '단어 시험 뜻 쓰기' : '단어 시험 영어 쓰기', sub: WD.when || '', subj: 'eng', kind: 'words', mode: m, qs: WD.words.map((w) => ({ i: `jw:${m}:${w.id}`, t: 'w' + m, q: m === 'ko' ? w.en : w.ko, w, cat: 'Day ' + w.day })) });
   })();
+  // 선생님 숙제가 문제 목록을 직접 담으면(h.nxq) 그 숙제만의 묶음으로 열어요 (예: 어제 틀린 것만, 단원 문제 중 진짜 문제만)
+  function nxReg() { for (const h of S.hw || []) if (h.nx && h.nxq && !NXSETS[h.nx]) { const qs = h.nxq.map((i) => (NXQ[i] || {}).q).filter(Boolean); if (!qs.length) continue; const u = (NXSETS[(NXQ[h.nxq[0]] || {}).set] || {}).unit; NXSETS[h.nx] = { id: h.nx, title: h.title, sub: '선생님 숙제', subj: (NXU[u] || {}).subj || 'eng', kind: 'q', unit: u, qs }; } }
   const nxS = () => { const x = (S.nx = S.nx || {}); x.a = x.a || {}; x.done = x.done || []; x.st = x.st || {}; x.wd = x.wd || {}; x.la = x.la || {}; x.lq = x.lq || {}; return x; };
   const plain = (h) => String(h || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   // 지문·문제 글: 밑줄(<u>)·굵게는 살리고, 빈칸(___)과 (가)·㉠·(A) 표시는 눈에 띄게
@@ -4236,7 +4233,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261808'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261813'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -4848,9 +4845,8 @@
     return `<section class="card c12 hero ls-hero"><div class="hero-band" style="background:${u ? esc(u.color) : esc(ST.color || 'var(--blue)')}"></div>${goal}
       <div class="who ${goal ? 'ls-next' : ''}"><div style="min-width:0;flex:1"><div class="goal-t">다음 수업${nx && nx.extra ? ' · 보강' : ''}</div><div class="goal-n">${nx ? `${esc(md(nx.date))} ${esc(wdName(nx.date))}` : TEACHER ? '수업 요일을 정해 주세요' : '선생님이 곧 정해 줘요'}</div><div class="goal-m">${nx && nx.time ? esc(timeKo(nx.time)) : ''}</div></div>${nx ? `<b class="dh-dd num">${dd === 0 ? '오늘' : 'D-' + dd}</b>` : ''}</div>
       ${(ST.exams || []).filter((e) => e.date >= today() && dday(e.date) <= 30).map((e) => `<div class="who ls-next"><div style="min-width:0;flex:1"><div class="goal-t">시험</div><div class="goal-n">${esc(e.title)}</div><div class="goal-m">${esc(md(e.date))} ${esc(wdName(e.date))}</div></div><b class="dh-dd num" style="color:var(--red)">${dday(e.date) === 0 ? '오늘' : 'D-' + dday(e.date)}</b></div>`).join('')}
-      <div class="dday"><div><span>지난 수업</span><b class="num">${L ? esc(md(L.date)) : '-'}</b></div><div><span>숙제</span><b class="num ${tk.length && dn === tk.length ? 'blue' : ''}">${tk.length ? `${dn} / ${tk.length}` : nhwToday() ? (NHW_DONE[nhwToday().id] ? '다 했어요' : `내신 ${nhwToday().tasks.length}개`) : '없어요'}</b></div><div><span>${third[0]}</span><b>${third[1]}</b></div></div>
+      <div class="dday"><div><span>지난 수업</span><b class="num">${L ? esc(md(L.date)) : '-'}</b></div><div><span>숙제</span><b class="num ${tk.length && dn === tk.length ? 'blue' : ''}">${tk.length ? `${dn} / ${tk.length}` : '없어요'}</b></div><div><span>${third[0]}</span><b>${third[1]}</b></div></div>
       ${L && (lines(L.lesson).length || lines(L.hw).length) ? `<div class="ls-last"><div class="tiny">${esc(md(L.date))} 수업${L.book ? ' · ' + esc(L.book) : ''}</div>${lines(L.lesson).length ? `<ul class="ls-ul">${lines(L.lesson).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}${lines(L.hw).length ? `<div class="tiny" style="margin-top:8px">숙제</div><ul class="ls-ul">${lines(L.hw).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</div>` : ''}
-      ${!tk.length && nhwToday() && !NHW_DONE[nhwToday().id] ? `<button class="btn primary big block" data-task="nhw" type="button">말랑 내신 숙제하러 가기 · ${nhwToday().tasks.length}개</button>` : ''}
       ${tk.length ? `<button class="btn primary big block" data-go="hw" type="button">${dn === tk.length ? '숙제 다 했어요 · 다시 보기' : `숙제하러 가기 · ${tk.length - dn}개 남았어요`}</button>` : ''}
       ${TEACHER ? `<div class="ls-tools"><button class="btn primary" data-lsn="" type="button">수업 적기 · 리포트 쓰기</button><button class="btn soft" data-hwadd type="button">숙제 내기</button>${L ? `<button class="btn soft" data-lsnsend="${esc(L.id)}" type="button">${esc(LS0.parent || '어머니')}께 리포트</button>${`<button class="btn" data-lsn="${esc(L.id)}" type="button">지난 기록 고치기</button>`}` : ''}<button class="btn" data-lsnset type="button">수업 날 · 난도</button></div>` : ''}</section>`;
   }
@@ -4889,6 +4885,7 @@
     main.insertAdjacentHTML('beforeend', `<div class="skel-ov" aria-hidden="true">${bars.join('')}</div>`);
   }
   function render() {
+    nxReg();
     // 1학년 2학기는 아직 학기 최종 등급이 없어서, 먼저 넣은 등급은 중간고사 등급으로 옮겨요 (한 번만)
     if (S.naesin && S.naesin['1-2'] && !S.naesin._mid12) { for (const r of Object.values(S.naesin['1-2'])) if (r && r.grade && r.midG == null && r.finG == null) { r.midG = r.grade; delete r.grade; } S.naesin._mid12 = 1; save('naesin'); }
     if (!UI.run || UI.run.kind !== 'jl') jlStop();  // 리스닝 화면을 나가면 소리도 멈춰요
@@ -4959,7 +4956,6 @@
     else if (k.startsWith('my:')) return mySheet(k.slice(3));
     else if (k.startsWith('myprep:')) { const it = myS().items.find((x) => x.id === k.slice(7)); if (!it) return; const t = today(); if (it.prep === t) { it.prep = null; toast('준비 표시를 지웠어요'); } else { it.prep = t; earn('myprep:' + it.id, 100, '수행 준비'); boom(innerWidth / 2, innerHeight * 0.4, 2); toast('준비 끝! 내일 잘해요'); } save('my'); render(); return; }
     else if (k.startsWith('ink:')) { const [, c, n] = k.split(':'); return inkLec(c, n); }
-    else if (k === 'nhw') { window.open('https://dain-ee.github.io/mallang-naesin/', '_blank'); return; }
     else if (k === 'fin') { UI.tab = 'hw'; UI.run = { kind: 'fin' }; }
     else if (k.startsWith('drill:')) { UI.tab = 'hw'; UI.run = { kind: 'drill', id: k.slice(6) }; }
     else if (k.startsWith('jg:')) { const [, u, st, sc] = k.split(':'); UI.tab = 'hw'; UI.run = { kind: 'gram', unit: +u, step: +st, secs: sc ? sc.split('') : null }; }
