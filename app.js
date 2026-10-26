@@ -640,7 +640,8 @@
     for (const d of openDrills().slice(0, 4)) tasks.push({ k: 'drill:' + d.id, icon: 'target', t: `${d.title || d.area} ${d.qs.length}문제`, d: '선생님이 낸 약한 영역 문제', done: false });
     if (has('g3') && G3.length) { const g = G3[ed.g3 || 0]; tasks.push({ k: 'g3', icon: 'eng', t: '고3 영어 한 문제', d: g3Did(ed) ? '다 풀었어요 · 문장 분석 보기' : cdesc('g3', g ? `${g.type || ''} · 문장 분석과 천일문 연결` : ''), done: g3Did(ed) }); }
     if (has('sci') && SCI.concepts.length) tasks.push({ k: 'sci', icon: 'sci', t: sd.one ? `과학 개념: ${(SCI.concepts.find((x) => x.id === sd.c) || {}).title || ''}` : `오늘의 과학 ${st.n}문제`, d: sd.one && !sd.read ? `교과서 개념 보고 문제 ${st.n}개` : st.done >= st.n ? `${st.ok}/${st.n} 맞힘${st.all > st.n ? ` · 깊게 ${st.all - st.n}문제 더` : ''}` : `${st.done}/${st.n} 풀었어요`, done: st.done >= st.n });
-    if (FIN_ON) { const L = finToday(), n = L.filter(finDone).length; if (L.length) tasks.push({ k: 'fin', icon: 'books', t: `기말 개념 ${L.length}개`, d: n >= L.length ? '오늘 것 끝 · 미리 더 해도 돼요' : `${[...new Set(L.map((c) => c.sname))].join('·')} · 읽고 3문제씩 · ${n}/${L.length}`, done: n >= L.length }); }
+    // 기말 개념은 과목마다 한 줄, 맨 위에 (한국사가 섞여 안 보인다고 해서 10/26)
+    if (FIN_ON) { const L = finToday(), subs = [...new Set(L.map((c) => c.subj))].sort((x, y) => (y === 'hist') - (x === 'hist')); tasks.unshift(...subs.map((sj) => { const M = L.filter((c) => c.subj === sj), n = M.filter(finDone).length, due = FIN_DUE[sj]; return { k: 'fin:' + sj, icon: sj === 'hist' ? 'scroll' : 'books', t: `${M[0].sname} 기말 개념 ${M.length}개`, d: n >= M.length ? '오늘 것 끝 · 미리 더 해도 돼요' : `${M.map((c) => c.title).join(' · ')} · 읽고 3문제씩 · ${n}/${M.length}${due ? ` · ${md(due)}까지 한 번 다` : ''}`, done: n >= M.length }; })); }
     if (has('unit') && CH_UNITS.length) { const un = CH_UNITS[ed.unit] || CH_UNITS[CH_UNITS.length - 1]; tasks.push({ k: 'unit', icon: 'eng', t: `천일문 ${un.unit ? 'Unit ' + un.unit : ''} ${un.title || ''}`.trim(), d: unitDone ? '다 했어요' : cdesc('unit', '개념 · 문장 · 문제'), done: !!unitDone }); }
     if (has('words') && WORDS.length) tasks.push({ k: 'words', icon: 'books', t: '워드마스터 단어 10개 시험', d: wordsDone ? `${Object.values(ed.wans).filter((x) => x.ok).length}/10 맞힘` : cdesc('words', wordsLabel(ed.words)), done: !!wordsDone });
     // 매일 기사 하나: 오늘 읽은 기사가 있으면 그게 오늘 것(끝), 없으면 안 읽은 대이슈 → 안 읽은 최신 기사
@@ -4241,7 +4242,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261833'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261837'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -4964,7 +4965,7 @@
     else if (k.startsWith('my:')) return mySheet(k.slice(3));
     else if (k.startsWith('myprep:')) { const it = myS().items.find((x) => x.id === k.slice(7)); if (!it) return; const t = today(); if (it.prep === t) { it.prep = null; toast('준비 표시를 지웠어요'); } else { it.prep = t; earn('myprep:' + it.id, 100, '수행 준비'); boom(innerWidth / 2, innerHeight * 0.4, 2); toast('준비 끝! 내일 잘해요'); } save('my'); render(); return; }
     else if (k.startsWith('ink:')) { const [, c, n] = k.split(':'); return inkLec(c, n); }
-    else if (k === 'fin') { UI.tab = 'hw'; UI.run = { kind: 'fin' }; }
+    else if (k === 'fin' || k.startsWith('fin:')) { const sj = k.slice(4), c = sj && (finToday().find((x) => x.subj === sj && !finDone(x)) || finToday().find((x) => x.subj === sj)); UI.tab = 'hw'; UI.run = c ? { kind: 'fin', cid: c.id, read: finDone(c) } : { kind: 'fin' }; }
     else if (k.startsWith('drill:')) { UI.tab = 'hw'; UI.run = { kind: 'drill', id: k.slice(6) }; }
     else if (k.startsWith('jg:')) { const [, u, st, sc] = k.split(':'); UI.tab = 'hw'; UI.run = { kind: 'gram', unit: +u, step: +st, secs: sc ? sc.split('') : null }; }
     else if (k.startsWith('cu:')) { UI.tab = 'hw'; UI.run = { kind: 'unit', ref: CH_UNITS.findIndex((u) => String(u.unit) === k.slice(3)), back: 'hw' }; }
