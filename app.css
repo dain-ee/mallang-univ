@@ -2151,3 +2151,9 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .rp-seg { background: #e5e8eb; }
 .d-two { grid-template-columns: minmax(0, 1fr) 420px; }
 @media (max-width: 1000px) { .d-two { grid-template-columns: 1fr; } }
+.th-row { display: flex; align-items: center; gap: 12px; padding: 6px 0; flex-wrap: wrap; }
+.th-row > b { width: 56px; font-size: 14px; color: var(--t2); }
+.th-row .chips { flex: 1; }
+.chip .muted { color: var(--t4, #b0b8c1); font-weight: 500; margin-left: 2px; }
+.chip.on .muted { color: inherit; opacity: .7; }
+.th-sum { margin: 10px 0 0; padding: 12px 14px; border-radius: 12px; background: #e8f3ff; color: #1b64da; font-size: 14px; font-weight: 600; }
