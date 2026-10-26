@@ -220,14 +220,15 @@
 
   // ───────── 영어 매일 (천일문 유닛 1개 + 단어 10개 시험) ─────────
   const ENG = D.english || {};
-  // 새 천일문(2026-10-26): 유닛마다 개념 → 빈칸 → 문제 → 짧은 독해. 윤건(lesson.level basic)은 기본, 정윤·지원은 수능 수준(std). 예전 문제는 버렸어요
+  // 새 천일문(2026-10-26): 과외 학생만. 유닛마다 개념 → 문제 → 짧은 독해, 10문제쯤. 윤건(lesson.level basic)은 기본, 지원은 수능 수준(std). 정윤이는 예전 문제 그대로
   const CH_LV = TUTOR && (ST.lesson || {}).level === 'basic' ? 'basic' : 'std';
   const ch2Qs = (L) => !L ? [] : [
-    ...(L.blanks || []).map((b) => ({ type: '빈칸', q: `빈칸에 알맞은 말을 쓰세요<br><b>${String(b.en).replace('___', '______')}</b>`, ko: b.ko, hint: b.hint, answerText: (b.answers || [])[0] || '', accept: b.answers || [], exp: [b.ko, b.hint].filter(Boolean).join(' · '), _mixed: 1 })),
-    ...(L.qs || []).map((q) => ({ ...q, _mixed: 1 })),
+    // 빈칸 쓰기는 뺐어요: 답이 여러 개라 의미 없다고 하셨어요 (선생님 10/26). 개념 설명 → 그 개념 문제 → 짧은 독해만
+    ...(false ? L.blanks || [] : []).map((b) => ({ type: '빈칸', q: `해석을 보고 빈칸에 알맞은 말을 쓰세요<br><b>${String(b.en).replace('___', '______')}</b>`, ko: b.ko, hint: b.hint, answerText: (b.answers || [])[0] || '', accept: b.answers || [], exp: [b.ko, b.hint].filter(Boolean).join(' · '), _mixed: 1 })),
+    ...(L.qs || []).slice(0, Math.max(6, 10 - ((L.read && L.read.qs) || []).length)).map((q) => ({ ...q, _mixed: 1 })),  // 다 합쳐 10문제쯤 (선생님 10/26)
     ...((L.read && L.read.qs) || []).map((q) => ({ ...q, type: '독해', passage: L.read.passage, ptitle: L.read.title, pko: L.read.ko, _mixed: 1 })),
   ];
-  const CH_UNITS = (ENG.cheonil || []).flatMap((ch) => (ch.units || []).map((u) => (u.q2 ? { ...u, questions: ch2Qs(u.q2[CH_LV] || u.q2.std), concept: u.q2.concept || u.concept, v2: 1, ch: ch.ch, chTitle: ch.title } : { ...u, ch: ch.ch, chTitle: ch.title })));
+  const CH_UNITS = (ENG.cheonil || []).flatMap((ch) => (ch.units || []).map((u) => (u.q2 && (TUTOR || !(u.questions || []).length) ? { ...u, questions: ch2Qs(u.q2[CH_LV] || u.q2.std), concept: u.q2.concept || u.concept, v2: 1, ch: ch.ch, chTitle: ch.title } : { ...u, ch: ch.ch, chTitle: ch.title })));
   const uKey = (un) => un.ch + '-' + un.unit + (un.v2 ? ':2' : '');  // 새 문제는 기록 칸을 따로 (예전 기록과 번호가 안 섞이게)
   // 정답이 앞쪽 보기에 몰려 있어서, 문제마다 늘 같은 순서로 섞어 보여 줌
   const seeded = (str) => { let h = 2166136261; for (const c of str) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return () => ((h = Math.imul(h ^ (h >>> 15), 2246822507) ^ Math.imul(h ^ (h >>> 13), 3266489909)) >>> 0) / 4294967296; };
@@ -1507,7 +1508,7 @@
 
   // ───────── 문제 풀기 화면 (과학 · 영어 · 오답 다시 풀기 공용) ─────────
   function qBody(q) {
-    return `${q.q ? `<div class="q-text">${rich(q.q)}</div>` : ''}${q.passage ? `<div class="q-box" style="font-size:15.5px;line-height:1.85;font-weight:400">${q.ptitle ? `<b>${esc(q.ptitle)}</b><br>` : ''}${rich(q.passage)}</div>` : ''}${q.box && q.box.length ? `<div class="q-box">${q.box.map((b) => `<div>${esc(b)}</div>`).join('')}</div>` : ''}${q.table && q.table.length ? `<div class="tbl-wrap"><table class="q-tbl">${q.table.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table></div>` : ''}`;
+    return `${q.q ? `<div class="q-text">${rich(q.q)}</div>` : ''}${q.type === '빈칸' && q.ko ? `<div class="q-ko">${esc(q.ko)}</div>` : ''}${q.passage ? `<div class="q-box" style="font-size:15.5px;line-height:1.85;font-weight:400">${q.ptitle ? `<b>${esc(q.ptitle)}</b><br>` : ''}${rich(q.passage)}</div>` : ''}${q.box && q.box.length ? `<div class="q-box">${q.box.map((b) => `<div>${esc(b)}</div>`).join('')}</div>` : ''}${q.table && q.table.length ? `<div class="tbl-wrap"><table class="q-tbl">${q.table.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table></div>` : ''}`;
   }
   function choicesHtml(q, pick) {
     const done = pick != null;
@@ -1827,7 +1828,7 @@
       <div class="card"><div class="q-no">문제 ${ids.indexOf(cur) + 1} <span class="tag">${esc(q.type || '')}</span></div><div style="margin-top:8px">${qBody(q)}</div></div>
       ${isOrder ? `<div class="card"><div id="ord-out" class="q-text" style="min-height:32px">${a ? esc(a.text) : ''}</div><div class="chips" style="flex-wrap:wrap;margin-top:12px" id="ord-in">${a ? '' : shuffle(q.words.map((w, k) => [w, k])).map(([w, k]) => `<button class="chip" data-w="${k}" type="button">${esc(w)}</button>`).join('')}</div>${a ? '' : '<div class="row" style="margin-top:12px"><button class="btn" id="ord-reset" type="button">다시</button><button class="btn primary" id="ord-ok" type="button">확인</button></div>'}</div>`
         : q.choices ? choicesHtml(q, a ? a.pick : null) : `<div class="card"><textarea class="inp" id="free" placeholder="답을 써 보세요" ${a ? 'disabled' : ''}>${a ? esc(a.text || '') : ''}</textarea>${a ? '' : '<button class="btn primary block" style="margin-top:12px" id="free-ok" type="button">확인</button>'}</div>`}
-      ${a ? `${verdict(a.ok)}${isOrder || !q.choices ? `<div class="explain"><b>정답</b> ${esc(q.answerText || (q.choices ? q.choices[q.answer] : ''))}</div>` : ''}${q.exp ? `<div class="explain"><b>해설</b><br>${esc(q.exp)}</div>` : ''}<div class="cta-bar"><button class="btn primary big block" id="next" type="button">${ids.some((k) => !store[k]) ? '다음 문제' : '결과 보기'}</button></div>` : ''}
+      ${a ? `${verdict(a.ok)}${isOrder || !q.choices ? `<div class="explain"><b>정답</b> ${esc((q.accept && q.accept.length ? q.accept.join(' / ') : '') || q.answerText || (q.choices ? q.choices[q.answer] : ''))}</div>` : ''}${q.exp ? `<div class="explain"><b>해설</b><br>${esc(q.exp)}</div>` : ''}<div class="cta-bar"><button class="btn primary big block" id="next" type="button">${ids.some((k) => !store[k]) ? '다음 문제' : '결과 보기'}</button></div>` : ''}
     </div>`;
   }
   const normEn = (t) => String(t || '').toLowerCase().replace(/[^a-z0-9' ]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -4116,7 +4117,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261656'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261701'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

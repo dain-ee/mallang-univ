@@ -2166,3 +2166,5 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .ik-swap > b { font-size: 16px; }
 .ik-swap .ik-lecs { margin-top: 8px; max-height: 320px; overflow-y: auto; }
 a.btn, a.btn:hover { text-decoration: none; }
+/* 천일문 빈칸: 해석 (해석이 없으면 답이 여러 개라 애매해요 10/26) */
+.q-ko{margin-top:8px;font-size:15px;line-height:1.6;color:var(--t2);font-weight:500}
