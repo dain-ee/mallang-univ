@@ -86,8 +86,8 @@
   const UI = { tab: TEACHER && !STU_TAB && (D.students || []).length > 1 ? 'dash' : 'home', view: null, scoreSeg: 'mock', mockId: null, mockSubj: 'kor', wrongSubj: 'all', chartSubj: 'avg', run: null, sgbArea: 'all', semester: '1-2', newsAll: false };
   let pushT = null;
   // 날짜별 기록은 통째로 바꾸지 않고 합쳐요: 같은 날이면 더 많이 한 쪽, 답은 둘 다
-  const nAns = (d) => d ? Object.keys(d.ans || {}).length + Object.keys(d.uans || {}).length + Object.keys(d.wans || {}).length + (d.udone ? 5 : 0) + (d.g3done ? 5 : 0) + (d.read ? 1 : 0) : -1;
-  const mergeDays = (a = {}, b = {}) => { const o = { ...a }; for (const [k, v] of Object.entries(b)) { const u = o[k]; if (!u) { o[k] = v; continue; } const [hi, lo] = nAns(v) > nAns(u) ? [v, u] : [u, v]; const m = { ...hi }; for (const f of ['ans', 'uans', 'wans']) if (hi[f] || lo[f]) m[f] = (hi.unit === lo.unit && hi.words === lo.words && hi.c === lo.c) ? { ...(lo[f] || {}), ...(hi[f] || {}) } : hi[f]; o[k] = m; } return o; };
+  const nAns = (d) => d ? Object.keys(d.ans || {}).length + Object.keys(d.uans || {}).length + Object.keys(d.uans2 || {}).length + Object.keys(d.wans || {}).length + (d.udone ? 5 : 0) + (d.udone2 ? 5 : 0) + (d.g3done ? 5 : 0) + (d.read ? 1 : 0) : -1;
+  const mergeDays = (a = {}, b = {}) => { const o = { ...a }; for (const [k, v] of Object.entries(b)) { const u = o[k]; if (!u) { o[k] = v; continue; } const [hi, lo] = nAns(v) > nAns(u) ? [v, u] : [u, v]; const m = { ...hi }; for (const f of ['ans', 'uans', 'uans2', 'wans']) if (hi[f] || lo[f]) m[f] = (hi.unit === lo.unit && hi.words === lo.words && hi.c === lo.c) ? { ...(lo[f] || {}), ...(hi[f] || {}) } : hi[f]; o[k] = m; } return o; };
   const mergeUa = (a = {}, b = {}) => { const o = { ...a }; for (const [k, v] of Object.entries(b)) o[k] = { ...(o[k] || {}), ...v }; return o; };
   const jAt = (v) => (v && v.at) || 0;
   const jMerge = (r = {}, l = {}) => { const o = { ...r }; for (const [k, v] of Object.entries(l)) if (!(k in o) || jAt(v) >= jAt(o[k])) o[k] = v; return o; };  // 말랑영어 리스닝·리딩·라이팅: 칸마다 더 새것
@@ -238,7 +238,7 @@
 
   // ───────── 영어 매일 (천일문 유닛 1개 + 단어 10개 시험) ─────────
   const ENG = D.english || {};
-  // 천일문 문제는 어제 정윤이가 풀던 것 그대로, 모든 학생 (선생님 10/26). cheonil2(말랑1001 시험식)는 쓰지 않아요
+  // 새 천일문(10/26): 모든 학생. 예전 문제는 버려요. 개념 → 고르기 문제 → 짧은 독해, 10문제쯤. 수준만 달라요: 윤건(lesson.level basic) 기본, 정윤·지원 수능(std). 빈칸 쓰기는 안 내요
   const CH_LV = TUTOR && (ST.lesson || {}).level === 'basic' ? 'basic' : 'std';
   const ch2Qs = (L) => !L ? [] : [
     // 빈칸 쓰기는 뺐어요: 답이 여러 개라 의미 없다고 하셨어요 (선생님 10/26). 개념 설명 → 그 개념 문제 → 짧은 독해만
@@ -274,6 +274,10 @@
   }
   // 오늘 고3 문제를 풀었나: 표시가 날아가도 답이 있으면 푼 것 (10/26 정윤 「했는데 안 했다고 떠」)
   const g3Did = (e) => !!(e && (e.g3done || (G3[e.g3 || 0] && (S.eng.g3ans || {})[G3[e.g3 || 0].id])));
+  // 그날 천일문 기록: 새 문제(v2)는 uans2·udone2 칸에 따로 적어요. 예전 문제에 한 답이 새 문제 답으로 잡히지 않게 (10/26 정윤 「다 안 했는데 다 했다고 나와」)
+  const uV2 = (e) => !!(CH_UNITS[(e && e.unit) || 0] || {}).v2;
+  const uStore = (e) => (uV2(e) ? (e.uans2 = e.uans2 || {}) : (e.uans = e.uans || {}));
+  const uDone = (e) => !!(e && (uV2(e) ? e.udone2 : e.udone));
   const wordsFor = (k) => WORDS.slice(k * 10, k * 10 + 10);
   // 「Day 1 · 21~30번」: 한 Day가 30단어라 Day만 쓰면 처음으로 돌아간 것처럼 보여요
   const wordsLabel = (k) => { const w = wordsFor(k); if (!w.length) return ''; const st = WORDS.findIndex((x) => x.day === w[0].day), a = k * 10 - st + 1; return `Day ${w[0].day} · ${a}~${a + w.length - 1}번`; };
@@ -283,7 +287,7 @@
     const top = (f) => Math.max(...prev.map((v) => +v[f] || 0));
     if (!prev.length) return;
     if (!Object.keys(d.wans || {}).length && !d.wdone && prev.some((v) => v.words === d.words) && WORDS.length) { d.words = Math.min(top('words') + 1, Math.ceil(WORDS.length / 10) - 1); S.eng.wordDay = Math.max(S.eng.wordDay || 0, d.words); ch = true; }
-    if (!Object.keys(d.uans || {}).length && !d.udone && prev.some((v) => v.unit === d.unit) && CH_UNITS.length) { d.unit = Math.min(top('unit') + 1, CH_UNITS.length - 1); S.eng.unit = Math.max(S.eng.unit || 0, d.unit); ch = true; }
+    if (!Object.keys(uStore(d)).length && !uDone(d) && prev.some((v) => v.unit === d.unit) && CH_UNITS.length) { d.unit = Math.min(top('unit') + 1, CH_UNITS.length - 1); S.eng.unit = Math.max(S.eng.unit || 0, d.unit); ch = true; }
     const g3a = (i) => G3[i] && (S.eng.g3ans || {})[G3[i].id];
     if (!d.g3done && !g3a(d.g3) && prev.some((v) => v.g3 === d.g3) && G3.length) { d.g3 = Math.min(top('g3') + 1, G3.length - 1); S.eng.g3 = Math.max(S.eng.g3 || 0, d.g3); ch = true; }
     if (ch) save('eng');
@@ -590,7 +594,7 @@
   function todayTasks() {
     const sd = sciToday(), st = dayStat(sd), ed = engToday();
     const wordsDone = Object.keys(ed.wans || {}).length >= Math.min(10, wordsFor(ed.words).length) && wordsFor(ed.words).length;
-    const unitDone = ed.udone;
+    const unitDone = uDone(ed);
     const tasks = [];
     if (TUTOR) { for (const t of tutorTasks()) tasks.push(t); for (const h of (S.hw || []).filter((x) => !hwDone(x) && !(x.grp && x.due > today()))) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due && h.due < today() ? `${md(h.due)} 숙제 · 아직 안 했어요` : `${h.subj && h.subj !== '영어' ? h.subj + ' · ' : ''}${h.due ? md(h.due) + '까지' : '선생님 숙제'}`, done: false }); for (const h of (S.hw || []).filter((x) => hwDone(x) && x.due === today())) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: '선생님 숙제 · 끝냈어요', done: true }); return { tasks, off: false }; }
     const off = !anyTask(new Date()) && !S.sci.days[today()] && !S.eng.days[today()];
@@ -1450,7 +1454,7 @@
     const out = [], s = (S.sci.days || {})[d], e = (S.eng.days || {})[d];
     if (s) { const st = dayStat(s), c = SCI.concepts.find((x) => x.id === s.c); if (st.done) out.push({ i: 'sci', t: c ? `과학 · ${c.title}` : '오늘의 과학', d: `${st.n}문제 중 ${st.done}개 풀고 ${st.ok}개 맞힘` }); }
     if (e) {
-      if (e.udone) { const un = CH_UNITS[e.unit]; out.push({ i: 'eng', t: `천일문 ${un ? 'Unit ' + un.unit + ' ' + (un.title || '') : ''}`.trim(), d: '다 했어요' }); }
+      if (uDone(e)) { const un = CH_UNITS[e.unit]; out.push({ i: 'eng', t: `천일문 ${un ? 'Unit ' + un.unit + ' ' + (un.title || '') : ''}`.trim(), d: '다 했어요' }); }
       const wn = Object.keys(e.wans || {}).length; if (wn) out.push({ i: 'books', t: '워드마스터 단어 시험', d: `${wn}개 중 ${Object.values(e.wans).filter((x) => x.ok).length}개 맞힘` });
       if (g3Did(e)) { const g = G3[e.g3 || 0]; out.push({ i: 'write', t: '고3 영어 한 문제', d: g ? `${g.type || ''} · ${g.src || ''}` : '풀었어요' }); }
     }
@@ -1820,7 +1824,7 @@
   function unitCtx() {
     const ed = engToday(true), ref = UI.run && UI.run.ref != null && UI.run.ref >= 0 ? UI.run.ref : null, un = CH_UNITS[ref != null ? ref : ed.unit];
     if (!un) return { ed, ref, un };
-    S.eng.ua = S.eng.ua || {}; const store = ref != null ? (S.eng.ua[uKey(un)] = S.eng.ua[uKey(un)] || {}) : ed.uans;
+    S.eng.ua = S.eng.ua || {}; const store = ref != null ? (S.eng.ua[uKey(un)] = S.eng.ua[uKey(un)] || {}) : uStore(ed);
     return { ed, ref, un, store, ids: qIds(un) };
   }
   // 다음 문제로 갈 때 맨 위(뒤로 단추·머리)까지 올라가지 않고 문제 칸이 화면 맨 위에 오게 (선생님 10/26 「자꾸 맨 위로 가서 귀찮아」)
@@ -1837,7 +1841,7 @@
       <div class="card"><div class="card-h"><h3>문장으로 이해하기</h3></div><div class="list">${(un.sentences || []).map((s) => `<div class="li" style="align-items:flex-start"><div class="body"><div class="t" style="font-size:16px;line-height:1.6">${esc(s.en)}</div><div class="d" style="margin-top:4px">${esc(s.ko)}</div>${s.point ? `<div class="tiny blue" style="margin-top:4px">${esc(s.point)}</div>` : ''}</div><span class="tag">${esc(s.src || '')}</span></div>`).join('')}</div></div>`;
     if (cur < 0 || cur == null) {
       const ok = ids.filter((k) => store[k] && store[k].ok).length;
-      if (ref == null && !ed.udone && qs.length) { ed.udone = Date.now(); S.eng.unit = Math.min((S.eng.unit || 0) + 1, CH_UNITS.length - 1); save('eng'); }
+      if (ref == null && !uDone(ed) && qs.length) { const again = ed.udone; ed[un.v2 ? 'udone2' : 'udone'] = Date.now(); if (!again) S.eng.unit = Math.min((S.eng.unit || 0) + 1, CH_UNITS.length - 1); save('eng'); }  // 예전 문제로 이미 넘긴 날은 또 넘기지 않아요
       const nextCu = ref != null && TUTOR ? tutorTasks().find((t) => !t.done) : null;
       return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${ref == null ? doneCard(ok, ids.length, '천일문 유닛 끝! 내일은 다음 유닛이에요', '<button class="btn primary big block" data-task="words" type="button">단어 시험 보러 가기</button><button class="btn big block" data-go="home" type="button">홈으로</button>') : doneCard(ok, ids.length, `Unit ${un.unit} 끝! 틀린 문제는 오답 노트에 들어갔어요`, `${nextCu ? `<button class="btn primary big block" data-task="${esc(nextCu.k)}" type="button">다음: ${esc(nextCu.t)}</button>` : ''}<button class="btn big block" data-go="hw" type="button">숙제로</button>`)}</div>`;
     }
@@ -3031,7 +3035,7 @@
     for (const b of BADGES) if (((pomo().badges || {})[b.id]) && !wHas('badge:' + b.id)) { if (silent) w.seen['badge:' + b.id] = 1; else earn('badge:' + b.id, b.w, `배지 · ${b.t}`, { bonus: true }); }
     const sd = S.sci && S.sci.days && S.sci.days[t]; if (sd) { const st = dayStat(sd); if (st.n && st.done >= st.n) give(`set:sci:${t}`, 200, '오늘의 과학 끝'); }
     const ed = S.eng && S.eng.days && S.eng.days[t];
-    if (ed) { if (ed.udone) give(`set:unit:${t}`, 200, '천일문 끝'); const wl = wordsFor(ed.words).length; if (wl && Object.keys(ed.wans || {}).length >= Math.min(10, wl)) give(`set:words:${t}`, 200, '단어 시험 끝'); if (g3Did(ed)) give(`set:g3:${t}`, 200, '고3 영어 끝'); }
+    if (ed) { if (uDone(ed)) give(`set:unit:${t}`, 200, '천일문 끝'); const wl = wordsFor(ed.words).length; if (wl && Object.keys(ed.wans || {}).length >= Math.min(10, wl)) give(`set:words:${t}`, 200, '단어 시험 끝'); if (g3Did(ed)) give(`set:g3:${t}`, 200, '고3 영어 끝'); }
     for (const d of allDrills()) if (drillDone(d)) give('set:drill:' + d.id, 200, '약한 영역 문제 끝');
     const logs = [...(S.logs || []).filter((x) => x.date === t).map((x) => 'log:' + x.id), ...(S.sgb || []).filter((x) => x.at && dateOf(x.at) === t).map((x) => 'log:sgb:' + x.id)];
     for (const k of logs) { if (wHas(k)) continue; if (!silent && wLogs() >= W_LOGMAX) break; give(k, 100, '오늘 한 것 기록'); }
@@ -4137,7 +4141,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261715'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261719'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
