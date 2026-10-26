@@ -3092,7 +3092,7 @@
       const p = (d && d.profile) || {}, last = d && d._at ? Math.max(...Object.values(d._at)) : 0, u = uniOf(p.uni);
       const pick = [u ? u.short || u.name : '', p.major].filter(Boolean).join(' ');
       const fresh = p._careerAt && p._careerAt > (p._careerSeen || 0);
-      return `<button type="button" class="li btnlike" data-stu="${esc(r.name)}"><div class="ico">${avatarFor(r.name)}</div><div class="body"><div class="t">${esc(r.name)} <span class="tag">${esc(r.level || '')}${r.edition === 'english' ? ' · 말랑영어' : ''}</span>${fresh ? ' <span class="tag red">진로 바꿈</span>' : ''}</div><div class="d">${d === undefined ? '불러오는 중' : ago(last)}${pick ? ' · 진로 ' + esc(pick) : ''}</div></div><span class="chev"></span></button>`;
+      return `<button type="button" class="li btnlike" data-stu="${esc(r.name)}"><div class="ico">${avatarFor(r.name)}</div><div class="body"><div class="t">${esc(r.name)} <span class="tag">${esc(r.level || '')}${r.edition === 'english' ? ' · 말랑영어' : ''}</span>${fresh ? ' <span class="tag red">진로 바꿈</span>' : ''}</div><div class="d">${d === undefined ? '불러오는 중' : ago(last)}${pick ? ' · 진로 ' + esc(pick) : ''}${r.alias ? ` · 로그인 코드 <b>${esc(r.alias)}</b>` : ''}</div></div><span class="chev"></span></button>`;
     };
     return `<section class="card c12 roster"><div class="card-h"><h2>${ic('trophy')} 우리 학생들</h2><span class="tiny">누르면 그 학생 화면으로 바뀌어요</span></div><div class="list">${rows.map(row).join('')}</div></section>`;
   }
@@ -3201,7 +3201,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610260954'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610260956'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     try { await loadReport(); } catch (e) { return toast('리포트를 못 불러왔어요. 인터넷을 확인해 주세요'); }
