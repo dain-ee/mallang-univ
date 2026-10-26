@@ -1708,3 +1708,34 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .btn img.ic { margin-right: 2px; }
 .dl-more { margin: 4px 0 20px; padding: 14px 16px; border-radius: 14px; background: var(--fill2); }
 .dl-more summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--t2); }
+/* 선생님 홈: 학생 고르기 · 체크로 쓰기 */
+.dsw { display: flex; gap: 8px; overflow-x: auto; margin: 0 0 16px; padding-bottom: 2px; scrollbar-width: none; }
+.dsw::-webkit-scrollbar { display: none; }
+.dsw-b { flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 104px; padding: 12px 16px; border: 2px solid transparent; border-radius: 16px; background: var(--card); font: inherit; color: var(--t1); text-align: left; cursor: pointer; transition: transform .32s var(--spring), border-color .15s; }
+.dsw-b b { font-size: 16px; } .dsw-b span { font-size: 12px; color: var(--t3); }
+.dsw-b.on { border-color: var(--sc); }
+.dsw-b:active { transform: scale(.96); }
+.d-sec { margin-top: 20px; }
+.d-sec h3 { margin: 0 0 8px; font-size: 14px; font-weight: 700; color: var(--t2); }
+.ck-g { display: flex; flex-wrap: wrap; gap: 8px; }
+.ck { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 12px 6px 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); font: inherit; font-size: 14px; color: var(--t1); text-align: left; cursor: pointer; }
+.ck i { flex: none; width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--t4); display: grid; place-items: center; }
+.ck.on { border-color: var(--blue); background: var(--blue-soft); }
+.ck.on i { background: var(--blue); border-color: var(--blue); }
+.ck.on i::after { content: ""; width: 9px; height: 5px; border: 2px solid #fff; border-top: 0; border-right: 0; transform: translate(0, -1px) rotate(-45deg); }
+.ck-add { display: flex; gap: 8px; margin-top: 8px; }
+.ck-add .inp { flex: 1; height: 36px; font-size: 14px; }
+.inp.sm { height: 36px; padding: 0 10px; font-size: 14px; width: auto; }
+.d-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: 14px; color: var(--t2); }
+.d-meta label { display: inline-flex; align-items: center; gap: 6px; }
+.d-go { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.d-go .btn.big { flex: 1; min-width: 160px; }
+.d-rep { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+.d-rep .rp-img { display: block; width: 100%; max-width: 420px; margin: 0 auto; border-radius: 12px; box-shadow: var(--shadow-pop); }
+.d-rep .d-go { justify-content: center; margin-top: 16px; }
+.lnk { border: 0; background: none; padding: 0; font: inherit; color: var(--blue); cursor: pointer; text-decoration: underline; }
+.d-ask { margin-bottom: 16px; }
+.d-ask .card-h h2 { display: flex; align-items: center; gap: 6px; }
+.d-ask-i { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 12px 0; border-top: 1px solid var(--line); }
+.d-ask-i > div:first-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.d-ask-i b { font-size: 15px; } .d-ask-i span { font-size: 13px; color: var(--t3); }
