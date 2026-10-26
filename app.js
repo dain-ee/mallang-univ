@@ -1731,7 +1731,7 @@
   }
   function libCard() {
     const it = (k, icn, t, d) => `<button class="lib-it" data-lib="${k}" type="button"><span class="ico">${ic(icn)}</span><b>${t}</b><span class="tiny">${d}</span></button>`;
-    if (TUTOR) return CH_UNITS.length ? `<section class="card c8"><div class="card-h"><h2>전체 목록</h2><span class="tiny">숙제 말고도 골라서 공부해요</span></div><div class="lib-grid">${it('cheonil', 'eng', '천일문 기본', `${CH_UNITS.length}유닛`)}${MM.length ? it('mm', 'target', '모의고사', `고1~고3 ${MM.length}문제`) : ''}</div></section>` : '';
+    if (TUTOR) return CH_UNITS.length ? `<section class="card c12"><div class="card-h"><h2>전체 목록</h2><span class="tiny">숙제 말고도 골라서 공부해요</span></div><div class="lib-grid">${it('cheonil', 'eng', '천일문 기본', `${CH_UNITS.length}유닛`)}${MM.length ? it('mm', 'target', '모의고사', `고1~고3 ${MM.length}문제`) : ''}</div></section>` : '';
     return `<section class="card c8"><div class="card-h"><h2>전체 목록</h2><span class="tiny">오늘 것 말고도 골라서 공부해요</span></div><div class="lib-grid">${it('cheonil', 'eng', '천일문', `${CH_UNITS.length}유닛`)}${it('sci', 'sci', '통합과학 개념', `${SCI.concepts.length}개 · 기말 ${SCI.concepts.filter((c) => c.exam).length}개`)}${it('words', 'books', '워드마스터', `${((ENG.words && ENG.words.days) || []).length}일`)}${MM.length ? it('mm', 'target', '모의고사', `고1~고3 ${MM.length}문제`) : ''}${it('g3', 'target', '고3 영어', `${G3.length}문제`)}</div></section>`;
   }
   function sciRun() {
@@ -4095,7 +4095,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261521'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261534'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
