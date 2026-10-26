@@ -238,13 +238,13 @@
 
   // ───────── 영어 매일 (천일문 유닛 1개 + 단어 10개 시험) ─────────
   const ENG = D.english || {};
-  // 새 천일문(10/26): 모든 학생. 예전 문제는 버려요. 개념 → 고르기 문제 → 짧은 독해, 10문제쯤. 수준만 달라요: 윤건(lesson.level basic) 기본, 정윤·지원 수능(std). 빈칸 쓰기는 안 내요
+  // 새 천일문(10/26): 모든 학생. 예전 문제는 버려요. 개념 → 고르기 문제 4 → 짧은 독해 1, 5문제. 수준만 달라요: 윤건(lesson.level basic) 기본, 정윤·지원 수능(std). 빈칸 쓰기는 안 내요
   const CH_LV = TUTOR && (ST.lesson || {}).level === 'basic' ? 'basic' : 'std';
   const ch2Qs = (L) => !L ? [] : [
     // 빈칸 쓰기는 뺐어요: 답이 여러 개라 의미 없다고 하셨어요 (선생님 10/26). 개념 설명 → 그 개념 문제 → 짧은 독해만
     ...(false ? L.blanks || [] : []).map((b) => ({ type: '빈칸', q: `해석을 보고 빈칸에 알맞은 말을 쓰세요<br><b>${String(b.en).replace('___', '______')}</b>`, ko: b.ko, hint: b.hint, answerText: (b.answers || [])[0] || '', accept: b.answers || [], exp: [b.ko, b.hint].filter(Boolean).join(' · '), _mixed: 1 })),
-    ...(L.qs || []).slice(0, Math.max(6, 10 - ((L.read && L.read.qs) || []).length)).map((q) => ({ ...q, _mixed: 1 })),  // 다 합쳐 10문제쯤 (선생님 10/26)
-    ...((L.read && L.read.qs) || []).map((q) => ({ ...q, type: '독해', passage: L.read.passage, ptitle: L.read.title, pko: L.read.ko, _mixed: 1 })),
+    ...(L.qs || []).slice(0, (L.read && L.read.qs || []).length ? 4 : 5).map((q) => ({ ...q, _mixed: 1 })),  // 다 합쳐 5문제: 고르기 4 + 짧은 독해 1 (선생님 10/26)
+    ...((L.read && L.read.qs) || []).slice(0, 1).map((q) => ({ ...q, type: '독해', passage: L.read.passage, ptitle: L.read.title, pko: L.read.ko, _mixed: 1 })),
   ];
   const CH_UNITS = (ENG.cheonil || []).flatMap((ch) => (ch.units || []).map((u) => (u.q2 ? { ...u, questions: ch2Qs(u.q2[CH_LV] || u.q2.std), concept: u.q2.concept || u.concept, v2: 1, ch: ch.ch, chTitle: ch.title } : { ...u, ch: ch.ch, chTitle: ch.title })));
   const uKey = (un) => un.ch + '-' + un.unit + (un.v2 ? ':2' : '');  // 새 문제는 기록 칸을 따로 (예전 기록과 번호가 안 섞이게)
@@ -4141,7 +4141,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261721'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261730'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
