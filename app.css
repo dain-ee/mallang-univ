@@ -2075,3 +2075,5 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .tg-wk i.now { background: var(--blue); }
 .tg-wk b { font-size: 12px; color: var(--t2); }
 .tg-wk span { font-size: 11px; color: var(--t3); white-space: nowrap; }
+.rp-seg { max-width: 360px; margin: 4px 0 16px; }
+.rp-seg b.red { margin-left: 4px; color: var(--red); }

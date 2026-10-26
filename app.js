@@ -4072,7 +4072,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261403'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261410'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -4228,7 +4228,7 @@
     if (!UI.dStu || !info.some((x) => x.r.name === UI.dStu)) UI.dStu = (up[0] && up[0].x.r.name) || (info.find((x) => x.tutor) || info[0]).r.name;
     const n = UI.dStu, x = info.find((y) => y.r.name === n), todo = dashTodo(info).filter((y) => y.b === '보내기');
     const sw = `<div class="dsw">${info.map((y) => `<button class="dsw-b ${y.r.name === n ? 'on' : ''}" data-dsw="${esc(y.r.name)}" type="button" style="--sc:${esc(sColor(y.r))}"><b><i class="sv-dot"></i>${esc(y.r.name)}</b><span>${y.tutor ? (y.nx ? `${esc(wdShort(y.nx.date))}${dday(y.nx.date) === 0 ? ' 오늘' : ''}` : '요일 미정') : y.lz.parent ? '주간 리포트' : '숙제만'}</span></button>`).join('')}</div>`;
-    const head = `<h1 class="h1">리포트</h1><p class="sub">학생을 고르면 바로 아래에서 골라 써요</p>`;
+    const head = `<h1 class="h1">리포트</h1>${repSeg(info)}<p class="sub">학생을 고르면 바로 아래에서 골라 써요</p>`;
     if (loading(x) && n !== U.who) return `${head}${sw}<div class="grid"><section class="card c12"><div class="empty"><b>${esc(n)} 기록을 불러오는 중이에요</b></div></section></div>`;
     const asks = [];
     const askC = asks.length ? `<section class="card d-ask"><div class="card-h"><h2>${ic('bell')} 확인할 것</h2><span class="tag red">${asks.length}</span></div>${asks.map((a, i) => `<div class="d-ask-i"><div><b>${esc(a.t)}</b><span>${esc(a.d)}</span></div><div class="ck-g">${a.opts.map(([v, l]) => `<button class="btn sm ${v === 'y' || v === 's' ? 'soft' : ''}" data-ask="${i}" data-av="${esc(v)}" type="button">${esc(l)}</button>`).join('')}</div></div>`).join('')}</section>` : '';
@@ -4308,7 +4308,7 @@
     const blob = await new Promise((ok) => cv.toBlob(ok, 'image/png')), file = new File([blob], `${name}_${L.date}${L.nth ? '_' + L.nth + '회차' : ''}.png`, { type: 'image/png' });
     if (UI.drep && UI.drep.url) URL.revokeObjectURL(UI.drep.url);
     UI.drep = { n, blob, file, url: URL.createObjectURL(blob), canShare: !!(navigator.canShare && navigator.canShare({ files: [file] })), sent: () => { dPut(n, 'cls', (D) => { const y = ((D.cls || {}).list || []).find((l) => l.id === L.id); if (y) y.sent = Date.now(); }).then(render).catch(() => toast('보낸 표시를 못 남겼어요')); } };
-    UI.dStu = n; UI.tab = 'treport'; render();
+    UI.dStu = n; UI.tab = 'treport'; UI.repSeg = 'write'; render();
     setTimeout(() => { const e = $('.d-pv'); if (e) e.scrollIntoView({ behavior: RM() ? 'auto' : 'smooth', block: 'center' }); }, 60);
   }
   function dPv(n) {
@@ -4348,16 +4348,19 @@
       <section class="card c4"><div class="card-h"><h2>${M}월 수업 횟수</h2></div><div class="list">${cnt}</div></section></div>`;
   }
   // 리포트: 수업 기록마다 보냄/안 보냄
+  // 리포트 탭: 「리포트 쓰기 / 쓴 리포트」 하나씩 (2026-10-26 쓴 리포트가 아래에 붙어 있는 게 별로라서)
+  const repSeg = (info) => { const un = info.filter(hasRep).reduce((a, x) => a + x.done.filter((l) => !l.sent && !(l.held && !l.lesson && !l.hw)).length, 0); return `<div class="seg rp-seg">${[['write', '리포트 쓰기'], ['list', `쓴 리포트${un ? ` <b class="red">${un}</b>` : ''}`]].map(([k, n]) => `<button type="button" class="${(UI.repSeg || 'write') === k ? 'on' : ''}" data-rps="${k}">${n}</button>`).join('')}</div>`; };
   function treportView() {
-    return drepView() + `<div style="margin-top:24px">${treportList()}</div>`;
+    if (UI.repSeg === 'list') return `<h1 class="h1">리포트</h1>${repSeg(dashInfo())}${treportList()}`;
+    return drepView();
   }
   function treportList() {
     const info = dashInfo(), f = UI.repF || 'all';
     const L = info.filter((x) => hasRep(x) && (f === 'all' || x.r.name === f)).flatMap((x) => x.done.map((l) => ({ x, l }))).sort((a, b) => b.l.date.localeCompare(a.l.date)).slice(0, 40);
     const un = L.filter((y) => !y.l.sent).length;
-    return `<h2 class="h2" style="margin:0 0 4px">쓴 리포트</h2><p class="sub">${un ? `<b class="red">안 보낸 리포트 ${un}개</b>` : '밀린 리포트가 없어요'}</p>
+    return `<p class="sub">${un ? `<b class="red">안 보낸 리포트 ${un}개</b>` : '밀린 리포트가 없어요'}</p>
       <div class="chips" style="margin-bottom:16px">${[['all', '전체'], ...info.filter(hasRep).map((x) => [x.r.name, x.r.name])].map(([k, n]) => `<button class="chip ${f === k ? 'on' : ''}" data-repf="${esc(k)}" type="button">${esc(n)}</button>`).join('')}</div>
-      <section class="card"><div class="card-h"><h2>쓴 리포트</h2></div>${L.length ? `<div class="list">${L.map(({ x, l }) => `<div class="li"><span class="ico ${l.sent ? 'tone-blue' : 'tone-red'}">${ic('memo')}</span><div class="body"><div class="t"><i class="sv-dot" style="--sc:${esc(sColor(x.r))}"></i>${esc(x.r.name)} · ${esc(wdShort(l.date))}${l.nth ? ` · ${esc(l.nth)}회차` : ''}</div><div class="d">${esc([l.book, (lines(l.lesson)[0] || '')].filter(Boolean).join(' · '))}</div></div>${l.held && !l.lesson && !l.hw ? '<span class="tag">리포트 안 씀</span>' : l.sent ? `<span class="tag blue">보냄${l.sent > 1e9 ? ' ' + esc(md(dateOf(l.sent))) : ''}</span>` : '<span class="tag red">안 보냄</span>'}<button class="btn sm" data-dl="${esc(x.r.name)}|${esc(l.id)}" type="button">고치기</button><button class="btn sm ${l.sent ? '' : 'primary'}" data-ds="${esc(x.r.name)}|${esc(l.id)}" type="button">${l.sent ? '다시' : '보내기'}</button></div>`).join('')}</div>` : `<div class="empty">${gh('idle', 'gh-empty')}<b>아직 적은 수업이 없어요</b><span>학생 탭에서 「수업 적기」를 눌러요</span></div>`}</section>`;
+      <section class="card">${L.length ? `<div class="list">${L.map(({ x, l }) => `<div class="li"><span class="ico ${l.sent ? 'tone-blue' : 'tone-red'}">${ic('memo')}</span><div class="body"><div class="t"><i class="sv-dot" style="--sc:${esc(sColor(x.r))}"></i>${esc(x.r.name)} · ${esc(wdShort(l.date))}${l.nth ? ` · ${esc(l.nth)}회차` : ''}</div><div class="d">${esc([l.book, (lines(l.lesson)[0] || '')].filter(Boolean).join(' · '))}</div></div>${l.held && !l.lesson && !l.hw ? '<span class="tag">리포트 안 씀</span>' : l.sent ? `<span class="tag blue">보냄${l.sent > 1e9 ? ' ' + esc(md(dateOf(l.sent))) : ''}</span>` : '<span class="tag red">안 보냄</span>'}<button class="btn sm" data-dl="${esc(x.r.name)}|${esc(l.id)}" type="button">고치기</button><button class="btn sm ${l.sent ? '' : 'primary'}" data-ds="${esc(x.r.name)}|${esc(l.id)}" type="button">${l.sent ? '다시' : '보내기'}</button></div>`).join('')}</div>` : `<div class="empty">${gh('idle', 'gh-empty')}<b>아직 적은 수업이 없어요</b><span>학생 탭에서 「수업 적기」를 눌러요</span></div>`}</section>`;
   }
   // 학생: 학생마다 코드 · 학교 · 수업 · 교재 · 리포트 받는 분
   // ───────── 선생님 「성적」 탭: 학생마다 시험 점수 그래프 · 숙제 했는지 · 주마다 푼 문제 ─────────
@@ -4690,12 +4693,13 @@
     $$('[data-jlo],[data-jro],[data-jwo]').forEach((x) => (x.onclick = () => { const kind = x.dataset.jlo ? 'jl' : x.dataset.jro ? 'jr' : 'jw', [id, m] = (x.dataset.jlo || x.dataset.jro || x.dataset.jwo).split('|'); UI.tab = 'hw'; UI.run = kind === 'jw' ? { kind, id, m } : { kind, unit: +id, m }; render(); window.scrollTo(0, 0); }));
     $$('[data-calm]').forEach((x) => (x.onclick = () => { UI.calYm = x.dataset.calm; render(); }));
     $$('[data-repf]').forEach((x) => (x.onclick = () => { UI.repF = x.dataset.repf; render(); }));
+    $$('[data-rps]').forEach((x) => (x.onclick = () => { UI.repSeg = x.dataset.rps; render(); }));
     $$('[data-dgo]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); dashGo(x.dataset.dgo); }));
     $$('[data-lsn]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); lessonSheet(x.dataset.lsn); }));
     $$('[data-lsnset]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); lessonSetSheet(); }));
     $$('[data-qa]').forEach((x) => (x.onclick = () => (x.dataset.qa === 'hw' ? hwAddSheet() : dashPick(x.dataset.qa))));
     // 선생님 화면 어디서든: 그 학생을 홈에 펴고 바로 아래에서 써요
-    const dOpen = (n, id) => { UI.dStu = n; UI.tab = 'treport'; UI.drep = null; if (id) { const l = dCls(rOf(n), dRowD(n)).list.find((y) => y.id === id); if (l) drFrom(n, l); } render(); scrollTo({ top: 0, behavior: RM() ? 'auto' : 'smooth' }); };
+    const dOpen = (n, id) => { UI.dStu = n; UI.tab = 'treport'; UI.repSeg = 'write'; UI.drep = null; if (id) { const l = dCls(rOf(n), dRowD(n)).list.find((y) => y.id === id); if (l) drFrom(n, l); } render(); scrollTo({ top: 0, behavior: RM() ? 'auto' : 'smooth' }); };
     $$('[data-dl]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); const [n, id] = x.dataset.dl.split('|'); if (!n) { UI.tab = 'treport'; return render(); } dOpen(n, id); }));
     $$('[data-ds]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); const [n, id] = x.dataset.ds.split('|'); const l = dCls(rOf(n), dRowD(n)).list.find((y) => y.id === id); if (l) { drFrom(n, l); dRepShow(n, l); } }));
     $$('[data-dst]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); dOpen(x.dataset.dst); }));
