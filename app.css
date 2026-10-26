@@ -51,7 +51,7 @@ img.ic { width: 1.25em; height: 1.25em; vertical-align: -0.25em; }
 .top { position: sticky; top: 0; z-index: 50; background: var(--bg); }
 .top-in { max-width: 1280px; margin: 0 auto; height: 60px; padding: 0 20px; display: flex; align-items: center; gap: 16px; }
 .brand { display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 4px; margin-left: -4px; background: none; border: 0; border-radius: 12px; }
-.brand:hover { background: var(--fill); }
+.brand:hover { background: none; }
 .brand img { width: 32px; height: 32px; border-radius: 10px; }
 .brand span { font-family: "Malang", "Pretendard", sans-serif; font-size: 19px; font-weight: 700; }
 .tabs { display: none; gap: 4px; margin-left: 12px; }
@@ -2077,3 +2077,7 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .tg-wk span { font-size: 11px; color: var(--t3); white-space: nowrap; }
 .rp-seg { max-width: 360px; margin: 4px 0 16px; }
 .rp-seg b.red { margin-left: 4px; color: var(--red); }
+.dm-gifts { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.dm-g { display: grid; justify-items: center; gap: 6px; padding: 12px 8px; border-radius: 16px; background: var(--fill); }
+.dm-g img { width: 56px; height: 56px; object-fit: contain; }
+.dm-g b { font-size: 14px; color: var(--t1); }

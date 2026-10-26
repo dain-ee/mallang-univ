@@ -4072,7 +4072,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261410'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261414'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -4207,6 +4207,27 @@
       return { x, fee, done, plan: Math.max(+(x.mt || 0), done + left) };
     });
   }
+  // 선생님 홈: 학생에게 한마디 · 테마 선물 (학생 페이지로 안 가고 여기서, 2026-10-26)
+  function dMsgCard(info) {
+    if (!UI.mStu || !info.some((x) => x.r.name === UI.mStu)) UI.mStu = info[0].r.name;
+    const x = info.find((y) => y.r.name === UI.mStu), d = x.d || {}, n = d.note || {}, nm = x.r.name;
+    const own = (d.profile && d.profile.skins) || [], gl = [...(d.gifts || []), ...(d.gift && d.gift.skin ? [d.gift] : [])];
+    const st = n.at ? (n.thx ? `${esc(nm)}가 「고마워요」 했어요` : n.seen ? `${esc(nm)}가 봤어요` : '아직 안 봤어요') : '';
+    return `<section class="card c12 dm-card"><div class="card-h"><h2>${ic('mega')} 학생에게</h2>${st ? `<span class="tiny">${st}</span>` : ''}</div>
+      <div class="chips" style="margin-bottom:12px">${info.map((y) => `<button class="chip sm ${y.r.name === nm ? 'on' : ''}" data-mst="${esc(y.r.name)}" type="button"><i class="sv-dot" style="--sc:${esc(sColor(y.r))}"></i>${esc(y.r.name)}</button>`).join('')}</div>
+      ${loading(x) ? '<p class="tiny">불러오는 중이에요</p>' : `<div class="eyebrow" style="margin-bottom:6px">한마디 · 학생 홈 맨 위에 떠요</div><textarea id="dm-t" class="inp" rows="2" style="min-height:72px" placeholder="오늘 ${esc(nm)}에게 하고 싶은 말">${esc(n.text || '')}</textarea>
+      <div class="row" style="justify-content:flex-end;gap:8px;margin-top:8px">${n.text ? '<button class="btn" type="button" id="dm-del">내리기</button>' : ''}<button class="btn primary" type="button" id="dm-send">홈에 띄우기</button></div>
+      <div class="eyebrow" style="margin:16px 0 8px">테마 선물</div><div class="dm-gifts">${GIFTS.map((k) => { const has = own.includes(k), g = gl.find((y) => y.skin === k), wait = g && !g.open && !has; return `<div class="dm-g"><img src="${skinPic(k)}" alt=""><b>${esc(SKINS[k].n)}</b>${has ? '<span class="tag blue">받음</span>' : wait ? `<button class="btn sm" type="button" data-dgx="${k}">취소</button>` : `<button class="btn sm primary" type="button" data-dgift="${k}">보내기</button>`}</div>`; }).join('')}</div>`}</section>`;
+  }
+  function bindDMsg() {
+    const nm = UI.mStu, busy = (b) => { if (b) b.disabled = true; };
+    $$('[data-mst]').forEach((b) => (b.onclick = () => { UI.mStu = b.dataset.mst; render(); }));
+    const put = async (key, fn, msg, b) => { busy(b); try { if (nm === U.who) { fn(S); save(key); } else await dPut(nm, key, fn); toast(msg); } catch (e) { toast('못 보냈어요. 인터넷을 확인해 주세요'); } render(); };
+    const sd = $('#dm-send'); if (sd) sd.onclick = () => { const t = $('#dm-t').value.trim(); if (!t) return toast('한마디를 적어 주세요'); put('note', (d) => { d.note = { text: t, at: Date.now() }; }, `${nm} 홈 맨 위에 띄웠어요`, sd); };
+    const dl = $('#dm-del'); if (dl) dl.onclick = () => put('note', (d) => { d.note = {}; }, '내렸어요', dl);
+    $$('[data-dgift]').forEach((b) => (b.onclick = () => { const k = b.dataset.dgift; put(['gifts', 'gift'], (d) => { const L = [...(d.gifts || [])]; if (d.gift && d.gift.skin && !L.some((y) => y.skin === d.gift.skin)) L.push(d.gift); d.gifts = [...L.filter((y) => y.skin !== k), { skin: k, at: Date.now() }]; d.gift = {}; }, `선물을 보냈어요. ${nm} 앱에 곧 떠요`, b); }));
+    $$('[data-dgx]').forEach((b) => (b.onclick = () => { const k = b.dataset.dgx; put(['gifts', 'gift'], (d) => { d.gifts = (d.gifts || []).filter((y) => y.skin !== k || y.open); d.gift = {}; }, '선물을 거둬들였어요', b); }));
+  }
   function dashView() {
     const info = dashInfo(), up = dashUp(info, 7), t = today(), asks = dAsks(info); dashView.asks = asks;
     const M = dMoney(info), got = M.reduce((a, m) => a + m.done * m.fee, 0), exp = M.reduce((a, m) => a + m.plan * m.fee, 0), cnt = M.reduce((a, m) => a + m.done, 0), mx = Math.max(1, ...M.map((m) => m.plan * m.fee));
@@ -4220,7 +4241,7 @@
     const stuC = `<section class="card tight"><div class="card-h"><h3>학생</h3><button class="more" data-tgo="tstu" type="button">전체</button></div><div class="list">${info.map((x) => `<div class="li btnlike" data-dl="${esc(x.r.name)}">${sAv(x.r)}<div class="body"><div class="t">${esc(x.r.name)}</div><div class="d">${loading(x) ? '불러오는 중' : agoTxt(x.last)}</div></div><b class="num" style="font-size:14px">${loading(x) ? '' : x.week + '문제'}</b></div>`).join('')}</div></section>`;
     const h = new Date().getHours();
     const main = `<h1 class="h1">선생님, ${h < 12 ? '좋은 아침이에요' : h < 18 ? '오후도 힘내요' : '오늘도 수고했어요'}</h1><p class="sub">${up.some((u) => u.date === t) ? `오늘 ${up.filter((u) => u.date === t).map((u) => u.x.r.name).join(' · ')} 수업이 있어요` : '오늘은 수업이 없어요'}${asks.length ? ` · 확인할 것 ${asks.length}개` : ''}</p>
-      <div class="grid">${askC}${upC}${moneyC}${newsC}</div>`;
+      <div class="grid">${askC}${upC}${moneyC}${dMsgCard(info)}${newsC}</div>`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${clockWidget()}${hotCard('')}${stuC}</aside></div>`;
   }
   function drepView() {
@@ -4237,6 +4258,7 @@
   function dashBind() {
     $$('[data-ask]').forEach((b) => (b.onclick = () => { const a = (dashView.asks || [])[+b.dataset.ask]; if (a) dAskDo(a, b.dataset.av, b); }));
     $$('[data-tgo]').forEach((b) => (b.onclick = () => { UI.tab = b.dataset.tgo; render(); scrollTo(0, 0); }));
+    if (UI.tab === 'dash') bindDMsg();
     const n = UI.dStu; if (!n || UI.tab !== 'treport') return;
     $$('[data-ask]').forEach((b) => (b.onclick = () => { const a = (dashView.asks || [])[+b.dataset.ask]; if (a) dAskDo(a, b.dataset.av, b); }));
     const D0 = drOf(n), touch = () => { D0.touched = true; };
