@@ -3358,7 +3358,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261205'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261207'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -3384,8 +3384,9 @@
   // ───────── 선생님 화면 (선생님으로 들어오면 첫 화면 · 학생 관리) ─────────
   // 탭: 홈(이번 주 · 할 일 · 학생) · 수업 일정(달력) · 리포트(보낸 것 · 안 보낸 것) · 학생(코드 · 수업 설정). 학생 화면은 새 탭으로 열어요
   // 처음 기록(students.json lesson.list)의 「보냄」은 서버에 먼저 저장된 옛 기록에 없을 수 있어서 같이 읽어요
-  function seedFix(lz, list) { (lz.list || []).forEach((s0, i) => { const it = s0.sent && list.find((l) => l.id === 'l' + i && l.date === s0.date); if (it && !it.sent) it.sent = s0.sent; }); return list; }
-  const dCls = (r, d) => { const L = r.lesson || {}, c = d && d.cls; if (c && c.list) seedFix(L, c.list); return { total: (c && c.total) || '', cyc: (c && c.cyc) || '', wd: c ? c.wd || [] : L.wd || [], time: c ? c.time || '' : L.time || '', off: (c && c.off) || [], mtot: (c && c.mtot) || { ...(L.mtot || {}) }, list: c ? c.list || [] : (L.list || []).map((x, i) => ({ id: 'l' + i, ...x })) }; };
+  function seedFix(lz, list) { (lz.list || []).forEach((s0, i) => { const it = s0.sent && list.find((l) => l.id === 'l' + i && l.date === s0.date); if (it && !it.sent) it.sent = s0.sent; }); (lz.past || []).forEach((s0, i) => { if (!list.some((l) => l.date === s0.date && !l.plan)) list.push({ id: 'p' + i, ...s0 }); }); return list; }
+  // past: 앱 전에 리포트 앱·노션에 남은 지난 수업 (같은 날 기록이 있으면 그걸 써요)
+  const dCls = (r, d) => { const L = r.lesson || {}, c = d && d.cls; if (c && c.list) seedFix(L, c.list); return { total: (c && c.total) || '', cyc: (c && c.cyc) || '', wd: c ? c.wd || [] : L.wd || [], time: c ? c.time || '' : L.time || '', off: (c && c.off) || [], mtot: (c && c.mtot) || { ...(L.mtot || {}) }, list: c ? c.list || [] : seedFix(L, (L.list || []).map((x, i) => ({ id: 'l' + i, ...x }))) }; };
   function solvedSince(d, t0) {
     if (!d) return 0; let n = 0; const at = (x) => x && typeof x === 'object' && (x.at || 0) >= t0;
     const each = (o) => { for (const v of Object.values(o || {})) if (at(v)) n++; };
@@ -3456,7 +3457,7 @@
   const addBox = (grp, ph) => `<div class="tk-add"><input class="inp" data-addv="${grp}" placeholder="${esc(ph)}"><button class="btn sm" data-add="${grp}" type="button">더하기</button></div>`;
   function dReportCard(n, x) {
     const tu = x.tutor, r = x.r, lz = r.lesson || {}, D0 = drOf(n), c = x.c, past = lsnSorted(c);
-    const ws = tu ? null : wkStat(x.d, D0.date), autoL = ws ? [...(ws.solved ? [`말랑대학 문제 ${ws.solved}개 풀기`] : []), ...ws.finT.slice(0, 6)] : [], pastL = [...new Set(past.flatMap((l) => lines(l.lesson)).filter((t) => !/^천일문 기본 Ch\./.test(t) && !/^말랑대학 문제 \d+개 풀기$/.test(t)))].slice(0, 8), pastH = [...new Set(past.flatMap((l) => lines(l.hw)).filter((t) => !/^말랑대학 천일문 Unit/.test(t)))].slice(0, 6);
+    const ws = tu ? null : wkStat(x.d, D0.date), autoL = ws ? [...(ws.solved ? [`말랑대학 문제 ${ws.solved}개 풀기`] : []), ...ws.finT.slice(0, 6)] : [], pastL = [...new Set(past.flatMap((l) => lines(l.lesson)).filter((t) => !/^천일문 기본 Ch\./.test(t) && t.length <= 30 && !/^말랑대학 문제 \d+개 풀기$/.test(t)))].slice(0, 8), pastH = [...new Set(past.flatMap((l) => lines(l.hw)).filter((t) => !/^말랑대학 천일문 Unit/.test(t) && t.length <= 30))].slice(0, 6);
     const books = [...new Set([...(lz.books || (lz.book ? [lz.book] : [])), ...D0.book])], cuOn = CH_UNITS.length && [...D0.book].some((b) => /천일문/.test(b));
     const chs = [...new Map(CH_UNITS.map((u) => [u.ch, u.chTitle])).entries()], lastU = past.find((l) => (l.units || []).length), who = lz.parent || '어머니';
     const rep = UI.drep && UI.drep.n === n ? UI.drep : null, subs = r.subjects || [], sj = D0.hwSubj || subs[0] || '영어';
@@ -3468,7 +3469,7 @@
         ${D0.units.size ? `<p class="tiny" style="margin:8px 0 0">${[...D0.units].sort((a, b) => a - b).map((no) => `${no} ${esc((cuByNo(no) || {}).title || '')}`).join(' · ')}</p>` : ''}</div>` : ''}
       <div class="d-sec"><h3>${tu ? '오늘 한 것' : '이번 주 한 것'}${D0.L.size ? ` <b class="blue">${D0.L.size}</b>` : ''}</h3><div class="tk-g">${[...new Set([...autoL, ...pastL, ...(tu ? P_L : P_LS), ...D0.L])].map((t) => ck('L', t, D0.L.has(t))).join('')}</div>${addBox('L', '없으면 적고 더하기')}</div>
       <div class="d-sec"><h3>숙제${D0.H.size ? ` <b class="blue">${D0.H.size}</b>` : ''} <span class="tiny">고른 숙제는 ${esc(n)} 앱에도 바로 떠요</span></h3>${subs.length > 1 ? `<div class="sj-g">${subs.map((v) => `<button class="sj ${v === sj ? 'on' : ''}" data-sj="${esc(v)}" type="button">${esc(v)}</button>`).join('')}</div>` : ''}<div class="tk-g">${sj === '영어' && cuOn && D0.units.size ? ck('H', '@cu', D0.H.has('@cu'), cuHw(D0.units)) : ''}${[...new Set([...(sj === '영어' ? [...pastH, ...P_H] : P_HS), ...[...D0.H].filter((t) => t !== '@cu')])].map((t) => ck('H', t, D0.H.has(t), D0.hsj[t] && D0.hsj[t] !== '영어' ? `${D0.hsj[t]} · ${t}` : t)).join('')}</div>${addBox('H', '없으면 적고 더하기')}</div>
-      <div class="d-sec"><h3>${tu ? '진도율 · 시험' : '시험 점수'}</h3><div class="d-meta">${tu ? `<label>진도율 <select class="inp sm" data-df="progress"><option value="">-</option>${Array.from({ length: 10 }, (_, k) => (k + 1) * 10).map((v) => `<option ${String(v) === String(D0.progress) ? 'selected' : ''}>${v}</option>`).join('')}</select> %</label>` : ''}<label>점수 <input class="inp sm num" data-df="score" inputmode="numeric" value="${esc(D0.score)}" style="width:64px"></label><label>/ <input class="inp sm num" data-df="scoreTotal" inputmode="numeric" value="${esc(D0.scoreTotal)}" style="width:64px"></label></div></div>
+      <div class="d-sec"><h3>${tu ? '진도율 · 시험' : '시험 점수'}</h3><div class="d-meta">${tu ? `<label>진도율 <input class="inp sm num" data-df="progress" inputmode="numeric" value="${esc(D0.progress || autoProg(n))}" style="width:64px"> %</label>${!D0.progress && autoProg(n) ? '<span class="tiny">천일문 유닛으로 자동</span>' : ''}` : ''}<label>점수 <input class="inp sm num" data-df="score" inputmode="numeric" value="${esc(D0.score)}" style="width:64px"></label><label>/ <input class="inp sm num" data-df="scoreTotal" inputmode="numeric" value="${esc(D0.scoreTotal)}" style="width:64px"></label></div></div>
       <div class="d-sec"><h3>${esc(who)}께 한마디</h3><div class="tk-g">${[...new Set([...(tu ? P_C : P_CS), ...D0.C])].map((t) => ck('C', t, D0.C.has(t))).join('')}</div>${addBox('C', '직접 적고 더하기')}</div>
       <div class="d-go"><button class="btn primary big" data-dsave="send" type="button">저장하고 ${esc(who)}께 보내기</button><button class="btn big" data-dsave="" type="button">저장만</button></div>
       </section><aside class="card d-pv">${rep ? `<div class="card-h"><h2>${esc(who)}께 보내요</h2></div><img class="rp-img" src="${rep.url}" alt="리포트"><div class="d-go">${rep.canShare ? '<button class="btn primary" data-rp="share" type="button">카톡으로 보내기</button>' : ''}<button class="btn ${rep.canShare ? '' : 'primary'}" data-rp="copy" type="button">그림 복사</button><a class="btn" data-rp="save" href="${rep.url}" download="${esc(rep.file.name)}" style="text-decoration:none">그림 저장</a></div><p class="tiny">${rep.canShare ? `카톡에서 ${esc(who)}를 고르면 돼요` : `복사한 뒤 카톡 ${esc(who)} 방에 붙여 넣어요(⌘V)`}</p>` : `<div class="card-h"><h2>${esc(who)}께 갈 그림</h2><span class="tiny">고르는 대로 바뀌어요</span></div><img class="rp-img" id="d-pv" alt="리포트 미리보기">`}</aside></div>`;
@@ -3521,10 +3522,15 @@
     }));
     dPv(n);
   }
+  function autoProg(n) {
+    const D0 = drOf(n); if (![...D0.book].some((b) => /천일문/.test(b)) || !CH_UNITS.length) return '';
+    const past = lsnSorted(dCls(rOf(n), dRowD(n))).filter((l) => l.id !== D0.id && l.date <= D0.date), mx = Math.max(0, ...D0.units, ...past.flatMap((l) => l.units || []));
+    return mx ? String(Math.round((mx / CH_UNITS.length) * 100)) : '';
+  }
   function drBuild(n) {
     const r = rOf(n), D0 = drOf(n), cuOn = [...D0.book].some((b) => /천일문/.test(b)), units = cuOn ? [...D0.units].sort((a, b) => a - b) : [];
     const lesson = [...(units.length ? cuLine(units) : []), ...D0.L].join('\n'), hw = [...(units.length && D0.H.has('@cu') ? [cuHw(units)] : []), ...[...D0.H].filter((t) => t !== '@cu').map((t) => (D0.hsj[t] && D0.hsj[t] !== '영어' ? `${D0.hsj[t]} ${t}` : t))].join('\n');
-    const x = { date: D0.date || today(), nth: String(D0.nth || '').trim(), book: [...D0.book].join(' · '), units: D0.H.has('@cu') ? units : [], lesson, hw, score: String(D0.score || '').trim(), scoreTotal: String(D0.scoreTotal || '').trim(), progress: D0.progress, comment: [...D0.C].join('\n') };
+    const x = { date: D0.date || today(), nth: String(D0.nth || '').trim(), book: [...D0.book].join(' · '), units: D0.H.has('@cu') ? units : [], lesson, hw, score: String(D0.score || '').trim(), scoreTotal: String(D0.scoreTotal || '').trim(), progress: D0.progress || autoProg(n), comment: [...D0.C].join('\n') };
     if (!r.tutor) { const { finT, ...st } = wkStat(dRowD(n), x.date); x.stat = st; x.nth = ''; }
     return x;
   }
