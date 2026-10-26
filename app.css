@@ -2236,3 +2236,5 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .pf-body table { table-layout: fixed; }
 .pf-body th { width: 64px; word-break: keep-all; }
 .pf-body td { word-break: keep-all; overflow-wrap: anywhere; }
+.pf-body.pf-wide { padding: 8px; }
+.pf-body .pf-form { display: block; width: 100%; border-radius: 12px; }

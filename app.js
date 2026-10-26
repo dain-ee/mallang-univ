@@ -1784,11 +1784,11 @@
     const r = UI.run, x = PERF.find((y) => y.id === r.id); if (!x) return '';
     const tab = x.tabs.find((t) => t.k === r.tab) || x.tabs[0];
     let body = '';
-    if (tab.html) body = `<section class="card pf-body">${tab.html}</section>`;
+    if (tab.html) body = `<section class="card pf-body${tab.wide ? ' pf-wide' : ''}">${tab.html}</section>`;
     else if (tab.rows) body = `<section class="card"><div class="list">${tab.rows.map(([k, v]) => `<div class="sv-row pf-kv"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div></section>`;
     else if (tab.imgs) body = `<section class="card"><div class="card-h"><h2>${esc(tab.n)}</h2><span class="tiny">${esc(tab.cap || '')}</span></div>${tab.imgs.map((s) => `<img class="pf-img" src="${esc(s)}" alt="${esc(tab.cap || '교과서')}" loading="lazy">`).join('')}</section>`;
     else if (tab.k === 'quiz') { const q = perfQ(x); body = `${finBlankHtml(x)}${q.k >= q.n ? `<div class="ls-box" style="margin-top:12px"><b>${q.ok}/${q.n} 맞혔어요</b><p>틀린 것은 「외울 것」에서 한 번 더 보고 다시 풀어요</p><button class="btn soft" id="pf-redo" type="button" style="margin-top:8px">빈칸 다시 풀기</button></div>` : ''}`; }
-    return `<div class="qwrap" style="max-width:760px;margin:0 auto"><div class="row between" style="margin-bottom:8px"><button class="btn sm ghost" data-pfback type="button">‹ 숙제</button><span class="tiny">${esc(x.d)}</span></div><h1 class="h1" style="margin:8px 0">${esc(x.title)}</h1>${x.tabs.length > 1 ? `<div class="seg" style="margin:0 0 16px">${x.tabs.map((t) => `<button type="button" class="${t === tab ? 'on' : ''}" data-pft="${t.k}">${esc(t.n)}</button>`).join('')}</div>` : ''}${body}</div>`;
+    return `<div class="qwrap" style="max-width:${tab.wide ? 1100 : 760}px;margin:0 auto"><div class="row between" style="margin-bottom:8px"><button class="btn sm ghost" data-pfback type="button">‹ 숙제</button><span class="tiny">${esc(x.d)}</span></div><h1 class="h1" style="margin:8px 0">${esc(x.title)}</h1>${x.tabs.length > 1 ? `<div class="seg" style="margin:0 0 16px">${x.tabs.map((t) => `<button type="button" class="${t === tab ? 'on' : ''}" data-pft="${t.k}">${esc(t.n)}</button>`).join('')}</div>` : ''}${body}</div>`;
   }
   function bindPerf() {
     const r = UI.run, x = PERF.find((y) => y.id === r.id), top = () => { render(); window.scrollTo(0, 0); }; if (!x) return;
@@ -4358,7 +4358,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610262256'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610262300'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
