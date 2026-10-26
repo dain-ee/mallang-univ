@@ -216,6 +216,8 @@
     return S.eng.days[t];
   }
   const wordsFor = (k) => WORDS.slice(k * 10, k * 10 + 10);
+  // 「Day 1 · 21~30번」: 한 Day가 30단어라 Day만 쓰면 처음으로 돌아간 것처럼 보여요
+  const wordsLabel = (k) => { const w = wordsFor(k); if (!w.length) return ''; const st = WORDS.findIndex((x) => x.day === w[0].day), a = k * 10 - st + 1; return `Day ${w[0].day} · ${a}~${a + w.length - 1}번`; };
   // 지난 날 못 한 것은 이어 하지 않고 날짜대로 다음 것으로 넘어가요 (선생님 결정 10/25). 오늘 것을 하나도 안 풀었을 때만 옮겨요
   function engSkip(t) {
     const d = S.eng.days[t], prev = Object.keys(S.eng.days).filter((k) => k < t).map((k) => S.eng.days[k]); let ch = false;
@@ -540,7 +542,7 @@
     if (has('g3') && G3.length) { const g = G3[ed.g3 || 0]; tasks.push({ k: 'g3', icon: 'eng', t: '고3 영어 한 문제', d: ed.g3done ? '다 풀었어요 · 문장 분석 보기' : cdesc('g3', g ? `${g.type || ''} · 문장 분석과 천일문 연결` : ''), done: !!ed.g3done }); }
     if (has('sci') && SCI.concepts.length) tasks.push({ k: 'sci', icon: 'sci', t: sd.one ? `과학 개념: ${(SCI.concepts.find((x) => x.id === sd.c) || {}).title || ''}` : `오늘의 과학 ${st.n}문제`, d: sd.one && !sd.read ? `교과서 개념 보고 문제 ${st.n}개` : st.done >= st.n ? `${st.ok}/${st.n} 맞힘${st.all > st.n ? ` · 깊게 ${st.all - st.n}문제 더` : ''}` : `${st.done}/${st.n} 풀었어요`, done: st.done >= st.n });
     if (has('unit') && CH_UNITS.length) { const un = CH_UNITS[ed.unit] || CH_UNITS[CH_UNITS.length - 1]; tasks.push({ k: 'unit', icon: 'eng', t: `천일문 ${un.unit ? 'Unit ' + un.unit : ''} ${un.title || ''}`.trim(), d: unitDone ? '다 했어요' : cdesc('unit', '개념 · 문장 · 문제'), done: !!unitDone }); }
-    if (has('words') && WORDS.length) tasks.push({ k: 'words', icon: 'books', t: '워드마스터 단어 10개 시험', d: wordsDone ? `${Object.values(ed.wans).filter((x) => x.ok).length}/10 맞힘` : cdesc('words', `Day ${(wordsFor(ed.words)[0] || {}).day || ''}`), done: !!wordsDone });
+    if (has('words') && WORDS.length) tasks.push({ k: 'words', icon: 'books', t: '워드마스터 단어 10개 시험', d: wordsDone ? `${Object.values(ed.wans).filter((x) => x.ok).length}/10 맞힘` : cdesc('words', wordsLabel(ed.words)), done: !!wordsDone });
     // 매일 기사 하나: 오늘 읽은 기사가 있으면 그게 오늘 것(끝), 없으면 안 읽은 대이슈 → 안 읽은 최신 기사
     { const N = ((D.news && D.news.items) || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date))), t = today();
       const rd = W().log.find((x) => x.date === t && String(x.key).startsWith('news:')), un = N.filter((n) => !wHas('news:' + n.id));
@@ -1487,17 +1489,21 @@
     const el = document.createElement('button'); el.type = 'button'; el.className = 'pet-perch' + (petDock.shown ? ' still' : ''); petDock.shown = true; el.dataset.skin = t; el.dataset.mo = ((S.profile || {}).motto || '').trim(); el.setAttribute('aria-label', SKINS[t].n);
     const motto = ((S.profile || {}).motto || '').trim(); // 나의 한마디를 말풍선으로 늘 띄워요
     el.innerHTML = `<span class="pet-say ${motto ? 'motto' : ''}" ${motto ? '' : 'hidden'}>${esc(motto)}</span><img alt="" src="assets/pets/${t}/perch.png">`;
-    const im = $('img', el); im.onerror = () => { el.remove(); host.classList.remove('has-perch'); }; im.onload = () => host.classList.add('has-perch');
+    const im = $('img', el); im.onerror = () => { el.remove(); host.classList.remove('has-perch'); }; im.onload = () => { if (el.isConnected) host.classList.add('has-perch'); };
     host.appendChild(el);
     // 카드 바로 위 오른쪽에 버튼이 있으면(예: 매일 과제 요일) 그 왼쪽으로 비켜 앉음
     requestAnimationFrame(() => { const hr = host.getBoundingClientRect(), pw = Math.max(el.offsetWidth, $('img', el).getBoundingClientRect().width), spill = (pw - el.offsetWidth) / 2; let lx = Infinity;
       $$('#main button, #main a').forEach((b) => { if (host.contains(b)) return; const r = b.getBoundingClientRect(); if (r.width && r.bottom > hr.top - pw * 0.8 && r.top < hr.top && r.right > hr.right - pw - 40) lx = Math.min(lx, r.left); });
-      if (lx < Infinity) el.style.right = `${Math.max(16, hr.right - lx + 8 + spill)}px`; });
+      if (lx < Infinity) { const rr = hr.right - lx + 8 + spill; if (rr + pw > hr.width * 0.5) { el.remove(); host.classList.remove('has-perch'); return; } el.style.right = `${Math.max(16, rr)}px`; } // 비킬 자리가 없으면(버튼이 줄 전체) 이 화면엔 안 앉아요
+      fitSay(); });
+    // 말풍선이 화면 왼쪽 밖으로 나가면 펫 오른쪽 아래로 옮겨요
+    const fitSay = () => { const sy = $('.pet-say', el); if (!sy || sy.hidden) return; sy.classList.remove('flip'); if (sy.getBoundingClientRect().left < 8) sy.classList.add('flip'); };
+    addEventListener('resize', () => el.isConnected && fitSay());
     const play = (n) => fetch(`assets/pets/${t}/${n}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).then((b) => { const u = URL.createObjectURL(b); im.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); }).catch(() => {});
     if (!RM()) play(base);
     // 같은 표정만 있으면 심심해서, 가끔 혼자 기뻐해요
     clearInterval(petDock.iv); if (!RM()) petDock.iv = setInterval(() => { if (!el.isConnected) return clearInterval(petDock.iv); if (document.hidden || el.t) return; play(petDock.alt = petDock.alt === 'perch_yay' && PET_WINK.has(t) ? 'perch_wink' : 'perch_yay'); setTimeout(() => { if (el.isConnected && !el.t) play(base); }, 2600); }, 9000 + Math.random() * 8000);
-    el.onclick = (e) => { e.stopPropagation(); const say = $('.pet-say', el); play('perch_yay'); say.textContent = cheer(); say.hidden = false; say.classList.remove('motto'); clearTimeout(el.t); el.t = setTimeout(() => { el.t = 0; say.textContent = motto; say.hidden = !motto; say.classList.toggle('motto', !!motto); play(base); }, 2600); if (navigator.vibrate) navigator.vibrate(20); };
+    el.onclick = (e) => { e.stopPropagation(); const say = $('.pet-say', el); play('perch_yay'); say.textContent = cheer(); say.hidden = false; say.classList.remove('motto'); fitSay(); clearTimeout(el.t); el.t = setTimeout(() => { el.t = 0; say.textContent = motto; say.hidden = !motto; say.classList.toggle('motto', !!motto); play(base); }, 2600); if (navigator.vibrate) navigator.vibrate(20); };
   }
   function skinSheet() {
     sheet(`<h2>홈 화면 설정</h2><p class="sub">테마를 고르면 앱 색과 따라다니는 인형이 바뀌어요</p><div class="skin-grid">${['ghost', ...owned()].map((k) => `<button type="button" class="skin-it ${skin() === k ? 'on' : ''}" data-skin="${k}" style="--sk:${SKINS[k].c}"><span class="skin-pic"><img src="${skinPic(k)}" alt=""></span><b>${k === 'ghost' ? '기본 테마' : esc(SKINS[k].n) + ' 테마'}</b><i class="skin-sw"></i></button>`).join('')}</div>`, (el, close) => {

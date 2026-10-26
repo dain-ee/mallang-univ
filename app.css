@@ -1501,6 +1501,7 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 .pet-perch[data-skin="cinnamoroll"] { width: 150px; height: 150px; right: 56px; } /* 귀가 길어 몸이 작게 그려져서, 귀가 칸을 넘쳐도 크게 (사용자) */
 .pet-perch[data-skin="cinnamoroll"] img { transform: scale(1.75); transform-origin: 50% 78%; }
 .pet-perch[data-skin="cinnamoroll"] .pet-say { right: calc(100% + 64px); top: 18%; } /* 넘친 귀를 피해서 */
+.pet-perch .pet-say.flip { right: auto; left: 50%; top: auto; bottom: 100%; transform: translateX(-60%); max-width: min(220px, 70vw); border-radius: 14px; } /* 좁은 화면: 머리 위로 */
 :root[data-skin="cinnamoroll"]:not([data-skin="ghost"]) img.gh { transform: scale(1.9); transform-origin: 50% 80%; }
 :root[data-skin="cinnamoroll"]:not([data-skin="ghost"]) img.gh-nt { margin-right: 28px; }
 :root[data-skin="cinnamoroll"]:not([data-skin="ghost"]) img.gh-done, :root[data-skin="cinnamoroll"]:not([data-skin="ghost"]) img.gh-empty { transform: scale(1.4); }
