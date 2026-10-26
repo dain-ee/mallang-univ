@@ -2193,12 +2193,28 @@
         const qcard = `<div class="card mq"><div class="q-no">${esc(m.title)} · ${esc(ms.name || SUBJ_NAMES[w.subj])} ${q.no}번 <span class="tag">${esc(q.area || '')}${q.sub ? ' · ' + esc(q.sub) : ''}</span> <span class="tag">${q.points}점</span></div>
           <div class="mq-stem">${T.stem || ''}</div>${T.box ? `<div class="mq-box">${T.box}</div>` : ''}</div>
           ${mc ? `<div class="choices mq-ch">${T.choices.map((c, i) => `<button class="choice ${a ? (i + 1 === q.answer ? 'right' : i + 1 === a.pick ? 'wrong' : '') : ''}" data-pick="${i + 1}" type="button" ${a ? 'disabled' : ''}><span class="n">${i + 1}</span>${/^[①②③④⑤]$/.test(String(c).replace(/<[^>]+>/g, '').trim()) ? '' : `<span class="ct">${c}</span>`}</button>`).join('')}</div>` : `<div class="card"><input class="inp" id="short" inputmode="numeric" placeholder="답 (숫자)" ${a ? 'disabled' : ''}>${a ? '' : '<button class="btn primary block" style="margin-top:12px" id="short-ok" type="button">확인</button>'}</div>`}
-          ${a ? verdict(a.ok, a.ok ? '' : ` <span style="margin-left:auto">정답 ${mc ? '①②③④⑤'[q.answer - 1] : esc(q.answer)}</span>`) : ''}`;
+          ${a ? verdict(a.ok, a.ok ? '' : ` <span style="margin-left:auto">정답 ${mc ? '①②③④⑤'[q.answer - 1] : esc(q.answer)}</span>`) + mockX(ms, q) : ''}`;
         if (psg) { wide = true; body = `<div class="split"><div class="psg mq-psg" aria-label="지문"><div class="psg-h">지문 <span class="tiny">따로 위아래로 넘겨 읽어요</span></div><div class="psg-body">${psg}</div></div><div class="qside">${qcard}</div></div>`; }
         else body = qcard;
       } else if (q.passage && q.passage.length) { wide = true; body = `<div class="split"><div class="psg" aria-label="지문"><div class="psg-h">[${esc(String(q.set || '').replace('-', '~'))}] 지문 <span class="tiny">위아래로 넘겨 읽어요</span></div>${q.passage.map((src) => `<img src="${esc(src)}" alt="지문" loading="lazy">`).join('')}</div><div class="qside">${body}</div></div>`; }
     }
     return `<div class="qwrap" style="max-width:${wide ? 1240 : 760}px;margin:0 auto">${head}${body}${a ? `<div class="cta-bar"><button class="btn primary big block" id="next" type="button">${queue.length ? '다음 오답' : '오답 노트로'}</button></div>` : ''}</div>`;
+  }
+  // 모의고사 글자 해설 (틀린 문제 10/27): 지문 흐름 · 문단/문장 분석 · 정답 근거 · 선지 하나씩
+  function mockX(ms, q) {
+    const rx = (t) => rich(t).replace(/\n/g, '<br>');
+    const X = q.t && q.t.x, S0 = q.set && ((ms.sets || {})[q.set] || {}).x; if (!X && !S0) return '';
+    const flow = (o) => (o && o.flow ? `<div class="mx-flow">${rx(o.flow)}</div>` : '');
+    const parts = (o) => (o && (o.parts || []).length ? `<div class="mx-parts">${o.parts.map((p) => `<div class="mx-part"><b>${rx(p.h || '')}</b><p>${rx(p.s || '')}</p></div>`).join('')}</div>` : '');
+    const sents = (o) => (o && (o.sents || []).length ? `<details class="mx-more"><summary>문장마다 뜯어보기 · ${o.sents.length}문장</summary>${o.sents.map((x, k) => `<div class="mx-sent"><div class="mx-en"><span class="num">${k + 1}</span>${rx(x.en || '')}</div><div class="mx-ko">${rx(x.ko || '')}</div>${x.an ? `<div class="mx-an">${rx(x.an)}</div>` : ''}</div>`).join('')}</details>` : '');
+    const ctx = [S0, X].map((o) => flow(o) + parts(o) + sents(o)).join('');
+    const x = X || {};
+    return `<div class="card mx"><div class="card-h"><h3>해설</h3>${x.point ? `<span class="tiny">${rx(x.point)}</span>` : ''}</div>
+      ${ctx ? `<div class="mx-sec"><div class="mx-lb">글 흐름</div>${ctx}</div>` : ''}
+      ${(x.steps || []).length ? `<div class="mx-sec"><div class="mx-lb">풀이</div><ol class="mx-steps">${x.steps.map((t) => `<li>${rx(t)}</li>`).join('')}</ol></div>` : ''}
+      ${x.key ? `<div class="mx-sec"><div class="mx-lb">왜 ${esc(String(q.answer))}${typeof q.answer === 'number' && q.answer <= 5 && !q.short ? '번' : ''}이 답이에요?</div><div class="explain">${rx(x.key)}</div></div>` : ''}
+      ${(x.choices || []).length ? `<div class="mx-sec"><div class="mx-lb">선지 하나씩</div><div class="mx-chs">${x.choices.map((t) => `<p>${rx(t)}</p>`).join('')}</div></div>` : ''}
+      ${x.tip ? `<div class="mx-tip">${ic('bulb')} ${rx(x.tip)}</div>` : ''}</div>`;
   }
   // 수식: 문제에 $…$ 가 있을 때만 KaTeX를 불러와 그려요
   let katexP = null;
@@ -4445,7 +4461,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610270131'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610270142'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
