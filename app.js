@@ -1754,7 +1754,7 @@
   const finA = (cid) => (finS().ans[cid] = finS().ans[cid] || {});
   const dOf = (at) => { const d = new Date(at); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
   const finPicked = (c) => (c.qs || []).filter((q, k) => (finS().ans[c.id] || {})[k] && finS().ans[c.id][k].pick != null).length;
-  const finDone = (c) => (c.page ? (() => { const A = finS().ans[c.id] || {}; return !!A.done && (!A.undone || A.done.at > A.undone.at); })() : !!(c.qs || []).length && finPicked(c) >= c.qs.length);
+  const finDone = (c) => (c.text ? !!(finS().ans[c.id] || {}).q : c.page ? (() => { const A = finS().ans[c.id] || {}; return !!A.done && (!A.undone || A.done.at > A.undone.at); })() : !!(c.qs || []).length && finPicked(c) >= c.qs.length);
   const finDoneDay = (c) => finDone(c) ? dOf(Math.max(...Object.values(finS().ans[c.id]).map((x) => x.at || 0))) : null;
   // 오늘 몫: 어제까지 못 끝낸 것 ÷ 11/22까지 남은 날 (밀리면 하루 몫이 늘어요, 최소 2개)
   // 이 속도면 그 과목이 끝나는 날 (오늘부터 하루 몫씩)
@@ -1782,23 +1782,26 @@
   const finRead = (c) => `<div class="card lesson">${(c.read || []).map((x) => `<p class="ls-body" style="margin:0 0 12px;line-height:1.85">${rich(x)}</p>`).join('')}
       ${(c.points || []).length ? `<div class="ls-box"><b>꼭 외울 것</b>${c.points.map((x) => `<p>· ${rich(x)}</p>`).join('')}</div>` : ''}
       ${c.trap ? `<div class="ls-box warn"><b>시험에서 헷갈리는 것</b><p>${rich(c.trap)}</p></div>` : ''}</div>`;
-  // 긴 글 대신: 굵은 말(<b>)이 든 문장을 골라 그 말을 빈칸으로, 같은 개념의 다른 굵은 말 2개와 함께 고르기 (10/26 «줄글이라 읽기 싫어»)
+  // 한 판 정리(sum: 섹션마다 개조식 줄 rows 또는 비교표 tbl) → 빈칸 채우기 → 문제 (10/26 «줄글 말고 한 판 정리, 다음 빈칸, 다음 문제»)
+  const finSrc = (c) => c.sum ? c.sum.flatMap((x) => x.rows ? x.rows.map((r) => ({ h: x.h, t: r })) : (x.tbl || []).slice(1).flatMap((row) => row.slice(1).map((v, k) => ({ h: x.h, t: `${row[0] ? row[0] + ' · ' : ''}${x.tbl[0][k + 1] || ''}: ${v}` })))) : (c.read || []).flatMap((p) => p.split(/(?<=[.?!])\s+/).map((t) => ({ h: '', t })));
   function finBlanks(c) {
-    const terms = [...new Set((c.read || []).join(' ').match(/<b>(.*?)<\/b>/g) || [])].map((x) => x.slice(3, -4)), out = [], used = new Set();
-    for (const p of c.read || []) for (const sen of p.split(/(?<=[.?!])\s+/)) {
-      const bs = (sen.match(/<b>(.*?)<\/b>/g) || []).map((x) => x.slice(3, -4)), t = bs.find((x) => !used.has(x)); if (!t || out.length >= 5) continue;
-      used.add(t); const k = out.length, others = terms.filter((x) => x !== t), h = [...(c.id + t)].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) % 9973, 7);
-      const ds = others.length ? [others[h % others.length], others[(h * 7 + 3) % others.length]].filter((x, i, A) => A.indexOf(x) === i) : [];
+    const src = finSrc(c), terms = [...new Set(src.flatMap((x) => (x.t.match(/<b>(.*?)<\/b>/g) || []).map((y) => y.slice(3, -4))))], out = [], used = new Set();
+    for (const x of src) {
+      const t = (x.t.match(/<b>(.*?)<\/b>/g) || []).map((y) => y.slice(3, -4)).find((y) => !used.has(y)); if (!t || out.length >= 6) continue;
+      used.add(t); const others = terms.filter((y) => y !== t), h = [...(c.id + t)].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) % 9973, 7);
+      const ds = others.length ? [others[h % others.length], others[(h * 7 + 3) % others.length]].filter((y, i, A) => A.indexOf(y) === i) : [];
       const ops = [t, ...ds]; for (let i = ops.length - 1; i > 0; i--) { const j = (h + i * 13) % (i + 1); [ops[i], ops[j]] = [ops[j], ops[i]]; }
-      out.push({ k: 'b' + k, t, ops, sen });
+      out.push({ k: 'b' + out.length, t, ops, sen: x.t, h: x.h });
     }
     return out;
   }
-  function finPrep(c) {
+  function finSumHtml(c) {
+    if (!c.sum) return `<section class="card"><div class="card-h"><h2>주요 개념</h2><span class="tiny">${esc(c.pages || '')}쪽</span></div>${(c.points || []).map((x, k) => `<div class="ls-pt"><span class="ls-n">${k + 1}</span><div><b>${rich(x)}</b></div></div>`).join('')}</section>${finRead(c)}`;
+    return `<section class="card fin-sum"><div class="card-h"><h2>한 판 정리</h2><span class="tiny">${esc(c.pages || '')}쪽</span></div>${c.sum.map((x) => `<div class="fs-sec"><h3>${esc(x.h)}</h3>${x.rows ? `<ul>${x.rows.map((r) => `<li>${rich(r)}</li>`).join('')}</ul>` : `<div class="tbl-wrap"><table class="q-tbl ls-tbl">${(x.tbl || []).map((row, k) => `<tr>${row.map((v) => (k ? `<td>${rich(v)}</td>` : `<th>${rich(v)}</th>`)).join('')}</tr>`).join('')}</table></div>`}</div>`).join('')}${c.trap ? `<div class="ls-box warn" style="margin-top:12px"><b>헷갈리는 것</b><p>${rich(c.trap)}</p></div>` : ''}</section>`;
+  }
+  function finBlankHtml(c) {
     const A = finS().ans[c.id] || {}, B = finBlanks(c), nb = B.filter((b) => A[b.k]).length;
-    const pts = `<section class="card"><div class="card-h"><h2>주요 개념</h2><span class="tiny">${esc(c.pages || '')}쪽</span></div>${(c.points || []).map((x, k) => `<div class="ls-pt"><span class="ls-n">${k + 1}</span><div><b>${rich(x)}</b></div></div>`).join('')}${c.trap ? `<div class="ls-box warn" style="margin-top:12px"><b>헷갈리는 것</b><p>${rich(c.trap)}</p></div>` : ''}</section>`;
-    const bl = B.length ? `<section class="card" style="margin-top:16px"><div class="card-h"><h2>빈칸 채우기</h2><span class="tiny">${nb}/${B.length}</span></div><ol class="j-lines fin-bl">${B.map((b) => { const a = A[b.k], sen = rich(b.sen.replace(`<b>${b.t}</b>`, '⟦B⟧')).replace('⟦B⟧', a ? `<b class="j-got ${a.ok ? '' : 'no'}">${esc(b.t)}</b>` : '<span class="j-gap"></span>'); return `<li class="${a ? (a.ok ? 'ok' : 'no') : ''}"><div class="j-tx"><p class="j-en" style="font-size:16px;line-height:1.7">${sen}</p><div class="jg-ops j-ops sm">${b.ops.map((o) => `<button type="button" class="chip jg-op ${a && o === b.t ? 'right' : a && o === a.p ? 'wrong' : ''}" data-fb="${b.k}" data-o="${esc(o)}" ${a ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div></div></li>`; }).join('')}</ol></section>` : '';
-    return `${pts}${bl}<details class="hw-more" style="margin-top:12px"><summary>교과서 설명 전체 보기</summary>${finRead(c)}</details>`;
+    return `<section class="card"><div class="card-h"><h2>빈칸 채우기</h2><span class="tiny">${nb}/${B.length}</span></div><ol class="j-lines fin-bl">${B.map((b) => { const a = A[b.k], sen = rich(b.sen.replace(`<b>${b.t}</b>`, '⟦B⟧')).replace('⟦B⟧', a ? `<b class="j-got ${a.ok ? '' : 'no'}">${esc(b.t)}</b>` : '<span class="j-gap"></span>'); return `<li class="${a ? (a.ok ? 'ok' : 'no') : ''}"><div class="j-tx">${b.h ? `<span class="j-who">${esc(b.h)}</span>` : ''}<p class="j-en" style="font-size:16px;line-height:1.7">${sen}</p><div class="jg-ops j-ops sm">${b.ops.map((o) => `<button type="button" class="chip jg-op ${a && o === b.t ? 'right' : a && o === a.p ? 'wrong' : ''}" data-fb="${b.k}" data-o="${esc(o)}" ${a ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div></div></li>`; }).join('')}</ol></section>`;
   }
   function finRun() {
     const r = UI.run, c = r.cid && FIN_ALL.find((x) => x.id === r.cid);
@@ -1810,6 +1813,15 @@
         <section class="card"><div class="card-h"><h2>오늘 할 것 ${T.length}개</h2><span class="tiny">${T.filter(finDone).length}/${T.length}</span></div><div class="list">${T.map((x) => row(x, true)).join('')}</div></section>
         <section class="card" style="margin-top:12px"><div class="card-h"><h2>과목별</h2></div>${FIN.map((f) => { const L = FIN_ALL.filter((x) => x.subj === f.subj), k = L.filter(finDone).length; return `<div class="sv-row"><span>${esc(f.name)} ${k}/${L.length}</span><b>${finEndTxt(f.subj)}</b></div>`; }).join('')}</section></div>`;
     }
+    if (c.text) {  // 올림포스 지문: 앱 안에서 읽고 풀기 (단어 → 지문·문제 → 해설·해석) 10/26 «e-book 말고»
+      const A = finS().ans[c.id] || {}, a = A.q, u = (t) => esc(t).replace(/&lt;u&gt;/g, '<u>').replace(/&lt;\/u&gt;/g, '</u>');
+      return `<div class="qwrap" style="max-width:760px;margin:0 auto"><div class="row between"><button class="btn sm" data-finback type="button">‹ 숙제</button><span class="tiny">올림포스 ${esc(c.pages)}쪽</span></div>
+        <p class="eyebrow" style="margin:16px 0 4px">${ic('books')} 올림포스 · ${esc(c.type || '')}</p><h1 class="h1" style="margin:0 0 16px">${esc(c.title)}</h1>
+        ${(c.words || []).length ? `<details class="hw-more card" ${a ? '' : 'open'}><summary><b>먼저 단어 ${c.words.length}개</b> <span class="tiny">눌러서 접기</span></summary><div class="oly-w">${c.words.map(([en, ko]) => `<div><b>${esc(en)}</b><span>${esc(ko)}</span></div>`).join('')}</div></details>` : ''}
+        <section class="card oly-p" style="margin-top:12px"><p class="oly-q"><b>${esc(c.q)}</b></p>${c.given ? `<div class="oly-given">${u(c.given)}</div>` : ''}${c.text.map((t) => `<p>${u(t)}</p>`).join('')}${(c.notes || []).length ? `<p class="tiny">${c.notes.map((x) => '* ' + esc(x)).join('  ')}</p>` : ''}</section>
+        <div class="choices" style="margin-top:12px">${c.choices.map((ch, k) => `<button class="choice ${!a ? '' : k === c.answer ? 'right' : k === a.p ? 'wrong' : ''}" data-olyp="${k}" type="button" ${a ? 'disabled' : ''}><span class="ct">${u(ch)}</span></button>`).join('')}</div>
+        ${a ? `${verdict(a.ok)}<div class="explain"><b>해설</b><br>${esc(c.exp || '')}</div>${(c.ko || []).length ? `<details class="hw-more card" style="margin-top:12px" open><summary><b>전체 해석</b></summary>${c.ko.map((t) => `<p style="line-height:1.8">${esc(t)}</p>`).join('')}</details>` : ''}<div class="cta-bar">${(() => { const nx = finToday().find((x) => !finDone(x) && x.id !== c.id); return nx ? `<button class="btn primary big block" data-fc="${nx.id}" type="button">다음: ${esc(nx.title)}</button>` : '<button class="btn primary big block" data-finback type="button">숙제로</button>'; })()}</div>` : ''}</div>`;
+    }
     if (c.page) {  // 올림포스 지문: 책에서 풀고 체크
       const dn = finDone(c);
       return `<div class="qwrap" style="max-width:720px;margin:0 auto"><div class="row between"><button class="btn sm" data-finback type="button">‹ 숙제</button><span class="tiny">${esc(c.pages)}쪽</span></div><p class="eyebrow" style="margin:16px 0 4px">${ic('books')} 올림포스 영어독해의 기본2</p><h1 class="h1" style="margin:0 0 16px">${esc(c.title)}</h1>
@@ -1818,7 +1830,7 @@
     }
     const A = finS().ans[c.id] || {}, qs = c.qs || [];
     const head = `<div class="row between"><button class="btn sm" data-finback type="button">‹ 숙제</button><span class="tiny">${esc(c.sname)} · ${esc(c.pages || '')}쪽</span></div>`;
-    if (!r.read) return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<p class="eyebrow" style="margin:16px 0 4px">${ic('books')} ${esc(c.sname)} 기말 예습</p><h1 class="h1" style="margin:0 0 16px">${esc(c.title)}</h1>${finPrep(c)}<div class="cta-bar"><button class="btn primary big block" id="fr-go" type="button">문제 ${qs.length}개 풀기</button></div></div>`;
+    if (!r.read) return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<p class="eyebrow" style="margin:16px 0 4px">${ic('books')} ${esc(c.sname)} 기말 예습</p><h1 class="h1" style="margin:0 0 8px">${esc(c.title)}</h1><div class="seg" style="margin:0 0 16px">${[['sum', '① 한 판 정리'], ['blank', '② 빈칸 채우기'], ['q', '③ 문제']].map(([k, nm]) => `<button type="button" class="${(r.step || 'sum') === k ? 'on' : ''}" data-fst="${k}">${nm}</button>`).join('')}</div>${r.step === 'blank' ? finBlankHtml(c) : finSumHtml(c)}<div class="cta-bar">${r.step === 'blank' ? `<button class="btn primary big block" id="fr-go" type="button">다음: 문제 ${qs.length}개 풀기 ›</button>` : `<button class="btn primary big block" data-fst="blank" type="button">다음: 빈칸 채우기 ›</button>`}</div></div>`;
     const i = r.i != null ? r.i : qs.findIndex((q, k) => !(A[k] && A[k].pick != null));
     if (i < 0) {
       const ok = qs.filter((q, k) => A[k] && A[k].ok).length, nx = finToday().find((x) => !finDone(x) && x.id !== c.id) || FIN_ORDER.find((x) => !finDone(x) && x.id !== c.id);
@@ -1836,6 +1848,8 @@
     $$('[data-finback]').forEach((b) => (b.onclick = () => { UI.run = null; UI.tab = 'hw'; top(); }));
     const c = r.cid && FIN_ALL.find((x) => x.id === r.cid); if (!c) return;
     const g = $('#fr-go'); if (g) g.onclick = () => { r.read = true; r.i = null; top(); };
+    $$('[data-fst]').forEach((x) => (x.onclick = () => { const k = x.dataset.fst; if (k === 'q') { r.read = true; r.i = null; } else { r.read = false; r.step = k; } top(); }));
+    $$('[data-olyp]').forEach((b) => (b.onclick = () => { const A = finA(c.id); if (A.q) return; const k = +b.dataset.olyp; A.q = { p: k, ok: k === c.answer, at: Date.now() }; earn('fin:' + c.id, 100, '올림포스 지문'); save('fin'); render(); }));
     const fb = $('#fp-book'); if (fb) fb.onclick = () => bookOpen('eng2', null, c.page);
     const fd = $('#fp-done'); if (fd) fd.onclick = () => { const A = finA(c.id); if (finDone(c)) A.undone = { at: Date.now() }; else { A.done = { ok: 1, at: Date.now() }; earn('fin:' + c.id, 100, '올림포스 지문'); const nx = finToday().find((x) => !finDone(x)); toast('잘했어요'); if (nx) { UI.run = { kind: 'fin', cid: nx.id }; save('fin'); top(); return; } } save('fin'); UI.run = null; UI.tab = 'hw'; top(); };
     $$('[data-fb]').forEach((b) => (b.onclick = () => { const bk = finBlanks(c).find((x) => x.k === b.dataset.fb), A = finA(c.id); if (!bk || A[bk.k]) return; const p = b.dataset.o, ok = p === bk.t; A[bk.k] = { p, ok, at: Date.now() }; save('fin'); const y = window.scrollY; render(); window.scrollTo(0, y); }));
@@ -4293,7 +4307,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261858'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261910'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
