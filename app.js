@@ -3358,7 +3358,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261201'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261205'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -3609,12 +3609,15 @@
   // 학생: 학생마다 코드 · 학교 · 수업 · 교재 · 리포트 받는 분
   function tstuView() {
     const info = dashInfo();
-    return `<h1 class="h1">학생</h1><p class="sub">로그인 코드는 학생에게 알려 주는 번호예요</p><div class="grid">${info.map((x) => {
-      const r = x.r, row = (k, v) => `<div class="sv-row"><span>${k}</span><b>${v}</b></div>`;
-      return `<section class="card c6 sv-card"><div class="hero-band" style="background:${esc(sColor(r))}"></div><div class="row" style="gap:12px;align-items:center;margin-bottom:16px">${sAv(r, true)}<div style="min-width:0;flex:1"><div class="sv-n">${esc(r.name)} <span class="tag">${esc(r.level || '')}</span>${r.edition === 'english' ? ' <span class="tag">말랑영어</span>' : ''}</div><div class="tiny">${loading(x) ? '불러오는 중' : '최근 접속 ' + agoTxt(x.last)}</div></div></div>
-        ${row('로그인 코드', `<span class="num">${esc(r.alias || '-')}</span>`)}${x.tutor ? `${row('수업', x.c.wd.length ? `매주 ${x.c.wd.map((w) => WDK[w]).join('·')} ${esc(timeKo(x.c.time))}` : '미정')}${row('회차', x.lz.count === 'month' ? '한 달 단위로 세요' : x.lz.total ? `${x.lz.total}회 묶음` : '-')}${row('교재', esc((x.lz.books || [x.lz.book]).filter(Boolean).join(', ') || '-'))}${row('리포트 받는 분', esc(x.lz.parent || '-'))}` : `${x.lz.parent ? row('리포트 받는 분', esc(x.lz.parent)) : ''}${row('목표', esc([(uniOf(x.p.uni) || {}).name, x.p.major].filter(Boolean).join(' ') || '-'))}${row('용돈', r.wallet ? '있음' : '-')}`}${row('이번 주 푼 문제', loading(x) ? '…' : x.week + '개')}
-        <div class="row" style="gap:8px;margin-top:16px">${hasRep(x) ? `<button class="btn primary" data-dl="${esc(r.name)}" type="button">리포트 쓰기</button>` : ''}<button class="btn soft" data-dh="${esc(r.name)}" type="button">숙제 내기</button><button class="btn" data-dgo="${esc(r.name)}|peek" type="button">${esc(r.name + (jongOf(r.name) ? '이' : ''))}가 보는 화면</button></div></section>`;
-    }).join('')}</div>`;
+    const sub = (x) => x.tutor ? `${x.c.wd.length ? `매주 ${x.c.wd.map((w) => WDK[w]).join('·')} ${esc(timeKo(x.c.time))}` : '요일 미정'}${x.lz.count === 'month' ? ' · 한 달 단위' : x.lz.total ? ` · ${x.lz.total}회 묶음` : ''}` : esc([(uniOf(x.p.uni) || {}).name, x.p.major].filter(Boolean).join(' ') || '목표 아직 없음');
+    const row = (x) => { const r = x.r; return `<div class="st-r">
+      <div class="st-who">${sAv(r)}<div><b>${esc(r.name)}</b> <span class="tag">${esc(r.level || '')}</span>${r.edition === 'english' ? ' <span class="tag">말랑영어</span>' : ''}<small>${loading(x) ? '불러오는 중' : '최근 접속 ' + agoTxt(x.last)}</small></div></div>
+      <div class="st-c"><small>코드</small><b class="num">${esc(r.alias || '-')}</b></div>
+      <div class="st-c st-w"><small>${x.tutor ? '수업' : '목표'}</small><b>${sub(x)}</b></div>
+      <div class="st-c"><small>리포트</small><b>${esc(x.lz.parent || '-')}</b></div>
+      <div class="st-c"><small>이번 주</small><b>${loading(x) ? '…' : x.week + '문제'}</b></div>
+      <div class="st-act">${hasRep(x) ? `<button class="btn sm primary" data-dl="${esc(r.name)}" type="button">리포트</button>` : ''}<button class="btn sm soft" data-dh="${esc(r.name)}" type="button">숙제</button><button class="btn sm" data-dgo="${esc(r.name)}|peek" type="button">화면 보기</button></div></div>`; };
+    return `<h1 class="h1">학생</h1><p class="sub">코드는 학생이 처음 들어올 때 넣는 번호예요</p><section class="card st-l">${info.map(row).join('')}</section>`;
   }
   // 선생님 화면에서 학생 탭을 새로 열며 할 일(수업 적기 · 리포트 · 기록 고치기)을 이어서 열어요
   function dashGo(v) {

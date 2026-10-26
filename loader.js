@@ -25,7 +25,7 @@ window.__boot = [];
     if (!f) {
       f = document.createElement('form'); f.id = 'code-ask'; f.className = 'code-ask';
       f.innerHTML = '<div class="code-box"><img class="code-gh" src="assets/ghost/hello.webp" alt=""><h1>말랑대학</h1><p>선생님이 알려 준 코드를 넣어 주세요</p>' +
-        '<input id="code-in" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="코드">' +
+        '<input id="code-in" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="코드">' +
         '<p id="code-err" class="code-err"></p><button class="btn primary big" type="submit">시작하기</button></div>';
       document.body.appendChild(f);
       setTimeout(() => { const g = f.querySelector('.code-gh'); if (g) g.src = 'assets/ghost/idle.webp'; }, 2000);

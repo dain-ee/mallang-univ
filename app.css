@@ -1806,3 +1806,17 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .jgu-bar { max-width: none; }
 .jgu-r { align-self: center; }
 @media (max-width: 640px) { .jgu-l { grid-template-columns: 1fr; } }
+
+/* 선생님 학생 탭: 한 줄에 한 명 (학생이 늘어도 길어지기만) */
+.st-l { padding-top: 8px; padding-bottom: 8px; }
+.st-r { display: grid; grid-template-columns: minmax(180px, 1.3fr) 80px minmax(160px, 1.6fr) 110px 80px auto; align-items: center; gap: 16px; padding: 16px 0; }
+.st-r + .st-r { border-top: 1px solid var(--line); }
+.st-who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.st-who b { font-size: 16px; }
+.st-who small, .st-c small { display: block; font-size: 12px; color: var(--t3); margin-top: 2px; }
+.st-c { min-width: 0; }
+.st-c small { margin: 0 0 2px; }
+.st-c b { display: block; font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-act { display: flex; gap: 6px; justify-content: flex-end; }
+@media (max-width: 900px) { .st-r { grid-template-columns: 1fr 1fr; } .st-who, .st-w, .st-act { grid-column: 1 / -1; } .st-act { justify-content: flex-start; } }
+.dsw { padding: 4px; margin: -4px -4px 12px; }
