@@ -2081,3 +2081,13 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .dm-g { display: grid; justify-items: center; gap: 6px; padding: 12px 8px; border-radius: 16px; background: var(--fill); }
 .dm-g img { width: 56px; height: 56px; object-fit: contain; }
 .dm-g b { font-size: 14px; color: var(--t1); }
+/* 학생 탭: 좁으면 단추 줄을 아래로 (화면 보기가 잘리던 것) */
+.st-act { flex-wrap: wrap; }
+@media (max-width: 1400px) and (min-width: 901px) { .st-r { grid-template-columns: minmax(160px, 1.3fr) 72px minmax(140px, 1.6fr) 100px 72px; row-gap: 10px; } .st-act { grid-column: 1 / -1; justify-content: flex-start; padding-left: 60px; } }
+.d-mm { margin: 4px 0 14px; padding: 12px 14px; border-radius: 16px; background: var(--fill); }
+.d-mm-g { width: 180px; flex: none; }
+.d-mm-r { display: grid; gap: 6px; margin-top: 10px; }
+.d-mm-r > b { font-size: 14px; color: var(--t1); }
+.d-mm .chip.sm { background: var(--card); }
+.d-mm .chip.sm.on { background: var(--t1); }
+.d-mm .seg { background: var(--line); }
