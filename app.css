@@ -1923,3 +1923,17 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 @media (min-width: 900px) { .nx-wrap.wide > .cta-bar { width: calc((100% - 16px) / 2.05); margin-left: auto; } }
 @media (max-width: 899px) { .nx-psg { max-height: 42vh; overflow-y: auto; overscroll-behavior: contain; } }
 @media (max-width: 640px) { .jgu-r .tag { display: none; } }
+
+/* 문제 화면: 「모르겠어요」·「첫 글자 보기」는 밑줄 글자 말고 왼쪽 회색 버튼 */
+.nx-acts { flex-wrap: nowrap; gap: 8px; }
+.nx-acts .btn.big { flex: 2 1 0; min-width: 0; }
+.nx-acts .nx-link { order: -1; flex: 1 1 0; min-width: 0; align-self: stretch; height: auto; min-height: 56px; padding: 0 16px; border-radius: var(--r-btn, 14px); background: var(--fill); color: var(--t2); font: inherit; font-size: 16px; font-weight: 600; text-decoration: none; cursor: pointer; transition: background-color .15s; }
+.nx-acts .nx-link:hover { background: var(--fill2, #e5e8eb); }
+.nx-acts .nx-link:active { transform: scale(.98); }
+
+/* 수업 시험 (잠금·열림) · 따로 공부 */
+.nx-lock .li, .nx-open .li { padding-left: 0; padding-right: 0; }
+.nx-lock-p { margin: 8px 0 12px; color: var(--t3); }
+.nx-lock-p:last-child { margin-bottom: 0; }
+.nx-lib .nx-lh { margin: 18px 0 8px; }
+.nx-lib .seg + .nx-lh, .nx-lib .card-h + .nx-lh { margin-top: 4px; }
