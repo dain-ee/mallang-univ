@@ -1906,7 +1906,6 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .st-c small { margin: 0 0 2px; }
 .st-c b { display: block; font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .st-act { display: flex; gap: 6px; justify-content: flex-end; }
-@media (max-width: 900px) { .st-r { grid-template-columns: 1fr 1fr; } .st-who, .st-w, .st-act { grid-column: 1 / -1; } .st-act { justify-content: flex-start; } }
 .dsw { padding: 4px; margin: -4px -4px 12px; }
 
 /* 선생님 홈: 이번 달 수업료 */
@@ -2082,8 +2081,20 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .dm-g img { width: 56px; height: 56px; object-fit: contain; }
 .dm-g b { font-size: 14px; color: var(--t1); }
 /* 학생 탭: 좁으면 단추 줄을 아래로 (화면 보기가 잘리던 것) */
-.st-act { flex-wrap: wrap; }
-@media (max-width: 1400px) and (min-width: 901px) { .st-r { grid-template-columns: minmax(160px, 1.3fr) 72px minmax(140px, 1.6fr) 100px 72px; row-gap: 10px; } .st-act { grid-column: 1 / -1; justify-content: flex-start; padding-left: 60px; } }
+/* 학생 줄: 이름(코드·리포트·접속은 작은 줄) | 수업·목표 | 이번 주 | 단추. 좁아져도 한 줄, 아주 좁으면 카드처럼 (10/26) */
+.st-l { container-type: inline-size; }
+.st-r { grid-template-columns: minmax(200px, 1.2fr) minmax(0, 1.4fr) 72px auto; gap: 20px; }
+.st-who > div { min-width: 0; }
+.st-who small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-act { flex-wrap: nowrap; }
+.st-act .btn { white-space: nowrap; }
+@container (max-width: 760px) {
+  .st-r { grid-template-columns: 1fr auto; row-gap: 12px; }
+  .st-who { grid-column: 1 / -1; }
+  .st-w { grid-column: 1; } .st-n { grid-column: 2; text-align: right; }
+  .st-act { grid-column: 1 / -1; justify-content: stretch; }
+  .st-act .btn { flex: 1; }
+}
 .d-mm { margin: 4px 0 14px; padding: 12px 14px; border-radius: 16px; background: var(--fill); }
 .d-mm-g { width: 180px; flex: none; }
 .d-mm-r { display: grid; gap: 6px; margin-top: 10px; }
@@ -2091,3 +2102,52 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .d-mm .chip.sm { background: var(--card); }
 .d-mm .chip.sm.on { background: var(--t1); }
 .d-mm .seg { background: var(--line); }
+/* 선생님 숙제 탭 (10/26) */
+.th-form { padding: 8px 24px 24px; }
+.th-sec { padding: 20px 0; }
+.th-sec + .th-sec { border-top: 1px solid var(--line); }
+.th-sec h3 { font-size: 16px; font-weight: 700; margin: 0 0 12px; display: flex; align-items: baseline; gap: 8px; }
+.th-sec h3 .tiny { font-weight: 500; }
+.th-sec .row.between h3 { margin: 0; }
+.th-sec .row.between { margin-bottom: 4px; }
+.th-sec select.inp { width: auto; max-width: 100%; margin-bottom: 12px; }
+.th-sec .nb-g { display: flex; flex-wrap: wrap; gap: 8px; }
+.th-sec .nb { width: 44px; height: 44px; border-radius: 12px; }
+.th-sec .d-mm-r { display: flex; align-items: center; gap: 12px; padding: 6px 0; flex-wrap: wrap; }
+.th-sec .d-mm-r b { width: 84px; font-size: 14px; color: var(--t2); }
+.th-sec .d-mm-r .chips { flex: 1; }
+.th-go { position: sticky; bottom: 0; background: var(--card, #fff); margin: 0 -24px -24px; padding: 16px 24px 24px; border-top: 1px solid var(--line); border-radius: 0 0 24px 24px; display: grid; gap: 12px; }
+.d-two > aside .th-out { position: sticky; top: 88px; }
+.th-go .btn:disabled { background: #f2f4f6; color: #8b95a1; }
+/* 리포트 쓰기 다듬기 (10/26): 고르는 것은 칩, 체크는 왼쪽, 입력칸은 같은 크기 */
+.dform .tk-g { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.dform .tk { min-height: 40px; padding: 0 16px 0 10px; gap: 6px; border-radius: 999px; background: var(--fill); font-size: 15px; font-weight: 500; color: var(--t1); justify-content: flex-start; transition: background-color .15s, color .15s, transform .2s var(--spring); }
+.dform .tk:hover { background: var(--fill); filter: brightness(.97); }
+.dform .tk:active { transform: scale(.96); }
+.dform .tk i { order: -1; width: 20px; height: 20px; border: 0; background: transparent; }
+.dform .tk i::after { width: 14px; height: 14px; }
+.dform .tk.on { background: #e8f3ff; color: #1b64da; font-weight: 600; }
+.dform .tk.on i { background: #3182f6; }
+.dform .tk-add { margin-top: 12px; }
+.dform .tk-add .inp { height: 40px; font-size: 14px; }
+.dform .tk-add .btn { height: 40px; }
+.dform .d-sec { padding-top: 24px; margin-top: 24px; }
+.dform .d-sec h3 { font-size: 16px; margin-bottom: 4px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.dform .d-sec h3 .tiny { font-weight: 500; }
+.dform .d-meta { gap: 8px 20px; margin-top: 4px; }
+.dform .d-meta label { gap: 8px; font-size: 14px; color: var(--t3); font-weight: 500; }
+.dform .d-meta .inp.sm { height: 40px; border-radius: 10px; font-size: 15px; font-weight: 600; color: var(--t1); text-align: center; }
+.dform .d-meta input[type=date].inp { width: 150px; }
+.dform .nb-g { grid-template-columns: repeat(auto-fill, 44px); }
+.dform .nb { border-radius: 12px; }
+.dform .dl-more { margin: 12px 0 0; padding: 0; background: none; }
+.dform .dl-more summary { display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 999px; background: var(--fill2); font-size: 13px; color: var(--t3); list-style: none; }
+.dform .dl-more summary::-webkit-details-marker { display: none; }
+.dform .dl-more summary::after { content: '+'; margin-left: 6px; font-weight: 700; }
+.dform .dl-more[open] summary::after { content: '−'; }
+.dform .d-hwl { margin: 8px 0 12px; }
+.dform .d-go { gap: 8px; margin-top: 28px; }
+.dform .d-go .btn.primary { flex: 2; } .dform .d-go .btn:not(.primary) { flex: 1; }
+.rp-seg { background: #e5e8eb; }
+.d-two { grid-template-columns: minmax(0, 1fr) 420px; }
+@media (max-width: 1000px) { .d-two { grid-template-columns: 1fr; } }

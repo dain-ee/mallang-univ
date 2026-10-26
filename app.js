@@ -238,6 +238,8 @@
   const mmLabel = (ex, ty, n) => `${ex} 모의고사 ${ty === '전체' ? '' : ty + ' '}${n}문제`;
   const mmOf = (title) => { const m = String(title || '').match(/^(\d{4}년 \d+월 고\d) 모의고사 (?:(빈칸|순서·삽입|어법·어휘|대의 파악) )?\d+문제$/); if (!m || !MM.length) return null; const ids = mmPick(m[1], m[2] || '전체'); return ids.length ? ids : null; };
   const mmLeft = (ids) => ids.filter((i) => !((S.eng || {}).mmans || {})[MM[i].id]);
+  // 천일문 숙제: 누르면 그 유닛 문제로, 다 풀면 저절로 「했어요」 (10/26)
+  function cuHwStart(h) { const no = cuOf(h.title), i = no ? CH_UNITS.findIndex((u) => +u.unit === no) : -1; if (i < 0) return false; UI.tab = 'hw'; UI.lib = null; UI.run = { kind: 'unit', ref: i, back: 'hw' }; render(); window.scrollTo(0, 0); return true; }
   function mmHwStart(h) { const ids = mmOf(h.title); if (!ids) return false; const L = mmLeft(ids); UI.tab = 'hw'; UI.lib = null; UI.run = { kind: 'g3', lib: (L[0] != null ? L[0] : ids[0]), mm: true, q: ids }; render(); window.scrollTo(0, 0); return true; }
   function engToday(force) {
     const t = today(); S.eng = S.eng || { unit: 0, wordDay: 0, days: {} }; S.eng.days = S.eng.days || {};
@@ -1818,7 +1820,9 @@
     const { un, store, ids, ref } = unitCtx(); if (!un) return; const cur = UI.run.show; const q = (un.questions || [])[cur]; if (!q) { const n = $('#next'); if (n) n.onclick = () => { UI.run = null; render(); }; return; }
     const keep = { kind: 'unit', ref, back: UI.run.back, g3lib: UI.run.g3lib };
     const wk = `eng:${uKey(un)}-${cur}`;
-    const mark = (ok, extra) => { store[cur] = { ok, at: Date.now(), ...extra }; if (!ok) addWrong(wk, { src: 'eng', subj: 'eng', subjName: '영어', area: '천일문 ' + (un.chTitle || ''), sub: un.title, ref: { ch: un.ch, unit: un.unit, i: cur, v: un.v2 ? 2 : 0 } }); else { gotIt(wk); clearWrong(wk); } save('eng'); render(); };
+    const mark = (ok, extra) => { store[cur] = { ok, at: Date.now(), ...extra }; if (!ok) addWrong(wk, { src: 'eng', subj: 'eng', subjName: '영어', area: '천일문 ' + (un.chTitle || ''), sub: un.title, ref: { ch: un.ch, unit: un.unit, i: cur, v: un.v2 ? 2 : 0 } }); else { gotIt(wk); clearWrong(wk); } save('eng');
+      if (ref != null && ids.every((k) => store[k])) { const t = cuTitle(un.unit), h = (S.hw || []).find((x) => !x.done && x.title === t); if (h) { h.done = true; h.doneAt = Date.now(); save('hw'); toast('천일문 숙제 끝!'); } }
+      render(); };
     $$('[data-pick]').forEach((b) => (b.onclick = () => mark(+b.dataset.pick === q.answer, { pick: +b.dataset.pick })));
     const out = $('#ord-out'), picked = [];
     $$('[data-w]').forEach((b) => (b.onclick = () => { picked.push(q.words[+b.dataset.w]); b.remove(); out.textContent = picked.join(' '); }));
@@ -4091,7 +4095,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261441'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261501'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -4188,6 +4192,71 @@
   }
   const ck = (grp, v, on, label) => `<button class="tk ${on ? 'on' : ''}" data-ck="${grp}" data-v="${esc(v)}" type="button"><span>${esc(label || v)}</span><i></i></button>`;
   const addBox = (grp, ph) => `<div class="tk-add"><input class="inp" data-addv="${grp}" placeholder="${esc(ph)}"><button class="btn sm" data-add="${grp}" type="button">더하기</button></div>`;
+  // ───────── 선생님 「숙제」 탭: 영어 숙제를 눌러서 골라 내요 (리포트와 따로, 2026-10-26) ─────────
+  // 천일문 유닛 · 모의고사 · 따로 공부는 학생이 누르면 바로 그 문제가 열리고, 다 풀면 저절로 「했어요」. 리포트에는 낸 숙제가 저절로 들어가요
+  const HWS = {};
+  const hwS = (n) => HWS[n] || (HWS[n] = { cu: new Set(), mm: new Set(), nx: new Set(), tx: new Set(), ch: null, mmG: 1, due: 'next' });
+  const cuOf = (t) => { const m = String(t || '').match(/^천일문 Unit (\d+) /); return m && cuByNo(+m[1]) ? +m[1] : null; };
+  const cuTitle = (no) => `천일문 Unit ${no} ${(cuByNo(no) || {}).title || ''} 문제 풀기`.replace(/\s+/g, ' ');
+  const hwNext = (n) => { const r = rOf(n), c = dCls(r, dRowD(n)), nx = upcoming(c, addD(today(), 1), 3).find((u) => !u.off); return nx ? addD(nx.date, -1) : addD(today(), 6); };
+  const hwDueOf = (n, k) => (k === '3' ? addD(today(), 3) : k === '7' ? addD(today(), 7) : hwNext(n));
+  // 그 수업 리포트에 들어갈 숙제: 그날부터 다음 수업 전까지 낸 것
+  const hwGiven = (n, date) => { const r = rOf(n), d = dRowD(n) || {}, c = dCls(r, d), nx = upcoming(c, addD(date, 1), 3).find((u) => !u.off), end = nx ? nx.date : addD(date, 7); return (d.hw || []).filter((h) => h.at && dateOf(h.at) >= date && dateOf(h.at) < end); };
+  function thwView() {
+    const info = dashInfo().filter((y) => !y.r.edition || y.r.edition !== 'none');
+    if (!UI.hStu || !info.some((y) => y.r.name === UI.hStu)) UI.hStu = (info.find((y) => y.r.name === UI.dStu) || info.find((y) => y.tutor) || info[0]).r.name;
+    const n = UI.hStu, x = info.find((y) => y.r.name === n), r = x.r, H = hwS(n);
+    const sw = `<div class="dsw">${info.map((y) => `<button class="dsw-b ${y.r.name === n ? 'on' : ''}" data-hsw="${esc(y.r.name)}" type="button" style="--sc:${esc(sColor(y.r))}"><b><i class="sv-dot"></i>${esc(y.r.name)}</b><span>${(() => { const k = ((y.d || {}).hw || []).filter((h) => !hwDone(h)).length; return k ? `숙제 ${k}개 남음` : '남은 숙제 없음'; })()}</span></button>`).join('')}</div>`;
+    const head = `<h1 class="h1">숙제</h1><p class="sub">눌러서 고르고 「숙제 내기」를 누르면 학생 앱에 바로 떠요</p>`;
+    if (loading(x) && n !== U.who) return `${head}${sw}<div class="grid"><section class="card c12"><div class="empty"><b>${esc(n)} 기록을 불러오는 중이에요</b></div></section></div>`;
+    const d = x.d || {}, eng = r.edition !== 'english' && (!r.content || r.content.includes('english'));
+    const secs = [];
+    if (eng && CH_UNITS.length) {
+      const lastU = lsnSorted(x.c).find((l) => (l.units || []).length), chs = [...new Map(CH_UNITS.map((u) => [u.ch, u.chTitle])).entries()];
+      if (H.ch == null) H.ch = lastU ? (cuByNo(Math.max(...lastU.units)) || {}).ch || chs[0][0] : chs[0][0];
+      secs.push(`<div class="th-sec"><h3>천일문 <span class="tiny">${lastU ? `지난 수업 Unit ${esc(unitsText(lastU.units))}` : '유닛 번호를 눌러요'}</span></h3><select class="inp sm" data-hch>${chs.map(([no, t]) => `<option value="${no}" ${+no === +H.ch ? 'selected' : ''}>Ch.${no} ${esc(t)}</option>`).join('')}</select>
+        <div class="nb-g">${CH_UNITS.filter((u) => +u.ch === +H.ch).map((u) => `<button class="nb ${H.cu.has(+u.unit) ? 'on' : ''}" data-hcu="${u.unit}" type="button" title="${esc(u.title || '')}">${u.unit}</button>`).join('')}</div></div>`);
+    }
+    if (eng && MM.length) {
+      const exs = [...new Set(MM.filter((q) => q.grade === H.mmG).map(mmExam))];
+      secs.push(`<div class="th-sec"><div class="row between" style="gap:8px"><h3>모의고사</h3><div class="seg sm d-mm-g">${[1, 2, 3].map((y) => `<button type="button" class="${y === H.mmG ? 'on' : ''}" data-hmg="${y}">고${y}</button>`).join('')}</div></div>
+        ${exs.map((ex) => `<div class="d-mm-r"><b>${esc(ex.replace(/ 고\d$/, ''))}</b><div class="chips">${['전체', ...MM_TY.map((t) => t[0])].map((ty) => { const k = mmPick(ex, ty).length, L = mmLabel(ex, ty, k); return k ? `<button class="chip sm ${H.mm.has(L) ? 'on' : ''}" data-hmm="${esc(L)}" type="button">${ty} ${k}</button>` : ''; }).join('')}</div></div>`).join('')}</div>`);
+    }
+    const nxp = nxPicks(n).filter((p) => !/^(역사|과학|국어|수학|사회|도덕|기가|한문)/.test(p.title));
+    if (nxp.length) secs.push(`<div class="th-sec"><h3>내신 시험 <span class="tiny">앱에 있는 영어 시험 묶음</span></h3><div class="chips">${nxp.map((p) => `<button class="chip sm ${H.nx.has(p.t) ? 'on' : ''}" data-hnx="${esc(p.t)}" type="button">${esc(p.title)}</button>`).join('')}</div></div>`);
+    const pre = [...new Set([...(r.edition === 'english' ? ['그래머 책 풀기', '단어 외우기', '리스닝 다시 듣기', '라이팅 한 편 쓰기'] : ['단어 외우기', '워크북 풀기', '본문 해석 연습', '오답 정리']), ...H.tx])];
+    secs.push(`<div class="th-sec"><h3>그 밖에</h3><div class="chips">${pre.map((t) => `<button class="chip sm ${H.tx.has(t) ? 'on' : ''}" data-htx="${esc(t)}" type="button">${esc(t)}</button>`).join('')}</div><div class="tk-add" style="margin-top:8px"><input class="inp" id="th-in" placeholder="없으면 적고 더하기 (예: 워크북 30~35쪽)"><button class="btn sm" id="th-add" type="button">더하기</button></div></div>`);
+    const cnt = H.cu.size + H.mm.size + H.nx.size + H.tx.size, dues = [['next', `다음 수업 전 (${md(hwNext(n))})`], ['3', '3일 뒤'], ['7', '1주 뒤']];
+    const go = `<div class="th-go"><div class="chips">${dues.map(([k, l]) => `<button class="chip sm ${H.due === k ? 'on' : ''}" data-hdue="${k}" type="button">${l}</button>`).join('')}</div><button class="btn primary big block" id="th-ok" type="button" ${cnt ? '' : 'disabled'}>${cnt ? `숙제 ${cnt}개 내기` : '숙제를 골라 주세요'}</button></div>`;
+    const H0 = (d.hw || []).slice().sort((a, b) => (hwDone(a) - hwDone(b)) || String(b.at || '').localeCompare(String(a.at || ''))).slice(0, 14), t = today();
+    const st = (h) => hwDone(h) ? ['ok', '했어요'] : h.due && h.due < t ? ['no', '안 했어요'] : ['wait', h.due ? `${md(h.due)}까지` : '하는 중'];
+    const out = `<section class="card th-out"><div class="card-h"><h2>나가 있는 숙제</h2></div>${H0.length ? `<div class="list">${H0.map((h) => { const [k, l] = st(h); return `<div class="li"><div class="body"><div class="t">${esc(h.title)}</div></div><span class="tg-hs ${k}">${l}</span>${hwDone(h) ? '' : `<button class="btn sm" data-thdel="${esc(h.id)}" type="button">빼기</button>`}</div>`; }).join('')}</div>` : '<div class="empty"><b>아직 낸 숙제가 없어요</b></div>'}</section>`;
+    return `${head}${sw}<div class="d-two"><section class="card th-form">${secs.join('')}${go}</section><aside>${out}</aside></div>`;
+  }
+  function bindThw() {
+    const n = UI.hStu; if (!n) return; const H = hwS(n), tg = (set, v) => { set.has(v) ? set.delete(v) : set.add(v); render(); };
+    $$('[data-hsw]').forEach((b) => (b.onclick = () => { UI.hStu = b.dataset.hsw; render(); }));
+    const ch = $('[data-hch]'); if (ch) ch.onchange = () => { H.ch = +ch.value; render(); };
+    $$('[data-hcu]').forEach((b) => (b.onclick = () => tg(H.cu, +b.dataset.hcu)));
+    $$('[data-hmg]').forEach((b) => (b.onclick = () => { H.mmG = +b.dataset.hmg; render(); }));
+    $$('[data-hmm]').forEach((b) => (b.onclick = () => tg(H.mm, b.dataset.hmm)));
+    $$('[data-hnx]').forEach((b) => (b.onclick = () => tg(H.nx, b.dataset.hnx)));
+    $$('[data-htx]').forEach((b) => (b.onclick = () => tg(H.tx, b.dataset.htx)));
+    $$('[data-hdue]').forEach((b) => (b.onclick = () => { H.due = b.dataset.hdue; render(); }));
+    const inp = $('#th-in'), add = () => { const v = inp.value.trim(); if (!v) return inp.focus(); H.tx.add(v); render(); };
+    if (inp) { $('#th-add').onclick = add; inp.onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); add(); } }; }
+    const ok = $('#th-ok'); if (ok) ok.onclick = async () => {
+      const due = hwDueOf(n, H.due), at = Date.now();
+      const items = [...[...H.cu].sort((a, b) => a - b).map((no) => ({ title: cuTitle(no) })), ...[...H.mm].map((t) => ({ title: t })), ...[...H.nx].map((t) => ({ title: t, nx: nxIdOf(n, t) })), ...[...H.tx].map((t) => ({ title: t }))].map((o, k) => ({ id: 'h' + (at + k), subj: '영어', due, memo: '', done: false, at, ...o }));
+      ok.disabled = true; ok.textContent = '내는 중…';
+      try {
+        if (n === U.who) { S.hw = [...(S.hw || []), ...items.filter((i) => !(S.hw || []).some((h) => h.title === i.title && !hwDone(h)))]; save('hw'); }
+        else await dPut(n, 'hw', (D) => { D.hw = [...(D.hw || []), ...items.filter((i) => !(D.hw || []).some((h) => h.title === i.title && !hwDone(h)))]; });
+      } catch (e) { ok.disabled = false; return toast('못 냈어요. 인터넷을 확인하고 다시 눌러 주세요'); }
+      delete HWS[n]; toast(`${n}에게 숙제 ${items.length}개를 냈어요`); render();
+    };
+    $$('[data-thdel]').forEach((b) => (b.onclick = async () => { b.disabled = true; try { if (n === U.who) { S.hw = (S.hw || []).filter((h) => h.id !== b.dataset.thdel); save('hw'); } else await dPut(n, 'hw', (D) => { D.hw = (D.hw || []).filter((h) => h.id !== b.dataset.thdel); }); toast('뺐어요'); } catch (e) { toast('못 뺐어요. 다시 눌러 주세요'); } render(); }));
+  }
   // 리포트 숙제 칸의 모의고사 고르기: 학년 → 회차마다 유형 칩 (누르면 숙제에 들어가요, 다시 누르면 빠져요)
   function dMmPick(D0) {
     const g = D0.mmG || 1, exs = [...new Set(MM.filter((x) => x.grade === g).map(mmExam))];
@@ -4207,8 +4276,8 @@
       ${cuOn ? `<div class="d-sec"><h3>천일문 <span class="tiny">${lastU ? `지난번 Unit ${esc(unitsText(lastU.units))}` : ''}</span></h3><select class="inp sm" data-dch>${chs.map(([no, t]) => `<option value="${no}" ${+no === +D0.ch ? 'selected' : ''}>Ch.${no} ${esc(t)}</option>`).join('')}</select>
         <div class="nb-g">${CH_UNITS.filter((u) => +u.ch === +D0.ch).map((u) => `<button class="nb ${D0.units.has(+u.unit) ? 'on' : ''}" data-ck="cu" data-v="${u.unit}" type="button" title="${esc(u.title || '')}">${u.unit}</button>`).join('')}</div>
         ${D0.units.size ? `<p class="tiny" style="margin:8px 0 0">${[...D0.units].sort((a, b) => a - b).map((no) => `${no} ${esc((cuByNo(no) || {}).title || '')}`).join(' · ')}</p>` : ''}</div>` : ''}
-      <div class="d-sec"><h3>${tu ? '오늘 한 것' : '이번 주 한 것'}${D0.L.size ? ` <b class="blue">${D0.L.size}</b>` : ''}</h3><div class="tk-g">${[...new Set([...nxL, ...autoL, ...pastL, ...(tu ? P_L : P_LS), ...D0.L])].map((t) => ck('L', t, D0.L.has(t))).join('')}</div>${addBox('L', '없으면 적고 더하기')}</div>
-      <div class="d-sec"><h3>숙제${D0.H.size ? ` <b class="blue">${D0.H.size}</b>` : ''} <span class="tiny">고른 숙제는 ${esc(n)} 앱에도 바로 떠요</span></h3>${sj === '영어' && MM.length && r.edition !== 'english' ? dMmPick(D0) : ''}${subs.length > 1 ? `<div class="sj-g">${subs.map((v) => `<button class="sj ${v === sj ? 'on' : ''}" data-sj="${esc(v)}" type="button">${esc(v)}</button>`).join('')}</div>` : ''}<div class="tk-g">${sj === '영어' && cuOn && D0.units.size ? ck('H', '@cu', D0.H.has('@cu'), cuHw(D0.units)) : ''}${[...new Set([...(sj === '영어' ? [...nxH.filter((t) => !/^(역사|과학) /.test(t)), ...pastH, ...P_H] : [...nxH.filter((t) => t.startsWith(sj + ' ')), ...P_HS]), ...[...D0.H].filter((t) => t !== '@cu')])].filter((t) => !mmOf(t) || D0.H.has(t)).map((t) => ck('H', t, D0.H.has(t), D0.hsj[t] && D0.hsj[t] !== '영어' ? `${D0.hsj[t]} · ${t}` : t)).join('')}</div>${addBox('H', '없으면 적고 더하기')}</div>
+      <div class="d-sec"><h3>${tu ? '오늘 한 것' : '이번 주 한 것'}${D0.L.size ? ` <b class="blue">${D0.L.size}</b>` : ''}</h3><div class="tk-g">${[...new Set([...nxL, ...autoL, ...(tu ? P_L : P_LS), ...[...D0.L]])].map((t) => ck('L', t, D0.L.has(t))).join('')}</div>${pastL.filter((t) => !D0.L.has(t)).length ? `<details class="dl-more"><summary>지난 수업에 쓴 것</summary><div class="tk-g">${pastL.filter((t) => !D0.L.has(t)).map((t) => ck('L', t, false)).join('')}</div></details>` : ''}${addBox('L', '없으면 적고 더하기')}</div>
+      <div class="d-sec"><h3>숙제 <span class="tiny">「숙제」 탭에서 낸 숙제가 저절로 들어가요</span></h3>${(() => { const G = hwGiven(n, D0.date || today()); return `${sj === '영어' && cuOn && D0.units.size ? `<div class="tk-g">${ck('H', '@cu', D0.H.has('@cu'), cuHw(D0.units))}</div>` : ''}${G.length ? `<div class="list d-hwl">${G.map((h) => `<div class="li"><div class="body"><div class="t">${esc(h.title)}</div></div><span class="tg-hs ${hwDone(h) ? 'ok' : 'wait'}">${hwDone(h) ? '했어요' : h.due ? md(h.due) + '까지' : '냈어요'}</span></div>`).join('')}</div>` : '<p class="tiny" style="margin:0 0 8px">이 수업 뒤로 낸 숙제가 아직 없어요</p>'}<button class="btn sm soft" type="button" data-hgo="${esc(n)}">숙제 내러 가기</button>`; })()}</div>
       <div class="d-sec"><h3>${tu ? '진도율 · 시험' : '시험 점수'}</h3><div class="d-meta">${tu ? `<label>진도율 <input class="inp sm num" data-df="progress" inputmode="numeric" value="${esc(D0.progress || autoProg(n))}" style="width:64px"> %</label>${!D0.progress && autoProg(n) ? '<span class="tiny">천일문 유닛으로 자동</span>' : ''}` : ''}<label>점수 <input class="inp sm num" data-df="score" inputmode="numeric" value="${esc(useA ? as.score : D0.score)}" style="width:64px"></label><label>/ <input class="inp sm num" data-df="scoreTotal" inputmode="numeric" value="${esc(useA ? as.total : D0.scoreTotal)}" style="width:64px"></label>${useA ? `<span class="tiny">${esc(as.title)} 시험에서 자동</span>` : ''}</div></div>
       <div class="d-sec"><h3>${esc(who)}께 한마디</h3><div class="tk-g">${[...new Set([...(tu ? P_C : P_CS), ...D0.C])].map((t) => ck('C', t, D0.C.has(t))).join('')}</div>${addBox('C', '직접 적고 더하기')}</div>
       <div class="d-go"><button class="btn primary big" data-dsave="send" type="button">저장하고 ${esc(who)}께 보내기</button><button class="btn big" data-dsave="" type="button">저장만</button></div>
@@ -4284,6 +4353,7 @@
     $$('[data-ask]').forEach((b) => (b.onclick = () => { const a = (dashView.asks || [])[+b.dataset.ask]; if (a) dAskDo(a, b.dataset.av, b); }));
     $$('[data-tgo]').forEach((b) => (b.onclick = () => { UI.tab = b.dataset.tgo; render(); scrollTo(0, 0); }));
     if (UI.tab === 'dash') bindDMsg();
+    if (UI.tab === 'thw') bindThw();
     const n = UI.dStu; if (!n || UI.tab !== 'treport') return;
     $$('[data-ask]').forEach((b) => (b.onclick = () => { const a = (dashView.asks || [])[+b.dataset.ask]; if (a) dAskDo(a, b.dataset.av, b); }));
     const D0 = drOf(n), touch = () => { D0.touched = true; };
@@ -4320,7 +4390,7 @@
   }
   function drBuild(n) {
     const r = rOf(n), D0 = drOf(n), cuOn = [...D0.book].some((b) => /천일문/.test(b)), units = cuOn ? [...D0.units].sort((a, b) => a - b) : [];
-    const lesson = [...(units.length ? cuLine(units) : []), ...D0.L].join('\n'), hw = [...(units.length && D0.H.has('@cu') ? [cuHw(units)] : []), ...[...D0.H].filter((t) => t !== '@cu').map((t) => (D0.hsj[t] && D0.hsj[t] !== '영어' ? `${D0.hsj[t]} ${t}` : t))].join('\n');
+    const lesson = [...(units.length ? cuLine(units) : []), ...D0.L].join('\n'), hw = [...new Set([...(units.length && D0.H.has('@cu') ? [cuHw(units)] : []), ...hwGiven(n, D0.date || today()).map((h) => (h.subj && h.subj !== '영어' ? `${h.subj} ${h.title}` : h.title)), ...[...D0.H].filter((t) => t !== '@cu').map((t) => (D0.hsj[t] && D0.hsj[t] !== '영어' ? `${D0.hsj[t]} ${t}` : t))])].join('\n');
     const x = { date: D0.date || today(), nth: String(D0.nth || '').trim(), book: [...D0.book].join(' · '), units: D0.H.has('@cu') ? units : [], lesson, hw, score: String(D0.score || '').trim(), scoreTotal: String(D0.scoreTotal || '').trim(), progress: D0.progress || autoProg(n), comment: [...D0.C].join('\n') };
     if (!r.tutor) { const { finT, ...st } = wkStat(dRowD(n), x.date); x.stat = st; x.nth = ''; }
     else if (!x.score) { const as = autoScore(n); if (as) { x.score = as.score; x.scoreTotal = as.total; } }  // 점수를 안 적었으면 지난 7일 시험 점수 (미리보기 그림과 저장값이 같게)
@@ -4340,7 +4410,7 @@
         if (!y) { y = { id: 'l' + Date.now() }; C.list.push(y); } delete y.plan; Object.assign(y, x);
         const nx = upcoming({ ...dCls(r, D), list: C.list }, addD(x.date, 1), 3).find((u) => !u.off), due = nx ? addD(nx.date, -1) : '', at = Date.now();
         const keep = (D.hw || []).filter((h) => h.src !== y.id), mine = (D.hw || []).filter((h) => h.src === y.id);
-        D.hw = [...keep, ...[...D0.H].filter((t) => t !== '@cu').map((t, k) => { const o = mine.find((h) => h.title === t); return o || { id: 'h' + (at + k), title: t, subj: D0.hsj[t] || '영어', due, memo: '', done: false, at, src: y.id, ...(nxIdOf(n, t) ? { nx: nxIdOf(n, t) } : {}) }; })];
+        if (false) D.hw = [...keep, ...[...D0.H].filter((t) => t !== '@cu').map((t, k) => { const o = mine.find((h) => h.title === t); return o || { id: 'h' + (at + k), title: t, subj: D0.hsj[t] || '영어', due, memo: '', done: false, at, src: y.id, ...(nxIdOf(n, t) ? { nx: nxIdOf(n, t) } : {}) }; })];
         return { ...y, mt: dTotal(r, C, x.date) };
       });
     } catch (e) { btn.disabled = false; btn.textContent = t0; return toast('저장이 안 됐어요. 인터넷을 보고 다시 눌러 주세요'); }
@@ -4462,11 +4532,9 @@
     const info = dashInfo();
     const sub = (x) => x.tutor ? `${x.c.wd.length ? `매주 ${x.c.wd.map((w) => WDK[w]).join('·')} ${esc(timeKo(x.c.time))}` : '요일 미정'}${x.lz.count === 'month' ? ' · 한 달 단위' : x.lz.total ? ` · ${x.lz.total}회 묶음` : ''}` : esc([(uniOf(x.p.uni) || {}).name, x.p.major].filter(Boolean).join(' ') || '목표 아직 없음');
     const row = (x) => { const r = x.r; return `<div class="st-r">
-      <div class="st-who">${sAv(r)}<div><b>${esc(r.name)}</b> <span class="tag">${esc(r.level || '')}</span>${r.edition === 'english' ? ' <span class="tag">말랑영어</span>' : ''}<small>${loading(x) ? '불러오는 중' : '최근 접속 ' + agoTxt(x.last)}</small></div></div>
-      <div class="st-c"><small>코드</small><b class="num">${esc(r.alias || '-')}</b></div>
+      <div class="st-who">${sAv(r)}<div><b>${esc(r.name)}</b> <span class="tag">${esc(r.level || '')}</span>${r.edition === 'english' ? ' <span class="tag">말랑영어</span>' : ''}<small>${[`코드 ${esc(r.alias || '-')}`, x.lz.parent ? `리포트 ${esc(x.lz.parent)}` : '', loading(x) ? '불러오는 중' : '접속 ' + agoTxt(x.last)].filter(Boolean).join(' · ')}</small></div></div>
       <div class="st-c st-w"><small>${x.tutor ? '수업' : '목표'}</small><b>${sub(x)}</b></div>
-      <div class="st-c"><small>리포트</small><b>${esc(x.lz.parent || '-')}</b></div>
-      <div class="st-c"><small>이번 주</small><b>${loading(x) ? '…' : x.week + '문제'}</b></div>
+      <div class="st-c st-n"><small>이번 주</small><b>${loading(x) ? '…' : x.week + '문제'}</b></div>
       <div class="st-act">${hasRep(x) ? `<button class="btn sm primary" data-dl="${esc(r.name)}" type="button">리포트</button>` : ''}<button class="btn sm soft" data-dh="${esc(r.name)}" type="button">숙제</button><button class="btn sm" data-dgo="${esc(r.name)}|peek" type="button">화면 보기</button></div></div>`; };
     return `<h1 class="h1">학생</h1><p class="sub">코드는 학생이 처음 들어올 때 넣는 번호예요</p><section class="card st-l">${info.map(row).join('')}</section>`;
   }
@@ -4629,7 +4697,7 @@
   // ───────── 틀 · 메뉴 ─────────
   const TABS = [['home', '홈', 'home'], ['hw', '숙제', 'hw'], ['exam', '시험', 'pencil'], ['wrong', '오답', 'wrong'], ['book', '교재', 'books'], ['score', '성적', 'score'], ['uni', '대학', 'school'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']].filter((t) => (!ST.tabs || ST.tabs.includes(t[0])) && (t[0] !== 'exam' || Object.keys(NXSETS).length || NX_CH.length || NX_JG.length));  // 시험 탭은 시험이 있는 학생만
   const DASH_ONLY = TEACHER && !STU_TAB && ROSTER.length > 1;  // 선생님 첫 탭은 학생 관리만 (학생 화면은 새 탭으로)
-  if (DASH_ONLY) TABS.splice(0, TABS.length, ['dash', '홈', 'home'], ['treport', '리포트', 'memo'], ['tgrade', '성적', 'score'], ['tsched', '수업 일정', 'cal'], ['news', '소식', 'news'], ['tstu', '학생', 'trophy']);
+  if (DASH_ONLY) TABS.splice(0, TABS.length, ['dash', '홈', 'home'], ['treport', '리포트', 'memo'], ['thw', '숙제', 'hw'], ['tgrade', '성적', 'score'], ['tsched', '수업 일정', 'cal'], ['news', '소식', 'news'], ['tstu', '학생', 'trophy']);
   function nav() {
     const bm = Object.values(bkS().marks), cnt = { hw: leftItems().length, wrong: todayWr().length, book: TEACHER ? bm.filter((m) => m.q && !m.ans).length : bm.filter((m) => m.q && m.ans && !m.ansSeen).length };
     const btn = (t, bottom) => `<button type="button" class="${UI.tab === t[0] ? 'on' : ''}" data-go="${t[0]}">${bottom ? `<img src="icons/${IC[t[2]]}.svg" alt="">` : ''}${t[1]}${cnt[t[0]] ? `<span class="cnt">${cnt[t[0]] > 99 ? '99+' : cnt[t[0]]}</span>` : ''}</button>`;
@@ -4668,7 +4736,7 @@
     syncGoals();
     redoFix();
     if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'nx' ? nxRun() : UI.run.kind === 'nxw' ? nxwRun() : '';
-    else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'picks' ? picksView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'exam' ? examView() : sgbView();
+    else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'picks' ? picksView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'exam' ? examView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
     const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'hw' ? (UI.nxUnit || '') + (UI.nxSubj || '') : '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '');
     const depth = UI.run ? 2 : UI.lib || (UI.tab === 'score' && UI.mockId) || (UI.tab === 'hw' && UI.nxUnit) ? 1 : 0, ti = TABS.findIndex((t) => t[0] === UI.tab);
@@ -4751,7 +4819,7 @@
     $$('[data-dl]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); const [n, id] = x.dataset.dl.split('|'); if (!n) { UI.tab = 'treport'; return render(); } dOpen(n, id); }));
     $$('[data-ds]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); const [n, id] = x.dataset.ds.split('|'); const l = dCls(rOf(n), dRowD(n)).list.find((y) => y.id === id); if (l) { drFrom(n, l); dRepShow(n, l); } }));
     $$('[data-dst]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); dOpen(x.dataset.dst); }));
-    $$('[data-dh]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); dOpen(x.dataset.dh); }));
+    $$('[data-dh]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); UI.hStu = x.dataset.dh; UI.tab = 'thw'; render(); scrollTo(0, 0); }));
     dashBind();
     $$('[data-hwadd]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); hwAddSheet(); }));
     $$('[data-lsnsend]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); reportSheet(x.dataset.lsnsend); }));
@@ -4792,7 +4860,7 @@
     const wa = $('#wr-all'); if (wa) wa.onclick = () => { const ids = openWrong().filter((w) => UI.wrongSubj === 'all' || w.subj === UI.wrongSubj).map((w) => w.id); if (ids.length) { UI.run = { kind: 'retry', id: ids[0], queue: ids.slice(1) }; render(); window.scrollTo(0, 0); } };
     const ha = $('#hw-add'); if (ha) ha.onclick = hwAddSheet;
     const po = $('#plan-open'); if (po) po.onclick = planSheet;
-    $$('[data-hwopen]').forEach((b) => (b.onclick = () => { const h = (S.hw || []).find((x) => x.id === b.dataset.hwopen); if (h && !TEACHER && mmOf(h.title) && mmHwStart(h)) return; hwSheet(b.dataset.hwopen); }));
+    $$('[data-hwopen]').forEach((b) => (b.onclick = () => { const h = (S.hw || []).find((x) => x.id === b.dataset.hwopen); if (h && !TEACHER && ((mmOf(h.title) && mmHwStart(h)) || (cuOf(h.title) && cuHwStart(h)))) return; hwSheet(b.dataset.hwopen); }));
     $$('[data-hwdone]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); const x = S.hw.find((h) => h.id === b.dataset.hwdone); x.done = !x.done; x.doneAt = Date.now(); save('hw'); render(); if (x.done) toast('잘했어요'); }));
     $$('[data-hwdel]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); S.hw = S.hw.filter((h) => h.id !== b.dataset.hwdel); save('hw'); render(); }));
     $$('[data-sa]').forEach((b) => (b.onclick = () => { UI.sgbArea = b.dataset.sa; render(); }));
