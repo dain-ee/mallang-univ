@@ -223,7 +223,7 @@
 
   // ───────── 영어 매일 (천일문 유닛 1개 + 단어 10개 시험) ─────────
   const ENG = D.english || {};
-  // 새 천일문(2026-10-26): 과외 학생만. 유닛마다 개념 → 문제 → 짧은 독해, 10문제쯤. 윤건(lesson.level basic)은 기본, 지원은 수능 수준(std). 정윤이는 예전 문제 그대로
+  // 새 천일문(2026-10-26): 모든 학생. 예전 앱에서 온 문제는 버려요(선생님). 유닛마다 개념 → 문제(고르기) → 짧은 독해, 10문제쯤. 윤건(lesson.level basic)은 기본, 정윤·지원은 수능 수준(std)
   const CH_LV = TUTOR && (ST.lesson || {}).level === 'basic' ? 'basic' : 'std';
   const ch2Qs = (L) => !L ? [] : [
     // 빈칸 쓰기는 뺐어요: 답이 여러 개라 의미 없다고 하셨어요 (선생님 10/26). 개념 설명 → 그 개념 문제 → 짧은 독해만
@@ -231,7 +231,7 @@
     ...(L.qs || []).slice(0, Math.max(6, 10 - ((L.read && L.read.qs) || []).length)).map((q) => ({ ...q, _mixed: 1 })),  // 다 합쳐 10문제쯤 (선생님 10/26)
     ...((L.read && L.read.qs) || []).map((q) => ({ ...q, type: '독해', passage: L.read.passage, ptitle: L.read.title, pko: L.read.ko, _mixed: 1 })),
   ];
-  const CH_UNITS = (ENG.cheonil || []).flatMap((ch) => (ch.units || []).map((u) => (u.q2 && (TUTOR || !(u.questions || []).length) ? { ...u, questions: ch2Qs(u.q2[CH_LV] || u.q2.std), concept: u.q2.concept || u.concept, v2: 1, ch: ch.ch, chTitle: ch.title } : { ...u, ch: ch.ch, chTitle: ch.title })));
+  const CH_UNITS = (ENG.cheonil || []).flatMap((ch) => (ch.units || []).map((u) => (u.q2 ? { ...u, questions: ch2Qs(u.q2[CH_LV] || u.q2.std), concept: u.q2.concept || u.concept, v2: 1, ch: ch.ch, chTitle: ch.title } : { ...u, ch: ch.ch, chTitle: ch.title })));
   const uKey = (un) => un.ch + '-' + un.unit + (un.v2 ? ':2' : '');  // 새 문제는 기록 칸을 따로 (예전 기록과 번호가 안 섞이게)
   // 정답이 앞쪽 보기에 몰려 있어서, 문제마다 늘 같은 순서로 섞어 보여 줌
   const seeded = (str) => { let h = 2166136261; for (const c of str) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return () => ((h = Math.imul(h ^ (h >>> 15), 2246822507) ^ Math.imul(h ^ (h >>> 13), 3266489909)) >>> 0) / 4294967296; };
@@ -1808,6 +1808,8 @@
     S.eng.ua = S.eng.ua || {}; const store = ref != null ? (S.eng.ua[uKey(un)] = S.eng.ua[uKey(un)] || {}) : ed.uans;
     return { ed, ref, un, store, ids: qIds(un) };
   }
+  // 다음 문제로 갈 때 맨 위(뒤로 단추·머리)까지 올라가지 않고 문제 칸이 화면 맨 위에 오게 (선생님 10/26 「자꾸 맨 위로 가서 귀찮아」)
+  function toQ() { const el = $('main .progress-dots') || $('main .qwrap'); if (!el) return window.scrollTo(0, 0); const top = ($('.top') || {}).offsetHeight || 0; window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + scrollY - top - 8), behavior: 'auto' }); }
   function unitRun() {
     const back = UI.run && UI.run.back, g3lib = UI.run && UI.run.g3lib;
     const { ed, ref, un, store, ids } = unitCtx();
@@ -1850,7 +1852,7 @@
     const rs = $('#ord-reset'); if (rs) rs.onclick = () => render();
     const ok = $('#ord-ok'); if (ok) ok.onclick = () => { const t = picked.join(' '); mark(normEn(t) === normEn(q.answerText), { text: t }); };
     const fo = $('#free-ok'); if (fo) fo.onclick = () => { const t = $('#free').value; const ans = q.answerText || ''; mark(normEn(t) === normEn(ans) || (q.accept || []).some((x) => normEn(x) === normEn(t)), { text: t }); };
-    const n = $('#next'); if (n) n.onclick = () => { const st = live(), nx = ids.find((k) => !st[k]); UI.run = { ...keep, show: nx == null ? -1 : nx }; render(); window.scrollTo(0, 0); };
+    const n = $('#next'); if (n) n.onclick = () => { const st = live(), nx = ids.find((k) => !st[k]); UI.run = { ...keep, show: nx == null ? -1 : nx }; render(); toQ(); };
   }
   // 영어: 단어 10개 (외우기 → 시험)
   function wordsRun() {
@@ -4120,7 +4122,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261707'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261712'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
