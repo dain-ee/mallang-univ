@@ -1418,15 +1418,43 @@
       const w = $('#hs-wrong', el); if (w) w.onclick = () => { close(); UI.wrongSubj = key; go('wrong'); };
     });
   }
-  function hwAddSheet() {
-    sheet(`<h2>숙제 내기</h2><p class="sub">${esc(U.who)}의 숙제 목록에 바로 보여요</p>
-      <div class="field"><label>무엇을</label><input class="inp" id="h-t" placeholder="${TUTOR ? '예) 천일문 60~62 복습' : '예) 수학 RPM 120~135쪽'}"></div>
-      <div class="row" style="gap:12px"><div class="field" style="flex:1"><label>과목</label><select class="inp" id="h-s">${['국어', '수학', '영어', '한국사', '통합사회', '통합과학', '생기부', '기타'].map((s) => `<option ${TUTOR && s === '영어' ? 'selected' : ''}>${s}</option>`).join('')}</select></div><div class="field" style="flex:1"><label>언제까지</label><input class="inp" type="date" id="h-d"></div></div>
+  // 선생님 홈(DASH_ONLY)에서는 학생을 골라 그 학생 기록에 바로 넣어요 (여러 명 한 번에)
+  // 다른 학생 기록: 서버에서 최신을 받아 고친 뒤 그 칸만 새 시각으로 올려요 (학생 앱이 다음에 받아 감)
+  async function dPut(name, key, fn) {
+    const d = (await rpc('univ_get', { p_student: name, p_code: U.key })) || {};
+    const out = fn(d); d._at = { ...(d._at || {}), [key]: Date.now() };
+    await rpc('univ_put', { p_student: name, p_code: U.key, p_data: d });
+    const row = (roster.rows || []).find((x) => x.r.name === name); if (row) row.d = d;
+    return out;
+  }
+  async function hwPush(name, item) {
+    if (name === U.who) { S.hw = S.hw || []; S.hw.push(item); save('hw'); return; }
+    await dPut(name, 'hw', (d) => { d.hw = [...(d.hw || []), item]; });
+  }
+  function hwAddSheet(pre) {
+    const multi = DASH_ONLY, sel = new Set(pre ? [pre] : []), isT = (n) => !!(ROSTER.find((r) => r.name === n) || {}).tutor;
+    const eng = () => (multi ? sel.size && [...sel].every(isT) : TUTOR);
+    sheet(`<h2>숙제 내기</h2><p class="sub">${multi ? '고른 학생의 숙제 목록에 바로 보여요' : `${esc(U.who)}의 숙제 목록에 바로 보여요`}</p>
+      ${multi ? `<div class="field"><label>누구에게 (여러 명 골라도 돼요)</label><div class="chips" id="h-who">${ROSTER.map((r) => `<button class="chip ${sel.has(r.name) ? 'on' : ''}" data-w="${esc(r.name)}" type="button"><i class="sv-dot" style="--sc:${esc(sColor(r))}"></i>${esc(r.name)}</button>`).join('')}</div></div>` : ''}
+      <div class="field"><label>무엇을</label><input class="inp" id="h-t" placeholder="${eng() ? '예) 천일문 60~62 복습' : '예) 수학 RPM 120~135쪽'}"></div>
+      <div class="row" style="gap:12px"><div class="field" style="flex:1"><label>과목</label><select class="inp" id="h-s">${['국어', '수학', '영어', '한국사', '통합사회', '통합과학', '생기부', '기타'].map((s) => `<option ${eng() && s === '영어' ? 'selected' : ''}>${s}</option>`).join('')}</select></div><div class="field" style="flex:1"><label>언제까지</label><input class="inp" type="date" id="h-d"></div></div>
       <div class="field"><label>메모</label><input class="inp" id="h-m" placeholder="선택"></div>
       <button class="btn primary big block" id="h-ok" type="button">내기</button>`, (el, close) => {
-      $('#h-ok', el).onclick = () => { const t = $('#h-t', el).value.trim(); if (!t) return; S.hw = S.hw || []; S.hw.push({ id: 'h' + Date.now(), title: t, subj: $('#h-s', el).value, due: $('#h-d', el).value, memo: $('#h-m', el).value.trim(), done: false, at: Date.now() }); save('hw'); close(); render(); toast('숙제를 냈어요'); };
+      el.querySelectorAll('[data-w]').forEach((b) => (b.onclick = () => { const n = b.dataset.w; sel.has(n) ? sel.delete(n) : sel.add(n); b.classList.toggle('on', sel.has(n)); if (eng()) { $('#h-s', el).value = '영어'; $('#h-t', el).placeholder = '예) 천일문 60~62 복습'; } }));
+      $('#h-ok', el).onclick = async () => {
+        const t = $('#h-t', el).value.trim(); if (!t) { $('#h-t', el).focus(); return; }
+        const item = { id: 'h' + Date.now(), title: t, subj: $('#h-s', el).value, due: $('#h-d', el).value, memo: $('#h-m', el).value.trim(), done: false, at: Date.now() };
+        if (!multi) { S.hw = S.hw || []; S.hw.push(item); save('hw'); close(); render(); toast('숙제를 냈어요'); return; }
+        if (!sel.size) { toast('누구에게 낼지 골라 주세요'); return; }
+        const ok = $('#h-ok', el); ok.disabled = true; ok.textContent = '내는 중…';
+        const names = [...sel], bad = [];
+        for (const n of names) { try { await hwPush(n, { ...item }); } catch (e) { bad.push(n); } }
+        if (bad.length) { ok.disabled = false; ok.textContent = '다시 내기'; sel.clear(); bad.forEach((n) => sel.add(n)); el.querySelectorAll('[data-w]').forEach((b) => b.classList.toggle('on', sel.has(b.dataset.w))); toast(`${bad.join('·')}에게는 못 냈어요. 인터넷을 보고 다시 눌러 주세요`); return; }
+        close(); render(); toast(`${names.join('·')}에게 숙제를 냈어요`);
+      };
     });
   }
+
 
   // ───────── 문제 풀기 화면 (과학 · 영어 · 오답 다시 풀기 공용) ─────────
   function qBody(q) {
@@ -3317,16 +3345,18 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261120'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261126'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
+    reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
+  }
+  async function reportOpen({ name, L, total, book, who, sent }) {
     try { await loadReport(); } catch (e) { return toast('리포트를 못 불러왔어요. 인터넷을 확인해 주세요'); }
     const cv = document.createElement('canvas');
-    Report.drawReport(cv, { name: NM(), date: L.date, nth: L.nth, total: nthTotal(L.date), book: L.book || LS0.book || '', progress: L.progress, score: L.score, scoreTotal: L.scoreTotal, lesson: lines(L.lesson), homework: lines(L.hw), comment: lines(L.comment) });
+    Report.drawReport(cv, { name, date: L.date, nth: L.nth, total, book, progress: L.progress, score: L.score, scoreTotal: L.scoreTotal, lesson: lines(L.lesson), homework: lines(L.hw), comment: lines(L.comment) });
     const blob = await new Promise((r) => cv.toBlob(r, 'image/png'));
-    const file = new File([blob], `${NM()}_${L.date}${L.nth ? '_' + L.nth + '회차' : ''}.png`, { type: 'image/png' });
-    const url = URL.createObjectURL(blob), canShare = !!(navigator.canShare && navigator.canShare({ files: [file] })), who = LS0.parent || '어머니';
-    const sent = () => { L.sent = Date.now(); save('cls'); render(); };
+    const file = new File([blob], `${name}_${L.date}${L.nth ? '_' + L.nth + '회차' : ''}.png`, { type: 'image/png' });
+    const url = URL.createObjectURL(blob), canShare = !!(navigator.canShare && navigator.canShare({ files: [file] }));
     sheet(`<h2>${esc(who)}께 보내기</h2><p class="sub">${canShare ? '「카톡으로 보내기」를 누르고 카카오톡에서 ' + esc(who) + (jongOf(who) ? '을' : '를') + ' 고르면 돼요' : '「그림 복사」 뒤 카카오톡 ' + esc(who) + ' 방에 붙여 넣으면(⌘V) 돼요'}</p>
       <img class="rp-img" src="${url}" alt="수업 리포트">
       ${canShare ? '<button class="btn primary big block" id="rp-share" type="button">카톡으로 보내기</button>' : ''}
@@ -3383,15 +3413,15 @@
     const hero = `<section class="card c7 hero dh-hero"><div class="hero-band" style="background:${nx ? esc(sColor(nx.x.r)) : 'var(--blue)'}"></div>
       <div class="who"><span class="qa-ic big blue">${ic('clock')}</span><div style="min-width:0;flex:1"><div class="goal-t">다음 수업</div><div class="goal-n">${nx ? `${esc(nx.x.r.name)} · ${esc(md(nx.date))} ${esc(wdName(nx.date))}` : '잡힌 수업이 없어요'}</div><div class="goal-m">${nx ? `${nx.time ? esc(timeKo(nx.time)) + ' · ' : ''}${nx.extra ? '보강·추가 수업' : '매주 수업'}` : '학생 탭에서 수업 요일을 정해요'}</div></div>${nx ? `<b class="dh-dd num">${dday(nx.date) === 0 ? '오늘' : 'D-' + dday(nx.date)}</b>` : ''}</div>
       <div class="dday"><div><span>이번 주 수업</span><b class="num">${up.length}개</b></div><div><span>보낼 리포트</span><b class="num ${todo.filter((x) => x.b === '보내기').length ? 'red' : ''}">${todo.filter((x) => x.b === '보내기').length}개</b></div><div><span>이번 주 푼 문제</span><b class="num">${weekSolved}개</b></div></div></section>`;
-    const week = `<section class="card c5"><div class="card-h"><h2>이번 주</h2><button class="more" data-go="tsched" type="button">달력</button></div>${up.length ? `<div class="list">${up.map((u) => `<div class="li dh-wi" role="button" tabindex="0" data-dgo="${esc(u.x.r.name)}|home"><span class="dh-date" style="--sc:${esc(sColor(u.x.r))}"><small>${WDK[new Date(u.date + 'T00:00').getDay()]}</small><b class="num">${+u.date.slice(8)}</b></span><div class="body"><div class="t"><i class="sv-dot" style="--sc:${esc(sColor(u.x.r))}"></i>${esc(u.x.r.name)} 수업</div><div class="d">${u.time ? esc(timeKo(u.time)) + ' · ' : ''}${u.extra ? '보강' : '매주 수업'}</div></div><b class="num dh-sd">${dday(u.date) === 0 ? '오늘' : 'D-' + dday(u.date)}</b></div>`).join('')}</div>` : `<div class="empty">${gh('sleepy', 'gh-empty')}<b>이번 주 수업이 없어요</b></div>`}</section>`;
-    const todoC = todo.length ? `<section class="card c12"><div class="card-h"><h2>할 일</h2><span class="tag red">${todo.length}</span></div><div class="list">${todo.map((y) => `<div class="li"><span class="ico tone-red">${ic(y.b === '보내기' ? 'mega' : 'compass')}</span><div class="body"><div class="t">${esc(y.x.r.name)} · ${esc(y.t)}</div><div class="d">${esc(y.d)}</div></div><button class="btn sm primary" data-dgo="${esc(y.k)}" type="button">${y.b}</button></div>`).join('')}</div></section>` : '';
+    const week = `<section class="card c5"><div class="card-h"><h2>이번 주</h2><button class="more" data-go="tsched" type="button">달력</button></div>${up.length ? `<div class="list">${up.map((u) => `<div class="li dh-wi" role="button" tabindex="0" data-dl="${esc(u.x.r.name)}"><span class="dh-date" style="--sc:${esc(sColor(u.x.r))}"><small>${WDK[new Date(u.date + 'T00:00').getDay()]}</small><b class="num">${+u.date.slice(8)}</b></span><div class="body"><div class="t"><i class="sv-dot" style="--sc:${esc(sColor(u.x.r))}"></i>${esc(u.x.r.name)} 수업</div><div class="d">${u.time ? esc(timeKo(u.time)) + ' · ' : ''}${u.extra ? '보강' : '매주 수업'}</div></div><b class="num dh-sd">${dday(u.date) === 0 ? '오늘' : 'D-' + dday(u.date)}</b></div>`).join('')}</div>` : `<div class="empty">${gh('sleepy', 'gh-empty')}<b>이번 주 수업이 없어요</b></div>`}</section>`;
+    const todoC = todo.length ? `<section class="card c12"><div class="card-h"><h2>할 일</h2><span class="tag red">${todo.length}</span></div><div class="list">${todo.map((y) => `<div class="li"><span class="ico tone-red">${ic(y.b === '보내기' ? 'mega' : 'compass')}</span><div class="body"><div class="t">${esc(y.x.r.name)} · ${esc(y.t)}</div><div class="d">${esc(y.d)}</div></div><button class="btn sm primary" ${y.b === '보내기' ? `data-ds="${esc(y.k.replace('|send:', '|'))}"` : `data-dst="${esc(y.x.r.name)}"`} type="button">${y.b}</button></div>`).join('')}</div></section>` : '';
     const stu = `<section class="card c12"><div class="card-h"><h2>학생</h2><button class="more" data-go="tstu" type="button">자세히</button></div><div class="list">${info.map((x) => {
       const sub = loading(x) ? '불러오는 중' : x.tutor ? [x.nx ? `다음 ${wdShort(x.nx.date)}` : '', x.L ? `지난 ${md(x.L.date)}${x.L.sent ? '' : ' · 리포트 안 보냄'}` : '', `이번 주 ${x.week}문제`].filter(Boolean).join(' · ') : [`목표 ${[(uniOf(x.p.uni) || {}).short, x.p.major].filter(Boolean).join(' ') || '-'}`, `이번 주 ${x.week}문제`, agoTxt(x.last)].join(' · ');
-      return `<div class="li btnlike" role="button" tabindex="0" data-dgo="${esc(x.r.name)}|home">${sAv(x.r)}<div class="body"><div class="t">${esc(x.r.name)} <span class="tag">${esc(x.r.level || '')}</span>${x.r.edition === 'english' ? ' <span class="tag">말랑영어</span>' : ''}${x.fresh ? ' <span class="tag red">진로 바꿈</span>' : ''}</div><div class="d">${esc(sub)}</div></div>${x.tutor && x.nx ? `<b class="num dh-sd">${dday(x.nx.date) === 0 ? '오늘' : 'D-' + dday(x.nx.date)}</b>` : ''}<span class="chev"></span></div>`;
-    }).join('')}</div><p class="tiny" style="margin:8px 0 0">누르면 새 탭에 학생 화면이 열려요</p></section>`;
+      return `<div class="li btnlike" role="button" tabindex="0" data-dst="${esc(x.r.name)}">${sAv(x.r)}<div class="body"><div class="t">${esc(x.r.name)} <span class="tag">${esc(x.r.level || '')}</span>${x.r.edition === 'english' ? ' <span class="tag">말랑영어</span>' : ''}${x.fresh ? ' <span class="tag red">진로 바꿈</span>' : ''}</div><div class="d">${esc(sub)}</div></div>${x.tutor && x.nx ? `<b class="num dh-sd">${dday(x.nx.date) === 0 ? '오늘' : 'D-' + dday(x.nx.date)}</b>` : ''}<span class="chev"></span></div>`;
+    }).join('')}</div></section>`;
     const nSend = todo.filter((x) => x.b === '보내기').length;
     const tile = (k, icon, tone, t, d, attr) => `<button class="qa-t" type="button" ${attr}><span class="qa-ic ${tone}">${ic(icon)}</span><b>${t}</b><span>${d}</span></button>`;
-    const quick = `<section class="card c12"><div class="qa-grid">${tile('lsn', 'write', 'blue', '리포트 쓰기', '수업 내용 적고 어머니께 보내요', 'data-qa="lsn"')}${tile('hw', 'hw', 'green', '숙제 내기', '학생 숙제 목록에 바로 떠요', 'data-qa="hw"')}${tile('send', 'mega', nSend ? 'red' : 'amber', nSend ? `보낼 리포트 ${nSend}개` : '보낸 리포트', nSend ? '아직 어머니께 안 보냈어요' : '보낸 것·다시 보내기', 'data-go="treport"')}${tile('cal', 'cal', 'violet', '수업 일정', '달력에서 보강·쉬는 날 봐요', 'data-go="tsched"')}</div></section>`;
+    const quick = `<section class="card c12"><div class="qa-grid">${tile('lsn', 'write', 'blue', '리포트 쓰기', '오늘 한 것 · 숙제만 쓰면 돼요', 'data-qa="lsn"')}${tile('hw', 'hw', 'green', '숙제 내기', '여기서 바로 · 여러 명 한 번에', 'data-qa="hw"')}${tile('send', 'mega', nSend ? 'red' : 'amber', nSend ? `보낼 리포트 ${nSend}개` : '보낸 리포트', nSend ? '아직 어머니께 안 보냈어요' : '보낸 것·다시 보내기', 'data-go="treport"')}${tile('cal', 'cal', 'violet', '수업 일정', '달력에서 보강·쉬는 날 봐요', 'data-go="tsched"')}</div></section>`;
     return `${head}<div class="grid">${quick}${hero}${week}${todoC}${stu}</div>`;
   }
   // 수업 일정: 달력 (기록한 수업 ✓ · 앞으로의 수업 · 보강)
@@ -3403,13 +3433,13 @@
       for (const l of x.c.list) if (ymOf(l.date) === ym) (ev[l.date] = ev[l.date] || []).push({ x, l, done: lsnDone(l), extra: !!l.plan, time: l.time || x.c.time });
       for (const u of upcoming(x.c, `${ym}-01`, 40)) if (ymOf(u.date) === ym && u.date >= t && !u.extra && !(ev[u.date] || []).some((e) => e.x === x)) (ev[u.date] = ev[u.date] || []).push({ x, off: u.off, time: u.time });
     }
-    const cell = (d) => { const k = `${ym}-${String(d).padStart(2, '0')}`, E = (ev[k] || []).sort((a, b) => String(a.time).localeCompare(String(b.time))); return `<div class="cal-c ${k === t ? 'today' : ''} ${k < t ? 'past' : ''}"><b>${d}</b>${E.map((e) => `<button type="button" class="cal-e ${e.done ? 'done' : ''} ${e.off ? 'off' : ''}" style="--sc:${esc(sColor(e.x.r))}" data-dgo="${esc(e.x.r.name)}|${e.done ? 'lsn:' + e.l.id : k <= t ? 'lsn' : 'home'}" title="${esc(e.x.r.name)}">${e.done ? '✓ ' : ''}${esc(e.x.r.name)}${e.time && !e.done ? `<i>${esc(timeKo(e.time).replace('오후 ', '').replace('오전 ', ''))}</i>` : ''}${e.extra ? '<i>보강</i>' : ''}${e.off ? '<i>쉼</i>' : ''}</button>`).join('')}</div>`; };
+    const cell = (d) => { const k = `${ym}-${String(d).padStart(2, '0')}`, E = (ev[k] || []).sort((a, b) => String(a.time).localeCompare(String(b.time))); return `<div class="cal-c ${k === t ? 'today' : ''} ${k < t ? 'past' : ''}"><b>${d}</b>${E.map((e) => `<button type="button" class="cal-e ${e.done ? 'done' : ''} ${e.off ? 'off' : ''}" style="--sc:${esc(sColor(e.x.r))}" data-dl="${esc(e.x.r.name)}${e.done ? '|' + e.l.id : ''}" title="${esc(e.x.r.name)}">${e.done ? '✓ ' : ''}${esc(e.x.r.name)}${e.time && !e.done ? `<i>${esc(timeKo(e.time).replace('오후 ', '').replace('오전 ', ''))}</i>` : ''}${e.extra ? '<i>보강</i>' : ''}${e.off ? '<i>쉼</i>' : ''}</button>`).join('')}</div>`; };
     const prev = ymOf(new Date(Y, M - 2, 1).toLocaleDateString('sv')), next = ymOf(new Date(Y, M, 1).toLocaleDateString('sv'));
     const cnt = info.filter((x) => x.tutor).map((x) => { const n = lsnSorted(x.c).filter((l) => ymOf(l.date) === ym).length + (+(((x.lz.monthSeed || {})[ym])) || 0), mt = x.c.mtot[ym]; return `<div class="li">${sAv(x.r)}<div class="body"><div class="t">${esc(x.r.name)}</div><div class="d">${x.c.wd.length ? `매주 ${x.c.wd.map((w) => WDK[w]).join('·')} ${esc(timeKo(x.c.time))}` : '요일 미정'}${x.lz.count === 'month' ? '' : x.lz.total ? ` · ${x.lz.total}회 묶음` : ''}</div></div><b class="num">${n}회${x.lz.count === 'month' && mt ? ` / ${esc(mt)}` : ''}</b></div>`; }).join('');
-    return `<h1 class="h1">수업 일정</h1><p class="sub">수업을 누르면 그 학생 탭이 열려요. ✓는 기록을 적은 수업이에요</p>
+    return `<h1 class="h1">수업 일정</h1><p class="sub">수업을 누르면 바로 리포트를 써요. ✓는 적은 수업이에요</p>
       <div class="grid"><section class="card c8"><div class="card-h"><button class="btn sm" data-calm="${prev}" type="button">‹</button><h2>${Y}년 ${M}월</h2><button class="btn sm" data-calm="${next}" type="button">›</button></div>
       <div class="cal-g">${WDK.map((w) => `<div class="cal-w">${w}</div>`).join('')}${'<div class="cal-c empty"></div>'.repeat(lead)}${Array.from({ length: days }, (_, i) => cell(i + 1)).join('')}</div></section>
-      <section class="card c4"><div class="card-h"><h2>${M}월 수업 횟수</h2></div><div class="list">${cnt}</div><p class="tiny" style="margin:8px 0 0">요일·보강·쉬는 날은 학생 탭의 「수업 날 · 난도」에서 바꿔요</p></section></div>`;
+      <section class="card c4"><div class="card-h"><h2>${M}월 수업 횟수</h2></div><div class="list">${cnt}</div></section></div>`;
   }
   // 리포트: 수업 기록마다 보냄/안 보냄
   function treportView() {
@@ -3418,8 +3448,8 @@
     const un = L.filter((y) => !y.l.sent).length;
     return `<h1 class="h1">리포트</h1><p class="sub">수업을 적으면 여기 쌓여요. ${un ? `<b class="red">안 보낸 리포트 ${un}개</b>` : '밀린 리포트가 없어요'}</p>
       <div class="chips" style="margin-bottom:16px">${[['all', '전체'], ...info.filter((x) => x.tutor).map((x) => [x.r.name, x.r.name])].map(([k, n]) => `<button class="chip ${f === k ? 'on' : ''}" data-repf="${esc(k)}" type="button">${esc(n)}</button>`).join('')}</div>
-      <section class="card" style="margin-bottom:16px"><div class="card-h"><h2>리포트 쓰기</h2></div><p class="tiny" style="margin:-8px 0 12px">수업 내용 · 숙제 · 점수 · 진도율 · 특이사항을 적고 저장하면 리포트 그림이 만들어져요</p><div class="qa-btns">${info.filter((x) => x.tutor).map((x) => `<button class="btn primary" data-dgo="${esc(x.r.name)}|lsn" type="button">${ic('write')} ${esc(x.r.name)} 리포트 쓰기</button>`).join('')}</div></section>
-      <section class="card"><div class="card-h"><h2>쓴 리포트</h2></div>${L.length ? `<div class="list">${L.map(({ x, l }) => `<div class="li"><span class="ico ${l.sent ? 'tone-blue' : 'tone-red'}">${ic('memo')}</span><div class="body"><div class="t"><i class="sv-dot" style="--sc:${esc(sColor(x.r))}"></i>${esc(x.r.name)} · ${esc(wdShort(l.date))}${l.nth ? ` · ${esc(l.nth)}회차` : ''}</div><div class="d">${esc([l.book, (lines(l.lesson)[0] || '')].filter(Boolean).join(' · '))}</div></div>${l.sent ? `<span class="tag blue">보냄${l.sent > 1e9 ? ' ' + esc(md(dateOf(l.sent))) : ''}</span>` : '<span class="tag red">안 보냄</span>'}<button class="btn sm ${l.sent ? '' : 'primary'}" data-dgo="${esc(x.r.name)}|send:${esc(l.id)}" type="button">${l.sent ? '다시' : '보내기'}</button></div>`).join('')}</div>` : `<div class="empty">${gh('idle', 'gh-empty')}<b>아직 적은 수업이 없어요</b><span>학생 탭에서 「수업 적기」를 눌러요</span></div>`}</section>`;
+      <section class="card" style="margin-bottom:16px"><div class="card-h"><h2>리포트 쓰기</h2></div><p class="tiny" style="margin:-8px 0 12px">수업 내용 · 숙제 · 점수 · 진도율 · 특이사항을 적고 저장하면 리포트 그림이 만들어져요</p><div class="qa-btns">${info.filter((x) => x.tutor).map((x) => `<button class="btn primary" data-dl="${esc(x.r.name)}" type="button">${ic('write')} ${esc(x.r.name)} 리포트 쓰기</button>`).join('')}</div></section>
+      <section class="card"><div class="card-h"><h2>쓴 리포트</h2></div>${L.length ? `<div class="list">${L.map(({ x, l }) => `<div class="li"><span class="ico ${l.sent ? 'tone-blue' : 'tone-red'}">${ic('memo')}</span><div class="body"><div class="t"><i class="sv-dot" style="--sc:${esc(sColor(x.r))}"></i>${esc(x.r.name)} · ${esc(wdShort(l.date))}${l.nth ? ` · ${esc(l.nth)}회차` : ''}</div><div class="d">${esc([l.book, (lines(l.lesson)[0] || '')].filter(Boolean).join(' · '))}</div></div>${l.sent ? `<span class="tag blue">보냄${l.sent > 1e9 ? ' ' + esc(md(dateOf(l.sent))) : ''}</span>` : '<span class="tag red">안 보냄</span>'}<button class="btn sm" data-dl="${esc(x.r.name)}|${esc(l.id)}" type="button">고치기</button><button class="btn sm ${l.sent ? '' : 'primary'}" data-ds="${esc(x.r.name)}|${esc(l.id)}" type="button">${l.sent ? '다시' : '보내기'}</button></div>`).join('')}</div>` : `<div class="empty">${gh('idle', 'gh-empty')}<b>아직 적은 수업이 없어요</b><span>학생 탭에서 「수업 적기」를 눌러요</span></div>`}</section>`;
   }
   // 학생: 학생마다 코드 · 학교 · 수업 · 교재 · 리포트 받는 분
   function tstuView() {
@@ -3428,7 +3458,7 @@
       const r = x.r, row = (k, v) => `<div class="sv-row"><span>${k}</span><b>${v}</b></div>`;
       return `<section class="card c6 sv-card"><div class="hero-band" style="background:${esc(sColor(r))}"></div><div class="row" style="gap:12px;align-items:center;margin-bottom:16px">${sAv(r, true)}<div style="min-width:0;flex:1"><div class="sv-n">${esc(r.name)} <span class="tag">${esc(r.level || '')}</span>${r.edition === 'english' ? ' <span class="tag">말랑영어</span>' : ''}</div><div class="tiny">${loading(x) ? '불러오는 중' : '최근 접속 ' + agoTxt(x.last)}</div></div></div>
         ${row('로그인 코드', `<span class="num">${esc(r.alias || '-')}</span>`)}${x.tutor ? `${row('수업', x.c.wd.length ? `매주 ${x.c.wd.map((w) => WDK[w]).join('·')} ${esc(timeKo(x.c.time))}` : '미정')}${row('회차', x.lz.count === 'month' ? '한 달 단위로 세요' : x.lz.total ? `${x.lz.total}회 묶음` : '-')}${row('교재', esc((x.lz.books || [x.lz.book]).filter(Boolean).join(', ') || '-'))}${row('리포트 받는 분', esc(x.lz.parent || '-'))}` : `${row('목표', esc([(uniOf(x.p.uni) || {}).name, x.p.major].filter(Boolean).join(' ') || '-'))}${row('용돈', r.wallet ? '있음' : '-')}`}${row('이번 주 푼 문제', loading(x) ? '…' : x.week + '개')}
-        <div class="row" style="gap:8px;margin-top:16px"><button class="btn primary" data-dgo="${esc(r.name)}|home" type="button">학생 화면 열기</button>${x.tutor ? `<button class="btn" data-dgo="${esc(r.name)}|lsn" type="button">수업 적기</button>` : ''}</div></section>`;
+        <div class="row" style="gap:8px;margin-top:16px">${x.tutor ? `<button class="btn primary" data-dl="${esc(r.name)}" type="button">리포트 쓰기</button>` : ''}<button class="btn soft" data-dh="${esc(r.name)}" type="button">숙제 내기</button><button class="btn" data-dgo="${esc(r.name)}|home" type="button">학생 화면 열기</button></div></section>`;
     }).join('')}</div>`;
   }
   // 선생님 화면에서 학생 탭을 새로 열며 할 일(수업 적기 · 리포트 · 기록 고치기)을 이어서 열어요
@@ -3439,10 +3469,94 @@
     const w = window.open(`${location.pathname}#${url}`, '_blank');
     if (!w) { location.hash = url; location.reload(); }  // 새 탭이 막히면 이 탭에서
   }
+  // ── 선생님 홈에서 바로: 학생 페이지로 넘어가지 않고 여기서 리포트 · 숙제 ──
+  const rOf = (n) => ROSTER.find((r) => r.name === n);
+  async function dLoad(n) {
+    const row = (roster.rows || []).find((x) => x.r.name === n);
+    if (n === U.who) return S;
+    if (row && row.d !== undefined) return row.d;
+    try { const d = await rpc('univ_get', { p_student: n, p_code: U.key }); if (row) row.d = d; return d; } catch (e) { return null; }
+  }
+  function dNth(r, c, date, except) {
+    const lz = r.lesson || {}, done = lsnSorted(c).filter((l) => l.id !== except && l.date <= date);
+    if (lz.count === 'month') return done.filter((l) => ymOf(l.date) === ymOf(date)).length + (+((lz.monthSeed || {})[ymOf(date)]) || 0) + 1;
+    const tot = +lz.total || 0, prev = done.find((l) => l.nth), base = prev ? +prev.nth : +lz.nth0 || 0;
+    return base ? (tot ? (base % tot) + 1 : base + 1) : '';
+  }
+  const dTotal = (r, c, date) => ((r.lesson || {}).count === 'month' ? c.mtot[ymOf(date)] || '' : (r.lesson || {}).total || '');
+  // 리포트 쓰기: 오늘 한 것 · 숙제만 쓰면 돼요. 날짜·회차·교재는 알아서, 점수·진도율·한마디는 접어 둠
+  async function dLessonSheet(n, id) {
+    const r = rOf(n); if (!r) return;
+    const d = await dLoad(n), c = dCls(r, d), lz = r.lesson || {}, cur = id ? c.list.find((l) => l.id === id) : null, prev = lsnSorted(c)[0];
+    const books = lz.books || (lz.book ? [lz.book] : []), date0 = cur ? cur.date : today();
+    const L = cur || { date: date0, nth: dNth(r, c, date0), book: (prev && prev.book) || lz.book || '', units: [], lesson: '', hw: '', score: '', scoreTotal: '', progress: '', comment: '' };
+    const pick = new Set(String(L.book || '').split(' · ').filter(Boolean)), monthly = lz.count === 'month', who = lz.parent || '어머니';
+    const tutors = ROSTER.filter((x) => x.tutor), hasCu = () => CH_UNITS.length && [...pick].some((b) => /천일문/.test(b));
+    sheet(`<div class="chips" style="margin-bottom:16px">${tutors.map((x) => `<button class="chip ${x.name === n ? 'on' : ''}" data-dsw="${esc(x.name)}" type="button"><i class="sv-dot" style="--sc:${esc(sColor(x))}"></i>${esc(x.name)}</button>`).join('')}</div>
+      <h2>${esc(n)} 리포트</h2><p class="sub" id="dl-meta"></p>
+      <div class="field"><label>오늘 한 것</label><textarea class="inp" id="dl-l" rows="3" placeholder="한 줄에 하나씩 · 예) 관계대명사 what">${esc(L.lesson || '')}</textarea></div>
+      <div class="field"><label>숙제</label><textarea class="inp" id="dl-h" rows="2" placeholder="한 줄에 하나씩 · 예) 워크북 40~45쪽">${esc(L.hw || '')}</textarea></div>
+      <div class="field" id="dl-uf"><label>천일문 유닛 <span class="tiny">적으면 ${esc(n)} 앱에 문제 숙제로 나가요</span></label><input class="inp" id="dl-u" placeholder="예) 64-72" value="${esc(unitsText(L.units || []))}"></div>
+      <details class="dl-more"><summary>날짜 · 회차 · 교재 · 점수 · 한마디</summary>
+        <div class="row" style="gap:12px;margin-top:12px"><div class="field" style="flex:2"><label>날짜</label><input class="inp" type="date" id="dl-d" value="${esc(L.date)}"></div><div class="field" style="flex:1"><label>회차</label><input class="inp" id="dl-n" inputmode="numeric" value="${esc(L.nth || '')}"></div>${monthly ? `<div class="field" style="flex:1"><label>이달 전체</label><input class="inp" id="dl-mt" inputmode="numeric" value="${esc(dTotal(r, c, L.date))}"></div>` : ''}</div>
+        ${books.length ? `<div class="field"><label>교재</label><div class="chips">${[...new Set([...books, ...pick])].map((b) => `<button class="chip sm ${pick.has(b) ? 'on' : ''}" data-dbk="${esc(b)}" type="button">${esc(b)}</button>`).join('')}</div></div>` : ''}
+        <div class="row" style="gap:12px"><div class="field" style="flex:1"><label>시험 점수</label><input class="inp" id="dl-s" inputmode="numeric" value="${esc(L.score || '')}"></div><div class="field" style="flex:1"><label>만점</label><input class="inp" id="dl-st" inputmode="numeric" value="${esc(L.scoreTotal || '')}"></div><div class="field" style="flex:1"><label>진도율 %</label><input class="inp" id="dl-p" inputmode="numeric" value="${esc(L.progress || '')}"></div></div>
+        <div class="field"><label>${esc(who)}께 한마디</label><textarea class="inp" id="dl-c" rows="2">${esc(L.comment || '')}</textarea></div>
+      </details>
+      <button class="btn primary big block" id="dl-send" type="button">저장하고 ${esc(who)}께 보내기</button>
+      <button class="btn big block" id="dl-ok" type="button" style="margin-top:8px">저장만</button>`, (el, close) => {
+      const v = (k) => ($('#' + k, el) || { value: '' }).value.trim();
+      const meta = () => { $('#dl-meta', el).textContent = [md(v('dl-d') || L.date) + ' ' + wdName(v('dl-d') || L.date), v('dl-n') ? v('dl-n') + '회차' : '', [...pick].join(' · ')].filter(Boolean).join(' · '); $('#dl-uf', el).hidden = !hasCu(); };
+      meta();
+      el.querySelectorAll('[data-dsw]').forEach((b) => (b.onclick = () => { if (b.dataset.dsw !== n) dLessonSheet(b.dataset.dsw); }));
+      el.querySelectorAll('[data-dbk]').forEach((b) => (b.onclick = () => { const k = b.dataset.dbk; pick.has(k) ? pick.delete(k) : pick.add(k); b.classList.toggle('on', pick.has(k)); meta(); }));
+      $('#dl-d', el).onchange = () => { if (!cur) $('#dl-n', el).value = dNth(r, c, v('dl-d') || today()); meta(); };
+      $('#dl-n', el).oninput = meta;
+      const go = async (send) => {
+        const units = hasCu() ? parseUnits(v('dl-u')) : [];
+        let lesson = v('dl-l'), hw = v('dl-h');
+        if (units.length && !/천일문/.test(hw)) hw = [hw, `말랑대학 천일문 Unit ${unitsText(units)} 문제 풀기`].filter(Boolean).join('\n');
+        if (!lesson && !hw && !units.length) { $('#dl-l', el).focus(); return toast('오늘 한 것을 적어 주세요'); }
+        const x = { date: v('dl-d') || today(), nth: v('dl-n'), book: [...pick].join(' · '), units, gram: cur ? cur.gram || [] : [], lesson, hw, score: v('dl-s'), scoreTotal: v('dl-st'), progress: v('dl-p'), comment: v('dl-c') };
+        const btn = $(send ? '#dl-send' : '#dl-ok', el), t0 = btn.textContent; btn.disabled = true; btn.textContent = '저장하는 중…';
+        let saved;
+        try {
+          saved = await dPut(n, 'cls', (D) => {
+            if (!D.cls) D.cls = { ...dCls(r, null), level: lz.level || 'std' };
+            const C = D.cls; C.list = C.list || []; C.mtot = C.mtot || {};
+            if (monthly) { const m = v('dl-mt'); if (m) C.mtot[ymOf(x.date)] = m; }
+            let y = cur ? C.list.find((l) => l.id === cur.id) : C.list.find((l) => l.plan && l.date === x.date);
+            if (!y) { y = { id: 'l' + Date.now() }; C.list.push(y); } delete y.plan; Object.assign(y, x); return { ...y, mt: dTotal(r, C, x.date) };
+          });
+        } catch (e) { btn.disabled = false; btn.textContent = t0; return toast('저장이 안 됐어요. 인터넷을 보고 다시 눌러 주세요'); }
+        render();
+        if (!send) { close(); return toast(`${n} 수업을 적었어요`); }
+        dReport(n, saved.id, saved);
+      };
+      $('#dl-send', el).onclick = () => go(true);
+      $('#dl-ok', el).onclick = () => go(false);
+    });
+  }
+  async function dReport(n, id, L0) {
+    const r = rOf(n), d = await dLoad(n), c = dCls(r, d), L = L0 || c.list.find((l) => l.id === id); if (!L) return toast('그 수업 기록을 못 찾았어요');
+    const lz = r.lesson || {};
+    reportOpen({ name: (d && d.profile && d.profile.name) || n, L, total: L.mt || dTotal(r, c, L.date), book: L.book || lz.book || '', who: lz.parent || '어머니',
+      sent: () => { dPut(n, 'cls', (D) => { const y = ((D.cls || {}).list || []).find((l) => l.id === L.id); if (y) y.sent = Date.now(); }).then(render).catch(() => toast('보낸 표시를 못 남겼어요')); } });
+  }
+  // 학생을 누르면: 그 학생으로 할 일만 (학생 화면은 여기서 고를 때만 새 탭)
+  function dStuSheet(n) {
+    const r = rOf(n), x = dashInfo().find((y) => y.r.name === n) || {};
+    sheet(`<div class="row" style="gap:12px;align-items:center;margin-bottom:20px">${sAv(r, true)}<div><h2 style="margin:0">${esc(n)}</h2><p class="sub" style="margin:0">${x.tutor ? (x.nx ? `다음 수업 ${esc(wdShort(x.nx.date))}` : '수업 요일 미정') : '학교 숙제·공부'}</p></div></div>
+      <div class="qa-pks">${x.tutor ? `<button class="qa-pk" type="button" data-act="lsn"><span class="qa-ic blue">${ic('write')}</span><span class="body"><b>리포트 쓰기</b><small>오늘 한 것 · 숙제 적고 보내기</small></span><span class="chev"></span></button>` : ''}
+      <button class="qa-pk" type="button" data-act="hw"><span class="qa-ic green">${ic('hw')}</span><span class="body"><b>숙제 내기</b><small>${esc(n)} 숙제 목록에 바로 떠요</small></span><span class="chev"></span></button>
+      ${x.tutor && x.L ? `<button class="qa-pk" type="button" data-act="last"><span class="qa-ic amber">${ic('memo')}</span><span class="body"><b>지난 리포트 고치기</b><small>${esc(wdShort(x.L.date))}${x.L.sent ? ' · 보냄' : ' · 안 보냄'}</small></span><span class="chev"></span></button>` : ''}</div>`, (el) => {
+      el.querySelectorAll('[data-act]').forEach((b) => (b.onclick = () => { const a = b.dataset.act; if (a === 'lsn') dLessonSheet(n); else if (a === 'hw') hwAddSheet(n); else dLessonSheet(n, x.L.id); }));
+    });
+  }
   function dashPick(act) {
     const L = ROSTER.filter((r) => act !== 'lsn' || r.tutor), info = dashInfo();
-    sheet(`<h2>${act === 'lsn' ? '누구 리포트를 쓸까요?' : '누구에게 숙제를 낼까요?'}</h2><p class="sub">고르면 그 학생 탭이 열리고 적는 칸이 바로 떠요</p><div class="qa-pks">${L.map((r) => { const x = info.find((y) => y.r.name === r.name) || {}; return `<button class="qa-pk" type="button" data-pk="${esc(r.name)}|${act}">${sAv(r)}<span class="body"><b>${esc(r.name)}</b><small>${x.tutor ? (x.L ? `지난 수업 ${esc(md(x.L.date))}` : '아직 적은 수업이 없어요') : '학교 숙제·공부'}</small></span><span class="chev"></span></button>`; }).join('')}</div>`, (el, close) => {
-      el.querySelectorAll('[data-pk]').forEach((b) => (b.onclick = () => { close(); dashGo(b.dataset.pk); }));
+    sheet(`<h2>누구 리포트를 쓸까요?</h2><div class="qa-pks" style="margin-top:16px">${L.map((r) => { const x = info.find((y) => y.r.name === r.name) || {}; return `<button class="qa-pk" type="button" data-pk="${esc(r.name)}">${sAv(r)}<span class="body"><b>${esc(r.name)}</b><small>${x.L ? `지난 수업 ${esc(md(x.L.date))}` : '아직 적은 수업이 없어요'}</small></span><span class="chev"></span></button>`; }).join('')}</div>`, (el) => {
+      el.querySelectorAll('[data-pk]').forEach((b) => (b.onclick = () => dLessonSheet(b.dataset.pk)));
     });
   }
   function afterSwitch() {
@@ -3581,7 +3695,11 @@
     $$('[data-dgo]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); dashGo(x.dataset.dgo); }));
     $$('[data-lsn]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); lessonSheet(x.dataset.lsn); }));
     $$('[data-lsnset]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); lessonSetSheet(); }));
-    $$('[data-qa]').forEach((x) => (x.onclick = () => dashPick(x.dataset.qa)));
+    $$('[data-qa]').forEach((x) => (x.onclick = () => (x.dataset.qa === 'hw' ? hwAddSheet() : dashPick(x.dataset.qa))));
+    $$('[data-dl]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); const [n, id] = x.dataset.dl.split('|'); dLessonSheet(n, id); }));
+    $$('[data-ds]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); const [n, id] = x.dataset.ds.split('|'); dReport(n, id); }));
+    $$('[data-dst]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); dStuSheet(x.dataset.dst); }));
+    $$('[data-dh]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); hwAddSheet(x.dataset.dh); }));
     $$('[data-hwadd]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); hwAddSheet(); }));
     $$('[data-lsnsend]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); reportSheet(x.dataset.lsnsend); }));
     $$('[data-go]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); if (b.dataset.seg) UI.scoreSeg = b.dataset.seg; go(b.dataset.go); }));

@@ -1706,3 +1706,5 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .qa-pk b { font-size: 16px; } .qa-pk small { font-size: 13px; color: var(--t3); }
 .qa-pk .chev::after { content: "›"; color: var(--t4); font-size: 20px; }
 .btn img.ic { margin-right: 2px; }
+.dl-more { margin: 4px 0 20px; padding: 14px 16px; border-radius: 14px; background: var(--fill2); }
+.dl-more summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--t2); }
