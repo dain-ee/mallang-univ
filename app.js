@@ -73,9 +73,20 @@
   try { const l = JSON.parse(localStorage.getItem(KEY)); if (l) S = Object.assign(blank(), l); } catch (e) {}
   const UI = { tab: 'home', view: null, scoreSeg: 'mock', mockId: null, mockSubj: 'kor', wrongSubj: 'all', chartSubj: 'avg', run: null, sgbArea: 'all', semester: '1-2', newsAll: false };
   let pushT = null;
+  // 날짜별 기록은 통째로 바꾸지 않고 합쳐요: 같은 날이면 더 많이 한 쪽, 답은 둘 다
+  const nAns = (d) => d ? Object.keys(d.ans || {}).length + Object.keys(d.uans || {}).length + Object.keys(d.wans || {}).length + (d.udone ? 5 : 0) + (d.g3done ? 5 : 0) + (d.read ? 1 : 0) : -1;
+  const mergeDays = (a = {}, b = {}) => { const o = { ...a }; for (const [k, v] of Object.entries(b)) { const u = o[k]; if (!u) { o[k] = v; continue; } const [hi, lo] = nAns(v) > nAns(u) ? [v, u] : [u, v]; const m = { ...hi }; for (const f of ['ans', 'uans', 'wans']) if (hi[f] || lo[f]) m[f] = (hi.unit === lo.unit && hi.words === lo.words && hi.c === lo.c) ? { ...(lo[f] || {}), ...(hi[f] || {}) } : hi[f]; o[k] = m; } return o; };
+  const MERGE = {
+    eng: (r, l) => ({ ...r, ...l, unit: Math.max(+r.unit || 0, +l.unit || 0), wordDay: Math.max(+r.wordDay || 0, +l.wordDay || 0), g3: Math.max(+r.g3 || 0, +l.g3 || 0), g3ans: { ...(r.g3ans || {}), ...(l.g3ans || {}) }, days: mergeDays(r.days, l.days) }),
+    sci: (r, l) => ({ ...r, ...l, days: mergeDays(r.days, l.days) }),
+    ink: (r, l, rNew) => { const [o, n] = rNew ? [l, r] : [r, l], c = (l._cfgAt || 0) > (r._cfgAt || 0) ? l : (r._cfgAt || 0) > (l._cfgAt || 0) ? r : n; return { ...o, ...n, cfg: c.cfg || {}, _cfgAt: c._cfgAt || 0, st: { ...(o.st || {}), ...(n.st || {}) }, at: { ...(o.at || {}), ...(n.at || {}) }, days: { ...(o.days || {}), ...(n.days || {}) } }; },
+  };
+  // 서버에서 한 번 받아 오기 전에는 아무것도 「최신」으로 표시하지 않아요.
+  // (로그아웃 뒤 빈 기기가 「오늘 과제」를 먼저 만들어 올려서 지난 기록을 덮은 사고 2026-10-26)
+  let pulled = false;
   function save(...keys) {
     if (PEEK) return;
-    const now = Date.now(); S._at = S._at || {}; for (const k of keys) S._at[k] = now;
+    const now = Date.now(); S._at = S._at || {}; if (pulled) for (const k of keys) S._at[k] = now;
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
     clearTimeout(pushT); pushT = setTimeout(() => { pushT = null; sync(); }, 1200);
   }
@@ -101,14 +112,20 @@
       const remote = await rpc('univ_get', { p_student: U.who, p_code: U.key });
       let changed = false;
       if (remote && remote._at) {
-        for (const k of Object.keys(remote._at)) if ((remote._at[k] || 0) > ((S._at || {})[k] || 0)) { S[k] = remote[k]; S._at[k] = remote._at[k]; changed = true; }
+        S._at = S._at || {};
+        for (const k of Object.keys(remote._at)) {
+          const r = remote._at[k] || 0, l = S._at[k] || 0;
+          if (MERGE[k] && remote[k] && S[k]) { const m = MERGE[k](remote[k], S[k], r >= l); if (JSON.stringify(m) !== JSON.stringify(S[k])) changed = true; S[k] = m; S._at[k] = Math.max(r, l); }
+          else if (r > l) { S[k] = remote[k]; S._at[k] = r; changed = true; }
+        }
       }
+      pulled = true;
       if (PEEK) { syncing = false; if (changed && redraw) render(); return; } // 미리보기: 받아 오기만
       try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
       await rpc('univ_put', { p_student: U.who, p_code: U.key, p_data: S });
       saveSt.at = Date.now(); saveSt.off = false; paintSaveSt();
       if (changed && redraw) render();
-    } catch (e) { /* 연결이 안 되면 이 기기에만 저장하고, 다음에 다시 맞춤 */ saveSt.off = true; saveSt.wait = false; paintSaveSt(); }
+    } catch (e) { /* 연결이 안 되면 이 기기에만 저장하고, 다음에 다시 맞춤 */ if (Object.keys(S._at || {}).length) pulled = true; saveSt.off = true; saveSt.wait = false; paintSaveSt(); }
     syncing = false;
   }
 
@@ -728,7 +745,7 @@
       $('#ik-ok', el).onclick = () => {
         // 바꾼 설정으로 오늘 들을 강의가 새로 생기면 오늘부터 할지 물어요
         const s = inkS(), t = today(), before = inkToday(), cnt = (d) => Object.values(d || {}).reduce((a, x) => a + x.length, 0);
-        s.cfg = P; delete s.days[t]; const after = inkToday();
+        s.cfg = P; s._cfgAt = Date.now(); delete s.days[t]; const after = inkToday();
         const added = Object.entries(after).flatMap(([cid, nos]) => nos.filter((no) => !(before[cid] || []).includes(no)).map((no) => ({ c: inkC(cid), l: inkL(inkC(cid), no) }))).filter((a) => a.l && !inkSt(a.c, a.l));
         close();
         if (!added.length) { save('ink'); render(); toast('인강 계획을 바꿨어요'); return; }
