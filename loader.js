@@ -54,20 +54,25 @@ window.__boot = [];
     if (quick && /^[A-Za-z0-9０-９]{3,12}$/.test(quick)) { ask(); document.getElementById('code-in').value = quick; document.getElementById('code-ask').requestSubmit(); return; }
     if (q.get('k')) { st = { syncKey: q.get('k'), who: q.get('s') || '정윤', role: q.get('r') || 'student' }; localStorage.setItem(KEY, JSON.stringify(st)); history.replaceState(null, '', location.pathname); }
     if (!st.syncKey) { ask(); return; }
+    // 선생님 대시보드에서 학생을 누르면 새 탭(#stu=이름)으로 열려요. 그 탭만 그 학생 (sessionStorage)
+    const hs = new URLSearchParams(location.hash.slice(1));
+    if (hs.get('stu')) { try { sessionStorage.setItem('mu:who', hs.get('stu')); if (hs.get('do')) sessionStorage.setItem('mu:after', hs.get('do')); } catch (e) {} history.replaceState(null, '', location.pathname); }
+    const tch = st.role === 'teacher' || st.role === 'admin';
+    let tabWho = ''; try { tabWho = tch ? sessionStorage.getItem('mu:who') || '' : ''; } catch (e) {}
+    const who = tabWho || st.who || '정윤', CK = tabWho ? CKEY + ':' + who : CKEY;
     let data = null;
     try {
       // 선생님은 고른 학생의 묶음을 받아요 (학생 바꾸기). 없으면 예전 묶음
-      const tch = st.role === 'teacher' || st.role === 'admin';
-      let r = tch ? await fetch('c/' + (await hex('univ:' + st.syncKey + ':' + (st.who || '정윤'))).slice(0, 20) + '.bin?v=' + Date.now()) : null;
+      let r = tch ? await fetch('c/' + (await hex('univ:' + st.syncKey + ':' + who)).slice(0, 20) + '.bin?v=' + Date.now()) : null;
       if (!r || !r.ok) r = await fetch('c/' + (await hex('univ:' + st.syncKey)).slice(0, 20) + '.bin?v=' + Date.now());
       if (!r.ok) throw new Error('content ' + r.status);
       data = JSON.parse(await gunzip(await decrypt(new Uint8Array(await r.arrayBuffer()), await hex(st.syncKey))));
-      try { localStorage.setItem(CKEY, JSON.stringify(data)); } catch (e) {}
+      try { localStorage.setItem(CK, JSON.stringify(data)); } catch (e) {}
     } catch (e) {
-      try { data = JSON.parse(localStorage.getItem(CKEY)); } catch (e2) {}
+      try { data = JSON.parse(localStorage.getItem(CK)); } catch (e2) {}
       if (!data) { if (String(e.message).includes('404')) { ask('저장된 코드가 맞지 않아요. 다시 넣어 주세요.'); return; } msg('인터넷 연결을 확인해 주세요'); return; }
     }
-    window.UNIV = { data, sync: C, who: st.who || '정윤', key: st.syncKey, role: st.role || 'student' };
+    window.UNIV = { data, sync: C, who, key: st.syncKey, role: st.role || 'student', tabStu: !!tabWho };
     const s = document.createElement('script'); s.src = 'app.js?v=' + (data.version || '') ; document.body.appendChild(s);
     s.onload = () => { const c = document.createElement('script'); c.src = 'chat.js?v=' + (data.version || ''); document.body.appendChild(c); };  // 「선생님께 말하기」 · 선생님 쪽지함
   })();

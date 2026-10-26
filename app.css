@@ -1638,3 +1638,11 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .jg-only { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 16px; margin-bottom: 16px; border-radius: 14px; background: var(--fill); font-weight: 600; }
 .jg-again { margin-top: 16px; }
 .jg-again summary { cursor: pointer; color: var(--t2); font-weight: 600; padding: 8px 0; }
+/* 선생님 대시보드 (학생 관리) */
+.ds-card .ro-av { width: 44px; height: 44px; font-size: 15px; }
+.ds-n { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ds-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 16px 0; }
+.ds-st { padding: 12px; background: var(--fill); border-radius: 12px; min-width: 0; }
+.ds-st span { display: block; font-size: 12px; color: var(--t3); }
+.ds-st b { display: block; margin-top: 4px; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 640px) { .ds-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
