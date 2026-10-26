@@ -37,9 +37,12 @@
   const anyTask = (d) => PLAN_KINDS.some((x) => onDay(x.k, d));
   // 선생님 숙제는 날짜가 된 것만 오늘 할 일에 보여요 (하루 한 개씩)
   // 오답 숙제는 거기 든 문제를 다 다시 풀면(맞혔든 또 틀렸든) 끝난 걸로 봐요
-  const hwWr = (h) => (h.wr || []).filter((id) => S.wrong && S.wrong[id]);
-  const wrTried = (h, id) => { const w = S.wrong[id]; return w.cleared || (w.at || 0) > (h.at || 0); };
-  const hwDone = (h) => !!h.done || (hwWr(h).length > 0 && hwWr(h).every((id) => wrTried(h, id)));
+  // W: 그 학생의 오답 기록. 선생님 화면에서는 꼭 학생 것을 넘겨요 (선생님 자기 기록을 보면 늘 「안 했어요」로 떠요 10/26)
+  const hwWr = (h, W = S.wrong) => (h.wr || []).filter((id) => W && W[id]);
+  const wrTried = (h, id, W = S.wrong) => { const w = W[id]; return w.cleared || (w.at || 0) > (h.at || 0); };
+  const hwDone = (h, W = S.wrong) => !!h.done || (hwWr(h, W).length > 0 && hwWr(h, W).every((id) => wrTried(h, id, W)));
+  // 끝낸 때: 오답 숙제는 마지막으로 다시 푼 때
+  const hwDoneAt = (h, W = S.wrong) => h.doneAt || Math.max(0, ...hwWr(h, W).map((id) => Math.max(W[id].clearedAt || 0, W[id].at || 0)));
   // 오늘 풀 오답: 오늘까지 낸 오답 숙제에서 아직 안 푼 것만 (전체 개수는 보여 주지 않아요)
   const todayWr = () => { const out = []; for (const h of (S.hw || []).filter((x) => !x.done && (!x.due || x.due <= today()))) for (const id of hwWr(h)) if (!wrTried(h, id) && !out.includes(id)) out.push(id); return out; };
   const hwNow = () => (S.hw || []).filter((h) => !hwDone(h) && (!h.due || h.due <= today()));
@@ -4117,7 +4120,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261701'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261707'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -4192,7 +4195,7 @@
   // 과외가 아닌 학생(정윤) 리포트: 고른 날짜까지 7일 동안 앱에서 한 것
   function wkStat(d, date) {
     const t0 = new Date(addD(date, -6) + 'T00:00:00').getTime(), t1 = new Date(addD(date, 1) + 'T00:00:00').getTime(), H = (d && d.hw) || [];
-    const fin = H.filter((h) => hwDone(h) && h.doneAt >= t0 && h.doneAt < t1), due = H.filter((h) => !hwDone(h) && h.due && h.due >= addD(date, -6) && h.due <= date);
+    const W = (d && d.wrong) || {}, fin = H.filter((h) => hwDone(h, W) && hwDoneAt(h, W) >= t0 && hwDoneAt(h, W) < t1), due = H.filter((h) => !hwDone(h, W) && h.due && h.due >= addD(date, -6) && h.due <= date);
     return { solved: Math.max(0, solvedSince(d, t0) - solvedSince(d, t1)), fin: fin.length, all: fin.length + due.length, finT: fin.map((h) => `${h.subj && h.subj !== '기타' ? h.subj + ' ' : ''}${h.title} 끝냄`) };
   }
   const rpExtra = (r, L) => r.tutor ? {} : { kicker: '말랑대학 주간 공부 리포트', lessonLabel: '이번 주 한 것', note: '앱에 남은 기록으로 만들었어요 :)', tiles: [['푼 문제', L.stat ? `${L.stat.solved}개` : '—', false], ['끝낸 숙제', L.stat && L.stat.all ? `${L.stat.fin} / ${L.stat.all}` : '—', false], ['시험', L.score ? (L.scoreTotal ? `${L.score} / ${L.scoreTotal}` : L.score) : '—', true]] };
@@ -4226,7 +4229,7 @@
   const hwGiven = (n, date) => { const r = rOf(n), d = dRowD(n) || {}, c = dCls(r, d), nx = upcoming(c, addD(date, 1), 3).find((u) => !u.off), end = nx ? nx.date : addD(date, 7); return (d.hw || []).filter((h) => h.at && dateOf(h.at) >= date && dateOf(h.at) < end); };
   const MM_AMT = [['d1', '하루 1개'], ['d2', '하루 2개'], ['o1', '이번에 1개']];
   // 그 학생이 아직 안 푼 · 아직 안 나간 모의고사 문제 (MM 순서 = 최근 회차부터)
-  const mmPool = (n, g, ty) => { const d = (dRowD(n) || {}), done = ((d.eng || {}).mmans) || {}, out = new Set((d.hw || []).filter((h) => !hwDone(h) && h.mmq).flatMap((h) => h.mmq)); return MM.filter((q) => q.grade === g && (ty === '전체' || (MM_TY.find((t) => t[0] === ty) || [, []])[1].includes(q.type)) && !done[q.id] && !out.has(q.id)).map((q) => q.id); };
+  const mmPool = (n, g, ty) => { const d = (dRowD(n) || {}), done = ((d.eng || {}).mmans) || {}, out = new Set((d.hw || []).filter((h) => !hwDone(h, d.wrong || {}) && h.mmq).flatMap((h) => h.mmq)); return MM.filter((q) => q.grade === g && (ty === '전체' || (MM_TY.find((t) => t[0] === ty) || [, []])[1].includes(q.type)) && !done[q.id] && !out.has(q.id)).map((q) => q.id); };
   // [ [{date, ids}], 마감, 설명 ]: 하루 N개면 오늘부터 마감날까지 날마다, 이번에 1개면 한 번
   const mmPlan = (n, H) => {
     if (!H.mmTy || !H.mmAmt) return [[], null, ''];
@@ -4240,7 +4243,7 @@
     const info = dashInfo().filter((y) => !y.r.edition || y.r.edition !== 'none');
     if (!UI.hStu || !info.some((y) => y.r.name === UI.hStu)) UI.hStu = (info.find((y) => y.r.name === UI.dStu) || info.find((y) => y.tutor) || info[0]).r.name;
     const n = UI.hStu, x = info.find((y) => y.r.name === n), r = x.r, H = hwS(n);
-    const sw = `<div class="dsw">${info.map((y) => `<button class="dsw-b ${y.r.name === n ? 'on' : ''}" data-hsw="${esc(y.r.name)}" type="button" style="--sc:${esc(sColor(y.r))}"><b><i class="sv-dot"></i>${esc(y.r.name)}</b><span>${(() => { const k = ((y.d || {}).hw || []).filter((h) => !hwDone(h)).length; return k ? `숙제 ${k}개 남음` : '남은 숙제 없음'; })()}</span></button>`).join('')}</div>`;
+    const sw = `<div class="dsw">${info.map((y) => `<button class="dsw-b ${y.r.name === n ? 'on' : ''}" data-hsw="${esc(y.r.name)}" type="button" style="--sc:${esc(sColor(y.r))}"><b><i class="sv-dot"></i>${esc(y.r.name)}</b><span>${(() => { const k = ((y.d || {}).hw || []).filter((h) => !hwDone(h, (y.d || {}).wrong || {})).length; return k ? `숙제 ${k}개 남음` : '남은 숙제 없음'; })()}</span></button>`).join('')}</div>`;
     const head = `<h1 class="h1">숙제</h1><p class="sub">눌러서 고르고 「숙제 내기」를 누르면 학생 앱에 바로 떠요</p>`;
     if (loading(x) && n !== U.who) return `${head}${sw}<div class="grid"><section class="card c12"><div class="empty"><b>${esc(n)} 기록을 불러오는 중이에요</b></div></section></div>`;
     const d = x.d || {}, eng = r.edition !== 'english' && (!r.content || r.content.includes('english'));
@@ -4264,9 +4267,9 @@
     secs.push(`<div class="th-sec"><h3>그 밖에</h3><div class="chips">${pre.map((t) => `<button class="chip sm ${H.tx.has(t) ? 'on' : ''}" data-htx="${esc(t)}" type="button">${esc(t)}</button>`).join('')}</div><div class="tk-add" style="margin-top:8px"><input class="inp" id="th-in" placeholder="없으면 적고 더하기 (예: 워크북 30~35쪽)"><button class="btn sm" id="th-add" type="button">더하기</button></div></div>`);
     const cnt = H.cu.size + (mmPlan(n, H)[0].length ? 1 : 0) + H.nx.size + H.tx.size, dues = [['next', `다음 수업 전 (${md(hwNext(n))})`], ['3', '3일 뒤'], ['7', '1주 뒤']];
     const go = `<div class="th-go"><div class="chips">${dues.map(([k, l]) => `<button class="chip sm ${H.due === k ? 'on' : ''}" data-hdue="${k}" type="button">${l}</button>`).join('')}</div><button class="btn primary big block" id="th-ok" type="button" ${cnt ? '' : 'disabled'}>${cnt ? `숙제 ${cnt}개 내기` : '숙제를 골라 주세요'}</button></div>`;
-    const H0 = (d.hw || []).slice().sort((a, b) => (hwDone(a) - hwDone(b)) || String(b.at || '').localeCompare(String(a.at || ''))).slice(0, 14), t = today();
-    const st = (h) => hwDone(h) ? ['ok', '했어요'] : h.due && h.due < t ? ['no', '안 했어요'] : ['wait', h.due ? `${md(h.due)}까지` : '하는 중'];
-    const out = `<section class="card th-out"><div class="card-h"><h2>나가 있는 숙제</h2></div>${H0.length ? `<div class="list">${H0.map((h) => { const [k, l] = st(h); return `<div class="li"><div class="body"><div class="t">${esc(h.title)}</div></div><span class="tg-hs ${k}">${l}</span>${hwDone(h) ? '' : `<button class="btn sm" data-thdel="${esc(h.id)}" type="button">빼기</button>`}</div>`; }).join('')}</div>` : '<div class="empty"><b>아직 낸 숙제가 없어요</b></div>'}</section>`;
+    const W = d.wrong || {}, H0 = [...(d.hw || []).filter((h) => !hwDone(h, W)).sort((a, b) => String(a.due || '9').localeCompare(String(b.due || '9'))), ...(d.hw || []).filter((h) => hwDone(h, W)).sort((a, b) => hwDoneAt(b, W) - hwDoneAt(a, W)).slice(0, 6)], t = today();  // 안 한 것 전부(마감 순) + 최근에 끝낸 6개
+    const st = (h) => hwDone(h, W) ? ['ok', '했어요'] : h.due && h.due < t ? ['no', '안 했어요'] : ['wait', h.due ? `${md(h.due)}까지` : '하는 중'];
+    const out = `<section class="card th-out"><div class="card-h"><h2>나가 있는 숙제</h2></div>${H0.length ? `<div class="list">${H0.map((h) => { const [k, l] = st(h); return `<div class="li"><div class="body"><div class="t">${esc(h.title)}</div></div><span class="tg-hs ${k}">${l}</span>${hwDone(h, W) ? '' : `<button class="btn sm" data-thdel="${esc(h.id)}" type="button">빼기</button>`}</div>`; }).join('')}</div>` : '<div class="empty"><b>아직 낸 숙제가 없어요</b></div>'}</section>`;
     return `${head}${sw}<div class="d-two"><section class="card th-form">${secs.join('')}${go}</section><aside>${out}</aside></div>`;
   }
   function bindThw() {
@@ -4288,7 +4291,7 @@
       ok.disabled = true; ok.textContent = '내는 중…';
       try {
         if (n === U.who) { S.hw = [...(S.hw || []), ...items.filter((i) => !(S.hw || []).some((h) => h.title === i.title && !hwDone(h)))]; save('hw'); }
-        else await dPut(n, 'hw', (D) => { D.hw = [...(D.hw || []), ...items.filter((i) => !(D.hw || []).some((h) => h.title === i.title && !hwDone(h)))]; });
+        else await dPut(n, 'hw', (D) => { D.hw = [...(D.hw || []), ...items.filter((i) => !(D.hw || []).some((h) => h.title === i.title && !hwDone(h, D.wrong || {})))]; });
       } catch (e) { ok.disabled = false; return toast('못 냈어요. 인터넷을 확인하고 다시 눌러 주세요'); }
       delete HWS[n]; toast(`${n}에게 숙제 ${items.length}개를 냈어요`); render();
     };
@@ -4314,14 +4317,14 @@
         <div class="nb-g">${CH_UNITS.filter((u) => +u.ch === +D0.ch).map((u) => `<button class="nb ${D0.units.has(+u.unit) ? 'on' : ''}" data-ck="cu" data-v="${u.unit}" type="button" title="${esc(u.title || '')}">${u.unit}</button>`).join('')}</div>
         ${D0.units.size ? `<p class="tiny" style="margin:8px 0 0">${[...D0.units].sort((a, b) => a - b).map((no) => `${no} ${esc((cuByNo(no) || {}).title || '')}`).join(' · ')}</p>` : ''}</div>` : ''}
       <div class="d-sec"><h3>${tu ? '오늘 한 것' : '이번 주 한 것'}${D0.L.size ? ` <b class="blue">${D0.L.size}</b>` : ''}</h3><div class="tk-g">${[...new Set([...nxL, ...autoL, ...(tu ? P_L : P_LS), ...[...D0.L]])].map((t) => ck('L', t, D0.L.has(t))).join('')}</div>${pastL.filter((t) => !D0.L.has(t)).length ? `<details class="dl-more"><summary>지난 수업에 쓴 것</summary><div class="tk-g">${pastL.filter((t) => !D0.L.has(t)).map((t) => ck('L', t, false)).join('')}</div></details>` : ''}${addBox('L', '없으면 적고 더하기')}</div>
-      <div class="d-sec"><h3>숙제 <span class="tiny">「숙제」 탭에서 낸 숙제가 저절로 들어가요</span></h3>${(() => { const G = hwGiven(n, D0.date || today()).filter((h, k, A) => !h.grp || A.findIndex((y) => y.grp === h.grp) === k).map((h) => (h.grp ? { ...h, title: h.grp, done: hwGiven(n, D0.date || today()).filter((y) => y.grp === h.grp).every(hwDone) } : h)); return `${sj === '영어' && cuOn && D0.units.size ? `<div class="tk-g">${ck('H', '@cu', D0.H.has('@cu'), cuHw(D0.units))}</div>` : ''}${G.length ? `<div class="list d-hwl">${G.map((h) => `<div class="li"><div class="body"><div class="t">${esc(h.title)}</div></div><span class="tg-hs ${hwDone(h) ? 'ok' : 'wait'}">${hwDone(h) ? '했어요' : h.due ? md(h.due) + '까지' : '냈어요'}</span></div>`).join('')}</div>` : '<p class="tiny" style="margin:0 0 8px">이 수업 뒤로 낸 숙제가 아직 없어요</p>'}<button class="btn sm soft" type="button" data-hgo="${esc(n)}">숙제 내러 가기</button>`; })()}</div>
+      <div class="d-sec"><h3>숙제 <span class="tiny">「숙제」 탭에서 낸 숙제가 저절로 들어가요</span></h3>${(() => { const G = hwGiven(n, D0.date || today()).filter((h, k, A) => !h.grp || A.findIndex((y) => y.grp === h.grp) === k).map((h) => (h.grp ? { ...h, title: h.grp, done: hwGiven(n, D0.date || today()).filter((y) => y.grp === h.grp).every(hwDone) } : h)); return `${sj === '영어' && cuOn && D0.units.size ? `<div class="tk-g">${ck('H', '@cu', D0.H.has('@cu'), cuHw(D0.units))}</div>` : ''}${G.length ? `<div class="list d-hwl">${G.map((h) => `<div class="li"><div class="body"><div class="t">${esc(h.title)}</div></div><span class="tg-hs ${hwDone(h, (dRowD(n) || {}).wrong || {}) ? 'ok' : 'wait'}">${hwDone(h, (dRowD(n) || {}).wrong || {}) ? '했어요' : h.due ? md(h.due) + '까지' : '냈어요'}</span></div>`).join('')}</div>` : '<p class="tiny" style="margin:0 0 8px">이 수업 뒤로 낸 숙제가 아직 없어요</p>'}<button class="btn sm soft" type="button" data-hgo="${esc(n)}">숙제 내러 가기</button>`; })()}</div>
       <div class="d-sec"><h3>${tu ? '진도율 · 시험' : '시험 점수'}</h3><div class="d-meta">${tu ? `<label>진도율 <input class="inp sm num" data-df="progress" inputmode="numeric" value="${esc(D0.progress || autoProg(n))}" style="width:64px"> %</label>${!D0.progress && autoProg(n) ? '<span class="tiny">천일문 유닛으로 자동</span>' : ''}` : ''}<label>점수 <input class="inp sm num" data-df="score" inputmode="numeric" value="${esc(useA ? as.score : D0.score)}" style="width:64px"></label><label>/ <input class="inp sm num" data-df="scoreTotal" inputmode="numeric" value="${esc(useA ? as.total : D0.scoreTotal)}" style="width:64px"></label>${useA ? `<span class="tiny">${esc(as.title)} 시험에서 자동</span>` : ''}</div></div>
       <div class="d-sec"><h3>${esc(who)}께 한마디</h3><div class="tk-g">${[...new Set([...(tu ? P_C : P_CS), ...D0.C])].map((t) => ck('C', t, D0.C.has(t))).join('')}</div>${addBox('C', '직접 적고 더하기')}</div>
       <div class="d-go"><button class="btn primary big" data-dsave="send" type="button">저장하고 ${esc(who)}께 보내기</button><button class="btn big" data-dsave="" type="button">저장만</button></div>
       </section><aside class="card d-pv">${rep ? `<div class="card-h"><h2>${esc(who)}께 보내요</h2></div><img class="rp-img" src="${rep.url}" alt="리포트"><div class="d-go">${rep.canShare ? '<button class="btn primary" data-rp="share" type="button">카톡으로 보내기</button>' : ''}<button class="btn ${rep.canShare ? '' : 'primary'}" data-rp="copy" type="button">그림 복사</button><a class="btn" data-rp="save" href="${rep.url}" download="${esc(rep.file.name)}" style="text-decoration:none">그림 저장</a></div><p class="tiny">${rep.canShare ? `카톡에서 ${esc(who)}를 고르면 돼요` : `복사한 뒤 카톡 ${esc(who)} 방에 붙여 넣어요(⌘V)`}</p>` : `<div class="card-h"><h2>${esc(who)}께 갈 그림</h2><span class="tiny">고르는 대로 바뀌어요</span></div><img class="rp-img" id="d-pv" alt="리포트 미리보기">`}</aside></div>`;
   }
   function dHwCard(n, x) {
-    const D0 = drOf(n), d = x.d || {}, open = (d.hw || []).filter((h) => !hwDone(h)), subs = x.r.subjects || [], sj = D0.hwSubj || subs[0] || '영어';
+    const D0 = drOf(n), d = x.d || {}, open = (d.hw || []).filter((h) => !hwDone(h, d.wrong || {})), subs = x.r.subjects || [], sj = D0.hwSubj || subs[0] || '영어';
     const past = [...new Set((d.hw || []).filter((h) => !subs.length || h.subj === sj).map((h) => h.title))].slice(-6).reverse(), pre = sj === '영어' ? P_H : P_HS;
     return `<section class="card c12 dform"><div class="card-h"><h2>숙제 내기</h2></div><p class="tiny" style="margin:-8px 0 12px">고르고 「내기」 누르면 ${esc(n)} 앱 숙제에 바로 떠요</p>
       ${subs.length > 1 ? `<div class="sj-g">${subs.map((v) => `<button class="sj ${v === sj ? 'on' : ''}" data-sj="${esc(v)}" type="button">${esc(v)}</button>`).join('')}</div>` : ''}<div class="tk-g">${[...new Set([...pre, ...past, ...D0.hw])].map((t) => ck('hw', t, D0.hw.has(t))).join('')}</div>${addBox('hw', '직접 적고 더하기')}
@@ -4546,8 +4549,8 @@
     const mon = P.filter((p) => p.big).slice(-1)[0];
     const H = (d.hw || []).filter((h) => h.due).sort((a, b) => String(b.due).localeCompare(String(a.due)));
     const end = (h) => new Date(h.due + 'T23:59:59').getTime();
-    const stOf = (h) => hwDone(h) ? (h.doneAt && h.doneAt > end(h) ? ['late', '늦게 했어요'] : ['ok', '했어요']) : h.due < t ? ['no', '안 했어요'] : ['wait', '하는 중'];
-    const H4 = H.filter((h) => h.due >= addD(t, -27) && h.due <= t), h4ok = H4.filter((h) => hwDone(h)).length;
+    const W = d.wrong || {}, stOf = (h) => hwDone(h, W) ? (hwDoneAt(h, W) > end(h) ? ['late', '늦게 했어요'] : ['ok', '했어요']) : h.due < t ? ['no', '안 했어요'] : ['wait', '하는 중'];
+    const H4 = H.filter((h) => h.due >= addD(t, -27) && h.due <= t), h4ok = H4.filter((h) => hwDone(h, W)).length;
     const weeks = [7, 6, 5, 4, 3, 2, 1, 0].map((k) => { const dt = addD(t, -7 * k); return { dt, ...wkStat(d, dt) }; }), wmax = Math.max(1, ...weeks.map((w) => w.solved));
     const tile = (k, v, s, tone = '') => `<div class="tg-t"><span>${k}</span><b class="num ${tone}">${v}</b><small>${s}</small></div>`;
     const recs = ((d.nx && d.nx.done) || []).slice().sort((a, b) => b.at - a.at).slice(0, 10);
