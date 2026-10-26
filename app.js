@@ -122,6 +122,21 @@
   const flush = () => { if (pushT) { clearTimeout(pushT); pushT = null; sync(); } };
   addEventListener('pagehide', flush);
   document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
+  // 서버에서 받은 것을 지금 기록에 그 자리에서 덮어써요. 새 객체로 바꾸면 열려 있는 창·화면이 옛 기록에 적어서
+  // 「답해도 안 넘어가요」 「고쳐도 안 바뀌어요」가 나요 (10/26). 배열은 id가 같은 것끼리 이어 줘요
+  const isObj = (v) => v && typeof v === 'object';
+  function patchIn(t, s) {
+    if (t === s || !isObj(t) || !isObj(s) || Array.isArray(t) !== Array.isArray(s)) return s;
+    if (Array.isArray(t)) {
+      const byId = new Map(t.filter((o) => isObj(o) && o.id != null).map((o) => [o.id, o]));
+      const out = s.map((v, i) => { const o = isObj(v) && v.id != null ? byId.get(v.id) : isObj(v) && !Array.isArray(v) && isObj(t[i]) && !Array.isArray(t[i]) && t[i].id == null ? t[i] : null; return o ? patchIn(o, v) : v; });
+      t.length = 0; t.push(...out); return t;
+    }
+    const src = { ...s };
+    for (const k of Object.keys(t)) if (!(k in src)) delete t[k];
+    for (const [k, v] of Object.entries(src)) t[k] = patchIn(t[k], v);
+    return t;
+  }
   // 서버에서 바뀐 게 들어오면 꼭 다시 그려요. 안 그리면 풀던 화면이 옛 기록에 답을 적어 「했는데 안 했다고」 떠요 (10/26)
   // 글자를 쓰는 중이면 안 그려요 (쓰던 답이 지워져요). 그때는 단추마다 누를 때 기록을 다시 찾아요
   const typing = () => !!document.activeElement?.matches('input, textarea, select, [contenteditable]');
@@ -136,8 +151,8 @@
         S._at = S._at || {};
         for (const k of Object.keys(remote._at)) {
           const r = remote._at[k] || 0, l = S._at[k] || 0;
-          if (MERGE[k] && remote[k] && S[k]) { const m = MERGE[k](remote[k], S[k], r >= l); if (JSON.stringify(m) !== JSON.stringify(S[k])) { changed = true; S[k] = m; } S._at[k] = Math.max(r, l); }  // 같으면 그대로 둬요: 새 객체로 바꾸면 풀던 화면이 옛 칸에 답을 적어 같은 문제가 또 나와요 (10/26)
-          else if (r > l) { S[k] = remote[k]; S._at[k] = r; changed = true; }
+          if (MERGE[k] && remote[k] && S[k]) { const m = MERGE[k](remote[k], S[k], r >= l); if (JSON.stringify(m) !== JSON.stringify(S[k])) { changed = true; S[k] = patchIn(S[k], m); } S._at[k] = Math.max(r, l); }
+          else if (r > l) { S[k] = patchIn(S[k], remote[k]); S._at[k] = r; changed = true; }
         }
       }
       pulled = true;
@@ -223,7 +238,7 @@
 
   // ───────── 영어 매일 (천일문 유닛 1개 + 단어 10개 시험) ─────────
   const ENG = D.english || {};
-  // 새 천일문(2026-10-26): 모든 학생. 예전 앱에서 온 문제는 버려요(선생님). 유닛마다 개념 → 문제(고르기) → 짧은 독해, 10문제쯤. 윤건(lesson.level basic)은 기본, 정윤·지원은 수능 수준(std)
+  // 천일문 문제는 어제 정윤이가 풀던 것 그대로, 모든 학생 (선생님 10/26). cheonil2(말랑1001 시험식)는 쓰지 않아요
   const CH_LV = TUTOR && (ST.lesson || {}).level === 'basic' ? 'basic' : 'std';
   const ch2Qs = (L) => !L ? [] : [
     // 빈칸 쓰기는 뺐어요: 답이 여러 개라 의미 없다고 하셨어요 (선생님 10/26). 개념 설명 → 그 개념 문제 → 짧은 독해만
@@ -1003,7 +1018,7 @@
         <label class="my-in"><span>마감</span><input type="date" class="inp sm" id="my-ed" value="${it.due}"></label><button class="btn primary" id="my-es" type="button">고쳐서 저장</button></div></details>`, (el, close) => {
       $('#my-es', el).onclick = () => { const a = $('#my-ea', el), b = $('#my-eb', el), c = $('#my-ec', el), d = $('#my-ed', el).value;
         if (a && b) { const f = +a.value, z = +b.value; if (!(f > 0 && z >= f)) { toast('시작과 끝 번호를 확인해요'); return; } it.from = f; it.to = z; it.total = z - f + 1; it.text = `${it.book} ${it.unit === '쪽' ? `p.${f}~${z}` : `${f}~${z}번`}`; }
-        if (c) { if (!(+c.value > 0)) { toast('문제 수를 적어요'); return; } it.total = +c.value; }
+        if (c) { if (!(+c.value > 0)) { toast('문제 수를 적어요'); return; } it.total = +c.value; it.text = `${it.book} ${it.total}문제`; }
         if (d) it.due = d; save('my'); sheet.dirty = true; const bb = $('#sheet-root .sh-back'); if (bb) bb.click(); else close(); toast('고쳤어요'); };
       const sk = $('#my-skip', el); if (sk) sk.onclick = () => { const t = today(); it.skip = { ...(it.skip || {}) }; if (it.skip[t]) { delete it.skip[t]; save('my'); close(); render(); toast('미룬 걸 취소했어요'); return; }
         it.skip[t] = 1; let msg = ''; if (!myDaysLeft(it.due, myStudy(it), addD(t, 1))) msg = myPush(it) + ' · ';
@@ -4122,7 +4137,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261712'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261715'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
