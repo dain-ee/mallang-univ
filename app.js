@@ -1799,6 +1799,10 @@
     if (!c.sum) return `<section class="card"><div class="card-h"><h2>주요 개념</h2><span class="tiny">${esc(c.pages || '')}쪽</span></div>${(c.points || []).map((x, k) => `<div class="ls-pt"><span class="ls-n">${k + 1}</span><div><b>${rich(x)}</b></div></div>`).join('')}</section>${finRead(c)}`;
     return `<section class="card fin-sum"><div class="card-h"><h2>한 판 정리</h2><span class="tiny">${esc(c.pages || '')}쪽</span></div>${c.sum.map((x) => `<div class="fs-sec"><h3>${esc(x.h)}</h3>${x.rows ? `<ul>${x.rows.map((r) => `<li>${rich(r)}</li>`).join('')}</ul>` : `<div class="tbl-wrap"><table class="q-tbl ls-tbl">${(x.tbl || []).map((row, k) => `<tr>${row.map((v) => (k ? `<td>${rich(v)}</td>` : `<th>${rich(v)}</th>`)).join('')}</tr>`).join('')}</table></div>`}</div>`).join('')}${c.trap ? `<div class="ls-box warn" style="margin-top:12px"><b>헷갈리는 것</b><p>${rich(c.trap)}</p></div>` : ''}</section>`;
   }
+  // 교과서 전문 (c.src 블록: pg 쪽 · h 소제목 · p 문단 · box 자료 상자 · cap 그림 설명)
+  function finSrcHtml(c) {
+    return `<section class="card fin-src"><div class="card-h"><h2>교과서</h2><span class="tiny">${esc(c.pages || '')}쪽</span></div>${(c.src || []).map((b) => b.t === 'pg' ? `<div class="fsr-pg">${esc(b.s)}쪽</div>` : b.t === 'h' ? `<h3>${esc(b.s)}</h3>` : b.t === 'box' ? `<div class="fsr-box">${b.h ? `<b>${esc(b.h)}</b>` : ''}${(b.s || []).map((x) => `<p>${esc(x)}</p>`).join('')}</div>` : b.t === 'cap' ? `<p class="fsr-cap">${esc(b.s)}</p>` : `<p>${esc(b.s)}</p>`).join('')}</section>`;
+  }
   function finBlankHtml(c) {
     const A = finS().ans[c.id] || {}, B = finBlanks(c), nb = B.filter((b) => A[b.k]).length;
     return `<section class="card"><div class="card-h"><h2>빈칸 채우기</h2><span class="tiny">${nb}/${B.length}</span></div><ol class="j-lines fin-bl">${B.map((b) => { const a = A[b.k], sen = rich(b.sen.replace(`<b>${b.t}</b>`, '⟦B⟧')).replace('⟦B⟧', a ? `<b class="j-got ${a.ok ? '' : 'no'}">${esc(b.t)}</b>` : '<span class="j-gap"></span>'); return `<li class="${a ? (a.ok ? 'ok' : 'no') : ''}"><div class="j-tx">${b.h ? `<span class="j-who">${esc(b.h)}</span>` : ''}<p class="j-en" style="font-size:16px;line-height:1.7">${sen}</p><div class="jg-ops j-ops sm">${b.ops.map((o) => `<button type="button" class="chip jg-op ${a && o === b.t ? 'right' : a && o === a.p ? 'wrong' : ''}" data-fb="${b.k}" data-o="${esc(o)}" ${a ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div></div></li>`; }).join('')}</ol></section>`;
@@ -1830,7 +1834,8 @@
     }
     const A = finS().ans[c.id] || {}, qs = c.qs || [];
     const head = `<div class="row between"><button class="btn sm" data-finback type="button">‹ 숙제</button><span class="tiny">${esc(c.sname)} · ${esc(c.pages || '')}쪽</span></div>`;
-    if (!r.read) return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<p class="eyebrow" style="margin:16px 0 4px">${ic('books')} ${esc(c.sname)} 기말 예습</p><h1 class="h1" style="margin:0 0 8px">${esc(c.title)}</h1><div class="seg" style="margin:0 0 16px">${[['sum', '① 한 판 정리'], ['blank', '② 빈칸 채우기'], ['q', '③ 문제']].map(([k, nm]) => `<button type="button" class="${(r.step || 'sum') === k ? 'on' : ''}" data-fst="${k}">${nm}</button>`).join('')}</div>${r.step === 'blank' ? finBlankHtml(c) : finSumHtml(c)}<div class="cta-bar">${r.step === 'blank' ? `<button class="btn primary big block" id="fr-go" type="button">다음: 문제 ${qs.length}개 풀기 ›</button>` : `<button class="btn primary big block" data-fst="blank" type="button">다음: 빈칸 채우기 ›</button>`}</div></div>`;
+    const st = r.step || (c.src && !Object.keys(finS().ans[c.id] || {}).length ? 'src' : 'sum');
+    if (!r.read) return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<p class="eyebrow" style="margin:16px 0 4px">${ic('books')} ${esc(c.sname)} 기말 예습</p><h1 class="h1" style="margin:0 0 8px">${esc(c.title)}</h1><div class="seg" style="margin:0 0 16px">${(c.src ? [['src', '① 교과서'], ['sum', '② 한 판 정리'], ['blank', '③ 빈칸 채우기'], ['q', '④ 문제']] : [['sum', '① 한 판 정리'], ['blank', '② 빈칸 채우기'], ['q', '③ 문제']]).map(([k, nm]) => `<button type="button" class="${st === k ? 'on' : ''}" data-fst="${k}">${nm}</button>`).join('')}</div>${st === 'blank' ? finBlankHtml(c) : st === 'src' ? finSrcHtml(c) : finSumHtml(c)}<div class="cta-bar">${st === 'blank' ? `<button class="btn primary big block" id="fr-go" type="button">다음: 문제 ${qs.length}개 풀기 ›</button>` : st === 'src' ? `<button class="btn primary big block" data-fst="sum" type="button">다음: 한 판 정리 ›</button>` : `<button class="btn primary big block" data-fst="blank" type="button">다음: 빈칸 채우기 ›</button>`}</div></div>`;
     const i = r.i != null ? r.i : qs.findIndex((q, k) => !(A[k] && A[k].pick != null));
     if (i < 0) {
       const ok = qs.filter((q, k) => A[k] && A[k].ok).length, nx = finToday().find((x) => !finDone(x) && x.id !== c.id) || FIN_ORDER.find((x) => !finDone(x) && x.id !== c.id);
@@ -4307,7 +4312,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261910'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261925'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

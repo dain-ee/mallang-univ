@@ -2195,3 +2195,12 @@ a.btn, a.btn:hover { text-decoration: none; }
 .oly-p .oly-q { font-family: inherit; font-size: 15px; }
 .oly-p u { text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
 .oly-given { padding: 12px 16px; margin-bottom: 12px; border-radius: 12px; background: var(--fill2); font-family: Georgia, serif; font-size: 15px; line-height: 1.75; }
+.fin-src h3 { margin: 20px 0 8px; font-size: 16px; font-weight: 700; color: var(--blue); }
+.fin-src p { margin: 0 0 12px; font-size: 16px; line-height: 1.85; }
+.fin-src .fsr-pg { margin: 16px 0 8px; font-size: 12px; color: var(--t3); border-top: 1px dashed var(--line); padding-top: 8px; }
+.fin-src .fsr-pg:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+.fin-src .fsr-box { margin: 0 0 12px; padding: 12px 16px; border-radius: 12px; background: var(--bg); }
+.fin-src .fsr-box b { display: block; margin-bottom: 4px; font-size: 14px; }
+.fin-src .fsr-box p { font-size: 15px; line-height: 1.75; margin: 0 0 8px; }
+.fin-src .fsr-box p:last-child { margin-bottom: 0; }
+.fin-src .fsr-cap { font-size: 13px; color: var(--t2); line-height: 1.6; }
