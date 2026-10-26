@@ -56,7 +56,7 @@ window.__boot = [];
     if (!st.syncKey) { ask(); return; }
     // 선생님 대시보드에서 학생을 누르면 새 탭(#stu=이름)으로 열려요. 그 탭만 그 학생 (sessionStorage)
     const hs = new URLSearchParams(location.hash.slice(1));
-    if (hs.get('stu')) { try { sessionStorage.setItem('mu:who', hs.get('stu')); if (hs.get('do')) sessionStorage.setItem('mu:after', hs.get('do')); } catch (e) {} history.replaceState(null, '', location.pathname); }
+    if (hs.get('stu')) { try { sessionStorage.setItem('mu:who', hs.get('stu')); if (hs.get('do')) sessionStorage.setItem('mu:after', hs.get('do')); if (hs.get('peek')) sessionStorage.setItem('mu:peek', '1'); } catch (e) {} history.replaceState(null, '', location.pathname); }
     const tch = st.role === 'teacher' || st.role === 'admin';
     let tabWho = ''; try { tabWho = tch ? sessionStorage.getItem('mu:who') || '' : ''; } catch (e) {}
     const who = tabWho || st.who || '정윤', CK = tabWho ? CKEY + ':' + who : CKEY;

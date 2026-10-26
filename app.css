@@ -1739,3 +1739,25 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .d-ask-i { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 12px 0; border-top: 1px solid var(--line); }
 .d-ask-i > div:first-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .d-ask-i b { font-size: 15px; } .d-ask-i span { font-size: 13px; color: var(--t3); }
+/* 토스식 고르기: 한 줄씩, 오른쪽 동그란 체크 */
+.tk-g { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+@media (max-width: 640px) { .tk-g { grid-template-columns: 1fr; } }
+.tk { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 8px 4px; border: 0; border-radius: 12px; background: none; font: inherit; font-size: 16px; font-weight: 500; color: var(--t1); text-align: left; cursor: pointer; transition: background-color .15s; }
+.tk:hover { background: var(--fill2); }
+.tk:active { background: var(--fill); }
+.tk i { flex: none; position: relative; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--line); }
+.tk i::after { content: ""; position: absolute; left: 6px; top: 4px; width: 8px; height: 5px; border: 2px solid var(--t4); border-top: 0; border-right: 0; transform: rotate(-45deg); }
+.tk.on { font-weight: 600; }
+.tk.on i { background: var(--blue); border-color: var(--blue); }
+.tk.on i::after { border-color: #fff; }
+.tk-add { display: flex; gap: 8px; margin-top: 8px; }
+.tk-add .inp { flex: 1; height: 44px; font-size: 15px; }
+.nb-g { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 8px; margin-top: 12px; }
+.nb { height: 44px; border: 0; border-radius: 99px; background: var(--fill); font: inherit; font-size: 16px; font-weight: 700; color: var(--t1); cursor: pointer; transition: background-color .15s, transform .2s var(--spring); }
+.nb:active { transform: scale(.92); }
+.nb.on { background: var(--blue); color: #fff; }
+.d-sec h3 { font-size: 17px; color: var(--t1); margin-bottom: 4px; }
+.d-sec h3 b.blue { color: var(--blue); }
+.d-sec { padding-top: 20px; border-top: 1px solid var(--line); margin-top: 20px; }
+.dform .d-meta + .d-sec { margin-top: 20px; }
+.card.c4 .tk-g { grid-template-columns: 1fr; }
