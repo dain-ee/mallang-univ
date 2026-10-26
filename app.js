@@ -1510,10 +1510,10 @@
   function hwGoDone(h) {
     const g = h.go; if (!g) return false;
     if (g.kind === 'gram') { const u = jgU(g.unit), qs = jgQs(u, g.step, g.secs); return !!qs.length && qs.every((q) => jgRec(u, q)); }
-    if (g.kind === 'jl') { const u = jlU(g.unit), T = u && u.tracks[g.t || 0]; if (!T) return false; const [a, b] = jlTally(u, 'words'), qs = (T.qs || []).map((q, i) => [q, i]).filter(([q]) => jlQOk(q)); return a >= b && qs.every(([, i]) => jGet('jl', jlK(u, T, 'q', i))); }
+    if (g.kind === 'jl') { const u = jlV({ ...g, only: 1 }), T = u && u.tracks[0]; if (!T) return false; const [a, b] = jlTally(u, 'words'), qs = (T.qs || []).map((q, i) => [q, i]).filter(([q]) => jlQOk(q)); return a >= b && qs.every(([, i]) => jGet('jl', jlK(u, T, 'q', i))); }
     return false;
   }
-  function hwGoStart(h) { const g = h.go; if (!g || !(g.kind === 'gram' ? jgU(g.unit) : jlU(g.unit))) return false; UI.tab = 'hw'; UI.lib = null; UI.run = { ...g }; render(); window.scrollTo(0, 0); return true; }
+  function hwGoStart(h) { const g = h.go; if (!g || !(g.kind === 'gram' ? jgU(g.unit) : jlU(g.unit))) return false; UI.tab = 'hw'; UI.lib = null; UI.run = { ...g, only: g.kind === 'jl' ? 1 : g.only }; render(); window.scrollTo(0, 0); return true; }
   function hwSheet(id) {
     const h = (S.hw || []).find((x) => x.id === id); if (!h) return;
     const key = Object.keys(SUBJ_NAMES).find((k) => SUBJ_NAMES[k] === h.subj || (h.subj === '한국사' && k === 'hist'));
@@ -3513,6 +3513,9 @@
   const JL_M = { words: '단어', lines: '한 문장씩 듣기', quiz: '교과서 문제', dict: '받아쓰기' };
   const JL_S = { words: '단어', lines: '따라 듣기', quiz: '문제', dict: '받아쓰기' };
   const jlU = (no) => JL.find((u) => +u.unit === +no);
+  // 숙제(only)로 열면 그 쪽 하나와 그 쪽에 나오는 단어만 보여요 (주아 51쪽 숙제 10/26)
+  const jlPgWords = (u, T) => { const tx = T.lines.map((l) => l.en.toLowerCase()).join(' '); return (u.words || []).filter(([en]) => tx.includes(en.toLowerCase()) || tx.includes(en.toLowerCase().replace(/s$/, ''))); };
+  const jlV = (r) => { const u = jlU(r.unit); if (!u || !r.only) return u; const T = u.tracks[Math.max(0, Math.min(r.t || 0, u.tracks.length - 1))]; return { ...u, words: jlPgWords(u, T), tracks: [T] }; };
   const jlQOk = (q) => q && q.ans && (q.ops || []).length && !('pic' in q && !(q.pic && String(q.pic).length));  // 그림 정답이 빈 문항은 빼요
   const jlK = (u, t, x, i) => `${u.unit}:${t.id}:${x}${i}`;
   function jlTally(u, m) {
@@ -3535,16 +3538,17 @@
     if (jlAud.readyState >= 1) play(); else jlAud.addEventListener('loadedmetadata', play, { once: true });
   }
   function jlRun() {
-    const r = UI.run, u = jlU(r.unit); if (!u) return jEmpty('리스닝 자료를 넣는 중이에요');
-    const m = JL_M[r.m] ? r.m : 'words', ti = Math.max(0, Math.min(r.t || 0, u.tracks.length - 1)), T = u.tracks[ti], K = (x, i) => jlK(u, T, x, i);
-    let h = jHead('🎧 ' + u.book, `Unit ${u.unit} · ${u.title}`, u.pages, Object.entries(JL_M).map(([k, nm]) => { const [a, b] = jlTally(u, k); return [k, nm, b ? `${a}/${b}` : '']; }), m, 'data-jlm');
+    const r = UI.run, u = jlV(r); if (!u) return jEmpty('리스닝 자료를 넣는 중이에요');
+    const m = JL_M[r.m] ? r.m : 'words', ti = r.only ? 0 : Math.max(0, Math.min(r.t || 0, u.tracks.length - 1)), T = u.tracks[ti], K = (x, i) => jlK(u, T, x, i);
+    let h = jHead('🎧 ' + u.book, `Unit ${u.unit} · ${u.title}`, u.pages, Object.entries(JL_M).filter(([k]) => !r.only || k !== 'dict').map(([k, nm]) => { const [a, b] = jlTally(u, k); return [k, nm, b ? `${a}/${b}` : '']; }), m, 'data-jlm');
+    if (r.only) h += `<div class="jg-only"><span>📌 오늘 숙제는 ${esc(u.tracks[0].page)}쪽만 · 단어 ${u.words.length}개 → 한 문장씩 듣기 → 교과서 문제</span><button class="btn sm" data-jlwide type="button">전체 보기</button></div>`;
     const tracks = `<div class="row wrap j-chips">${u.tracks.map((t, i) => `<button class="chip sm ${i === ti ? 'on' : ''}" data-jlt="${i}" type="button">${esc(t.page)}쪽 ${esc(t.title)}</button>`).join('')}<button class="chip sm ${UI.jlSlow ? 'on' : ''}" data-jlslow type="button">천천히 듣기</button></div>`;
     const all = `<button class="btn sm soft jl-play" data-jlall type="button">▶ 전체 듣기</button>`;
     if (m === 'words') {
       h += `<section class="card"><div class="card-h"><h3>단어 ${u.words.length}개</h3><div class="seg j-seg"><button type="button" class="${UI.jlHide ? '' : 'on'}" data-jlhide="0">뜻 보기</button><button type="button" class="${UI.jlHide ? 'on' : ''}" data-jlhide="1">뜻 가리기</button></div></div>
         <p class="tiny j-help">단어를 누르면 소리가 나요. 뜻을 떠올려 보고 알면 오른쪽을 체크해요</p>
         <div class="j-list">${u.words.map(([en, ko, em]) => { const on = jGet('jl', `${u.unit}:w:${en}`); return `<div class="j-row ${on ? 'ok' : ''}"><button class="j-say" data-jsay="${esc(en)}" type="button">${em ? `<span class="j-em">${em}</span>` : ''}<b>${esc(en)}</b><span class="j-spk" aria-hidden="true">🔊</span></button><span class="j-ko ${UI.jlHide && !on ? 'hid' : ''}" data-jrev>${esc(ko)}</span><button class="tk j-tk ${on ? 'on' : ''}" data-jlknow="${esc(en)}" type="button"><span>알아요</span><i></i></button></div>`; }).join('')}</div></section>`;
-      if ((u.pic || []).filter((x) => x && x[1]).length) h += `<section class="card" style="margin-top:16px"><div class="card-h"><h3>그림 맞추기 정답</h3><span class="tiny">${esc(u.tracks[0].page)}쪽</span></div><div class="row wrap">${u.pic.filter((x) => x && x[1]).map(([a, w]) => `<span class="tag"><b>${esc(a)}</b>&nbsp;${esc(w)}</span>`).join('')}</div></section>`;
+      if (!r.only && (u.pic || []).filter((x) => x && x[1]).length) h += `<section class="card" style="margin-top:16px"><div class="card-h"><h3>그림 맞추기 정답</h3><span class="tiny">${esc(u.tracks[0].page)}쪽</span></div><div class="row wrap">${u.pic.filter((x) => x && x[1]).map(([a, w]) => `<span class="tag"><b>${esc(a)}</b>&nbsp;${esc(w)}</span>`).join('')}</div></section>`;
     } else if (m === 'lines') {
       const sh = UI.jlShow || 'both';
       h += tracks + `<section class="card"><div class="card-h"><h3>${esc(T.title)} <span class="tiny j-sub">${esc(T.sub || '')}</span></h3>${all}</div>
@@ -3569,11 +3573,13 @@
           return `<li class="${a ? (a.ok ? 'ok' : 'no') : ''}"><button class="jl-play j-pl" data-jlp="${i}" type="button" aria-label="듣기">▶</button><div class="j-tx"><p class="j-en">${en}</p><p class="j-kol">${esc(l.ko)}</p>
             <div class="jg-ops j-ops sm">${ops.map((o) => `<button type="button" class="chip jg-op ${a && o === l.key ? 'right' : a && o === a.p ? 'wrong' : ''}" data-jld="${i}" data-o="${esc(o)}" ${a ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div></div></li>`; }).join('')}</ol></section>`;
     }
+    if (r.only) { const nx = { words: ['lines', '다음: 한 문장씩 듣기'], lines: ['quiz', '다음: 교과서 문제'] }[m]; h += `<div class="cta-bar">${nx ? `<button class="btn primary big block" data-jlm="${nx[0]}" type="button">${nx[1]} ›</button>` : '<button class="btn primary big block" data-go="hw" type="button">숙제로</button>'}</div>`; }
     return `<div class="qwrap j-wrap">${h}</div>`;
   }
   function bindJl() {
-    const r = UI.run, u = jlU(r.unit); if (!u) return;
-    const T = u.tracks[Math.max(0, Math.min(r.t || 0, u.tracks.length - 1))], K = (x, i) => jlK(u, T, x, i);
+    const r = UI.run, u = jlV(r); if (!u) return;
+    const T = u.tracks[r.only ? 0 : Math.max(0, Math.min(r.t || 0, u.tracks.length - 1))], K = (x, i) => jlK(u, T, x, i);
+    $$('[data-jlwide]').forEach((b) => (b.onclick = () => { jlStop(); UI.run = { ...r, only: 0 }; render(); window.scrollTo(0, 0); }));
     $$('[data-jlm]').forEach((b) => (b.onclick = () => { jlStop(); UI.run = { ...r, m: b.dataset.jlm }; render(); window.scrollTo(0, 0); }));
     $$('[data-jlt]').forEach((b) => (b.onclick = () => { jlStop(); UI.run = { ...r, t: +b.dataset.jlt }; jKeep(); }));
     $$('[data-jlslow]').forEach((b) => (b.onclick = () => { UI.jlSlow = !UI.jlSlow; if (jlAud) jlAud.playbackRate = UI.jlSlow ? 0.8 : 1; b.classList.toggle('on', UI.jlSlow); }));
@@ -4252,7 +4258,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261842'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261845'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
