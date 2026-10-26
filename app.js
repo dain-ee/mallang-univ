@@ -129,7 +129,7 @@
         S._at = S._at || {};
         for (const k of Object.keys(remote._at)) {
           const r = remote._at[k] || 0, l = S._at[k] || 0;
-          if (MERGE[k] && remote[k] && S[k]) { const m = MERGE[k](remote[k], S[k], r >= l); if (JSON.stringify(m) !== JSON.stringify(S[k])) changed = true; S[k] = m; S._at[k] = Math.max(r, l); }
+          if (MERGE[k] && remote[k] && S[k]) { const m = MERGE[k](remote[k], S[k], r >= l); if (JSON.stringify(m) !== JSON.stringify(S[k])) { changed = true; S[k] = m; } S._at[k] = Math.max(r, l); }  // 같으면 그대로 둬요: 새 객체로 바꾸면 풀던 화면이 옛 칸에 답을 적어 같은 문제가 또 나와요 (10/26)
           else if (r > l) { S[k] = remote[k]; S._at[k] = r; changed = true; }
         }
       }
@@ -1864,10 +1864,11 @@
   }
   function bindWords() {
     const ed = engToday(true); const r = UI.run; if (!r || r.kind !== 'words') return;
-    const wl = wordsFor(r.day != null ? r.day : ed.words), wans = r.day != null ? S.eng.wa[r.day] : ed.wans;
+    const wl = wordsFor(r.day != null ? r.day : ed.words);
     const t = $('#w-test'); if (t) t.onclick = () => { UI.run = { kind: 'words', mode: 'test', day: r.day }; render(); window.scrollTo(0, 0); };
     $$('[data-wo]').forEach((b) => (b.onclick = () => {
       const w = wl[r.i], ok = r.opts[+b.dataset.wo] === w.ko;
+      const wans = r.day != null ? ((S.eng.wa = S.eng.wa || {})[r.day] = S.eng.wa[r.day] || {}) : engToday(true).wans;  // 누를 때 다시 찾아요 (서버 맞춤 뒤 옛 칸에 적지 않게)
       $$('[data-wo]').forEach((x) => { x.disabled = true; if (r.opts[+x.dataset.wo] === w.ko) x.classList.add('right'); });
       if (!ok) b.classList.add('wrong');
       wans[r.i] = { ok, at: Date.now() };
@@ -4103,7 +4104,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261643'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261648'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
