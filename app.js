@@ -1587,7 +1587,13 @@
   const SKINS = { ghost: { n: '말랑 유령', c: '#3182f6', d: '기본' }, kitty: { n: '헬로키티', c: '#e8384f', d: '빨간 리본' }, monchhichi: { n: '몬치치', c: '#a0673d', d: '복슬복슬 갈색' }, melody: { n: '마이멜로디', c: '#e35d93', d: '분홍 두건' }, chiikawa: { n: '치이카와', c: '#e07686', d: '말랑 하양' }, cinnamoroll: { n: '시나모롤', c: '#5aa6e6', d: '하늘 구름' } };
   const SKIN_Q = new URLSearchParams(location.search).get('skin');  // 시험용: 탭마다 다른 테마 (?skin=kitty)
   const owned = () => (S.profile.skins || []).filter((k) => SKINS[k]);
-  const skin = () => (SKIN_DEV && SKINS[SKIN_Q] ? SKIN_Q : SKINS[S.profile.skin] && (SKIN_DEV || owned().includes(S.profile.skin)) ? S.profile.skin : 'ghost');
+  // 선생님 내 정보 (이름·생일·MBTI·테마): 학생 기록과 따로 서버 「_선생님」 칸에 저장해요
+  const TPK = 'mallang-univ:tprof', TPN = '_선생님';
+  const TP = (() => { try { return JSON.parse(localStorage.getItem(TPK) || 'null') || {}; } catch (e) { return {}; } })();
+  if (!TP.name) TP.name = '선생님';
+  function tSave() { TP._at = Date.now(); try { localStorage.setItem(TPK, JSON.stringify(TP)); } catch (e) {} rpc('univ_put', { p_student: TPN, p_code: U.key, p_data: { profile: TP } }).catch(() => {}); }
+  async function tLoad() { try { const r = await rpc('univ_get', { p_student: TPN, p_code: U.key }); const q = r && r.profile; if (q && (q._at || 0) > (TP._at || 0)) { Object.assign(TP, q); try { localStorage.setItem(TPK, JSON.stringify(TP)); } catch (e) {} render(); } } catch (e) {} }
+  const skin = () => DASH_ONLY ? (SKINS[TP.skin] && (TP.skin === 'ghost' || GIFTS.includes(TP.skin)) ? TP.skin : 'ghost') : (SKIN_DEV && SKINS[SKIN_Q] ? SKIN_Q : SKINS[S.profile.skin] && (SKIN_DEV || owned().includes(S.profile.skin)) ? S.profile.skin : 'ghost');
   // 테마 선물: 선생님이 보내면 「띵동!」 → 물음표 상자가 두근두근 → 짜잔. 열심히 하면 하나씩 받아요
   const GIFTS = ['melody', 'kitty', 'chiikawa', 'cinnamoroll'];  // 지금 보낼 수 있는 테마 (scripts/build.py PETS_LIVE 와 같게)
   // 테마 선물은 여러 개를 줄 수 있어요: S.gifts = [{ skin, at, open }] (예전 S.gift 하나도 같이 읽음)
@@ -2767,6 +2773,21 @@
   const MBTI = ['ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP', 'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'];
   const avatarHtml = (cls = '') => { const p = S.profile, a = AVATARS.find((x) => x[0] === p.avatar); return a ? `<span class="avatar ${cls}" style="background:${a[1]}"><img src="icons/${a[0]}.svg" alt=""></span>` : `<span class="avatar ${cls}" style="background:var(--blue);color:#fff">${esc((p.name || '나').slice(-2))}</span>`; };
   const bdayLeft = () => { const b = S.profile.birth || BIRTH; if (!b) return null; const [, m, d] = b.split('-').map(Number); const t = new Date(today() + 'T00:00:00'); let n = new Date(t.getFullYear(), m - 1, d); if (n < t) n = new Date(t.getFullYear() + 1, m - 1, d); return Math.round((n - t) / 864e5); };
+  // 선생님 내 정보: 이름·생일·MBTI·테마 (학생 화면의 내 정보와 같은 모양)
+  const tBday = () => { const b = TP.birth; if (!b) return null; const [, m, d] = b.split('-').map(Number); const t = new Date(today() + 'T00:00:00'); let n = new Date(t.getFullYear(), m - 1, d); if (n < t) n = new Date(t.getFullYear() + 1, m - 1, d); return Math.round((n - t) / 864e5); };
+  function tmeView() {
+    const p = TP, bl = tBday(), sk = skin();
+    const row = (k, label, val, empty = '없음') => `<button class="li btnlike me-row" type="button" data-tme="${k}"><div class="body"><div class="t" style="font-weight:500;color:var(--t2)">${label}</div></div><span class="me-v ${val ? '' : 'muted'}">${val ? esc(val) : empty}</span><span class="chev"></span></button>`;
+    return `<div style="max-width:640px;margin:0 auto">
+      <div class="me-head"><span class="avatar xl" style="background:var(--t1);color:#fff">${esc((p.name || '선생님').slice(0, 1))}</span><h1 class="h1" style="margin:16px 0 4px;text-align:center">${esc(p.name)}</h1><div class="row" style="justify-content:center;gap:6px">${p.mbti ? `<span class="tag blue">${esc(p.mbti)}</span>` : ''}${bl != null ? `<span class="tag ${bl === 0 ? 'red' : ''}">${bl === 0 ? '오늘 생일' : `생일까지 D-${bl}`}</span>` : ''}</div></div>
+      <section class="card tight" style="margin-top:20px"><div class="list">${row('name', '이름', p.name)}${row('birth', '생일', p.birth ? (() => { const [y, m, d] = p.birth.split('-'); return `${y}년 ${+m}월 ${+d}일`; })() : '')}${row('mbti', 'MBTI', p.mbti)}</div></section>
+      <section class="card tight"><div class="card-h"><h3>테마</h3></div><div class="tsk-grid">${['ghost', ...GIFTS].map((k) => `<button type="button" class="tsk ${sk === k ? 'on' : ''}" data-tsk="${k}"><img src="${skinPic(k)}" alt=""><span>${esc(k === 'ghost' ? '기본' : SKINS[k].n)}</span></button>`).join('')}</div></section>
+      <p class="tiny" style="text-align:center;margin:16px 0 0">선생님 정보는 학생 기록과 따로 저장돼요</p></div>`;
+  }
+  function bindTme() {
+    $$('[data-tme]').forEach((b) => (b.onclick = () => editField(b.dataset.tme, TP, tSave)));
+    $$('[data-tsk]').forEach((b) => (b.onclick = () => { TP.skin = b.dataset.tsk; tSave(); render(); toast('테마를 바꿨어요'); }));
+  }
   function meView() {
     const p = S.profile, u = uniOf(p.uni), bl = bdayLeft();
     const row = (k, label, val, empty = '없음') => `<button class="li btnlike me-row" type="button" data-me="${k}"><div class="body"><div class="t" style="font-weight:500;color:var(--t2)">${label}</div></div><span class="me-v ${val ? '' : 'muted'}">${val ? esc(val) : empty}</span><span class="chev"></span></button>`;
@@ -2802,9 +2823,9 @@
       $('#gs-ok', el).onclick = () => { const self = mode === 'self'; if (!self) p.goalTrack = mode; p.goalSet = { goalMock: self, goalNaesin: self }; p.goalMock = gm; p.goalNaesin = gn; save('profile'); close(); render(); toast('목표를 바꿨어요'); };
     });
   }
-  function editField(k) {
+  function editField(k, p = S.profile, onSave = () => save('profile')) {
     if (k === 'goalMock' || k === 'goalNaesin') return goalSheet();
-    const p = S.profile; const F = {
+    const F = {
       name: ['이름', 'text'], birth: ['생일', 'date'], mbti: ['MBTI', 'mbti'], motto: ['나의 한마디', 'text', '예) 오늘 한 줄이 내일의 세특'], likes: ['좋아하는 과목', 'text', '예) 통합과학, 영어'], school: ['학교', 'text'], grade: ['학년·반', 'grade'], major: ['목표 학과', 'text', '예) 생명공학과'],
       goalMock: ['모의고사 목표 등급', 'sel', [1, 1.5, 2, 2.5, 3, 3.5, 4]], goalNaesin: ['내신 목표 등급', 'sel', [1, 1.2, 1.5, 1.8, 2, 2.5, 3]] }[k];
     if (!F) return;
@@ -2814,7 +2835,7 @@
       : type === 'sel' ? `${(() => { const a = autoGoals(), v = a && (k === 'goalMock' ? a.mock : a.naesin); return v ? `<button type="button" class="li btnlike" data-sauto style="width:100%;margin:0 0 12px;padding:12px 16px;box-sizing:border-box;border:0;background:var(--blue-soft);border-radius:14px;text-align:left;font:inherit"><div class="body"><div class="t">${esc(a.uni)} 합격선에 맞추기 · ${v}등급</div><div class="d">${k === 'goalMock' ? '수시 수능최저를 과목 평균으로 바꾼 값' : `${a.tr} 합격선 ${a.c9}등급(9등급제)을 5등급제로 바꾼 값`}</div></div>${!(p.goalSet || {})[k] ? '<span class="tag blue">지금</span>' : ''}</button>` : ''; })()}<div class="chips" style="flex-wrap:wrap">${opt.map((g) => `<button type="button" class="chip ${(p.goalSet || {})[k] && +p[k] === g ? 'on' : ''}" data-sv="${g}">${g}등급</button>`).join('')}</div>`
       : `<input class="inp" id="ef-v" type="${type}" value="${esc(p[k] || '')}" placeholder="${esc(opt || '')}">`;
     sheet(`<h2>${label}</h2>${body}<div class="row" style="margin-top:20px"><button class="btn big" style="flex:1" data-x type="button">닫기</button>${type === 'mbti' || type === 'sel' ? '' : '<button class="btn primary big" style="flex:1" id="ef-ok" type="button">저장</button>'}</div>`, (el, close) => {
-      const done = () => { save('profile'); close(); render(); toast('바꿨어요'); };
+      const done = () => { onSave(); close(); render(); toast('바꿨어요'); };
       $('[data-x]', el).onclick = close;
       $$('[data-mb]', el).forEach((b) => (b.onclick = () => { p.mbti = b.dataset.mb; done(); }));
       $$('[data-sv]', el).forEach((b) => (b.onclick = () => { p[k] = +b.dataset.sv; p.goalSet = { ...(p.goalSet || {}), [k]: true }; done(); }));
@@ -4312,7 +4333,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261925'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610262120'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -4566,7 +4587,7 @@
     const newsC = N.length ? `<section class="card c12"><div class="card-h"><h2>${ic('news')} 소식</h2><button class="more" data-tgo="news" type="button">전체 보기</button></div><div class="list d-news">${N.map((n) => `<div class="li btnlike" data-news="${esc(n.id)}"><div class="ico">${ic(nIcon(n))}</div><div class="body"><div class="t">${esc(n.title)}</div><div class="d">${esc(md(n.date))} · ${esc(n.scope || '')}</div></div><span class="chev"></span></div>`).join('')}</div></section>` : '';
     const stuC = `<section class="card tight"><div class="card-h"><h3>학생</h3><button class="more" data-tgo="tstu" type="button">전체</button></div><div class="list">${info.map((x) => `<div class="li btnlike" data-dl="${esc(x.r.name)}">${sAv(x.r)}<div class="body"><div class="t">${esc(x.r.name)}</div><div class="d">${loading(x) ? '불러오는 중' : agoTxt(x.last)}</div></div><b class="num" style="font-size:14px">${loading(x) ? '' : x.week + '문제'}</b></div>`).join('')}</div></section>`;
     const h = new Date().getHours();
-    const main = `<h1 class="h1">선생님, ${h < 12 ? '좋은 아침이에요' : h < 18 ? '오후도 힘내요' : '오늘도 수고했어요'}</h1><p class="sub">${up.some((u) => u.date === t) ? `오늘 ${up.filter((u) => u.date === t).map((u) => u.x.r.name).join(' · ')} 수업이 있어요` : '오늘은 수업이 없어요'}${asks.length ? ` · 확인할 것 ${asks.length}개` : ''}</p>
+    const main = `<h1 class="h1">${tBday() === 0 ? `${esc(TP.name)}, 생일 축하해요` : `${esc(TP.name)}, ${h < 12 ? '좋은 아침이에요' : h < 18 ? '오후도 힘내요' : '오늘도 수고했어요'}`}</h1><p class="sub">${up.some((u) => u.date === t) ? `오늘 ${up.filter((u) => u.date === t).map((u) => u.x.r.name).join(' · ')} 수업이 있어요` : '오늘은 수업이 없어요'}${asks.length ? ` · 확인할 것 ${asks.length}개` : ''}</p>
       <div class="grid">${askC}${upC}${moneyC}${dMsgCard(info)}${newsC}</div>`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${clockWidget()}${hotCard('')}${stuC}</aside></div>`;
   }
@@ -4945,7 +4966,7 @@
     const ct = $('#coin-top'); if (ct) ct.hidden = !WALLET || DASH_ONLY; if (ct && WALLET) { if (!coinPend) coinShown = wBal(); ct.innerHTML = `${ic('coin')}<b class="num">${won(coinShown)}</b>`; ct.setAttribute('aria-label', `말랑 용돈 ${won(coinShown)}`); ct.classList.toggle('on', UI.run && UI.run.kind === 'wallet'); }
     const pt = $('#pomo-top'); if (pt) { const n = pDay().n; pt.innerHTML = `${ic('tomato')}<b class="num">${n}</b>`; pt.classList.toggle('on', !!n); pt.setAttribute('aria-label', `토마토 타이머 · 오늘 ${n}개`); }
     { const ptp = $('#pomo-top'); if (ptp) ptp.hidden = TEACHER; }
-    $('#me').innerHTML = DASH_ONLY ? '<span>선생님</span><span class="av" style="background:var(--t1)">선</span>' : `<span>${esc(S.profile.name)}</span>${avatarHtml('sm')}`;
+    $('#me').innerHTML = DASH_ONLY ? `<span>${esc(TP.name)}</span><span class="av" style="background:var(--t1)">${esc(TP.name.slice(0, 1))}</span>` : `<span>${esc(S.profile.name)}</span>${avatarHtml('sm')}`;
   }
   const main = $('#main');
 
@@ -4973,7 +4994,7 @@
     syncGoals();
     redoFix();
     if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'nx' ? nxRun() : UI.run.kind === 'nxw' ? nxwRun() : '';
-    else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'picks' ? picksView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'exam' ? examView() : sgbView();
+    else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'tme' ? tmeView() : UI.tab === 'picks' ? picksView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'exam' ? examView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
     const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'hw' ? (UI.nxUnit || '') + (UI.nxSubj || '') : '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '');
     const depth = UI.run ? 2 : UI.lib || (UI.tab === 'score' && UI.mockId) || (UI.tab === 'hw' && UI.nxUnit) ? 1 : 0, ti = TABS.findIndex((t) => t[0] === UI.tab);
@@ -5085,6 +5106,7 @@
     $$('[data-cs]').forEach((b) => (b.onclick = () => { UI.chartSubj = b.dataset.cs; render(); }));
     const h = $('#hero'); if (h) h.onclick = uniSheet;
     if (!UI.run && UI.tab === 'me') bindMe();
+    if (!UI.run && UI.tab === 'tme') bindTme();
     if (!UI.run && UI.tab === 'picks') bindPicks();
     if (!UI.run && UI.tab === 'uni') bindUniTab();
     if (!UI.run && UI.tab === 'tgrade') $$('[data-gsw]').forEach((x) => (x.onclick = () => { UI.gStu = x.dataset.gsw; render(); }));
@@ -5141,7 +5163,8 @@
   }
   $('#brand').onclick = () => go(DASH_ONLY ? 'dash' : 'home');  // 선생님 화면엔 「home」 탭이 없어 학생 홈이 뜨던 것
   let rsT = 0, lastW = window.innerWidth; window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (Math.abs(window.innerWidth - lastW) > 80 && !$('.sheet')) { lastW = window.innerWidth; render(); } }, 250); });
-  $('#me').onclick = () => { if (!DASH_ONLY) go('me'); };
+  $('#me').onclick = () => go(DASH_ONLY ? 'tme' : 'me');
+  if (DASH_ONLY) tLoad();
   if (PEEK) { const bar = document.createElement('div'); bar.className = 'peek-bar'; bar.innerHTML = '<span>' + esc(NMI()) + '가 보는 화면 · 눌러도 저장되지 않아요</span><button type="button">' + (STU_TAB ? '닫기' : '선생님 화면으로') + '</button>'; document.body.appendChild(bar); $('button', bar).onclick = () => { if (STU_TAB) { window.close(); return; } try { sessionStorage.removeItem('mu:peek'); } catch (e) {} location.reload(); }; }
   $('#pomo-top').onclick = openPomo;
   $('#coin-top').onclick = openWallet;
