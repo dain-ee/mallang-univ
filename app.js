@@ -91,7 +91,19 @@
   const mergeUa = (a = {}, b = {}) => { const o = { ...a }; for (const [k, v] of Object.entries(b)) o[k] = { ...(o[k] || {}), ...v }; return o; };
   const jAt = (v) => (v && v.at) || 0;
   const jMerge = (r = {}, l = {}) => { const o = { ...r }; for (const [k, v] of Object.entries(l)) if (!(k in o) || jAt(v) >= jAt(o[k])) o[k] = v; return o; };  // 말랑영어 리스닝·리딩·라이팅: 칸마다 더 새것
+  // 학원·과외 숙제: 기기 둘에서 고쳐도 서로 안 지워요. 숙제는 id별로, 날짜 기록은 나중에 적은 쪽, 지운 숙제는 gone에 남겨요
+  // (폰에서 범위를 고치니 아이패드에서 적은 「오늘 33문제」가 통째로 사라진 사고 10/26)
+  const logMerge = (a = {}, b = {}) => { const o = { ...a }; for (const [d, v] of Object.entries(b)) if (!o[d] || jAt(v) >= jAt(o[d])) o[d] = v; return o; };
+  const myMerge = (r, l, rNew) => {
+    const [o, n] = rNew ? [l, r] : [r, l], gone = { ...(o.gone || {}), ...(n.gone || {}) }, byO = new Map((o.items || []).map((x) => [x.id, x]));
+    const items = (n.items || []).map((x) => { const y = byO.get(x.id); byO.delete(x.id); return y ? { ...y, ...x, log: logMerge(y.log, x.log), skip: { ...(y.skip || {}), ...(x.skip || {}) }, ack: { ...(y.ack || {}), ...(x.ack || {}) } } : x; });
+    for (const y of byO.values()) items.push(y);
+    const cls = [...(n.cls || [])]; for (const c of o.cls || []) if (!cls.some((x) => x.id === c.id)) cls.push(c);
+    const books = [...(n.books || [])]; for (const b of o.books || []) if (!books.some((x) => x.cls === b.cls && x.name === b.name)) books.push(b);
+    return { ...o, ...n, cls, books, gone, items: items.filter((x) => !gone[x.id]) };
+  };
   const MERGE = {
+    my: myMerge,
     jl: jMerge, jr: jMerge, jw: jMerge,
     eng: (r, l) => ({ ...r, ...l, unit: Math.max(+r.unit || 0, +l.unit || 0), wordDay: Math.max(+r.wordDay || 0, +l.wordDay || 0), g3: Math.max(+r.g3 || 0, +l.g3 || 0), g3ans: { ...(r.g3ans || {}), ...(l.g3ans || {}) }, ua: mergeUa(r.ua, l.ua), days: mergeDays(r.days, l.days) }),
     sci: (r, l) => ({ ...r, ...l, days: mergeDays(r.days, l.days) }),
@@ -1024,7 +1036,7 @@
         if (a && b) { const f = +a.value, z = +b.value; if (!(f > 0 && z >= f)) { toast('시작과 끝 번호를 확인해요'); return; } it.from = f; it.to = z; it.total = z - f + 1; it.text = `${it.book} ${it.unit === '쪽' ? `p.${f}~${z}` : `${f}~${z}번`}`; }
         if (c) { if (!(+c.value > 0)) { toast('문제 수를 적어요'); return; } it.total = +c.value; it.text = `${it.book} ${it.total}문제`; }
         if (d) it.due = d; save('my'); sheet.dirty = true; const bb = $('#sheet-root .sh-back'); if (bb) bb.click(); else close(); toast('고쳤어요'); };
-      const sk = $('#my-skip', el); if (sk) sk.onclick = () => { const t = today(); it.skip = { ...(it.skip || {}) }; if (it.skip[t]) { delete it.skip[t]; save('my'); close(); render(); toast('미룬 걸 취소했어요'); return; }
+      const sk = $('#my-skip', el); if (sk) sk.onclick = () => { const t = today(); it.skip = { ...(it.skip || {}) }; if (it.skip[t]) { it.skip[t] = 0; save('my'); close(); render(); toast('미룬 걸 취소했어요'); return; }
         it.skip[t] = 1; let msg = ''; if (!myDaysLeft(it.due, myStudy(it), addD(t, 1))) msg = myPush(it) + ' · ';
         const n = myToday({ ...it, skip: {} }).n, nd = myDaysLeft(it.due, myStudy(it), addD(t, 1)), left = it.total - myDone(it), per = Math.ceil(left / Math.max(1, nd)), avg = myAvg();
         save('my'); close(); render(); toast(msg + `내일부터 남은 ${nd}일, 하루 ${per}${it.unit === '쪽' ? '쪽' : '문제'}${avg ? ` (보통 하루 ${avg}문제)` : ''}`); };
@@ -1043,14 +1055,14 @@
       if ($('#my-w', el)) { $('#my-w', el).addEventListener('input', wc); $('#my-n', el).addEventListener('input', wc); wc(); }
       $$('[data-ma]', el).forEach((b) => (b.onclick = () => { const i = $('#my-n', el); i.value = Math.max(0, (+i.value || 0) + +b.dataset.ma); wc(); }));
       $('#my-ok', el).onclick = () => {
-        if (it.unit === '건') { if (myFin(it)) { it.log = {}; it.fin = false; } else { it.log[t] = { n: 1, at: Date.now() }; if (!isPlan(it)) earn('my:' + it.id + ':' + t, 100, '내 숙제'); boom(innerWidth / 2, innerHeight * 0.4, 2); } save('my'); close(); render(); return; }
+        if (it.unit === '건') { if (myFin(it)) { const at = Date.now(); for (const d of Object.keys(it.log || {})) it.log[d] = { n: 0, at }; it.fin = false; } else { it.log[t] = { n: 1, at: Date.now() }; if (!isPlan(it)) earn('my:' + it.id + ':' + t, 100, '내 숙제'); boom(innerWidth / 2, innerHeight * 0.4, 2); } save('my'); close(); render(); return; }
         const n = Math.max(0, +$('#my-n', el).value || 0), w = ($('#my-w', el).value.match(/\d+/g) || []).map(Number);
         it.log[t] = { n, w, at: Date.now(), ...(+($('#my-s0', el) || {}).value ? { s: +$('#my-s0', el).value } : {}) }; it.wrong = [...new Set([...(it.wrong || []).filter((v) => !(dt && (dt.w || []).includes(v))), ...w])].sort((a, b) => a - b);
         save('my'); close(); render(); if (n) earn('my:' + it.id + ':' + t, 100, '학원·과외 숙제'); toast(w.length ? `틀린 ${w.length}문제는 오답 탭에 모아 뒀어요` : '오늘 것 끝! 잘했어요');
         if (myFin(it)) { const r = document.body.getBoundingClientRect(); boom(innerWidth / 2, innerHeight * 0.4, 4); }
       };
       if ($('#my-fin', el)) $('#my-fin', el).onclick = () => { it.fin = !it.fin; save('my'); close(); render(); };
-      $('#my-del', el).onclick = () => { if (!$('#my-del', el).dataset.sure) { $('#my-del', el).dataset.sure = 1; $('#my-del', el).textContent = '한 번 더 누르면 지워요'; return; } myS().items = myS().items.filter((y) => y !== it); save('my'); close(); render(); toast('지웠어요'); };
+      $('#my-del', el).onclick = () => { if (!$('#my-del', el).dataset.sure) { $('#my-del', el).dataset.sure = 1; $('#my-del', el).textContent = '한 번 더 누르면 지워요'; return; } myS().gone = { ...(myS().gone || {}), [it.id]: Date.now() }; myS().items = myS().items.filter((y) => y !== it); save('my'); close(); render(); toast('지웠어요'); };
     });
   }
   // 오답 탭: 학원·과외에서 틀린 번호 모음. 누르면 다시 맞힌 걸로
@@ -4141,7 +4153,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261730'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261741'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
