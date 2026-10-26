@@ -2168,3 +2168,15 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 a.btn, a.btn:hover { text-decoration: none; }
 /* 천일문 빈칸: 해석 (해석이 없으면 답이 여러 개라 애매해요 10/26) */
 .q-ko{margin-top:8px;font-size:15px;line-height:1.6;color:var(--t2);font-weight:500}
+
+/* 과외 학생 홈: 다가오는 시험은 한 상자에 한 줄씩 (10/26) */
+.ls-exams { display: flex; flex-direction: column; gap: 4px; padding: 8px 16px; border-radius: 14px; background: var(--fill2); }
+.ls-ex { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+.ls-ex + .ls-ex { border-top: 1px solid var(--line); }
+.ls-ex-t { flex: none; padding: 2px 8px; border-radius: 6px; background: rgba(240,68,82,.1); color: var(--red); font-size: 12px; font-weight: 700; }
+.ls-ex-b { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 8px; }
+.ls-ex-b b { font-size: 15px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ls-ex-b span { flex: none; font-size: 13px; color: var(--t3); }
+.ls-ex-d { flex: none; font-size: 17px; font-weight: 800; color: var(--red); }
+@media (max-width: 480px) { .ls-ex-b { flex-direction: column; gap: 0; } }
+.hero .ls-next { margin-top: 0; }
