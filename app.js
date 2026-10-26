@@ -4072,7 +4072,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261414'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261417'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -4805,7 +4805,7 @@
     if (!UI.run && UI.tab === 'sgb') bindLogs();
     if (!UI.run && UI.tab === 'score') { if (UI.scoreSeg === 'mock' && UI.mockId) bindMock(); if (UI.scoreSeg === 'naesin') bindNaesin(); }
   }
-  $('#brand').onclick = () => go('home');
+  $('#brand').onclick = () => go(DASH_ONLY ? 'dash' : 'home');  // 선생님 화면엔 「home」 탭이 없어 학생 홈이 뜨던 것
   let rsT = 0, lastW = window.innerWidth; window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (Math.abs(window.innerWidth - lastW) > 80 && !$('.sheet')) { lastW = window.innerWidth; render(); } }, 250); });
   $('#me').onclick = () => { if (!DASH_ONLY) go('me'); };
   if (PEEK) { const bar = document.createElement('div'); bar.className = 'peek-bar'; bar.innerHTML = '<span>' + esc(NMI()) + '가 보는 화면 · 눌러도 저장되지 않아요</span><button type="button">' + (STU_TAB ? '닫기' : '선생님 화면으로') + '</button>'; document.body.appendChild(bar); $('button', bar).onclick = () => { if (STU_TAB) { window.close(); return; } try { sessionStorage.removeItem('mu:peek'); } catch (e) {} location.reload(); }; }
