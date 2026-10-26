@@ -138,6 +138,8 @@ function normalize(raw) {
 
   return {
     name: str(raw.name) || '학생',
+    kicker: str(raw.kicker) || '영어 과외 일일 리포트',
+    tiles: Array.isArray(raw.tiles) ? raw.tiles : null,
     date,
     dateText: `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 (${WEEKDAY[date.getDay()]})`,
     nth,
@@ -153,7 +155,7 @@ function normalize(raw) {
     vocabValue: vocabScore ? pair(vocabScore, vocabTotal) : '',
     note: str(raw.note) || DEFAULT_NOTE,
     sections: [
-      { label: SECTION_LABELS.lesson, items: toItems(raw.lesson) },
+      { label: str(raw.lessonLabel) || SECTION_LABELS.lesson, items: toItems(raw.lesson) },
       { label: SECTION_LABELS.vocab, items: toItems(raw.vocab) },
       { label: SECTION_LABELS.homework, items: toItems(raw.homework) },
       { label: SECTION_LABELS.comment, items: toItems(raw.comment) },
@@ -182,7 +184,7 @@ function drawHeader(c, d, y) {
   drawGhost(c, M + 10, y + 15, 25, C.ghostInk, C.white);
   c.fillStyle = C.mid;
   c.font = font(700, 13);
-  c.fillText('영어 과외 일일 리포트', M + 28, y + 21);
+  c.fillText(d.kicker, M + 28, y + 21);
 
   c.fillStyle = C.ink;
   c.font = font(700, 34);
@@ -216,12 +218,12 @@ function drawHeader(c, d, y) {
 function drawTiles(c, d, y) {
   const H = 84;
   const gap = 12;
-  const tiles = [
+  const tiles = d.tiles ? d.tiles.slice() : [
     ['회차', d.nthValue, false],
     ['진도율', d.progressValue, false],
     ['시험', d.scoreValue, true],
   ];
-  if (d.vocabValue) tiles.push(['단어', d.vocabValue, true]);
+  if (d.vocabValue && !d.tiles) tiles.push(['단어', d.vocabValue, true]);
 
   const w = (CW - gap * (tiles.length - 1)) / tiles.length;
 
