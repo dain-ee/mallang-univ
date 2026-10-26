@@ -119,6 +119,10 @@
   const flush = () => { if (pushT) { clearTimeout(pushT); pushT = null; sync(); } };
   addEventListener('pagehide', flush);
   document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
+  // 서버에서 바뀐 게 들어오면 꼭 다시 그려요. 안 그리면 풀던 화면이 옛 기록에 답을 적어 「했는데 안 했다고」 떠요 (10/26)
+  // 글자를 쓰는 중이면 안 그려요 (쓰던 답이 지워져요). 그때는 단추마다 누를 때 기록을 다시 찾아요
+  const typing = () => !!document.activeElement?.matches('input, textarea, select, [contenteditable]');
+  function syncRedraw() { if (!typing()) render(); }
   async function sync(redraw) {
     if (syncing) { clearTimeout(pushT); pushT = setTimeout(sync, 1500); return; }
     syncing = true;
@@ -134,11 +138,11 @@
         }
       }
       pulled = true;
-      if (PEEK) { syncing = false; if (changed && redraw) render(); return; } // 미리보기: 받아 오기만
+      if (PEEK) { syncing = false; if (changed) syncRedraw(); return; } // 미리보기: 받아 오기만
       try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
       await rpc('univ_put', { p_student: U.who, p_code: U.key, p_data: S });
       saveSt.at = Date.now(); saveSt.off = false; paintSaveSt();
-      if (changed && redraw) render();
+      if (changed) syncRedraw();
     } catch (e) { /* 연결이 안 되면 이 기기에만 저장하고, 다음에 다시 맞춤 */ if (Object.keys(S._at || {}).length) pulled = true; saveSt.off = true; saveSt.wait = false; paintSaveSt(); }
     syncing = false;
   }
@@ -249,6 +253,8 @@
     engSkip(t);
     return S.eng.days[t];
   }
+  // 오늘 고3 문제를 풀었나: 표시가 날아가도 답이 있으면 푼 것 (10/26 정윤 「했는데 안 했다고 떠」)
+  const g3Did = (e) => !!(e && (e.g3done || (G3[e.g3 || 0] && (S.eng.g3ans || {})[G3[e.g3 || 0].id])));
   const wordsFor = (k) => WORDS.slice(k * 10, k * 10 + 10);
   // 「Day 1 · 21~30번」: 한 Day가 30단어라 Day만 쓰면 처음으로 돌아간 것처럼 보여요
   const wordsLabel = (k) => { const w = wordsFor(k); if (!w.length) return ''; const st = WORDS.findIndex((x) => x.day === w[0].day), a = k * 10 - st + 1; return `Day ${w[0].day} · ${a}~${a + w.length - 1}번`; };
@@ -572,11 +578,11 @@
     const has = (k) => !off && (onDay(k) || !!(k === 'sci' ? S.sci.days[today()] : S.eng.days[today()]));
     // 지난번에 다 못 한 건 그대로 이어서 나와요 · 어제와 같은 숙제처럼 보이지 않게 알려 줘요
     const prevEng = Object.entries(S.eng.days).filter(([dk]) => dk < today()).sort().map(([, v]) => v);
-    const carried = (k) => k === 'unit' ? !unitDone && prevEng.some((v) => v.unit === ed.unit) : k === 'words' ? !wordsDone && prevEng.some((v) => v.words === ed.words) : !ed.g3done && prevEng.some((v) => v.g3 === ed.g3);
+    const carried = (k) => k === 'unit' ? !unitDone && prevEng.some((v) => v.unit === ed.unit) : k === 'words' ? !wordsDone && prevEng.some((v) => v.words === ed.words) : !g3Did(ed) && prevEng.some((v) => v.g3 === ed.g3);
     const cdesc = (k, d) => (carried(k) ? `지난번에 못 한 것 · 이어서 해요 · ${d}` : d);
     if (off) tasks.push({ k: 'hw', icon: 'party', t: '오늘은 매일 과제가 쉬는 날이에요', d: '요일은 숙제 탭의 「매일 과제 요일」에서 바꿀 수 있어요', done: true });
     for (const d of openDrills().slice(0, 4)) tasks.push({ k: 'drill:' + d.id, icon: 'target', t: `${d.title || d.area} ${d.qs.length}문제`, d: '선생님이 낸 약한 영역 문제', done: false });
-    if (has('g3') && G3.length) { const g = G3[ed.g3 || 0]; tasks.push({ k: 'g3', icon: 'eng', t: '고3 영어 한 문제', d: ed.g3done ? '다 풀었어요 · 문장 분석 보기' : cdesc('g3', g ? `${g.type || ''} · 문장 분석과 천일문 연결` : ''), done: !!ed.g3done }); }
+    if (has('g3') && G3.length) { const g = G3[ed.g3 || 0]; tasks.push({ k: 'g3', icon: 'eng', t: '고3 영어 한 문제', d: g3Did(ed) ? '다 풀었어요 · 문장 분석 보기' : cdesc('g3', g ? `${g.type || ''} · 문장 분석과 천일문 연결` : ''), done: g3Did(ed) }); }
     if (has('sci') && SCI.concepts.length) tasks.push({ k: 'sci', icon: 'sci', t: sd.one ? `과학 개념: ${(SCI.concepts.find((x) => x.id === sd.c) || {}).title || ''}` : `오늘의 과학 ${st.n}문제`, d: sd.one && !sd.read ? `교과서 개념 보고 문제 ${st.n}개` : st.done >= st.n ? `${st.ok}/${st.n} 맞힘${st.all > st.n ? ` · 깊게 ${st.all - st.n}문제 더` : ''}` : `${st.done}/${st.n} 풀었어요`, done: st.done >= st.n });
     if (has('unit') && CH_UNITS.length) { const un = CH_UNITS[ed.unit] || CH_UNITS[CH_UNITS.length - 1]; tasks.push({ k: 'unit', icon: 'eng', t: `천일문 ${un.unit ? 'Unit ' + un.unit : ''} ${un.title || ''}`.trim(), d: unitDone ? '다 했어요' : cdesc('unit', '개념 · 문장 · 문제'), done: !!unitDone }); }
     if (has('words') && WORDS.length) tasks.push({ k: 'words', icon: 'books', t: '워드마스터 단어 10개 시험', d: wordsDone ? `${Object.values(ed.wans).filter((x) => x.ok).length}/10 맞힘` : cdesc('words', wordsLabel(ed.words)), done: !!wordsDone });
@@ -1427,7 +1433,7 @@
     if (e) {
       if (e.udone) { const un = CH_UNITS[e.unit]; out.push({ i: 'eng', t: `천일문 ${un ? 'Unit ' + un.unit + ' ' + (un.title || '') : ''}`.trim(), d: '다 했어요' }); }
       const wn = Object.keys(e.wans || {}).length; if (wn) out.push({ i: 'books', t: '워드마스터 단어 시험', d: `${wn}개 중 ${Object.values(e.wans).filter((x) => x.ok).length}개 맞힘` });
-      if (e.g3done) { const g = G3[e.g3 || 0]; out.push({ i: 'write', t: '고3 영어 한 문제', d: g ? `${g.type || ''} · ${g.src || ''}` : '풀었어요' }); }
+      if (g3Did(e)) { const g = G3[e.g3 || 0]; out.push({ i: 'write', t: '고3 영어 한 문제', d: g ? `${g.type || ''} · ${g.src || ''}` : '풀었어요' }); }
     }
     for (const h of S.hw || []) if (hwDone(h) && (h.doneAt ? new Date(h.doneAt).toLocaleDateString('sv') === d : h.due === d)) out.push({ i: 'pin', t: h.title, d: '선생님 숙제 · 끝냄' });
     const pd = (pomo().days || {})[d]; if (pd && pd.n) out.push({ i: 'tomato', t: `토마토 ${pd.n}개`, d: `집중 ${pd.min || pd.n * 25}분` });
@@ -1698,6 +1704,7 @@
     const nx = $('#cr-next'); if (nx) nx.onclick = () => { r.i = null; render(); window.scrollTo(0, 0); };
     const i = r.i != null ? r.i : qs.findIndex((q) => !ans[q.id]); const q = qs[i];
     $$('[data-pick]').forEach((b) => (b.onclick = () => {
+      const ans = (S.sci.cans[c.id] = S.sci.cans[c.id] || {});  // 누를 때 다시 찾아요
       const k = +b.dataset.pick, ok = k === q.answer; ans[q.id] = { pick: k, ok, at: Date.now() }; r.i = i;
       const wid = 'sci:' + q.id;
       if (ok) { gotIt(wid); if (S.wrong[wid]) clearWrong(wid); } else addWrong(wid, { src: 'sci', subj: 'sci', subjName: '통합과학', area: unitOf(c.unit).title.replace(/^[ⅠⅡⅢⅣⅤⅥ]+\.\s*/, ''), sub: c.title, concept: c.id, qid: q.id });
@@ -1772,10 +1779,11 @@
   }
   function bindSci() {
     const d = sciToday(true);
-    const ld = $('#ls-done'); if (ld) { ld.onclick = () => { d.read = true; save('sci'); UI.run = { kind: 'sci' }; render(); window.scrollTo(0, 0); }; return; }
+    const ld = $('#ls-done'); if (ld) { ld.onclick = () => { sciToday(true).read = true; save('sci'); UI.run = { kind: 'sci' }; render(); window.scrollTo(0, 0); }; return; }
     const r = UI.run; if (!r || r.kind !== 'sci') return;
     const it = d.list[r.i]; if (!it) return; const q = qById(it.q), c = SCI.concepts.find((x) => x.id === it.c) || {};
     $$('[data-pick]').forEach((b) => (b.onclick = () => {
+      const d = sciToday(true);  // 누를 때 다시 찾아요
       const k = +b.dataset.pick, ok = k === q.answer; d.ans[it.q] = { pick: k, ok, at: Date.now() };
       const wid = 'sci:' + it.q;
       if (ok) { gotIt(wid); if (S.wrong[wid]) clearWrong(wid); }
@@ -1828,7 +1836,8 @@
     const { un, store, ids, ref } = unitCtx(); if (!un) return; const cur = UI.run.show; const q = (un.questions || [])[cur]; if (!q) { const n = $('#next'); if (n) n.onclick = () => { UI.run = null; render(); }; return; }
     const keep = { kind: 'unit', ref, back: UI.run.back, g3lib: UI.run.g3lib };
     const wk = `eng:${uKey(un)}-${cur}`;
-    const mark = (ok, extra) => { store[cur] = { ok, at: Date.now(), ...extra }; if (!ok) addWrong(wk, { src: 'eng', subj: 'eng', subjName: '영어', area: '천일문 ' + (un.chTitle || ''), sub: un.title, ref: { ch: un.ch, unit: un.unit, i: cur, v: un.v2 ? 2 : 0 } }); else { gotIt(wk); clearWrong(wk); } save('eng');
+    const live = () => unitCtx().store || store;  // 누를 때 다시 찾아요 (서버 맞춤 뒤 옛 기록에 적으면 「확인」해도 안 넘어가요 10/26)
+    const mark = (ok, extra) => { const store = live(); store[cur] = { ok, at: Date.now(), ...extra }; if (!ok) addWrong(wk, { src: 'eng', subj: 'eng', subjName: '영어', area: '천일문 ' + (un.chTitle || ''), sub: un.title, ref: { ch: un.ch, unit: un.unit, i: cur, v: un.v2 ? 2 : 0 } }); else { gotIt(wk); clearWrong(wk); } save('eng');
       if (ref != null && ids.every((k) => store[k])) { const t = cuTitle(un.unit), h = (S.hw || []).find((x) => !x.done && x.title === t); if (h) { h.done = true; h.doneAt = Date.now(); save('hw'); toast('천일문 숙제 끝!'); } }
       render(); };
     $$('[data-pick]').forEach((b) => (b.onclick = () => mark(+b.dataset.pick === q.answer, { pick: +b.dataset.pick })));
@@ -1837,7 +1846,7 @@
     const rs = $('#ord-reset'); if (rs) rs.onclick = () => render();
     const ok = $('#ord-ok'); if (ok) ok.onclick = () => { const t = picked.join(' '); mark(normEn(t) === normEn(q.answerText), { text: t }); };
     const fo = $('#free-ok'); if (fo) fo.onclick = () => { const t = $('#free').value; const ans = q.answerText || ''; mark(normEn(t) === normEn(ans) || (q.accept || []).some((x) => normEn(x) === normEn(t)), { text: t }); };
-    const n = $('#next'); if (n) n.onclick = () => { const nx = ids.find((k) => !store[k]); UI.run = { ...keep, show: nx == null ? -1 : nx }; render(); window.scrollTo(0, 0); };
+    const n = $('#next'); if (n) n.onclick = () => { const st = live(), nx = ids.find((k) => !st[k]); UI.run = { ...keep, show: nx == null ? -1 : nx }; render(); window.scrollTo(0, 0); };
   }
   // 영어: 단어 10개 (외우기 → 시험)
   function wordsRun() {
@@ -1960,9 +1969,9 @@
     katexP.then(() => window.renderMathInElement && window.renderMathInElement(el, { delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }], throwOnError: false }));
   }
   function bindRetry() {
-    const r = UI.run; if (!r || r.kind !== 'retry') return; const w = S.wrong[r.id];
+    const r = UI.run; if (!r || r.kind !== 'retry') return; const w0 = S.wrong[r.id], w = w0;
     mathify($('.qwrap'));
-    const done = (ok, pick) => { r.ans = { ok, pick }; w.tries = (w.tries || 0) + 1; if (ok) clearWrong(r.id); else { w.times = (w.times || 1) + 1; w.at = Date.now(); save('wrong'); } render(); };
+    const done = (ok, pick) => { const w = S.wrong[r.id] || w0; r.ans = { ok, pick }; w.tries = (w.tries || 0) + 1; if (ok) clearWrong(r.id); else { w.times = (w.times || 1) + 1; w.at = Date.now(); save('wrong'); } render(); };
     $$('[data-pick]').forEach((b) => (b.onclick = () => { const k = +b.dataset.pick; done(k === r.q.answer, k); }));
     if (w.src === 'nx' && r.q && !r.ans) nxBindQ(r.q, (ok, v) => done(ok, v));
     const nself = $('[data-nxself]'); if (nself && w.src === 'nx') nself.onclick = () => { r.ans = { ...r.ans, ok: true, self: 1 }; clearWrong(r.id); render(); };
@@ -2042,15 +2051,15 @@
       </div>`;
   }
   function bindMock() {
-    const m = MOCKS.find((x) => x.id === UI.mockId); if (!m) return; const key = UI.mockSubj, ms = mockSubj(m, key); const rec = S.mock[m.id][key];
-    $$('[data-q]').forEach((b) => (b.onclick = () => { const n = +b.dataset.q; const s = new Set(rec.wrong); s.has(n) ? s.delete(n) : s.add(n); rec.wrong = [...s].sort((a, b) => a - b); if (rec.done) rec.dirty = true; save('mock'); render(); }));
+    const m = MOCKS.find((x) => x.id === UI.mockId); if (!m) return; const key = UI.mockSubj, ms = mockSubj(m, key); const rec0 = () => S.mock[m.id][key];  // 누를 때마다 다시 찾아요 (서버 맞춤 뒤 옛 기록에 적지 않게 10/26)
+    $$('[data-q]').forEach((b) => (b.onclick = () => { const n = +b.dataset.q; const s = new Set(rec0().wrong); s.has(n) ? s.delete(n) : s.add(n); rec0().wrong = [...s].sort((a, b) => a - b); if (rec0().done) rec0().dirty = true; save('mock'); render(); }));
     const dn = $('#mk-done'); if (dn) dn.onclick = () => {
-      rec.done = true; rec.at = Date.now(); rec.dirty = false;
+      rec0().done = true; rec0().at = Date.now(); rec0().dirty = false;
       // 오답 노트에 넣고, 이번에 안 틀린 번호는 빼기
-      for (const q of ms.qs) { const id = `mock:${m.id}:${key}:${q.no}`; if (rec.wrong.includes(q.no)) { if (!S.wrong[id]) S.wrong[id] = { src: 'mock', exam: m.id, subj: key, subjName: ms.name || SUBJ_NAMES[key], area: q.area || '기타', sub: q.sub || '', no: q.no, title: `${m.title.replace(/학력평가/, '학평')} ${ms.name || SUBJ_NAMES[key]} ${q.no}번`, at: Date.now(), times: 1, cleared: false }; } else if (S.wrong[id] && !S.wrong[id].tries) delete S.wrong[id]; }
+      for (const q of ms.qs) { const id = `mock:${m.id}:${key}:${q.no}`; if (rec0().wrong.includes(q.no)) { if (!S.wrong[id]) S.wrong[id] = { src: 'mock', exam: m.id, subj: key, subjName: ms.name || SUBJ_NAMES[key], area: q.area || '기타', sub: q.sub || '', no: q.no, title: `${m.title.replace(/학력평가/, '학평')} ${ms.name || SUBJ_NAMES[key]} ${q.no}번`, at: Date.now(), times: 1, cleared: false }; } else if (S.wrong[id] && !S.wrong[id].tries) delete S.wrong[id]; }
       save('mock', 'wrong'); render(); toast('채점했어요. 틀린 문제는 오답 노트에 들어갔어요');
     };
-    const rt = $('#mk-retry'); if (rt) rt.onclick = () => { const ids = rec.wrong.map((n) => `mock:${m.id}:${key}:${n}`).filter((id) => S.wrong[id]); if (!ids.length) return; UI.tab = 'wrong'; UI.run = { kind: 'retry', id: ids[0], queue: ids.slice(1) }; render(); window.scrollTo(0, 0); };
+    const rt = $('#mk-retry'); if (rt) rt.onclick = () => { const ids = rec0().wrong.map((n) => `mock:${m.id}:${key}:${n}`).filter((id) => S.wrong[id]); if (!ids.length) return; UI.tab = 'wrong'; UI.run = { kind: 'retry', id: ids[0], queue: ids.slice(1) }; render(); window.scrollTo(0, 0); };
     const bk = $('#mk-back'); if (bk) bk.onclick = () => { UI.mockId = null; render(); };
     $$('[data-ms]').forEach((b) => (b.onclick = () => { UI.mockSubj = b.dataset.ms; render(); }));
   }
@@ -2201,7 +2210,8 @@
     $$('[data-pick]').forEach((b) => (b.onclick = () => {
       const k = +b.dataset.pick, ok = k === it.answer; S.eng[MMO ? 'mmans' : 'g3ans'][it.id] = { pick: k, ok, at: Date.now() };
       if (MMO) { let hd = false; for (const h of S.hw || []) { const ids = !h.done && mmOf(h); if (ids && !mmLeft(ids).length) { h.done = true; h.doneAt = Date.now(); hd = true; } } if (hd) { save('hw'); toast('모의고사 숙제 끝!'); } }
-      if (!MMO && li == null && !ed.g3done) { ed.g3done = Date.now(); S.eng.g3 = (S.eng.g3 || 0) + 1; }
+      const et = engToday(true);  // 누를 때 다시 찾아요 (서버 맞춤 뒤 옛 기록에 적지 않게)
+      if (!MMO && li == null && !et.g3done) { et.g3done = Date.now(); S.eng.g3 = (S.eng.g3 || 0) + 1; }
       const wid = 'g3:' + it.id; if (!ok) addWrong(wid, { src: 'g3', subj: 'eng', subjName: '영어', area: (MMO ? `고${it.grade} ` : '고3 ') + (it.type || '독해'), sub: it.src, g3: it.id }); else { gotIt(wid); if (S.wrong[wid]) clearWrong(wid); }
       save('eng'); render();
     }));
@@ -3000,7 +3010,7 @@
     for (const b of BADGES) if (((pomo().badges || {})[b.id]) && !wHas('badge:' + b.id)) { if (silent) w.seen['badge:' + b.id] = 1; else earn('badge:' + b.id, b.w, `배지 · ${b.t}`, { bonus: true }); }
     const sd = S.sci && S.sci.days && S.sci.days[t]; if (sd) { const st = dayStat(sd); if (st.n && st.done >= st.n) give(`set:sci:${t}`, 200, '오늘의 과학 끝'); }
     const ed = S.eng && S.eng.days && S.eng.days[t];
-    if (ed) { if (ed.udone) give(`set:unit:${t}`, 200, '천일문 끝'); const wl = wordsFor(ed.words).length; if (wl && Object.keys(ed.wans || {}).length >= Math.min(10, wl)) give(`set:words:${t}`, 200, '단어 시험 끝'); if (ed.g3done) give(`set:g3:${t}`, 200, '고3 영어 끝'); }
+    if (ed) { if (ed.udone) give(`set:unit:${t}`, 200, '천일문 끝'); const wl = wordsFor(ed.words).length; if (wl && Object.keys(ed.wans || {}).length >= Math.min(10, wl)) give(`set:words:${t}`, 200, '단어 시험 끝'); if (g3Did(ed)) give(`set:g3:${t}`, 200, '고3 영어 끝'); }
     for (const d of allDrills()) if (drillDone(d)) give('set:drill:' + d.id, 200, '약한 영역 문제 끝');
     const logs = [...(S.logs || []).filter((x) => x.date === t).map((x) => 'log:' + x.id), ...(S.sgb || []).filter((x) => x.at && dateOf(x.at) === t).map((x) => 'log:sgb:' + x.id)];
     for (const k of logs) { if (wHas(k)) continue; if (!silent && wLogs() >= W_LOGMAX) break; give(k, 100, '오늘 한 것 기록'); }
@@ -3752,10 +3762,11 @@
     const wr = $('[data-nxwr]'); if (wr) wr.onclick = () => { UI.run = { kind: 'nx', id: s.id, back: r.back, only: qs.filter((q) => !store[q.i].ok).map((q) => q.i), tmp: {} }; render(); window.scrollTo(0, 0); };
     const cur = r.cur != null && r.cur < qs.length ? r.cur : qs.findIndex((q) => !store[q.i]); const q = qs[cur]; if (!q) return;
     const nx = $('#nx-next'); if (nx) nx.onclick = () => { const k = qs.findIndex((y, j) => j > cur && !store[y.i]); r.cur = k >= 0 ? k : qs.findIndex((y) => !store[y.i]); if (r.cur < 0) r.cur = null; render(); window.scrollTo(0, 0); };
-    const self = $('[data-nxself]'); if (self) self.onclick = () => { store[q.i] = { ...store[q.i], ok: true, self: 1 }; const wid = 'nx:' + q.i; if (S.wrong && S.wrong[wid]) clearWrong(wid); save('nx'); render(); };
+    const self = $('[data-nxself]'); if (self) self.onclick = () => { const store = nxStore(s, r); store[q.i] = { ...store[q.i], ok: true, self: 1 }; const wid = 'nx:' + q.i; if (S.wrong && S.wrong[wid]) clearWrong(wid); save('nx'); render(); };
     if (store[q.i]) return;
     r.cur = cur;
     nxBindQ(q, (ok, v) => {
+      const store = nxStore(s, r), x = nxS();  // 누를 때 다시 찾아요 (서버 맞춤 뒤 옛 기록에 적지 않게 10/26)
       store[q.i] = { ok, v, at: Date.now() };
       if (!r.tmp) { const st = (x.st[s.id] = x.st[s.id] || {}); if (!st.t0) st.t0 = Date.now(); }
       const wid = 'nx:' + q.i;
@@ -3795,6 +3806,7 @@
     const id = r.phase === 'wrong' ? r.last : (r.q || [])[0], q = NXQ[id] && NXQ[id].q; if (!q) return;
     const k = `${m}:${q.w.id}`;
     const answer = (ok, v) => {
+      const x = nxS();  // 누를 때 다시 찾아요
       if (ok && r.hint) ok = false;  // 힌트 보고 맞힌 건 한 번 더
       const w = x.wd[k] || { s: 0, w: 0 }; if (ok) w.s++; else { w.s = 0; w.w++; } w.at = Date.now(); x.wd[k] = w;
       const st = (x.st[s.id] = x.st[s.id] || {}); if (!st.t0) st.t0 = Date.now();
@@ -3810,7 +3822,7 @@
     if (r.phase !== 'wrong') nxBindQ(q, (ok, v) => answer(ok, String(v || '').trim()));
     const h = $('#nxw-hint'); if (h) h.onclick = () => { r.hint = Math.min((r.hint || 0) + 1, q.w.en.length - 1); render(); };
     const nx = $('#nx-next'); if (nx) nx.onclick = () => { r.phase = 'ask'; r.v = ''; render(); };
-    const mine = $('#nxw-mine'); if (mine) mine.onclick = () => { const w = x.wd[k]; w.w = Math.max(0, w.w - 1); w.s = 1; save('nx'); if (nxWdGot(m, q.w.id) && r.q) r.q = r.q.filter((y) => y !== q.i); r.phase = 'ask'; r.v = ''; render(); };
+    const mine = $('#nxw-mine'); if (mine) mine.onclick = () => { const x = nxS(), w = x.wd[k]; w.w = Math.max(0, w.w - 1); w.s = 1; save('nx'); if (nxWdGot(m, q.w.id) && r.q) r.q = r.q.filter((y) => y !== q.i); r.phase = 'ask'; r.v = ''; render(); };
     const cp = $('#nxw-copy'), cg = $('#nxw-cgo');
     if (cp) { setTimeout(() => cp.focus({ preventScroll: true }), 40); const go = () => { if (normEn(cp.value) === normEn(q.w.en)) { r.phase = 'ask'; r.v = ''; render(); } else { cp.classList.remove('shake-x'); void cp.offsetWidth; cp.classList.add('shake-x'); } }; cg.onclick = go; cp.onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); e.stopPropagation(); go(); } }; }
   }
@@ -4104,7 +4116,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261648'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261656'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
