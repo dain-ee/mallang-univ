@@ -2228,3 +2228,6 @@ a.btn, a.btn:hover { text-decoration: none; }
 .pf-kv span { flex: none; width: 104px; color: var(--t2); font-size: 14px; }
 .pf-kv b { flex: 1; min-width: 0; text-align: left; font-weight: 600; font-size: 14px; line-height: 1.6; }
 .pf-img { display: block; width: 100%; border-radius: 12px; border: 1px solid var(--line); margin-top: 12px; }
+.pf-fig { margin: 0 0 12px; }
+.pf-fig .pf-img { margin-top: 0; max-height: 420px; object-fit: contain; background: var(--fill); }
+.pf-fig figcaption { margin-top: 4px; }
