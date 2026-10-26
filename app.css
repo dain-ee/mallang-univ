@@ -1618,3 +1618,23 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .lesson .ls-last { margin-top: 16px; }
 .lesson .ls-ul { margin: 6px 0 0; padding-left: 18px; color: var(--t2); line-height: 1.7; }
 .rp-img { display: block; width: 100%; max-width: 420px; margin: 0 auto 16px; border: 1px solid var(--line); border-radius: 12px; }
+/* 말랑영어 그래머 (주아) */
+.jgl .card { margin-bottom: 16px; }
+.jgl .sec { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.jgl .sec h2 { margin: 0; font-size: 19px; }
+.jgl .no { display: inline-grid; place-items: center; min-width: 28px; height: 28px; padding: 0 8px; border-radius: 99px; background: var(--blue); color: #fff; font-weight: 800; font-size: 14px; }
+.jgl p { line-height: 1.8; margin: 8px 0; }
+.jgl .tw { overflow-x: auto; margin: 12px 0; }
+.jgl table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.jgl th, .jgl td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.jgl thead th { background: var(--fill); color: var(--t2); font-weight: 600; }
+.jgl .guide, .jgl .hint { margin: 12px 0; padding: 12px 16px; border-radius: 12px; background: var(--blue-soft); color: var(--t1); line-height: 1.7; }
+.jg-q { font-size: 18px; line-height: 1.7; margin: 8px 0 16px; }
+.jg-q .hint { display: block; margin-top: 6px; font-size: 14px; color: var(--t3); }
+.jg-ops { display: flex; flex-wrap: wrap; gap: 8px; }
+.jg-op { height: 44px; padding: 0 18px; font-size: 16px; }
+.jg-op.right { color: #fff; background: var(--blue); border-color: var(--blue); }
+.jg-op.wrong { color: #fff; background: var(--red); border-color: var(--red); }
+.jg-only { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 16px; margin-bottom: 16px; border-radius: 14px; background: var(--fill); font-weight: 600; }
+.jg-again { margin-top: 16px; }
+.jg-again summary { cursor: pointer; color: var(--t2); font-weight: 600; padding: 8px 0; }
