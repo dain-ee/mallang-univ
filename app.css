@@ -1761,3 +1761,7 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .d-sec { padding-top: 20px; border-top: 1px solid var(--line); margin-top: 20px; }
 .dform .d-meta + .d-sec { margin-top: 20px; }
 .card.c4 .tk-g { grid-template-columns: 1fr; }
+.sj-g { display: flex; gap: 6px; overflow-x: auto; margin: 0 0 8px; padding: 4px; border-radius: 12px; background: var(--fill); scrollbar-width: none; }
+.sj-g::-webkit-scrollbar { display: none; }
+.sj { flex: 1 0 auto; height: 36px; padding: 0 12px; border: 0; border-radius: 9px; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--t3); cursor: pointer; }
+.sj.on { background: var(--card); color: var(--t1); box-shadow: 0 1px 3px rgba(0,27,55,.1); }
