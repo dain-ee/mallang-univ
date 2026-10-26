@@ -235,20 +235,19 @@
   // 한국사는 중간고사 때 마지막에 몰려 포기했어서(74점) 11/12까지 먼저 끝내요. 나머지는 섞어서 고르게
   const FIN = (D.finals || []).filter((f) => f && (f.concepts || []).length);
   const FIN_ON = !TUTOR && U.who === '정윤' && FIN.length > 0;
-  const FIN_START = '2026-10-26', FIN_END = '2026-11-22', FIN_DUE = { hist: '2026-11-12' };
+  const FIN_START = '2026-10-26', FIN_END = '2026-11-22', FIN_DUE = { hist: '2026-11-12', eng: '2026-11-22' }, FIN_FROM = { eng: '2026-10-27' };  // eng = 올림포스 지문 하루 한두 개
   const FIN_ALL = FIN.flatMap((f) => f.concepts.map((c) => ({ ...c, subj: f.subj, sname: f.name, book: f.book })));
-  const FIN_ORDER = (() => {  // 날마다 「남은 개수 ÷ 그 과목 마감까지 남은 날」이 큰 과목부터, 하루에 같은 과목은 되도록 한 번
+  // 날마다: 마감 있는 과목(한국사 11/12 · 올림포스 지문 10/27부터 11/22)은 「남은 것 ÷ 남은 날」만큼 먼저,
+  // 나머지 과목은 하루 합이 4~5개를 넘지 않게 「지금쯤 했어야 할 만큼보다 덜 한」 과목부터 (10/26)
+  const FIN_ORDER = (() => {
     const Q = Object.fromEntries(FIN.map((f) => [f.subj, FIN_ALL.filter((c) => c.subj === f.subj)])), out = [], N0 = Object.fromEntries(Object.entries(Q).map(([k, v]) => [k, v.length]));
-    const days = Math.round((new Date(FIN_END) - new Date(FIN_START)) / 864e5) + 1, per = Math.ceil(FIN_ALL.length / days);
+    const dd = (a, b) => Math.round((new Date(b) - new Date(a)) / 864e5), endD = dd(FIN_START, FIN_END), put = (sj, d) => { const c = Q[sj].shift(); c.fday = d; out.push(c); };
     for (let d = 0; out.length < FIN_ALL.length && d < 400; d++) {
-      const used = {}, left = (sj) => Math.max(1, Math.round((new Date(FIN_DUE[sj] || FIN_END) - new Date(FIN_START)) / 864e5) + 1 - d);
-      // 마감이 따로 있는 과목(한국사 11/12)은 그날 꼭 할 만큼 먼저 넣어요
-      for (const sj of Object.keys(FIN_DUE)) if (Q[sj]) for (let k = Math.ceil(Q[sj].length / left(sj)); k > 0 && Q[sj].length; k--) { used[sj] = (used[sj] || 0) + 1; const c = Q[sj].shift(); c.fday = d; out.push(c); }
-      for (let k = Object.values(used).reduce((a, b) => a + b, 0); k < per; k++) {
-        const sc = (sj) => (N0[sj] * (d + 1)) / (left(sj) + d) - (N0[sj] - Q[sj].length) - (used[sj] || 0) * 2;  // 고르게: 지금쯤 했어야 할 만큼보다 덜 한 과목부터 (영어도 처음부터 띄엄띄엄 10/26)
-        const cand = Object.keys(Q).filter((sj) => Q[sj].length).sort((a, b) => sc(b) - sc(a));
-        if (!cand.length) break; used[cand[0]] = (used[cand[0]] || 0) + 1; const c = Q[cand[0]].shift(); c.fday = d; out.push(c);
-      }
+      const used = {}; let forced = 0;
+      for (const sj of Object.keys(FIN_DUE)) { if (!Q[sj] || d < dd(FIN_START, FIN_FROM[sj] || FIN_START)) continue; const k = Math.ceil(Q[sj].length / Math.max(1, dd(FIN_START, FIN_DUE[sj]) + 1 - d)); for (let x = 0; x < k && Q[sj].length; x++) put(sj, d); used[sj] = k; forced += k; }
+      const oth = Object.keys(Q).filter((sj) => !(sj in FIN_DUE) && Q[sj].length), rem = oth.reduce((a, sj) => a + Q[sj].length, 0);
+      const quota = Math.min(rem, d === 0 ? 1 : d >= endD ? rem : Math.max(1, Math.min(Math.ceil(rem / Math.max(1, endD + 1 - d)), 4 - forced)));
+      for (let k = 0; k < quota; k++) { const sc = (sj) => (N0[sj] * (d + 1)) / (endD + 1) - (N0[sj] - Q[sj].length) - (used[sj] || 0) * 2, c = oth.filter((sj) => Q[sj].length).sort((a, b) => sc(b) - sc(a))[0]; if (!c) break; used[c] = (used[c] || 0) + 1; put(c, d); }
     }
     return out;
   })();
@@ -478,7 +477,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${TUTOR ? `${lessonHero()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${giftHome()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${TUTOR ? `${lessonHero()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${giftHome()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${finCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -642,7 +641,7 @@
     if (has('g3') && G3.length) { const g = G3[ed.g3 || 0]; tasks.push({ k: 'g3', icon: 'eng', t: '고3 영어 한 문제', d: g3Did(ed) ? '다 풀었어요 · 문장 분석 보기' : cdesc('g3', g ? `${g.type || ''} · 문장 분석과 천일문 연결` : ''), done: g3Did(ed) }); }
     if (has('sci') && SCI.concepts.length) tasks.push({ k: 'sci', icon: 'sci', t: sd.one ? `과학 개념: ${(SCI.concepts.find((x) => x.id === sd.c) || {}).title || ''}` : `오늘의 과학 ${st.n}문제`, d: sd.one && !sd.read ? `교과서 개념 보고 문제 ${st.n}개` : st.done >= st.n ? `${st.ok}/${st.n} 맞힘${st.all > st.n ? ` · 깊게 ${st.all - st.n}문제 더` : ''}` : `${st.done}/${st.n} 풀었어요`, done: st.done >= st.n });
     // 기말 개념은 과목마다 한 줄, 맨 위에 (한국사가 섞여 안 보인다고 해서 10/26)
-    if (FIN_ON) { const L = finToday(), subs = [...new Set(L.map((c) => c.subj))].sort((x, y) => (y === 'hist') - (x === 'hist')); tasks.unshift(...subs.map((sj) => { const M = L.filter((c) => c.subj === sj), n = M.filter(finDone).length, due = FIN_DUE[sj]; return { k: 'fin:' + sj, icon: sj === 'hist' ? 'scroll' : 'books', t: `${M[0].sname} 기말 예습 ${M.length}개`, d: n >= M.length ? `오늘 것 끝 · ${finEndTxt(sj)}` : `${M.map((c) => c.title).join(' · ')} · ${n}/${M.length} · ${finEndTxt(sj)}`, done: n >= M.length }; })); }
+    if (FIN_ON) { const L = finToday(), subs = [...new Set(L.map((c) => c.subj))].sort((x, y) => (y === 'hist') - (x === 'hist')); tasks.unshift(...subs.map((sj) => { const M = L.filter((c) => c.subj === sj), n = M.filter(finDone).length, due = FIN_DUE[sj]; return { k: 'fin:' + sj, icon: sj === 'hist' ? 'scroll' : 'books', t: sj === 'eng' ? `올림포스 지문 ${M.length}개` : `${M[0].sname} 기말 예습 ${M.length}개`, d: n >= M.length ? `오늘 것 끝 · ${finEndTxt(sj)}` : `${M.map((c) => c.title).join(' · ')} · ${n}/${M.length} · ${finEndTxt(sj)}`, done: n >= M.length }; })); }
     if (has('unit') && CH_UNITS.length) { const un = CH_UNITS[ed.unit] || CH_UNITS[CH_UNITS.length - 1]; tasks.push({ k: 'unit', icon: 'eng', t: `천일문 ${un.unit ? 'Unit ' + un.unit : ''} ${un.title || ''}`.trim(), d: unitDone ? '다 했어요' : cdesc('unit', '개념 · 문장 · 문제'), done: !!unitDone }); }
     if (has('words') && WORDS.length) tasks.push({ k: 'words', icon: 'books', t: '워드마스터 단어 10개 시험', d: wordsDone ? `${Object.values(ed.wans).filter((x) => x.ok).length}/10 맞힘` : cdesc('words', wordsLabel(ed.words)), done: !!wordsDone });
     // 매일 기사 하나: 오늘 읽은 기사가 있으면 그게 오늘 것(끝), 없으면 안 읽은 대이슈 → 안 읽은 최신 기사
@@ -1755,7 +1754,7 @@
   const finA = (cid) => (finS().ans[cid] = finS().ans[cid] || {});
   const dOf = (at) => { const d = new Date(at); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
   const finPicked = (c) => (c.qs || []).filter((q, k) => (finS().ans[c.id] || {})[k] && finS().ans[c.id][k].pick != null).length;
-  const finDone = (c) => !!(c.qs || []).length && finPicked(c) >= c.qs.length;
+  const finDone = (c) => (c.page ? (() => { const A = finS().ans[c.id] || {}; return !!A.done && (!A.undone || A.done.at > A.undone.at); })() : !!(c.qs || []).length && finPicked(c) >= c.qs.length);
   const finDoneDay = (c) => finDone(c) ? dOf(Math.max(...Object.values(finS().ans[c.id]).map((x) => x.at || 0))) : null;
   // 오늘 몫: 어제까지 못 끝낸 것 ÷ 11/22까지 남은 날 (밀리면 하루 몫이 늘어요, 최소 2개)
   // 이 속도면 그 과목이 끝나는 날 (오늘부터 하루 몫씩)
@@ -1766,6 +1765,15 @@
     const e = addD(FIN_START, Math.max(...L.map((c) => c.fday))); return e < t ? t : e;
   }
   const finEndTxt = (sj) => { const e = finEndDay(sj); return e ? `${md(e)}이면 다 끝나요` : '다 끝냈어요'; };
+  // 홈: 선생님이 매일 내는 기말 예습(구몬처럼) 한눈에 · 과목마다 한 일/전체 · 오늘 남은 것 · 끝나는 날 (10/26)
+  function finCard() {
+    if (!FIN_ON) return '';
+    const T = finToday();
+    return `<section class="card c12"><div class="card-h"><h2>${ic('books')} 매일 기말 예습</h2><span class="tiny">선생님이 날마다 나눠서 내요</span></div><div class="list">${FIN.map((f) => {
+      const L = FIN_ALL.filter((x) => x.subj === f.subj), k = L.filter(finDone).length, t = T.filter((x) => x.subj === f.subj), tl = t.filter((x) => !finDone(x)).length, nm = f.subj === 'eng' ? '올림포스 지문' : f.name;
+      return `<div class="li btnlike" data-task="fin:${f.subj}"><div class="ico">${ic(k >= L.length ? 'ok' : f.subj === 'hist' ? 'scroll' : 'books')}</div><div class="body"><div class="t">${esc(nm)} <span class="tiny num">${k}/${L.length}</span></div><div class="d">${t.length ? (tl ? `오늘 ${tl}개 남았어요` : '오늘 것 끝') : '오늘은 없어요'} · ${finEndTxt(f.subj)}</div><div class="ik-bar" style="height:6px;margin-top:8px"><i style="width:${Math.round((k / L.length) * 100)}%"></i></div></div></div>`;
+    }).join('')}</div></section>`;
+  }
   function finToday() {
     const t = today(), L = FIN_ORDER.filter((c) => { const d = finDoneDay(c); return !d || d >= t; });
     const due = L.filter((c) => c.fday <= finDay() || t > FIN_END);
@@ -1802,6 +1810,12 @@
         <section class="card"><div class="card-h"><h2>오늘 할 것 ${T.length}개</h2><span class="tiny">${T.filter(finDone).length}/${T.length}</span></div><div class="list">${T.map((x) => row(x, true)).join('')}</div></section>
         <section class="card" style="margin-top:12px"><div class="card-h"><h2>과목별</h2></div>${FIN.map((f) => { const L = FIN_ALL.filter((x) => x.subj === f.subj), k = L.filter(finDone).length; return `<div class="sv-row"><span>${esc(f.name)} ${k}/${L.length}</span><b>${finEndTxt(f.subj)}</b></div>`; }).join('')}</section></div>`;
     }
+    if (c.page) {  // 올림포스 지문: 책에서 풀고 체크
+      const dn = finDone(c);
+      return `<div class="qwrap" style="max-width:720px;margin:0 auto"><div class="row between"><button class="btn sm" data-finback type="button">‹ 숙제</button><span class="tiny">${esc(c.pages)}쪽</span></div><p class="eyebrow" style="margin:16px 0 4px">${ic('books')} 올림포스 영어독해의 기본2</p><h1 class="h1" style="margin:0 0 16px">${esc(c.title)}</h1>
+        <section class="card"><p style="margin:0 0 12px;line-height:1.7">책 <b>${esc(c.pages)}쪽</b> 지문을 읽고 문제를 풀어요. 모르는 단어는 형광펜으로 칠해 두면 선생님이 봐요</p><button class="btn soft big block" id="fp-book" type="button">${ic('books')} 책 ${esc(c.pages)}쪽 펴기</button></section>
+        <div class="cta-bar"><button class="btn ${dn ? '' : 'primary'} big block" id="fp-done" type="button">${dn ? '다 푼 걸 취소하기' : '다 풀었어요'}</button></div></div>`;
+    }
     const A = finS().ans[c.id] || {}, qs = c.qs || [];
     const head = `<div class="row between"><button class="btn sm" data-finback type="button">‹ 숙제</button><span class="tiny">${esc(c.sname)} · ${esc(c.pages || '')}쪽</span></div>`;
     if (!r.read) return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<p class="eyebrow" style="margin:16px 0 4px">${ic('books')} ${esc(c.sname)} 기말 예습</p><h1 class="h1" style="margin:0 0 16px">${esc(c.title)}</h1>${finPrep(c)}<div class="cta-bar"><button class="btn primary big block" id="fr-go" type="button">문제 ${qs.length}개 풀기</button></div></div>`;
@@ -1822,6 +1836,8 @@
     $$('[data-finback]').forEach((b) => (b.onclick = () => { UI.run = null; UI.tab = 'hw'; top(); }));
     const c = r.cid && FIN_ALL.find((x) => x.id === r.cid); if (!c) return;
     const g = $('#fr-go'); if (g) g.onclick = () => { r.read = true; r.i = null; top(); };
+    const fb = $('#fp-book'); if (fb) fb.onclick = () => bookOpen('eng2', null, c.page);
+    const fd = $('#fp-done'); if (fd) fd.onclick = () => { const A = finA(c.id); if (finDone(c)) A.undone = { at: Date.now() }; else { A.done = { ok: 1, at: Date.now() }; earn('fin:' + c.id, 100, '올림포스 지문'); const nx = finToday().find((x) => !finDone(x)); toast('잘했어요'); if (nx) { UI.run = { kind: 'fin', cid: nx.id }; save('fin'); top(); return; } } save('fin'); UI.run = null; UI.tab = 'hw'; top(); };
     $$('[data-fb]').forEach((b) => (b.onclick = () => { const bk = finBlanks(c).find((x) => x.k === b.dataset.fb), A = finA(c.id); if (!bk || A[bk.k]) return; const p = b.dataset.o, ok = p === bk.t; A[bk.k] = { p, ok, at: Date.now() }; save('fin'); const y = window.scrollY; render(); window.scrollTo(0, y); }));
     const nx = $('#fr-next'); if (nx) nx.onclick = () => { r.i = null; render(); const d = $('.progress-dots'); if (d) d.scrollIntoView({ block: 'start' }); else window.scrollTo(0, 0); };
     const rd = $('#fr-redo'); if (rd) rd.onclick = () => { const A = finA(c.id), at = Date.now(); c.qs.forEach((q, k) => { A[k] = { at, redo: 1 }; }); save('fin'); UI.run = { kind: 'fin', cid: c.id }; top(); };
@@ -4277,7 +4293,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261849'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261856'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -5000,7 +5016,7 @@
     else if (k.startsWith('my:')) return mySheet(k.slice(3));
     else if (k.startsWith('myprep:')) { const it = myS().items.find((x) => x.id === k.slice(7)); if (!it) return; const t = today(); if (it.prep === t) { it.prep = null; toast('준비 표시를 지웠어요'); } else { it.prep = t; earn('myprep:' + it.id, 100, '수행 준비'); boom(innerWidth / 2, innerHeight * 0.4, 2); toast('준비 끝! 내일 잘해요'); } save('my'); render(); return; }
     else if (k.startsWith('ink:')) { const [, c, n] = k.split(':'); return inkLec(c, n); }
-    else if (k === 'fin' || k.startsWith('fin:')) { const sj = k.slice(4), c = sj && (finToday().find((x) => x.subj === sj && !finDone(x)) || finToday().find((x) => x.subj === sj)); UI.tab = 'hw'; UI.run = c ? { kind: 'fin', cid: c.id, read: finDone(c) } : { kind: 'fin' }; }
+    else if (k === 'fin' || k.startsWith('fin:')) { const sj = k.slice(4), c = sj && (finToday().find((x) => x.subj === sj && !finDone(x)) || FIN_ORDER.find((x) => x.subj === sj && !finDone(x)) || finToday().find((x) => x.subj === sj)); UI.tab = 'hw'; UI.run = c ? { kind: 'fin', cid: c.id, read: finDone(c) } : { kind: 'fin' }; }
     else if (k.startsWith('drill:')) { UI.tab = 'hw'; UI.run = { kind: 'drill', id: k.slice(6) }; }
     else if (k.startsWith('jg:')) { const [, u, st, sc] = k.split(':'); UI.tab = 'hw'; UI.run = { kind: 'gram', unit: +u, step: +st, secs: sc ? sc.split('') : null }; }
     else if (k.startsWith('cu:')) { UI.tab = 'hw'; UI.run = { kind: 'unit', ref: CH_UNITS.findIndex((u) => String(u.unit) === k.slice(3)), back: 'hw' }; }
@@ -5023,6 +5039,7 @@
     $$('[data-ds]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); const [n, id] = x.dataset.ds.split('|'); const l = dCls(rOf(n), dRowD(n)).list.find((y) => y.id === id); if (l) { drFrom(n, l); dRepShow(n, l); } }));
     $$('[data-dst]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); dOpen(x.dataset.dst); }));
     $$('[data-dh]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); UI.hStu = x.dataset.dh; UI.tab = 'thw'; render(); scrollTo(0, 0); }));
+    $$('[data-hgo]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); UI.hStu = x.dataset.hgo; UI.tab = 'thw'; render(); scrollTo(0, 0); }));  // 리포트 「숙제 내러 가기」 (10/26 안 눌리던 것)
     dashBind();
     $$('[data-hwadd]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); hwAddSheet(); }));
     $$('[data-lsnsend]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); reportSheet(x.dataset.lsnsend); }));
