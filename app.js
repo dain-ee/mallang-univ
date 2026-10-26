@@ -733,6 +733,11 @@
           <p class="tiny" style="margin:8px 0 16px">로그인돼 있으면 강좌 페이지가 바로 열려요. 목록에서 <b>${c.site === 'etoos' ? esc(l.title.split(' ')[0]) : 'No.' + l.no}</b> ${c.site === 'etoos' ? '▶' : '「영상보기」'}를 눌러요</p>
           ${s === 'done' ? (Q.length ? '<button class="btn big block" id="ik-quiz" type="button">미니 퀴즈 다시 풀기</button>' : '') : `<button class="btn big block" id="ik-done" type="button">${Q.length ? `다 들었어요 · 미니 퀴즈 ${Q.length}문제` : '다 들었어요'}</button>`}
           <div class="row" style="gap:8px;margin-top:8px">${s === 'skip' ? '<button class="btn sm" id="ik-undo" type="button">다시 들을 목록에 넣기</button>' : s === 'done' ? '<button class="btn sm" id="ik-undo" type="button">아직 안 들은 걸로 바꾸기</button>' : '<button class="btn sm" id="ik-skip" type="button">이 강의는 안 들을래요</button>'}</div>`;
+        // 오늘 들을 강의 바꾸기 (2026-10-26 정윤: 누르면 목록 보고 들을 걸 고르게)
+        const T = inkToday() || {}, mine = (T[cid] || []).includes(l.no), cf = inkCfg(c), alt = c.lectures.filter((x) => !(T[cid] || []).includes(x.no) && x.no !== l.no && !inkSt(c, x));
+        alt.sort((a, b) => (cf.pick.includes(b.no) - cf.pick.includes(a.no)) || a.no - b.no);
+        if (mine && !s && alt.length) $('#ik-b', el).insertAdjacentHTML('beforeend', `<div class="ik-swap"><b>오늘 다른 강의 들을래요</b><span class="tiny">누르면 오늘 할 일이 그 강의로 바뀌어요</span><div class="ik-lecs" data-ilid="sw">${alt.map((x) => `<button type="button" class="ik-lec ${cf.pick.includes(x.no) ? 'on' : ''}" data-isw="${x.no}"><i>${cf.pick.includes(x.no) ? '★' : ''}</i><span><b>${esc(x.title)}</b><em>${x.min ? x.min + '분' : ''}${x.pct ? ` · ${x.pct}% 들음` : ''}${cf.pick.includes(x.no) ? ' · 고른 강의' : ''}</em></span></button>`).join('')}</div></div>`);
+        $$('[data-isw]', el).forEach((b) => (b.onclick = () => { const no2 = +b.dataset.isw, S0 = inkS(), D0 = S0.days[today()] = S0.days[today()] || {}; D0[cid] = (D0[cid] || []).map((n) => (n === l.no ? no2 : n)); if (!cf.pick.includes(no2)) { cf.pick = [...cf.pick, no2]; S0.cfg[cid] = cf; S0._cfgAt = Date.now(); } save('ink'); close(); render(); toast('오늘 들을 강의를 바꿨어요'); setTimeout(() => inkLec(cid, no2), 300); }));
         const on = (id, f) => { const b = $(id, el); if (b) b.onclick = f; };
         on('#ik-done', () => (Q.length ? quiz(0, []) : (inkMark(c, l, 'done'), close(), render(), toast('들었어요, 잘했어요'))));
         on('#ik-quiz', () => quiz(0, []));
@@ -761,12 +766,14 @@
   // 인강 설정: 강좌마다 듣기 · 요일 · 하루 몇 강 · 들을 강의 고르기
   function inkSettings() {
     const P = {}; for (const c of INK) { const cf = inkCfg(c); P[c.id] = { ...cf, days: cf.days.slice(), pick: cf.pick.slice() }; }
-    const order = [1, 2, 3, 4, 5, 6, 0], open = {};
+    const order = [1, 2, 3, 4, 5, 6, 0], open = {}, before0 = JSON.parse(JSON.stringify(inkToday() || {}));
     const sumOf = (c) => { const cf = P[c.id], f = inkFinish(c, cf), late = f.date && f.date > EB_EXAM; return !cf.on ? '안 들어요' : !f.n ? '고른 강의를 다 들었어요' : !cf.days.length ? `남은 ${f.n}강 · 요일을 골라요` : `남은 ${f.n}강 · ${md(f.date)}에 끝나요 · ${late ? `<b class="red">기말(${md(EB_EXAM)})보다 늦어요</b>` : '<b class="blue">기말 전에 끝나요</b>'}`; };
     const lecMark = (cf, l, c) => { if (!cf.pick.includes(l.no)) return ''; if (inkSt(c, l)) return '✓'; return String(inkQueue(c, cf).indexOf(l) + 1); };  // 안 들은 것만 1·2·3 순서
     // 다시 그려도 보던 자리 그대로 (2026-10-26 정윤: 체크할 때마다 맨 위로 올라가서 힘들어)
     const keep = (el, fn) => { const sc = [el, el.closest('.sheet'), ...$$('.sheet, .sheet-b, .sheet-in', document)].filter(Boolean), at = sc.map((x) => x.scrollTop), li = {}; $$('[data-ilid]', el).forEach((x) => (li[x.dataset.ilid] = x.scrollTop)); fn(); sc.forEach((x, i) => { x.scrollTop = at[i]; }); $$('[data-ilid]', el).forEach((x) => { if (li[x.dataset.ilid]) x.scrollTop = li[x.dataset.ilid]; }); };
-    const draw0 = (el) => keep(el, () => draw(el));
+    // 누를 때마다 바로 저장 (2026-10-26 정윤: 요일 바꾼 게 저장이 안 돼요 → 저장 단추까지 안 가도 남게)
+    const commit = () => { const s = inkS(); s.cfg = JSON.parse(JSON.stringify(P)); s._cfgAt = Date.now(); save('ink'); };
+    const draw0 = (el) => { commit(); keep(el, () => draw(el)); };
     const draw = (el) => {
       $('#ik-set', el).innerHTML = INK.map((c) => {
         const cf = P[c.id], sum = sumOf(c);
@@ -786,13 +793,14 @@
         const [id, no] = b.dataset.ilp.split(':'), x = P[id], n = +no, c = inkC(id); x.pick = x.pick.includes(n) ? x.pick.filter((y) => y !== n) : [...x.pick, n];
         $$(`[data-ilp^="${id}:"]`, el).forEach((y) => { const l = inkL(c, y.dataset.ilp.split(':')[1]); y.classList.toggle('on', x.pick.includes(l.no)); y.querySelector('i').textContent = lecMark(x, l, c); });
         const sm = $(`[data-isum="${id}"]`, el); if (sm) sm.innerHTML = sumOf(c);
+        commit();
       }));
     };
-    sheet(`<h2>인강 설정</h2><p class="sub">강좌마다 듣는 요일과 하루에 몇 강 들을지 정해요. 들을 강의만 골라 두면 안 들은 것부터 「오늘 할 일」에 나와요. 순서대로 안 들어도 괜찮아요</p><div id="ik-set"></div><button class="btn primary big block" id="ik-ok" type="button" style="margin-top:20px">저장하기</button>`, (el, close) => {
+    sheet(`<h2>인강 설정</h2><p class="sub">강좌마다 듣는 요일과 하루에 몇 강 들을지 정해요. 들을 강의만 골라 두면 안 들은 것부터 「오늘 할 일」에 나와요. 순서대로 안 들어도 괜찮아요</p><div id="ik-set"></div><p class="tiny" style="margin:16px 0 0;text-align:center">누르는 대로 바로 저장돼요</p><button class="btn primary big block" id="ik-ok" type="button" style="margin-top:8px">다 했어요</button>`, (el, close) => {
       draw(el);
       $('#ik-ok', el).onclick = () => {
         // 바꾼 설정으로 오늘 들을 강의가 새로 생기면 오늘부터 할지 물어요
-        const s = inkS(), t = today(), before = inkToday(), cnt = (d) => Object.values(d || {}).reduce((a, x) => a + x.length, 0);
+        const s = inkS(), t = today(), before = before0, cnt = (d) => Object.values(d || {}).reduce((a, x) => a + x.length, 0);
         s.cfg = P; s._cfgAt = Date.now(); delete s.days[t]; const after = inkToday();
         const added = Object.entries(after).flatMap(([cid, nos]) => nos.filter((no) => !(before[cid] || []).includes(no)).map((no) => ({ c: inkC(cid), l: inkL(inkC(cid), no) }))).filter((a) => a.l && !inkSt(a.c, a.l));
         close();
@@ -4095,7 +4103,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261534'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261643'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

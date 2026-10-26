@@ -2162,3 +2162,7 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .ls-next { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
 .ls-next .goal-n { font-size: 20px; }
 @media (min-width: 900px) { .card.c12 .lib-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.ik-swap { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); display: grid; gap: 4px; }
+.ik-swap > b { font-size: 16px; }
+.ik-swap .ik-lecs { margin-top: 8px; max-height: 320px; overflow-y: auto; }
+a.btn, a.btn:hover { text-decoration: none; }
