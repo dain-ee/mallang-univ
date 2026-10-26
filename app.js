@@ -4464,7 +4464,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610270249'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610270742'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -4488,13 +4488,13 @@
   }
 
   // ───────── 엄마 리포트 (10/27 선생님: 기간만 고르면 그동안 한 공부와 성장을 그림 한 장으로 · 정윤 엄마가 걱정이 많아요) ─────────
-  // 앱에 남은 기록만 써요. 0인 칸은 빼고, 지난 같은 길이 기간과 견줘요. 선생님 한마디는 기간마다 S.rptNote 에 남아요
+  // 앱에 남은 기록만 써요. 0인 칸은 빼고, 지난 같은 길이 기간과 견줘요. 맨 위 「한눈에 보기」도 기록으로 저절로 써요(선생님이 따로 안 적어요)
   const dSpan = (a, b) => { const o = []; for (let d = a; d <= b && o.length < 400; d = addD(d, 1)) o.push(d); return o; };
   const wdOf = (d) => '일월화수목금토'[new Date(d + 'T00:00:00').getDay()];
   const mdw = (d) => `${md(d)} (${wdOf(d)})`;
   function prPeriods() {
     const t = today(), mon = addD(t, -((new Date(t + 'T00:00:00').getDay() + 6) % 7));
-    return [['today', '오늘', t, t], ['yday', '어제', addD(t, -1), addD(t, -1)], ['week', '이번 주', mon, t], ['lweek', '지난주', addD(mon, -7), addD(mon, -1)], ['d7', '최근 7일', addD(t, -6), t], ['month', '이번 달', t.slice(0, 8) + '01', t], ['own', '직접 고르기']];
+    return [['week', '이번 주', mon, t], ['month', '이번 달', t.slice(0, 8) + '01', t]];
   }
   const prCat = (it) => {
     const g = String(it.go || '');
@@ -4522,8 +4522,23 @@
     const qn = acc.reduce((x, r) => x + r.n, 0), qok = acc.reduce((x, r) => x + r.ok, 0);
     return { a, b, days, mins, tot, on, best, items, cats, acc, qn, qok, wrOk, mocks, perf, tom };
   }
+  // 한눈에 보기: 엄마가 맨 먼저 읽는 서너 줄. 기록에서 저절로 만들어요
+  function prSum(R, P, name) {
+    const one = R.days.length === 1, o = [];
+    if (!R.tot && !R.items.length && !R.qn) return [`이 기간에는 ${name}가 앱에 남긴 공부 기록이 없어요.`];
+    if (R.tot) o.push(one ? `이날 모두 ${hm(R.tot)} 공부했어요.` : `${R.days.length}일 중 ${R.on}일 공부했고, 모두 ${hm(R.tot)} 공부했어요.`);
+    const top = Object.entries(R.cats).sort((p, q) => q[1].length - p[1].length).slice(0, 2);
+    if (top.length) o.push(`${top.map(([c, L]) => `${c} ${L.length}개`).join(', ')}${top.length > 1 ? '를' : (jongOf(top[0][1].length + '개') ? '을' : '를')} 가장 많이 끝냈어요.`);
+    if (P.tot && R.tot && !one) { const p = Math.round(((R.tot - P.tot) / P.tot) * 100); if (p >= 5) o.push(`바로 앞 ${R.days.length}일보다 공부 시간이 ${p}% 늘었어요.`); }
+    if (R.qn >= 5) o.push(`문제 ${R.qn}개를 풀어 ${Math.round((R.qok / R.qn) * 100)}%를 맞혔어요.`);
+    if (R.wrOk) o.push(`틀렸던 문제 ${R.wrOk}개를 다시 풀어 맞혔어요.`);
+    if (R.best >= 3) o.push(`${R.best}일 동안 하루도 안 빠지고 이어서 공부했어요.`);
+    if (R.mocks.length) o.push(`모의고사 ${R.mocks.length}과목을 풀었어요.`);
+    if (R.perf.length) o.push(`수행평가 ${R.perf.length}개 준비를 끝냈어요.`);
+    return o.slice(0, 5);
+  }
   // 그림: 먼저 높이를 재고(ops 에 그릴 일을 쌓고) 그다음 한 번에 그려요. 엄마가 휴대폰 카톡에서 보니까 글자를 크게
-  function prDraw(R, P, note, name) {
+  function prDraw(R, P, name) {
     const W = 720, M = 36, CW = W - M * 2, SC = 2, FF = '"Pretendard", "Apple SD Gothic Neo", system-ui, sans-serif', fnt = (w, s) => `${w} ${s}px ${FF}`;
     const C = { t1: '#191f28', t2: '#4e5968', t3: '#8b95a1', line: '#e5e8eb', fill: '#f2f4f6', blue: '#3182f6', bsoft: '#e8f3ff', green: '#03b26c', gsoft: '#e5f8ef' };
     const mc = document.createElement('canvas').getContext('2d'), ops = []; let y = M;
@@ -4537,6 +4552,10 @@
     text('말랑대학 · 공부 리포트', M, y + 14, fnt(700, 15), C.blue); y += 52;
     text(`${name} 공부 리포트`, M, y, fnt(800, 32), C.t1); y += 34;
     text(one ? mdw(R.a) : `${mdw(R.a)} ~ ${mdw(R.b)} · ${len}일`, M, y, fnt(500, 17), C.t3); y += 26;
+    // 한눈에 보기
+    { const ls = prSum(R, P, name).flatMap((t) => wrap('· ' + t, CW - 48, fnt(600, 17))), h = 66 + ls.length * 28;
+      box(M, y, CW, h, 18, C.bsoft); text('한눈에 보기', M + 24, y + 38, fnt(800, 17), C.blue);
+      ls.forEach((l, k) => text(l, M + 24, y + 70 + k * 28, fnt(600, 17), C.t1)); y += h + 12; }
     // 큰 숫자 세 칸
     const tiles = [];
     if (R.tot) tiles.push(['공부 시간', hm(R.tot), one ? '직접 적은 시간·타이머' : `${len}일 모두 합해서`]);
@@ -4603,41 +4622,43 @@
     if (R.mocks.length) { head('모의고사'); for (const m of R.mocks) { y += 10; box(M, y, CW, 56, 14, C.fill); text(m.t, M + 20, y + 35, fnt(600, 16), C.t1); text(`${m.raw}점${m.grade ? ` · ${m.grade}등급` : ''}`, W - M - 20, y + 35, fnt(800, 17), C.blue, 'right'); y += 56; } }
     if (R.perf.length) { head('수행평가 준비 끝'); for (const t of R.perf) for (const l of wrap('· ' + t, CW, fnt(500, 16))) { y += 26; text(l, M, y, fnt(500, 16), C.t2); } y += 4; }
     if (R.tom) { y += 20; text(`타이머로 집중한 토마토 ${R.tom}개`, M, y + 4, fnt(600, 15), C.t3); }
-    // 선생님 한마디
-    if (note) {
-      const ls = wrap(note, CW - 48, fnt(500, 17)), h = 70 + ls.length * 28;
-      y += 36; box(M, y, CW, h, 18, C.bsoft);
-      text('선생님 한마디', M + 24, y + 38, fnt(800, 17), C.blue);
-      ls.forEach((l, k) => text(l, M + 24, y + 72 + k * 28, fnt(500, 17), C.t1));
-      y += h;
-    }
     y += 34; text(`${name}가 말랑대학에 남긴 기록으로 만들었어요`, W / 2, y, fnt(500, 13), C.t3, 'center'); y += M;
     const cv = document.createElement('canvas'); cv.width = W * SC; cv.height = Math.ceil(y) * SC;
     const c = cv.getContext('2d'); c.scale(SC, SC); c.fillStyle = '#ffffff'; c.fillRect(0, 0, W, y);
     for (const f of ops) f(c);
     return cv;
   }
+  // 기간: 「이번 주」「이번 달」, 아니면 달력에서 하루(한 번 누름) 또는 시작 날·끝 날(두 번 누름)
   function parentReport() {
-    const who = (ST.lesson && ST.lesson.parent) || '어머니', name = NMI();
-    let sel = UI.prSel || 'week', A, B, draft = null;
-    const range = () => { const p = prPeriods().find((x) => x[0] === sel); if (p && p[2]) { A = p[2]; B = p[3]; } else { A = UI.prA || addD(today(), -6); B = UI.prB || today(); if (A > B) [A, B] = [B, A]; } };
-    const nk = () => `${A}~${B}`, notes = () => (S.rptNote = S.rptNote || {});
-    const body = () => { range(); const R = prStats(A, B); const sum = [R.tot && `공부 ${hm(R.tot)}`, R.on && R.days.length > 1 && `${R.on}일 공부`, R.items.length && `끝낸 공부 ${R.items.length}개`, R.qn && `문제 ${R.qn}개`].filter(Boolean);
+    const who = (ST.lesson && ST.lesson.parent) || '어머니', name = NMI(), t = today();
+    let sel = UI.prSel || 'week', A = UI.prA || t, B = UI.prB || t, half = false, cm = UI.prM || t.slice(0, 7);
+    const range = () => { const p = prPeriods().find((x) => x[0] === sel); if (p) { A = p[2]; B = p[3]; } };
+    const cal = () => {
+      const [Y, Mo] = cm.split('-').map(Number), pad = new Date(Y, Mo - 1, 1).getDay(), n = new Date(Y, Mo, 0).getDate();
+      const prev = new Date(Y, Mo - 2, 1).toLocaleDateString('sv').slice(0, 7), next = new Date(Y, Mo, 1).toLocaleDateString('sv').slice(0, 7);
+      const cells = [...Array(pad).fill(null), ...Array.from({ length: n }, (_, i) => `${cm}-${String(i + 1).padStart(2, '0')}`)];
+      return `<div class="pr-cal"><div class="pr-cal-h"><button class="btn sm ghost" type="button" data-prm="${prev}" aria-label="지난달">‹</button><b>${Y}년 ${Mo}월</b><button class="btn sm ghost" type="button" data-prm="${next}" aria-label="다음 달" ${next > t.slice(0, 7) ? 'disabled' : ''}>›</button></div>
+        <div class="pr-cal-g">${'일월화수목금토'.split('').map((w) => `<span class="pr-w">${w}</span>`).join('')}${cells.map((d) => { if (!d) return '<i></i>'; const on = d >= A && d <= B, fut = d > t, st = !fut && (sMin(d) > 0 || dayItems(d).length);
+          return `<button type="button" class="pr-d ${on ? 'in' : ''} ${d === A ? 'a' : ''} ${d === B ? 'b' : ''} ${d === t ? 'today' : ''}" ${fut ? 'disabled' : `data-prd="${d}"`}><span class="num">${+d.slice(8)}</span>${st ? '<em></em>' : ''}</button>`; }).join('')}</div>
+        <p class="tiny" style="margin:8px 0 0">${half ? '끝 날을 누르면 기간이 돼요. 같은 날을 한 번 더 누르면 그날 하루예요' : '하루는 한 번, 기간은 시작 날과 끝 날을 눌러요 · 점은 공부한 날'}</p></div>`;
+    };
+    const body = () => { range(); const R = prStats(A, B), P = prStats(addD(A, -R.days.length), addD(A, -1)), ls = prSum(R, P, name);
       return `<div class="chips" style="margin-bottom:12px">${prPeriods().map((p) => `<button class="chip ${p[0] === sel ? 'on' : ''}" type="button" data-prp="${p[0]}">${p[1]}</button>`).join('')}</div>
-        ${sel === 'own' ? `<div class="row" style="gap:8px;margin-bottom:12px"><input class="inp" type="date" id="pr-a" value="${A}" max="${today()}"><span class="tiny">~</span><input class="inp" type="date" id="pr-b" value="${B}" max="${today()}"></div>` : ''}
-        <div class="explain" style="margin-bottom:12px"><b>${A === B ? esc(mdw(A)) : `${esc(mdw(A))} ~ ${esc(mdw(B))}`}</b><br>${sum.length ? esc(sum.join(' · ')) : '이 기간에는 앱에 남은 기록이 없어요'}</div>
-        <div class="field"><label>선생님 한마디 <span class="tiny">기간마다 따로 남아요</span></label><textarea class="inp" id="pr-note" rows="4" placeholder="예) 이번 주는 기말 예습을 거의 매일 했어요. 수학은 다음 주부터 같이 잡아 볼게요">${esc(draft != null ? draft : notes()[nk()] || '')}</textarea></div>
+        ${cal()}
+        <div class="explain" style="margin:12px 0"><b>${A === B ? esc(mdw(A)) : `${esc(mdw(A))} ~ ${esc(mdw(B))} · ${R.days.length}일`}</b><br>${ls.map(esc).join('<br>')}</div>
         <button class="btn primary big block" id="pr-go" type="button">리포트 만들기</button>`; };
-    sheet(`<h2>${esc(who)}께 보낼 공부 리포트</h2><p class="sub">기간을 고르면 그동안 ${esc(name)}가 한 공부와 늘어난 것을 그림 한 장으로 만들어요</p><div id="pr-body"></div>`, (el) => {
+    sheet(`<h2>${esc(who)}께 보낼 공부 리포트</h2><p class="sub">기간만 고르면 그동안 ${esc(name)}가 앱에서 한 공부로 그림 한 장을 만들어요</p><div id="pr-body"></div>`, (el) => {
       const draw = () => {
         $('#pr-body', el).innerHTML = body();
-        const ta = $('#pr-note', el); ta.oninput = () => { draft = ta.value; };
-        $$('[data-prp]', el).forEach((b) => (b.onclick = () => { sel = UI.prSel = b.dataset.prp; range(); draft = notes()[nk()] != null ? null : draft; draw(); }));
-        ['#pr-a', '#pr-b'].forEach((s, k) => { const i = $(s, el); if (i) i.onchange = () => { if (!i.value) return; if (k) UI.prB = i.value; else UI.prA = i.value; draw(); }; });
+        $$('[data-prp]', el).forEach((b) => (b.onclick = () => { sel = UI.prSel = b.dataset.prp; half = false; range(); cm = UI.prM = B.slice(0, 7); draw(); }));
+        $$('[data-prm]', el).forEach((b) => (b.onclick = () => { cm = UI.prM = b.dataset.prm; draw(); }));
+        $$('[data-prd]', el).forEach((b) => (b.onclick = () => { const d = b.dataset.prd; sel = UI.prSel = 'own';
+          if (half) { if (d < A) { B = A; A = d; } else B = d; half = false; } else { A = B = d; half = true; }
+          UI.prA = A; UI.prB = B; draw(); }));
         $('#pr-go', el).onclick = async () => {
-          range(); const note = ta.value.trim(); if (note) notes()[nk()] = note; else delete notes()[nk()]; save('rptNote'); draft = null;
+          range();
           try { await document.fonts.load('800 20px Pretendard'); await document.fonts.load('500 16px Pretendard'); } catch (e) {}
-          const len = dSpan(A, B).length, cv = prDraw(prStats(A, B), prStats(addD(A, -len), addD(A, -1)), note, name);
+          const len = dSpan(A, B).length, cv = prDraw(prStats(A, B), prStats(addD(A, -len), addD(A, -1)), name);
           const blob = await new Promise((r) => cv.toBlob(r, 'image/png')), file = new File([blob], `${NM()}_공부리포트_${A === B ? A : A + '_' + B}.png`, { type: 'image/png' });
           const url = URL.createObjectURL(blob), canShare = !!(navigator.canShare && navigator.canShare({ files: [file] }));
           sheet(`<h2>${esc(who)}께 보내기</h2><p class="sub">${canShare ? '「카톡으로 보내기」를 누르고 ' + esc(who) + (jongOf(who) ? '을' : '를') + ' 고르면 돼요' : '「그림 복사」 뒤 카카오톡 ' + esc(who) + ' 방에 붙여 넣으면(⌘V) 돼요'}</p>
@@ -4650,6 +4671,7 @@
           });
         };
       };
+      if (sel === 'own') { const ok = UI.prA && UI.prB; if (!ok) sel = 'week'; }
       draw();
     });
   }

@@ -2302,3 +2302,18 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .mx-chs p { margin: 0 0 8px; font-size: 15px; line-height: 1.7; }
 .mx-tip { margin-top: 16px; font-size: 14px; line-height: 1.6; color: var(--t2); display: flex; gap: 6px; align-items: flex-start; }
 .mx-tip svg { width: 18px; height: 18px; flex: none; margin-top: 2px; }
+
+/* 엄마 리포트 기간 달력 (10/27) */
+.pr-cal { padding: 12px; border-radius: 16px; background: var(--fill2); }
+.pr-cal-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.pr-cal-h b { font-size: 15px; }
+.pr-cal-g { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); row-gap: 4px; }
+.pr-w { padding: 2px 0 6px; text-align: center; font-size: 12px; font-weight: 600; color: var(--t3); }
+.pr-d { position: relative; height: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 0; background: none; font-family: inherit; font-size: 15px; font-weight: 600; color: var(--t1); cursor: pointer; }
+.pr-d:disabled { color: var(--t4); cursor: default; }
+.pr-d em { width: 4px; height: 4px; border-radius: 50%; background: var(--blue); }
+.pr-d.today span { color: var(--blue); }
+.pr-d.in { background: var(--bsoft, #e8f3ff); }
+.pr-d.a { border-radius: 12px 0 0 12px; } .pr-d.b { border-radius: 0 12px 12px 0; } .pr-d.a.b { border-radius: 12px; }
+.pr-d.a, .pr-d.b { background: var(--blue); color: #fff; }
+.pr-d.a span, .pr-d.b span { color: #fff; } .pr-d.a em, .pr-d.b em { background: #fff; }
