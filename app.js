@@ -4095,7 +4095,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261509'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610261521'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -4701,8 +4701,11 @@
   function lessonHero() {
     const c = cls(), nx = nextLesson(), L = lastLesson(), tk = tutorTasks(), dn = tk.filter((x) => x.done).length, dd = nx ? dday(nx.date) : null, p = S.profile, ym = ymOf(today());
     const third = p.school ? [esc(String(p.school).replace('중학교', '중').replace('고등학교', '고')), `${p.grade}학년`] : MONTHLY ? [`${+ym.slice(5)}월 수업`, `${lsnSorted().filter((l) => ymOf(l.date) === ym).length + (+((LS0.monthSeed || {})[ym]) || 0)}회`] : ['회차', L && L.nth ? `${esc(L.nth)}회차` : '-'];
-    return `<section class="card c12 hero ls-hero"><div class="hero-band" style="background:${esc(ST.color || 'var(--blue)')}"></div>
-      <div class="who"><div style="min-width:0;flex:1"><div class="goal-t">다음 수업${nx && nx.extra ? ' · 보강' : ''}</div><div class="goal-n">${nx ? `${esc(md(nx.date))} ${esc(wdName(nx.date))}` : TEACHER ? '수업 요일을 정해 주세요' : '선생님이 곧 정해 줘요'}</div><div class="goal-m">${nx && nx.time ? esc(timeKo(nx.time)) : ''}</div></div>${nx ? `<b class="dh-dd num">${dd === 0 ? '오늘' : 'D-' + dd}</b>` : ''}</div>
+    const u = uniOf(p.uni), tabUni = TABS.some((t) => t[0] === 'uni');
+    // 목표 대학: 정윤 홈처럼 로고를 크게 (윤건·지원, 10/26)
+    const goal = tabUni ? `<button type="button" class="who ls-goal" data-go="uni">${emb(u, 'xl')}<div style="min-width:0;flex:1"><div class="goal-t">${esc(p.name)}의 목표</div><div class="goal-n">${u ? esc(u.name) : '목표 대학을 골라 주세요'}</div><div class="goal-m">${u ? esc(p.major || (p.field ? p.field + ' 계열' : '')) : '눌러서 고르기'}</div></div><span class="tag" style="flex:none">${u ? '바꾸기' : '고르기'}</span></button>` : '';
+    return `<section class="card c12 hero ls-hero"><div class="hero-band" style="background:${u ? esc(u.color) : esc(ST.color || 'var(--blue)')}"></div>${goal}
+      <div class="who ${goal ? 'ls-next' : ''}"><div style="min-width:0;flex:1"><div class="goal-t">다음 수업${nx && nx.extra ? ' · 보강' : ''}</div><div class="goal-n">${nx ? `${esc(md(nx.date))} ${esc(wdName(nx.date))}` : TEACHER ? '수업 요일을 정해 주세요' : '선생님이 곧 정해 줘요'}</div><div class="goal-m">${nx && nx.time ? esc(timeKo(nx.time)) : ''}</div></div>${nx ? `<b class="dh-dd num">${dd === 0 ? '오늘' : 'D-' + dd}</b>` : ''}</div>
       <div class="dday"><div><span>지난 수업</span><b class="num">${L ? esc(md(L.date)) : '-'}</b></div><div><span>숙제</span><b class="num ${tk.length && dn === tk.length ? 'blue' : ''}">${tk.length ? `${dn} / ${tk.length}` : '없어요'}</b></div><div><span>${third[0]}</span><b>${third[1]}</b></div></div>
       ${L && (lines(L.lesson).length || lines(L.hw).length) ? `<div class="ls-last"><div class="tiny">${esc(md(L.date))} 수업${L.book ? ' · ' + esc(L.book) : ''}</div>${lines(L.lesson).length ? `<ul class="ls-ul">${lines(L.lesson).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}${lines(L.hw).length ? `<div class="tiny" style="margin-top:8px">숙제</div><ul class="ls-ul">${lines(L.hw).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</div>` : ''}
       ${tk.length ? `<button class="btn primary big block" data-go="hw" type="button">${dn === tk.length ? '숙제 다 했어요 · 다시 보기' : `숙제하러 가기 · ${tk.length - dn}개 남았어요`}</button>` : ''}

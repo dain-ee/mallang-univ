@@ -2157,3 +2157,7 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 .chip .muted { color: var(--t4, #b0b8c1); font-weight: 500; margin-left: 2px; }
 .chip.on .muted { color: inherit; opacity: .7; }
 .th-sum { margin: 10px 0 0; padding: 12px 14px; border-radius: 12px; background: #e8f3ff; color: #1b64da; font-size: 14px; font-weight: 600; }
+/* 윤건·지원 홈: 목표 대학 로고 (정윤 홈과 같은 모양) */
+.ls-goal { width: 100%; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.ls-next { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+.ls-next .goal-n { font-size: 20px; }
