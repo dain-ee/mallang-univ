@@ -2242,8 +2242,14 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 /* 공부 시간 (10/27) */
 .st-top { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: end; }
 .st-big { display: block; font-size: 36px; font-weight: 800; letter-spacing: -.02em; margin-top: 4px; }
-.st-in { display: grid; gap: 8px; justify-items: start; }
-.st-in .inp.sm { width: 72px; text-align: center; }
+.st-in { display: grid; gap: 8px; width: 380px; max-width: 100%; }
+.st-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; }
+.st-f { display: flex; align-items: center; height: 48px; padding: 0 14px; background: var(--fill2); border-radius: 12px; cursor: text; }
+.st-f:focus-within { box-shadow: inset 0 0 0 2px var(--blue); }
+.st-f input { flex: 1; min-width: 0; border: 0; background: none; outline: 0; font: inherit; font-size: 20px; font-weight: 700; color: var(--t1); text-align: right; -moz-appearance: textfield; }
+.st-f input::-webkit-outer-spin-button, .st-f input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.st-f span { margin-left: 6px; font-size: 14px; font-weight: 600; color: var(--t3); }
+.st-row .btn { height: 48px; padding: 0 20px; }
 .st-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
 .st-tiles > div { display: grid; gap: 2px; padding: 12px; background: var(--fill2); border-radius: 14px; }
 .st-tiles span { font-size: 12px; color: var(--t3); font-weight: 600; }
@@ -2259,7 +2265,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .st-col.today i { background: var(--blue); } .st-col.best i { background: var(--red); }
 .st-col em { font-style: normal; font-size: 11px; color: var(--t3); font-weight: 600; }
 .st-col span { font-size: 12px; color: var(--t3); }
-@media (max-width: 640px) { .st-top { grid-template-columns: 1fr; } .st-tiles { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .st-top { grid-template-columns: 1fr; } .st-in { width: 100%; } .st-tiles { grid-template-columns: repeat(2, 1fr); } }
 
 /* 숙제 달력 (10/27) */
 .hcal-g { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }

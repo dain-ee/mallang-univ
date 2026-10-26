@@ -1441,10 +1441,6 @@
     const sd = sciToday(), st = dayStat(sd), ed = engToday();
     const un = CH_UNITS[ed.unit];
     const wl = wordsFor(ed.words), wdone = Object.keys(ed.wans || {}).length;
-    // 꾸준히 (최근 28일)
-    const days = []; for (let i = 27; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`); }
-    const lvl = (d) => Math.min(3, dayItems(d).length);
-    const streak = (() => { let n = 0; for (let i = days.length - 1; i >= 0; i--) { const wk = new Date(days[i] + 'T00:00:00'); if (lvl(days[i])) n++; else if (!anyTask(wk)) continue; else if (i !== days.length - 1) break; } return n; })();
     const hwList = S.hw || [];
     return `<h1 class="h1">오늘의 숙제</h1><div class="row between wrap" style="gap:8px;margin-bottom:16px"><p class="sub" style="margin:0">${TUTOR ? '지난 수업에서 배운 것을 다음 수업 전까지 풀어요' : '꼭 할 일부터 끝내요. 학원·학교 숙제는 마감까지 나눠서 매일 할 만큼만 나와요'}</p>${TUTOR ? '' : `<button class="btn sm" id="plan-open" type="button"><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg> 매일 과제 요일</button>`}</div>${perfLive().length ? `<div style="margin-bottom:16px">${perfCard()}</div>` : ''}
     <div class="grid">${TUTOR ? '' : missCard()}
@@ -1455,19 +1451,19 @@
         const hrow = (h, later) => `<div class="li btnlike" data-hwopen="${esc(h.id)}"><button class="ico" data-hwdone="${esc(h.id)}" style="border:0;cursor:pointer" aria-label="완료">${ic(hwDone(h) ? 'ok' : 'pin')}</button><div class="body"><div class="t" style="${hwDone(h) ? 'color:var(--t3);text-decoration:line-through' : later ? 'color:var(--t2);font-weight:500' : ''}">${esc(h.title)}</div><div class="d">${[h.subj, h.due ? md(h.due) + (later ? ' 숙제' : '') : ''].filter(Boolean).map(esc).join(' · ')}</div></div>${TEACHER ? `<button class="btn sm" data-hwdel="${esc(h.id)}" type="button">지우기</button>` : ''}<span class="chev"></span></div>`;
         const row = (t) => `<div class="li btnlike ${t.done ? 'is-done' : ''}" ${t.hw ? `data-hwopen="${esc(t.hw)}"` : `data-task="${esc(t.k)}"`}><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${esc(t.t)}${t.hw ? ' <span class="tag">선생님</span>' : ''}</div><div class="d">${esc(t.d)}</div></div>${t.done ? '<span class="tag blue">끝</span>' : '<span class="chev"></span>'}</div>`;
         const tog = (pn, label, n) => n ? `<button type="button" data-pn="${pn}" data-lb="${label} <b>${n}</b>" onclick="const s=this.closest('section'),p=s.querySelector('[data-pane='+this.dataset.pn+']'),o=p.hidden;s.querySelectorAll('.hw-pane').forEach(x=>x.hidden=true);this.parentNode.querySelectorAll('button[data-lb]').forEach(b=>{b.classList.remove('on');b.innerHTML=b.dataset.lb});if(o){p.hidden=false;this.classList.add('on');this.textContent='접기'}">${label} <b>${n}</b></button>` : '';
-        return `<section class="card c12"><div class="card-h"><h2>오늘 할 것</h2>${real.length ? `<span class="tiny">${real.length}개 중 <b class="${dn === real.length ? 'blue' : ''}">${dn}개</b> 끝</span>` : ''}${TEACHER ? '<button class="btn sm soft" id="hw-add" type="button">숙제 내기</button>' : ''}</div>
+        return `<section class="card c8"><div class="card-h"><h2>오늘 할 것</h2>${real.length ? `<span class="tiny">${real.length}개 중 <b class="${dn === real.length ? 'blue' : ''}">${dn}개</b> 끝</span>` : ''}${TEACHER ? '<button class="btn sm soft" id="hw-add" type="button">숙제 내기</button>' : ''}</div>
           ${real.length ? `<div class="td-prog"><i style="width:${(dn / real.length) * 100}%"></i></div>` : ''}
           ${real.length ? `<div class="list">${[...real.filter((t) => !t.done), ...real.filter((t) => t.done)].map(row).join('')}</div>${dn === real.length ? `<div class="td-all">${gh('yay', 'gh-td')}<span>오늘 할 것을 다 끝냈어요</span></div>` : ''}` : `<div class="empty" style="padding:16px 0">${gh('sleepy', 'gh-empty')}<b>오늘은 쉬는 날이에요</b></div>`}
           ${later.length || done.length ? `<div class="hw-tog">${tog('later', '앞으로 낼 숙제', later.length)}${tog('done', '끝낸 숙제', done.length)}</div>
           ${later.length ? `<div class="hw-pane list" data-pane="later" hidden>${later.map((h) => hrow(h, true)).join('')}</div>` : ''}${done.length ? `<div class="hw-pane list" data-pane="done" hidden>${done.map((h) => hrow(h)).join('')}</div>` : ''}` : ''}</section>`;
       })()}
+      ${hwCal()}
       ${TUTOR ? '' : myCard('c12')}
       ${TUTOR ? '' : inkCard('c12')}
       ${drillCard()}
       ${TUTOR ? gramLib() + juaLibs() : ''}
       ${libCard()}
       ${TUTOR ? nxLib() : ''}
-      ${hwCal()}
     </div>`;
   }
   function planSheet() {
@@ -3100,7 +3096,7 @@
     return `<section class="card c12 st-card"><div class="card-h"><h2>${ic('clock')} 공부 시간</h2>${st ? `<span class="tag red">${ic('fire')} ${st}일 연속 기록</span>` : '<span class="tag">오늘 첫 기록을 적어요</span>'}</div>
       <div class="st-top"><div><div class="eyebrow">오늘 공부한 시간</div><b class="st-big num">${t ? hm(t) : '아직 0분'}</b><p class="tiny" style="margin:4px 0 0">${t ? esc(sCheer(t)) : '내 타이머로 잰 시간을 숫자로만 적으면 돼요'}${t && bd === today() && nd > 1 ? ' · <b class="red">최고 기록!</b>' : ''}</p></div>
         <div class="st-in">${TEACHER ? '' : `<div class="chips">${[[today(), '오늘'], [pBack(1), '어제'], [pBack(2), '그저께']].map(([d, l]) => `<button class="chip sm ${ed === d ? 'on' : ''}" type="button" data-sday="${d}">${l}</button>`).join('')}</div>
-          <div class="row" style="gap:8px;align-items:center"><input class="inp sm num" id="st-h" type="number" inputmode="numeric" min="0" max="20" value="${cur ? Math.floor(cur / 60) : ''}" placeholder="0" aria-label="시간"><span>시간</span><input class="inp sm num" id="st-m" type="number" inputmode="numeric" min="0" max="59" value="${cur ? cur % 60 : ''}" placeholder="0" aria-label="분"><span>분</span><button class="btn primary" id="st-save" type="button">${cur ? '고치기' : '적기'}</button></div>
+          <div class="st-row"><label class="st-f"><input class="num" id="st-h" type="number" inputmode="numeric" min="0" max="20" value="${cur ? Math.floor(cur / 60) : ''}" placeholder="0" aria-label="시간"><span>시간</span></label><label class="st-f"><input class="num" id="st-m" type="number" inputmode="numeric" min="0" max="59" value="${cur ? cur % 60 : ''}" placeholder="0" aria-label="분"><span>분</span></label><button class="btn primary" id="st-save" type="button">${cur ? '고치기' : '적기'}</button></div>
           <p class="tiny" style="margin:0">${md(ed)} 하루 전체 시간을 적어요${ex.min ? ` · 토마토 ${ex.min}분보다 적으면 토마토 시간으로 쳐요` : ''}</p>`}</div></div>
       <div class="st-tiles"><div><span>이번 주</span><b class="num">${hm(wk)}</b>${lw ? `<em class="${wk >= lw ? 'green' : ''}">${wk >= lw ? `지난주보다 ${hm(wk - lw)} 더` : `지난주까지 ${hm(lw - wk)}`}</em>` : '<em>월요일부터 쌓여요</em>'}</div><div><span>이번 달</span><b class="num">${hm(mo)}</b><em>${nd ? `하루 평균 ${hm(all / nd)}` : '&nbsp;'}</em></div><div><span>지금까지 모두</span><b class="num blue">${hm(all)}</b><em>${nd}일 기록</em></div><div><span>최고 기록</span><b class="num">${bd ? hm(sMin(bd)) : '-'}</b><em>${bd ? md(bd) : '&nbsp;'}${lbr > 1 ? ` · 최장 ${lbr}일 연속` : ''}</em></div></div>
       <div class="st-goal"><div class="row between"><b>다음 목표: 누적 ${nx.toLocaleString()}시간</b><span class="tiny">${hm(nx * 60 - all)} 남았어요</span></div><div class="st-bar"><i style="width:${pct}%"></i></div>${fun ? `<p class="tiny" style="margin:8px 0 0">지금까지 공부한 시간이면 ${fun}이에요</p>` : ''}</div>
@@ -4448,7 +4444,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610270120'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610270123'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
