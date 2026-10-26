@@ -1597,3 +1597,7 @@ main.enter :is(.card, .h1, .sub, .seg, .chips), main.enter.boot :is(.card, .h1, 
 :root[data-skin]:not([data-skin="ghost"]) .top .brand { background: none; }
 @media (max-width: 1360px) { .nc-top .nc-tl { display: none; } .top .me > span:first-child { display: none; } }
 @media (max-width: 1180px) { .coin-top span, .pomo-top span { font-size: 14px; } .tabs button { padding-left: 10px; padding-right: 10px; } }
+
+/* 천일문 표: 틀린 형태 줄은 빨갛게, 예문은 줄 그어서 (맞는 걸로 착각하지 않게) */
+.cl-t tr.cl-no td { background: color-mix(in srgb, var(--red) 8%, transparent); color: var(--red); font-weight: 600; }
+.cl-t tr.cl-no td:nth-child(2) { text-decoration: line-through; text-decoration-thickness: 2px; }
