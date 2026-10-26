@@ -2192,7 +2192,7 @@
         const mc = typeof q.answer === 'number' && q.answer <= 5 && !q.short && T.choices && T.choices.length;
         const qcard = `<div class="card mq"><div class="q-no">${esc(m.title)} · ${esc(ms.name || SUBJ_NAMES[w.subj])} ${q.no}번 <span class="tag">${esc(q.area || '')}${q.sub ? ' · ' + esc(q.sub) : ''}</span> <span class="tag">${q.points}점</span></div>
           <div class="mq-stem">${T.stem || ''}</div>${T.box ? `<div class="mq-box">${T.box}</div>` : ''}</div>
-          ${mc ? `<div class="choices mq-ch">${T.choices.map((c, i) => `<button class="choice ${a ? (i + 1 === q.answer ? 'right' : i + 1 === a.pick ? 'wrong' : '') : ''}" data-pick="${i + 1}" type="button" ${a ? 'disabled' : ''}><span class="n">${'①②③④⑤'[i]}</span>${/^[①②③④⑤]$/.test(String(c).replace(/<[^>]+>/g, '').trim()) ? '' : `<span class="ct">${c}</span>`}</button>`).join('')}</div>` : `<div class="card"><input class="inp" id="short" inputmode="numeric" placeholder="답 (숫자)" ${a ? 'disabled' : ''}>${a ? '' : '<button class="btn primary block" style="margin-top:12px" id="short-ok" type="button">확인</button>'}</div>`}
+          ${mc ? `<div class="choices mq-ch">${T.choices.map((c, i) => `<button class="choice ${a ? (i + 1 === q.answer ? 'right' : i + 1 === a.pick ? 'wrong' : '') : ''}" data-pick="${i + 1}" type="button" ${a ? 'disabled' : ''}><span class="n">${i + 1}</span>${/^[①②③④⑤]$/.test(String(c).replace(/<[^>]+>/g, '').trim()) ? '' : `<span class="ct">${c}</span>`}</button>`).join('')}</div>` : `<div class="card"><input class="inp" id="short" inputmode="numeric" placeholder="답 (숫자)" ${a ? 'disabled' : ''}>${a ? '' : '<button class="btn primary block" style="margin-top:12px" id="short-ok" type="button">확인</button>'}</div>`}
           ${a ? verdict(a.ok, a.ok ? '' : ` <span style="margin-left:auto">정답 ${mc ? '①②③④⑤'[q.answer - 1] : esc(q.answer)}</span>`) : ''}`;
         if (psg) { wide = true; body = `<div class="split"><div class="psg mq-psg" aria-label="지문"><div class="psg-h">지문 <span class="tiny">따로 위아래로 넘겨 읽어요</span></div><div class="psg-body">${psg}</div></div><div class="qside">${qcard}</div></div>`; }
         else body = qcard;
@@ -4445,7 +4445,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610270128'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610270131'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
