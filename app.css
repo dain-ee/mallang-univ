@@ -2486,3 +2486,4 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .nr-bdg.on svg { opacity: 1; }
 .nr-pill .rd-bar b { background: #ff7a1a; }
 .nr-pill.done { color: #e8590c; background: #fff0e6; }
+.hero-hw { margin-top: 16px; }

@@ -471,8 +471,8 @@
       <div class="hero-band" style="background:${u ? esc(u.color) : 'var(--blue)'}"></div>
       <div class="who">${emb(u, 'xl')}<div style="min-width:0"><div class="goal-t">${esc(p.name)}의 목표${p.mbti ? ` · ${esc(p.mbti)}` : ''}</div><div class="goal-n">${u ? esc(u.name) : '목표 대학을 골라 주세요'}</div><div class="goal-m">${u ? esc(p.major || '') : '눌러서 고르기'}</div></div><span class="tag" style="margin-left:auto;flex:none">${u ? '바꾸기' : '고르기'}</span></div>
       ${TUTOR ? (() => { const nx = nextLesson(), dd = nx ? dday(nx.date) : null; return `<div class="dday"><div><span>다음 수업</span><b class="num">${nx ? (dd === 0 ? '오늘' : 'D-' + dd) : '-'}</b></div><div><span>${nx ? esc(md(nx.date)) + ' ' + esc(wdName(nx.date)) : '수업 날'}</span><b class="num">${nx && nx.time ? esc(timeKo(nx.time)) : '-'}</b></div><div><span>${esc(p.school || '학교')}</span><b>${p.grade}학년${p.cls ? ' ' + esc(p.cls) + '반' : ''}</b></div></div>`; })() : `<div class="dday"><div><span>수능까지</span><b class="num">D-${dday(CSAT.date)}</b></div><div><span>${next ? esc(next.title) : '다음 일정'}</span><b class="num">${next ? 'D-' + dday(next.date) : '-'}</b></div><div><span>${esc(String(p.school || '').replace('여자고등학교', '여고').replace('고등학교', '고'))}</span><b>${p.grade}학년${p.cls ? ' ' + esc(p.cls) + '반' : ''}</b></div></div>`}
-      ${TUTOR ? '' : `<button type="button" class="hero-goal" data-goalset><span class="hg-l">${ic('target')} 목표 등급</span><b>모의고사 ${S.profile.goalMock}등급</b><b>내신 ${S.profile.goalNaesin}등급</b><span class="hg-why">${goalWhy()} ›</span></button>`}
-    </section>`;
+      ${TUTOR ? '' : `<button type="button" class="hero-goal" data-goalset><span class="hg-l">${ic('target')} 목표 등급</span><b>모의고사 ${S.profile.goalMock}등급</b><b>내신 ${S.profile.goalNaesin}등급</b><span class="hg-why">${goalWhy()} ›</span></button>${(() => { const real = todayTasks().tasks.filter((t) => t.icon !== 'party' && !t.memo), dn = real.filter((t) => t.done).length; return real.length ? `<button class="btn primary big block hero-hw" data-go="hw" type="button">${dn >= real.length ? '숙제 다 했어요 · 다시 보기' : `숙제하러 가기 · ${real.length - dn}개 남았어요`}</button>` : ''; })()}`}
+    </section>`;  // 숙제하러 가기: 정윤이도 홈에서 바로 (10/28)
     const pos = `<section class="card c5 col-card mid"><div class="card-h"><h2>지금 내 위치</h2><button class="more" id="qg-open" type="button">등급 적기</button></div>
       <div class="rings"><button type="button" class="ring-go" data-go="score" data-seg="mock" aria-label="모의고사 성적 보기">${ringSVG(mAvg ? (9 - mAvg) / 8 : 0, 'var(--blue)', '모의고사', mAvg ? fmt1(mAvg) : '-', '등급', lm ? `${esc(lm.title)} 평균<br>${goalLine(mAvg, p.goalMock)}` : '채점 전')}</button><button type="button" class="ring-go" data-go="score" data-seg="naesin" aria-label="내신 성적 보기">${ringSVG(nAvg ? (5 - nAvg) / 4 : 0, 'var(--green)', '내신', nAvg ? fmt1(nAvg) : '-', '등급', nAvg ? `5등급제 평균<br>${goalLine(nAvg, p.goalNaesin)}` : '아직 안 넣었어요')}</button></div></section>`;
     // 등급 추이
@@ -1716,7 +1716,7 @@
     const base = 'perch'; // 첫 카드 왼쪽 위에 걸침 · 자는 동작은 안 씀 (사용자)
     const el = document.createElement('button'); el.type = 'button'; el.className = 'pet-perch' + (petDock.shown ? ' still' : ''); petDock.shown = true; el.dataset.skin = t; el.dataset.mo = petLinesKey(); el.setAttribute('aria-label', SKINS[t].n);
     const lines = petLines(), motto = lines.length ? 1 : 0; let li = 0; // 말풍선: 선생님 한마디 · 내 한마디 (누가 한 말인지 위에 작게) · 둘 다 있으면 번갈아
-    el.innerHTML = `${t === 'kuromi' ? '<span class="pet-hts" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : t === 'bamdol' ? '<span class="pet-lvs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : ''}<span class="pet-say ${motto ? 'motto' : ''}" ${motto ? '' : 'hidden'}>${lines.length ? petSayHtml(lines[0]) : ''}</span><img alt="" src="${pdir}/${pmap('perch')}.png">`;
+    el.innerHTML = `${t === 'kuromi' ? '<span class="pet-hts" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : t === 'bamdol' ? '<span class="pet-lvs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : ''}<span class="pet-say ${motto ? 'motto' : ''}" style="visibility:hidden" ${motto ? '' : 'hidden'}>${lines.length ? petSayHtml(lines[0]) : ''}</span><img alt="" src="${pdir}/${pmap('perch')}.png">`;
     const im = $('img', el); im.onerror = () => { el.remove(); host.classList.remove('has-perch'); }; im.onload = () => { if (el.isConnected) host.classList.add('has-perch'); };
     host.appendChild(el); el.dataset.r0 = el.style.right || '';
     // 카드 바로 위 오른쪽에 버튼이 있으면(예: 매일 과제 요일) 그 왼쪽으로 비켜 앉음
@@ -1755,7 +1755,7 @@
       const L = petLines(), fill = (one) => { el.single = one; sy.innerHTML = one ? petSayHtml1(L[li % L.length]) : petSayHtml(); };
       let best = null; for (const [one, lf, ins] of [[1, 1, 0], [1, 0, 0]]) { if (!el.t) fill(!!one); const sc = put(!!lf, !!ins); if (!best || sc < best[0]) best = [sc, !!one, !!lf, !!ins]; if (!sc) break; } // 다 담아 왼쪽 → 오른쪽 → 한 줄씩 왼쪽 → 오른쪽
       if (!el.t) fill(best[1]); put(best[2], best[3]);
-      const r = sy.getBoundingClientRect(); if (r.top < hb + 4) sy.style.top = `${parseFloat(sy.style.top) + hb + 4 - r.top}px`; };  // 위 메뉴 줄 밑으로는 절대 안 들어가요
+      const r = sy.getBoundingClientRect(); if (r.top < hb + 4) sy.style.top = `${parseFloat(sy.style.top) + hb + 4 - r.top}px`; sy.style.visibility = ''; };  // 자리 잡기 전엔 숨겨 둬요 (처음 자리에 떴다가 휙 옮겨 가서 버벅여 보였어요 10/28)  // 위 메뉴 줄 밑으로는 절대 안 들어가요
     addEventListener('resize', () => { if (el.isConnected) { fitSay(); hideHts(); } });
     const play = (n) => fetch(`${pdir}/${pmap(n)}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).then((b) => { const u = URL.createObjectURL(b); im.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); }).catch(() => {});
     if (!RM()) play(base);
@@ -4621,7 +4621,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280011'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280016'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -5622,7 +5622,7 @@
     $$('[data-kopen]').forEach((b) => (b.onclick = () => { const [k, r] = b.dataset.kopen.split('|'); openKept(k, r); }));
     $$('[data-nf]').forEach((b) => (b.onclick = () => { UI.newsF = b.dataset.nf; render(); }));
     $$('[data-cs]').forEach((b) => (b.onclick = () => { UI.chartSubj = b.dataset.cs; render(); }));
-    const h = $('#hero'); if (h) h.onclick = uniSheet;
+    const h = $('#hero'); if (h) h.onclick = (e) => { if (e.target.closest('[data-go], [data-goalset]')) return; uniSheet(); };
     if (!UI.run && UI.tab === 'me') bindMe();
     if (!UI.run && UI.tab === 'tme') bindTme();
     $$('[data-perf]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'perf', id: b.dataset.perf }; render(); window.scrollTo(0, 0); }));
