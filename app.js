@@ -1621,6 +1621,8 @@
   const TPK = 'mallang-univ:tprof', TPN = '_선생님';
   const TP = (() => { try { return JSON.parse(localStorage.getItem(TPK) || 'null') || {}; } catch (e) { return {}; } })();
   if (!TP.name) TP.name = '선생님';
+  // 선생님 「나의 한마디」: 선생님 홈 펫 말풍선 + 학생마다 기록(tmotto)에 넣어 학생 펫이 자기 한마디와 번갈아 말해요 (10/27)
+  function tMottoSave() { tSave(); const t = (TP.motto || '').trim(), at = Date.now(); for (const n of (D.students || []).map((x) => x.name || x)) dPut(n, 'tmotto', (d) => { d.tmotto = { text: t, at }; }).catch(() => {}); }
   function tSave() { TP._at = Date.now(); try { localStorage.setItem(TPK, JSON.stringify(TP)); } catch (e) {} rpc('univ_put', { p_student: TPN, p_code: U.key, p_data: { profile: TP } }).catch(() => {}); }
   async function tLoad() { try { const r = await rpc('univ_get', { p_student: TPN, p_code: U.key }); const q = r && r.profile; if (q && (q._at || 0) > (TP._at || 0)) { Object.assign(TP, q); try { localStorage.setItem(TPK, JSON.stringify(TP)); } catch (e) {} render(); } } catch (e) {} }
   const skin = () => DASH_ONLY ? (SKINS[TP.skin] && (TP.skin === 'ghost' || GIFTS.includes(TP.skin)) ? TP.skin : 'ghost') : (SKIN_DEV && SKINS[SKIN_Q] ? SKIN_Q : SKINS[S.profile.skin] && (SKIN_DEV || owned().includes(S.profile.skin)) ? S.profile.skin : 'ghost');
@@ -1718,9 +1720,10 @@
   // 펫 말풍선에 띄울 말: 선생님이 쓴 한마디(홈 맨 위 그 글) + 학생이 프로필에 쓴 「나의 한마디」
   // 10/27 선생님: «니 주제를 알라» 는 정윤이가 쓴 말인데 선생님 말처럼 보였어요 → 누가 한 말인지 꼭 붙여요
   function petLines() {
-    const out = [], n = (S.note || {}).text, mo = ((S.profile || {}).motto || '').trim();
-    if (n && n.trim()) out.push({ who: '선생님 한마디', t: n.trim() });
-    if (mo) out.push({ who: TEACHER ? `${NMI()}의 한마디` : '내 한마디', t: mo });
+    if (DASH_ONLY) { const tm = (TP.motto || '').trim(); return tm ? [{ who: '내 한마디', t: tm }] : []; }
+    const out = [], mo = ((S.profile || {}).motto || '').trim(), tm = ((S.tmotto || {}).text || '').trim();
+    if (mo) out.push({ who: '내 한마디', t: mo });
+    if (tm) out.push({ who: '선생님 한마디', t: tm });
     return out;
   }
   const petLinesKey = () => petLines().map((x) => x.t).join('|');
@@ -2931,12 +2934,12 @@
     const row = (k, label, val, empty = '없음') => `<button class="li btnlike me-row" type="button" data-tme="${k}"><div class="body"><div class="t" style="font-weight:500;color:var(--t2)">${label}</div></div><span class="me-v ${val ? '' : 'muted'}">${val ? esc(val) : empty}</span><span class="chev"></span></button>`;
     return `<div style="max-width:640px;margin:0 auto">
       <div class="me-head"><span class="avatar xl" style="background:var(--t1);color:#fff">${esc((p.name || '선생님').slice(0, 1))}</span><h1 class="h1" style="margin:16px 0 4px;text-align:center">${esc(p.name)}</h1><div class="row" style="justify-content:center;gap:6px">${p.mbti ? `<span class="tag blue">${esc(p.mbti)}</span>` : ''}${bl != null ? `<span class="tag ${bl === 0 ? 'red' : ''}">${bl === 0 ? '오늘 생일' : `생일까지 D-${bl}`}</span>` : ''}</div></div>
-      <section class="card tight" style="margin-top:20px"><div class="list">${row('name', '이름', p.name)}${row('birth', '생일', p.birth ? (() => { const [y, m, d] = p.birth.split('-'); return `${y}년 ${+m}월 ${+d}일`; })() : '')}${row('mbti', 'MBTI', p.mbti)}</div></section>
+      <section class="card tight" style="margin-top:20px"><div class="list">${row('name', '이름', p.name)}${row('birth', '생일', p.birth ? (() => { const [y, m, d] = p.birth.split('-'); return `${y}년 ${+m}월 ${+d}일`; })() : '')}${row('mbti', 'MBTI', p.mbti)}${row('motto', '나의 한마디', p.motto)}</div></section>
       <section class="card tight"><div class="card-h"><h3>테마</h3></div><div class="tsk-grid">${['ghost', ...GIFTS].map((k) => `<button type="button" class="tsk ${sk === k ? 'on' : ''}" data-tsk="${k}"><img src="${skinPic(k)}" alt=""><span>${esc(k === 'ghost' ? '기본' : SKINS[k].n)}</span></button>`).join('')}</div></section>
       <p class="tiny" style="text-align:center;margin:16px 0 0">선생님 정보는 학생 기록과 따로 저장돼요</p></div>`;
   }
   function bindTme() {
-    $$('[data-tme]').forEach((b) => (b.onclick = () => editField(b.dataset.tme, TP, tSave)));
+    $$('[data-tme]').forEach((b) => (b.onclick = () => editField(b.dataset.tme, TP, b.dataset.tme === 'motto' ? tMottoSave : tSave)));
     $$('[data-tsk]').forEach((b) => (b.onclick = () => { TP.skin = b.dataset.tsk; tSave(); render(); toast('테마를 바꿨어요'); }));
   }
   function meView() {
@@ -4568,7 +4571,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272316'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272320'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
