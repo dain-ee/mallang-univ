@@ -215,6 +215,8 @@
   ];
   const nsSubjects = (sem) => { const [gy, sm] = sem.split('-'); const L = NS_SUBJ.filter((s) => (!s.grade || String(s.grade) === gy) && (!s.semester || String(s.semester) === sm)).filter((s) => s.grade || gy === '1'); const extra = Object.keys(S.naesin[sem] || {}).filter((n) => !L.some((s) => s.name === n)).map((n) => ({ name: n, credits: (S.naesin[sem][n] || {}).credits || 1 })); return [...L, ...extra]; };
   const nsG = (r) => { if (!r) return null; if (+r.grade) return +r.grade; const g = ['midG', 'finG'].map((f) => +r[f]).filter((x) => x > 0); return g.length ? g.reduce((a, b) => a + b, 0) / g.length : null; };
+  // 석차 「35(10)/312」 → 등수·동점자·인원·백분위. 백분위는 학교처럼 (등수 + (동점자-1)/2) ÷ 인원 (10/27 정윤 2학기 중간: 국어 35(10)/312 → 12.7%)
+  const nsRk = (t) => { const m = String(t || '').replace(/\s/g, '').match(/^(\d+)(?:\((\d+)\))?\/(\d+)$/); if (!m) return null; const rk = +m[1], tie = +(m[2] || 1), n = +m[3]; return { rk, tie, n, pct: ((rk + (tie - 1) / 2) / n) * 100, c1: Math.floor(n * 0.1), c2: Math.floor(n * 0.34), c3: Math.floor(n * 0.66) }; };
   function nsAvg(sem) {
     let a = 0, c = 0; const rec = S.naesin[sem] || {};
     for (const s of nsSubjects(sem)) { const r = rec[s.name]; const g = nsG(r); if (!g) continue; const cr = +(r.credits || s.credits || 1); a += g * cr; c += cr; }
@@ -2331,6 +2333,24 @@
     const bk = $('#mk-back'); if (bk) bk.onclick = () => { UI.mockId = null; render(); };
     $$('[data-ms]').forEach((b) => (b.onclick = () => { UI.mockSubj = b.dataset.ms; render(); }));
   }
+  // 기말 작전 (10/27 선생님: 상대평가라 어렵지만 기말에 어떻게 하면 어느 정도 나올지): 중간 석차로 지금 자리와 다음 등급까지 몇 등인지
+  // 학기 최종 등급은 중간·기말·수행을 합친 점수로 다시 줄을 세워요. 그래서 「지금 내 위에 있는 몇 명보다 기말에서 더 받기」가 목표예요. 점수 커트는 학교마다 달라 지어내지 않아요
+  function nsPlan(sem) {
+    const rec = S.naesin[sem] || {}, L = nsSubjects(sem).map((s) => ({ s, r: rec[s.name] || {}, k: nsRk((rec[s.name] || {}).midRk) })).filter((x) => x.k && +x.r.midG);
+    if (!L.length) return '';
+    const row = ({ s, r, k }) => {
+      const g = +r.midG, up = g === 1 ? null : g === 2 ? k.c1 : g === 3 ? k.c2 : k.c3, gap = up != null ? Math.max(1, k.rk - up) : null, keep = g === 1 ? Math.floor(((10 - k.pct) * k.n) / 100) : null;
+      const [tone, msg] = g === 1 ? (keep <= 5 ? ['warn', keep > 0 ? `1등급 경계에 붙어 있어요. ${keep}명만 앞질러도 2등급이라 기말에서 꼭 지켜요` : '아슬아슬하게 1등급이에요. 기말에서 꼭 지켜요'] : ['ok', `1등급 여유 ${keep}명. 지금처럼만 하면 돼요`]) : gap <= 8 ? ['hot', `${g - 1}등급까지 약 ${gap}등. 기말에서 한두 문제 더 맞히면 뒤집을 수 있어요`] : ['', `${g - 1}등급까지 약 ${gap}등. 기말 점수를 끌어올려 차이를 줄여요`];
+      const x = (p) => Math.min(100, Math.max(0, p));
+      return `<div class="np-r ${tone}"><div class="row between" style="gap:8px"><b>${esc(s.name)}</b><span class="np-g">${g}등급 <span class="tiny">· 상위 ${fmt1(k.pct)}%</span></span></div>
+        <div class="np-bar"><i class="np-z1" style="width:10%"></i><i class="np-z2" style="left:10%;width:24%"></i><em style="left:${x(k.pct)}%"></em><span style="left:10%">10%</span><span style="left:34%">34%</span></div>
+        <p class="np-m">${esc(msg)} <span class="tiny">${k.rk}등${k.tie > 1 ? `(동점 ${k.tie}명)` : ''} / ${k.n}명 · ${g <= 2 ? `1등급은 ${k.c1}등까지` : `${g - 1}등급은 ${up}등까지`}</span></p></div>`;
+    };
+    const pri = L.filter((x) => +x.r.midG > 1).sort((a, b) => (nsRk(a.r.midRk).pct - [0, 10, 34, 66][+a.r.midG - 1]) - (nsRk(b.r.midRk).pct - [0, 10, 34, 66][+b.r.midG - 1]));
+    return `<section class="card c12 np-card"><div class="card-h"><h2>기말 작전</h2><span class="tiny">중간 석차로 봤어요</span></div>
+      ${pri.length ? `<div class="explain" style="margin:0 0 12px">학기 최종 등급은 <b>중간·기말·수행을 합친 점수</b>로 다시 줄을 세워요. 그래서 지금 내 바로 위 몇 명보다 기말에서 더 받으면 등급이 올라가요. 먼저 챙길 과목은 <b>${pri.slice(0, 3).map((x) => esc(x.s.name)).join(' · ')}</b>예요.</div>` : ''}
+      <div class="np-g2">${L.sort((a, b) => nsRk(a.r.midRk).pct - [0, 10, 34, 66][+a.r.midG - 1] - (nsRk(b.r.midRk).pct - [0, 10, 34, 66][+b.r.midG - 1])).map(row).join('')}</div></section>`;
+  }
   function naesinView() {
     const sem = UI.semester; const rec = S.naesin[sem] || {};
     const subs = nsSubjects(sem); const av = nsAvg(sem), tot = nsTotal();
@@ -2342,9 +2362,10 @@
     return `<div class="grid">
       <section class="card c4"><div class="eyebrow">전체 평균 (단위 수 반영)</div><div class="big num" style="font-size:40px;margin:8px 0 4px">${tot ? fmt1(tot) : '-'}<span style="font-size:18px"> 등급</span></div><p class="muted" style="margin:0">${goalLine(tot, S.profile.goalNaesin) || '과목 등급을 넣으면 계산돼요'}</p><hr class="sep"><div class="tiny">2022 개정 교육과정은 내신이 <b>5등급</b>이에요. 1등급은 상위 10%, 2등급은 34%까지예요.</div></section>
       <section class="card c8"><div class="card-h"><h2>학기별 평균</h2></div>${rows.length ? tossLine(rows.map((r) => ({ label: r.label, v: r.v.n })), { maxG: 5, h: 180, id: 'n2', color: '#03b26c', goal: S.profile.goalNaesin }) : `<div class="empty">${ic('up')}<b>아직 없어요</b></div>`}</section>
+      ${split ? nsPlan(sem) : ''}
       <section class="card c12"><div class="card-h"><h2>과목별 입력 <span class="save-st" data-savest>${saveStText()}</span></h2><div class="seg" style="flex:0 1 auto">${SEMS.map((s) => `<button type="button" class="${sem === s ? 'on' : ''}" data-sem="${s}">${s.replace('-', '학년 ')}학기</button>`).join('')}</div></div>
-        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>과목</th><th class="r">단위</th>${split ? '<th class="r">중간 점수</th><th class="r">중간 등급</th><th class="r">기말 점수</th><th class="r">기말 등급</th><th class="r">학기 최종 등급</th>' : '<th class="r">원점수</th><th class="r">과목 평균</th><th class="r">등급 (1~5)</th>'}<th class="r">성취도</th></tr></thead><tbody>
-        ${subs.map((s) => { const r = rec[s.name] || {}; return `<tr><td style="font-weight:600">${esc(s.name)}${s.noGrade ? '<div class="tiny">등급 없음</div>' : ''}</td><td class="r"><input class="inp sm num" style="width:56px" data-ns="${esc(s.name)}" data-f="credits" value="${esc(r.credits || s.credits || '')}" inputmode="numeric"></td>${split ? [['mid', 'midG'], ['fin', 'finG'], [null, 'grade']].map(([sc, gf]) => (sc ? `<td class="r"><input class="inp sm num" style="width:64px" data-ns="${esc(s.name)}" data-f="${sc}" value="${esc(r[sc] ?? '')}" inputmode="decimal" placeholder="점수"></td>` : '') + `<td class="r">${s.noGrade ? '-' : gsel(s.name, gf, r[gf])}</td>`).join('') : `<td class="r"><input class="inp sm num" style="width:72px" data-ns="${esc(s.name)}" data-f="raw" value="${esc(r.raw || '')}" inputmode="decimal"></td><td class="r"><input class="inp sm num" style="width:72px" data-ns="${esc(s.name)}" data-f="avg" value="${esc(r.avg || '')}" inputmode="decimal"></td><td class="r">${s.noGrade ? '-' : gsel(s.name, 'grade', r.grade)}</td>`}<td class="r"><select class="inp sm" style="width:64px" data-ns="${esc(s.name)}" data-f="ach"><option value="">-</option>${['A', 'B', 'C', 'D', 'E', 'P'].map((g) => `<option ${r.ach === g ? 'selected' : ''}>${g}</option>`).join('')}</select></td></tr>`; }).join('')}
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>과목</th><th class="r">단위</th>${split ? '<th class="r">중간 점수</th><th class="r">중간 등급</th><th class="r">중간 석차</th><th class="r">기말 점수</th><th class="r">기말 등급</th><th class="r">학기 최종 등급</th>' : '<th class="r">원점수</th><th class="r">과목 평균</th><th class="r">등급 (1~5)</th>'}<th class="r">성취도</th></tr></thead><tbody>
+        ${subs.map((s) => { const r = rec[s.name] || {}; return `<tr><td style="font-weight:600">${esc(s.name)}${s.noGrade ? '<div class="tiny">등급 없음</div>' : ''}</td><td class="r"><input class="inp sm num" style="width:56px" data-ns="${esc(s.name)}" data-f="credits" value="${esc(r.credits || s.credits || '')}" inputmode="numeric"></td>${split ? [['mid', 'midG'], ['fin', 'finG'], [null, 'grade']].map(([sc, gf]) => (sc ? `<td class="r"><input class="inp sm num" style="width:64px" data-ns="${esc(s.name)}" data-f="${sc}" value="${esc(r[sc] ?? '')}" inputmode="decimal" placeholder="점수"></td>` : '') + `<td class="r">${s.noGrade ? '-' : gsel(s.name, gf, r[gf])}</td>` + (gf === 'midG' ? `<td class="r"><input class="inp sm num" style="width:104px" data-ns="${esc(s.name)}" data-f="midRk" value="${esc(r.midRk || '')}" placeholder="35(10)/312"></td>` : '')).join('') : `<td class="r"><input class="inp sm num" style="width:72px" data-ns="${esc(s.name)}" data-f="raw" value="${esc(r.raw || '')}" inputmode="decimal"></td><td class="r"><input class="inp sm num" style="width:72px" data-ns="${esc(s.name)}" data-f="avg" value="${esc(r.avg || '')}" inputmode="decimal"></td><td class="r">${s.noGrade ? '-' : gsel(s.name, 'grade', r.grade)}</td>`}<td class="r"><select class="inp sm" style="width:64px" data-ns="${esc(s.name)}" data-f="ach"><option value="">-</option>${['A', 'B', 'C', 'D', 'E', 'P'].map((g) => `<option ${r.ach === g ? 'selected' : ''}>${g}</option>`).join('')}</select></td></tr>`; }).join('')}
         </tbody></table></div>
         ${split ? `<p class="tiny" style="margin:12px 0 0">중간고사·기말고사 점수와 등급을 시험마다 따로 적어요. 학기 최종 등급이 나오면 그걸로 평균을 내고, 아직이면 중간·기말 등급 평균으로 계산해요${mAvg != null || fAvg != null ? ` · 평균 중간 <b class="num">${mAvg != null ? fmt1(mAvg) : '-'}</b>점, 기말 <b class="num">${fAvg != null ? fmt1(fAvg) : '-'}</b>점` : ''}</p>` : ''}
         <div class="row between" style="margin-top:16px"><span class="muted">${sem.replace('-', '학년 ')}학기 평균 <b class="num" style="color:var(--t1)">${av ? fmt1(av) : '-'}</b>등급</span><button class="btn sm" id="ns-add" type="button">과목 더하기</button></div></section>
@@ -2352,8 +2373,8 @@
   }
   function bindNaesin() {
     $$('[data-sem]').forEach((b) => (b.onclick = () => { UI.semester = b.dataset.sem; render(); }));
-    const nsSet = (x) => { const sem = UI.semester; S.naesin[sem] = S.naesin[sem] || {}; const r = (S.naesin[sem][x.dataset.ns] = S.naesin[sem][x.dataset.ns] || {}); const v = x.value.trim(); r[x.dataset.f] = x.dataset.f === 'ach' ? v : v === '' ? '' : +v; };
-    $$('input[data-ns]').forEach((x) => (x.oninput = () => { if (x.value.trim() !== '' && isNaN(+x.value.trim())) return; nsSet(x); saveSt.wait = true; paintSaveSt(); save('naesin'); }));
+    const nsSet = (x) => { const sem = UI.semester; S.naesin[sem] = S.naesin[sem] || {}; const r = (S.naesin[sem][x.dataset.ns] = S.naesin[sem][x.dataset.ns] || {}); const v = x.value.trim(); r[x.dataset.f] = x.dataset.f === 'ach' || /Rk$/.test(x.dataset.f) ? v : v === '' ? '' : +v; };
+    $$('input[data-ns]').forEach((x) => (x.oninput = () => { if (x.value.trim() !== '' && isNaN(+x.value.trim()) && !/Rk$/.test(x.dataset.f)) return; if (/Rk$/.test(x.dataset.f) && x.value.trim() && !nsRk(x.value)) return; nsSet(x); saveSt.wait = true; paintSaveSt(); save('naesin'); }));
     $$('[data-ns]').forEach((x) => (x.onchange = () => { const sem = UI.semester; S.naesin[sem] = S.naesin[sem] || {}; const r = (S.naesin[sem][x.dataset.ns] = S.naesin[sem][x.dataset.ns] || {}); const v = x.value.trim(); r[x.dataset.f] = x.dataset.f === 'ach' ? v : v === '' ? '' : +v; save('naesin'); render(); }));
     const a = $('#ns-add'); if (a) a.onclick = () => sheet(`<h2>과목 더하기</h2><div class="field"><label>과목 이름</label><input class="inp" id="na-n"></div><div class="field"><label>단위 수</label><input class="inp" id="na-c" inputmode="numeric" value="2"></div><button class="btn primary big block" id="na-ok" type="button">더하기</button>`, (el, close) => { $('#na-ok', el).onclick = () => { const n = $('#na-n', el).value.trim(); if (!n) return; const sem = UI.semester; S.naesin[sem] = S.naesin[sem] || {}; S.naesin[sem][n] = { credits: +$('#na-c', el).value || 1 }; save('naesin'); close(); render(); }; });
   }
@@ -4472,7 +4493,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272103'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272133'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

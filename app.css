@@ -2331,3 +2331,16 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .pet-hts i:nth-child(5) { left: 34px; top: -10px; width: 9px; height: 9px; rotate: 6deg; animation-delay: 0.9s; background-image: url("data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTAwIDkyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iZyIgY3g9IjM4JSIgY3k9IjMwJSIgcj0iODAlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNlOGQ5ZmYiLz48c3RvcCBvZmZzZXQ9Ii41NSIgc3RvcC1jb2xvcj0iIzliNmZkYyIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzViM2E5OSIvPjwvcmFkaWFsR3JhZGllbnQ+PHJhZGlhbEdyYWRpZW50IGlkPSJoIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmYiIHN0b3Atb3BhY2l0eT0iLjk1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZmZmIiBzdG9wLW9wYWNpdHk9IjAiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48cGF0aCBkPSJNNTAgODhDMjAgNjYgMyA1MCAzIDI4IDMgMTMgMTUgMyAyOCAzYzkgMCAxNyA1IDIyIDEzQzU1IDggNjMgMyA3MiAzYzEzIDAgMjUgMTAgMjUgMjUgMCAyMi0xNyAzOC00NyA2MHoiIGZpbGw9InVybCgjZykiLz48ZWxsaXBzZSBjeD0iMjkiIGN5PSIyNCIgcng9IjEzIiByeT0iOCIgdHJhbnNmb3JtPSJyb3RhdGUoLTMwIDI5IDI0KSIgZmlsbD0idXJsKCNoKSIvPjwvc3ZnPg=="); }
 .pet-hts i:nth-child(6) { right: 22px; top: -6px; width: 10px; height: 10px; rotate: -10deg; animation-delay: 1.5s; background-image: url("data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTAwIDkyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iZyIgY3g9IjM4JSIgY3k9IjMwJSIgcj0iODAlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmNGVjZmYiLz48c3RvcCBvZmZzZXQ9Ii41NSIgc3RvcC1jb2xvcj0iI2M2YThlZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzhhNjNjOSIvPjwvcmFkaWFsR3JhZGllbnQ+PHJhZGlhbEdyYWRpZW50IGlkPSJoIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmYiIHN0b3Atb3BhY2l0eT0iLjk1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZmZmIiBzdG9wLW9wYWNpdHk9IjAiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48cGF0aCBkPSJNNTAgODhDMjAgNjYgMyA1MCAzIDI4IDMgMTMgMTUgMyAyOCAzYzkgMCAxNyA1IDIyIDEzQzU1IDggNjMgMyA3MiAzYzEzIDAgMjUgMTAgMjUgMjUgMCAyMi0xNyAzOC00NyA2MHoiIGZpbGw9InVybCgjZykiLz48ZWxsaXBzZSBjeD0iMjkiIGN5PSIyNCIgcng9IjEzIiByeT0iOCIgdHJhbnNmb3JtPSJyb3RhdGUoLTMwIDI5IDI0KSIgZmlsbD0idXJsKCNoKSIvPjwvc3ZnPg=="); }
 .pet-hts i[hidden] { display: none; }
+/* 기말 작전 (10/27): 중간 석차 → 상위 몇 %, 다음 등급까지 몇 등 */
+.np-g2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.np-r { padding: 16px; border-radius: 16px; background: var(--fill, #f2f4f6); }
+.np-r.hot { background: var(--blue-soft); }
+.np-r.warn { background: #fff6e5; }
+.np-g { font-weight: 700; }
+.np-bar { position: relative; height: 10px; margin: 14px 0 22px; border-radius: 5px; background: var(--line, #e5e8eb); }
+.np-bar i { position: absolute; top: 0; bottom: 0; }
+.np-z1 { left: 0; border-radius: 5px 0 0 5px; background: var(--blue); opacity: .35; }
+.np-z2 { background: var(--blue); opacity: .15; }
+.np-bar em { position: absolute; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: var(--blue); border: 3px solid var(--card); box-shadow: 0 1px 4px rgba(0, 0, 0, .2); }
+.np-bar span { position: absolute; top: 14px; transform: translateX(-50%); font-size: 11px; color: var(--t3); }
+.np-m { margin: 0; font-size: 14px; color: var(--t2); line-height: 1.5; }
