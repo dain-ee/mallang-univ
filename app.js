@@ -4472,7 +4472,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610270913'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610271014'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -4739,6 +4739,19 @@
     const W = (d && d.wrong) || {}, fin = H.filter((h) => hwDone(h, W) && hwDoneAt(h, W) >= t0 && hwDoneAt(h, W) < t1), due = H.filter((h) => !hwDone(h, W) && h.due && h.due >= addD(date, -6) && h.due <= date);
     return { solved: Math.max(0, solvedSince(d, t0) - solvedSince(d, t1)), fin: fin.length, all: fin.length + due.length, finT: fin.map((h) => `${h.subj && h.subj !== '기타' ? h.subj + ' ' : ''}${h.title} 끝냄`) };
   }
+  // 학생 기록(d)을 잠깐 S 자리에 놓고 학생 화면 함수(dayItems·sMin)를 그대로 써요
+  const asS = (d, f) => { if (!d || d === S) return f(); const S0 = S; S = { ...blank(), ...JSON.parse(JSON.stringify(d)) }; try { return f(); } finally { S = S0; } };
+  // 날짜만 고르면 「이번 주 한 것」이 저절로 채워져요 (10/27 선생님: 날짜만 골라도 한 게 나와야지)
+  function wkDone(d, date) {
+    if (!d) return [];
+    return asS(d, () => {
+      const days = dSpan(addD(date, -6), date), mins = days.map(sMin), tot = mins.reduce((a, b) => a + b, 0), on = mins.filter((m) => m > 0).length, o = [];
+      if (tot) o.push(`공부 시간 ${hm(tot)} (7일 중 ${on}일)`);
+      const cats = {}; for (const dd of days) for (const it of dayItems(dd)) { const c = prCat(it); if (c) (cats[c] = cats[c] || []).push(it.t === '학교에서 한 것' ? String(it.d).slice(0, 24) : it.t.replace(/^(국어|과학|한국사|사회|역사|통합사회|통합과학)\s*인강 · /, '$1 · ')); }
+      for (const [c, L] of Object.entries(cats).sort((p, q) => q[1].length - p[1].length)) { const u = [...new Set(L)]; o.push(`${c} ${L.length}개 · ${u.slice(0, 2).join(', ')}${u.length > 2 ? ` 외 ${u.length - 2}개` : ''}`); }
+      return o;
+    });
+  }
   const rpExtra = (r, L) => r.tutor ? {} : { kicker: '말랑대학 주간 공부 리포트', lessonLabel: '이번 주 한 것', note: '앱에 남은 기록으로 만들었어요 :)', tiles: [['푼 문제', L.stat ? `${L.stat.solved}개` : '—', false], ['끝낸 숙제', L.stat && L.stat.all ? `${L.stat.fin} / ${L.stat.all}` : '—', false], ['시험', L.score ? (L.scoreTotal ? `${L.score} / ${L.scoreTotal}` : L.score) : '—', true]] };
   const dRowD = (n) => (n === U.who ? S : ((roster.rows || []).find((x) => x.r.name === n) || {}).d);
   const cuLine = (nos) => { const chs = []; for (const no of [...nos].sort((a, b) => a - b)) { const x = cuByNo(no); let g = chs.find((y) => y.ch === x.ch); if (!g) chs.push((g = { ch: x.ch, t: x.chTitle, n: [] })); g.n.push(no); } return chs.map((g) => `천일문 기본 Ch.${g.ch} ${g.t} (Unit ${unitsText(g.n)})`); };
@@ -4749,12 +4762,12 @@
     const c = dCls(r, d), lz = r.lesson || {}, prev = lsnSorted(c)[0], t = today(), units = [];
     if (prev && (prev.units || []).length) { const mx = Math.max(...prev.units); for (let k = 1; k <= prev.units.length; k++) if (cuByNo(mx + k)) units.push(mx + k); }
     const book = prev && prev.book ? prev.book.split(' · ') : lz.book ? [lz.book] : [];
-    return (DR[n] = { id: '', date: t, nth: String(dNth(r, c, t)), book: new Set(book), units: new Set(units), ch: units.length ? cuByNo(units[0]).ch : prev && (prev.units || []).length ? cuByNo(prev.units[0]).ch : (CH_UNITS[0] || {}).ch, L: new Set(), H: new Set(units.length ? ['@cu'] : []), C: new Set(), score: '', scoreTotal: (prev && prev.scoreTotal) || '', progress: '', mt: dTotal(r, c, t), loaded: d !== undefined, touched: false, hw: new Set(), hsj: {}, hwDue: 'next', hwSubj: (r.subjects || [r.tutor ? '영어' : '기타'])[0] });
+    return (DR[n] = { id: '', date: t, nth: String(dNth(r, c, t)), book: new Set(book), units: new Set(units), ch: units.length ? cuByNo(units[0]).ch : prev && (prev.units || []).length ? cuByNo(prev.units[0]).ch : (CH_UNITS[0] || {}).ch, L: new Set(), Lx: new Set(), H: new Set(units.length ? ['@cu'] : []), C: new Set(), score: '', scoreTotal: (prev && prev.scoreTotal) || '', progress: '', mt: dTotal(r, c, t), loaded: d !== undefined, touched: false, hw: new Set(), hsj: {}, hwDue: 'next', hwSubj: (r.subjects || [r.tutor ? '영어' : '기타'])[0] });
   }
   function drFrom(n, l) {
     const r = rOf(n), c = dCls(r, dRowD(n)), u = l.units || [];
     const strip = (t) => lines(t).filter((x) => !/^천일문 기본 Ch\.|^말랑대학 천일문 Unit/.test(x));
-    DR[n] = { ...drOf(n, true), id: l.id, date: l.date, nth: String(l.nth || ''), book: new Set(String(l.book || '').split(' · ').filter(Boolean)), units: new Set(u), ch: u.length ? cuByNo(u[0]).ch : drOf(n).ch, L: new Set(strip(l.lesson)), H: new Set([...(u.length && /말랑대학 천일문/.test(l.hw || '') ? ['@cu'] : []), ...strip(l.hw)]), C: new Set(lines(l.comment)), score: l.score || '', scoreTotal: l.scoreTotal || '', progress: l.progress || '', mt: dTotal(r, c, l.date), touched: true, loaded: true };
+    DR[n] = { ...drOf(n, true), id: l.id, date: l.date, nth: String(l.nth || ''), book: new Set(String(l.book || '').split(' · ').filter(Boolean)), units: new Set(u), ch: u.length ? cuByNo(u[0]).ch : drOf(n).ch, L: new Set(strip(l.lesson).filter((t) => r.tutor || !wkDone(dRowD(n), l.date).includes(t))), H: new Set([...(u.length && /말랑대학 천일문/.test(l.hw || '') ? ['@cu'] : []), ...strip(l.hw)]), C: new Set(lines(l.comment)), score: l.score || '', scoreTotal: l.scoreTotal || '', progress: l.progress || '', mt: dTotal(r, c, l.date), touched: true, loaded: true };
   }
   const ck = (grp, v, on, label) => `<button class="tk ${on ? 'on' : ''}" data-ck="${grp}" data-v="${esc(v)}" type="button"><span>${esc(label || v)}</span><i></i></button>`;
   const addBox = (grp, ph) => `<div class="tk-add"><input class="inp" data-addv="${grp}" placeholder="${esc(ph)}"><button class="btn sm" data-add="${grp}" type="button">더하기</button></div>`;
@@ -4846,7 +4859,7 @@
   }
   function dReportCard(n, x) {
     const tu = x.tutor, r = x.r, lz = r.lesson || {}, D0 = drOf(n), c = x.c, past = lsnSorted(c);
-    const ws = tu ? null : wkStat(x.d, D0.date), autoL = ws ? [...(ws.solved ? [`말랑대학 문제 ${ws.solved}개 풀기`] : []), ...ws.finT.slice(0, 6)] : [], pastL = [...new Set(past.flatMap((l) => lines(l.lesson)).filter((t) => !/^천일문 기본 Ch\./.test(t) && t.length <= 30 && !/^말랑대학 문제 \d+개 풀기$/.test(t) && !/ \d+\/\d+$/.test(t)))].slice(0, 8), pastH = [...new Set(past.flatMap((l) => lines(l.hw)).filter((t) => !/^말랑대학 천일문 Unit/.test(t) && t.length <= 30 && !nxIdOf(n, t)))].slice(0, 6);
+    autoL = tu ? [] : wkDone(x.d, D0.date || today()), pastL = [...new Set(past.flatMap((l) => lines(l.lesson)).filter((t) => !/^천일문 기본 Ch\./.test(t) && t.length <= 30 && !/^말랑대학 문제 \d+개 풀기$/.test(t) && !/ \d+\/\d+$/.test(t)))].slice(0, 8), pastH = [...new Set(past.flatMap((l) => lines(l.hw)).filter((t) => !/^말랑대학 천일문 Unit/.test(t) && t.length <= 30 && !nxIdOf(n, t)))].slice(0, 6);
     const nxL = tu ? nxRecs(n, D0.date || today()).slice(0, 4).map((x) => `${x.title} ${x.ok}/${x.n}`) : [], nxH = nxPicks(n).map((x) => x.t), as = tu ? autoScore(n) : null, useA = !!as && !String(D0.score || '').trim();
     const books = [...new Set([...(lz.books || (lz.book ? [lz.book] : [])), ...D0.book])], cuOn = CH_UNITS.length && [...D0.book].some((b) => /천일문/.test(b));
     const chs = [...new Map(CH_UNITS.map((u) => [u.ch, u.chTitle])).entries()], lastU = past.find((l) => (l.units || []).length), who = lz.parent || '어머니';
@@ -4857,7 +4870,7 @@
       ${cuOn ? `<div class="d-sec"><h3>천일문 <span class="tiny">${lastU ? `지난번 Unit ${esc(unitsText(lastU.units))}` : ''}</span></h3><select class="inp sm" data-dch>${chs.map(([no, t]) => `<option value="${no}" ${+no === +D0.ch ? 'selected' : ''}>Ch.${no} ${esc(t)}</option>`).join('')}</select>
         <div class="nb-g">${CH_UNITS.filter((u) => +u.ch === +D0.ch).map((u) => `<button class="nb ${D0.units.has(+u.unit) ? 'on' : ''}" data-ck="cu" data-v="${u.unit}" type="button" title="${esc(u.title || '')}">${u.unit}</button>`).join('')}</div>
         ${D0.units.size ? `<p class="tiny" style="margin:8px 0 0">${[...D0.units].sort((a, b) => a - b).map((no) => `${no} ${esc((cuByNo(no) || {}).title || '')}`).join(' · ')}</p>` : ''}</div>` : ''}
-      <div class="d-sec"><h3>${tu ? '오늘 한 것' : '이번 주 한 것'}${D0.L.size ? ` <b class="blue">${D0.L.size}</b>` : ''}</h3><div class="tk-g">${[...new Set([...nxL, ...autoL, ...(tu ? P_L : P_LS), ...[...D0.L]])].map((t) => ck('L', t, D0.L.has(t))).join('')}</div>${pastL.filter((t) => !D0.L.has(t)).length ? `<details class="dl-more"><summary>지난 수업에 쓴 것</summary><div class="tk-g">${pastL.filter((t) => !D0.L.has(t)).map((t) => ck('L', t, false)).join('')}</div></details>` : ''}${addBox('L', '없으면 적고 더하기')}</div>
+      <div class="d-sec"><h3>${tu ? '오늘 한 것' : '이번 주 한 것'}${D0.L.size ? ` <b class="blue">${D0.L.size}</b>` : ''}</h3>${autoL.length ? `<p class="tiny" style="margin:0 0 8px">날짜까지 7일 동안 앱에 남은 기록이에요. 빼려면 눌러요</p><div class="tk-g" style="margin-bottom:8px">${autoL.map((t) => ck('Lx', t, !D0.Lx.has(t))).join('')}</div>` : tu ? '' : '<p class="tiny" style="margin:0 0 8px">이 7일 동안 앱에 남은 기록이 없어요</p>'}<div class="tk-g">${[...new Set([...nxL, ...(tu ? P_L : P_LS), ...[...D0.L]])].filter((t) => !autoL.includes(t)).map((t) => ck('L', t, D0.L.has(t))).join('')}</div>${pastL.filter((t) => !D0.L.has(t)).length ? `<details class="dl-more"><summary>지난 수업에 쓴 것</summary><div class="tk-g">${pastL.filter((t) => !D0.L.has(t)).map((t) => ck('L', t, false)).join('')}</div></details>` : ''}${addBox('L', '없으면 적고 더하기')}</div>
       <div class="d-sec"><h3>숙제 <span class="tiny">「숙제」 탭에서 낸 숙제가 저절로 들어가요</span></h3>${(() => { const G = hwGiven(n, D0.date || today()).filter((h, k, A) => !h.grp || A.findIndex((y) => y.grp === h.grp) === k).map((h) => (h.grp ? { ...h, title: h.grp, done: hwGiven(n, D0.date || today()).filter((y) => y.grp === h.grp).every(hwDone) } : h)); return `${sj === '영어' && cuOn && D0.units.size ? `<div class="tk-g">${ck('H', '@cu', D0.H.has('@cu'), cuHw(D0.units))}</div>` : ''}${G.length ? `<div class="list d-hwl">${G.map((h) => `<div class="li"><div class="body"><div class="t">${esc(h.title)}</div></div><span class="tg-hs ${hwDone(h, (dRowD(n) || {}).wrong || {}) ? 'ok' : 'wait'}">${hwDone(h, (dRowD(n) || {}).wrong || {}) ? '했어요' : h.due ? md(h.due) + '까지' : '냈어요'}</span></div>`).join('')}</div>` : '<p class="tiny" style="margin:0 0 8px">이 수업 뒤로 낸 숙제가 아직 없어요</p>'}<button class="btn sm soft" type="button" data-hgo="${esc(n)}">숙제 내러 가기</button>`; })()}</div>
       <div class="d-sec"><h3>${tu ? '진도율 · 시험' : '시험 점수'}</h3><div class="d-meta">${tu ? `<label>진도율 <input class="inp sm num" data-df="progress" inputmode="numeric" value="${esc(D0.progress || autoProg(n))}" style="width:64px"> %</label>${!D0.progress && autoProg(n) ? '<span class="tiny">천일문 유닛으로 자동</span>' : ''}` : ''}<label>점수 <input class="inp sm num" data-df="score" inputmode="numeric" value="${esc(useA ? as.score : D0.score)}" style="width:64px"></label><label>/ <input class="inp sm num" data-df="scoreTotal" inputmode="numeric" value="${esc(useA ? as.total : D0.scoreTotal)}" style="width:64px"></label>${useA ? `<span class="tiny">${esc(as.title)} 시험에서 자동</span>` : ''}</div></div>
       <div class="d-sec"><h3>${esc(who)}께 한마디</h3><div class="tk-g">${[...new Set([...(tu ? P_C : P_CS), ...D0.C])].map((t) => ck('C', t, D0.C.has(t))).join('')}</div>${addBox('C', '직접 적고 더하기')}</div>
@@ -4943,12 +4956,12 @@
     $$('.dform [data-ck]').forEach((b) => (b.onclick = () => {
       const g = b.dataset.ck, v = b.dataset.v; touch();
       if (g === 'cu') { const u = +v; D0.units.has(u) ? D0.units.delete(u) : D0.units.add(u); if (D0.units.size) D0.H.add('@cu'); return render(); }
-      const set = g === 'book' ? D0.book : g === 'hw' ? D0.hw : D0[g]; set.has(v) ? set.delete(v) : set.add(v); b.classList.toggle('on', set.has(v));
+      const set = g === 'book' ? D0.book : g === 'hw' ? D0.hw : D0[g]; set.has(v) ? set.delete(v) : set.add(v); b.classList.toggle('on', g === 'Lx' ? !set.has(v) : set.has(v));
       if (g === 'H' && set.has(v) && !D0.hsj[v]) D0.hsj[v] = D0.hwSubj || '영어';
       render();
     }));
     $$('.dform [data-add]').forEach((b) => { const g = b.dataset.add, inp = $(`[data-addv="${g}"]`); const add = () => { const v = inp.value.trim(); if (!v) return inp.focus(); touch(); (g === 'hw' ? D0.hw : D0[g]).add(v); if (g === 'H') D0.hsj[v] = D0.hwSubj || '영어'; render(); }; b.onclick = add; inp.onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); add(); } }; });
-    $$('.dform [data-df]').forEach((el) => (el.oninput = el.onchange = () => { touch(); D0[el.dataset.df] = el.value; if (el.dataset.df === 'date' && !D0.id) { const r = rOf(n), c = dCls(r, dRowD(n)); D0.nth = String(dNth(r, c, el.value || today())); const ni = $('[data-df="nth"]'); if (ni) ni.value = D0.nth; } }));
+    $$('.dform [data-df]').forEach((el) => (el.oninput = el.onchange = () => { touch(); D0[el.dataset.df] = el.value; if (el.dataset.df === 'date' && !D0.id) { const r = rOf(n), c = dCls(r, dRowD(n)); D0.nth = String(dNth(r, c, el.value || today())); const ni = $('[data-df="nth"]'); if (ni) ni.value = D0.nth; } if (el.dataset.df === 'date' && el.value && !rOf(n).tutor) { D0.Lx = new Set(); render(); } }));
     $$('[data-sj]').forEach((b) => (b.onclick = () => { D0.hwSubj = b.dataset.sj; render(); }));
     const ch = $('[data-dch]'); if (ch) ch.onchange = () => { touch(); D0.ch = +ch.value; render(); };
     const nw = $('[data-dnew]'); if (nw) nw.onclick = () => { delete DR[n]; UI.drep = null; render(); };
@@ -4971,7 +4984,7 @@
   }
   function drBuild(n) {
     const r = rOf(n), D0 = drOf(n), cuOn = [...D0.book].some((b) => /천일문/.test(b)), units = cuOn ? [...D0.units].sort((a, b) => a - b) : [];
-    const lesson = [...(units.length ? cuLine(units) : []), ...D0.L].join('\n'), hw = [...new Set([...(units.length && D0.H.has('@cu') ? [cuHw(units)] : []), ...hwGiven(n, D0.date || today()).map((h) => (h.subj && h.subj !== '영어' ? `${h.subj} ${h.grp || h.title}` : h.grp || h.title)), ...[...D0.H].filter((t) => t !== '@cu').map((t) => (D0.hsj[t] && D0.hsj[t] !== '영어' ? `${D0.hsj[t]} ${t}` : t))])].join('\n');
+    const lesson = [...new Set([...(units.length ? cuLine(units) : []), ...(r.tutor ? [] : wkDone(dRowD(n), D0.date || today()).filter((t) => !D0.Lx.has(t))), ...D0.L])].join('\n'), hw = [...new Set([...(units.length && D0.H.has('@cu') ? [cuHw(units)] : []), ...hwGiven(n, D0.date || today()).map((h) => (h.subj && h.subj !== '영어' ? `${h.subj} ${h.grp || h.title}` : h.grp || h.title)), ...[...D0.H].filter((t) => t !== '@cu').map((t) => (D0.hsj[t] && D0.hsj[t] !== '영어' ? `${D0.hsj[t]} ${t}` : t))])].join('\n');
     const x = { date: D0.date || today(), nth: String(D0.nth || '').trim(), book: [...D0.book].join(' · '), units: D0.H.has('@cu') ? units : [], lesson, hw, score: String(D0.score || '').trim(), scoreTotal: String(D0.scoreTotal || '').trim(), progress: D0.progress || autoProg(n), comment: [...D0.C].join('\n') };
     if (!r.tutor) { const { finT, ...st } = wkStat(dRowD(n), x.date); x.stat = st; x.nth = ''; }
     else if (!x.score) { const as = autoScore(n); if (as) { x.score = as.score; x.scoreTotal = as.total; } }  // 점수를 안 적었으면 지난 7일 시험 점수 (미리보기 그림과 저장값이 같게)
