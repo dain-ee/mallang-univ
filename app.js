@@ -1734,7 +1734,7 @@
     // 말풍선은 언제나 펫 오른쪽 옆에 세로로 좁게, 카드 윗변 위에 (10/27 선생님 «위로 말고 옆으로 · 오른쪽 세로로»)
     // 오른쪽 자리가 모자라면 펫을 왼쪽으로 비켜 앉혀 자리를 만들어요
     // 말풍선 자리 규칙 (10/27 선생님 «배치 규칙을 정해»)
-    //  1. 펫 옆, 아랫변은 펫이 앉은 카드 윗변에 맞춰요 (머리 위로는 안 가요)
+    //  1. 펫 바로 옆, 펫 몸(카드 위로 나온 부분) 가운데 높이. 카드 윗변 아래로는 안 내려가요 (머리 위로는 안 가요)
     //  2. 왼쪽 → 오른쪽 순서로 놓아 보고, 글자·다른 카드·위 메뉴·화면 밖에 하나도 안 닿는 첫 자리에 둬요
     //  3. 너비는 옆 칸 카드나 화면 끝 전까지 최대 320px 이라 되도록 한두 줄
     //  4. 두 쪽 다 닿으면 덜 가리는 쪽
@@ -1747,6 +1747,7 @@
       const put = (left) => { sy.classList.remove('side', 'flip'); sy.style.top = 'auto'; sy.style.transform = 'none'; sy.style.bottom = `${er.bottom - hr.top + 6}px`;
         const room = left ? ir.left - 4 - lb : rb - ir.right - 4; sy.style.maxWidth = `${Math.max(110, Math.min(320, room))}px`;
         if (left) { sy.style.left = 'auto'; sy.style.right = `${er.right - ir.left + 4}px`; } else { sy.classList.add('side'); sy.style.right = 'auto'; sy.style.left = `${ir.right - er.left + 4}px`; }
+        { const h = sy.offsetHeight, cy = (ir.top + Math.min(ir.bottom, hr.top)) / 2, t = Math.min(cy - h / 2, hr.top - 6 - h); sy.style.bottom = 'auto'; sy.style.top = `${t - er.top}px`; }  // 펫 몸 옆 가운데 높이에 (카드 윗변 아래로는 안 내려가요)
         const r = sy.getBoundingClientRect(); return (r.left < 8 || r.right > innerWidth - 8 ? 1e6 : 0) + (r.top < hb + 4 ? 1e6 : 0) + cards.reduce((n, q) => n + ov(r, q), 0) + tx.reduce((n, q) => n + ov(r, q) * 4, 0); };
       const a = put(true); if (!a) return; const b = put(false); if (!b) return; if (a <= b) put(true); };
     addEventListener('resize', () => { if (el.isConnected) { fitSay(); hideHts(); } });
@@ -4614,7 +4615,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272350'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272352'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
