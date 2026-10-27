@@ -3618,7 +3618,7 @@
       <section class="card c12"><div class="card-h"><h2>이렇게 모아요</h2><span class="tiny">한 가지는 한 번만 쌓여요</span></div>
         <div class="list earn-grid">${EARN.map((x) => `<div class="li" style="padding:8px 0"><div class="ico">${ic(x.i)}</div><div class="body"><div class="t" style="font-size:15px">${esc(x.t)}</div>${x.d ? `<div class="d">${esc(x.d)}</div>` : ''}</div><span class="num wl-plus">${esc(x.a)}</span></div>`).join('')}</div></section>
       ${teach}
-      <section class="card c12"><div class="card-h"><h2>모은 기록</h2><span class="tiny">${dates.length ? `${dates.length}일 동안 ${won(w.log.reduce((a, x) => a + x.amt, 0))}` : ''}</span></div>
+      <section class="card c12"><div class="card-h"><h2>모은 기록</h2></div>
         ${dates.length ? dayNav + dayBlock(wd) : `<div class="empty">${ic('coin')}<b>아직 모은 돈이 없어요</b><span>토마토 하나, 소식 하나부터 시작해요</span></div>`}</section>
       ${paidRows.length ? `<section class="card c12"><div class="card-h"><h2>진짜 돈으로 바꾼 기록</h2></div><div class="list">${paidRows.map((x) => `<div class="li" style="padding:8px 0"><div class="ico">${ic('cash')}</div><div class="body"><div class="t" style="font-size:15px">${won(x.amt)} 받았어요</div><div class="d">${md(dateOf(x.at))}${x.memo ? ' · ' + esc(x.memo) : ''}</div></div></div>`).join('')}</div></section>` : ''}
       </div></div>`;
@@ -4630,7 +4630,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280024'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280026'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
