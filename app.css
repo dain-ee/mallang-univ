@@ -2420,3 +2420,20 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .pet-lvs i:nth-child(6) { right: 22px; top: -6px; width: 10px; height: 13px; rotate: -14deg; background-image: var(--lf-y); animation-delay: 1.6s; }
 .pet-lvs i[hidden] { display: none; }
 @media (max-width: 520px) { .pet-lvs i { scale: .8; } }
+
+/* 펫 말풍선: 누가 한 말인지 (10/27) */
+.pet-perch .pet-say .pet-who { display: block; margin-bottom: 2px; font-size: 11px; font-weight: 700; color: var(--t3); }
+
+/* 그래머 마스터: 아주 큰 배지 (10/27) */
+.bdg-pop.mega .bdg-card { width: min(400px, 100%); padding: 40px 24px 24px; background: linear-gradient(180deg, #fff8dc 0%, #fff 55%); }
+.bdg-pop.mega .bdg-ic { width: 140px; height: 140px; }
+.bdg-pop.mega .bdg-ic img, .bdg-pop.mega .bdg-ic svg { width: 80px; height: 80px; }
+.bdg-pop.mega .bdg-card h3 { font-size: 28px; }
+.bdg-pop.mega .bdg-eb { font-size: 15px; }
+.bdg-pop.mega .bdg-d { font-size: 15px; line-height: 1.6; color: var(--t2); word-break: keep-all; }
+.bdg-medals { position: relative; display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
+.bdg-medals span { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 12px; border-radius: 16px; background: #fff3c4; font-size: 28px; animation: bdgMedal .5s cubic-bezier(.34,1.56,.64,1) both; }
+.bdg-medals span:nth-child(2) { animation-delay: .15s; } .bdg-medals span:nth-child(3) { animation-delay: .3s; }
+.bdg-medals b { font-size: 12px; color: #8a6d00; }
+@keyframes bdgMedal { from { opacity: 0; transform: scale(.4) translateY(12px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .bdg-medals span { animation: none; } }

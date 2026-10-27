@@ -1679,12 +1679,12 @@
   const PET_WINK = new Set(['melody', 'cinnamoroll', 'kuromi', 'bamdol']); // 찡긋 표정이 있는 펫
   function petDock() {
     const t = skin(), host = !UI.run && t !== 'ghost' && $('#main .card');
-    $$('.pet-perch').forEach((x) => { if (!host || x.parentNode !== host || x.dataset.skin !== t || x.dataset.mo !== ((S.profile || {}).motto || '').trim()) x.remove(); });
+    $$('.pet-perch').forEach((x) => { if (!host || x.parentNode !== host || x.dataset.skin !== t || x.dataset.mo !== petLinesKey()) x.remove(); });
     if (!host || $('.pet-perch', host)) return;
     const base = 'perch'; // 첫 카드 왼쪽 위에 걸침 · 자는 동작은 안 씀 (사용자)
-    const el = document.createElement('button'); el.type = 'button'; el.className = 'pet-perch' + (petDock.shown ? ' still' : ''); petDock.shown = true; el.dataset.skin = t; el.dataset.mo = ((S.profile || {}).motto || '').trim(); el.setAttribute('aria-label', SKINS[t].n);
-    const motto = ((S.profile || {}).motto || '').trim(); // 나의 한마디를 말풍선으로 늘 띄워요
-    el.innerHTML = `${t === 'kuromi' ? '<span class="pet-hts" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : t === 'bamdol' ? '<span class="pet-lvs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : ''}<span class="pet-say ${motto ? 'motto' : ''}" ${motto ? '' : 'hidden'}>${esc(motto)}</span><img alt="" src="assets/pets/${t}/perch.png">`;
+    const el = document.createElement('button'); el.type = 'button'; el.className = 'pet-perch' + (petDock.shown ? ' still' : ''); petDock.shown = true; el.dataset.skin = t; el.dataset.mo = petLinesKey(); el.setAttribute('aria-label', SKINS[t].n);
+    const lines = petLines(), motto = lines.length ? 1 : 0; let li = 0; // 말풍선: 선생님 한마디 · 내 한마디 (누가 한 말인지 위에 작게) · 둘 다 있으면 번갈아
+    el.innerHTML = `${t === 'kuromi' ? '<span class="pet-hts" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : t === 'bamdol' ? '<span class="pet-lvs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : ''}<span class="pet-say ${motto ? 'motto' : ''}" ${motto ? '' : 'hidden'}>${lines.length ? petSayHtml(lines[0]) : ''}</span><img alt="" src="assets/pets/${t}/perch.png">`;
     const im = $('img', el); im.onerror = () => { el.remove(); host.classList.remove('has-perch'); }; im.onload = () => { if (el.isConnected) host.classList.add('has-perch'); };
     host.appendChild(el);
     // 카드 바로 위 오른쪽에 버튼이 있으면(예: 매일 과제 요일) 그 왼쪽으로 비켜 앉음
@@ -1711,8 +1711,19 @@
     if (!RM()) play(base);
     // 같은 표정만 있으면 심심해서, 가끔 혼자 기뻐해요
     clearInterval(petDock.iv); if (!RM()) petDock.iv = setInterval(() => { if (!el.isConnected) return clearInterval(petDock.iv); if (document.hidden || el.t) return; play(petDock.alt = petDock.alt === 'perch_yay' && PET_WINK.has(t) ? 'perch_wink' : 'perch_yay'); setTimeout(() => { if (el.isConnected && !el.t) play(base); }, 2600); }, 9000 + Math.random() * 8000);
-    el.onclick = (e) => { e.stopPropagation(); const say = $('.pet-say', el); play('perch_yay'); say.textContent = cheer(); say.hidden = false; say.classList.remove('motto'); fitSay(); clearTimeout(el.t); el.t = setTimeout(() => { el.t = 0; say.textContent = motto; say.hidden = !motto; say.classList.toggle('motto', !!motto); play(base); }, 2600); if (navigator.vibrate) navigator.vibrate(20); };
+    el.onclick = (e) => { e.stopPropagation(); const say = $('.pet-say', el); play('perch_yay'); say.textContent = cheer(); say.hidden = false; say.classList.remove('motto'); fitSay(); clearTimeout(el.t); el.t = setTimeout(() => { el.t = 0; say.innerHTML = lines.length ? petSayHtml(lines[li]) : ''; say.hidden = !motto; say.classList.toggle('motto', !!motto); fitSay(); play(base); }, 2600); if (navigator.vibrate) navigator.vibrate(20); };
+    if (lines.length > 1) { const rot = setInterval(() => { if (!el.isConnected) return clearInterval(rot); if (el.t) return; li = (li + 1) % lines.length; const say = $('.pet-say', el); say.classList.remove('motto'); void say.offsetWidth; say.innerHTML = petSayHtml(lines[li]); say.classList.add('motto'); fitSay(); }, 7000); }
   }
+  // 펫 말풍선에 띄울 말: 선생님이 쓴 한마디(홈 맨 위 그 글) + 학생이 프로필에 쓴 「나의 한마디」
+  // 10/27 선생님: «니 주제를 알라» 는 정윤이가 쓴 말인데 선생님 말처럼 보였어요 → 누가 한 말인지 꼭 붙여요
+  function petLines() {
+    const out = [], n = (S.note || {}).text, mo = ((S.profile || {}).motto || '').trim();
+    if (n && n.trim()) out.push({ who: '선생님 한마디', t: n.trim() });
+    if (mo) out.push({ who: TEACHER ? `${NMI()}의 한마디` : '내 한마디', t: mo });
+    return out;
+  }
+  const petLinesKey = () => petLines().map((x) => x.t).join('|');
+  const petSayHtml = (x) => `<small class="pet-who">${esc(x.who)}</small>${esc(x.t.length > 44 ? x.t.slice(0, 43) + '…' : x.t)}`;
   function skinSheet() {
     sheet(`<h2>홈 화면 설정</h2><p class="sub">테마를 고르면 앱 색과 따라다니는 인형이 바뀌어요</p><div class="skin-grid">${['ghost', ...owned()].map((k) => `<button type="button" class="skin-it ${skin() === k ? 'on' : ''}" data-skin="${k}" style="--sk:${SKINS[k].c}"><span class="skin-pic"><img src="${skinPic(k)}" alt=""></span><b>${k === 'ghost' ? '기본 테마' : esc(SKINS[k].n) + ' 테마'}</b><i class="skin-sw"></i></button>`).join('')}</div>`, (el, close) => {
       $$('[data-skin]', el).forEach((b) => (b.onclick = () => { const k = b.dataset.skin; close(); if (skin() === k) return; S.profile.skin = k; save('profile'); render(); toast(k === 'ghost' ? '기본 테마로 바꿨어요' : `${SKINS[k].n} 테마로 바꿨어요`); }));
@@ -3127,11 +3138,11 @@
   function badgePop(list) {
     const b = list[0]; if (!b) return;
     const all = BADGES.every(pHas);
-    const el = document.createElement('div'); el.className = 'bdg-pop';
-    el.innerHTML = `<div class="bdg-card"><div class="bdg-rays"></div><div class="bdg-ic">${ic(b.i)}</div><p class="bdg-eb">${esc(b.eb || '배지 획득!')}</p><h3>${esc(b.t)}</h3><p class="bdg-d">${esc(b.d)}</p>${WALLET && b.w ? `<p class="bdg-won">+${b.w.toLocaleString()}원</p>` : ''}${all && list.length === 1 && !b.key ? `<p class="bdg-all">배지를 모두 모았어요!${WALLET ? ' 보너스 +5,000원' : ''}</p>` : ''}<button class="btn primary big block" type="button">${list.length > 1 ? '다음 배지 보기' : '좋아요'}</button></div>`;
+    const el = document.createElement('div'); el.className = 'bdg-pop' + (b.mega ? ' mega' : '');
+    el.innerHTML = `<div class="bdg-card"><div class="bdg-rays"></div><div class="bdg-ic">${ic(b.i)}</div><p class="bdg-eb">${esc(b.eb || '배지 획득!')}</p><h3>${esc(b.t)}</h3><p class="bdg-d">${esc(b.d)}</p>${b.medals ? `<div class="bdg-medals">${b.medals.map((m) => `<span>🏅<b>${esc(m)}</b></span>`).join('')}</div>` : ''}${WALLET && b.w ? `<p class="bdg-won">+${b.w.toLocaleString()}원</p>` : ''}${all && list.length === 1 && !b.key ? `<p class="bdg-all">배지를 모두 모았어요!${WALLET ? ' 보너스 +5,000원' : ''}</p>` : ''}<button class="btn primary big block" type="button">${list.length > 1 ? '다음 배지 보기' : '좋아요'}</button></div>`;
     document.body.appendChild(el);
     requestAnimationFrame(() => el.classList.add('on'));
-    setTimeout(() => { const r = $('.bdg-ic', el).getBoundingClientRect(); boom(r.left + r.width / 2, r.top + r.height / 2, 6); ding(8); if (navigator.vibrate) navigator.vibrate([60, 40, 120]); }, 380);
+    setTimeout(() => { const r = $('.bdg-ic', el).getBoundingClientRect(); boom(r.left + r.width / 2, r.top + r.height / 2, 6); ding(8); if (navigator.vibrate) navigator.vibrate([60, 40, 120]); if (b.mega) [700, 1300, 1900, 2600].forEach((ms, i) => setTimeout(() => { if (!el.isConnected) return; boom(innerWidth * [0.2, 0.8, 0.35, 0.65][i], innerHeight * 0.3, 6); ding(8); }, ms)); }, 380);
     setTimeout(() => { if (WALLET && b.w) earn(b.key || 'badge:' + b.id, b.w, b.key ? b.t : `배지 · ${b.t}`, { bonus: true, from: $('.bdg-won', el) }); if (all && list.length === 1 && !b.key) earn('badge:all', 5000, '배지 모두 모음', { bonus: true, from: $('.bdg-won', el) }); }, 900);
     const close = () => { el.classList.remove('on'); setTimeout(() => { el.remove(); if (b.done) b.done(); badgePop(list.slice(1)); }, 260); };
     $('button', el).onclick = close; el.onclick = (e) => { if (e.target === el) close(); };
@@ -3742,12 +3753,28 @@
       S.jg = S.jg || {}; S.jg['u' + u.no + ':' + q.id] = { ok, v: String(v).trim(), at: Date.now() };
       if (ok) { gotIt(id); clearWrong(id); UI.jgRun = (UI.jgRun || 0) + 1; ding(UI.jgRun); if (el) { const b = el.getBoundingClientRect(); boom(b.left + b.width / 2, b.top, UI.jgRun >= 5 ? 2 : 1); } }
       else { UI.jgRun = 0; addWrong(id, { src: 'jg', subj: 'eng', subjName: '영어', area: `Grammar Unit ${u.no}`, sub: q.section, title: String(q.prompt).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60), ref: { u: u.no, id: q.id } }); }
-      save('jg'); render();
+      save('jg'); render(); jgCheer(u, r);
     };
     $$('[data-jo]').forEach((b) => (b.onclick = () => mark(q.choices[+b.dataset.jo], b)));
     const inp = $('#jg-in'), okb = $('#jg-ok');
     if (inp && okb) { okb.onclick = () => mark(inp.value, okb); inp.onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); mark(inp.value, okb); } }; setTimeout(() => inp.focus({ preventScroll: true }), 50); }
     const n = $('#next'); if (n) n.onclick = () => { UI.run = { ...r, show: qs.findIndex((x) => !jgRec(u, x)) }; render(); window.scrollTo(0, 0); };
+  }
+  // 그래머 축하 (선생님 10/27 «주아가 그래머 다 풀면 아주 큰 뱃지랑 동기부여 팡팡»)
+  // 숙제 한 조각 끝 → 팡팡 · 한 단계(배우기·실전·책 덮고) 끝 → 배지 · 한 과 전부 끝 → 「Unit 마스터」 아주 크게. 한 번만 (S.jgb)
+  function jgCheer(u, r) {
+    const all = (k) => { const qs = jgQs(u, k); return !qs.length || qs.every((q) => jgRec(u, q)); }, okN = (qs) => qs.filter((q) => (jgRec(u, q) || {}).ok).length;
+    const B = (S.jgb = S.jgb || {}), step = +r.step || 2, nm = NM() + (jongOf(NM()) ? '아' : '야');
+    if ([2, 3, 4].every(all) && !B['u' + u.no]) {
+      const qs = [2, 3, 4].flatMap((k) => jgQs(u, k)); B['u' + u.no] = Date.now(); save('jgb');
+      return setTimeout(() => badgePop([{ id: 'jgu' + u.no, key: 'jgu:' + u.no, w: 0, i: 'trophy', mega: 1, eb: '🏆 그래머 마스터', t: `Unit ${u.no} 완전 정복!`, d: `${nm}, 배우기·실전·책 덮고 ${qs.length}문제를 끝까지 다 해냈어! ${okN(qs)}개 맞혔어요. 진짜 대단해, 선생님이 제일 자랑스러워할 거야`, medals: [2, 3, 4].map((k) => JG_STEP[k]) }]), 500);
+    }
+    if (all(step) && !B[`u${u.no}:${step}`]) {
+      const qs = jgQs(u, step); B[`u${u.no}:${step}`] = Date.now(); save('jgb');
+      const left = [2, 3, 4].filter((k) => !all(k)).map((k) => JG_STEP[k]);
+      return setTimeout(() => badgePop([{ id: `jgs${u.no}-${step}`, key: `jgs:${u.no}:${step}`, w: 0, i: step === 4 ? 'crown' : step === 3 ? 'medal' : 'star', eb: '🎉 배지 획득!', t: `Unit ${u.no} ${JG_STEP[step]} 완주!`, d: `${qs.length}문제 중 ${okN(qs)}개 맞혔어요. ${left.length ? `이제 ${left.join('·')}만 하면 「Unit ${u.no} 마스터」 배지예요!` : ''}` }]), 500);
+    }
+    if (r.secs && r.secs.length) { const qs = jgQs(u, step, r.secs), k = `u${u.no}:${step}:${r.secs.join('')}`; if (qs.every((q) => jgRec(u, q)) && !B[k]) { B[k] = Date.now(); save('jgb'); setTimeout(() => { boom(innerWidth / 2, innerHeight * 0.4, 4); ding(8); toast(`숙제 하나 끝! ${okN(qs)}/${qs.length} 맞혔어요 🎉`); }, 300); } }
   }
   function gramLib() {
     if (!JG.length) return '';
@@ -4536,7 +4563,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272251'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272257'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
