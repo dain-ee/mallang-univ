@@ -4472,7 +4472,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610271021'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272103'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -4548,94 +4548,112 @@
     if (R.perf.length) o.push(`수행평가 ${R.perf.length}개 준비를 끝냈어요.`);
     return o.slice(0, 5);
   }
-  // 그림: 먼저 높이를 재고(ops 에 그릴 일을 쌓고) 그다음 한 번에 그려요. 엄마가 휴대폰 카톡에서 보니까 글자를 크게
+  // 그림: 엄마가 카톡에서 한눈에 보게 (10/27 선생님: 길고 안 예뻐요, 한눈에 안 들어와요, 로고도 없어요 · 너무 짧게 말고 적당히 자세히)
+  // 연회색 바탕에 흰 카드: 로고 머리 → 파란 큰 숫자 → 한눈에 보기 세 줄 → 세 칸(맞힌 비율 고리·공부한 날 점·시간/연속) → 날마다 막대 → 한 것(아이콘·개수·예시 한 줄) → 문제 맞힌 비율 → 모의고사 등급
+  const PR_IC = { '기말 예습': '1f4da', '인강': '1f3a7', '학원·학교 숙제': '270f', '기사 읽기': '1f4f0', '수행평가 준비': '1f4cb', '과학 문제': '1f9ea', '선생님 숙제': '1f4cc', '학교 기록': '1f3eb', '영어': '1f4d6', '모의고사': '1f4dd', top: '1f3c6', fire: '1f525' };
+  const PR_IMG = {};
+  const prLoad = () => Promise.all([['mark', 'assets/mark.svg'], ...Object.values(PR_IC).map((k) => [k, `icons/${k}.svg`])].map(([k, src]) => PR_IMG[k] ? null : new Promise((ok) => { const im = new Image(); im.onload = () => { PR_IMG[k] = im; ok(); }; im.onerror = ok; im.src = src; })));
   function prDraw(R, P, name) {
-    const W = 720, M = 36, CW = W - M * 2, SC = 2, FF = '"Pretendard", "Apple SD Gothic Neo", system-ui, sans-serif', fnt = (w, s) => `${w} ${s}px ${FF}`;
-    const C = { t1: '#191f28', t2: '#4e5968', t3: '#8b95a1', line: '#e5e8eb', fill: '#f2f4f6', blue: '#3182f6', bsoft: '#e8f3ff', green: '#03b26c', gsoft: '#e5f8ef' };
-    const mc = document.createElement('canvas').getContext('2d'), ops = []; let y = M;
-    const wrap = (t, w, f) => { mc.font = f; const out = []; for (const para of String(t || '').split('\n')) { let line = ''; for (const tk of para.split(/(\s+)/)) { if (mc.measureText(line + tk).width <= w) { line += tk; continue; } if (line.trim()) out.push(line.trimEnd()); line = tk.trimStart(); while (mc.measureText(line).width > w) { let k = line.length; while (k > 1 && mc.measureText(line.slice(0, k)).width > w) k--; out.push(line.slice(0, k)); line = line.slice(k); } } out.push(line.trimEnd()); } return out; };
+    const W = 720, M = 24, CW = W - M * 2, PD = 24, SC = 2, FF = '"Pretendard", "Apple SD Gothic Neo", system-ui, sans-serif', fnt = (w, s) => `${w} ${s}px ${FF}`;
+    const C = { bg: '#f2f4f6', card: '#ffffff', t1: '#191f28', t2: '#4e5968', t3: '#8b95a1', t4: '#b0b8c1', line: '#e5e8eb', fill: '#f2f4f6', blue: '#3182f6', bd: '#1b64da', bl: '#90c2ff', bsoft: '#e8f3ff', green: '#03b26c', gsoft: '#e5f8ef' };
+    const mc = document.createElement('canvas').getContext('2d'), ops = []; let y = 0;
+    const tw = (t, f) => { mc.font = f; return mc.measureText(t).width; };
+    const cut = (t, w, f) => { if (tw(t, f) <= w) return t; let k = t.length; while (k > 1 && tw(t.slice(0, k) + '…', f) > w) k--; return t.slice(0, k) + '…'; };
     const rr = (c, x, yy, w, h, r) => { c.beginPath(); c.moveTo(x + r, yy); c.arcTo(x + w, yy, x + w, yy + h, r); c.arcTo(x + w, yy + h, x, yy + h, r); c.arcTo(x, yy + h, x, yy, r); c.arcTo(x, yy, x + w, yy, r); c.closePath(); };
     const text = (t, x, yy, f, col, al = 'left') => ops.push((c) => { c.font = f; c.fillStyle = col; c.textAlign = al; c.textBaseline = 'alphabetic'; c.fillText(t, x, yy); });
-    const box = (x, yy, w, h, r, col) => ops.push((c) => { rr(c, x, yy, w, h, r); c.fillStyle = col; c.fill(); });
-    const head = (t, right) => { y += 36; text(t, M, y, fnt(800, 21), C.t1); if (right) text(right, W - M, y, fnt(700, 16), C.blue, 'right'); y += 18; };
-    const len = R.days.length, one = len === 1;
-    // 머리
-    text('말랑대학 · 공부 리포트', M, y + 14, fnt(700, 15), C.blue); y += 52;
-    text(`${name} 공부 리포트`, M, y, fnt(800, 32), C.t1); y += 34;
-    text(one ? mdw(R.a) : `${mdw(R.a)} ~ ${mdw(R.b)} · ${len}일`, M, y, fnt(500, 17), C.t3); y += 26;
+    const box = (x, yy, w, h, r, col) => ops.push((c) => { rr(c, x, yy, w, h, r); c.fillStyle = typeof col === 'function' ? col(c) : col; c.fill(); });
+    const card = (yy, h) => ops.push((c) => { c.save(); c.shadowColor = 'rgba(0,27,55,.06)'; c.shadowBlur = 16; c.shadowOffsetY = 4; rr(c, M, yy, CW, h, 24); c.fillStyle = C.card; c.fill(); c.restore(); });
+    const img = (k, x, yy, s) => { const im = PR_IMG[k]; if (im) ops.push((c) => c.drawImage(im, x, yy, s, s)); };
+    const dot = (x, yy, r, col) => ops.push((c) => { c.beginPath(); c.arc(x, yy, r, 0, Math.PI * 2); c.fillStyle = col; c.fill(); });
+    const ring = (x, yy, r, p, col) => ops.push((c) => { c.lineWidth = 11; c.lineCap = 'round'; c.strokeStyle = C.fill; c.beginPath(); c.arc(x, yy, r, 0, Math.PI * 2); c.stroke(); if (p > 0) { c.strokeStyle = col; c.beginPath(); c.arc(x, yy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, p)); c.stroke(); } });
+    const h2 = (t, yy, right) => { text(t, M + PD, yy + 40, fnt(700, 18), C.t1); if (right) text(right, W - M - PD, yy + 40, fnt(600, 14), C.t3, 'right'); };
+    const len = R.days.length, one = len === 1, pct = R.qn ? Math.round((R.qok / R.qn) * 100) : null, act = R.days.map((d, k) => R.mins[k] > 0 || R.cnt[k] > 0);
+    const per = one ? '하루' : len <= 7 ? '한 주' : R.a.endsWith('-01') && R.a.slice(0, 7) === R.b.slice(0, 7) ? `${+R.a.slice(5, 7)}월` : `${len}일`;
+    // 머리: 로고 + 이름
+    y = 32; if (PR_IMG.mark) { const y0 = y; ops.push((c) => { c.save(); rr(c, M + 4, y0, 34, 34, 10); c.clip(); c.drawImage(PR_IMG.mark, M + 4, y0, 34, 34); c.restore(); }); } text('말랑대학', M + 48, y + 24, fnt(800, 19), C.t1); text('공부 리포트', M + 48 + tw('말랑대학', fnt(800, 19)) + 8, y + 24, fnt(600, 17), C.t3);
+    y += 76; text(`${name}의 ${per}`, M + 4, y, fnt(800, 32), C.t1); text(one ? mdw(R.a) : `${mdw(R.a)} ~ ${mdw(R.b)}`, M + 4, y + 30, fnt(500, 16), C.t3); y += 54;
+    // 파란 큰 숫자
+    { const h = 172, y0 = y;
+      ops.push((c) => { c.save(); c.shadowColor = 'rgba(49,130,246,.28)'; c.shadowBlur = 20; c.shadowOffsetY = 6; rr(c, M, y0, CW, h, 24); const g = c.createLinearGradient(M, y0, W - M, y0 + h); g.addColorStop(0, '#3182f6'); g.addColorStop(1, '#5b9bff'); c.fillStyle = g; c.fill(); c.restore(); });
+      const big = R.items.length ? [`${R.items.length}`, '개', `${per} 동안 끝낸 공부`] : R.tot ? [hm(R.tot), '', '공부 시간'] : ['0', '개', '끝낸 공부'];
+      text(big[2], M + 28, y + 46, fnt(600, 17), 'rgba(255,255,255,.85)');
+      text(big[0], M + 28, y + 124, fnt(800, 66), '#ffffff'); if (big[1]) text(big[1], M + 34 + tw(big[0], fnt(800, 66)), y + 124, fnt(700, 28), '#ffffff');
+      const side = [];
+      if (!one && R.on) side.push(`${len}일 중 ${R.on}일 공부`);
+      if (P.items.length && R.items.length) { const dd = R.items.length - P.items.length; if (dd > 0) side.push(`지난번보다 ${dd}개 더`); }
+      if (side.length < 2 && pct != null) side.push(`문제 ${pct}% 맞힘`);
+      y += h + 12;
+      // 알약은 판 오른쪽에 위아래로
+      side.slice(0, 2).forEach((s, k) => { const w = tw(s, fnt(700, 15)) + 28, py = y0 + 48 + k * 46; box(W - M - 24 - w, py, w, 36, 18, 'rgba(255,255,255,.2)'); text(s, W - M - 24 - w / 2, py + 24, fnt(700, 15), '#ffffff', 'center'); });
+    }
     // 한눈에 보기
-    { const ls = prSum(R, P, name).flatMap((t) => wrap('· ' + t, CW - 48, fnt(600, 17))), h = 66 + ls.length * 28;
-      box(M, y, CW, h, 18, C.bsoft); text('한눈에 보기', M + 24, y + 38, fnt(800, 17), C.blue);
-      ls.forEach((l, k) => text(l, M + 24, y + 70 + k * 28, fnt(600, 17), C.t1)); y += h + 12; }
-    // 큰 숫자 세 칸
-    const tiles = [];
-    if (R.items.length) tiles.push(['끝낸 공부', `${R.items.length}개`, '숙제·인강·문제']);
-    if (R.qn) tiles.push(['맞힌 비율', `${Math.round((R.qok / R.qn) * 100)}%`, `${R.qn}문제 중 ${R.qok}개`]);
-    if (!one && R.on) tiles.push(['공부한 날', `${R.on}일`, `${len}일 중`]);
-    if (tiles.length < 3 && R.tot) tiles.push(['공부 시간', hm(R.tot), one ? '직접 적은 시간·타이머' : '직접 적은 시간']);
-    if (tiles.length) {
-      const n = Math.min(3, tiles.length), g = 12, tw = (CW - g * (n - 1)) / n, th = 124;
-      tiles.slice(0, 3).forEach(([l, v, s], k) => { const x = M + k * (tw + g); box(x, y, tw, th, 18, k === 0 ? C.bsoft : C.fill); text(l, x + 20, y + 34, fnt(600, 15), C.t2); text(v, x + 20, y + 76, fnt(800, v.length > 7 ? 24 : 30), k === 0 ? C.blue : C.t1); text(s, x + 20, y + 104, fnt(500, 13), C.t3); });
-      y += th;
-    } else { y += 12; text('이 기간에는 앱에 남은 기록이 없어요', M, y + 20, fnt(600, 18), C.t2); y += 28; }
-    // 성장: 바로 앞 같은 길이 기간과 견줘요
-    const g = [];
-    const cmp = (l, a0, b0, f) => { if (!a0) return; /* 앞 기간 기록이 없으면(앱 쓰기 전) 「안 했다」로 읽히니 견주지 않아요 */ const up = b0 > a0, pct = a0 ? Math.round(((b0 - a0) / a0) * 100) : null; g.push({ l, s: `${f(a0)} → ${f(b0)}`, d: a0 ? (pct > 0 ? `+${pct}%` : pct < 0 ? `${pct}%` : '같아요') : b0 ? '새로 시작' : '', up: up || pct === 0 }); };
-    if (P.tot || P.items.length || P.qn) {
-      cmp('공부 시간', P.tot, R.tot, (m) => (m ? hm(m) : '0분'));
-      cmp('끝낸 공부', P.items.length, R.items.length, (n) => `${n}개`);
-      cmp('푼 문제', P.qn, R.qn, (n) => `${n}문제`);
-      if (P.qn >= 5 && R.qn >= 5) { const pa = Math.round((P.qok / P.qn) * 100), pb = Math.round((R.qok / R.qn) * 100); g.push({ l: '맞힌 비율', s: `${pa}% → ${pb}%`, d: pb > pa ? `+${pb - pa}%p` : pb < pa ? `${pb - pa}%p` : '같아요', up: pb >= pa }); }
+    { const ls = prSum(R, P, name).slice(0, 4), lh = 32, h = 64 + ls.length * lh + 8;
+      card(y, h); h2('한눈에 보기', y);
+      ls.forEach((t, k) => { const yy = y + 76 + k * lh; dot(M + PD + 7, yy - 6, 4, C.blue); text(cut(t, CW - PD * 2 - 22, fnt(500, 16)), M + PD + 22, yy, fnt(500, 16), C.t2); });
+      y += h + 12; }
+    // 세 칸
+    { const tiles = [];
+      if (pct != null) tiles.push('ring');
+      if (!one) tiles.push('days');
+      if (R.tot && R.items.length) tiles.push('time');
+      if (tiles.length < 3 && R.best >= 2) tiles.push('run');
+      if (tiles.length < 3 && R.wrOk) tiles.push('wr');
+      if (tiles.length) {
+        const n = tiles.length, g = 12, w = (CW - g * (n - 1)) / n, h = 176;
+        tiles.forEach((k, i) => { const x = M + i * (w + g), cx = x + w / 2, y0 = y;
+          ops.push((c) => { c.save(); c.shadowColor = 'rgba(0,27,55,.06)'; c.shadowBlur = 16; c.shadowOffsetY = 4; rr(c, x, y0, w, h, 22); c.fillStyle = C.card; c.fill(); c.restore(); });
+          if (k === 'ring') { ring(cx, y + 74, 42, pct / 100, C.blue); text(`${pct}%`, cx, y + 82, fnt(800, 23), C.t1, 'center'); text('맞힌 비율', cx, y + 148, fnt(700, 15), C.t1, 'center'); text(`${R.qn}문제 중 ${R.qok}개`, cx, y + 166, fnt(500, 12), C.t3, 'center'); }
+          else if (k === 'days') { if (len <= 7) { const s = Math.min(26, (w - 36) / len), x0 = cx - (s * (len - 1)) / 2; R.days.forEach((d, j) => { dot(x0 + s * j, y + 62, s * 0.38, act[j] ? C.blue : C.fill); text(wdOf(d), x0 + s * j, y + 96, fnt(600, 12), act[j] ? C.t2 : C.t4, 'center'); }); } else text(`${R.on}일`, cx, y + 90, fnt(800, 36), C.t1, 'center');
+            text('공부한 날', cx, y + 148, fnt(700, 15), C.t1, 'center'); text(`${len}일 중 ${R.on}일`, cx, y + 166, fnt(500, 12), C.t3, 'center'); }
+          else { const [v, l, s, ik] = k === 'time' ? [hm(R.tot), '공부 시간', '직접 적은 시간', null] : k === 'run' ? [`${R.best}일`, '이어서 공부', '하루도 안 빠지고', 'fire'] : [`${R.wrOk}개`, '오답 다시 맞힘', '틀렸던 문제', null];
+            if (ik) img(ik, cx - 18, y + 28, 36); text(v, cx, ik ? y + 112 : y + 92, fnt(800, v.length > 6 ? 24 : 32), k === 'wr' ? C.green : C.t1, 'center'); text(l, cx, y + 148, fnt(700, 15), C.t1, 'center'); text(s, cx, y + 166, fnt(500, 12), C.t3, 'center'); }
+        });
+        y += h + 12;
+      } }
+    // 날마다 끝낸 공부
+    { const V = R.items.length ? R.cnt : R.mins, mx = Math.max(0, ...V);
+      if (!one && mx > 0) {
+        const h = 214, top = y + 74, ch = 92, base = top + ch, bw = (CW - PD * 2) / len, w0 = Math.min(32, bw * 0.6), lab = len <= 10;
+        card(y, h); h2(R.items.length ? '날마다 끝낸 공부' : '날마다 공부 시간', y, `하루 가장 많이 ${R.items.length ? mx + '개' : hm(mx)}`);
+        R.days.forEach((d, k) => { const m = V[k], bh = m ? Math.max(6, (m / mx) * ch) : 4, cx = M + PD + bw * k + bw / 2;
+          box(cx - w0 / 2, base - bh, w0, bh, Math.min(8, w0 / 2), m === mx && m ? C.blue : m ? C.bl : C.fill);
+          if (lab && m) text(R.items.length ? `${m}개` : hm(m).replace(' ', ''), cx, base - bh - 7, fnt(700, 12), m === mx ? C.blue : C.t3, 'center');
+          if (lab) text(`${+d.slice(8)}일 ${wdOf(d)}`, cx, base + 24, fnt(600, 12), C.t3, 'center'); else if (k === 0 || k === len - 1 || +d.slice(8) % 7 === 1) text(`${+d.slice(5, 7)}/${+d.slice(8)}`, cx, base + 24, fnt(600, 11), C.t3, 'center'); });
+        y += h + 12;
+      } }
+    // 이런 걸 했어요: 아이콘 · 종류 · 개수 · 예시 한 줄
+    { const E = Object.entries(R.cats).sort((p, q) => q[1].length - p[1].length);
+      if (E.length) {
+        const rh = 66, h = 64 + E.length * rh + 4;
+        card(y, h); h2('이런 걸 했어요', y, `모두 ${R.items.length}개`);
+        E.forEach(([cat, L], k) => { const yy = y + 62 + k * rh, it = L[L.length - 1], ex = it.t === '학교에서 한 것' ? String(it.d || '') : it.t.replace(/^(국어|과학|한국사|사회|역사|통합사회|통합과학)\s*인강 · /, '$1 · ');
+          box(M + PD, yy + 8, 44, 44, 14, C.fill); img(PR_IC[cat] || '1f4da', M + PD + 9, yy + 17, 26);
+          text(cat, M + PD + 60, yy + 27, fnt(700, 16), C.t1); text(cut(ex, CW - PD * 2 - 60 - 64, fnt(500, 13)), M + PD + 60, yy + 49, fnt(500, 13), C.t3);
+          text(`${L.length}개`, W - M - PD, yy + 37, fnt(800, 17), k === 0 ? C.blue : C.t2, 'right');
+          if (k < E.length - 1) box(M + PD + 60, yy + rh - 1, CW - PD * 2 - 60, 1, 0, C.line); });
+        y += h + 12;
+      } }
+    // 문제 맞힌 비율 (종류별)
+    if (R.acc.length) {
+      const rh = 46, h = 64 + R.acc.length * rh + 8;
+      card(y, h); h2('문제 맞힌 비율', y, `${R.qn}문제 중 ${R.qok}개`);
+      R.acc.forEach((r, k) => { const yy = y + 66 + k * rh, p = Math.round((r.ok / r.n) * 100), bx = M + PD + 150, bw = CW - PD * 2 - 150 - 92;
+        text(r.t, M + PD, yy + 18, fnt(600, 15), C.t2); box(bx, yy + 6, bw, 14, 7, C.fill); box(bx, yy + 6, Math.max(14, (bw * r.ok) / r.n), 14, 7, p >= 80 ? C.blue : C.bl);
+        text(`${p}%`, W - M - PD, yy + 19, fnt(800, 16), p >= 80 ? C.blue : C.t2, 'right'); text(`${r.ok}/${r.n}`, W - M - PD - 48, yy + 19, fnt(500, 13), C.t3, 'right'); });
+      y += h + 12;
     }
-    if (g.length || R.best >= 2) {
-      if (g.length) head('지난번보다', one ? `${md(P.a)}과 견줘서` : `${md(P.a)}~${md(P.b)}과 견줘서`); else head('꾸준히 했어요');
-      for (const r of g) { y += 10; box(M, y, CW, 60, 14, r.up ? C.gsoft : C.fill); text(r.l, M + 20, y + 38, fnt(700, 17), C.t1); text(r.s, M + 150, y + 38, fnt(500, 16), C.t2); text(r.d, W - M - 20, y + 38, fnt(800, 18), r.up ? C.green : C.t3, 'right'); y += 60; }
-      if (R.best >= 2) { y += 10; box(M, y, CW, 60, 14, C.bsoft); text('이어서 공부한 날', M + 20, y + 38, fnt(700, 17), C.t1); text(`${R.best}일 연속`, W - M - 20, y + 38, fnt(800, 18), C.blue, 'right'); y += 60; }
+    // 모의고사 등급
+    if (R.mocks.length) {
+      const L = R.mocks.slice(0, 6), n = Math.min(3, L.length), g = 8, w = (CW - PD * 2 - g * (n - 1)) / n, rows = Math.ceil(L.length / n), h = 64 + rows * 88 + 12;
+      card(y, h); h2('모의고사', y, L[0].t.replace(/ \S+$/, ''));
+      L.forEach((m, i) => { const x = M + PD + (i % n) * (w + g), yy = y + 62 + Math.floor(i / n) * 88, top2 = m.grade && m.grade <= 2;
+        box(x, yy, w, 80, 16, top2 ? C.bsoft : C.fill); text(m.t.split(' ').pop(), x + 16, yy + 30, fnt(600, 14), C.t2);
+        text(m.grade ? `${m.grade}등급` : `${m.raw}점`, x + 16, yy + 64, fnt(800, 22), top2 ? C.blue : C.t1); if (m.grade) text(`${m.raw}점`, x + w - 14, yy + 64, fnt(500, 13), C.t3, 'right'); });
+      y += h + 12;
     }
-    // 날짜별 막대
-    const byN = R.items.length > 0, V = byN ? R.cnt : R.mins, vf = (m) => (byN ? `${m}개` : hm(m).replace(' ', ''));
-    if (!one && Math.max(0, ...V) > 0) {
-      head(byN ? '날짜별로 끝낸 공부' : '날짜별 공부 시간', `하루 가장 많이 ${byN ? Math.max(...V) + '개' : hm(Math.max(...V))}`);
-      const ch = 170, top = y + 34, base = top + ch, mx = Math.max(...V), bw = CW / len, w0 = Math.min(44, bw * 0.62), lab = len <= 10;
-      ops.push((c) => { c.strokeStyle = C.line; c.lineWidth = 1; c.beginPath(); c.moveTo(M, base + 0.5); c.lineTo(W - M, base + 0.5); c.stroke(); });
-      R.days.forEach((d, k) => {
-        const m = V[k], h = m ? Math.max(6, (m / mx) * ch) : 0, cx = M + bw * k + bw / 2;
-        if (h) box(cx - w0 / 2, base - h, w0, h, Math.min(8, w0 / 2), m === mx ? C.blue : '#90c2ff');
-        if (lab && m) text(vf(m), cx, base - h - 8, fnt(700, len > 7 ? 11 : 13), m === mx ? C.blue : C.t2, 'center');
-        if (lab || k % Math.ceil(len / 10) === 0 || k === len - 1) { text(lab ? `${+d.slice(8)}일` : `${+d.slice(5, 7)}/${+d.slice(8)}`, cx, base + 22, fnt(600, 13), C.t2, 'center'); if (lab) text(wdOf(d), cx, base + 40, fnt(500, 12), C.t3, 'center'); }
-      });
-      y = base + (lab ? 44 : 26);
-    }
-    // 끝낸 공부 (종류별 가로 막대 · 예시는 한 줄만): 엄마가 글을 안 읽으니 막대 길이로 보여요
-    if (R.items.length) {
-      head('끝낸 공부', `모두 ${R.items.length}개`);
-      const E = Object.entries(R.cats).sort((p, q) => q[1].length - p[1].length), mx = E[0][1].length, LW = 150, BW = CW - LW - 56;
-      E.forEach(([cat, L], k) => {
-        const it = L[L.length - 1], ex = it.t === '학교에서 한 것' ? String(it.d || '') : it.t.replace(/^(국어|과학|한국사|사회|역사|통합사회|통합과학)\s*인강 · /, '$1 · '), ln = wrap(ex, CW - LW, fnt(500, 13))[0] || '';
-        y += 16; text(cat, M, y + 20, fnt(700, 16), C.t1);
-        box(M + LW, y + 6, BW, 18, 9, C.fill); box(M + LW, y + 6, Math.max(18, (BW * L.length) / mx), 18, 9, k === 0 ? C.blue : '#90c2ff');
-        text(`${L.length}개`, W - M, y + 21, fnt(800, 16), k === 0 ? C.blue : C.t2, 'right');
-        if (ln) text(ln, M + LW, y + 46, fnt(500, 13), C.t3);
-        y += ln ? 50 : 30;
-      });
-    }
-    // 문제 푼 결과
-    if (R.acc.length || R.wrOk) {
-      head('문제 푼 결과', R.qn ? `${R.qn}문제 중 ${R.qok}개 맞힘` : '');
-      for (const r of R.acc) {
-        const p = Math.round((r.ok / r.n) * 100); y += 10;
-        text(r.t, M, y + 22, fnt(600, 16), C.t1); text(`${r.n}개 중 ${r.ok}개 · ${p}%`, W - M, y + 22, fnt(700, 16), C.t2, 'right');
-        box(M, y + 34, CW, 10, 5, C.fill); if (r.ok) box(M, y + 34, Math.max(10, (CW * r.ok) / r.n), 10, 5, p >= 80 ? C.blue : '#90c2ff');
-        y += 48;
-      }
-      if (R.wrOk) { y += 10; box(M, y, CW, 60, 14, C.gsoft); text('틀렸던 문제 다시 풀어서 맞힘', M + 20, y + 38, fnt(700, 17), C.t1); text(`${R.wrOk}문제`, W - M - 20, y + 38, fnt(800, 18), C.green, 'right'); y += 60; }
-    }
-    if (R.mocks.length) { head('모의고사'); for (const m of R.mocks) { y += 10; box(M, y, CW, 56, 14, C.fill); text(m.t, M + 20, y + 35, fnt(600, 16), C.t1); text(`${m.raw}점${m.grade ? ` · ${m.grade}등급` : ''}`, W - M - 20, y + 35, fnt(800, 17), C.blue, 'right'); y += 56; } }
-    if (R.perf.length) { head('수행평가 준비 끝'); for (const t of R.perf) for (const l of wrap('· ' + t, CW, fnt(500, 16))) { y += 26; text(l, M, y, fnt(500, 16), C.t2); } y += 4; }
-    if (R.tom) { y += 20; text(`타이머로 집중한 토마토 ${R.tom}개`, M, y + 4, fnt(600, 15), C.t3); }
-    y += 34; text(`${name}가 말랑대학에 남긴 기록으로 만들었어요`, W / 2, y, fnt(500, 13), C.t3, 'center'); y += M;
+    y += 20; text(`${name}가 말랑대학에 남긴 기록으로 만들었어요`, W / 2, y, fnt(500, 13), C.t3, 'center'); y += 32;
     const cv = document.createElement('canvas'); cv.width = W * SC; cv.height = Math.ceil(y) * SC;
-    const c = cv.getContext('2d'); c.scale(SC, SC); c.fillStyle = '#ffffff'; c.fillRect(0, 0, W, y);
+    const c = cv.getContext('2d'); c.scale(SC, SC); c.fillStyle = C.bg; c.fillRect(0, 0, W, y);
     for (const f of ops) f(c);
     return cv;
   }
@@ -4668,7 +4686,7 @@
           UI.prA = A; UI.prB = B; draw(); }));
         $('#pr-go', el).onclick = async () => {
           range();
-          try { await document.fonts.load('800 20px Pretendard'); await document.fonts.load('500 16px Pretendard'); } catch (e) {}
+          try { await document.fonts.load('800 20px Pretendard'); await document.fonts.load('500 16px Pretendard'); } catch (e) {} await prLoad();
           const len = dSpan(A, B).length, cv = prDraw(prStats(A, B), prStats(addD(A, -len), addD(A, -1)), name);
           const blob = await new Promise((r) => cv.toBlob(r, 'image/png')), file = new File([blob], `${NM()}_공부리포트_${A === B ? A : A + '_' + B}.png`, { type: 'image/png' });
           const url = URL.createObjectURL(blob), canShare = !!(navigator.canShare && navigator.canShare({ files: [file] }));
@@ -5019,7 +5037,7 @@
   }
   async function dRepShow(n, L) {
     const r = rOf(n), lz = r.lesson || {}, d = dRowD(n);
-    try { await loadReport(); } catch (e) { return toast('리포트를 못 불러왔어요. 인터넷을 확인해 주세요'); }
+    try { await loadReport(); await prLoad(); } catch (e) { return toast('리포트를 못 불러왔어요. 인터넷을 확인해 주세요'); }
     const name = (d && d.profile && d.profile.name) || n, cv = r.tutor ? document.createElement('canvas') : wkCanvas(n, L.date, d);
     if (r.tutor) Report.drawReport(cv, { name, date: L.date, nth: L.nth, total: L.mt || dTotal(r, dCls(r, d), L.date), book: L.book || lz.book || '', progress: L.progress, score: L.score, scoreTotal: L.scoreTotal, lesson: lines(L.lesson), homework: lines(L.hw), comment: lines(L.comment), ...rpExtra(r, L) });
     const blob = await new Promise((ok) => cv.toBlob(ok, 'image/png')), file = new File([blob], `${name}_${L.date}${L.nth ? '_' + L.nth + '회차' : ''}.png`, { type: 'image/png' });
@@ -5030,7 +5048,7 @@
   }
   function dPv(n) {
     const img = $('#d-pv'); if (!img) return;
-    loadReport().then(() => {
+    Promise.all([loadReport(), prLoad()]).then(() => {
       if (!img.isConnected) return;
       const r = rOf(n), lz = r.lesson || {}, d = dRowD(n), L = drBuild(n), cv = r.tutor ? document.createElement('canvas') : wkCanvas(n, L.date, d);
       if (r.tutor) Report.drawReport(cv, { name: (d && d.profile && d.profile.name) || n, date: L.date, nth: L.nth, total: drOf(n).mt || dTotal(r, dCls(r, d), L.date), book: L.book || lz.book || '', progress: L.progress, score: L.score, scoreTotal: L.scoreTotal, lesson: lines(L.lesson), homework: lines(L.hw), comment: lines(L.comment), ...rpExtra(r, L) });
@@ -5253,7 +5271,7 @@
   }
   async function dReport(n, id, L0) {
     const r = rOf(n), d = await dLoad(n), c = dCls(r, d), L = L0 || c.list.find((l) => l.id === id); if (!L) return toast('그 수업 기록을 못 찾았어요');
-    const lz = r.lesson || {};
+    const lz = r.lesson || {}; if (!r.tutor) await prLoad();
     reportOpen({ name: (d && d.profile && d.profile.name) || n, L, total: L.mt || dTotal(r, c, L.date), book: L.book || lz.book || '', who: lz.parent || '어머니', extra: rpExtra(r, L), cv0: r.tutor ? null : wkCanvas(n, L.date, d),
       sent: () => { dPut(n, 'cls', (D) => { const y = ((D.cls || {}).list || []).find((l) => l.id === L.id); if (y) y.sent = Date.now(); }).then(render).catch(() => toast('보낸 표시를 못 남겼어요')); } });
   }
