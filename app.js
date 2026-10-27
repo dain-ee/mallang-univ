@@ -1734,10 +1734,10 @@
     // 말풍선은 언제나 펫 오른쪽 옆에 세로로 좁게, 카드 윗변 위에 (10/27 선생님 «위로 말고 옆으로 · 오른쪽 세로로»)
     // 오른쪽 자리가 모자라면 펫을 왼쪽으로 비켜 앉혀 자리를 만들어요
     const fitSay = () => { const sy = $('.pet-say', el); if (!sy || sy.hidden) return; sy.classList.remove('side', 'flip'); sy.classList.add('side');
-      const im = $('img', el), need = Math.min(150, innerWidth * 0.36);
-      let ir = im.getBoundingClientRect(), room = innerWidth - 8 - (ir.right + 4);
-      if (room < need) { el.style.right = `${parseFloat(getComputedStyle(el).right) + need - room}px`; ir = im.getBoundingClientRect(); room = innerWidth - 8 - (ir.right + 4); }
-      const er = el.getBoundingClientRect(), hr = host.getBoundingClientRect();
+      const im = $('img', el), need = Math.min(150, innerWidth * 0.36), hr = host.getBoundingClientRect(), edge = Math.min(innerWidth - 8, hr.right - 4);  // 앉은 카드 너비 안에서만 (옆 칸 카드를 덮지 않게)
+      let ir = im.getBoundingClientRect(), room = edge - (ir.right + 4);
+      if (room < need) { el.style.right = `${parseFloat(getComputedStyle(el).right) + need - room}px`; ir = im.getBoundingClientRect(); room = edge - (ir.right + 4); }
+      const er = el.getBoundingClientRect();
       sy.style.left = `${ir.right - er.left + 4}px`; sy.style.right = 'auto'; sy.style.top = 'auto'; sy.style.transform = 'none';
       sy.style.maxWidth = `${Math.max(96, Math.min(220, room))}px`; sy.style.bottom = `${er.bottom - hr.top + 6}px`; };
     addEventListener('resize', () => { if (el.isConnected) { fitSay(); hideHts(); } });
@@ -4604,7 +4604,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272340'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272342'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
