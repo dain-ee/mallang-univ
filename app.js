@@ -499,7 +499,7 @@
     const n = N.find((x) => !(S.nr || {})[x.id]), c = Object.keys(S.nr || {}).length, nx = (NR_BADGE.find((x) => x[0] > c) || [0, '', ''])
     if (!n) return '';
     // 10/27 선생님 «핫뉴스 카드처럼, 조금 불타는 정도» → 불꽃 아이콘만 살짝 일렁여요
-    return `<section class="card c12 hot-card link fire-lite" data-news="${esc(n.id)}"><div class="hot-ic">${ic('fire')}</div><div class="hot-b"><div class="eyebrow">오늘 꼭 읽기${(n.for || []).includes(U.who) ? ` · <b class="red">${esc(NMI())} 맞춤</b>` : ''}</div><b class="hot-t">${esc(n.title)}</b><p class="tiny" style="margin:2px 0 0">끝까지 읽고 「다 읽었어요」 누르면 🔥 불꽃 +1${nx[0] ? ` · ${nx[0] - c}개 더 읽으면 「${esc(nx[2])}」 배지` : ''}</p><div class="nr-bdgs">${NR_BADGE.map((x) => `<span class="nr-bdg ${c >= x[0] ? 'on' : ''}" title="${esc(x[3])}">${ic(x[1])}<b>${esc(x[2])}</b><small>${x[0]}개</small></span>`).join('')}</div></div></section>`;
+    return `<section class="card c12 hot-card link fire-lite" data-news="${esc(n.id)}"><div class="hot-ic">${ic('fire')}</div><div class="hot-b"><div class="eyebrow">오늘 꼭 읽기${(n.for || []).includes(U.who) ? ` · <b class="red">${esc(NMI())} 맞춤</b>` : ''}</div><b class="hot-t">${esc(n.title)}</b><p class="tiny" style="margin:2px 0 0">8초 읽으면 🔥 불꽃 +1${nx[0] ? ` · ${nx[0] - c}개 더 읽으면 「${esc(nx[2])}」 배지` : ''}</p><div class="nr-bdgs">${NR_BADGE.map((x) => `<span class="nr-bdg ${c >= x[0] ? 'on' : ''}" title="${esc(x[3])}">${ic(x[1])}<b>${esc(x[2])}</b><small>${x[0]}개</small></span>`).join('')}</div></div></section>`;
   }
   function nameCall() { return TUTOR ? esc(NM() + (jongOf(NM()) ? '아' : '야')) : `우리 ${esc(NMI())}`; }  // 정윤이만 「우리 정윤이」, 과외 학생은 「지원아」「주아야」
   function cheer() { const t = today(); let h = 0; for (const ch of t + (S.profile.name || '')) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return CHEER[h % CHEER.length]; }
@@ -758,30 +758,29 @@
   // 소식 읽기 불꽃 (10/27 선생님 «이 나이 땐 안 읽으니까 꼭 읽게, 보상·불타는 애니메이션»)
   // 8초 지나고 맨 아래까지 내려야 「다 읽었어요」가 켜져요 → 불꽃 +1 · 팡팡 · 1·3·5·10·20·30개째 배지
   const NR_BADGE = [[1, 'fire', '첫 불꽃', '첫 소식을 끝까지 읽었어요!'], [3, 'news', '소식 새싹', '소식 3개 읽었어요. 벌써 아는 게 많아졌어요'], [5, 'bulb', '세상 탐험가', '소식 5개! 친구들보다 한 발 앞서 있어요'], [10, 'medal', '소식 박사', '10개나 읽었어요. 진짜 대단해요'], [20, 'trophy', '공대생 예약', '20개! 꿈에 한 걸음 더 가까워졌어요'], [30, 'crown', '소식 왕', '30개! 이제 설명해 주는 사람이에요']];
+  // 윤건: 정윤이 동전처럼 기사 맨 위 막대가 8초 차면 불꽃 +1 이 저절로 (10/28 선생님 «몇 초 읽으면 코인처럼»)
+  const nrPill = (n) => (WALLET || TEACHER || U.who !== '윤건') ? '' : `<div class="rd-pill nr-pill${(S.nr || {})[n.id] ? ' done' : ''}" data-nrp>🔥<span class="rd-t">${(S.nr || {})[n.id] ? '불꽃 받았어요' : '8초 읽으면 불꽃 +1'}</span><i class="rd-bar"><b></b></i></div>`;
   function nrBind(el, n) {
-    const b = $('[data-nr]', el); if (!b) return;
-    const box = el.querySelector('.sheet') || el, t0 = Date.now();
-    const chk = () => { const sc = box.scrollHeight - box.clientHeight - box.scrollTop < 120 || box.scrollHeight <= box.clientHeight + 4, left = Math.ceil((8000 - (Date.now() - t0)) / 1000); if (sc && left <= 0) { b.disabled = false; $('.nr-t', b).textContent = '다 읽었어요! 불꽃 받기'; b.classList.add('ready'); } else $('.nr-t', b).textContent = left > 0 ? `천천히 읽어요 · ${left}초` : '맨 아래까지 내려요'; };
-    const tm = setInterval(() => { if (!b.isConnected) return clearInterval(tm); chk(); }, 500); box.addEventListener('scroll', chk, { passive: true }); chk();
-    b.onclick = () => {
-      if (b.disabled) return; clearInterval(tm); S.nr = S.nr || {}; S.nr[n.id] = Date.now(); save('nr');
-      const c = Object.keys(S.nr).length, r = b.getBoundingClientRect(); boom(r.left + r.width / 2, r.top, 4); ding(8); if (navigator.vibrate) navigator.vibrate([40, 30, 80]);
-      b.outerHTML = `<div class="nr-done">🔥 불꽃 ${c}개째!</div>`;
-      const bd = NR_BADGE.find((x) => x[0] === c);
-      setTimeout(() => { closeSheet(); render(); if (bd) setTimeout(() => badgePop([{ id: 'nr' + c, key: 'nr:' + c, w: 0, i: bd[1], eb: `🔥 소식 ${c}개 읽기`, t: bd[2], d: bd[3], mega: c >= 10 ? 1 : 0 }]), 300); else toast(`🔥 불꽃 ${c}개! 다음 배지까지 ${((NR_BADGE.find((x) => x[0] > c) || [c])[0]) - c}개`); }, 700);
-    };
+    const p = $('[data-nrp]', el); if (!p || p.classList.contains('done')) return;
+    const t0 = Date.now(), T = 8000, bar = $('.rd-bar b', p), tx = $('.rd-t', p);
+    const tm = setInterval(() => { if (!p.isConnected) return clearInterval(tm); if (document.hidden) return; const f = Math.min(1, (Date.now() - t0) / T); bar.style.width = f * 100 + '%'; tx.textContent = f < 1 ? `천천히 읽어요 · ${Math.ceil((T - (Date.now() - t0)) / 1000)}초` : '';
+      if (f < 1) return; clearInterval(tm); p.classList.add('done');
+      if (PEEK) { tx.textContent = '미리 보기라 불꽃은 안 받아요'; return; }
+      S.nr = S.nr || {}; S.nr[n.id] = Date.now(); save('nr'); const c = Object.keys(S.nr).length, r = p.getBoundingClientRect(); boom(r.left + 20, r.top + r.height / 2, 3); ding(8); if (navigator.vibrate) navigator.vibrate([40, 30, 80]);
+      tx.textContent = `불꽃 ${c}개째!`; const bd = NR_BADGE.find((x) => x[0] === c);
+      if (bd) setTimeout(() => badgePop([{ id: 'nr' + c, key: 'nr:' + c, w: 0, i: bd[1], eb: `🔥 소식 ${c}개 읽기`, t: bd[2], d: bd[3], mega: c >= 10 ? 1 : 0 }]), 500); else toast(`🔥 불꽃 ${c}개! 다음 배지까지 ${((NR_BADGE.find((x) => x[0] > c) || [c])[0]) - c}개`); }, 200);
   }
+
   function newsSheet(id) {
     const N = (D.news && D.news.items) || [];
     if (id === 'all') { closeSheet(); UI.run = null; UI.tab = 'news'; render(); scrollTo(0, 0); return; }
     const n = N.find((x) => x.id === id); if (!n) return;
     sheet(`<div class="row" style="margin-bottom:12px">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'md') : `<span class="ico">${ic(nIcon(n))}</span>`}${n.must ? '<span class="tag must">꼭 읽기 · 대이슈</span>' : `<span class="tag ${n.level === '중요' ? 'red' : ''}">${esc(n.level || '참고')}</span>`}<span class="tiny">${md(n.date)} · ${esc(n.scope || '')}</span></div>
-      <h2>${esc(n.title)}</h2>${readPill('news:' + n.id, 50, '소식 읽기')}<p style="line-height:1.8;color:var(--t2)">${esc(n.body)}</p>
+      <h2>${esc(n.title)}</h2>${readPill('news:' + n.id, 50, '소식 읽기')}${nrPill(n)}<p style="line-height:1.8;color:var(--t2)">${esc(n.body)}</p>
       ${n.you ? `<div class="deep"><div class="eyebrow">${esc(S.profile.name)}에게는</div><p>${esc(n.you)}</p></div>` : ''}
       ${(n.more || []).length ? `<div class="nw-more"><div class="eyebrow">${ic('bulb')} 더 깊이 알아보기</div><ul>${n.more.map((m) => `<li>${esc(m)}</li>`).join('')}</ul></div>` : ''}
       ${keepBox('news:' + n.id, n.title, 'news', n.id, n.ask || [])}
       <div class="list" style="margin-top:16px">${(n.src || []).map((s) => `<a class="li btnlike" href="${esc(s.url)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="ico">${ic('pin')}</div><div class="body"><div class="t">${esc(s.name)}</div><div class="d">원문 보기</div></div><span class="chev"></span></a>`).join('')}</div>
-      ${!WALLET && !TEACHER && !PEEK ? ((S.nr || {})[n.id] ? '<div class="nr-done">🔥 읽었어요</div>' : '<button class="btn primary big block nr-go" style="margin-top:16px" data-nr type="button" disabled><span class="nr-fire">🔥</span> <span class="nr-t">끝까지 읽으면 눌러요</span></button>') : ''}
       <button class="btn big block" style="margin-top:16px" data-close type="button">목록으로</button>`, (el) => { $('[data-close]', el).onclick = closeSheet; nrBind(el, n); });
   }
 
@@ -4622,7 +4621,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280008'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280010'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

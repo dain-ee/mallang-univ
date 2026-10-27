@@ -2484,3 +2484,5 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .nr-bdg small { font-size: 11px; opacity: .8; }
 .nr-bdg.on { background: #fff0e6; color: #e8590c; }
 .nr-bdg.on svg { opacity: 1; }
+.nr-pill .rd-bar b { background: #ff7a1a; }
+.nr-pill.done { color: #e8590c; background: #fff0e6; }
