@@ -2754,7 +2754,8 @@
   }
 
   // ───────── 상세 화면 (픽·합격선을 누르면) ─────────
-  const NEWS_ALL = () => (D.news && D.news.items) || [];
+  const NEWS_ALL = () => ((D.news && D.news.items) || []).filter((n) => !TUTOR || (!/정윤/.test(n.title + n.body) && !['대학', '바이오', '바이오 산업'].includes(n.scope)));
+  if (TUTOR && D.news && D.news.items) D.news.items = NEWS_ALL();  // 소식 탭·홈·대학 탭 어디서든 같은 목록
   const srcList = (src) => (src || []).length ? `<div class="eyebrow" style="margin-top:20px">출처</div><div class="list">${src.map((x) => `<a class="li btnlike" href="${esc(x.url)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="ico">${ic('pin')}</div><div class="body"><div class="t" style="font-size:14px">${esc(x.name)}</div><div class="d">원문 보기</div></div><span class="chev"></span></a>`).join('')}</div>` : '';
   const newsRows = (L) => L.length ? `<div class="eyebrow" style="margin-top:20px">관련 소식</div><div class="list">${L.slice(0, 5).map((n) => `<div class="li btnlike" data-dn="${esc(n.id)}"><div class="ico">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'sm') : ic('news')}</div><div class="body"><div class="t" style="font-size:15px">${esc(n.title)}</div><div class="d">${md(n.date)} · ${esc(n.scope || '')}</div></div><span class="chev"></span></div>`).join('')}</div>` : '';
   const newsLike = (words) => NEWS_ALL().filter((n) => words.some((w) => w && (n.title + ' ' + n.body).includes(w))).sort((a, b) => String(b.date).localeCompare(String(a.date)));
@@ -4563,7 +4564,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272257'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272306'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -5439,7 +5440,11 @@
     });
     main.insertAdjacentHTML('beforeend', `<div class="skel-ov" aria-hidden="true">${bars.join('')}</div>`);
   }
+  // 폰·브라우저 뒤로가기: 문제 화면에 들어가거나 홈에서 다른 탭으로 가면 기록을 하나 쌓고, 뒤로가기는 한 칸씩 빠져나와요 (10/27 주아가 폰에서 뒤로가기가 안 됐어요)
+  const navAt = () => (UI.run ? 'run' : UI.tab);
+  window.addEventListener('popstate', () => { render.pop = 1; if (UI.run) UI.run = null; else if (UI.tab !== 'home' && !TEACHER) UI.tab = 'home'; render(); window.scrollTo(0, 0); });
   function render() {
+    { const k = navAt(), was = render.nav; if (was && k !== was && !render.pop && (k === 'run' || was === 'home')) try { history.pushState({ mu: k }, ''); } catch (e) {} render.nav = k; render.pop = 0; }
     nxReg();
     // 1학년 2학기는 아직 학기 최종 등급이 없어서, 먼저 넣은 등급은 중간고사 등급으로 옮겨요 (한 번만)
     if (S.naesin && S.naesin['1-2'] && !S.naesin._mid12) { for (const r of Object.values(S.naesin['1-2'])) if (r && r.grade && r.midG == null && r.finG == null) { r.midG = r.grade; delete r.grade; } S.naesin._mid12 = 1; save('naesin'); }
