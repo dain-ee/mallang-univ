@@ -2517,3 +2517,4 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 @keyframes wl-in-r { from { opacity: 0; transform: translateX(40px); } }
 @keyframes wl-in-l { from { opacity: 0; transform: translateX(-40px); } }
 @media (prefers-reduced-motion: reduce) { .wl-slide > * { animation: none !important; } }
+.wc-h .btn { font-size: 18px; }
