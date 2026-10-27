@@ -3587,7 +3587,11 @@
     const shown = coinPend && coinShown != null ? coinShown : bal;
     const by = {}; for (const x of w.log) (by[x.date] = by[x.date] || []).push(x);
     const dates = Object.keys(by).sort().reverse();
-    const dayBlock = (d) => { const L = by[d].slice().sort((a, b) => b.at - a.at), sum = L.reduce((a, x) => a + x.amt, 0); return `<div class="wl-day"><div class="row between"><b>${d === today() ? '오늘' : md(d)}</b><span class="num blue" style="font-weight:700">+${won(sum)}</span></div><div class="list">${L.map((x) => `<div class="li" style="padding:6px 0"><div class="body"><div class="t" style="font-size:14px;font-weight:500">${esc(x.why)}${x.bonus ? ' <span class="tag amber">보너스</span>' : ''}</div></div><span class="num wl-plus">+${won(x.amt)}</span></div>`).join('')}</div></div>`; };
+    // 모은 기록: 하루씩 ‹ › 로 넘겨 보고, 날짜를 골라 바로 가요. 같은 이유는 한 줄로 묶어요 (10/28 선생님 «주르륵 말고»)
+    const dayBlock = (d) => { const G = []; for (const x of by[d].slice().sort((a, b) => b.at - a.at)) { const g = G.find((y) => y.why === x.why && !!y.bonus === !!x.bonus); if (g) { g.n++; g.amt += x.amt; } else G.push({ why: x.why, bonus: x.bonus, amt: x.amt, n: 1 }); } const sum = G.reduce((a, x) => a + x.amt, 0);
+      return `<div class="wl-day"><div class="row between"><b>${d === today() ? '오늘' : md(d) + ' ' + wdName(d)}</b><span class="num blue" style="font-weight:700">+${won(sum)}</span></div><div class="list">${G.map((x) => `<div class="li" style="padding:6px 0"><div class="body"><div class="t" style="font-size:14px;font-weight:500">${esc(x.why)}${x.n > 1 ? ` <span class="tiny">× ${x.n}</span>` : ''}${x.bonus ? ' <span class="tag amber">보너스</span>' : ''}</div></div><span class="num wl-plus">+${won(x.amt)}</span></div>`).join('')}</div></div>`; };
+    const wi = Math.min(Math.max(0, UI.wlDay || 0), Math.max(0, dates.length - 1)), wd = dates[wi];
+    const dayNav = dates.length ? `<div class="wl-nav"><button class="btn sm" type="button" data-wlnav="1" ${wi >= dates.length - 1 ? 'disabled' : ''} aria-label="전날">‹</button><label class="wl-pick"><b>${wd === today() ? '오늘' : md(wd) + ' ' + wdName(wd)}</b><span class="tiny">${wi + 1} / ${dates.length}일 · 눌러서 날짜 고르기</span><input type="date" data-wldate min="${dates[dates.length - 1]}" max="${dates[0]}" value="${wd}"></label><button class="btn sm" type="button" data-wlnav="-1" ${wi <= 0 ? 'disabled' : ''} aria-label="다음 날">›</button></div>` : '';
     const paidRows = w.paid.slice().sort((a, b) => b.at - a.at);
     const ex = w.req ? `<div class="deep wl-req">${ic('gift')}<div><b>선생님께 바꿔 달라고 했어요</b><p style="margin:2px 0 0">${md(dateOf(w.req.at))}에 ${won(w.req.amt)}을 신청했어요. 선생님이 진짜 돈으로 주시면 여기서 빠져요</p></div></div>`
       : `<button class="btn ${bal >= W_GOAL ? 'primary' : ''} big block" id="wl-ex" type="button" ${bal >= W_GOAL && !TEACHER ? '' : 'disabled'}>${ic('cash')} ${bal >= W_GOAL ? '5만원 바꾸기' : `5만원 바꾸기 · 앞으로 ${won(rem)}`}</button>`;
@@ -3612,10 +3616,12 @@
         <div class="list earn-grid">${EARN.map((x) => `<div class="li" style="padding:8px 0"><div class="ico">${ic(x.i)}</div><div class="body"><div class="t" style="font-size:15px">${esc(x.t)}</div>${x.d ? `<div class="d">${esc(x.d)}</div>` : ''}</div><span class="num wl-plus">${esc(x.a)}</span></div>`).join('')}</div></section>
       ${teach}
       <section class="card c12"><div class="card-h"><h2>모은 기록</h2><span class="tiny">${dates.length ? `${dates.length}일 동안 ${won(w.log.reduce((a, x) => a + x.amt, 0))}` : ''}</span></div>
-        ${dates.length ? dates.slice(0, 7).map(dayBlock).join('') + (dates.length > 7 ? `<details class="hw-more"><summary>지난 기록 ${dates.length - 7}일 더 보기</summary>${dates.slice(7).map(dayBlock).join('')}</details>` : '') : `<div class="empty">${ic('coin')}<b>아직 모은 돈이 없어요</b><span>토마토 하나, 소식 하나부터 시작해요</span></div>`}</section>
+        ${dates.length ? dayNav + dayBlock(wd) : `<div class="empty">${ic('coin')}<b>아직 모은 돈이 없어요</b><span>토마토 하나, 소식 하나부터 시작해요</span></div>`}</section>
       ${paidRows.length ? `<section class="card c12"><div class="card-h"><h2>진짜 돈으로 바꾼 기록</h2></div><div class="list">${paidRows.map((x) => `<div class="li" style="padding:8px 0"><div class="ico">${ic('cash')}</div><div class="body"><div class="t" style="font-size:15px">${won(x.amt)} 받았어요</div><div class="d">${md(dateOf(x.at))}${x.memo ? ' · ' + esc(x.memo) : ''}</div></div></div>`).join('')}</div></section>` : ''}
       </div></div>`;
   }
+  document.addEventListener('click', (e) => { const b = e.target.closest('[data-wlnav]'); if (!b || b.disabled) return; UI.wlDay = Math.max(0, (UI.wlDay || 0) + +b.dataset.wlnav); render(); });
+  document.addEventListener('change', (e) => { const i = e.target.closest && e.target.closest('[data-wldate]'); if (!i || !i.value) return; const L = Object.keys(W().log.reduce((o, x) => ((o[x.date] = 1), o), {})).sort().reverse(); let k = L.findIndex((d) => d <= i.value); if (k < 0) k = L.length - 1; UI.wlDay = k; render(); });
   // 학생 기기에서 올린 최신 지갑을 먼저 받아 와요 (선생님이 옛 기록 위에 덮어쓰지 않게)
   async function freshWallet() {
     try { const r = await rpc('univ_get', { p_student: U.who, p_code: U.key }); if (r && r._at && r.wallet && (r._at.wallet || 0) > ((S._at || {}).wallet || 0)) { S.wallet = r.wallet; S._at.wallet = r._at.wallet; } } catch (e) {}
@@ -4621,7 +4627,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280016'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280017'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

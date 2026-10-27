@@ -2487,3 +2487,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .nr-pill .rd-bar b { background: #ff7a1a; }
 .nr-pill.done { color: #e8590c; background: #fff0e6; }
 .hero-hw { margin-top: 16px; }
+.wl-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.wl-nav .btn { flex: none; width: 44px; font-size: 18px; }
+.wl-pick { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; border-radius: 12px; background: var(--fill); cursor: pointer; }
+.wl-pick input { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: pointer; }
