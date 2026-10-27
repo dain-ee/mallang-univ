@@ -2441,3 +2441,27 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 /* 그래머 이전·다음 문제 (10/27) */
 .jg-cta { display: flex; gap: 8px; }
 .jg-cta #jg-prev { flex: none; padding: 0 20px; white-space: nowrap; }
+
+/* 🔥 오늘 꼭 읽을 소식 (과외 학생 홈 맨 위, 10/27) */
+.fire-news { position: relative; overflow: hidden; display: flex; align-items: center; gap: 16px; padding: 20px 24px; cursor: pointer; background: linear-gradient(135deg, #fff4e6, #ffe3e3); box-shadow: 0 0 0 2px #ff922b inset, 0 8px 28px rgba(255, 107, 0, .25); animation: fnGlow 1.6s ease-in-out infinite; }
+.fire-news .fn-in { position: relative; z-index: 1; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.fire-news .fn-eb { font-size: 14px; font-weight: 800; color: #e8590c; }
+.fire-news .fn-ic { display: inline-block; animation: fnFlick .5s ease-in-out infinite alternate; transform-origin: 50% 90%; }
+.fire-news .fn-t { font-size: 19px; line-height: 1.4; color: #212529; word-break: keep-all; }
+.fire-news .fn-d { font-size: 13px; color: #c2410c; font-weight: 600; }
+.fire-news .fn-go { position: relative; z-index: 1; flex: none; padding: 10px 16px; border-radius: 999px; background: #ff6b00; color: #fff; font-weight: 800; font-size: 15px; animation: fnPulse 1.2s ease-in-out infinite; }
+.fire-news .fn-flames { position: absolute; left: 0; right: 0; bottom: -8px; height: 46px; display: flex; justify-content: space-around; pointer-events: none; opacity: .55; }
+.fire-news .fn-flames i { width: 26px; height: 40px; border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%; background: radial-gradient(circle at 50% 75%, #ffd43b 0 25%, #ff922b 45%, rgba(255, 107, 0, 0) 72%); animation: fnRise 1.1s ease-in-out infinite; }
+.fire-news .fn-flames i:nth-child(2n) { animation-duration: .9s; animation-delay: .2s; height: 32px; }
+.fire-news .fn-flames i:nth-child(3n) { animation-duration: 1.3s; animation-delay: .4s; }
+@keyframes fnGlow { 50% { box-shadow: 0 0 0 2px #ff6b00 inset, 0 10px 34px rgba(255, 107, 0, .42); } }
+@keyframes fnFlick { from { transform: scale(1) rotate(-6deg); } to { transform: scale(1.18) rotate(6deg); } }
+@keyframes fnPulse { 50% { transform: scale(1.07); } }
+@keyframes fnRise { 0%, 100% { transform: translateY(6px) scaleY(.85); opacity: .7; } 50% { transform: translateY(-4px) scaleY(1.12); opacity: 1; } }
+@media (max-width: 600px) { .fire-news { padding: 16px; gap: 12px; } .fire-news .fn-t { font-size: 17px; } .fire-news .fn-go { padding: 8px 12px; font-size: 14px; } }
+.nr-go[disabled] { opacity: 1; background: var(--fill); color: var(--t3); }
+.nr-go.ready { background: linear-gradient(90deg, #ff6b00, #f03e3e); color: #fff; animation: fnPulse 1.2s ease-in-out infinite; }
+.nr-go .nr-fire { display: inline-block; animation: fnFlick .5s ease-in-out infinite alternate; }
+.nr-done { margin-top: 16px; padding: 14px; border-radius: 16px; text-align: center; font-weight: 800; color: #e8590c; background: #fff4e6; }
+@media (prefers-reduced-motion: reduce) { .fire-news, .fire-news *, .nr-go, .nr-go * { animation: none !important; } }
+:root[data-theme="dark"] .fire-news { background: linear-gradient(135deg, #3b2412, #3b1717); } :root[data-theme="dark"] .fire-news .fn-t { color: #f8f9fa; }
