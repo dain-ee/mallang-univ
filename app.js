@@ -3601,7 +3601,7 @@
       for (let k = 1; k <= n; k++) { const d = `${ym}-${String(k).padStart(2, '0')}`, L = by[d], amt = L ? L.reduce((a, x) => a + x.amt, 0) : 0, fut = d > today(); cells.push(`<button type="button" class="wc-d${L ? ' has' : ''}${d === wd ? ' on' : ''}${d === today() ? ' td' : ''}" data-wlday="${d}" ${fut ? 'disabled' : ''}><b>${k}</b>${L ? `<small>+${amt.toLocaleString('ko-KR')}</small>` : ''}</button>`); }
       const first = dates.length ? dates[dates.length - 1].slice(0, 7) : ym;
       return `<div class="wl-cal"><div class="wc-h"><button class="btn sm" type="button" data-wlmon="-1" ${ym <= first ? 'disabled' : ''} aria-label="전 달">‹</button><b>${y}년 ${m}월</b><button class="btn sm" type="button" data-wlmon="1" ${ym >= today().slice(0, 7) ? 'disabled' : ''} aria-label="다음 달">›</button></div><div class="wc-g">${'일월화수목금토'.split('').map((x) => `<i>${x}</i>`).join('')}${cells.join('')}</div></div>`; };
-    const dayNav = dates.length ? `<div class="wl-nav"><button class="btn sm" type="button" data-wlgo="${older || ''}" ${older ? '' : 'disabled'} aria-label="전날">‹</button><button type="button" class="wl-pick${UI.wlCal ? ' open' : ''}" data-wlcal><b>${wd === today() ? '오늘' : md(wd) + ' ' + wdName(wd)}</b>${ic('cal')}</button><button class="btn sm" type="button" data-wlgo="${newer || ''}" ${newer ? '' : 'disabled'} aria-label="다음 날">›</button></div>${UI.wlCal ? wlCal() : ''}` : '';
+    const dayNav = dates.length ? `<div class="wl-nav"><button class="btn sm" type="button" data-wlgo="${older || ''}" ${older ? '' : 'disabled'} aria-label="전날">‹</button><button type="button" class="wl-pick${UI.wlCal ? ' open' : ''}" data-wlcal><b>${wd === today() ? '오늘' : md(wd) + ' ' + wdName(wd)}</b><svg class="wl-chev" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="btn sm" type="button" data-wlgo="${newer || ''}" ${newer ? '' : 'disabled'} aria-label="다음 날">›</button></div>${UI.wlCal ? wlCal() : ''}` : '';
     const paidRows = w.paid.slice().sort((a, b) => b.at - a.at);
     const ex = w.req ? `<div class="deep wl-req">${ic('gift')}<div><b>선생님께 바꿔 달라고 했어요</b><p style="margin:2px 0 0">${md(dateOf(w.req.at))}에 ${won(w.req.amt)}을 신청했어요. 선생님이 진짜 돈으로 주시면 여기서 빠져요</p></div></div>`
       : `<button class="btn ${bal >= W_GOAL ? 'primary' : ''} big block" id="wl-ex" type="button" ${bal >= W_GOAL && !TEACHER ? '' : 'disabled'}>${ic('cash')} ${bal >= W_GOAL ? '5만원 바꾸기' : `5만원 바꾸기 · 앞으로 ${won(rem)}`}</button>`;
@@ -4640,7 +4640,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280034'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280038'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

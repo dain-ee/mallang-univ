@@ -2518,3 +2518,5 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 @keyframes wl-in-l { from { opacity: 0; transform: translateX(-40px); } }
 @media (prefers-reduced-motion: reduce) { .wl-slide > * { animation: none !important; } }
 .wc-h .btn { font-size: 18px; }
+.wl-pick .wl-chev { width: 18px; height: 18px; opacity: 1; color: var(--t3); transition: transform .2s ease; }
+.wl-pick.open .wl-chev { transform: rotate(180deg); color: var(--blue); }
