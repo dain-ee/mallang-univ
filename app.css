@@ -2371,7 +2371,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 /* 색과 장식만 바꿔요. 글자 크기·굵기·간격·카드 모양은 기존 그대로 */
 :root[data-skin="bamdol"] {
   --blue: #12a594; --blue-d: #0b7d70; --blue-soft: #e2f4ec; --blue-l: #bde6d6;
-  --bg: #f7f3e3; --card: #fffdf6; --fill: #f2edda; --fill2: #faf7ec; --line: #ebe3cc;
+  --bg: #fbfaf4; --card: #fffffc; --fill: #f4f2ea; --fill2: #fafaf5; --line: #ece8dc;
   --t1: #4b4032; --t2: #74684f; --t3: #a3977c; --t4: #c6bca4;
   --green: #4caf6a; --green-soft: #e6f4dc; --amber: #f7b500;
   --hl: rgba(255, 205, 60, .5);
