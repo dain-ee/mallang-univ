@@ -2465,3 +2465,13 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .nr-done { margin-top: 16px; padding: 14px; border-radius: 16px; text-align: center; font-weight: 800; color: #e8590c; background: #fff4e6; }
 @media (prefers-reduced-motion: reduce) { .fire-news, .fire-news *, .nr-go, .nr-go * { animation: none !important; } }
 :root[data-theme="dark"] .fire-news { background: linear-gradient(135deg, #3b2412, #3b1717); } :root[data-theme="dark"] .fire-news .fn-t { color: #f8f9fa; }
+
+/* 다음 수업 카드 윗줄도 테마 색 (10/27 시나모롤인데 분홍이었어요) */
+:root:not([data-skin="ghost"]) .ls-hero .hero-band { background: var(--blue) !important; }
+.pet-perch .pet-say.side { width: max-content; }
+.pet-perch[data-skin="ghost"] { width: 92px; height: 92px; transform: translateY(-96%); }
+.fire-lite .hot-ic svg { transform-origin: 50% 90%; animation: fl-flick 1.6s ease-in-out infinite; }
+.fire-lite .hot-ic { animation: fl-glow 2.4s ease-in-out infinite; }
+@keyframes fl-flick { 0%, 100% { transform: scale(1) rotate(0); } 30% { transform: scale(1.08, .96) rotate(-3deg); } 60% { transform: scale(.96, 1.06) rotate(2deg); } }
+@keyframes fl-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(240, 68, 82, 0); } 50% { box-shadow: 0 0 14px 2px rgba(240, 68, 82, .22); } }
+@media (prefers-reduced-motion: reduce) { .fire-lite .hot-ic, .fire-lite .hot-ic svg { animation: none; } }

@@ -490,11 +490,12 @@
   const CHEER = ['오늘도 정말 수고했어', '한 문제씩 쌓이는 게 다 실력이야', '어제보다 한 걸음 더 왔어', '지금 하는 게 다 남아, 잘하고 있어', '천천히 가도 괜찮아, 멈추지만 않으면 돼', '오늘 한 줄 기록이 나중에 큰 힘이 돼', '틀린 문제는 내 편이야, 다시 풀면 내 거야', '너는 생각보다 훨씬 잘하고 있어', '꾸준함이 제일 센 무기야', '힘들면 쉬어도 돼, 그래도 내일은 또 해 보자', '오늘의 노력은 절대 사라지지 않아', '목표 대학이 조금씩 가까워지고 있어', '작은 걸 해낸 것도 꼭 칭찬해 주자', '오늘도 끝까지 해낸 거 멋있어', '모르는 걸 아는 게 공부의 시작이야', '하루 30분이 1년이면 엄청난 차이야', '네가 하는 질문 하나가 세특이 돼', '조급해하지 마, 지금 속도도 충분해', '어려운 문제 앞에서 버틴 시간이 실력이야', '선생님은 늘 네 편이야', '오늘 공부한 너, 진짜 대단해', '실수는 연습일 뿐이야, 시험 땐 안 하면 돼', '한 번 더 보는 게 합격을 만들어', '지금의 너를 믿어 봐', '잘 쉬는 것도 실력이야, 푹 자', '오늘 배운 거 하나만 기억해도 성공이야'];
   // 과외 학생 홈 맨 위: 안 읽은 소식이 있으면 불타는 카드 (읽으면 사라지고 불꽃 수만 남아요)
   function fireNews() {
-    if (WALLET || TEACHER) return '';
+    if (WALLET || TEACHER || U.who !== '윤건') return '';  // 소식 읽기는 윤건이만 (10/27 «주아는 됐어 빼»)
     const N = ((D.news && D.news.items) || []).slice().sort((a, b) => (!!(b.for || []).length - !!(a.for || []).length) || (!!b.must - !!a.must) || String(b.date).localeCompare(String(a.date)));
     const n = N.find((x) => !(S.nr || {})[x.id]), c = Object.keys(S.nr || {}).length, nx = (NR_BADGE.find((x) => x[0] > c) || [0, '', ''])
     if (!n) return '';
-    return `<section class="card c12 fire-news" data-news="${esc(n.id)}" role="button" tabindex="0"><div class="fn-flames" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="fn-in"><div class="fn-eb"><span class="fn-ic">🔥</span> 오늘 꼭 읽을 소식${(n.for || []).includes(U.who) ? ` · ${esc(NMI())} 맞춤` : ''}</div><b class="fn-t">${esc(n.title)}</b><span class="fn-d">읽으면 불꽃 +1 · 지금 🔥 ${c}개${nx[0] ? ` · ${nx[0] - c}개 더 읽으면 「${esc(nx[2])}」 배지` : ''}</span></div><span class="fn-go">읽기 ›</span></section>`;
+    // 10/27 선생님 «핫뉴스 카드처럼, 조금 불타는 정도» → 불꽃 아이콘만 살짝 일렁여요
+    return `<section class="card c12 hot-card link fire-lite" data-news="${esc(n.id)}"><div class="hot-ic">${ic('fire')}</div><div class="hot-b"><div class="eyebrow">오늘 꼭 읽기${(n.for || []).includes(U.who) ? ` · <b class="red">${esc(NMI())} 맞춤</b>` : ''}</div><b class="hot-t">${esc(n.title)}</b><p class="tiny" style="margin:2px 0 0">읽으면 불꽃 +1 · 지금 ${c}개${nx[0] ? ` · ${nx[0] - c}개 더 읽으면 「${esc(nx[2])}」 배지` : ''}</p></div></section>`;
   }
   function nameCall() { return TUTOR ? esc(NM() + (jongOf(NM()) ? '아' : '야')) : `우리 ${esc(NMI())}`; }  // 정윤이만 「우리 정윤이」, 과외 학생은 「지원아」「주아야」
   function cheer() { const t = today(); let h = 0; for (const ch of t + (S.profile.name || '')) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return CHEER[h % CHEER.length]; }
@@ -659,7 +660,7 @@
     if (has('unit') && CH_UNITS.length) { const un = CH_UNITS[ed.unit] || CH_UNITS[CH_UNITS.length - 1]; tasks.push({ k: 'unit', icon: 'eng', t: `천일문 ${un.unit ? 'Unit ' + un.unit : ''} ${un.title || ''}`.trim(), d: unitDone ? '다 했어요' : cdesc('unit', '개념 · 문장 · 문제'), done: !!unitDone }); }
     if (has('words') && WORDS.length) tasks.push({ k: 'words', icon: 'books', t: '워드마스터 단어 10개 시험', d: wordsDone ? `${Object.values(ed.wans).filter((x) => x.ok).length}/10 맞힘` : cdesc('words', wordsLabel(ed.words)), done: !!wordsDone });
     // 매일 기사 하나: 오늘 읽은 기사가 있으면 그게 오늘 것(끝), 없으면 안 읽은 대이슈 → 안 읽은 최신 기사
-    { const N = ((D.news && D.news.items) || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date))), t = today();
+    if (WALLET || U.who === '윤건') { const N = ((D.news && D.news.items) || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date))), t = today();
       const rd = WALLET ? W().log.find((x) => x.date === t && String(x.key).startsWith('news:')) : (() => { const e = Object.entries(S.nr || {}).find(([, at]) => dateOf(at) === t); return e ? { key: 'news:' + e[0] } : null; })(), un = N.filter((n) => !wHas('news:' + n.id));
       const n = rd ? N.find((x) => 'news:' + x.id === rd.key) : (un.find((x) => x.must) || un[0]);
       if (n) tasks.push({ k: 'news:' + n.id, icon: n.must ? 'fire' : 'news', t: `${n.must ? '꼭 읽기' : '오늘의 기사'}: ${n.title}`, d: rd ? '읽었어요' : `${n.must ? '요즘 대이슈 · ' : ''}${WALLET ? '읽으면 50원' : '읽으면 🔥 불꽃 +1'}`, done: !!rd }); }
@@ -1705,8 +1706,8 @@
   // 펫: 화면 첫 카드 윗변에 창틀처럼 두 팔을 걸치고 있어요. 누르면 폴짝, 밤엔 팔에 얼굴 묻고 졸아요
   const PET_WINK = new Set(['melody', 'cinnamoroll', 'kuromi', 'bamdol']); // 찡긋 표정이 있는 펫
   function petDock() {
-    const t = skin(), host = !UI.run && $('#main .card');  // 기본(유령)도 카드 위에 앉아요 (10/27 선생님 «기본은 왜 캐릭터가 안 떠»)
-    const pdir = t === 'ghost' ? 'assets/ghost' : `assets/pets/${t}`, pmap = (n) => (t === 'ghost' ? { perch: 'peek', perch_yay: 'yay' }[n] || n : n);
+    const t = skin(), host = !UI.run && $('#main .card');  // 유령은 걸치는 그림이 없어서 서 있는 그림으로 카드 위에 올라앉아요 (10/27 «다른 애들처럼 그 위에 붙어»)
+    const pdir = t === 'ghost' ? 'assets/ghost' : `assets/pets/${t}`, pmap = (n) => (t === 'ghost' ? { perch: 'idle', perch_yay: 'yay', perch_wink: 'yay' }[n] || n : n);
     $$('.pet-perch').forEach((x) => { if (!host || x.parentNode !== host || x.dataset.skin !== t || x.dataset.mo !== petLinesKey()) x.remove(); });
     if (!host || $('.pet-perch', host)) return;
     const base = 'perch'; // 첫 카드 왼쪽 위에 걸침 · 자는 동작은 안 씀 (사용자)
@@ -1730,12 +1731,15 @@
     const clearTx = () => { const im = $('img', el); if (!im || !el.isConnected) return; host.style.marginTop = ''; const r = im.getBoundingClientRect(), top = r.top + r.height * 0.12;
       const hit = txRects().filter((q) => q.width && r.left + 8 < q.right && r.right - 8 > q.left && top < q.bottom && r.bottom > q.top && q.bottom < host.getBoundingClientRect().top + 4);
       if (hit.length) host.style.marginTop = `${parseFloat(getComputedStyle(host).marginTop) + Math.max(...hit.map((q) => q.bottom)) - top + 6}px`; };
-    const fitSay = () => { const sy = $('.pet-say', el); if (!sy || sy.hidden) return; const tx = txRects();
-      const hb = (() => { const h = $('header.top, .top, header'); return h ? h.getBoundingClientRect().bottom : 0; })(); // 위 메뉴 줄에 가려지면 안 돼요 (10/27 주아 화면)
-      const cards = $$('#main .card').filter((c) => c !== host && !c.contains(el)).map((c) => c.getBoundingClientRect()); // 옆 카드도 가리면 안 돼요
-      const bad = () => { const r = sy.getBoundingClientRect(); return r.left < 8 || r.right > innerWidth - 8 || r.top < hb + 4 || cards.some((q) => r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top) || tx.some((q) => q.width && r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top); };
-      for (const c of ['', 'side', 'flip']) { sy.classList.remove('side', 'flip'); if (c) sy.classList.add(c); if (!bad()) return; }
-      sy.classList.remove('side', 'flip'); sy.classList.add('flip'); };  // 다 겹치면 머리 위로 (옆 카드를 덮지 않게)
+    // 말풍선은 언제나 펫 오른쪽 옆에 세로로 좁게, 카드 윗변 위에 (10/27 선생님 «위로 말고 옆으로 · 오른쪽 세로로»)
+    // 오른쪽 자리가 모자라면 펫을 왼쪽으로 비켜 앉혀 자리를 만들어요
+    const fitSay = () => { const sy = $('.pet-say', el); if (!sy || sy.hidden) return; sy.classList.remove('side', 'flip'); sy.classList.add('side');
+      const im = $('img', el), need = Math.min(150, innerWidth * 0.36);
+      let ir = im.getBoundingClientRect(), room = innerWidth - 8 - (ir.right + 4);
+      if (room < need) { el.style.right = `${parseFloat(getComputedStyle(el).right) + need - room}px`; ir = im.getBoundingClientRect(); room = innerWidth - 8 - (ir.right + 4); }
+      const er = el.getBoundingClientRect(), hr = host.getBoundingClientRect();
+      sy.style.left = `${ir.right - er.left + 4}px`; sy.style.right = 'auto'; sy.style.top = 'auto'; sy.style.transform = 'none';
+      sy.style.maxWidth = `${Math.max(96, Math.min(220, room))}px`; sy.style.bottom = `${er.bottom - hr.top + 6}px`; };
     addEventListener('resize', () => { if (el.isConnected) { fitSay(); hideHts(); } });
     const play = (n) => fetch(`${pdir}/${pmap(n)}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).then((b) => { const u = URL.createObjectURL(b); im.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); }).catch(() => {});
     if (!RM()) play(base);
@@ -4600,7 +4604,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272335'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272340'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
