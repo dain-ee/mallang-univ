@@ -1614,7 +1614,7 @@
   // 3D 유령: 한 번만 도는 동작은 볼 때마다 처음부터 다시 돌도록 매번 새 주소(blob)로 붙여요
   // ───────── 테마: 색 전체 + 3D 인형 펫 (아직 로컬 시험 중: localStorage mu:themes=1 일 때만 보여요) ─────────
   const SKIN_DEV = (() => { try { return localStorage.getItem('mu:themes') === '1'; } catch (e) { return false; } })();
-  const SKINS = { ghost: { n: '말랑 유령', c: '#3182f6', d: '기본' }, kitty: { n: '헬로키티', c: '#e8384f', d: '빨간 리본' }, monchhichi: { n: '몬치치', c: '#a0673d', d: '복슬복슬 갈색' }, melody: { n: '마이멜로디', c: '#e35d93', d: '분홍 두건' }, chiikawa: { n: '치이카와', c: '#e07686', d: '말랑 하양' }, cinnamoroll: { n: '시나모롤', c: '#5aa6e6', d: '하늘 구름' }, kuromi: { n: '쿠로미', c: '#8a63c9', d: '검은 두건 해골' } };
+  const SKINS = { ghost: { n: '말랑 유령', c: '#3182f6', d: '기본' }, kitty: { n: '헬로키티', c: '#e8384f', d: '빨간 리본' }, monchhichi: { n: '몬치치', c: '#a0673d', d: '복슬복슬 갈색' }, melody: { n: '마이멜로디', c: '#e35d93', d: '분홍 두건' }, chiikawa: { n: '치이카와', c: '#e07686', d: '말랑 하양' }, cinnamoroll: { n: '시나모롤', c: '#5aa6e6', d: '하늘 구름' }, kuromi: { n: '쿠로미', c: '#8a63c9', d: '검은 두건 해골' }, bamdol: { n: '밤돌이', c: '#12a594', d: '나뭇잎 셔츠' } };
   const SKIN_Q = new URLSearchParams(location.search).get('skin');  // 시험용: 탭마다 다른 테마 (?skin=kitty)
   const owned = () => (S.profile.skins || []).filter((k) => SKINS[k]);
   // 선생님 내 정보 (이름·생일·MBTI·테마): 학생 기록과 따로 서버 「_선생님」 칸에 저장해요
@@ -1625,7 +1625,7 @@
   async function tLoad() { try { const r = await rpc('univ_get', { p_student: TPN, p_code: U.key }); const q = r && r.profile; if (q && (q._at || 0) > (TP._at || 0)) { Object.assign(TP, q); try { localStorage.setItem(TPK, JSON.stringify(TP)); } catch (e) {} render(); } } catch (e) {} }
   const skin = () => DASH_ONLY ? (SKINS[TP.skin] && (TP.skin === 'ghost' || GIFTS.includes(TP.skin)) ? TP.skin : 'ghost') : (SKIN_DEV && SKINS[SKIN_Q] ? SKIN_Q : SKINS[S.profile.skin] && (SKIN_DEV || owned().includes(S.profile.skin)) ? S.profile.skin : 'ghost');
   // 테마 선물: 선생님이 보내면 「띵동!」 → 물음표 상자가 두근두근 → 짜잔. 열심히 하면 하나씩 받아요
-  const GIFTS = ['melody', 'kitty', 'chiikawa', 'cinnamoroll', 'kuromi'];  // 지금 보낼 수 있는 테마 (scripts/build.py PETS_LIVE 와 같게)
+  const GIFTS = ['melody', 'kitty', 'chiikawa', 'cinnamoroll', 'kuromi', 'bamdol'];  // 지금 보낼 수 있는 테마 (scripts/build.py PETS_LIVE 와 같게)
   // 테마 선물은 여러 개를 줄 수 있어요: S.gifts = [{ skin, at, open }] (예전 S.gift 하나도 같이 읽음)
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
@@ -1676,7 +1676,7 @@
     petDock();
   }
   // 펫: 화면 첫 카드 윗변에 창틀처럼 두 팔을 걸치고 있어요. 누르면 폴짝, 밤엔 팔에 얼굴 묻고 졸아요
-  const PET_WINK = new Set(['melody', 'cinnamoroll', 'kuromi']); // 찡긋 표정이 있는 펫
+  const PET_WINK = new Set(['melody', 'cinnamoroll', 'kuromi', 'bamdol']); // 찡긋 표정이 있는 펫
   function petDock() {
     const t = skin(), host = !UI.run && t !== 'ghost' && $('#main .card');
     $$('.pet-perch').forEach((x) => { if (!host || x.parentNode !== host || x.dataset.skin !== t || x.dataset.mo !== ((S.profile || {}).motto || '').trim()) x.remove(); });
@@ -1684,7 +1684,7 @@
     const base = 'perch'; // 첫 카드 왼쪽 위에 걸침 · 자는 동작은 안 씀 (사용자)
     const el = document.createElement('button'); el.type = 'button'; el.className = 'pet-perch' + (petDock.shown ? ' still' : ''); petDock.shown = true; el.dataset.skin = t; el.dataset.mo = ((S.profile || {}).motto || '').trim(); el.setAttribute('aria-label', SKINS[t].n);
     const motto = ((S.profile || {}).motto || '').trim(); // 나의 한마디를 말풍선으로 늘 띄워요
-    el.innerHTML = `${t === 'kuromi' ? '<span class="pet-hts" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : ''}<span class="pet-say ${motto ? 'motto' : ''}" ${motto ? '' : 'hidden'}>${esc(motto)}</span><img alt="" src="assets/pets/${t}/perch.png">`;
+    el.innerHTML = `${t === 'kuromi' ? '<span class="pet-hts" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : t === 'bamdol' ? '<span class="pet-lvs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : ''}<span class="pet-say ${motto ? 'motto' : ''}" ${motto ? '' : 'hidden'}>${esc(motto)}</span><img alt="" src="assets/pets/${t}/perch.png">`;
     const im = $('img', el); im.onerror = () => { el.remove(); host.classList.remove('has-perch'); }; im.onload = () => { if (el.isConnected) host.classList.add('has-perch'); };
     host.appendChild(el);
     // 카드 바로 위 오른쪽에 버튼이 있으면(예: 매일 과제 요일) 그 왼쪽으로 비켜 앉음
@@ -1692,8 +1692,8 @@
       $$('#main button, #main a').forEach((b) => { if (host.contains(b)) return; const r = b.getBoundingClientRect(); if (r.width && r.bottom > hr.top - pw * 0.8 && r.top < hr.top && r.right > hr.right - pw - 40) lx = Math.min(lx, r.left); });
       if (lx < Infinity) { const rr = hr.right - lx + 8 + spill; if (rr + pw > hr.width * 0.5) { el.remove(); host.classList.remove('has-perch'); return; } el.style.right = `${Math.max(16, rr)}px`; } // 비킬 자리가 없으면(버튼이 줄 전체) 이 화면엔 안 앉아요
       fitSay(); hideHts(); setTimeout(hideHts, 700); document.fonts && document.fonts.ready.then(hideHts); });
-    // 쿠로미 하트: 글자와 겹치는 하트는 숨겨요 (글자를 가리면 안 돼요)
-    const hideHts = () => { const hs = $$('.pet-hts i', el); if (!hs.length) return; const tx = [], w = document.createTreeWalker($('#main'), NodeFilter.SHOW_TEXT); for (let n; (n = w.nextNode());) { if (!n.textContent.trim() || el.contains(n)) continue; const rg = document.createRange(); rg.selectNodeContents(n); tx.push(...rg.getClientRects()); }
+    // 쿠로미 하트·밤돌이 나뭇잎: 글자와 겹치는 하트는 숨겨요 (글자를 가리면 안 돼요)
+    const hideHts = () => { const hs = $$('.pet-hts i, .pet-lvs i', el); if (!hs.length) return; const tx = [], w = document.createTreeWalker($('#main'), NodeFilter.SHOW_TEXT); for (let n; (n = w.nextNode());) { if (!n.textContent.trim() || el.contains(n)) continue; const rg = document.createRange(); rg.selectNodeContents(n); tx.push(...rg.getClientRects()); }
       hs.forEach((h) => { const r = h.getBoundingClientRect(); h.hidden = tx.some((q) => q.width && r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top); }); };
     // 말풍선이 화면 왼쪽 밖으로 나가면 펫 오른쪽 아래로 옮겨요
     const fitSay = () => { const sy = $('.pet-say', el); if (!sy || sy.hidden) return; sy.classList.remove('flip'); if (sy.getBoundingClientRect().left < 8) sy.classList.add('flip'); };
@@ -2340,11 +2340,12 @@
   function nsHist(base) {
     const o = [];
     for (const sem of SEMS) { const rec = S.naesin[sem] || {}; for (const [n, r] of Object.entries(rec)) { if (!r || typeof r !== 'object' || nsBase(n) !== base) continue;
-      for (const [sc, gf, rf, lb] of [['mid', 'midG', 'midRk', '중간'], ['fin', 'finG', 'finRk', '기말']]) { const k = nsRk(r[rf]); if (+r[sc] > 0 && k) o.push({ sem, ex: lb, l: `${sem.split('-')[1]}학기 ${lb}`, s: +r[sc], p: k.pct, g: +r[gf] || (k.pct <= 10 ? 1 : k.pct <= 34 ? 2 : k.pct <= 66 ? 3 : 4) }); } } }
+      for (const [sc, gf, rf, lb] of [['mid', 'midG', 'midRk', '중간'], ['fin', 'finG', 'finRk', '기말'], ['tot', 'grade', 'totRk', '종합']]) { const k = nsRk(r[rf]); if (+r[sc] > 0 && k) o.push({ sem, ex: lb, l: `${sem.split('-')[1]}학기 ${lb}`, s: +r[sc], p: k.pct, g: +r[gf] || (k.pct <= 10 ? 1 : k.pct <= 34 ? 2 : k.pct <= 66 ? 3 : 4) }); } } }
     return o;
   }
   // 등급 컷 짐작: 받은 점수 중 그 등급 안에 든 가장 낮은 점수 / 못 든 가장 높은 점수 사이. 시험마다 어려움이 달라 엇갈리면 그렇다고 말해요(지어내지 않아요)
   function nsCut(H, g) {
+    H = H.filter((x) => x.ex !== '종합'); // 학기 종합은 수행이 섞여 시험 점수와 잣대가 달라요. 칩으로만 보여요
     const lim = [0, 10, 34, 66][g], inn = H.filter((x) => x.p <= lim && x.p > [0, 0, 10, 34][g]).map((x) => x.s), out = H.filter((x) => x.p > lim).map((x) => x.s);
     const lo = out.length ? Math.max(...out) : null, hi = inn.length ? Math.min(...inn) : null;
     if (lo != null && hi != null) return hi > lo ? { t: 'range', lo, hi } : { t: 'mix', lo, hi };
@@ -2355,24 +2356,31 @@
     const n1 = (v) => String(Math.round(v * 100) / 100), c1 = nsCut(H, 1), c2 = nsCut(H, 2), dots = H.map((x) => `<span class="np-pt g${Math.min(3, x.g)}">${esc(x.l)} <b>${n1(x.s)}점</b> → ${x.g}등급 <span class="tiny">(${fmt1(x.p)}%)</span></span>`).join('');
     const cutT = (c, g) => !c ? '' : c.t === 'range' ? `${g}등급은 대략 <b>${n1(c.lo)}~${n1(c.hi)}점</b> 사이에서 갈렸어요` : c.t === 'above' ? `${g}등급은 <b>${n1(c.lo)}점보다 높아야</b> 했어요` : c.t === 'got' ? `<b>${n1(c.hi)}점</b>이면 ${g}등급이었어요` : `시험마다 어려움이 달라요. ${n1(c.hi)}점이 ${g}등급인 시험도, ${n1(c.lo)}점이 ${g}등급 밖인 시험도 있었어요`;
     // 기말 목표: 같은 학기 중간이 기준 (같은 선생님·비슷한 어려움). 못 들었으면 그 점수보다 한 문제(약 4점) 더, 들었으면 그 점수 지키기
-    const m = +r.mid, mg = +r.midG, tgt = m > 0 && mg ? (mg === 1 ? `중간 ${n1(m)}점이 1등급이었어요. 기말도 <b>${n1(m)}점 안팎</b>을 지켜요` : Math.ceil(m + 4) >= 100 ? `중간 ${n1(m)}점도 ${mg}등급이었어요. 기말은 <b>만점</b>을 노려야 해요(실수 하나가 등급을 갈라요)` : `중간 ${n1(m)}점이 ${mg}등급이었어요. 이번 학기는 이 점수로 모자라니 기말은 <b>${Math.ceil(m + 4)}점 이상</b>(한 문제 더)을 노려요`) : '';
+    const m = +r.mid, mg = +r.midG, tgt = m > 0 && mg && !(+r.fin > 0) ? (mg === 1 ? `중간 ${n1(m)}점이 1등급이었어요. 기말도 <b>${n1(m)}점 안팎</b>을 지켜요` : Math.ceil(m + 4) >= 100 ? `중간 ${n1(m)}점도 ${mg}등급이었어요. 기말은 <b>만점</b>을 노려야 해요(실수 하나가 등급을 갈라요)` : `중간 ${n1(m)}점이 ${mg}등급이었어요. 이번 학기는 이 점수로 모자라니 기말은 <b>${Math.ceil(m + 4)}점 이상</b>(한 문제 더)을 노려요`) : '';
     return `<div class="np-feel"><div class="np-pts">${dots}</div><p class="np-m">${[cutT(c1, 1), cutT(c2, 2)].filter(Boolean).join(' · ')}</p>${tgt ? `<p class="np-tg">${tgt}</p>` : ''}</div>`;
   }
   function nsPlan(sem) {
     const rec = S.naesin[sem] || {}, L = nsSubjects(sem).map((s) => ({ s, r: rec[s.name] || {}, k: nsRk((rec[s.name] || {}).midRk) })).filter((x) => x.k && +x.r.midG);
     if (!L.length) return '';
+    const done = L.some((x) => +x.r.fin > 0 && +x.r.grade); // 기말·학기 등급까지 나온 학기는 돌아보기로 보여요
     const row = ({ s, r, k }) => {
       const g = +r.midG, up = g === 1 ? null : g === 2 ? k.c1 : g === 3 ? k.c2 : k.c3, gap = up != null ? Math.max(1, k.rk - up) : null, keep = g === 1 ? Math.floor(((10 - k.pct) * k.n) / 100) : null;
       const [tone, msg] = g === 1 ? (keep <= 5 ? ['warn', keep > 0 ? `1등급 경계에 붙어 있어요. ${keep}명만 앞질러도 2등급이라 기말에서 꼭 지켜요` : '아슬아슬하게 1등급이에요. 기말에서 꼭 지켜요'] : ['ok', `1등급 여유 ${keep}명. 지금처럼만 하면 돼요`]) : gap <= 8 ? ['hot', `${g - 1}등급까지 약 ${gap}등. 기말에서 한두 문제 더 맞히면 뒤집을 수 있어요`] : ['', `${g - 1}등급까지 약 ${gap}등. 기말 점수를 끌어올려 차이를 줄여요`];
       const x = (p) => Math.min(100, Math.max(0, p));
+      if (done) { const t = nsRk(r.totRk), fg = +r.finG, tg = +r.grade, tc = t ? Math.floor(t.n * 0.1) : 0; // 끝난 학기: 중간 → 기말 → 학기 종합이 어떻게 갔는지
+        const flow = [`중간 ${g}등급`, fg ? `기말 ${fg}등급` : '', tg ? `학기 <b>${tg}등급</b>` : ''].filter(Boolean).join(' → ');
+        const note = t && tg === 2 && t.rk - tc <= 8 ? `학기 종합 ${t.rk}등이라 1등급(${tc}등까지)에 ${t.rk - tc}등 모자랐어요. 정말 아까웠어요` : t && tg === 1 ? `학기 종합 ${t.rk}등 / ${t.n}명으로 1등급을 받았어요` : t ? `학기 종합 ${t.rk}등 / ${t.n}명 · 상위 ${fmt1(t.pct)}%` : '';
+        return `<div class="np-r ${tg === 1 ? 'ok' : note.includes('아까') ? 'hot' : ''}"><div class="row between" style="gap:8px"><b>${esc(s.name)}</b><span class="np-g">${tg || g}등급${t ? ` <span class="tiny">· 상위 ${fmt1(t.pct)}%</span>` : ''}</span></div>
+        <div class="np-bar"><i class="np-z1" style="width:10%"></i><i class="np-z2" style="left:10%;width:24%"></i><em style="left:${x(t ? t.pct : k.pct)}%"></em><span style="left:10%">10%</span><span style="left:34%">34%</span></div>
+        ${nsFeel(nsBase(s.name), sem, r)}<p class="np-m">${flow}${note ? `. ${esc(note)}` : ''}</p></div>`; }
       return `<div class="np-r ${tone}"><div class="row between" style="gap:8px"><b>${esc(s.name)}</b><span class="np-g">${g}등급 <span class="tiny">· 상위 ${fmt1(k.pct)}%</span></span></div>
         <div class="np-bar"><i class="np-z1" style="width:10%"></i><i class="np-z2" style="left:10%;width:24%"></i><em style="left:${x(k.pct)}%"></em><span style="left:10%">10%</span><span style="left:34%">34%</span></div>
         ${nsFeel(nsBase(s.name), sem, r)}
         <p class="np-m">${esc(msg)} <span class="tiny">${k.rk}등${k.tie > 1 ? `(동점 ${k.tie}명)` : ''} / ${k.n}명 · ${g <= 2 ? `1등급은 ${k.c1}등까지` : `${g - 1}등급은 ${up}등까지`}</span></p></div>`;
     };
     const pri = L.filter((x) => +x.r.midG > 1).sort((a, b) => (nsRk(a.r.midRk).pct - [0, 10, 34, 66][+a.r.midG - 1]) - (nsRk(b.r.midRk).pct - [0, 10, 34, 66][+b.r.midG - 1]));
-    return `<section class="card c12 np-card"><div class="card-h"><h2>기말 작전</h2><span class="tiny">중간 석차로 봤어요</span></div>
-      ${pri.length ? `<div class="explain" style="margin:0 0 12px">학기 최종 등급은 <b>중간·기말·수행을 합친 점수</b>로 다시 줄을 세워요. 그래서 지금 내 바로 위 몇 명보다 기말에서 더 받으면 등급이 올라가요. 먼저 챙길 과목은 <b>${pri.slice(0, 3).map((x) => esc(x.s.name)).join(' · ')}</b>예요.</div>` : ''}
+    return `<section class="card c12 np-card"><div class="card-h"><h2>${done ? `${sem.split('-')[1]}학기 돌아보기` : '기말 작전'}</h2><span class="tiny">${done ? '중간 · 기말 · 학기 종합 석차로 봤어요' : '중간 석차로 봤어요'}</span></div>
+      ${pri.length && !done ? `<div class="explain" style="margin:0 0 12px">학기 최종 등급은 <b>중간·기말·수행을 합친 점수</b>로 다시 줄을 세워요. 그래서 지금 내 바로 위 몇 명보다 기말에서 더 받으면 등급이 올라가요. 먼저 챙길 과목은 <b>${pri.slice(0, 3).map((x) => esc(x.s.name)).join(' · ')}</b>예요.</div>` : ''}
       <div class="np-g2">${L.sort((a, b) => nsRk(a.r.midRk).pct - [0, 10, 34, 66][+a.r.midG - 1] - (nsRk(b.r.midRk).pct - [0, 10, 34, 66][+b.r.midG - 1])).map(row).join('')}</div></section>`;
   }
   function naesinView() {
@@ -2388,8 +2396,8 @@
       <section class="card c8"><div class="card-h"><h2>학기별 평균</h2></div>${rows.length ? tossLine(rows.map((r) => ({ label: r.label, v: r.v.n })), { maxG: 5, h: 180, id: 'n2', color: '#03b26c', goal: S.profile.goalNaesin }) : `<div class="empty">${ic('up')}<b>아직 없어요</b></div>`}</section>
       ${split ? nsPlan(sem) : ''}
       <section class="card c12"><div class="card-h"><h2>과목별 입력 <span class="save-st" data-savest>${saveStText()}</span></h2><div class="seg" style="flex:0 1 auto">${SEMS.map((s) => `<button type="button" class="${sem === s ? 'on' : ''}" data-sem="${s}">${s.replace('-', '학년 ')}학기</button>`).join('')}</div></div>
-        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>과목</th><th class="r">단위</th>${split ? '<th class="r">중간 점수</th><th class="r">중간 등급</th><th class="r">중간 석차</th><th class="r">기말 점수</th><th class="r">기말 등급</th><th class="r">기말 석차</th><th class="r">학기 최종 등급</th>' : '<th class="r">원점수</th><th class="r">과목 평균</th><th class="r">등급 (1~5)</th>'}<th class="r">성취도</th></tr></thead><tbody>
-        ${subs.map((s) => { const r = rec[s.name] || {}; return `<tr><td style="font-weight:600">${esc(s.name)}${s.noGrade ? '<div class="tiny">등급 없음</div>' : ''}</td><td class="r"><input class="inp sm num" style="width:56px" data-ns="${esc(s.name)}" data-f="credits" value="${esc(r.credits || s.credits || '')}" inputmode="numeric"></td>${split ? [['mid', 'midG'], ['fin', 'finG'], [null, 'grade']].map(([sc, gf]) => (sc ? `<td class="r"><input class="inp sm num" style="width:64px" data-ns="${esc(s.name)}" data-f="${sc}" value="${esc(r[sc] ?? '')}" inputmode="decimal" placeholder="점수"></td>` : '') + `<td class="r">${s.noGrade ? '-' : gsel(s.name, gf, r[gf])}</td>` + (gf !== 'grade' ? `<td class="r"><input class="inp sm num" style="width:104px" data-ns="${esc(s.name)}" data-f="${gf === 'midG' ? 'midRk' : 'finRk'}" value="${esc(r[gf === 'midG' ? 'midRk' : 'finRk'] || '')}" placeholder="35(10)/312"></td>` : '')).join('') : `<td class="r"><input class="inp sm num" style="width:72px" data-ns="${esc(s.name)}" data-f="raw" value="${esc(r.raw || '')}" inputmode="decimal"></td><td class="r"><input class="inp sm num" style="width:72px" data-ns="${esc(s.name)}" data-f="avg" value="${esc(r.avg || '')}" inputmode="decimal"></td><td class="r">${s.noGrade ? '-' : gsel(s.name, 'grade', r.grade)}</td>`}<td class="r"><select class="inp sm" style="width:64px" data-ns="${esc(s.name)}" data-f="ach"><option value="">-</option>${['A', 'B', 'C', 'D', 'E', 'P'].map((g) => `<option ${r.ach === g ? 'selected' : ''}>${g}</option>`).join('')}</select></td></tr>`; }).join('')}
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>과목</th><th class="r">단위</th>${split ? '<th class="r">중간 점수</th><th class="r">중간 등급</th><th class="r">중간 석차</th><th class="r">기말 점수</th><th class="r">기말 등급</th><th class="r">기말 석차</th><th class="r">학기 점수</th><th class="r">학기 최종 등급</th><th class="r">학기 석차</th>' : '<th class="r">원점수</th><th class="r">과목 평균</th><th class="r">등급 (1~5)</th>'}<th class="r">성취도</th></tr></thead><tbody>
+        ${subs.map((s) => { const r = rec[s.name] || {}; return `<tr><td style="font-weight:600">${esc(s.name)}${s.noGrade ? '<div class="tiny">등급 없음</div>' : ''}</td><td class="r"><input class="inp sm num" style="width:56px" data-ns="${esc(s.name)}" data-f="credits" value="${esc(r.credits || s.credits || '')}" inputmode="numeric"></td>${split ? [['mid', 'midG'], ['fin', 'finG'], ['tot', 'grade']].map(([sc, gf]) => (sc ? `<td class="r"><input class="inp sm num" style="width:64px" data-ns="${esc(s.name)}" data-f="${sc}" value="${esc(r[sc] ?? '')}" inputmode="decimal" placeholder="점수"></td>` : '') + `<td class="r">${s.noGrade ? '-' : gsel(s.name, gf, r[gf])}</td>` + (true ? `<td class="r"><input class="inp sm num" style="width:104px" data-ns="${esc(s.name)}" data-f="${({ midG: 'midRk', finG: 'finRk', grade: 'totRk' })[gf]}" value="${esc(r[({ midG: 'midRk', finG: 'finRk', grade: 'totRk' })[gf]] || '')}" placeholder="35(10)/312"></td>` : '')).join('') : `<td class="r"><input class="inp sm num" style="width:72px" data-ns="${esc(s.name)}" data-f="raw" value="${esc(r.raw || '')}" inputmode="decimal"></td><td class="r"><input class="inp sm num" style="width:72px" data-ns="${esc(s.name)}" data-f="avg" value="${esc(r.avg || '')}" inputmode="decimal"></td><td class="r">${s.noGrade ? '-' : gsel(s.name, 'grade', r.grade)}</td>`}<td class="r"><select class="inp sm" style="width:64px" data-ns="${esc(s.name)}" data-f="ach"><option value="">-</option>${['A', 'B', 'C', 'D', 'E', 'P'].map((g) => `<option ${r.ach === g ? 'selected' : ''}>${g}</option>`).join('')}</select></td></tr>`; }).join('')}
         </tbody></table></div>
         ${split ? `<p class="tiny" style="margin:12px 0 0">중간고사·기말고사 점수와 등급을 시험마다 따로 적어요. 학기 최종 등급이 나오면 그걸로 평균을 내고, 아직이면 중간·기말 등급 평균으로 계산해요${mAvg != null || fAvg != null ? ` · 평균 중간 <b class="num">${mAvg != null ? fmt1(mAvg) : '-'}</b>점, 기말 <b class="num">${fAvg != null ? fmt1(fAvg) : '-'}</b>점` : ''}</p>` : ''}
         <div class="row between" style="margin-top:16px"><span class="muted">${sem.replace('-', '학년 ')}학기 평균 <b class="num" style="color:var(--t1)">${av ? fmt1(av) : '-'}</b>등급</span><button class="btn sm" id="ns-add" type="button">과목 더하기</button></div></section>
@@ -4517,7 +4525,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272138'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272148'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
