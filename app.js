@@ -955,25 +955,27 @@
     for (const it of myOpen()) {
       if (it.unit === '건' || !it.at) continue;
       const made = new Date(it.at), md0 = `${made.getFullYear()}-${String(made.getMonth() + 1).padStart(2, '0')}-${String(made.getDate()).padStart(2, '0')}`;
-      let d = addD(t, -1); for (let i = 0; i < 7 && !myStudy(it).includes(dowOf(d)); i++) d = addD(d, -1);
+      // 마감이 지난 숙제는 마감 날(마지막 할 요일) 기준으로 물어요 → 미루기로 다시 나눌 수 있게 (10/28)
+      let d = it.due < t ? it.due : addD(t, -1); for (let i = 0; i < 7 && !myStudy(it).includes(dowOf(d)); i++) d = addD(d, -1);
       if (d < md0 || d > it.due || (it.log || {})[d] || mySkip(it, d) || (it.ack || {})[d]) continue;
       const left = it.total - myDone(it); if (left <= 0) continue;
       const was = Math.ceil(left / Math.max(1, myDaysLeft(it.due, myStudy(it), d))), now = Math.ceil(left / myLeftDays(it)), nd = myDaysLeft(it.due, myStudy(it));
-      out.push({ it, d, was, now, nd });
+      out.push({ it, d, was, now, nd, left, over: it.due < t });
     }
     return out;
   }
   function missCard() {
     const L = myMissed(); if (!L.length) return '';
-    const avg = myAvg(), u = (it) => (it.unit === '쪽' ? '쪽' : '문제'), ds = [...new Set(L.slice(0, 3).map((x) => x.d))];
-    const when = ds.length === 1 ? `${md(ds[0])} ${DOW[dowOf(ds[0])]}요일에` : '지난번에';
-    return `<section class="card c12 miss-card"><div class="card-h"><h2>${when} 못 한 숙제가 있어요</h2><span class="tiny">${Math.min(L.length, 3)}개</span></div><div class="list">${L.slice(0, 3).map(({ it, d, was, now, nd }) => `<div class="li miss-it"><div class="body"><div class="t">${esc(it.book)}</div>
-      <div class="d">${ds.length > 1 ? `${md(d)} · ` : ''}${nd ? `남은 ${nd}일에 나누면 하루 ${was}${u(it)} → <b class="${avg && now > avg ? 'red' : 'blue'}">${now}${u(it)}</b>` : '마감까지 남은 날이 없어요'}</div></div>
+    const avg = myAvg(), u = (it) => (it.unit === '쪽' ? '쪽' : '문제'), ds = [...new Set(L.map((x) => x.d))];
+    const when = ds.length === 1 ? `${md(ds[0])} ${DOW[dowOf(ds[0])]}요일에` : '지난번에';  // 다 보여 줘요 (3개만 보이고 「3개」라 해서 나머지가 있는 줄 몰랐어요 10/28)
+    return `<section class="card c12 miss-card"><div class="card-h"><h2>${when} 못 한 숙제가 있어요</h2><span class="tiny">${L.length}개</span></div><div class="list">${L.map(({ it, d, was, now, nd, left, over }) => `<div class="li miss-it"><div class="body"><div class="t">${esc(it.book)}</div>
+      <div class="d">${ds.length > 1 ? `${md(d)} · ` : ''}${nd ? `남은 ${nd}일에 나누면 하루 ${was}${u(it)} → <b class="${avg && now > avg ? 'red' : 'blue'}">${now}${u(it)}</b>` : over ? `<b class="red">마감이 지났어요</b> · 남은 ${left}${u(it)} · 미루면 다시 나눠요` : '마감까지 남은 날이 없어요'}</div></div>
       <div class="miss-b"><button class="btn sm primary" type="button" data-miss="split|${esc(it.id)}|${d}">${nd ? '나눠 하기' : '오늘 할게요'}</button><button class="btn sm" type="button" data-miss="push|${esc(it.id)}|${d}">미루기</button><button class="btn sm" type="button" data-miss="did|${esc(it.id)}|${d}|${was}">했어요</button></div></div>`).join('')}</div></section>`;
   }
 
   // 마감을 다음 할 요일로 하루 미뤄요
-  function myPush(it) { const old = it.due; let d = addD(it.due, 1); for (let i = 0; i < 7 && !myStudy(it).includes(dowOf(d)); i++) d = addD(d, 1); it.orig = it.orig || old; it.due = d; return `원래 ${md(it.orig)}까지였는데 ${md(d)} ${DOW[dowOf(d)]}요일까지로 미뤄졌어요`; }
+  // 마감이 이미 지났으면 오늘 다음 할 요일로 (옛 마감 다음 날로 가면 여전히 지난 날이라 안 나뉘었어요 10/28)
+  function myPush(it) { const old = it.due; let d = addD(it.due < today() ? today() : it.due, 1); for (let i = 0; i < 7 && !myStudy(it).includes(dowOf(d)); i++) d = addD(d, 1); it.orig = it.orig || old; it.due = d; return `원래 ${md(it.orig)}까지였는데 ${md(d)} ${DOW[dowOf(d)]}요일까지로 미뤄졌어요`; }
   // 오늘 몫: 남은 양 ÷ 남은 날 (오늘 이미 한 건 빼고 계산해서 오늘 몫이 바뀌지 않게)
   function myToday(it) {
     const t = today(), dn = it.log && it.log[t] ? it.log[t].n : 0, left = it.total - (myDone(it) - dn);
@@ -4640,7 +4642,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280040'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280048'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
