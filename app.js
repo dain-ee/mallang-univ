@@ -1008,7 +1008,7 @@
   function myCard(cls) {
     const L = myOpen().sort((a, b) => (!myToday(a).n - !myToday(b).n) || a.due.localeCompare(b.due));
     return `<section class="card ${cls}"><div class="card-h"><h2>${ic('write')} 내 숙제</h2><button class="btn sm" type="button" data-myadd>+ 숙제 넣기</button></div>
-      ${L.length ? `<div class="list my-list">${L.map((it) => { const x = myToday(it), p = Math.round((myDone(it) / it.total) * 100), dd = dday(it.due); return `<div class="li btnlike" data-task="my:${esc(it.id)}"><div class="ico">${ic('write')}</div><div class="body"><div class="t">${esc(it.unit === '건' ? it.book : it.text)} <span class="tiny">${isPlan(it) ? '일정 · ' : ''}${esc(myCls(it.cls).name)}</span></div><div class="d">${it.unit === '건' ? esc(myCls(it.cls).name) : x.n ? `오늘 ${esc(myRange(it, x))}` : x.dn ? '오늘 몫 끝' : '오늘은 쉬는 요일'} · <b class="${dd <= 1 ? 'red' : ''}">${dd < 0 ? '마감 지남' : dd === 0 ? '오늘 마감' : `${md(it.due)} 마감 D-${dd}`}</b></div><div class="ik-bar"><i style="width:${p}%"></i></div></div></div>`; }).join('')}</div>` : `<p class="tiny" style="margin:12px 0 0">학원·과외·학교 숙제, 수행평가, 학생회 일까지 넣어요. 문제 수가 있으면 마감까지 매일 할 만큼 「오늘 할 일」에 나눠 줘요</p>`}</section>`;
+      ${L.length ? `<div class="list my-list">${L.map((it) => { const x = myToday(it), p = Math.round((myDone(it) / it.total) * 100), dd = dday(it.due); return `<div class="li btnlike" data-task="my:${esc(it.id)}"><div class="ico">${ic('write')}</div><div class="body"><div class="t">${esc(it.unit === '건' ? it.book : it.text)} <span class="tiny">${isPlan(it) ? '일정 · ' : ''}${esc(myCls(it.cls).name)}</span></div><div class="d">${it.unit === '건' ? esc(myCls(it.cls).name) : x.n ? `오늘 ${esc(myRange(it, x))}` : x.skip ? '내일로 미뤘어요' : x.dn ? '오늘 몫 끝' : '오늘은 쉬는 요일'} · <b class="${dd <= 1 ? 'red' : ''}">${dd < 0 ? '마감 지남' : dd === 0 ? '오늘 마감' : `${md(it.due)} 마감 D-${dd}`}</b></div><div class="ik-bar"><i style="width:${p}%"></i></div></div></div>`; }).join('')}</div>` : `<p class="tiny" style="margin:12px 0 0">학원·과외·학교 숙제, 수행평가, 학생회 일까지 넣어요. 문제 수가 있으면 마감까지 매일 할 만큼 「오늘 할 일」에 나눠 줘요</p>`}</section>`;
   }
   // 교재: 수업마다 기억해요. 지난번 끝 번호 다음부터 이어서 채워요
   const myBooks = (cid) => { const M = myS(); M.books = M.books || [{ cls: 'c1', name: '마플 시너지' }, { cls: 'c1', name: '마더텅' }, { cls: 'c1', name: '올림포스 기출' }]; return M.books.filter((b) => b.cls === cid); };
@@ -4642,7 +4642,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280048'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280139'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
