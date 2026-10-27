@@ -3592,9 +3592,9 @@
     const dates = Object.keys(by).sort().reverse();
     // 모은 기록: 하루씩 ‹ › 로 넘겨 보고, 날짜를 골라 바로 가요. 같은 이유는 한 줄로 묶어요 (10/28 선생님 «주르륵 말고»)
     const dayBlock = (d) => { const G = []; for (const x of by[d].slice().sort((a, b) => b.at - a.at)) { const g = G.find((y) => y.why === x.why && !!y.bonus === !!x.bonus); if (g) { g.n++; g.amt += x.amt; } else G.push({ why: x.why, bonus: x.bonus, amt: x.amt, n: 1 }); } const sum = G.reduce((a, x) => a + x.amt, 0);
-      return `<div class="wl-day"><div class="row between"><span class="tiny">이날 모은 돈</span><span class="num blue" style="font-weight:700">+${won(sum)}</span></div><div class="list">${G.map((x) => `<div class="li" style="padding:6px 0"><div class="body"><div class="t" style="font-size:14px;font-weight:500">${esc(x.why)}${x.n > 1 ? ` <span class="tiny">× ${x.n}</span>` : ''}${x.bonus ? ' <span class="tag amber">보너스</span>' : ''}</div></div><span class="num wl-plus">+${won(x.amt)}</span></div>`).join('')}</div></div>`; };
+      return `<div class="wl-day"><div class="wl-sum"><span>이날 모은 돈 <small>${G.reduce((a, x) => a + x.n, 0)}건</small></span><b class="num">+${won(sum)}</b></div><div class="list wl-items">${G.map((x) => `<div class="li"><div class="body"><div class="t" style="font-size:14px;font-weight:500">${esc(x.why)}${x.n > 1 ? ` <span class="tiny">× ${x.n}</span>` : ''}${x.bonus ? ' <span class="tag amber">보너스</span>' : ''}</div></div><span class="num wl-plus">+${won(x.amt)}</span></div>`).join('')}</div></div>`; };
     const wi = Math.min(Math.max(0, UI.wlDay || 0), Math.max(0, dates.length - 1)), wd = dates[wi];
-    const dayNav = dates.length ? `<div class="wl-nav"><button class="btn sm" type="button" data-wlnav="1" ${wi >= dates.length - 1 ? 'disabled' : ''} aria-label="전날">‹</button><label class="wl-pick"><b>${wd === today() ? '오늘' : md(wd) + ' ' + wdName(wd)}</b><span class="tiny">${wi + 1} / ${dates.length}일 · 눌러서 날짜 고르기</span><input type="date" data-wldate min="${dates[dates.length - 1]}" max="${dates[0]}" value="${wd}"></label><button class="btn sm" type="button" data-wlnav="-1" ${wi <= 0 ? 'disabled' : ''} aria-label="다음 날">›</button></div>` : '';
+    const dayNav = dates.length ? `<div class="wl-nav"><button class="btn sm" type="button" data-wlnav="1" ${wi >= dates.length - 1 ? 'disabled' : ''} aria-label="전날">‹</button><label class="wl-pick"><b>${wd === today() ? '오늘' : md(wd) + ' ' + wdName(wd)}</b>${ic('cal')}<input type="date" data-wldate min="${dates[dates.length - 1]}" max="${dates[0]}" value="${wd}"></label><button class="btn sm" type="button" data-wlnav="-1" ${wi <= 0 ? 'disabled' : ''} aria-label="다음 날">›</button></div>` : '';
     const paidRows = w.paid.slice().sort((a, b) => b.at - a.at);
     const ex = w.req ? `<div class="deep wl-req">${ic('gift')}<div><b>선생님께 바꿔 달라고 했어요</b><p style="margin:2px 0 0">${md(dateOf(w.req.at))}에 ${won(w.req.amt)}을 신청했어요. 선생님이 진짜 돈으로 주시면 여기서 빠져요</p></div></div>`
       : `<button class="btn ${bal >= W_GOAL ? 'primary' : ''} big block" id="wl-ex" type="button" ${bal >= W_GOAL && !TEACHER ? '' : 'disabled'}>${ic('cash')} ${bal >= W_GOAL ? '5만원 바꾸기' : `5만원 바꾸기 · 앞으로 ${won(rem)}`}</button>`;
@@ -4630,7 +4630,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280021'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280024'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

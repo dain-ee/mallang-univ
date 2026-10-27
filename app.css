@@ -2487,7 +2487,15 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .nr-pill .rd-bar b { background: #ff7a1a; }
 .nr-pill.done { color: #e8590c; background: #fff0e6; }
 .home-hw { grid-column: 1 / -1; }
-.wl-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.wl-nav .btn { flex: none; width: 56px; height: 56px; padding: 0; font-size: 20px; border-radius: 14px; }
-.wl-pick { position: relative; flex: 1; height: 56px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0; border-radius: 14px; background: var(--fill); cursor: pointer; }
+.wl-nav { display: flex; align-items: center; gap: 8px; }
+.wl-nav .btn { flex: none; width: 44px; height: 44px; padding: 0; font-size: 18px; border-radius: 12px; }
+.wl-pick { position: relative; flex: 1; height: 44px; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 12px; background: var(--fill); font-size: 15px; cursor: pointer; }
+.wl-pick svg, .wl-pick img { width: 16px; height: 16px; opacity: .5; }
 .wl-pick input { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: pointer; }
+.wl-sum { display: flex; align-items: center; justify-content: space-between; margin: 12px 0 4px; padding: 14px 16px; border-radius: 14px; background: var(--blue-soft); }
+.wl-sum span { font-size: 14px; font-weight: 600; color: var(--t2); }
+.wl-sum small { margin-left: 4px; font-size: 12px; font-weight: 500; color: var(--t3); }
+.wl-sum b { font-size: 20px; font-weight: 800; color: var(--blue); }
+.wl-items .li { padding: 12px 4px; min-height: 0; }
+.wl-items .li + .li { border-top: 1px solid var(--line); }
+.wl-items .t { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
