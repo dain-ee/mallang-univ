@@ -2351,36 +2351,38 @@
     if (lo != null && hi != null) return hi > lo ? { t: 'range', lo, hi } : { t: 'mix', lo, hi };
     return lo != null ? { t: 'above', lo } : hi != null ? { t: 'got', hi } : null;
   }
+  // 과목 카드 한 장: 맨 위 목표 → 지금 자리 → 시험 기록 표 → 짐작 컷 (10/27 선생님: 알약이 줄줄이라 보기 불편, 정돈해 달라)
   function nsFeel(base, sem, r) {
-    const H = nsHist(base); if (!H.length) return '';
-    const n1 = (v) => String(Math.round(v * 100) / 100), c1 = nsCut(H, 1), c2 = nsCut(H, 2), dots = H.map((x) => `<span class="np-pt g${Math.min(3, x.g)}">${esc(x.l)} <b>${n1(x.s)}점</b> → ${x.g}등급 <span class="tiny">(${fmt1(x.p)}%)</span></span>`).join('');
-    const cutT = (c, g) => !c ? '' : c.t === 'range' ? `${g}등급은 대략 <b>${n1(c.lo)}~${n1(c.hi)}점</b> 사이에서 갈렸어요` : c.t === 'above' ? `${g}등급은 <b>${n1(c.lo)}점보다 높아야</b> 했어요` : c.t === 'got' ? `<b>${n1(c.hi)}점</b>이면 ${g}등급이었어요` : `시험마다 어려움이 달라요. ${n1(c.hi)}점이 ${g}등급인 시험도, ${n1(c.lo)}점이 ${g}등급 밖인 시험도 있었어요`;
-    // 기말 목표: 같은 학기 중간이 기준 (같은 선생님·비슷한 어려움). 못 들었으면 그 점수보다 한 문제(약 4점) 더, 들었으면 그 점수 지키기
-    const m = +r.mid, mg = +r.midG, tgt = m > 0 && mg && !(+r.fin > 0) ? (mg === 1 ? `중간 ${n1(m)}점이 1등급이었어요. 기말도 <b>${n1(m)}점 안팎</b>을 지켜요` : Math.ceil(m + 4) >= 100 ? `중간 ${n1(m)}점도 ${mg}등급이었어요. 기말은 <b>만점</b>을 노려야 해요(실수 하나가 등급을 갈라요)` : `중간 ${n1(m)}점이 ${mg}등급이었어요. 이번 학기는 이 점수로 모자라니 기말은 <b>${Math.ceil(m + 4)}점 이상</b>(한 문제 더)을 노려요`) : '';
-    return `<div class="np-feel"><div class="np-pts">${dots}</div><p class="np-m">${[cutT(c1, 1), cutT(c2, 2)].filter(Boolean).join(' · ')}</p>${tgt ? `<p class="np-tg">${tgt}</p>` : ''}</div>`;
+    const H = nsHist(base), n1 = (v) => String(Math.round(v * 100) / 100);
+    const tbl = H.length ? `<div class="np-tb">${H.map((x) => `<div class="${x.sem === sem ? 'cur' : ''}"><span>${esc(x.l)}</span><b class="num">${n1(x.s)}</b><span class="np-gt g${Math.min(3, x.g)}">${x.g}등급</span><span class="num">${fmt1(x.p)}%</span></div>`).join('')}</div>` : '';
+    const ct = (c, g) => !c ? '' : c.t === 'range' ? `${g}등급 약 <b>${n1(c.lo)}~${n1(c.hi)}점</b>` : c.t === 'above' ? `${g}등급 <b>${n1(c.lo)}점 초과</b>` : c.t === 'got' ? `${g}등급 <b>${n1(c.hi)}점</b>이면 들어요` : `${g}등급 시험마다 달라요(${n1(c.hi)}점 들고 ${n1(c.lo)}점 놓침)`;
+    const cuts = H.length ? [ct(nsCut(H, 1), 1), ct(nsCut(H, 2), 2)].filter(Boolean) : [];
+    // 기말 목표: 같은 학기 중간이 기준 (같은 선생님·비슷한 어려움). 못 들었으면 한 문제(약 4점) 더, 들었으면 그 점수 지키기
+    const m = +r.mid, mg = +r.midG, tgt = m > 0 && mg && !(+r.fin > 0) ? (mg === 1 ? { v: `${n1(m)}점 지키기`, why: '중간 점수가 1등급이었어요' } : Math.ceil(m + 4) >= 100 ? { v: '만점', why: `중간 ${n1(m)}점도 ${mg}등급이었어요. 실수 하나가 등급을 갈라요` } : { v: `${Math.ceil(m + 4)}점 이상`, why: `중간 ${n1(m)}점은 ${mg}등급이었어요. 한 문제 더` }) : null;
+    return { tbl, cut: cuts.length ? `<p class="np-cut">짐작 컷 · ${cuts.join(' · ')}</p>` : '', tgt };
   }
   function nsPlan(sem) {
     const rec = S.naesin[sem] || {}, L = nsSubjects(sem).map((s) => ({ s, r: rec[s.name] || {}, k: nsRk((rec[s.name] || {}).midRk) })).filter((x) => x.k && +x.r.midG);
     if (!L.length) return '';
     const done = L.some((x) => +x.r.fin > 0 && +x.r.grade); // 기말·학기 등급까지 나온 학기는 돌아보기로 보여요
+    const x = (p) => Math.min(100, Math.max(0, p));
+    const bar = (p) => `<div class="np-bar"><i class="np-z1" style="width:10%"></i><i class="np-z2" style="left:10%;width:24%"></i><em style="left:${x(p)}%"></em><span style="left:10%">10%</span><span style="left:34%">34%</span></div>`;
+    const card = (tone, name, g, pct, box, st, F) => `<div class="np-r ${tone}"><div class="np-hd"><b>${esc(name)}</b><span class="np-gb g${Math.min(3, g)}">${g}등급</span><span class="tiny">상위 ${fmt1(pct)}%</span></div>
+        ${box}${bar(pct)}<p class="np-st">${st}</p>${F.tbl}${F.cut}</div>`;
     const row = ({ s, r, k }) => {
-      const g = +r.midG, up = g === 1 ? null : g === 2 ? k.c1 : g === 3 ? k.c2 : k.c3, gap = up != null ? Math.max(1, k.rk - up) : null, keep = g === 1 ? Math.floor(((10 - k.pct) * k.n) / 100) : null;
-      const [tone, msg] = g === 1 ? (keep <= 5 ? ['warn', keep > 0 ? `1등급 경계에 붙어 있어요. ${keep}명만 앞질러도 2등급이라 기말에서 꼭 지켜요` : '아슬아슬하게 1등급이에요. 기말에서 꼭 지켜요'] : ['ok', `1등급 여유 ${keep}명. 지금처럼만 하면 돼요`]) : gap <= 8 ? ['hot', `${g - 1}등급까지 약 ${gap}등. 기말에서 한두 문제 더 맞히면 뒤집을 수 있어요`] : ['', `${g - 1}등급까지 약 ${gap}등. 기말 점수를 끌어올려 차이를 줄여요`];
-      const x = (p) => Math.min(100, Math.max(0, p));
-      if (done) { const t = nsRk(r.totRk), fg = +r.finG, tg = +r.grade, tc = t ? Math.floor(t.n * 0.1) : 0; // 끝난 학기: 중간 → 기말 → 학기 종합이 어떻게 갔는지
-        const flow = [`중간 ${g}등급`, fg ? `기말 ${fg}등급` : '', tg ? `학기 <b>${tg}등급</b>` : ''].filter(Boolean).join(' → ');
-        const note = t && tg === 2 && t.rk - tc <= 8 ? `학기 종합 ${t.rk}등이라 1등급(${tc}등까지)에 ${t.rk - tc}등 모자랐어요. 정말 아까웠어요` : t && tg === 1 ? `학기 종합 ${t.rk}등 / ${t.n}명으로 1등급을 받았어요` : t ? `학기 종합 ${t.rk}등 / ${t.n}명 · 상위 ${fmt1(t.pct)}%` : '';
-        return `<div class="np-r ${tg === 1 ? 'ok' : note.includes('아까') ? 'hot' : ''}"><div class="row between" style="gap:8px"><b>${esc(s.name)}</b><span class="np-g">${tg || g}등급${t ? ` <span class="tiny">· 상위 ${fmt1(t.pct)}%</span>` : ''}</span></div>
-        <div class="np-bar"><i class="np-z1" style="width:10%"></i><i class="np-z2" style="left:10%;width:24%"></i><em style="left:${x(t ? t.pct : k.pct)}%"></em><span style="left:10%">10%</span><span style="left:34%">34%</span></div>
-        ${nsFeel(nsBase(s.name), sem, r)}<p class="np-m">${flow}${note ? `. ${esc(note)}` : ''}</p></div>`; }
-      return `<div class="np-r ${tone}"><div class="row between" style="gap:8px"><b>${esc(s.name)}</b><span class="np-g">${g}등급 <span class="tiny">· 상위 ${fmt1(k.pct)}%</span></span></div>
-        <div class="np-bar"><i class="np-z1" style="width:10%"></i><i class="np-z2" style="left:10%;width:24%"></i><em style="left:${x(k.pct)}%"></em><span style="left:10%">10%</span><span style="left:34%">34%</span></div>
-        ${nsFeel(nsBase(s.name), sem, r)}
-        <p class="np-m">${esc(msg)} <span class="tiny">${k.rk}등${k.tie > 1 ? `(동점 ${k.tie}명)` : ''} / ${k.n}명 · ${g <= 2 ? `1등급은 ${k.c1}등까지` : `${g - 1}등급은 ${up}등까지`}</span></p></div>`;
+      const g = +r.midG, F = nsFeel(nsBase(s.name), sem, r);
+      if (done) { const t = nsRk(r.totRk), fg = +r.finG, tg = +r.grade || g, tc = t ? Math.floor(t.n * 0.1) : 0; // 끝난 학기: 중간 → 기말 → 학기 종합
+        const near = t && tg === 2 && t.rk - tc <= 8;
+        const st = t ? (near ? `<b>1등급까지 ${t.rk - tc}등 모자랐어요</b> <span class="tiny">· 학기 ${t.rk}등 / ${t.n}명 · 1등급 ${tc}등까지</span>` : `학기 종합 <b>${t.rk}등</b> <span class="tiny">/ ${t.n}명</span>`) : '';
+        return card(tg === 1 ? 'ok' : near ? 'hot' : '', s.name, tg, t ? t.pct : k.pct, `<div class="np-tg"><span class="np-tl">학기 결과</span><b>${tg}등급</b><span class="np-why">중간 ${g}등급 → 기말 ${fg || '-'}등급 → 학기 ${tg}등급</span></div>`, st, F); }
+      const up = g === 1 ? null : g === 2 ? k.c1 : g === 3 ? k.c2 : k.c3, gap = up != null ? Math.max(1, k.rk - up) : null, keep = g === 1 ? Math.floor(((10 - k.pct) * k.n) / 100) : null;
+      const [tone, msg] = g === 1 ? (keep <= 5 ? ['warn', keep > 0 ? `1등급 경계 · ${keep}명만 앞질러도 2등급` : '아슬아슬 1등급'] : ['ok', `1등급 여유 ${keep}명`]) : gap <= 8 ? ['hot', `${g - 1}등급까지 약 ${gap}등 · 한두 문제면 뒤집어요`] : ['', `${g - 1}등급까지 약 ${gap}등`];
+      const st = `<b>${esc(msg)}</b> <span class="tiny">· 중간 ${k.rk}등${k.tie > 1 ? `(동점 ${k.tie})` : ''} / ${k.n}명 · ${g <= 2 ? `1등급 ${k.c1}등까지` : `${g - 1}등급 ${up}등까지`}</span>`;
+      return card(tone, s.name, g, k.pct, F.tgt ? `<div class="np-tg"><span class="np-tl">기말 목표</span><b>${esc(F.tgt.v)}</b><span class="np-why">${esc(F.tgt.why)}</span></div>` : '', st, F);
     };
     const pri = L.filter((x) => +x.r.midG > 1).sort((a, b) => (nsRk(a.r.midRk).pct - [0, 10, 34, 66][+a.r.midG - 1]) - (nsRk(b.r.midRk).pct - [0, 10, 34, 66][+b.r.midG - 1]));
     return `<section class="card c12 np-card"><div class="card-h"><h2>${done ? `${sem.split('-')[1]}학기 돌아보기` : '기말 작전'}</h2><span class="tiny">${done ? '중간 · 기말 · 학기 종합 석차로 봤어요' : '중간 석차로 봤어요'}</span></div>
-      ${pri.length && !done ? `<div class="explain" style="margin:0 0 12px">학기 최종 등급은 <b>중간·기말·수행을 합친 점수</b>로 다시 줄을 세워요. 그래서 지금 내 바로 위 몇 명보다 기말에서 더 받으면 등급이 올라가요. 먼저 챙길 과목은 <b>${pri.slice(0, 3).map((x) => esc(x.s.name)).join(' · ')}</b>예요.</div>` : ''}
+      ${pri.length && !done ? `<div class="explain" style="margin:0 0 12px">학기 등급은 <b>중간·기말·수행 합친 점수</b>로 다시 정해져요. 먼저 챙길 과목은 <b>${pri.slice(0, 3).map((x) => esc(x.s.name)).join(' · ')}</b>예요.</div>` : ''}
       <div class="np-g2">${L.sort((a, b) => nsRk(a.r.midRk).pct - [0, 10, 34, 66][+a.r.midG - 1] - (nsRk(b.r.midRk).pct - [0, 10, 34, 66][+b.r.midG - 1])).map(row).join('')}</div></section>`;
   }
   function naesinView() {
@@ -4525,7 +4527,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272148'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272218'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

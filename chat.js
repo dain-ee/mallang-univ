@@ -171,9 +171,10 @@ html.nc-has-fab .main{padding-bottom:calc(var(--tab-h,64px) + 104px + env(safe-a
 .nc-top img{width:22px;height:22px}
 .nc-top .cnt{min-width:18px;padding:0 5px;font-size:11px;font-weight:700;line-height:18px;color:#fff;background:var(--red,#f04452);border-radius:9px;text-align:center;font-variant-numeric:tabular-nums}
 .nc-top + .bell-top{margin-left:0}
-.nc-box{width:min(760px,calc(100vw - 48px));height:min(640px,calc(100vh - 120px));right:32px;top:84px;bottom:auto}
-.nc-box .nc-body{flex:1;min-height:0;display:grid;grid-template-columns:260px 1fr}
-.nc-stus{overflow-y:auto;padding:8px;border-right:1px solid var(--line)}
+.nc-box .nc-body{flex:1;min-height:0;display:flex;flex-direction:column}
+.nc-stus{flex:1;overflow-y:auto;padding:8px}
+.nc-box.thread .nc-stus,.nc-box:not(.thread) .nc-th,.nc-box.thread .nc-tools{display:none}
+.nc-box.thread .nc-head{display:none}
 .nc-stu{width:100%;display:flex;align-items:center;gap:12px;padding:12px 10px;font:inherit;text-align:left;color:var(--t1);background:none;border:0;border-radius:14px;cursor:pointer}
 .nc-stu:hover{background:var(--fill2)}.nc-stu.on{background:var(--blue-soft)}
 .nc-av{flex:none;width:42px;height:42px;display:grid;place-items:center;font-size:16px;font-weight:700;color:var(--blue);background:var(--blue-soft);border-radius:14px}
@@ -183,11 +184,11 @@ html.nc-has-fab .main{padding-bottom:calc(var(--tab-h,64px) + 104px + env(safe-a
 .nc-sn small{font-size:12px;font-weight:500;color:var(--t3);white-space:nowrap}
 .nc-sl{margin-top:2px;font-size:13px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nc-un{flex:none;min-width:22px;height:22px;padding:0 6px;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;background:var(--red,#f04452);border-radius:99px;font-variant-numeric:tabular-nums}
-.nc-th{display:flex;flex-direction:column;min-width:0;min-height:0}
+.nc-th{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
 .nc-th .nc-sub{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
 .nc-th .nc-sub b{font-size:16px;font-weight:700}.nc-th .nc-sub span{font-size:13px;color:var(--t3)}
-.nc-th .nc-sub .nc-back{display:none}
-.nc-th .nc-line{max-width:74%}
+.nc-th .nc-line{max-width:82%}
+.nc-th .nc-sub .nc-ht{flex:1;min-width:0}
 .nc-none{margin:auto;text-align:center;color:var(--t3);font-size:14px;line-height:1.7;padding:24px}
 .nc-tools{display:flex;gap:6px;align-items:center;padding:10px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--t3)}
 .nc-tools .nc-chip{font:inherit;font-size:12.5px;font-weight:600;color:var(--t2);background:var(--fill);border:0;border-radius:99px;padding:6px 11px;cursor:pointer}
@@ -198,18 +199,11 @@ html.nc-has-fab .main{padding-bottom:calc(var(--tab-h,64px) + 104px + env(safe-a
   .nc-fab{right:24px;bottom:calc(24px + var(--nc-lift,0px));width:auto;padding:0 20px 0 16px}
   .nc-fab-tx{display:inline}
   .nc-badge{top:-6px;right:-4px}
-  .nc-top{background:var(--fill)}
 }
 @media (max-width:899px){
   .nc-pane{inset:0;width:auto;height:auto;border-radius:0;z-index:120}
   .nc-pane .nc-head{padding-top:calc(14px + env(safe-area-inset-top))}
   html.nc-open body{overflow:hidden}
-  .nc-top{padding:0 10px}.nc-top .nc-tl{display:none}
-  .nc-box .nc-body{grid-template-columns:1fr}
-  .nc-box.thread .nc-stus{display:none}
-  .nc-box:not(.thread) .nc-th{display:none}
-  .nc-box .nc-stus{border-right:0}
-  .nc-th .nc-sub .nc-back{display:grid}
   .nc-th .nc-line{max-width:84%}
 }
 `;
@@ -284,12 +278,14 @@ html.nc-has-fab .main{padding-bottom:calc(var(--tab-h,64px) + 104px + env(safe-a
     const KN = 'mu:chat-known';
     let inbox = [], cur = null, msgs = [], lastId = 0, seenUpto = 0, busy = false, open = false, known = null, cmp = null;
     const total = () => inbox.reduce((n, x) => n + (x.unread || 0), 0);
-    const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'nc-top'; btn.id = 'nc-top'; btn.setAttribute('aria-label', '쪽지함');
-    btn.innerHTML = '<img src="icons/1f4ac.svg" alt=""><span class="nc-tl">쪽지함</span><span class="cnt" hidden></span>';
-    const topIn = document.querySelector('.top-in'), bell = document.getElementById('bell-top');
-    if (bell && bell.parentNode === topIn) topIn.insertBefore(btn, bell); else if (topIn) topIn.insertBefore(btn, document.getElementById('me')); else return;
+    // 학생 「선생님께 말하기」와 같은 자리·크기: 아래 오른쪽 단추 → 대화방 목록 → 방 (10/27 선생님: 큰 창이 화면 밖으로 잘렸어요)
+    const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'nc-fab'; btn.id = 'nc-top'; btn.setAttribute('aria-label', '쪽지함');
+    btn.innerHTML = '<span class="nc-fab-ic" aria-hidden="true"></span><span class="nc-fab-tx">쪽지함</span><span class="nc-badge" hidden></span>';
+    document.body.appendChild(btn); root.classList.add('nc-has-fab');
+    const lift = () => root.classList.toggle('nc-lift', !!document.getElementById('pomo-pill'));
+    new MutationObserver(lift).observe(document.body, { childList: true }); lift();
     const box = document.createElement('section'); box.className = 'nc-pane nc-box'; box.hidden = true; box.setAttribute('aria-label', '쪽지함');
-    box.innerHTML = `<header class="nc-head"><div class="nc-ht"><b>쪽지함</b><span>학생이 「선생님께 말하기」로 보낸 말이에요</span></div><button type="button" class="nc-x" aria-label="닫기">✕</button></header>
+    box.innerHTML = `<header class="nc-head"><div class="nc-ht"><b>쪽지함</b><span>대화할 학생을 골라 주세요</span></div><button type="button" class="nc-x" aria-label="닫기">✕</button></header>
       <div class="nc-body"><div class="nc-stus"></div><div class="nc-th"><div class="nc-none">왼쪽에서 학생을 골라 주세요</div></div></div>
       <div class="nc-tools"><button type="button" class="nc-chip" data-noti>알림 켜기</button><span class="nc-st"></span></div>`;
     document.body.appendChild(box);
@@ -297,7 +293,7 @@ html.nc-has-fab .main{padding-bottom:calc(var(--tab-h,64px) + 104px + env(safe-a
 
     // 탭 제목 앞에 안 읽은 수. 앱(토마토 타이머)이 제목을 바꿔도 1초마다 다시 붙여요
     setInterval(() => { const n = total(), base = document.title.replace(/^\(\d+\+?\) /, ''), want = (n ? `(${n > 99 ? '99+' : n}) ` : '') + base; if (document.title !== want) document.title = want; }, 1000);
-    function paintBtn() { const n = total(), c = btn.querySelector('.cnt'); c.hidden = !n; c.textContent = n > 99 ? '99+' : String(n); btn.setAttribute('aria-label', n ? `쪽지함, 안 읽은 ${n}개` : '쪽지함'); }
+    function paintBtn() { const n = total(), c = btn.querySelector('.nc-badge'); c.hidden = !n || (open && !cur); c.textContent = n > 99 ? '99+' : String(n); btn.classList.toggle('has-new', !!n && !open); btn.setAttribute('aria-label', n ? `쪽지함, 안 읽은 ${n}개` : '쪽지함'); }
 
     function drawSide() {
       stus.innerHTML = inbox.length ? inbox.map((x) => `<button type="button" class="nc-stu ${cur === x.student ? 'on' : ''}" data-s="${esc(x.student)}">
@@ -336,9 +332,10 @@ html.nc-has-fab .main{padding-bottom:calc(var(--tab-h,64px) + 104px + env(safe-a
     function openStu(s) {
       cur = s; msgs = []; lastId = 0; seenUpto = 0; box.classList.add('thread');
       const x = inbox.find((y) => y.student === s); if (x) x.unread = 0; drawSide();
-      th.innerHTML = `<div class="nc-sub"><button type="button" class="nc-back" aria-label="목록으로">‹</button><div><b>${esc(s)}</b> <span>학생</span></div></div>
+      th.innerHTML = `<div class="nc-sub"><button type="button" class="nc-back" aria-label="목록으로">‹</button><div class="nc-ht"><b>${esc(s)}</b> <span>학생</span></div><button type="button" class="nc-x" aria-label="닫기">✕</button></div>
         <div class="nc-list" data-empty="${esc(s)}에게 먼저 말을 걸어 보세요" data-stick="1"><div class="nc-empty">불러오는 중이에요</div></div>${FORM('답장을 입력해요')}`;
       th.querySelector('.nc-back').onclick = () => { box.classList.remove('thread'); cur = null; drawSide(); };
+      th.querySelector('.nc-x').onclick = () => setOpen(false);
       cmp = composer(th, async (body, img, restore) => {
         const lb = th.querySelector('.nc-list'), tmp = { id: 1e15 + Date.now(), sender: 'teacher', body, img, at: new Date().toISOString(), pending: true };
         msgs.push(tmp); lb.dataset.stick = '1'; renderMsgs(lb, msgs, 'teacher', seenUpto, s);
@@ -349,7 +346,7 @@ html.nc-has-fab .main{padding-bottom:calc(var(--tab-h,64px) + 104px + env(safe-a
       pollThread(true); if (matchMedia('(min-width:900px)').matches) setTimeout(cmp.focus, 30);
     }
     function setOpen(v) {
-      open = v; box.hidden = !v; root.classList.toggle('nc-open', v);
+      open = v; box.hidden = !v; btn.classList.toggle('on', v); root.classList.toggle('nc-open', v); paintBtn();
       if (v) { pollInbox(); if (cur) pollThread(true); }
     }
     btn.onclick = () => setOpen(!open);
