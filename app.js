@@ -1621,8 +1621,8 @@
   const TPK = 'mallang-univ:tprof', TPN = '_선생님';
   const TP = (() => { try { return JSON.parse(localStorage.getItem(TPK) || 'null') || {}; } catch (e) { return {}; } })();
   if (!TP.name) TP.name = '선생님';
-  // 선생님 「나의 한마디」: 선생님 홈 펫 말풍선 + 학생마다 기록(tmotto)에 넣어 학생 펫이 자기 한마디와 번갈아 말해요 (10/27)
-  function tMottoSave() { tSave(); const t = (TP.motto || '').trim(), at = Date.now(); for (const n of (D.students || []).map((x) => x.name || x)) dPut(n, 'tmotto', (d) => { d.tmotto = { text: t, at }; }).catch(() => {}); }
+  // 선생님 「나의 한마디」: 선생님 홈 펫 말풍선에만 나와요. 학생 펫은 자기 한마디와 선생님이 그 학생에게 보낸 한마디를 번갈아 (10/27)
+  function tMottoSave() { tSave(); }
   function tSave() { TP._at = Date.now(); try { localStorage.setItem(TPK, JSON.stringify(TP)); } catch (e) {} rpc('univ_put', { p_student: TPN, p_code: U.key, p_data: { profile: TP } }).catch(() => {}); }
   async function tLoad() { try { const r = await rpc('univ_get', { p_student: TPN, p_code: U.key }); const q = r && r.profile; if (q && (q._at || 0) > (TP._at || 0)) { Object.assign(TP, q); try { localStorage.setItem(TPK, JSON.stringify(TP)); } catch (e) {} render(); } } catch (e) {} }
   const skin = () => DASH_ONLY ? (SKINS[TP.skin] && (TP.skin === 'ghost' || GIFTS.includes(TP.skin)) ? TP.skin : 'ghost') : (SKIN_DEV && SKINS[SKIN_Q] ? SKIN_Q : SKINS[S.profile.skin] && (SKIN_DEV || owned().includes(S.profile.skin)) ? S.profile.skin : 'ghost');
@@ -1706,9 +1706,10 @@
       if (hit.length) host.style.marginTop = `${parseFloat(getComputedStyle(host).marginTop) + Math.max(...hit.map((q) => q.bottom)) - top + 6}px`; };
     const fitSay = () => { const sy = $('.pet-say', el); if (!sy || sy.hidden) return; const tx = txRects();
       const hb = (() => { const h = $('header.top, .top, header'); return h ? h.getBoundingClientRect().bottom : 0; })(); // 위 메뉴 줄에 가려지면 안 돼요 (10/27 주아 화면)
-      const bad = () => { const r = sy.getBoundingClientRect(); return r.left < 8 || r.right > innerWidth - 8 || r.top < hb + 4 || tx.some((q) => q.width && r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top); };
+      const cards = $$('#main .card').filter((c) => c !== host && !c.contains(el)).map((c) => c.getBoundingClientRect()); // 옆 카드도 가리면 안 돼요
+      const bad = () => { const r = sy.getBoundingClientRect(); return r.left < 8 || r.right > innerWidth - 8 || r.top < hb + 4 || cards.some((q) => r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top) || tx.some((q) => q.width && r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top); };
       for (const c of ['', 'side', 'flip']) { sy.classList.remove('side', 'flip'); if (c) sy.classList.add(c); if (!bad()) return; }
-      sy.classList.remove('side', 'flip'); sy.classList.add('side'); };
+      sy.classList.remove('side', 'flip'); sy.classList.add('flip'); };  // 다 겹치면 머리 위로 (옆 카드를 덮지 않게)
     addEventListener('resize', () => { if (el.isConnected) { fitSay(); hideHts(); } });
     const play = (n) => fetch(`assets/pets/${t}/${n}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).then((b) => { const u = URL.createObjectURL(b); im.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); }).catch(() => {});
     if (!RM()) play(base);
@@ -1721,7 +1722,7 @@
   // 10/27 선생님: «니 주제를 알라» 는 정윤이가 쓴 말인데 선생님 말처럼 보였어요 → 누가 한 말인지 꼭 붙여요
   function petLines() {
     if (DASH_ONLY) { const tm = (TP.motto || '').trim(); return tm ? [{ who: '내 한마디', t: tm }] : []; }
-    const out = [], mo = ((S.profile || {}).motto || '').trim(), tm = ((S.tmotto || {}).text || '').trim();
+    const out = [], mo = ((S.profile || {}).motto || '').trim(), tm = ((S.note || {}).text || '').trim();  // 선생님이 이 학생에게 보낸 한마디 (홈 「선생님 한마디」 그 글)
     if (mo) out.push({ who: '내 한마디', t: mo });
     if (tm) out.push({ who: '선생님 한마디', t: tm });
     return out;
@@ -3742,10 +3743,11 @@
     const q = qs[cur], a = jgRec(u, q);
     const box = q.choices ? `<div class="jg-ops">${q.choices.map((c, j) => `<button type="button" class="chip jg-op ${a && jgNorm(a.v) === jgNorm(c) ? (a.ok ? 'right' : 'wrong') : ''}" data-jo="${j}" ${a ? 'disabled' : ''}>${esc(c)}</button>`).join('')}</div>` : `<div class="row" style="gap:8px"><input class="inp" id="jg-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="답을 써요" value="${a ? esc(a.v) : ''}" ${a ? 'disabled' : ''}>${a ? '' : '<button class="btn primary" id="jg-ok" type="button">확인</button>'}</div>`;
     return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${!qs.some((x) => jgRec(u, x)) ? lesson : ''}
+      <div class="row between" style="margin-bottom:8px"><span class="tiny">${qs.filter((x) => jgRec(u, x)).length} / ${qs.length} 풀었어요</span><button class="btn sm ${r.omr ? 'soft' : ''}" data-jgomr type="button" aria-expanded="${!!r.omr}">${r.omr ? '접기' : '전체 문제 보기'}</button></div>
+      ${r.omr ? `<div class="card nx-omr"><div class="nb-g">${qs.map((x, k) => { const z = jgRec(u, x); return `<button class="nb ${z ? (z.ok ? 'ok' : 'no') : ''} ${k === cur ? 'cur' : ''}" data-jgj="${k}" type="button">${k + 1}</button>`; }).join('')}</div></div>` : ''}
       <div class="progress-dots">${qs.map((x, k) => { const z = jgRec(u, x); return `<i class="${z ? (z.ok ? 'ok' : 'no') : k === cur ? 'cur' : ''}"></i>`; }).join('')}</div>
       <div class="card"><div class="q-no">${cur + 1} / ${qs.length} <span class="tag">${esc(q.section || '')}</span></div><div class="q-text jg-q">${q.prompt}</div>${box}</div>
-      ${!a && cur > 0 ? '<div class="cta-bar jg-cta"><button class="btn big" id="jg-prev" type="button">‹ 이전 문제</button></div>' : ''}
-      ${a ? `${verdict(a.ok)}${a.ok ? '' : `<div class="explain"><b>정답</b> ${esc(q.answers[0])}</div>`}${q.why ? `<div class="explain"><b>해설</b> ${esc(q.why)}</div>` : ''}<div class="cta-bar jg-cta">${cur > 0 ? '<button class="btn big" id="jg-prev" type="button">‹ 이전 문제</button>' : ''}<button class="btn primary big block" id="next" type="button">${qs.some((x) => !jgRec(u, x)) ? '다음 문제' : '결과 보기'}</button></div>` : ''}
+      ${a ? `${verdict(a.ok)}${a.ok ? '' : `<div class="explain"><b>정답</b> ${esc(q.answers[0])}</div>`}${q.why ? `<div class="explain"><b>해설</b> ${esc(q.why)}</div>` : ''}<div class="cta-bar jg-cta"><button class="btn primary big block" id="next" type="button">${qs.some((x) => !jgRec(u, x)) ? '다음 문제' : '결과 보기'}</button></div>` : ''}
       ${qs.some((x) => jgRec(u, x)) && lesson ? `<details class="jg-again"><summary>설명 다시 보기</summary>${lesson}</details>` : ''}</div>`;
   }
   function bindGram() {
@@ -3766,7 +3768,8 @@
     if (inp && okb) { okb.onclick = () => mark(inp.value, okb); inp.onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); mark(inp.value, okb); } }; setTimeout(() => inp.focus({ preventScroll: true }), 50); }
     // 이전 문제로 돌아가 보고, 다음은 이미 푼 문제면 차례대로 · 아니면 안 푼 첫 문제로 (10/27 선생님 «이전 문제가 없어»)
     const n = $('#next'); if (n) n.onclick = () => { const k = r.show + 1; UI.run = { ...r, show: k < qs.length && jgRec(u, qs[k]) ? k : qs.findIndex((x) => !jgRec(u, x)) }; render(); window.scrollTo(0, 0); };
-    const pv = $('#jg-prev'); if (pv) pv.onclick = () => { UI.run = { ...r, show: Math.max(0, r.show - 1) }; render(); window.scrollTo(0, 0); };
+    const om = $('[data-jgomr]'); if (om) om.onclick = () => { UI.run = { ...r, omr: !r.omr }; render(); };
+    $$('[data-jgj]').forEach((b) => (b.onclick = () => { UI.run = { ...r, show: +b.dataset.jgj }; render(); }));  // 번호를 눌러 아무 문제로나 (10/27 선생님)
   }
   // 그래머 축하 (선생님 10/27 «주아가 그래머 다 풀면 아주 큰 뱃지랑 동기부여 팡팡»)
   // 숙제 한 조각 끝 → 팡팡 · 한 단계(배우기·실전·책 덮고) 끝 → 배지 · 한 과 전부 끝 → 「Unit 마스터」 아주 크게. 한 번만 (S.jgb)
@@ -4571,7 +4574,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272320'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272327'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
