@@ -44,13 +44,11 @@
   // 끝낸 때: 오답 숙제는 마지막으로 다시 푼 때
   const hwDoneAt = (h, W = S.wrong) => h.doneAt || Math.max(0, ...hwWr(h, W).map((id) => Math.max(W[id].clearedAt || 0, W[id].at || 0)));
   // 오늘 풀 오답: 오늘까지 낸 오답 숙제에서 아직 안 푼 것만 (전체 개수는 보여 주지 않아요)
-  // + 선생님이 오답 숙제를 안 내도, 어제까지 틀린 것 중 오래된 것부터 하루 3문제가 저절로 나와요 (10/27 선생님 «틀리면 오답이 쌓여야지»)
-  //   오늘 다시 푼 것(맞혔거나 또 틀렸거나)도 3문제에 셈해요. 오늘 처음 틀린 건 내일부터 나와요
-  const WR_DAY = 3, wrFirst = (w) => w.first || w.at || 0;
+  // + 그날 푼 것 중 틀린 건 바로 다 오늘 풀 오답에 (10/27 선생님 «그날그날 틀린 건 바로 다 오답 노트로»)
+  //   모의고사(정윤)만 한꺼번에 많으면 힘들어서 하루 3문제씩 (선생님 오답 숙제 그대로)
+  const wrFirst = (w) => w.first || w.at || 0;
   const todayWr = () => { const out = [], t = today(); for (const h of (S.hw || []).filter((x) => !x.done && (!x.due || x.due <= t))) for (const id of hwWr(h)) if (!wrTried(h, id) && !out.includes(id)) out.push(id);
-    const E = Object.entries(S.wrong || {}), old = (w) => dateOf(wrFirst(w)) < t, touched = E.filter(([, w]) => old(w) && ((w.cleared && dateOf(w.clearedAt || 0) === t) || (!w.cleared && dateOf(w.at || 0) === t))).length;
-    const cand = E.filter(([id, w]) => !w.cleared && old(w) && dateOf(w.at || 0) < t && !out.includes(id)).sort((a, b) => wrFirst(a[1]) - wrFirst(b[1]));
-    for (const [id] of cand.slice(0, Math.max(0, WR_DAY - touched))) out.push(id); return out; };
+    for (const [id, w] of Object.entries(S.wrong || {}).filter(([id, w]) => !w.cleared && w.src !== 'mock' && !String(id).startsWith('mock:') && !out.includes(id)).sort((a, b) => wrFirst(a[1]) - wrFirst(b[1]))) out.push(id); return out; };
   const hwNow = () => (S.hw || []).filter((h) => !hwDone(h) && (!h.due || h.due <= today()));
   const rich = (t) => esc(t).replace(/&lt;(\/?)(b|u|i|em|strong)&gt;/g, '<$1$2>').replace(/&lt;br\s*\/?&gt;/g, '<br>');
   const fmt1 = (x) => (x == null || isNaN(x) ? '-' : (Math.round(x * 10) / 10).toFixed(1));
@@ -1745,7 +1743,7 @@
     //  3. 너비는 옆 칸 카드나 화면 끝 전까지 최대 320px 이라 되도록 한두 줄
     //  4. 두 쪽 다 닿으면 덜 가리는 쪽
     const fitSay = () => { const sy = $('.pet-say', el); if (!sy || sy.hidden) return;
-      const ir = $('img', el).getBoundingClientRect(), er = el.getBoundingClientRect(), hr = host.getBoundingClientRect(), y0 = hr.top - 140, y1 = hr.top;
+      const er = el.getBoundingClientRect(), ir = er, hr = host.getBoundingClientRect(), y0 = hr.top - 140, y1 = hr.top;  // 그림 칸이 아니라 펫 몸 칸으로 재요 (시나모롤 귀가 넘쳐서 멀리 떴어요)
       const hb = (() => { const h = $('header.top, .top, header'); return h ? h.getBoundingClientRect().bottom : 0; })();
       const cards = $$('#main .card').filter((c) => c !== host && !c.contains(el)).map((c) => c.getBoundingClientRect()), tx = txRects().filter((q) => q.width);
       const near = cards.filter((q) => q.top < y1 && q.bottom > y0), lb = Math.max(8, ...near.filter((q) => q.right <= ir.left + 8).map((q) => q.right + 8)), rb = Math.min(innerWidth - 8, ...near.filter((q) => q.left >= ir.right - 8).map((q) => q.left - 8));
@@ -1755,14 +1753,17 @@
         if (left) { sy.style.left = 'auto'; sy.style.right = `${er.right - ir.left + 4}px`; } else { sy.classList.add('side'); sy.style.right = 'auto'; sy.style.left = `${ir.right - er.left + 4}px`; }
         { const h = sy.offsetHeight, cy = (ir.top + Math.min(ir.bottom, hr.top)) / 2, t = Math.min(cy - h / 2, hr.top - 6 - h); sy.style.bottom = 'auto'; sy.style.top = `${t - er.top}px`; }  // 펫 몸 옆 가운데 높이에 (카드 윗변 아래로는 안 내려가요)
         const r = sy.getBoundingClientRect(); return (r.left < 8 || r.right > innerWidth - 8 ? 1e6 : 0) + (r.top < hb + 4 ? 1e6 : 0) + cards.reduce((n, q) => n + ov(r, q), 0) + tx.reduce((n, q) => n + ov(r, q) * 4, 0); };
-      const a = put(true); if (!a) return; const b = put(false); if (!b) return; if (a <= b) put(true); };
+      const L = petLines(), fill = (one) => { el.single = one; sy.innerHTML = one ? petSayHtml1(L[li % L.length]) : petSayHtml(); };
+      let best = null; for (const one of L.length > 1 ? [false, true] : [false]) for (const lf of [true, false]) { if (!el.t) fill(one); const sc = put(lf); if (!best || sc < best[0]) best = [sc, one, lf]; if (!sc) break; } // 다 담아 왼쪽 → 오른쪽 → 한 줄씩 왼쪽 → 오른쪽
+      if (best[0]) { if (!el.t) fill(best[1]); put(best[2]); } else if (!el.t) fill(best[1]), put(best[2]);
+      const r = sy.getBoundingClientRect(); if (r.top < hb + 4) sy.style.top = `${parseFloat(sy.style.top) + hb + 4 - r.top}px`; };  // 위 메뉴 줄 밑으로는 절대 안 들어가요
     addEventListener('resize', () => { if (el.isConnected) { fitSay(); hideHts(); } });
     const play = (n) => fetch(`${pdir}/${pmap(n)}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).then((b) => { const u = URL.createObjectURL(b); im.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); }).catch(() => {});
     if (!RM()) play(base);
     // 같은 표정만 있으면 심심해서, 가끔 혼자 기뻐해요
     clearInterval(petDock.iv); if (!RM()) petDock.iv = setInterval(() => { if (!el.isConnected) return clearInterval(petDock.iv); if (document.hidden || el.t) return; play(petDock.alt = petDock.alt === 'perch_yay' && PET_WINK.has(t) ? 'perch_wink' : 'perch_yay'); setTimeout(() => { if (el.isConnected && !el.t) play(base); }, 2600); }, 9000 + Math.random() * 8000);
     el.onclick = (e) => { e.stopPropagation(); const say = $('.pet-say', el); play('perch_yay'); say.textContent = cheer(); say.hidden = false; say.classList.remove('motto'); fitSay(); clearTimeout(el.t); el.t = setTimeout(() => { el.t = 0; say.innerHTML = lines.length ? petSayHtml(lines[li]) : ''; say.hidden = !motto; say.classList.toggle('motto', !!motto); fitSay(); play(base); }, 2600); if (navigator.vibrate) navigator.vibrate(20); };
-    if (false) { const rot = setInterval(() => { if (!el.isConnected) return clearInterval(rot); if (el.t) return; li = (li + 1) % lines.length; const say = $('.pet-say', el); say.classList.remove('motto'); void say.offsetWidth; say.innerHTML = petSayHtml(lines[li]); say.classList.add('motto'); fitSay(); }, 7000); }
+    if (lines.length > 1) { const rot = setInterval(() => { if (!el.isConnected) return clearInterval(rot); if (el.t || !el.single) return; li = (li + 1) % lines.length; const say = $('.pet-say', el); say.classList.remove('motto'); void say.offsetWidth; say.innerHTML = petSayHtml(lines[li]); say.classList.add('motto'); fitSay(); }, 7000); }
   }
   // 펫 말풍선에 띄울 말: 선생님이 쓴 한마디(홈 맨 위 그 글) + 학생이 프로필에 쓴 「나의 한마디」
   // 10/27 선생님: «니 주제를 알라» 는 정윤이가 쓴 말인데 선생님 말처럼 보였어요 → 누가 한 말인지 꼭 붙여요
@@ -4621,7 +4622,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272354'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272356'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
