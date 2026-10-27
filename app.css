@@ -2509,7 +2509,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .wc-d.on { background: var(--blue); color: #fff; }
 .wc-d.on small { color: #fff; }
 .wc-d:disabled { background: transparent; color: var(--t4); cursor: default; }
-.wl-items .li + .li { border-top: 1px solid var(--line); }
+.wl-items .li, .wl-items .li + .li { border: 0; padding: 6px 0 !important; }
 .wl-sum span { font-size: 15px; font-weight: 700; color: var(--t1); }
 .wl-slide { overflow: hidden; }
 .wl-slide.from-r > * { animation: wl-in-r .32s cubic-bezier(.2, .8, .2, 1) both; }
