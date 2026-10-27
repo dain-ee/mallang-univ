@@ -4472,15 +4472,15 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610271014'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610271021'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
   }
-  async function reportOpen({ name, L, total, book, who, sent, extra }) {
+  async function reportOpen({ name, L, total, book, who, sent, extra, cv0 }) {
     try { await loadReport(); } catch (e) { return toast('리포트를 못 불러왔어요. 인터넷을 확인해 주세요'); }
-    const cv = document.createElement('canvas');
-    Report.drawReport(cv, { name, date: L.date, nth: L.nth, total, book, progress: L.progress, score: L.score, scoreTotal: L.scoreTotal, lesson: lines(L.lesson), homework: lines(L.hw), comment: lines(L.comment), ...(extra || {}) });
+    const cv = cv0 || document.createElement('canvas');
+    if (!cv0) Report.drawReport(cv, { name, date: L.date, nth: L.nth, total, book, progress: L.progress, score: L.score, scoreTotal: L.scoreTotal, lesson: lines(L.lesson), homework: lines(L.hw), comment: lines(L.comment), ...(extra || {}) });
     const blob = await new Promise((r) => cv.toBlob(r, 'image/png'));
     const file = new File([blob], `${name}_${L.date}${L.nth ? '_' + L.nth + '회차' : ''}.png`, { type: 'image/png' });
     const url = URL.createObjectURL(blob), canShare = !!(navigator.canShare && navigator.canShare({ files: [file] }));
@@ -4513,9 +4513,11 @@
   };
   function prStats(a, b) {
     const days = dSpan(a, b), inR = (d) => !!d && d >= a && d <= b, atR = (at) => !!at && inR(dOf(at));
-    const mins = days.map((d) => sMin(d)), tot = mins.reduce((x, y) => x + y, 0), on = mins.filter((m) => m > 0).length;
-    let run = 0, best = 0; for (const m of mins) { run = m > 0 ? run + 1 : 0; best = Math.max(best, run); }
+    const mins = days.map((d) => sMin(d)), tot = mins.reduce((x, y) => x + y, 0);
     const items = days.flatMap((d) => dayItems(d).map((it) => ({ ...it, day: d, cat: prCat(it) }))).filter((x) => x.cat);
+    // 공부한 날: 시간을 안 적은 날도 끝낸 공부가 있으면 공부한 날이에요 (시간은 정윤이가 가끔만 적어요)
+    const cnt = days.map((d) => items.filter((x) => x.day === d).length), act = days.map((d, k) => mins[k] > 0 || cnt[k] > 0), on = act.filter(Boolean).length;
+    let run = 0, best = 0; for (const a of act) { run = a ? run + 1 : 0; best = Math.max(best, run); }
     const cats = {}; for (const it of items) (cats[it.cat] = cats[it.cat] || []).push(it);
     const acc = [], add = (t, n, ok) => { if (n) acc.push({ t, n, ok }); };
     { const I = inkS(); let n = 0, ok = 0; for (const [k, v] of Object.entries(I.at)) if (inR(v) && I.st[k] === 'done' && I.q[k]) { n += I.q[k].n || 0; ok += I.q[k].ok || 0; } add('인강 미니 퀴즈', n, ok); }
@@ -4528,13 +4530,14 @@
     const perf = PERF.filter((x) => inR((S.perfDone || {})[x.id])).map((x) => x.title);
     const tom = days.reduce((x, d) => x + ((pomo().days[d] || {}).n || 0), 0);
     const qn = acc.reduce((x, r) => x + r.n, 0), qok = acc.reduce((x, r) => x + r.ok, 0);
-    return { a, b, days, mins, tot, on, best, items, cats, acc, qn, qok, wrOk, mocks, perf, tom };
+    return { a, b, days, mins, cnt, tot, on, best, items, cats, acc, qn, qok, wrOk, mocks, perf, tom };
   }
   // 한눈에 보기: 엄마가 맨 먼저 읽는 서너 줄. 기록에서 저절로 만들어요
   function prSum(R, P, name) {
     const one = R.days.length === 1, o = [];
     if (!R.tot && !R.items.length && !R.qn) return [`이 기간에는 ${name}가 앱에 남긴 공부 기록이 없어요.`];
-    if (R.tot) o.push(one ? `이날 모두 ${hm(R.tot)} 공부했어요.` : `${R.days.length}일 중 ${R.on}일 공부했고, 모두 ${hm(R.tot)} 공부했어요.`);
+    if (one) { if (R.tot) o.push(`이날 모두 ${hm(R.tot)} 공부했어요.`); }
+    else if (R.on) o.push(`${R.days.length}일 중 ${R.on}일 공부했어요${R.tot ? `. 적어 둔 공부 시간만 ${hm(R.tot)}이에요` : ''}.`);
     const top = Object.entries(R.cats).sort((p, q) => q[1].length - p[1].length).slice(0, 2);
     if (top.length) o.push(`${top.map(([c, L]) => `${c} ${L.length}개`).join(', ')}${top.length > 1 ? '를' : (jongOf(top[0][1].length + '개') ? '을' : '를')} 가장 많이 끝냈어요.`);
     if (P.tot && R.tot && !one) { const p = Math.round(((R.tot - P.tot) / P.tot) * 100); if (p >= 5) o.push(`바로 앞 ${R.days.length}일보다 공부 시간이 ${p}% 늘었어요.`); }
@@ -4566,11 +4569,10 @@
       ls.forEach((l, k) => text(l, M + 24, y + 70 + k * 28, fnt(600, 17), C.t1)); y += h + 12; }
     // 큰 숫자 세 칸
     const tiles = [];
-    if (R.tot) tiles.push(['공부 시간', hm(R.tot), one ? '직접 적은 시간·타이머' : `${len}일 모두 합해서`]);
+    if (R.items.length) tiles.push(['끝낸 공부', `${R.items.length}개`, '숙제·인강·문제']);
+    if (R.qn) tiles.push(['맞힌 비율', `${Math.round((R.qok / R.qn) * 100)}%`, `${R.qn}문제 중 ${R.qok}개`]);
     if (!one && R.on) tiles.push(['공부한 날', `${R.on}일`, `${len}일 중`]);
-    if (!one && R.on) tiles.push(['하루 평균', hm(R.tot / R.on), '공부한 날 기준']);
-    if (tiles.length < 3 && R.items.length) tiles.push(['끝낸 공부', `${R.items.length}개`, '숙제·인강·문제']);
-    if (tiles.length < 3 && R.qn) tiles.push(['푼 문제', `${R.qn}문제`, `${Math.round((R.qok / R.qn) * 100)}% 맞힘`]);
+    if (tiles.length < 3 && R.tot) tiles.push(['공부 시간', hm(R.tot), one ? '직접 적은 시간·타이머' : '직접 적은 시간']);
     if (tiles.length) {
       const n = Math.min(3, tiles.length), g = 12, tw = (CW - g * (n - 1)) / n, th = 124;
       tiles.slice(0, 3).forEach(([l, v, s], k) => { const x = M + k * (tw + g); box(x, y, tw, th, 18, k === 0 ? C.bsoft : C.fill); text(l, x + 20, y + 34, fnt(600, 15), C.t2); text(v, x + 20, y + 76, fnt(800, v.length > 7 ? 24 : 30), k === 0 ? C.blue : C.t1); text(s, x + 20, y + 104, fnt(500, 13), C.t3); });
@@ -4586,35 +4588,36 @@
       if (P.qn >= 5 && R.qn >= 5) { const pa = Math.round((P.qok / P.qn) * 100), pb = Math.round((R.qok / R.qn) * 100); g.push({ l: '맞힌 비율', s: `${pa}% → ${pb}%`, d: pb > pa ? `+${pb - pa}%p` : pb < pa ? `${pb - pa}%p` : '같아요', up: pb >= pa }); }
     }
     if (g.length || R.best >= 2) {
-      head('지난번보다', one ? `${md(P.a)}과 견줘서` : `${md(P.a)}~${md(P.b)}과 견줘서`);
+      if (g.length) head('지난번보다', one ? `${md(P.a)}과 견줘서` : `${md(P.a)}~${md(P.b)}과 견줘서`); else head('꾸준히 했어요');
       for (const r of g) { y += 10; box(M, y, CW, 60, 14, r.up ? C.gsoft : C.fill); text(r.l, M + 20, y + 38, fnt(700, 17), C.t1); text(r.s, M + 150, y + 38, fnt(500, 16), C.t2); text(r.d, W - M - 20, y + 38, fnt(800, 18), r.up ? C.green : C.t3, 'right'); y += 60; }
       if (R.best >= 2) { y += 10; box(M, y, CW, 60, 14, C.bsoft); text('이어서 공부한 날', M + 20, y + 38, fnt(700, 17), C.t1); text(`${R.best}일 연속`, W - M - 20, y + 38, fnt(800, 18), C.blue, 'right'); y += 60; }
     }
     // 날짜별 막대
-    if (R.tot && !one) {
-      head('날짜별 공부 시간', `가장 많이 ${hm(Math.max(...R.mins))}`);
-      const ch = 170, top = y + 34, base = top + ch, mx = Math.max(...R.mins), bw = CW / len, w0 = Math.min(44, bw * 0.62), lab = len <= 10;
+    const byN = R.items.length > 0, V = byN ? R.cnt : R.mins, vf = (m) => (byN ? `${m}개` : hm(m).replace(' ', ''));
+    if (!one && Math.max(0, ...V) > 0) {
+      head(byN ? '날짜별로 끝낸 공부' : '날짜별 공부 시간', `하루 가장 많이 ${byN ? Math.max(...V) + '개' : hm(Math.max(...V))}`);
+      const ch = 170, top = y + 34, base = top + ch, mx = Math.max(...V), bw = CW / len, w0 = Math.min(44, bw * 0.62), lab = len <= 10;
       ops.push((c) => { c.strokeStyle = C.line; c.lineWidth = 1; c.beginPath(); c.moveTo(M, base + 0.5); c.lineTo(W - M, base + 0.5); c.stroke(); });
       R.days.forEach((d, k) => {
-        const m = R.mins[k], h = m ? Math.max(6, (m / mx) * ch) : 0, cx = M + bw * k + bw / 2;
+        const m = V[k], h = m ? Math.max(6, (m / mx) * ch) : 0, cx = M + bw * k + bw / 2;
         if (h) box(cx - w0 / 2, base - h, w0, h, Math.min(8, w0 / 2), m === mx ? C.blue : '#90c2ff');
-        if (lab && m) text(hm(m).replace(' ', ''), cx, base - h - 8, fnt(700, len > 7 ? 11 : 13), m === mx ? C.blue : C.t2, 'center');
+        if (lab && m) text(vf(m), cx, base - h - 8, fnt(700, len > 7 ? 11 : 13), m === mx ? C.blue : C.t2, 'center');
         if (lab || k % Math.ceil(len / 10) === 0 || k === len - 1) { text(lab ? `${+d.slice(8)}일` : `${+d.slice(5, 7)}/${+d.slice(8)}`, cx, base + 22, fnt(600, 13), C.t2, 'center'); if (lab) text(wdOf(d), cx, base + 40, fnt(500, 12), C.t3, 'center'); }
       });
       y = base + (lab ? 44 : 26);
     }
-    // 끝낸 공부 (과목·종류별)
+    // 끝낸 공부 (종류별 가로 막대 · 예시는 한 줄만): 엄마가 글을 안 읽으니 막대 길이로 보여요
     if (R.items.length) {
       head('끝낸 공부', `모두 ${R.items.length}개`);
-      for (const [cat, L] of Object.entries(R.cats).sort((p, q) => q[1].length - p[1].length)) {
-        const ex = [...new Set(L.map((x) => x.t.replace(/^(국어|과학|한국사|사회|역사|통합사회|통합과학)\s*인강 · /, '$1 · ')))], lines = ex.slice(0, 3).flatMap((t) => wrap('· ' + t, CW - 40, fnt(500, 15)).slice(0, 2));
-        if (ex.length > 3) lines.push(`외 ${ex.length - 3}개`);
-        const h = 58 + lines.length * 24;
-        y += 10; box(M, y, CW, h, 16, C.fill);
-        text(cat, M + 20, y + 36, fnt(700, 18), C.t1); text(`${L.length}개`, W - M - 20, y + 36, fnt(800, 18), C.blue, 'right');
-        lines.forEach((l, k) => text(l, M + 20, y + 64 + k * 24, fnt(500, 15), C.t2));
-        y += h;
-      }
+      const E = Object.entries(R.cats).sort((p, q) => q[1].length - p[1].length), mx = E[0][1].length, LW = 150, BW = CW - LW - 56;
+      E.forEach(([cat, L], k) => {
+        const it = L[L.length - 1], ex = it.t === '학교에서 한 것' ? String(it.d || '') : it.t.replace(/^(국어|과학|한국사|사회|역사|통합사회|통합과학)\s*인강 · /, '$1 · '), ln = wrap(ex, CW - LW, fnt(500, 13))[0] || '';
+        y += 16; text(cat, M, y + 20, fnt(700, 16), C.t1);
+        box(M + LW, y + 6, BW, 18, 9, C.fill); box(M + LW, y + 6, Math.max(18, (BW * L.length) / mx), 18, 9, k === 0 ? C.blue : '#90c2ff');
+        text(`${L.length}개`, W - M, y + 21, fnt(800, 16), k === 0 ? C.blue : C.t2, 'right');
+        if (ln) text(ln, M + LW, y + 46, fnt(500, 13), C.t3);
+        y += ln ? 50 : 30;
+      });
     }
     // 문제 푼 결과
     if (R.acc.length || R.wrOk) {
@@ -4752,6 +4755,8 @@
       return o;
     });
   }
+  // 정윤 주간 리포트 그림: 글 목록 대신 엄마 리포트 그림(한눈에 보기·지난주와 견줌·날짜별 막대·종류별 카드)으로 (10/27 선생님: 엄마가 글을 안 읽어요)
+  const wkCanvas = (n, date, d) => asS(d === undefined ? dRowD(n) : d, () => prDraw(prStats(addD(date, -6), date), prStats(addD(date, -13), addD(date, -7)), n + (jongOf(n) ? '이' : '')));
   const rpExtra = (r, L) => r.tutor ? {} : { kicker: '말랑대학 주간 공부 리포트', lessonLabel: '이번 주 한 것', note: '앱에 남은 기록으로 만들었어요 :)', tiles: [['푼 문제', L.stat ? `${L.stat.solved}개` : '—', false], ['끝낸 숙제', L.stat && L.stat.all ? `${L.stat.fin} / ${L.stat.all}` : '—', false], ['시험', L.score ? (L.scoreTotal ? `${L.score} / ${L.scoreTotal}` : L.score) : '—', true]] };
   const dRowD = (n) => (n === U.who ? S : ((roster.rows || []).find((x) => x.r.name === n) || {}).d);
   const cuLine = (nos) => { const chs = []; for (const no of [...nos].sort((a, b) => a - b)) { const x = cuByNo(no); let g = chs.find((y) => y.ch === x.ch); if (!g) chs.push((g = { ch: x.ch, t: x.chTitle, n: [] })); g.n.push(no); } return chs.map((g) => `천일문 기본 Ch.${g.ch} ${g.t} (Unit ${unitsText(g.n)})`); };
@@ -5015,8 +5020,8 @@
   async function dRepShow(n, L) {
     const r = rOf(n), lz = r.lesson || {}, d = dRowD(n);
     try { await loadReport(); } catch (e) { return toast('리포트를 못 불러왔어요. 인터넷을 확인해 주세요'); }
-    const name = (d && d.profile && d.profile.name) || n, cv = document.createElement('canvas');
-    Report.drawReport(cv, { name, date: L.date, nth: L.nth, total: L.mt || dTotal(r, dCls(r, d), L.date), book: L.book || lz.book || '', progress: L.progress, score: L.score, scoreTotal: L.scoreTotal, lesson: lines(L.lesson), homework: lines(L.hw), comment: lines(L.comment), ...rpExtra(r, L) });
+    const name = (d && d.profile && d.profile.name) || n, cv = r.tutor ? document.createElement('canvas') : wkCanvas(n, L.date, d);
+    if (r.tutor) Report.drawReport(cv, { name, date: L.date, nth: L.nth, total: L.mt || dTotal(r, dCls(r, d), L.date), book: L.book || lz.book || '', progress: L.progress, score: L.score, scoreTotal: L.scoreTotal, lesson: lines(L.lesson), homework: lines(L.hw), comment: lines(L.comment), ...rpExtra(r, L) });
     const blob = await new Promise((ok) => cv.toBlob(ok, 'image/png')), file = new File([blob], `${name}_${L.date}${L.nth ? '_' + L.nth + '회차' : ''}.png`, { type: 'image/png' });
     if (UI.drep && UI.drep.url) URL.revokeObjectURL(UI.drep.url);
     UI.drep = { n, blob, file, url: URL.createObjectURL(blob), canShare: !!(navigator.canShare && navigator.canShare({ files: [file] })), sent: () => { dPut(n, 'cls', (D) => { const y = ((D.cls || {}).list || []).find((l) => l.id === L.id); if (y) y.sent = Date.now(); }).then(render).catch(() => toast('보낸 표시를 못 남겼어요')); } };
@@ -5027,8 +5032,8 @@
     const img = $('#d-pv'); if (!img) return;
     loadReport().then(() => {
       if (!img.isConnected) return;
-      const r = rOf(n), lz = r.lesson || {}, d = dRowD(n), L = drBuild(n), cv = document.createElement('canvas');
-      Report.drawReport(cv, { name: (d && d.profile && d.profile.name) || n, date: L.date, nth: L.nth, total: drOf(n).mt || dTotal(r, dCls(r, d), L.date), book: L.book || lz.book || '', progress: L.progress, score: L.score, scoreTotal: L.scoreTotal, lesson: lines(L.lesson), homework: lines(L.hw), comment: lines(L.comment), ...rpExtra(r, L) });
+      const r = rOf(n), lz = r.lesson || {}, d = dRowD(n), L = drBuild(n), cv = r.tutor ? document.createElement('canvas') : wkCanvas(n, L.date, d);
+      if (r.tutor) Report.drawReport(cv, { name: (d && d.profile && d.profile.name) || n, date: L.date, nth: L.nth, total: drOf(n).mt || dTotal(r, dCls(r, d), L.date), book: L.book || lz.book || '', progress: L.progress, score: L.score, scoreTotal: L.scoreTotal, lesson: lines(L.lesson), homework: lines(L.hw), comment: lines(L.comment), ...rpExtra(r, L) });
       img.src = cv.toDataURL('image/png');
     }).catch(() => {});
   }
@@ -5249,7 +5254,7 @@
   async function dReport(n, id, L0) {
     const r = rOf(n), d = await dLoad(n), c = dCls(r, d), L = L0 || c.list.find((l) => l.id === id); if (!L) return toast('그 수업 기록을 못 찾았어요');
     const lz = r.lesson || {};
-    reportOpen({ name: (d && d.profile && d.profile.name) || n, L, total: L.mt || dTotal(r, c, L.date), book: L.book || lz.book || '', who: lz.parent || '어머니', extra: rpExtra(r, L),
+    reportOpen({ name: (d && d.profile && d.profile.name) || n, L, total: L.mt || dTotal(r, c, L.date), book: L.book || lz.book || '', who: lz.parent || '어머니', extra: rpExtra(r, L), cv0: r.tutor ? null : wkCanvas(n, L.date, d),
       sent: () => { dPut(n, 'cls', (D) => { const y = ((D.cls || {}).list || []).find((l) => l.id === L.id); if (y) y.sent = Date.now(); }).then(render).catch(() => toast('보낸 표시를 못 남겼어요')); } });
   }
   // 학생을 누르면: 그 학생으로 할 일만 (학생 화면은 여기서 고를 때만 새 탭)
