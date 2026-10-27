@@ -1703,7 +1703,8 @@
       const hit = txRects().filter((q) => q.width && r.left + 8 < q.right && r.right - 8 > q.left && top < q.bottom && r.bottom > q.top && q.bottom < host.getBoundingClientRect().top + 4);
       if (hit.length) host.style.marginTop = `${parseFloat(getComputedStyle(host).marginTop) + Math.max(...hit.map((q) => q.bottom)) - top + 6}px`; };
     const fitSay = () => { const sy = $('.pet-say', el); if (!sy || sy.hidden) return; const tx = txRects();
-      const bad = () => { const r = sy.getBoundingClientRect(); return r.left < 8 || r.right > innerWidth - 8 || tx.some((q) => q.width && r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top); };
+      const hb = (() => { const h = $('header.top, .top, header'); return h ? h.getBoundingClientRect().bottom : 0; })(); // 위 메뉴 줄에 가려지면 안 돼요 (10/27 주아 화면)
+      const bad = () => { const r = sy.getBoundingClientRect(); return r.left < 8 || r.right > innerWidth - 8 || r.top < hb + 4 || tx.some((q) => q.width && r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top); };
       for (const c of ['', 'side', 'flip']) { sy.classList.remove('side', 'flip'); if (c) sy.classList.add(c); if (!bad()) return; }
       sy.classList.remove('side', 'flip'); sy.classList.add('side'); };
     addEventListener('resize', () => { if (el.isConnected) { fitSay(); hideHts(); } });
@@ -4564,7 +4565,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272306'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272310'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
