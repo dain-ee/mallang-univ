@@ -1746,10 +1746,10 @@
       const er = el.getBoundingClientRect(), ir = er, hr = host.getBoundingClientRect(), y0 = hr.top - 140, y1 = hr.top;  // 그림 칸이 아니라 펫 몸 칸으로 재요 (시나모롤 귀가 넘쳐서 멀리 떴어요)
       const hb = (() => { const h = $('header.top, .top, header'); return h ? h.getBoundingClientRect().bottom : 0; })();
       const cards = $$('#main .card').filter((c) => c !== host && !c.contains(el)).map((c) => c.getBoundingClientRect()), tx = txRects().filter((q) => q.width);
-      const near = cards.filter((q) => q.top < y1 && q.bottom > y0), lb = Math.max(8, ...near.filter((q) => q.right <= ir.left + 8).map((q) => q.right + 8)), rb = Math.min(innerWidth - 8, ...near.filter((q) => q.left >= ir.right - 8).map((q) => q.left - 8));
+      const near = [...cards.filter((q) => q.top < y1 && q.bottom > y0), ...tx.filter((q) => q.top < hr.top && q.bottom > hb)], lb = Math.max(8, ...near.filter((q) => q.right <= ir.left + 8).map((q) => q.right + 12)), rb = Math.min(innerWidth - 8, ...near.filter((q) => q.left >= ir.right - 8).map((q) => q.left - 12));  // 옆 칸 카드·위 제목 글자 끝까지만 넓혀요
       const ov = (a, q) => Math.max(0, Math.min(a.right, q.right) - Math.max(a.left, q.left)) * Math.max(0, Math.min(a.bottom, q.bottom) - Math.max(a.top, q.top));
       const put = (left, inside) => { sy.classList.remove('side', 'flip'); sy.style.top = 'auto'; sy.style.transform = 'none'; sy.style.bottom = `${er.bottom - hr.top + 6}px`;
-        const room = left ? ir.left - 4 - lb : rb - ir.right - 4; sy.style.maxWidth = `${Math.max(110, Math.min(320, room))}px`;
+        const room = left ? ir.left - 4 - lb : rb - ir.right - 4; sy.style.maxWidth = `${Math.max(inside ? 200 : 110, Math.min(320, inside ? ir.left - hr.left - 40 : room))}px`;
         if (left) { sy.style.left = 'auto'; sy.style.right = `${er.right - ir.left + 4}px`; } else { sy.classList.add('side'); sy.style.right = 'auto'; sy.style.left = `${ir.right - er.left + 4}px`; }
         { const h = sy.offsetHeight, cy = (ir.top + Math.min(ir.bottom, hr.top)) / 2, t = inside ? hr.top + 14 : Math.min(cy - h / 2, hr.top - 6 - h); sy.style.bottom = 'auto'; sy.style.top = `${t - er.top}px`; }  // inside: 옆에 자리가 없으면 앉은 카드 안 윗부분 빈 곳에  // 펫 몸 옆 가운데 높이에 (카드 윗변 아래로는 안 내려가요)
         const r = sy.getBoundingClientRect(); return (r.left < 8 || r.right > innerWidth - 8 ? 1e6 : 0) + (r.top < hb + 4 ? 1e6 : 0) + cards.reduce((n, q) => n + ov(r, q), 0) + tx.reduce((n, q) => n + ov(r, q) * 4, 0); };
@@ -4622,7 +4622,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272358'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280000'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
