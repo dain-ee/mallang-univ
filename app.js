@@ -44,7 +44,13 @@
   // 끝낸 때: 오답 숙제는 마지막으로 다시 푼 때
   const hwDoneAt = (h, W = S.wrong) => h.doneAt || Math.max(0, ...hwWr(h, W).map((id) => Math.max(W[id].clearedAt || 0, W[id].at || 0)));
   // 오늘 풀 오답: 오늘까지 낸 오답 숙제에서 아직 안 푼 것만 (전체 개수는 보여 주지 않아요)
-  const todayWr = () => { const out = []; for (const h of (S.hw || []).filter((x) => !x.done && (!x.due || x.due <= today()))) for (const id of hwWr(h)) if (!wrTried(h, id) && !out.includes(id)) out.push(id); return out; };
+  // + 선생님이 오답 숙제를 안 내도, 어제까지 틀린 것 중 오래된 것부터 하루 3문제가 저절로 나와요 (10/27 선생님 «틀리면 오답이 쌓여야지»)
+  //   오늘 다시 푼 것(맞혔거나 또 틀렸거나)도 3문제에 셈해요. 오늘 처음 틀린 건 내일부터 나와요
+  const WR_DAY = 3, wrFirst = (w) => w.first || w.at || 0;
+  const todayWr = () => { const out = [], t = today(); for (const h of (S.hw || []).filter((x) => !x.done && (!x.due || x.due <= t))) for (const id of hwWr(h)) if (!wrTried(h, id) && !out.includes(id)) out.push(id);
+    const E = Object.entries(S.wrong || {}), old = (w) => dateOf(wrFirst(w)) < t, touched = E.filter(([, w]) => old(w) && ((w.cleared && dateOf(w.clearedAt || 0) === t) || (!w.cleared && dateOf(w.at || 0) === t))).length;
+    const cand = E.filter(([id, w]) => !w.cleared && old(w) && dateOf(w.at || 0) < t && !out.includes(id)).sort((a, b) => wrFirst(a[1]) - wrFirst(b[1]));
+    for (const [id] of cand.slice(0, Math.max(0, WR_DAY - touched))) out.push(id); return out; };
   const hwNow = () => (S.hw || []).filter((h) => !hwDone(h) && (!h.due || h.due <= today()));
   const rich = (t) => esc(t).replace(/&lt;(\/?)(b|u|i|em|strong)&gt;/g, '<$1$2>').replace(/&lt;br\s*\/?&gt;/g, '<br>');
   const fmt1 = (x) => (x == null || isNaN(x) ? '-' : (Math.round(x * 10) / 10).toFixed(1));
@@ -1820,7 +1826,7 @@
     return `<div class="done-card card" data-done="${all ? 2 : ok / (n || 1) >= 0.6 ? 1 : 0}"><div class="done-ic gh-wrap">${gh(ok / (n || 1) >= 0.6 ? 'yay' : 'oops', 'gh-done')}</div><h1 class="h1">${title}</h1><div class="done-score"><b class="num">${ok}</b><span>/ ${n} 맞힘</span></div><p class="sub">${sub}</p>${extra}<div class="done-btns">${btns}</div></div>`;
   }
   function verdict(ok, extra = '') { return `<div class="verdict ${ok ? 'ok' : 'no'}">${ic(ok ? 'hundred' : 'think')}<span>${ok ? '정답이에요' : '아쉬워요, 다시 볼게요'}</span>${extra}</div>`; }
-  function addWrong(id, w) { S.wrong = S.wrong || {}; const old = S.wrong[id]; S.wrong[id] = { ...(old || {}), ...w, at: Date.now(), times: ((old && old.times) || 0) + 1, cleared: false }; save('wrong'); }
+  function addWrong(id, w) { S.wrong = S.wrong || {}; const old = S.wrong[id]; S.wrong[id] = { ...(old || {}), ...w, first: (old && (old.first || old.at)) || Date.now(), at: Date.now(), times: ((old && old.times) || 0) + 1, cleared: false }; save('wrong'); }
   function clearWrong(id) { if (S.wrong && S.wrong[id]) { if (!S.wrong[id].cleared) earn('wr:' + id, 100, '오답 다시 맞힘'); S.wrong[id].cleared = true; S.wrong[id].clearedAt = Date.now(); save('wrong'); mockAllCheck(id); } }
   // 모의고사 한 회차 오답을 전부 다시 맞히면 크게 축하해요 (회차마다 한 번)
   function mockAllCheck(id) {
@@ -4615,7 +4621,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272352'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272354'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
