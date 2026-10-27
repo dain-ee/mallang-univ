@@ -1691,12 +1691,21 @@
     requestAnimationFrame(() => { const hr = host.getBoundingClientRect(), pw = Math.max(el.offsetWidth, $('img', el).getBoundingClientRect().width), spill = (pw - el.offsetWidth) / 2; let lx = Infinity;
       $$('#main button, #main a').forEach((b) => { if (host.contains(b)) return; const r = b.getBoundingClientRect(); if (r.width && r.bottom > hr.top - pw * 0.8 && r.top < hr.top && r.right > hr.right - pw - 40) lx = Math.min(lx, r.left); });
       if (lx < Infinity) { const rr = hr.right - lx + 8 + spill; if (rr + pw > hr.width * 0.5) { el.remove(); host.classList.remove('has-perch'); return; } el.style.right = `${Math.max(16, rr)}px`; } // 비킬 자리가 없으면(버튼이 줄 전체) 이 화면엔 안 앉아요
-      fitSay(); hideHts(); setTimeout(hideHts, 700); document.fonts && document.fonts.ready.then(hideHts); });
+      clearTx(); fitSay(); hideHts(); setTimeout(() => { clearTx(); fitSay(); hideHts(); }, 700); document.fonts && document.fonts.ready.then(() => { clearTx(); fitSay(); hideHts(); }); });
     // 쿠로미 하트·밤돌이 나뭇잎: 글자와 겹치는 하트는 숨겨요 (글자를 가리면 안 돼요)
     const hideHts = () => { const hs = $$('.pet-hts i, .pet-lvs i', el); if (!hs.length) return; const tx = [], w = document.createTreeWalker($('#main'), NodeFilter.SHOW_TEXT); for (let n; (n = w.nextNode());) { if (!n.textContent.trim() || el.contains(n)) continue; const rg = document.createRange(); rg.selectNodeContents(n); tx.push(...rg.getClientRects()); }
       hs.forEach((h) => { const r = h.getBoundingClientRect(); h.hidden = tx.some((q) => q.width && r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top); }); };
     // 말풍선이 화면 왼쪽 밖으로 나가면 펫 오른쪽 아래로 옮겨요
-    const fitSay = () => { const sy = $('.pet-say', el); if (!sy || sy.hidden) return; sy.classList.remove('flip'); if (sy.getBoundingClientRect().left < 8) sy.classList.add('flip'); };
+    // 말풍선이 글자를 가리거나 화면 밖으로 나가면 왼쪽 → 오른쪽 → 머리 위 순서로 비켜요 (10/27 선생님: 제목을 가렸어요)
+    const txRects = () => { const tx = [], w = document.createTreeWalker($('#main'), NodeFilter.SHOW_TEXT); for (let n; (n = w.nextNode());) { if (!n.textContent.trim() || el.contains(n)) continue; const rg = document.createRange(); rg.selectNodeContents(n); tx.push(...rg.getClientRects()); } return tx; };
+    // 펫이 위 제목 글자를 가리면 그 카드를 가린 만큼만 아래로 내려요 (선생님 10/27 «가리게 하지 말고»)
+    const clearTx = () => { const im = $('img', el); if (!im || !el.isConnected) return; host.style.marginTop = ''; const r = im.getBoundingClientRect(), top = r.top + r.height * 0.12;
+      const hit = txRects().filter((q) => q.width && r.left + 8 < q.right && r.right - 8 > q.left && top < q.bottom && r.bottom > q.top && q.bottom < host.getBoundingClientRect().top + 4);
+      if (hit.length) host.style.marginTop = `${parseFloat(getComputedStyle(host).marginTop) + Math.max(...hit.map((q) => q.bottom)) - top + 6}px`; };
+    const fitSay = () => { const sy = $('.pet-say', el); if (!sy || sy.hidden) return; const tx = txRects();
+      const bad = () => { const r = sy.getBoundingClientRect(); return r.left < 8 || r.right > innerWidth - 8 || tx.some((q) => q.width && r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top); };
+      for (const c of ['', 'side', 'flip']) { sy.classList.remove('side', 'flip'); if (c) sy.classList.add(c); if (!bad()) return; }
+      sy.classList.remove('side', 'flip'); sy.classList.add('side'); };
     addEventListener('resize', () => { if (el.isConnected) { fitSay(); hideHts(); } });
     const play = (n) => fetch(`assets/pets/${t}/${n}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).then((b) => { const u = URL.createObjectURL(b); im.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); }).catch(() => {});
     if (!RM()) play(base);
@@ -4527,7 +4536,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272218'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272228'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
