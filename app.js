@@ -3445,6 +3445,7 @@
     { i: 'trophy', t: '토마토 배지 하나 따기', d: '배지마다 300~3,000원 · 하루 한도와 따로', a: '보너스' }, { i: 'gold', t: '토마토 배지 모두 모으기', d: '하루 한도와 따로', a: '보너스 5,000원' },
     { i: 'fire', t: '3일 연속 공부', d: '하루 한도와 따로', a: '보너스 300원' }, { i: 'trophy', t: '7일 연속 공부', d: '7일마다 · 하루 한도와 따로', a: '보너스 1,000원' },
   ];
+  const wlIco = (why, bonus) => { const w = String(why); return /토마토/.test(w) ? 'tomato' : /연속/.test(w) ? 'fire' : /배지|최고 기록/.test(w) ? 'trophy' : /오답/.test(w) ? 'retry' : /문제 맞힘|맞힘/.test(w) ? 'hundred' : /소식/.test(w) ? 'news' : /진로/.test(w) ? 'dna' : /개념|교과서|읽기/.test(w) ? 'books' : /한 줄|학교/.test(w) ? 'write' : /숙제/.test(w) ? 'pin' : bonus ? 'gift' : 'sci'; };  // 모은 기록 줄 그림을 「이렇게 모아요」와 같게
   const won = (n) => `${Math.round(n || 0).toLocaleString('ko-KR')}원`;
   const dateOf = (ms) => { const d = new Date(ms); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
   const W = () => { const w = (S.wallet = S.wallet || {}); w.log = w.log || []; w.paid = w.paid || []; w.seen = w.seen || {}; if (w.req === undefined) w.req = null; return w; };
@@ -3592,9 +3593,15 @@
     const dates = Object.keys(by).sort().reverse();
     // 모은 기록: 하루씩 ‹ › 로 넘겨 보고, 날짜를 골라 바로 가요. 같은 이유는 한 줄로 묶어요 (10/28 선생님 «주르륵 말고»)
     const dayBlock = (d) => { const G = []; for (const x of by[d].slice().sort((a, b) => b.at - a.at)) { const g = G.find((y) => y.why === x.why && !!y.bonus === !!x.bonus); if (g) { g.n++; g.amt += x.amt; } else G.push({ why: x.why, bonus: x.bonus, amt: x.amt, n: 1 }); } const sum = G.reduce((a, x) => a + x.amt, 0);
-      return `<div class="wl-day"><div class="wl-sum"><span>이날 모은 돈 <small>${G.reduce((a, x) => a + x.n, 0)}건</small></span><b class="num">+${won(sum)}</b></div><div class="list wl-items">${G.map((x) => `<div class="li"><div class="body"><div class="t" style="font-size:14px;font-weight:500">${esc(x.why)}${x.n > 1 ? ` <span class="tiny">× ${x.n}</span>` : ''}${x.bonus ? ' <span class="tag amber">보너스</span>' : ''}</div></div><span class="num wl-plus">+${won(x.amt)}</span></div>`).join('')}</div></div>`; };
-    const wi = Math.min(Math.max(0, UI.wlDay || 0), Math.max(0, dates.length - 1)), wd = dates[wi];
-    const dayNav = dates.length ? `<div class="wl-nav"><button class="btn sm" type="button" data-wlnav="1" ${wi >= dates.length - 1 ? 'disabled' : ''} aria-label="전날">‹</button><label class="wl-pick"><b>${wd === today() ? '오늘' : md(wd) + ' ' + wdName(wd)}</b>${ic('cal')}<input type="date" data-wldate min="${dates[dates.length - 1]}" max="${dates[0]}" value="${wd}"></label><button class="btn sm" type="button" data-wlnav="-1" ${wi <= 0 ? 'disabled' : ''} aria-label="다음 날">›</button></div>` : '';
+      return `<div class="wl-day"><div class="wl-sum"><span>이날 모은 돈 <small>${G.reduce((a, x) => a + x.n, 0)}건</small></span><b class="num">+${won(sum)}</b></div><div class="list wl-items">${G.map((x) => `<div class="li" style="padding:8px 0"><div class="ico">${ic(wlIco(x.why, x.bonus))}</div><div class="body"><div class="t" style="font-size:15px">${esc(x.why)}</div>${x.n > 1 || x.bonus ? `<div class="d">${x.n > 1 ? `${x.n}번` : ''}${x.n > 1 && x.bonus ? ' · ' : ''}${x.bonus ? '보너스' : ''}</div>` : ''}</div><span class="num wl-plus">+${won(x.amt)}</span></div>`).join('')}</div></div>`; };
+    // 날짜 고르기: 날짜를 누르면 아래에 달력이 열려요. 돈을 모은 날엔 금액이 보여요 (앱을 오래 써도 원하는 날로 바로 가게 10/28)
+    const wd = UI.wlSel && UI.wlSel <= today() ? UI.wlSel : dates[0], wi = dates.indexOf(wd), older = dates.find((d) => d < wd), newer = [...dates].reverse().find((d) => d > wd);
+    const wlCal = () => { const ym = UI.wlMon || wd.slice(0, 7), [y, m] = ym.split('-').map(Number), n = new Date(y, m, 0).getDate(), off = new Date(y, m - 1, 1).getDay(), cells = [];
+      for (let k = 0; k < off; k++) cells.push('<span></span>');
+      for (let k = 1; k <= n; k++) { const d = `${ym}-${String(k).padStart(2, '0')}`, L = by[d], amt = L ? L.reduce((a, x) => a + x.amt, 0) : 0, fut = d > today(); cells.push(`<button type="button" class="wc-d${L ? ' has' : ''}${d === wd ? ' on' : ''}${d === today() ? ' td' : ''}" data-wlday="${d}" ${fut ? 'disabled' : ''}><b>${k}</b>${L ? `<small>${amt >= 1000 ? (Math.round(amt / 100) / 10) + '천' : amt}</small>` : ''}</button>`); }
+      const first = dates.length ? dates[dates.length - 1].slice(0, 7) : ym;
+      return `<div class="wl-cal"><div class="wc-h"><button class="btn sm" type="button" data-wlmon="-1" ${ym <= first ? 'disabled' : ''} aria-label="전 달">‹</button><b>${y}년 ${m}월</b><button class="btn sm" type="button" data-wlmon="1" ${ym >= today().slice(0, 7) ? 'disabled' : ''} aria-label="다음 달">›</button></div><div class="wc-g">${'일월화수목금토'.split('').map((x) => `<i>${x}</i>`).join('')}${cells.join('')}</div></div>`; };
+    const dayNav = dates.length ? `<div class="wl-nav"><button class="btn sm" type="button" data-wlgo="${older || ''}" ${older ? '' : 'disabled'} aria-label="전날">‹</button><button type="button" class="wl-pick${UI.wlCal ? ' open' : ''}" data-wlcal><b>${wd === today() ? '오늘' : md(wd) + ' ' + wdName(wd)}</b>${ic('cal')}</button><button class="btn sm" type="button" data-wlgo="${newer || ''}" ${newer ? '' : 'disabled'} aria-label="다음 날">›</button></div>${UI.wlCal ? wlCal() : ''}` : '';
     const paidRows = w.paid.slice().sort((a, b) => b.at - a.at);
     const ex = w.req ? `<div class="deep wl-req">${ic('gift')}<div><b>선생님께 바꿔 달라고 했어요</b><p style="margin:2px 0 0">${md(dateOf(w.req.at))}에 ${won(w.req.amt)}을 신청했어요. 선생님이 진짜 돈으로 주시면 여기서 빠져요</p></div></div>`
       : `<button class="btn ${bal >= W_GOAL ? 'primary' : ''} big block" id="wl-ex" type="button" ${bal >= W_GOAL && !TEACHER ? '' : 'disabled'}>${ic('cash')} ${bal >= W_GOAL ? '5만원 바꾸기' : `5만원 바꾸기 · 앞으로 ${won(rem)}`}</button>`;
@@ -3619,12 +3626,15 @@
         <div class="list earn-grid">${EARN.map((x) => `<div class="li" style="padding:8px 0"><div class="ico">${ic(x.i)}</div><div class="body"><div class="t" style="font-size:15px">${esc(x.t)}</div>${x.d ? `<div class="d">${esc(x.d)}</div>` : ''}</div><span class="num wl-plus">${esc(x.a)}</span></div>`).join('')}</div></section>
       ${teach}
       <section class="card c12"><div class="card-h"><h2>모은 기록</h2></div>
-        ${dates.length ? dayNav + dayBlock(wd) : `<div class="empty">${ic('coin')}<b>아직 모은 돈이 없어요</b><span>토마토 하나, 소식 하나부터 시작해요</span></div>`}</section>
+        ${dates.length ? dayNav + `<div class="wl-slide ${UI.wlDir > 0 ? 'from-r' : UI.wlDir < 0 ? 'from-l' : ''}">` + (by[wd] ? dayBlock(wd) : `<div class="empty" style="padding:24px 0"><b>${md(wd)}엔 모은 돈이 없어요</b></div>`) + '</div>' : `<div class="empty">${ic('coin')}<b>아직 모은 돈이 없어요</b><span>토마토 하나, 소식 하나부터 시작해요</span></div>`}</section>
       ${paidRows.length ? `<section class="card c12"><div class="card-h"><h2>진짜 돈으로 바꾼 기록</h2></div><div class="list">${paidRows.map((x) => `<div class="li" style="padding:8px 0"><div class="ico">${ic('cash')}</div><div class="body"><div class="t" style="font-size:15px">${won(x.amt)} 받았어요</div><div class="d">${md(dateOf(x.at))}${x.memo ? ' · ' + esc(x.memo) : ''}</div></div></div>`).join('')}</div></section>` : ''}
       </div></div>`;
   }
-  document.addEventListener('click', (e) => { const b = e.target.closest('[data-wlnav]'); if (!b || b.disabled) return; UI.wlDay = Math.max(0, (UI.wlDay || 0) + +b.dataset.wlnav); render(); });
-  document.addEventListener('change', (e) => { const i = e.target.closest && e.target.closest('[data-wldate]'); if (!i || !i.value) return; const L = Object.keys(W().log.reduce((o, x) => ((o[x.date] = 1), o), {})).sort().reverse(); let k = L.findIndex((d) => d <= i.value); if (k < 0) k = L.length - 1; UI.wlDay = k; render(); });
+  document.addEventListener('click', (e) => { const g = e.target.closest('[data-wlgo], [data-wlday]'), c = e.target.closest('[data-wlcal]'), mo = e.target.closest('[data-wlmon]'); if (!g && !c && !mo) return;
+    UI.wlDir = 0; if (g) { const d = g.dataset.wlgo || g.dataset.wlday; if (!d || g.disabled) return; UI.wlDir = d > (UI.wlSel || today()) ? 1 : -1; UI.wlSel = d; UI.wlMon = d.slice(0, 7); if (g.dataset.wlday) UI.wlCal = false; }
+    else if (c) { UI.wlCal = !UI.wlCal; UI.wlMon = null; }
+    else if (!mo.disabled) { const [y, m] = (UI.wlMon || (UI.wlSel || today()).slice(0, 7)).split('-').map(Number), t = new Date(y, m - 1 + +mo.dataset.wlmon, 1); UI.wlMon = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}`; }
+    const y0 = scrollY; render(); scrollTo(0, y0); UI.wlDir = 0; });
   // 학생 기기에서 올린 최신 지갑을 먼저 받아 와요 (선생님이 옛 기록 위에 덮어쓰지 않게)
   async function freshWallet() {
     try { const r = await rpc('univ_get', { p_student: U.who, p_code: U.key }); if (r && r._at && r.wallet && (r._at.wallet || 0) > ((S._at || {}).wallet || 0)) { S.wallet = r.wallet; S._at.wallet = r._at.wallet; } } catch (e) {}
@@ -4630,7 +4640,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280029'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280032'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
