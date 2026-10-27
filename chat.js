@@ -106,6 +106,13 @@
   const FORM = (ph) => `<div class="nc-pic" hidden><img alt="보낼 사진"><button type="button" class="nc-pic-x">사진 빼기</button></div>
     <form class="nc-form"><label class="nc-attach" title="사진 보내기" aria-label="사진 보내기"><input type="file" accept="image/*" hidden><span aria-hidden="true"></span></label>
     <textarea rows="1" placeholder="${ph}" aria-label="${ph}"></textarea><button type="submit" class="nc-send" disabled>보내기</button></form>`;
+  // 쪽지함 창 열기·닫기: 단추 쪽에서 커지며 열리고, 닫을 땐 단추 쪽으로 줄어든 뒤 숨겨요 (선생님 10/27 «열리고 닫히는 애니메이션»)
+  function showPane(el, v) {
+    clearTimeout(el._ncT); el.classList.remove('nc-out');
+    if (v) { el.hidden = false; return; }
+    if (el.hidden) return;
+    el.classList.add('nc-out'); el._ncT = setTimeout(() => { el.hidden = true; el.classList.remove('nc-out'); }, 180);
+  }
   function flash(host, t) { const d = document.createElement('div'); d.className = 'nc-flash'; d.textContent = t; host.appendChild(d); setTimeout(() => d.remove(), 2600); }
 
   const SVG = (p) => `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='${p}'/%3E%3C/svg%3E") center/contain no-repeat`;
@@ -124,8 +131,11 @@
 @keyframes nc-bump{0%,86%,100%{transform:none}90%{transform:translateY(-4px)}95%{transform:none}}
 html.nc-lift{--nc-lift:56px}
 html.nc-has-fab .main{padding-bottom:calc(var(--tab-h,64px) + 104px + env(safe-area-inset-bottom))}
-.nc-pane{position:fixed;right:24px;bottom:96px;z-index:90;width:min(380px,calc(100vw - 32px));height:min(600px,calc(100vh - 130px));display:flex;flex-direction:column;background:var(--card);border-radius:var(--r-card,20px);box-shadow:0 12px 40px rgba(0,27,55,.18),0 2px 8px rgba(0,27,55,.06);overflow:hidden;animation:nc-in .2s cubic-bezier(.1,.76,.55,.9)}
-@keyframes nc-in{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+.nc-pane{position:fixed;right:24px;bottom:96px;z-index:90;width:min(380px,calc(100vw - 32px));height:min(600px,calc(100vh - 130px));display:flex;flex-direction:column;background:var(--card);border-radius:var(--r-card,20px);box-shadow:0 12px 40px rgba(0,27,55,.18),0 2px 8px rgba(0,27,55,.06);overflow:hidden;transform-origin:100% 100%;animation:nc-in .28s cubic-bezier(.2,.9,.3,1.12)}
+@keyframes nc-in{from{opacity:0;transform:translateY(16px) scale(.9)}to{opacity:1;transform:none}}
+.nc-pane.nc-out{animation:nc-out .18s cubic-bezier(.4,0,1,1) forwards;pointer-events:none}
+@keyframes nc-out{to{opacity:0;transform:translateY(12px) scale(.92)}}
+@media (prefers-reduced-motion:reduce){.nc-pane,.nc-pane.nc-out{animation-duration:.01s}}
 .nc-head{display:flex;align-items:center;gap:10px;padding:16px 14px 14px 20px;border-bottom:1px solid var(--line)}
 .nc-head .nc-ht{flex:1;min-width:0}
 .nc-head b{display:block;font-size:17px;font-weight:700;color:var(--t1)}
@@ -249,7 +259,7 @@ html.nc-has-fab .main{padding-bottom:calc(var(--tab-h,64px) + 104px + env(safe-a
     }
     function schedule() { clearTimeout(timer); timer = setTimeout(async () => { await poll(); schedule(); }, open ? 5000 : 30000); }
     function setOpen(v) {
-      open = v; pane.hidden = !v; fab.classList.toggle('on', v); root.classList.toggle('nc-open', v);
+      open = v; showPane(pane, v); fab.classList.toggle('on', v); root.classList.toggle('nc-open', v);
       if (v) { list.dataset.stick = '1'; draw(); poll(true); if (matchMedia('(min-width:900px)').matches) setTimeout(cmp.focus, 30); }
       badge(); schedule();
     }
@@ -346,7 +356,7 @@ html.nc-has-fab .main{padding-bottom:calc(var(--tab-h,64px) + 104px + env(safe-a
       pollThread(true); if (matchMedia('(min-width:900px)').matches) setTimeout(cmp.focus, 30);
     }
     function setOpen(v) {
-      open = v; box.hidden = !v; btn.classList.toggle('on', v); root.classList.toggle('nc-open', v); paintBtn();
+      open = v; showPane(box, v); btn.classList.toggle('on', v); root.classList.toggle('nc-open', v); paintBtn();
       if (v) { pollInbox(); if (cur) pollThread(true); }
     }
     btn.onclick = () => setOpen(!open);
