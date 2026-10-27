@@ -1744,6 +1744,7 @@
     //  3. 너비는 옆 칸 카드나 화면 끝 전까지 최대 320px 이라 되도록 한두 줄
     //  4. 한마디는 한 번에 하나씩 7초마다 번갈아 (10/28 «왜 두 개가 한 번에»). 위 메뉴 줄에 닿으면 그만큼만 내려요. 끝까지 닿으면 제일 덜 가리는 옆자리 (카드 안으로는 안 들어가요)
     const fitSay = () => { const sy = $('.pet-say', el); if (!sy || sy.hidden) return;
+      if (scrollY > 40) { sy.style.visibility = 'hidden'; if (!el.wt) { el.wt = 1; const on = () => { if (scrollY > 40 || !el.isConnected) return; removeEventListener('scroll', on); el.wt = 0; fitSay(); }; addEventListener('scroll', on, { passive: true }); } return; }  // 내려가 있을 땐 자리를 못 재요(위 메뉴·옆 칸이 따라 내려와서) → 맨 위로 오면 그때 재요
       const er = el.getBoundingClientRect(), ir = er, hr = host.getBoundingClientRect(), y0 = hr.top - 140, y1 = hr.top;  // 그림 칸이 아니라 펫 몸 칸으로 재요 (시나모롤 귀가 넘쳐서 멀리 떴어요)
       const hb = (() => { const h = $('header.top, .top, header'); return h ? h.getBoundingClientRect().bottom : 0; })();
       const cards = $$('#main .card').filter((c) => c !== host && !c.contains(el)).map((c) => c.getBoundingClientRect()), tx = txRects().filter((q) => q.width);
@@ -4629,7 +4630,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280019'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280021'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
