@@ -1733,11 +1733,15 @@
       if (hit.length) host.style.marginTop = `${parseFloat(getComputedStyle(host).marginTop) + Math.max(...hit.map((q) => q.bottom)) - top + 6}px`; };
     // 말풍선은 언제나 펫 오른쪽 옆에 세로로 좁게, 카드 윗변 위에 (10/27 선생님 «위로 말고 옆으로 · 오른쪽 세로로»)
     // 오른쪽 자리가 모자라면 펫을 왼쪽으로 비켜 앉혀 자리를 만들어요
-    // 말풍선은 펫 왼쪽 옆에, 카드 윗변 위에 (10/27 선생님 «위로 말고 옆으로» → «차라리 왼쪽이 나을 듯»)
+    // 말풍선은 펫 옆에, 카드 윗변 위에. 왼쪽이 기본이고 왼쪽이 좁으면 오른쪽 (10/27 선생님 «위로 말고 옆으로» «차라리 왼쪽» «세 줄 말고»)
+    // 옆 칸 카드에 닿지 않는 데까지 넓게 써서 되도록 한두 줄로
     const fitSay = () => { const sy = $('.pet-say', el); if (!sy || sy.hidden) return; sy.classList.remove('side', 'flip');
-      const ir = $('img', el).getBoundingClientRect(), er = el.getBoundingClientRect(), hr = host.getBoundingClientRect(), ax = ir.left - 4, room = ax - Math.max(8, hr.left + 4);
-      sy.style.left = 'auto'; sy.style.right = `${er.right - ax}px`; sy.style.top = 'auto'; sy.style.transform = 'none';
-      sy.style.maxWidth = `${Math.max(120, Math.min(240, room))}px`; sy.style.bottom = `${er.bottom - hr.top + 6}px`; };
+      const ir = $('img', el).getBoundingClientRect(), er = el.getBoundingClientRect(), hr = host.getBoundingClientRect(), y0 = hr.top - 110, y1 = hr.top;
+      const oth = $$('#main .card').filter((c) => c !== host && !c.contains(el)).map((c) => c.getBoundingClientRect()).filter((q) => q.top < y1 && q.bottom > y0);
+      const lb = Math.max(8, ...oth.filter((q) => q.right <= ir.left + 8).map((q) => q.right + 8)), rb = Math.min(innerWidth - 8, ...oth.filter((q) => q.left >= ir.right - 8).map((q) => q.left - 8));
+      const lr = ir.left - 4 - lb, rr = rb - ir.right - 4, left = lr >= 200 || lr >= rr, room = left ? lr : rr;
+      sy.style.top = 'auto'; sy.style.transform = 'none'; sy.style.bottom = `${er.bottom - hr.top + 6}px`; sy.style.maxWidth = `${Math.max(110, Math.min(320, room))}px`;
+      if (left) { sy.style.left = 'auto'; sy.style.right = `${er.right - ir.left + 4}px`; } else { sy.classList.add('side'); sy.style.right = 'auto'; sy.style.left = `${ir.right - er.left + 4}px`; } };
     addEventListener('resize', () => { if (el.isConnected) { fitSay(); hideHts(); } });
     const play = (n) => fetch(`${pdir}/${pmap(n)}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).then((b) => { const u = URL.createObjectURL(b); im.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); }).catch(() => {});
     if (!RM()) play(base);
@@ -4603,7 +4607,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272347'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272349'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
