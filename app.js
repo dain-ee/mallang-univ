@@ -2335,6 +2335,29 @@
   }
   // 기말 작전 (10/27 선생님: 상대평가라 어렵지만 기말에 어떻게 하면 어느 정도 나올지): 중간 석차로 지금 자리와 다음 등급까지 몇 등인지
   // 학기 최종 등급은 중간·기말·수행을 합친 점수로 다시 줄을 세워요. 그래서 「지금 내 위에 있는 몇 명보다 기말에서 더 받기」가 목표예요. 점수 커트는 학교마다 달라 지어내지 않아요
+  // 점수 감: 이 학교 이 과목에서 몇 점이 몇 등급이었는지 모든 시험(학기·중간·기말)을 모아요. 과목 이름 끝 숫자(공통국어1·2)는 떼고 같은 과목으로 봐요
+  const nsBase = (n) => String(n).replace(/\s*\d+$/, '');
+  function nsHist(base) {
+    const o = [];
+    for (const sem of SEMS) { const rec = S.naesin[sem] || {}; for (const [n, r] of Object.entries(rec)) { if (!r || typeof r !== 'object' || nsBase(n) !== base) continue;
+      for (const [sc, gf, rf, lb] of [['mid', 'midG', 'midRk', '중간'], ['fin', 'finG', 'finRk', '기말']]) { const k = nsRk(r[rf]); if (+r[sc] > 0 && k) o.push({ sem, ex: lb, l: `${sem.split('-')[1]}학기 ${lb}`, s: +r[sc], p: k.pct, g: +r[gf] || (k.pct <= 10 ? 1 : k.pct <= 34 ? 2 : k.pct <= 66 ? 3 : 4) }); } } }
+    return o;
+  }
+  // 등급 컷 짐작: 받은 점수 중 그 등급 안에 든 가장 낮은 점수 / 못 든 가장 높은 점수 사이. 시험마다 어려움이 달라 엇갈리면 그렇다고 말해요(지어내지 않아요)
+  function nsCut(H, g) {
+    const lim = [0, 10, 34, 66][g], inn = H.filter((x) => x.p <= lim && x.p > [0, 0, 10, 34][g]).map((x) => x.s), out = H.filter((x) => x.p > lim).map((x) => x.s);
+    const lo = out.length ? Math.max(...out) : null, hi = inn.length ? Math.min(...inn) : null;
+    if (lo != null && hi != null) return hi > lo ? { t: 'range', lo, hi } : { t: 'mix', lo, hi };
+    return lo != null ? { t: 'above', lo } : hi != null ? { t: 'got', hi } : null;
+  }
+  function nsFeel(base, sem, r) {
+    const H = nsHist(base); if (!H.length) return '';
+    const n1 = (v) => String(Math.round(v * 100) / 100), c1 = nsCut(H, 1), c2 = nsCut(H, 2), dots = H.map((x) => `<span class="np-pt g${Math.min(3, x.g)}">${esc(x.l)} <b>${n1(x.s)}점</b> → ${x.g}등급 <span class="tiny">(${fmt1(x.p)}%)</span></span>`).join('');
+    const cutT = (c, g) => !c ? '' : c.t === 'range' ? `${g}등급은 대략 <b>${n1(c.lo)}~${n1(c.hi)}점</b> 사이에서 갈렸어요` : c.t === 'above' ? `${g}등급은 <b>${n1(c.lo)}점보다 높아야</b> 했어요` : c.t === 'got' ? `<b>${n1(c.hi)}점</b>이면 ${g}등급이었어요` : `시험마다 어려움이 달라요. ${n1(c.hi)}점이 ${g}등급인 시험도, ${n1(c.lo)}점이 ${g}등급 밖인 시험도 있었어요`;
+    // 기말 목표: 같은 학기 중간이 기준 (같은 선생님·비슷한 어려움). 못 들었으면 그 점수보다 한 문제(약 4점) 더, 들었으면 그 점수 지키기
+    const m = +r.mid, mg = +r.midG, tgt = m > 0 && mg ? (mg === 1 ? `중간 ${n1(m)}점이 1등급이었어요. 기말도 <b>${n1(m)}점 안팎</b>을 지켜요` : Math.ceil(m + 4) >= 100 ? `중간 ${n1(m)}점도 ${mg}등급이었어요. 기말은 <b>만점</b>을 노려야 해요(실수 하나가 등급을 갈라요)` : `중간 ${n1(m)}점이 ${mg}등급이었어요. 이번 학기는 이 점수로 모자라니 기말은 <b>${Math.ceil(m + 4)}점 이상</b>(한 문제 더)을 노려요`) : '';
+    return `<div class="np-feel"><div class="np-pts">${dots}</div><p class="np-m">${[cutT(c1, 1), cutT(c2, 2)].filter(Boolean).join(' · ')}</p>${tgt ? `<p class="np-tg">${tgt}</p>` : ''}</div>`;
+  }
   function nsPlan(sem) {
     const rec = S.naesin[sem] || {}, L = nsSubjects(sem).map((s) => ({ s, r: rec[s.name] || {}, k: nsRk((rec[s.name] || {}).midRk) })).filter((x) => x.k && +x.r.midG);
     if (!L.length) return '';
@@ -2344,6 +2367,7 @@
       const x = (p) => Math.min(100, Math.max(0, p));
       return `<div class="np-r ${tone}"><div class="row between" style="gap:8px"><b>${esc(s.name)}</b><span class="np-g">${g}등급 <span class="tiny">· 상위 ${fmt1(k.pct)}%</span></span></div>
         <div class="np-bar"><i class="np-z1" style="width:10%"></i><i class="np-z2" style="left:10%;width:24%"></i><em style="left:${x(k.pct)}%"></em><span style="left:10%">10%</span><span style="left:34%">34%</span></div>
+        ${nsFeel(nsBase(s.name), sem, r)}
         <p class="np-m">${esc(msg)} <span class="tiny">${k.rk}등${k.tie > 1 ? `(동점 ${k.tie}명)` : ''} / ${k.n}명 · ${g <= 2 ? `1등급은 ${k.c1}등까지` : `${g - 1}등급은 ${up}등까지`}</span></p></div>`;
     };
     const pri = L.filter((x) => +x.r.midG > 1).sort((a, b) => (nsRk(a.r.midRk).pct - [0, 10, 34, 66][+a.r.midG - 1]) - (nsRk(b.r.midRk).pct - [0, 10, 34, 66][+b.r.midG - 1]));
@@ -2354,7 +2378,7 @@
   function naesinView() {
     const sem = UI.semester; const rec = S.naesin[sem] || {};
     const subs = nsSubjects(sem); const av = nsAvg(sem), tot = nsTotal();
-    const split = sem !== '1-1'; // 1학기는 최종만 받아 둠. 2학기부터 중간·기말을 따로 적고, 학기 끝나면 합산 원점수·등급
+    const split = true; // 학기마다 중간·기말을 따로 적고, 학기 끝나면 최종 등급 (10/27 1학기 중간 석차도 받아서 1학기도 나눠요)
     const ex = (f) => { const v = subs.map((s) => +(rec[s.name] || {})[f]).filter((x) => x > 0); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
     const mAvg = ex('mid'), fAvg = ex('fin');
     const gsel = (n, f, v) => `<select class="inp sm" style="width:64px" data-ns="${esc(n)}" data-f="${f}"><option value="">-</option>${[1, 2, 3, 4, 5].map((g) => `<option ${+v === g ? 'selected' : ''}>${g}</option>`).join('')}</select>`;
@@ -2364,8 +2388,8 @@
       <section class="card c8"><div class="card-h"><h2>학기별 평균</h2></div>${rows.length ? tossLine(rows.map((r) => ({ label: r.label, v: r.v.n })), { maxG: 5, h: 180, id: 'n2', color: '#03b26c', goal: S.profile.goalNaesin }) : `<div class="empty">${ic('up')}<b>아직 없어요</b></div>`}</section>
       ${split ? nsPlan(sem) : ''}
       <section class="card c12"><div class="card-h"><h2>과목별 입력 <span class="save-st" data-savest>${saveStText()}</span></h2><div class="seg" style="flex:0 1 auto">${SEMS.map((s) => `<button type="button" class="${sem === s ? 'on' : ''}" data-sem="${s}">${s.replace('-', '학년 ')}학기</button>`).join('')}</div></div>
-        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>과목</th><th class="r">단위</th>${split ? '<th class="r">중간 점수</th><th class="r">중간 등급</th><th class="r">중간 석차</th><th class="r">기말 점수</th><th class="r">기말 등급</th><th class="r">학기 최종 등급</th>' : '<th class="r">원점수</th><th class="r">과목 평균</th><th class="r">등급 (1~5)</th>'}<th class="r">성취도</th></tr></thead><tbody>
-        ${subs.map((s) => { const r = rec[s.name] || {}; return `<tr><td style="font-weight:600">${esc(s.name)}${s.noGrade ? '<div class="tiny">등급 없음</div>' : ''}</td><td class="r"><input class="inp sm num" style="width:56px" data-ns="${esc(s.name)}" data-f="credits" value="${esc(r.credits || s.credits || '')}" inputmode="numeric"></td>${split ? [['mid', 'midG'], ['fin', 'finG'], [null, 'grade']].map(([sc, gf]) => (sc ? `<td class="r"><input class="inp sm num" style="width:64px" data-ns="${esc(s.name)}" data-f="${sc}" value="${esc(r[sc] ?? '')}" inputmode="decimal" placeholder="점수"></td>` : '') + `<td class="r">${s.noGrade ? '-' : gsel(s.name, gf, r[gf])}</td>` + (gf === 'midG' ? `<td class="r"><input class="inp sm num" style="width:104px" data-ns="${esc(s.name)}" data-f="midRk" value="${esc(r.midRk || '')}" placeholder="35(10)/312"></td>` : '')).join('') : `<td class="r"><input class="inp sm num" style="width:72px" data-ns="${esc(s.name)}" data-f="raw" value="${esc(r.raw || '')}" inputmode="decimal"></td><td class="r"><input class="inp sm num" style="width:72px" data-ns="${esc(s.name)}" data-f="avg" value="${esc(r.avg || '')}" inputmode="decimal"></td><td class="r">${s.noGrade ? '-' : gsel(s.name, 'grade', r.grade)}</td>`}<td class="r"><select class="inp sm" style="width:64px" data-ns="${esc(s.name)}" data-f="ach"><option value="">-</option>${['A', 'B', 'C', 'D', 'E', 'P'].map((g) => `<option ${r.ach === g ? 'selected' : ''}>${g}</option>`).join('')}</select></td></tr>`; }).join('')}
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>과목</th><th class="r">단위</th>${split ? '<th class="r">중간 점수</th><th class="r">중간 등급</th><th class="r">중간 석차</th><th class="r">기말 점수</th><th class="r">기말 등급</th><th class="r">기말 석차</th><th class="r">학기 최종 등급</th>' : '<th class="r">원점수</th><th class="r">과목 평균</th><th class="r">등급 (1~5)</th>'}<th class="r">성취도</th></tr></thead><tbody>
+        ${subs.map((s) => { const r = rec[s.name] || {}; return `<tr><td style="font-weight:600">${esc(s.name)}${s.noGrade ? '<div class="tiny">등급 없음</div>' : ''}</td><td class="r"><input class="inp sm num" style="width:56px" data-ns="${esc(s.name)}" data-f="credits" value="${esc(r.credits || s.credits || '')}" inputmode="numeric"></td>${split ? [['mid', 'midG'], ['fin', 'finG'], [null, 'grade']].map(([sc, gf]) => (sc ? `<td class="r"><input class="inp sm num" style="width:64px" data-ns="${esc(s.name)}" data-f="${sc}" value="${esc(r[sc] ?? '')}" inputmode="decimal" placeholder="점수"></td>` : '') + `<td class="r">${s.noGrade ? '-' : gsel(s.name, gf, r[gf])}</td>` + (gf !== 'grade' ? `<td class="r"><input class="inp sm num" style="width:104px" data-ns="${esc(s.name)}" data-f="${gf === 'midG' ? 'midRk' : 'finRk'}" value="${esc(r[gf === 'midG' ? 'midRk' : 'finRk'] || '')}" placeholder="35(10)/312"></td>` : '')).join('') : `<td class="r"><input class="inp sm num" style="width:72px" data-ns="${esc(s.name)}" data-f="raw" value="${esc(r.raw || '')}" inputmode="decimal"></td><td class="r"><input class="inp sm num" style="width:72px" data-ns="${esc(s.name)}" data-f="avg" value="${esc(r.avg || '')}" inputmode="decimal"></td><td class="r">${s.noGrade ? '-' : gsel(s.name, 'grade', r.grade)}</td>`}<td class="r"><select class="inp sm" style="width:64px" data-ns="${esc(s.name)}" data-f="ach"><option value="">-</option>${['A', 'B', 'C', 'D', 'E', 'P'].map((g) => `<option ${r.ach === g ? 'selected' : ''}>${g}</option>`).join('')}</select></td></tr>`; }).join('')}
         </tbody></table></div>
         ${split ? `<p class="tiny" style="margin:12px 0 0">중간고사·기말고사 점수와 등급을 시험마다 따로 적어요. 학기 최종 등급이 나오면 그걸로 평균을 내고, 아직이면 중간·기말 등급 평균으로 계산해요${mAvg != null || fAvg != null ? ` · 평균 중간 <b class="num">${mAvg != null ? fmt1(mAvg) : '-'}</b>점, 기말 <b class="num">${fAvg != null ? fmt1(fAvg) : '-'}</b>점` : ''}</p>` : ''}
         <div class="row between" style="margin-top:16px"><span class="muted">${sem.replace('-', '학년 ')}학기 평균 <b class="num" style="color:var(--t1)">${av ? fmt1(av) : '-'}</b>등급</span><button class="btn sm" id="ns-add" type="button">과목 더하기</button></div></section>
@@ -4493,7 +4517,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272133'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272138'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
