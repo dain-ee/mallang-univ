@@ -495,7 +495,7 @@
     const n = N.find((x) => !(S.nr || {})[x.id]), c = Object.keys(S.nr || {}).length, nx = (NR_BADGE.find((x) => x[0] > c) || [0, '', ''])
     if (!n) return '';
     // 10/27 선생님 «핫뉴스 카드처럼, 조금 불타는 정도» → 불꽃 아이콘만 살짝 일렁여요
-    return `<section class="card c12 hot-card link fire-lite" data-news="${esc(n.id)}"><div class="hot-ic">${ic('fire')}</div><div class="hot-b"><div class="eyebrow">오늘 꼭 읽기${(n.for || []).includes(U.who) ? ` · <b class="red">${esc(NMI())} 맞춤</b>` : ''}</div><b class="hot-t">${esc(n.title)}</b><p class="tiny" style="margin:2px 0 0">읽으면 불꽃 +1 · 지금 ${c}개${nx[0] ? ` · ${nx[0] - c}개 더 읽으면 「${esc(nx[2])}」 배지` : ''}</p></div></section>`;
+    return `<section class="card c12 hot-card link fire-lite" data-news="${esc(n.id)}"><div class="hot-ic">${ic('fire')}</div><div class="hot-b"><div class="eyebrow">오늘 꼭 읽기${(n.for || []).includes(U.who) ? ` · <b class="red">${esc(NMI())} 맞춤</b>` : ''}</div><b class="hot-t">${esc(n.title)}</b><p class="tiny" style="margin:2px 0 0">끝까지 읽고 「다 읽었어요」 누르면 🔥 불꽃 +1${nx[0] ? ` · ${nx[0] - c}개 더 읽으면 「${esc(nx[2])}」 배지` : ''}</p><div class="nr-bdgs">${NR_BADGE.map((x) => `<span class="nr-bdg ${c >= x[0] ? 'on' : ''}" title="${esc(x[3])}">${ic(x[1])}<b>${esc(x[2])}</b><small>${x[0]}개</small></span>`).join('')}</div></div></section>`;
   }
   function nameCall() { return TUTOR ? esc(NM() + (jongOf(NM()) ? '아' : '야')) : `우리 ${esc(NMI())}`; }  // 정윤이만 「우리 정윤이」, 과외 학생은 「지원아」「주아야」
   function cheer() { const t = today(); let h = 0; for (const ch of t + (S.profile.name || '')) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return CHEER[h % CHEER.length]; }
@@ -1715,12 +1715,12 @@
     const lines = petLines(), motto = lines.length ? 1 : 0; let li = 0; // 말풍선: 선생님 한마디 · 내 한마디 (누가 한 말인지 위에 작게) · 둘 다 있으면 번갈아
     el.innerHTML = `${t === 'kuromi' ? '<span class="pet-hts" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : t === 'bamdol' ? '<span class="pet-lvs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : ''}<span class="pet-say ${motto ? 'motto' : ''}" ${motto ? '' : 'hidden'}>${lines.length ? petSayHtml(lines[0]) : ''}</span><img alt="" src="${pdir}/${pmap('perch')}.png">`;
     const im = $('img', el); im.onerror = () => { el.remove(); host.classList.remove('has-perch'); }; im.onload = () => { if (el.isConnected) host.classList.add('has-perch'); };
-    host.appendChild(el);
+    host.appendChild(el); el.dataset.r0 = el.style.right || '';
     // 카드 바로 위 오른쪽에 버튼이 있으면(예: 매일 과제 요일) 그 왼쪽으로 비켜 앉음
     requestAnimationFrame(() => { const hr = host.getBoundingClientRect(), pw = Math.max(el.offsetWidth, $('img', el).getBoundingClientRect().width), spill = (pw - el.offsetWidth) / 2; let lx = Infinity;
       $$('#main button, #main a').forEach((b) => { if (host.contains(b)) return; const r = b.getBoundingClientRect(); if (r.width && r.bottom > hr.top - pw * 0.8 && r.top < hr.top && r.right > hr.right - pw - 40) lx = Math.min(lx, r.left); });
-      if (lx < Infinity) { const rr = hr.right - lx + 8 + spill; if (rr + pw > hr.width * 0.5) { el.remove(); host.classList.remove('has-perch'); return; } el.style.right = `${Math.max(16, rr)}px`; } // 비킬 자리가 없으면(버튼이 줄 전체) 이 화면엔 안 앉아요
-      clearTx(); fitSay(); hideHts(); setTimeout(() => { clearTx(); fitSay(); hideHts(); }, 700); document.fonts && document.fonts.ready.then(() => { clearTx(); fitSay(); hideHts(); }); });
+      if (lx < Infinity) { const rr = hr.right - lx + 8 + spill; if (rr + pw > hr.width * 0.5) { el.remove(); host.classList.remove('has-perch'); return; } el.style.right = `${Math.max(16, rr)}px`; el.dataset.r0 = el.style.right; } // 비킬 자리가 없으면(버튼이 줄 전체) 이 화면엔 안 앉아요
+      fitSay(); clearTx(); hideHts(); setTimeout(() => { fitSay(); clearTx(); hideHts(); }, 700); document.fonts && document.fonts.ready.then(() => { fitSay(); clearTx(); hideHts(); }); });
     // 쿠로미 하트·밤돌이 나뭇잎: 글자와 겹치는 하트는 숨겨요 (글자를 가리면 안 돼요)
     const hideHts = () => { const hs = $$('.pet-hts i, .pet-lvs i', el); if (!hs.length) return; const tx = [], w = document.createTreeWalker($('#main'), NodeFilter.SHOW_TEXT); for (let n; (n = w.nextNode());) { if (!n.textContent.trim() || el.contains(n)) continue; const rg = document.createRange(); rg.selectNodeContents(n); tx.push(...rg.getClientRects()); }
       hs.forEach((h) => { const r = h.getBoundingClientRect(); h.hidden = tx.some((q) => q.width && r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top); }); };
@@ -1735,30 +1735,35 @@
     // 오른쪽 자리가 모자라면 펫을 왼쪽으로 비켜 앉혀 자리를 만들어요
     const fitSay = () => { const sy = $('.pet-say', el); if (!sy || sy.hidden) return; sy.classList.remove('side', 'flip'); sy.classList.add('side');
       const im = $('img', el), need = Math.min(150, innerWidth * 0.36), hr = host.getBoundingClientRect(), edge = Math.min(innerWidth - 8, hr.right - 4);  // 앉은 카드 너비 안에서만 (옆 칸 카드를 덮지 않게)
-      let ir = im.getBoundingClientRect(), room = edge - (ir.right + 4);
-      if (room < need) { el.style.right = `${parseFloat(getComputedStyle(el).right) + need - room}px`; ir = im.getBoundingClientRect(); room = edge - (ir.right + 4); }
-      const er = el.getBoundingClientRect();
-      sy.style.left = `${ir.right - er.left + 4}px`; sy.style.right = 'auto'; sy.style.top = 'auto'; sy.style.transform = 'none';
-      sy.style.maxWidth = `${Math.max(96, Math.min(220, room))}px`; sy.style.bottom = `${er.bottom - hr.top + 6}px`; };
+      el.style.right = el.dataset.r0 || ''; let ir = im.getBoundingClientRect(), ax = ir.right;
+      if (edge - ax - 4 < need) {  // 자리가 모자라면 펫을 왼쪽으로 비켜 앉혀 봐요. 위 글자에 닿으면 안 비키고 펫 몸 옆(귀 끝에 겹쳐)에 붙여요
+        const r0 = parseFloat(getComputedStyle(el).right); el.style.right = `${r0 + need - (edge - ax - 4)}px`; ir = im.getBoundingClientRect();
+        const top = host.getBoundingClientRect().top, hit = txRects().some((q) => q.width && ir.left < q.right && ir.right > q.left && ir.top + ir.height * 0.12 < q.bottom && q.bottom < top + 4);
+        if (hit) { el.style.right = el.dataset.r0 || ''; const e0 = el.getBoundingClientRect(); ax = Math.min(e0.right, Math.max(e0.left + e0.width * 0.7, edge - need - 4)); } else ax = ir.right;
+      }
+      const er = el.getBoundingClientRect(), room = edge - ax - 4;
+      sy.style.left = `${ax - er.left + 4}px`; sy.style.right = 'auto'; sy.style.top = 'auto'; sy.style.transform = 'none';
+      sy.style.maxWidth = `${Math.max(96, Math.min(220, room))}px`; sy.style.bottom = `${er.bottom - host.getBoundingClientRect().top + 6}px`; };
     addEventListener('resize', () => { if (el.isConnected) { fitSay(); hideHts(); } });
     const play = (n) => fetch(`${pdir}/${pmap(n)}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).then((b) => { const u = URL.createObjectURL(b); im.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); }).catch(() => {});
     if (!RM()) play(base);
     // 같은 표정만 있으면 심심해서, 가끔 혼자 기뻐해요
     clearInterval(petDock.iv); if (!RM()) petDock.iv = setInterval(() => { if (!el.isConnected) return clearInterval(petDock.iv); if (document.hidden || el.t) return; play(petDock.alt = petDock.alt === 'perch_yay' && PET_WINK.has(t) ? 'perch_wink' : 'perch_yay'); setTimeout(() => { if (el.isConnected && !el.t) play(base); }, 2600); }, 9000 + Math.random() * 8000);
     el.onclick = (e) => { e.stopPropagation(); const say = $('.pet-say', el); play('perch_yay'); say.textContent = cheer(); say.hidden = false; say.classList.remove('motto'); fitSay(); clearTimeout(el.t); el.t = setTimeout(() => { el.t = 0; say.innerHTML = lines.length ? petSayHtml(lines[li]) : ''; say.hidden = !motto; say.classList.toggle('motto', !!motto); fitSay(); play(base); }, 2600); if (navigator.vibrate) navigator.vibrate(20); };
-    if (lines.length > 1) { const rot = setInterval(() => { if (!el.isConnected) return clearInterval(rot); if (el.t) return; li = (li + 1) % lines.length; const say = $('.pet-say', el); say.classList.remove('motto'); void say.offsetWidth; say.innerHTML = petSayHtml(lines[li]); say.classList.add('motto'); fitSay(); }, 7000); }
+    if (false) { const rot = setInterval(() => { if (!el.isConnected) return clearInterval(rot); if (el.t) return; li = (li + 1) % lines.length; const say = $('.pet-say', el); say.classList.remove('motto'); void say.offsetWidth; say.innerHTML = petSayHtml(lines[li]); say.classList.add('motto'); fitSay(); }, 7000); }
   }
   // 펫 말풍선에 띄울 말: 선생님이 쓴 한마디(홈 맨 위 그 글) + 학생이 프로필에 쓴 「나의 한마디」
   // 10/27 선생님: «니 주제를 알라» 는 정윤이가 쓴 말인데 선생님 말처럼 보였어요 → 누가 한 말인지 꼭 붙여요
   function petLines() {
     if (DASH_ONLY) { const tm = (TP.motto || '').trim(); return tm ? [{ who: '내 한마디', t: tm }] : []; }
     const out = [], mo = ((S.profile || {}).motto || '').trim(), tm = ((S.note || {}).text || '').trim();  // 선생님이 이 학생에게 보낸 한마디 (홈 「선생님 한마디」 그 글)
-    if (mo) out.push({ who: '내 한마디', t: mo });
     if (tm) out.push({ who: '선생님 한마디', t: tm });
+    if (mo) out.push({ who: '내 한마디', t: mo });
     return out;
   }
   const petLinesKey = () => petLines().map((x) => x.t).join('|');
-  const petSayHtml = (x) => `<small class="pet-who">${esc(x.who)}</small>${esc(x.t.length > 44 ? x.t.slice(0, 43) + '…' : x.t)}`;
+  const petSayHtml1 = (x) => `<small class="pet-who">${esc(x.who)}</small>${esc(x.t.length > 44 ? x.t.slice(0, 43) + '…' : x.t)}`;
+  const petSayHtml = () => petLines().map(petSayHtml1).join('<i class="pet-sep"></i>');  // 선생님 한마디·내 한마디를 한 풍선에 같이 (10/27 «정윤이 선생님 한마디가 안 떠», 7초 번갈아는 놓쳐요)
   function skinSheet() {
     sheet(`<h2>홈 화면 설정</h2><p class="sub">테마를 고르면 앱 색과 따라다니는 인형이 바뀌어요</p><div class="skin-grid">${['ghost', ...owned()].map((k) => `<button type="button" class="skin-it ${skin() === k ? 'on' : ''}" data-skin="${k}" style="--sk:${SKINS[k].c}"><span class="skin-pic"><img src="${skinPic(k)}" alt=""></span><b>${k === 'ghost' ? '기본 테마' : esc(SKINS[k].n) + ' 테마'}</b><i class="skin-sw"></i></button>`).join('')}</div>`, (el, close) => {
       $$('[data-skin]', el).forEach((b) => (b.onclick = () => { const k = b.dataset.skin; close(); if (skin() === k) return; S.profile.skin = k; save('profile'); render(); toast(k === 'ghost' ? '기본 테마로 바꿨어요' : `${SKINS[k].n} 테마로 바꿨어요`); }));
@@ -4604,7 +4609,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272342'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272345'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
