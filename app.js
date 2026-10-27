@@ -106,6 +106,8 @@
     my: myMerge,
     fin: (r, l) => { const ans = { ...(r.ans || {}) }; for (const [c, v] of Object.entries(l.ans || {})) ans[c] = jMerge(ans[c] || {}, v); return { ...r, ...l, ans }; },  // 기말 개념: 문제마다 나중에 푼 쪽
     jl: jMerge, jr: jMerge, jw: jMerge,
+    // 테마 선물: 두 기기 것을 테마마다 합쳐요. 연 기록이 있으면 그걸, 아니면 나중에 보내거나(at) 취소한(x) 쪽을 써요 (10/27 보낸 쿠로미가 정윤이 기기 옛 기록에 덮여 사라짐)
+    gifts: (r, l) => { const by = {}, t = (y) => Math.max(y.at || 0, y.x || 0); for (const y of [...(r || []), ...(l || [])]) { if (!y || !y.skin) continue; const o = by[y.skin]; by[y.skin] = !o ? y : o.open || y.open ? { ...(t(y) > t(o) ? y : o), open: Math.max(o.open || 0, y.open || 0) } : t(y) > t(o) ? y : o; } return Object.values(by); },
     eng: (r, l) => ({ ...r, ...l, unit: Math.max(+r.unit || 0, +l.unit || 0), wordDay: Math.max(+r.wordDay || 0, +l.wordDay || 0), g3: Math.max(+r.g3 || 0, +l.g3 || 0), g3ans: { ...(r.g3ans || {}), ...(l.g3ans || {}) }, ua: mergeUa(r.ua, l.ua), days: mergeDays(r.days, l.days) }),
     sci: (r, l) => ({ ...r, ...l, days: mergeDays(r.days, l.days) }),
     ink: (r, l, rNew) => { const [o, n] = rNew ? [l, r] : [r, l], c = (l._cfgAt || 0) > (r._cfgAt || 0) ? l : (r._cfgAt || 0) > (l._cfgAt || 0) ? r : n; return { ...o, ...n, cfg: c.cfg || {}, _cfgAt: c._cfgAt || 0, st: { ...(o.st || {}), ...(n.st || {}) }, at: { ...(o.at || {}), ...(n.at || {}) }, days: { ...(o.days || {}), ...(n.days || {}) } }; },
@@ -606,7 +608,7 @@
     $$('[data-upall]').forEach((b) => (b.onclick = () => { UI.tab = 'news'; UI.newsF = 'all'; render(); setTimeout(() => { const el = $('#up-all'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 60); }));
     $$('[data-ready]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); readySheet(); }));
     $$('[data-tgift]').forEach((b) => (b.onclick = () => { const k = b.dataset.tgift; S.gifts = [...gAll().filter((x) => x.skin !== k), { skin: k, at: Date.now() }]; S.gift = {}; save('gifts', 'gift'); toast(`선물을 보냈어요. ${NMI()} 앱에 곧 떠요`); render(); }));
-    $$('[data-giftx]').forEach((b) => (b.onclick = () => { const k = b.dataset.giftx; S.gifts = gAll().filter((x) => x.skin !== k || x.open); S.gift = {}; save('gifts', 'gift'); toast('선물을 거둬들였어요'); render(); }));
+    $$('[data-giftx]').forEach((b) => (b.onclick = () => { const k = b.dataset.giftx; S.gifts = gAll().map((x) => (x.skin === k && !x.open ? { ...x, x: Date.now() } : x)); S.gift = {}; save('gifts', 'gift'); toast('선물을 거둬들였어요'); render(); }));
     $$('[data-giftopen]').forEach((b) => (b.onclick = () => { giftCheck.seen = (gPend()[0] || {}).at; giftPop(); }));
     const ns = $('#nt-send'); if (ns) ns.onclick = () => { const t = $('#nt-t').value.trim(); if (!t) return toast('한마디를 적어 주세요'); S.note = { text: t, at: Date.now() }; save('note'); toast(`${NMI()} 홈 맨 위에 띄웠어요`); render(); };
     const nd = $('#nt-del'); if (nd) nd.onclick = () => { S.note = {}; save('note'); toast('내렸어요'); render(); };
@@ -1624,7 +1626,8 @@
   const GIFTS = ['melody', 'kitty', 'chiikawa', 'cinnamoroll', 'kuromi'];  // 지금 보낼 수 있는 테마 (scripts/build.py PETS_LIVE 와 같게)
   // 테마 선물은 여러 개를 줄 수 있어요: S.gifts = [{ skin, at, open }] (예전 S.gift 하나도 같이 읽음)
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
-  const gPend = () => gAll().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
+  const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
+  const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
   const skinPic = (k) => (k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4469,7 +4472,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610270905'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610270913'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -4889,7 +4892,7 @@
       <div class="chips" style="margin-bottom:12px">${info.map((y) => `<button class="chip sm ${y.r.name === nm ? 'on' : ''}" data-mst="${esc(y.r.name)}" type="button"><i class="sv-dot" style="--sc:${esc(sColor(y.r))}"></i>${esc(y.r.name)}</button>`).join('')}</div>
       ${loading(x) ? '<p class="tiny">불러오는 중이에요</p>' : `<div class="eyebrow" style="margin-bottom:6px">한마디 · 학생 홈 맨 위에 떠요</div><textarea id="dm-t" class="inp" rows="2" style="min-height:72px" placeholder="오늘 ${esc(nm)}에게 하고 싶은 말">${esc(n.text || '')}</textarea>
       <div class="row" style="justify-content:flex-end;gap:8px;margin-top:8px">${n.text ? '<button class="btn" type="button" id="dm-del">내리기</button>' : ''}<button class="btn primary" type="button" id="dm-send">홈에 띄우기</button></div>
-      <div class="eyebrow" style="margin:16px 0 8px">테마 선물</div><div class="dm-gifts">${GIFTS.map((k) => { const has = own.includes(k), g = gl.find((y) => y.skin === k), wait = g && !g.open && !has; return `<div class="dm-g"><img src="${skinPic(k)}" alt=""><b>${esc(SKINS[k].n)}</b>${has ? '<span class="tag blue">받음</span>' : wait ? `<button class="btn sm" type="button" data-dgx="${k}">취소</button>` : `<button class="btn sm primary" type="button" data-dgift="${k}">보내기</button>`}</div>`; }).join('')}</div>`}</section>`;
+      <div class="eyebrow" style="margin:16px 0 8px">테마 선물</div><div class="dm-gifts">${GIFTS.map((k) => { const has = own.includes(k), g = gl.find((y) => y.skin === k), wait = g && !g.open && !g.x && !has; return `<div class="dm-g"><img src="${skinPic(k)}" alt=""><b>${esc(SKINS[k].n)}</b>${has ? '<span class="tag blue">받음</span>' : wait ? `<button class="btn sm" type="button" data-dgx="${k}">취소</button>` : `<button class="btn sm primary" type="button" data-dgift="${k}">보내기</button>`}</div>`; }).join('')}</div>`}</section>`;
   }
   function bindDMsg() {
     const nm = UI.mStu, busy = (b) => { if (b) b.disabled = true; };
@@ -4898,7 +4901,7 @@
     const sd = $('#dm-send'); if (sd) sd.onclick = () => { const t = $('#dm-t').value.trim(); if (!t) return toast('한마디를 적어 주세요'); put('note', (d) => { d.note = { text: t, at: Date.now() }; }, `${nm} 홈 맨 위에 띄웠어요`, sd); };
     const dl = $('#dm-del'); if (dl) dl.onclick = () => put('note', (d) => { d.note = {}; }, '내렸어요', dl);
     $$('[data-dgift]').forEach((b) => (b.onclick = () => { const k = b.dataset.dgift; put(['gifts', 'gift'], (d) => { const L = [...(d.gifts || [])]; if (d.gift && d.gift.skin && !L.some((y) => y.skin === d.gift.skin)) L.push(d.gift); d.gifts = [...L.filter((y) => y.skin !== k), { skin: k, at: Date.now() }]; d.gift = {}; }, `선물을 보냈어요. ${nm} 앱에 곧 떠요`, b); }));
-    $$('[data-dgx]').forEach((b) => (b.onclick = () => { const k = b.dataset.dgx; put(['gifts', 'gift'], (d) => { d.gifts = (d.gifts || []).filter((y) => y.skin !== k || y.open); d.gift = {}; }, '선물을 거둬들였어요', b); }));
+    $$('[data-dgx]').forEach((b) => (b.onclick = () => { const k = b.dataset.dgx; put(['gifts', 'gift'], (d) => { d.gifts = (d.gifts || []).map((y) => (y.skin === k && !y.open ? { ...y, x: Date.now() } : y)); d.gift = {}; }, '선물을 거둬들였어요', b); }));
   }
   function dashView() {
     const info = dashInfo(), up = dashUp(info, 7), t = today(), asks = dAsks(info); dashView.asks = asks;
