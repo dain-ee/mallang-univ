@@ -1677,17 +1677,20 @@
     const base = 'perch'; // 첫 카드 왼쪽 위에 걸침 · 자는 동작은 안 씀 (사용자)
     const el = document.createElement('button'); el.type = 'button'; el.className = 'pet-perch' + (petDock.shown ? ' still' : ''); petDock.shown = true; el.dataset.skin = t; el.dataset.mo = ((S.profile || {}).motto || '').trim(); el.setAttribute('aria-label', SKINS[t].n);
     const motto = ((S.profile || {}).motto || '').trim(); // 나의 한마디를 말풍선으로 늘 띄워요
-    el.innerHTML = `<span class="pet-say ${motto ? 'motto' : ''}" ${motto ? '' : 'hidden'}>${esc(motto)}</span><img alt="" src="assets/pets/${t}/perch.png">`;
+    el.innerHTML = `${t === 'kuromi' ? '<span class="pet-hts" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : ''}<span class="pet-say ${motto ? 'motto' : ''}" ${motto ? '' : 'hidden'}>${esc(motto)}</span><img alt="" src="assets/pets/${t}/perch.png">`;
     const im = $('img', el); im.onerror = () => { el.remove(); host.classList.remove('has-perch'); }; im.onload = () => { if (el.isConnected) host.classList.add('has-perch'); };
     host.appendChild(el);
     // 카드 바로 위 오른쪽에 버튼이 있으면(예: 매일 과제 요일) 그 왼쪽으로 비켜 앉음
     requestAnimationFrame(() => { const hr = host.getBoundingClientRect(), pw = Math.max(el.offsetWidth, $('img', el).getBoundingClientRect().width), spill = (pw - el.offsetWidth) / 2; let lx = Infinity;
       $$('#main button, #main a').forEach((b) => { if (host.contains(b)) return; const r = b.getBoundingClientRect(); if (r.width && r.bottom > hr.top - pw * 0.8 && r.top < hr.top && r.right > hr.right - pw - 40) lx = Math.min(lx, r.left); });
       if (lx < Infinity) { const rr = hr.right - lx + 8 + spill; if (rr + pw > hr.width * 0.5) { el.remove(); host.classList.remove('has-perch'); return; } el.style.right = `${Math.max(16, rr)}px`; } // 비킬 자리가 없으면(버튼이 줄 전체) 이 화면엔 안 앉아요
-      fitSay(); });
+      fitSay(); hideHts(); setTimeout(hideHts, 700); document.fonts && document.fonts.ready.then(hideHts); });
+    // 쿠로미 하트: 글자와 겹치는 하트는 숨겨요 (글자를 가리면 안 돼요)
+    const hideHts = () => { const hs = $$('.pet-hts i', el); if (!hs.length) return; const tx = [], w = document.createTreeWalker($('#main'), NodeFilter.SHOW_TEXT); for (let n; (n = w.nextNode());) { if (!n.textContent.trim() || el.contains(n)) continue; const rg = document.createRange(); rg.selectNodeContents(n); tx.push(...rg.getClientRects()); }
+      hs.forEach((h) => { const r = h.getBoundingClientRect(); h.hidden = tx.some((q) => q.width && r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top); }); };
     // 말풍선이 화면 왼쪽 밖으로 나가면 펫 오른쪽 아래로 옮겨요
     const fitSay = () => { const sy = $('.pet-say', el); if (!sy || sy.hidden) return; sy.classList.remove('flip'); if (sy.getBoundingClientRect().left < 8) sy.classList.add('flip'); };
-    addEventListener('resize', () => el.isConnected && fitSay());
+    addEventListener('resize', () => { if (el.isConnected) { fitSay(); hideHts(); } });
     const play = (n) => fetch(`assets/pets/${t}/${n}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).then((b) => { const u = URL.createObjectURL(b); im.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); }).catch(() => {});
     if (!RM()) play(base);
     // 같은 표정만 있으면 심심해서, 가끔 혼자 기뻐해요
@@ -4464,7 +4467,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610270742'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610270902'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
