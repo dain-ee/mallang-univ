@@ -1741,7 +1741,7 @@
     //  1. 펫 바로 옆, 펫 몸(카드 위로 나온 부분) 가운데 높이. 카드 윗변 아래로는 안 내려가요 (머리 위로는 안 가요)
     //  2. 왼쪽 → 오른쪽 순서로 놓아 보고, 글자·다른 카드·위 메뉴·화면 밖에 하나도 안 닿는 첫 자리에 둬요
     //  3. 너비는 옆 칸 카드나 화면 끝 전까지 최대 320px 이라 되도록 한두 줄
-    //  4. 다 담아서 안 되면 한 줄씩 번갈아, 그래도 안 되면 앉은 카드 안 윗부분 빈 곳에. 끝까지 닿으면 제일 덜 가리는 자리
+    //  4. 다 담아서 안 되면 한 줄씩 번갈아. 위 메뉴 줄에 닿으면 그만큼만 내려요. 끝까지 닿으면 제일 덜 가리는 옆자리 (카드 안으로는 안 들어가요)
     const fitSay = () => { const sy = $('.pet-say', el); if (!sy || sy.hidden) return;
       const er = el.getBoundingClientRect(), ir = er, hr = host.getBoundingClientRect(), y0 = hr.top - 140, y1 = hr.top;  // 그림 칸이 아니라 펫 몸 칸으로 재요 (시나모롤 귀가 넘쳐서 멀리 떴어요)
       const hb = (() => { const h = $('header.top, .top, header'); return h ? h.getBoundingClientRect().bottom : 0; })();
@@ -1751,10 +1751,10 @@
       const put = (left, inside) => { sy.classList.remove('side', 'flip'); sy.style.top = 'auto'; sy.style.transform = 'none'; sy.style.bottom = `${er.bottom - hr.top + 6}px`;
         const room = left ? ir.left - 4 - lb : rb - ir.right - 4; sy.style.maxWidth = `${Math.max(inside ? 200 : 110, Math.min(320, inside ? ir.left - hr.left - 40 : room))}px`;
         if (left) { sy.style.left = 'auto'; sy.style.right = `${er.right - ir.left + 4}px`; } else { sy.classList.add('side'); sy.style.right = 'auto'; sy.style.left = `${ir.right - er.left + 4}px`; }
-        { const h = sy.offsetHeight, cy = (ir.top + Math.min(ir.bottom, hr.top)) / 2, t = inside ? hr.top + 14 : Math.min(cy - h / 2, hr.top - 6 - h); sy.style.bottom = 'auto'; sy.style.top = `${t - er.top}px`; }  // inside: 옆에 자리가 없으면 앉은 카드 안 윗부분 빈 곳에  // 펫 몸 옆 가운데 높이에 (카드 윗변 아래로는 안 내려가요)
+        { const h = sy.offsetHeight, cy = (ir.top + Math.min(ir.bottom, hr.top)) / 2, t = Math.max(hb + 6, Math.min(cy - h / 2, hr.top - 6 - h)); sy.style.bottom = 'auto'; sy.style.top = `${t - er.top}px`; }  // inside: 옆에 자리가 없으면 앉은 카드 안 윗부분 빈 곳에  // 펫 몸 옆 가운데 높이에 (카드 윗변 아래로는 안 내려가요)
         const r = sy.getBoundingClientRect(); return (r.left < 8 || r.right > innerWidth - 8 ? 1e6 : 0) + (r.top < hb + 4 ? 1e6 : 0) + cards.reduce((n, q) => n + ov(r, q), 0) + tx.reduce((n, q) => n + ov(r, q) * 4, 0); };
       const L = petLines(), fill = (one) => { el.single = one; sy.innerHTML = one ? petSayHtml1(L[li % L.length]) : petSayHtml(); };
-      let best = null; for (const [one, lf, ins] of [[0, 1, 0], [0, 0, 0], [1, 1, 0], [1, 0, 0], [0, 1, 1], [1, 1, 1]].filter((c) => L.length > 1 || !c[0])) { if (!el.t) fill(!!one); const sc = put(!!lf, !!ins); if (!best || sc < best[0]) best = [sc, !!one, !!lf, !!ins]; if (!sc) break; } // 다 담아 왼쪽 → 오른쪽 → 한 줄씩 왼쪽 → 오른쪽
+      let best = null; for (const [one, lf, ins] of [[0, 1, 0], [0, 0, 0], [1, 1, 0], [1, 0, 0]].filter((c) => L.length > 1 || !c[0])) { if (!el.t) fill(!!one); const sc = put(!!lf, !!ins); if (!best || sc < best[0]) best = [sc, !!one, !!lf, !!ins]; if (!sc) break; } // 다 담아 왼쪽 → 오른쪽 → 한 줄씩 왼쪽 → 오른쪽
       if (!el.t) fill(best[1]); put(best[2], best[3]);
       const r = sy.getBoundingClientRect(); if (r.top < hb + 4) sy.style.top = `${parseFloat(sy.style.top) + hb + 4 - r.top}px`; };  // 위 메뉴 줄 밑으로는 절대 안 들어가요
     addEventListener('resize', () => { if (el.isConnected) { fitSay(); hideHts(); } });
@@ -4622,7 +4622,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280000'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280003'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
