@@ -3741,7 +3741,8 @@
     return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${!qs.some((x) => jgRec(u, x)) ? lesson : ''}
       <div class="progress-dots">${qs.map((x, k) => { const z = jgRec(u, x); return `<i class="${z ? (z.ok ? 'ok' : 'no') : k === cur ? 'cur' : ''}"></i>`; }).join('')}</div>
       <div class="card"><div class="q-no">${cur + 1} / ${qs.length} <span class="tag">${esc(q.section || '')}</span></div><div class="q-text jg-q">${q.prompt}</div>${box}</div>
-      ${a ? `${verdict(a.ok)}${a.ok ? '' : `<div class="explain"><b>정답</b> ${esc(q.answers[0])}</div>`}${q.why ? `<div class="explain">${esc(q.why)}</div>` : ''}<div class="cta-bar"><button class="btn primary big block" id="next" type="button">${qs.some((x) => !jgRec(u, x)) ? '다음 문제' : '결과 보기'}</button></div>` : ''}
+      ${!a && cur > 0 ? '<div class="cta-bar jg-cta"><button class="btn big" id="jg-prev" type="button">‹ 이전 문제</button></div>' : ''}
+      ${a ? `${verdict(a.ok)}${a.ok ? '' : `<div class="explain"><b>정답</b> ${esc(q.answers[0])}</div>`}${q.why ? `<div class="explain"><b>해설</b> ${esc(q.why)}</div>` : ''}<div class="cta-bar jg-cta">${cur > 0 ? '<button class="btn big" id="jg-prev" type="button">‹ 이전 문제</button>' : ''}<button class="btn primary big block" id="next" type="button">${qs.some((x) => !jgRec(u, x)) ? '다음 문제' : '결과 보기'}</button></div>` : ''}
       ${qs.some((x) => jgRec(u, x)) && lesson ? `<details class="jg-again"><summary>설명 다시 보기</summary>${lesson}</details>` : ''}</div>`;
   }
   function bindGram() {
@@ -3760,7 +3761,9 @@
     $$('[data-jo]').forEach((b) => (b.onclick = () => mark(q.choices[+b.dataset.jo], b)));
     const inp = $('#jg-in'), okb = $('#jg-ok');
     if (inp && okb) { okb.onclick = () => mark(inp.value, okb); inp.onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); mark(inp.value, okb); } }; setTimeout(() => inp.focus({ preventScroll: true }), 50); }
-    const n = $('#next'); if (n) n.onclick = () => { UI.run = { ...r, show: qs.findIndex((x) => !jgRec(u, x)) }; render(); window.scrollTo(0, 0); };
+    // 이전 문제로 돌아가 보고, 다음은 이미 푼 문제면 차례대로 · 아니면 안 푼 첫 문제로 (10/27 선생님 «이전 문제가 없어»)
+    const n = $('#next'); if (n) n.onclick = () => { const k = r.show + 1; UI.run = { ...r, show: k < qs.length && jgRec(u, qs[k]) ? k : qs.findIndex((x) => !jgRec(u, x)) }; render(); window.scrollTo(0, 0); };
+    const pv = $('#jg-prev'); if (pv) pv.onclick = () => { UI.run = { ...r, show: Math.max(0, r.show - 1) }; render(); window.scrollTo(0, 0); };
   }
   // 그래머 축하 (선생님 10/27 «주아가 그래머 다 풀면 아주 큰 뱃지랑 동기부여 팡팡»)
   // 숙제 한 조각 끝 → 팡팡 · 한 단계(배우기·실전·책 덮고) 끝 → 배지 · 한 과 전부 끝 → 「Unit 마스터」 아주 크게. 한 번만 (S.jgb)
@@ -4565,7 +4568,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272310'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610272316'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

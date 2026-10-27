@@ -2,6 +2,23 @@
    내용(모의고사·문제은행·학교 정보)은 공개 저장소에 그대로 두지 않고, 학생 비밀 코드로만 풀리게 암호화해 둡니다.
    짧은 코드(…/?0103)를 넣으면 진짜 코드로 바꿔 이 기기에 기억합니다. */
 window.__boot = [];
+// 새 버전이 올라오면 저절로 바꿔요: GitHub Pages 가 index.html 을 10분 동안 기억해서 배포해도 옛 화면이 남았어요 (10/27)
+// 열 때와 다시 볼 때(폰에서 앱으로 돌아올 때) index.html 을 새로 받아 버전이 다르면 한 번 다시 열어요
+(function () {
+  const mine = ((document.querySelector('script[src*="loader.js?v="]') || {}).src || '').match(/v=(\d+)/);
+  if (!mine) return;
+  let busy = false;
+  const chk = async () => {
+    if (busy || document.hidden) return; busy = true;
+    try {
+      const h = await (await fetch(location.pathname, { cache: 'reload' })).text(), m = h.match(/loader\.js\?v=(\d+)/);
+      if (m && m[1] !== mine[1] && sessionStorage.getItem('mu:upd') !== m[1]) { sessionStorage.setItem('mu:upd', m[1]); location.reload(); }
+    } catch (e) {}
+    busy = false;
+  };
+  setTimeout(chk, 1500);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) chk(); });
+})();
 (function () {
   const C = window.UNIV_SYNC;
   const KEY = 'mallang-univ:v1', CKEY = 'mallang-univ:content';
