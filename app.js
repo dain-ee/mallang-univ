@@ -662,7 +662,7 @@
     $$('[data-giftx]').forEach((b) => (b.onclick = () => { const k = b.dataset.giftx; S.gifts = gAll().map((x) => (x.skin === k && !x.open ? { ...x, x: Date.now() } : x)); S.gift = {}; save('gifts', 'gift'); toast('선물을 거둬들였어요'); render(); }));
     $$('[data-giftopen]').forEach((b) => (b.onclick = () => { giftCheck.seen = (gPend()[0] || {}).at; giftPop(); }));
     $$('[data-midedit]').forEach((b) => (b.onclick = midSheet));
-    $$('[data-dayoff]').forEach((b) => (b.onclick = () => { const v = +b.dataset.dayoff; UI.dayOff = v === 0 ? 0 : Math.max(-7, Math.min(1, (UI.dayOff || 0) + v)); render(); }));
+    $$('[data-dayoff]').forEach((b) => (b.onclick = () => { const v = +b.dataset.dayoff, was = UI.dayOff || 0; UI.dayOff = v === 0 ? 0 : Math.max(-7, Math.min(1, was + v)); if (UI.dayOff === was) return; const dir = UI.dayOff < was ? 'r' : 'l'; render(); $$('main > *').forEach((el) => { el.classList.add('day-in-' + dir); el.addEventListener('animationend', () => el.classList.remove('day-in-' + dir), { once: true }); }); }));  // 날을 넘길 때 옆으로 미끄러져 들어와요
     $$('.pr-rv[data-prk]').forEach((b) => (b.onclick = () => { const m = (UI.prOn || {})[(UI.run || {}).unit] || {}; const k = b.dataset.prk; m[k] = !m[k]; b.classList.toggle('on', !!m[k]); }));
     $$('[data-prall]').forEach((b) => (b.onclick = () => { UI.prAll = !UI.prAll; render(); }));
     const ns = $('#nt-send'); if (ns) ns.onclick = () => { const t = $('#nt-t').value.trim(); if (!t) return toast('한마디를 적어 주세요'); S.note = { text: t, at: Date.now() }; save('note'); toast(`${NMI()} 홈 맨 위에 띄웠어요`); render(); };
@@ -4723,7 +4723,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610290033'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610290053'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

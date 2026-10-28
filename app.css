@@ -2654,3 +2654,10 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .day-nav b small { font-weight: 500; color: var(--t3); }
 .day-nav.off { background: var(--blue-soft); }
 .day-nav .day-today { width: auto; padding: 0 12px; border-radius: 999px; background: var(--blue); color: #fff; font-size: 13px; font-weight: 700; }
+
+/* 날 넘길 때 옆으로 미끄러지기 */
+.day-in-l { animation: day-in-l .32s cubic-bezier(.2, .7, .2, 1) both; }
+.day-in-r { animation: day-in-r .32s cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes day-in-l { from { transform: translateX(48px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes day-in-r { from { transform: translateX(-48px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .day-in-l, .day-in-r { animation: none; } }
