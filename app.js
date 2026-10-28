@@ -493,7 +493,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${TUTOR ? `${fireNews()}${lessonHero()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${hwGo}${giftHome()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${perfCard()}${finCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${TUTOR ? `${fireNews()}${lessonHero()}${midCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${hwGo}${giftHome()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${perfCard()}${finCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -591,6 +591,24 @@
   }
   const upList = () => UPS().length ? `<section class="card c12 up-all" id="up-all" style="margin-top:16px"><div class="card-h"><h2>${ic('new')} 말랑대학 업데이트</h2><span class="tiny">선생님이 계속 고치고 있어요</span></div>${UPS().map((u) => `<div class="up-day"><b>${md(u.date)}</b><ul class="up-l">${u.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`).join('')}</section>` : '';
   // 선생님 한마디: 선생님이 쓰면 학생 홈 맨 위에. 학생이 「고마워요」를 누르면 선생님 쪽에 「읽었어요」
+  // 윤건 2학년 2학기 중간고사: 홈에서 과목별 점수를 적어 둬요. 성적 탭 연결은 나중에, 시험지 분석은 선생님이 시험지를 본 뒤에 (10/28 선생님)
+  const MID_SUBJ = ['국어', '영어', '수학', '과학', '역사', '사회', '기술·가정', '도덕'];
+  const midOf = () => { S.mid = S.mid || {}; return (S.mid['2-2'] = S.mid['2-2'] || { title: '2학년 2학기 중간고사', sc: {} }); };
+  function midCard() {
+    if (U.who !== '윤건') return '';
+    const m = midOf(), E = Object.entries(m.sc || {}).filter(([, v]) => v !== '' && v != null), avg = E.length ? E.reduce((a, [, v]) => a + +v, 0) / E.length : null;
+    return `<section class="card c12 mid-card"><div class="card-h"><h2>${ic('score')} ${esc(m.title)}</h2><button class="more" data-midedit type="button">${E.length ? '고치기' : '입력하기'}</button></div>
+      ${E.length ? `<div class="mid-g">${E.map(([k, v]) => `<div class="mid-i"><span>${esc(k)}</span><b class="num">${esc(v)}</b></div>`).join('')}</div><p class="tiny" style="margin:10px 0 0">평균 <b class="num">${fmt1(avg)}</b>점 · ${E.length}과목</p>` : '<p class="muted" style="margin:0">아직 점수가 없어요. 「입력하기」를 눌러 과목별 점수를 적어요</p>'}
+      <div class="mid-an"><b>시험지 분석</b><span>아직 없어요. 선생님이 시험지를 보면 난이도와 틀린 문제 분석이 여기에 떠요</span></div></section>`;
+  }
+  function midSheet() {
+    const m = midOf(), subs = [...new Set([...MID_SUBJ, ...Object.keys(m.sc || {})])];
+    const row = (k) => `<div class="mid-r"><label>${esc(k)}</label><input class="inp num" data-mids="${esc(k)}" inputmode="decimal" placeholder="점수" value="${esc(m.sc[k] == null ? '' : m.sc[k])}"></div>`;
+    sheet(`<h2>${esc(m.title)}</h2><p class="sub">과목별 점수를 적어요. 안 본 과목은 비워 둬요</p><div id="mid-rows">${subs.map(row).join('')}</div><div class="tk-add"><input class="inp" id="mid-new" placeholder="과목 더하기 (예: 한문)"><button class="btn sm" id="mid-add" type="button">더하기</button></div><button class="btn primary big block" id="mid-ok" type="button" style="margin-top:20px">저장</button>`, (el, close) => {
+      $('#mid-add', el).onclick = () => { const v = $('#mid-new', el).value.trim(); if (!v || $$('[data-mids]', el).some((x) => x.dataset.mids === v)) return; $('#mid-rows', el).insertAdjacentHTML('beforeend', row(v)); $('#mid-new', el).value = ''; };
+      $('#mid-ok', el).onclick = () => { const sc = {}; $$('[data-mids]', el).forEach((x) => { const v = x.value.trim(); if (v === '' || isNaN(+v) || +v < 0 || +v > 100) return; sc[x.dataset.mids] = +v; }); m.sc = sc; m.at = Date.now(); save('mid'); close(); render(); toast('점수를 적어 뒀어요'); };
+    });
+  }
   function noteCard() {
     const n = S.note || {};
     if (TEACHER) return `<section class="card c12 nt-card"><div class="card-h"><h3>${ic('mega')} ${esc(NMI())}에게 한마디</h3>${n.at ? `<span class="tiny">${n.thx ? `${esc(NMI())}가 「고마워요」 했어요` : n.seen ? `${esc(NMI())}가 봤어요` : '아직 안 봤어요'}</span>` : ''}</div><textarea id="nt-t" class="inp" rows="2" style="min-height:76px" placeholder="오늘 ${esc(NMI())}에게 하고 싶은 말을 적으면 학생 홈 맨 위에 떠요">${esc(n.text || '')}</textarea><div class="row" style="justify-content:flex-end;gap:8px;margin-top:8px">${n.text ? '<button class="btn" type="button" id="nt-del">내리기</button>' : ''}<button class="btn primary" type="button" id="nt-send">홈에 띄우기</button></div></section>`;
@@ -631,6 +649,7 @@
     $$('[data-tgift]').forEach((b) => (b.onclick = () => { const k = b.dataset.tgift; S.gifts = [...gAll().filter((x) => x.skin !== k), { skin: k, at: Date.now() }]; S.gift = {}; save('gifts', 'gift'); toast(`선물을 보냈어요. ${NMI()} 앱에 곧 떠요`); render(); }));
     $$('[data-giftx]').forEach((b) => (b.onclick = () => { const k = b.dataset.giftx; S.gifts = gAll().map((x) => (x.skin === k && !x.open ? { ...x, x: Date.now() } : x)); S.gift = {}; save('gifts', 'gift'); toast('선물을 거둬들였어요'); render(); }));
     $$('[data-giftopen]').forEach((b) => (b.onclick = () => { giftCheck.seen = (gPend()[0] || {}).at; giftPop(); }));
+    $$('[data-midedit]').forEach((b) => (b.onclick = midSheet));
     const ns = $('#nt-send'); if (ns) ns.onclick = () => { const t = $('#nt-t').value.trim(); if (!t) return toast('한마디를 적어 주세요'); S.note = { text: t, at: Date.now() }; save('note'); toast(`${NMI()} 홈 맨 위에 띄웠어요`); render(); };
     const nd = $('#nt-del'); if (nd) nd.onclick = () => { S.note = {}; save('note'); toast('내렸어요'); render(); };
     const nt = $('#nt-thx'); if (nt) nt.onclick = () => { S.note.thx = Date.now(); save('note'); const r = nt.getBoundingClientRect(); boom(r.left + r.width / 2, r.top + r.height / 2, 2); ding(3); setTimeout(render, 500); };
@@ -4654,7 +4673,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610281816'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610281820'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

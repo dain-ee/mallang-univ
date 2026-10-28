@@ -2537,3 +2537,13 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .dform .wk-l .tk.on { background: none; color: var(--t1); }
 .dform .wk-l .tk:not(.on) { opacity: .45; }
 .dform .wk-l .tk:not(.on) b { text-decoration: line-through; }
+
+/* 윤건 중간고사 점수 카드 (10/28) */
+.mid-g { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.mid-i { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--fill); font-size: 14px; color: var(--t2); }
+.mid-i b { font-size: 18px; color: var(--t1); }
+.mid-an { display: flex; flex-direction: column; gap: 2px; margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: var(--fill2); font-size: 13px; color: var(--t3); line-height: 1.45; }
+.mid-an b { font-size: 14px; color: var(--t2); }
+.mid-r { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.mid-r label { font-weight: 600; font-size: 15px; }
+.mid-r .inp { width: 104px; text-align: right; }
