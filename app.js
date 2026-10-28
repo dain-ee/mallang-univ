@@ -4191,7 +4191,7 @@
   // 문제는 학생 코드로 잠긴 묶음(D.nx)에만 있어요. 기록 S.nx = { a: { 문항: { ok, v, at } }, done: [{ id, title, kind, ok, n, at, ms }], st: { 세트: { t0, fin } }, wd: { 'ko:w1': { s, w } } }
   const NXD = D.nx || {};
   const NX_SN = { eng: '영어', hist: '역사', sci: '과학' };
-  const NX_PART = { c: '개념 빈칸', q: '단원 문제', x: '기출', s: '프린트 문장 영작', d: '조건 영작', w: '프린트 연습 문제' };  // s·d·w·print = 학교 프린트 (10/28)
+  const NX_PART = { c: '개념 빈칸', q: '단원 문제', x: '기출', e: '영영풀이', s: '프린트 문장 영작', d: '조건 영작', w: '프린트 연습 문제' };  // s·d·w·print = 학교 프린트 (10/28)
   const nxPartName = (u, p) => (p === 'c' && u.subj === 'eng' ? '단어' : NX_PART[p]);
   const NXSETS = {}, NXQ = {}, NXU = {};
   (() => {
@@ -4199,7 +4199,7 @@
     for (const m of NXD.mocks || []) add({ ...m, kind: 'mock' });
     for (const sb of NXD.subjects || []) for (const u of sb.units) {
       NXU[u.id] = u;
-      for (const p of ['c', 'q', 'x', 's', 'd', 'w']) if ((u.parts[p] || []).length) add({ id: `${u.id}:${p}`, title: `${NX_SN[u.subj]} ${u.code} ${nxPartName(u, p)}`, sub: u.title, subj: u.subj, kind: p, unit: u.id, qs: u.parts[p] });
+      for (const p of ['c', 'q', 'x', 'e', 's', 'd', 'w']) if ((u.parts[p] || []).length) add({ id: `${u.id}:${p}`, title: `${NX_SN[u.subj]} ${u.code} ${nxPartName(u, p)}`, sub: u.title, subj: u.subj, kind: p, unit: u.id, qs: u.parts[p] });
       for (const pp of u.papers) add({ id: `${u.id}:x:${pp.id}`, title: pp.title, sub: `${NX_SN[u.subj]} ${u.code} 기출`, subj: u.subj, kind: 'x', unit: u.id, qs: u.parts.x.filter((q) => q.pp === pp.id) });
     }
     const WD = NXD.words; if (WD) for (const m of ['ko', 'en']) add({ id: 'jw:' + m, title: m === 'ko' ? '단어 시험 뜻 쓰기' : '단어 시험 영어 쓰기', sub: WD.when || '', subj: 'eng', kind: 'words', mode: m, qs: WD.words.map((w) => ({ i: `jw:${m}:${w.id}`, t: 'w' + m, q: m === 'ko' ? w.en : w.ko, w, cat: 'Day ' + w.day })) });
@@ -4431,8 +4431,8 @@
   }
   function nxUnitView() {
     const u = NXU[UI.nxUnit]; if (!u) { UI.nxUnit = null; return hwView(); }
-    const rows = ['c', 'q', 'x', 's', 'd', 'w'].map((p) => NXSETS[`${u.id}:${p}`]).filter(Boolean);
-    const pd = { c: u.subj === 'eng' ? '단어·숙어 뜻 고르기' : '교과서 핵심 문장의 빈칸 채우기', q: '단원 개념 문제', x: '학교 기출 · 변형 문제를 다 모아서', s: '학교 프린트의 단어 예문·대화·본문·문법 문장을 우리말 보고 영작', d: '조건에 맞게 문장 쓰기', w: '프린트 빈칸·영작·고르기 문제 그대로' };
+    const rows = ['c', 'q', 'x', 'e', 's', 'd', 'w'].map((p) => NXSETS[`${u.id}:${p}`]).filter(Boolean);
+    const pd = { c: u.subj === 'eng' ? '단어·숙어 뜻 고르기' : '교과서 핵심 문장의 빈칸 채우기', q: '단원 개념 문제', x: '학교 기출 · 변형 문제를 다 모아서', e: '영영 풀이 보고 영어 단어 쓰기 · 프린트 단어 전부', s: '학교 프린트의 단어 예문·대화·본문·문법 문장을 우리말 보고 영작', d: '조건에 맞게 문장 쓰기', w: '프린트 빈칸·영작·고르기 문제 그대로' };
     const printRow = (u.print || []).length ? `<div class="li btnlike" data-task="print:${esc(u.id)}"><div class="ico">${ic('memo')}</div><div class="body"><div class="t">학교 프린트 보기</div><div class="d">${u.print.length}쪽 · 단어·듣기·문법·본문·워크북·단원평가 그대로, 답은 눌러서 확인</div></div><span class="chev"></span></div>` : '';
     return `<div class="row between"><button class="btn sm" data-nxu="" type="button">‹ 숙제</button><span class="tiny">${esc(NX_SN[u.subj])} ${esc(u.code)}</span></div>
       <h1 class="h1">${esc(u.code)} ${esc(u.title)}</h1><p class="sub">${esc(u.sub || '')}</p>
@@ -4700,7 +4700,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610282046'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610282051'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
