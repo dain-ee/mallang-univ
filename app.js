@@ -23,7 +23,11 @@
   const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const IC = { home: '1f3e0', hw: '1f4dd', wrong: '1f4d2', score: '1f4ca', sgb: '1f4cb', target: '1f3af', sci: '1f9ea', eng: '1f4d6', fire: '1f525', x: '274c', ok: '2705', up: '1f4c8', down: '1f4c9', star: '2b50', trophy: '1f3c6', cal: '1f4c5', retry: '1f501', bulb: '1f4a1', school: '1f3eb', grad: '1f393', ghost: '1f47b', party: '1f389', pin: '1f4cc', compass: '1f9ed', muscle: '1f4aa', brain: '1f9e0', clock: '23f0', hundred: '1f4af', think: '1f914', spark: '2728', mic: '1f3a4', books: '1f4da', pencil: '270f', write: '270d', dna: '1f9ec', pill: '1f48a', news: '1f4f0', bell: '1f514', mega: '1f4e2', memo: '1f5d2', flag: '1f6a9', q: '2753', globe: '1f30f', math: '1f4d0', abacus: '1f9ee', bank: '1f3db', run: '1f3c3', heart: '1f499', medal: '1f3c5', eyes: '1f440', scroll: '1f4dc', tomato: '1f345', gold: '1f947', coffee: '2615', timer: '23f1', glow: '1f31f', herb: '1f33f', leaf: '1f343', headph: '1f3a7', piano: '1f3b9', violin: '1f3bb', sax: '1f3b7', rain: '1f327', wave: '1f30a', coin: '1f4b0', bag: '1f4b0', gift: '1f381', cash: '1f4b5', pumpkin: '1f383', tree: '1f384', choco: '1f36b', fireworks: '1f386', love: '1f48c', clover: '1f340', crown: '1f451', snow: '2744', cake: '1f382', new: '1f195' };
   const ic = (k, cls = 'ic') => `<img class="${cls}" src="icons/${IC[k] || k}.svg" alt="">`;
-  const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  // 보는 날: UI.dayOff 가 -1 이면 어제 숙제를 오늘처럼 보여 줘요 (자정이 지나도 하던 숙제를 이어서, 화살표로 왔다 갔다 · 정윤 10/29)
+  const DAY_OFF = () => (typeof UI === 'object' && UI && UI.dayOff) || 0;
+  const fmtDay = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const realToday = () => fmtDay(new Date());
+  const today = () => fmtDay(new Date(Date.now() + DAY_OFF() * 864e5));
   const md = (s) => { const [, m, d] = String(s).split('-').map(Number); return `${m}월 ${d}일`; };
   const dday = (s) => Math.ceil((new Date(s + 'T00:00:00') - new Date(today() + 'T00:00:00')) / 864e5);
   const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -658,6 +662,7 @@
     $$('[data-giftx]').forEach((b) => (b.onclick = () => { const k = b.dataset.giftx; S.gifts = gAll().map((x) => (x.skin === k && !x.open ? { ...x, x: Date.now() } : x)); S.gift = {}; save('gifts', 'gift'); toast('선물을 거둬들였어요'); render(); }));
     $$('[data-giftopen]').forEach((b) => (b.onclick = () => { giftCheck.seen = (gPend()[0] || {}).at; giftPop(); }));
     $$('[data-midedit]').forEach((b) => (b.onclick = midSheet));
+    $$('[data-dayoff]').forEach((b) => (b.onclick = () => { const v = +b.dataset.dayoff; UI.dayOff = v === 0 ? 0 : Math.max(-7, Math.min(1, (UI.dayOff || 0) + v)); render(); }));
     $$('.pr-rv[data-prk]').forEach((b) => (b.onclick = () => { const m = (UI.prOn || {})[(UI.run || {}).unit] || {}; const k = b.dataset.prk; m[k] = !m[k]; b.classList.toggle('on', !!m[k]); }));
     $$('[data-prall]').forEach((b) => (b.onclick = () => { UI.prAll = !UI.prAll; render(); }));
     const ns = $('#nt-send'); if (ns) ns.onclick = () => { const t = $('#nt-t').value.trim(); if (!t) return toast('한마디를 적어 주세요'); S.note = { text: t, at: Date.now() }; save('note'); toast(`${NMI()} 홈 맨 위에 띄웠어요`); render(); };
@@ -723,12 +728,16 @@
       <div class="w-dl">${L.map((e) => { const n = dday(e.date); return `<div class="w-di ${e.big ? 'big' : ''}"><span class="w-dn">${esc(e.title)}</span><span class="w-dd">${md(e.date)}</span><b class="num ${n <= 7 ? 'red' : n <= 30 ? 'blue' : ''}">${n === 0 ? 'D-DAY' : 'D-' + n}</b></div>`; }).join('')}</div></section>`;
   }
   setInterval(() => { const d = new Date(), v = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; $$('[data-clock]').forEach((x) => { if (x.textContent !== v) x.textContent = v; }); }, 5000);
+  // 자정이 지나면 보던 날(어제)에 머물러요. 「오늘로」를 누르면 넘어가요
+  let bootDay = realToday();
+  setInterval(() => { const n = realToday(); if (n !== bootDay) { if (!TEACHER && !PEEK && !UI.dayOff) { UI.dayOff = -1; toast('자정이 지났어요. 하던 숙제는 어제 것으로 이어서 보여 줘요'); if (!UI.run) render(); } bootDay = n; } }, 20000);
+  const dayNav = () => { const off = DAY_OFF(), t = today(), lab = off === 0 ? '오늘' : off === -1 ? '어제' : off === 1 ? '내일' : `${md(t)} ${DOW[dowOf(t)]}요일`; return `<div class="day-nav ${off ? 'off' : ''}"><button type="button" data-dayoff="-1" aria-label="전날" ${off <= -7 ? 'disabled' : ''}>‹</button><b>${esc(lab)}${off ? ` <small>${esc(md(t))}</small>` : ''}</b><button type="button" data-dayoff="1" aria-label="다음 날" ${off >= 1 ? 'disabled' : ''}>›</button>${off ? '<button type="button" class="day-today" data-dayoff="0">오늘로</button>' : ''}</div>`; };
   function railCards(inline) {
     const cls = inline ? 'rail-inline c12' : '';
     const { tasks, off } = todayTasks();
     const real = tasks.filter((t) => t.icon !== 'party' && !t.memo); const doneN = real.filter((t) => t.done).length, frac = real.length ? doneN / real.length : (off ? 1 : 0);
     const R = 80, L = Math.PI * R;
-    const todo = `<section class="card tight ${cls}"><div class="card-h"><h3>오늘 할 일</h3><button class="more" data-go="hw">숙제</button></div>
+    const todo = `<section class="card tight ${cls}"><div class="card-h"><h3>${DAY_OFF() ? `${DAY_OFF() === -1 ? '어제' : md(today())} 할 일` : '오늘 할 일'}</h3>${DAY_OFF() ? '<button class="more" data-dayoff="0">오늘로</button>' : ''}<button class="more" data-go="hw">숙제</button></div>
       <div class="arch"><svg viewBox="0 0 200 100"><path d="M20 96 A80 80 0 0 1 180 96" fill="none" stroke="var(--fill)" stroke-width="12" stroke-linecap="round"/><path class="ring-arc" d="M20 96 A80 80 0 0 1 180 96" fill="none" stroke="var(--blue)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L * (1 - frac)}"/></svg><div class="c"><span class="tiny">오늘</span><br><b class="num">${Math.round(frac * 100)}%</b> <span class="muted">완료</span></div></div>
       <div class="list">${tasks.length ? tasks.map((t) => `<div class="li btnlike" ${t.hw ? `data-hwopen="${esc(t.hw)}"` : `data-task="${t.k}"`}><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${esc(t.t)}</div><div class="d">${esc(t.d)}</div></div><span class="chev"></span></div>`).join('') : `<div class="empty">${ic('party')}<b>오늘 할 일이 없어요</b></div>`}</div></section>`;
     return inline ? todo : clockWidget() + pomoCard('pm-rail') + hotCard('') + todo + ddayWidget();
@@ -1518,7 +1527,7 @@
     const un = CH_UNITS[ed.unit];
     const wl = wordsFor(ed.words), wdone = Object.keys(ed.wans || {}).length;
     const hwList = S.hw || [];
-    return `<h1 class="h1">오늘의 숙제</h1><div class="row between wrap" style="gap:8px;margin-bottom:16px"><p class="sub" style="margin:0">${TUTOR ? '지난 수업에서 배운 것을 다음 수업 전까지 풀어요' : '꼭 할 일부터 끝내요. 학원·학교 숙제는 마감까지 나눠서 매일 할 만큼만 나와요'}</p>${TUTOR ? '' : `<button class="btn sm" id="plan-open" type="button"><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg> 매일 과제 요일</button>`}</div>${perfLive().length ? `<div style="margin-bottom:16px">${perfCard()}</div>` : ''}
+    return `<div class="row between wrap" style="gap:8px"><h1 class="h1">${DAY_OFF() ? '이날의 숙제' : '오늘의 숙제'}</h1>${TEACHER ? '' : dayNav()}</div><div class="row between wrap" style="gap:8px;margin-bottom:16px"><p class="sub" style="margin:0">${TUTOR ? '지난 수업에서 배운 것을 다음 수업 전까지 풀어요' : '꼭 할 일부터 끝내요. 학원·학교 숙제는 마감까지 나눠서 매일 할 만큼만 나와요'}</p>${TUTOR ? '' : `<button class="btn sm" id="plan-open" type="button"><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg> 매일 과제 요일</button>`}</div>${perfLive().length ? `<div style="margin-bottom:16px">${perfCard()}</div>` : ''}
     <div class="grid">${TUTOR ? '' : missCard()}
       ${(() => {
         const { tasks } = todayTasks(), real = tasks.filter((t) => t.icon !== 'party' && !t.memo), dn = real.filter((t) => t.done).length;
@@ -4714,7 +4723,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610282238'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610290033'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

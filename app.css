@@ -2645,3 +2645,12 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 }
 /* 곰 둘은 머리가 커서 다른 펫보다 작게 보여요 → 조금 키움 */
 .pet-perch[data-skin="rilakkuma"] img, .pet-perch[data-skin="korilakkuma"] img { transform: scale(1.18); transform-origin: 50% 90%; }
+
+/* 보는 날 화살표 (숙제 탭 머리) */
+.day-nav { display: inline-flex; align-items: center; gap: 4px; padding: 4px; border-radius: 999px; background: var(--fill); }
+.day-nav button { width: 34px; height: 34px; border: 0; border-radius: 50%; background: var(--card); font: inherit; font-size: 18px; color: var(--t2); cursor: pointer; }
+.day-nav button:disabled { opacity: .35; cursor: default; }
+.day-nav b { min-width: 56px; text-align: center; font-size: 14px; font-weight: 700; color: var(--t1); }
+.day-nav b small { font-weight: 500; color: var(--t3); }
+.day-nav.off { background: var(--blue-soft); }
+.day-nav .day-today { width: auto; padding: 0 12px; border-radius: 999px; background: var(--blue); color: #fff; font-size: 13px; font-weight: 700; }
