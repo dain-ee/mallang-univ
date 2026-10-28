@@ -2581,3 +2581,58 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .pr-rv.pr-gap { min-width: 4em; padding: 0 8px; border-bottom: 2px solid var(--t4); border-radius: 6px 6px 0 0; background: transparent; }
 .pr-vt td:first-child { white-space: nowrap; }
 .pr-bar { position: sticky; top: 56px; z-index: 5; margin: 0 -4px; padding: 8px 4px; background: var(--bg); }
+
+/* ───────── 리락쿠마 테마: 꿀색·갈색, 따뜻한 크림 바탕 (10/28) ───────── */
+:root[data-skin="rilakkuma"] {
+  --blue: #c8792a; --blue-d: #a35f1c; --blue-soft: #fbeedc; --blue-l: #f3d9b5;
+  --bg: #fdfaf3; --card: #fffdf8; --fill: #f6f1e6; --fill2: #fbf8f1; --line: #efe6d6;
+  --t1: #4a3728; --t2: #7a634e; --t3: #a89078; --t4: #cdbba6;
+  --green: #4caf6a; --green-soft: #e6f4dc; --amber: #f7b500;
+  --hl: rgba(247, 181, 0, .45);
+  --shadow-pop: 0 2px 10px rgba(110, 75, 30, .10), 0 3px 20px rgba(110, 75, 30, .05);
+  --skin-bg: none;
+  --skin-band: repeating-linear-gradient(90deg, #f3d9b5 0 20px, #fff3cf 20px 40px, #e9c89a 40px 60px);
+  --ht-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'%3E%3Cpath d='M50 90C20 66 2 50 2 28 2 13 13 2 28 2c9 0 17 5 22 12C55 7 63 2 72 2c15 0 26 11 26 26 0 22-18 38-48 62z' fill='%23f7b500'/%3E%3C/svg%3E");
+  --ht-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'%3E%3Cpath d='M50 90C20 66 2 50 2 28 2 13 13 2 28 2c9 0 17 5 22 12C55 7 63 2 72 2c15 0 26 11 26 26 0 22-18 38-48 62z' fill='%23fff0b8'/%3E%3C/svg%3E");
+}
+:root[data-skin="rilakkuma"] .top { background: color-mix(in srgb, var(--bg) 92%, transparent); }
+:root[data-skin="rilakkuma"] .card { box-shadow: 0 1px 0 rgba(150, 110, 60, .10), 0 0 0 1px rgba(160, 120, 70, .05); }
+:root[data-skin="rilakkuma"] .pet-perch .pet-say { background: #fff6dc; color: #6b4f2e; box-shadow: 0 2px 10px rgba(120, 80, 30, .14); }
+:root[data-skin="rilakkuma"] .tabs button .cnt, :root[data-skin="rilakkuma"] .top .cnt, :root[data-skin="rilakkuma"] .tabbar .cnt { background: #f7b500; color: #4b3a10; }
+/* ───────── 코리락쿠마 테마: 크림·분홍 ───────── */
+:root[data-skin="korilakkuma"] {
+  --blue: #e07a8c; --blue-d: #c75a6e; --blue-soft: #fdeaee; --blue-l: #f7cdd5;
+  --bg: #fdf8f5; --card: #fffdfb; --fill: #f7efea; --fill2: #fbf6f3; --line: #efe2dc;
+  --t1: #4e3f3a; --t2: #7d6a64; --t3: #a99590; --t4: #cdbcb7;
+  --green: #4caf6a; --green-soft: #e6f4dc; --amber: #f7b500;
+  --hl: rgba(242, 140, 160, .4);
+  --shadow-pop: 0 2px 10px rgba(120, 70, 80, .10), 0 3px 20px rgba(120, 70, 80, .05);
+  --skin-bg: none;
+  --skin-band: repeating-linear-gradient(90deg, #f7cdd5 0 20px, #fff0e6 20px 40px, #f3dfcf 40px 60px);
+  --ht-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'%3E%3Cpath d='M50 90C20 66 2 50 2 28 2 13 13 2 28 2c9 0 17 5 22 12C55 7 63 2 72 2c15 0 26 11 26 26 0 22-18 38-48 62z' fill='%23f28ca0'/%3E%3C/svg%3E");
+  --ht-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'%3E%3Cpath d='M50 90C20 66 2 50 2 28 2 13 13 2 28 2c9 0 17 5 22 12C55 7 63 2 72 2c15 0 26 11 26 26 0 22-18 38-48 62z' fill='%23e63946'/%3E%3C/svg%3E");
+}
+:root[data-skin="korilakkuma"] .top { background: color-mix(in srgb, var(--bg) 92%, transparent); }
+:root[data-skin="korilakkuma"] .card { box-shadow: 0 1px 0 rgba(150, 100, 110, .10), 0 0 0 1px rgba(160, 110, 120, .05); }
+:root[data-skin="korilakkuma"] .pet-perch .pet-say { background: #fff1f3; color: #6b4650; box-shadow: 0 2px 10px rgba(130, 70, 90, .14); }
+:root[data-skin="korilakkuma"] .tabs button .cnt, :root[data-skin="korilakkuma"] .top .cnt, :root[data-skin="korilakkuma"] .tabbar .cnt { background: #e07a8c; color: #fff; }
+/* 곰 옆에 동동 뜨는 하트 (쿠로미 하트와 같은 자리·같은 움직임, 색만 테마별) */
+.pet-hts.bear i { filter: drop-shadow(0 3px 4px rgba(120, 80, 40, .22)); }
+.pet-hts.bear i:nth-child(odd) { background-image: var(--ht-a); }
+.pet-hts.bear i:nth-child(even) { background-image: var(--ht-b); }
+@media (prefers-color-scheme: dark) {
+  :root[data-skin="rilakkuma"]:not([data-theme="light"]) {
+    --bg: #15110d; --card: #211a14; --fill: #2d241c; --fill2: #27201a; --line: #352b22;
+    --t1: #f6ecdf; --t2: #d8c6b1; --t3: #a08c76; --t4: #6e5f4f;
+    --blue: #e0963f; --blue-d: #f0b56a; --blue-soft: color-mix(in srgb, var(--blue) 18%, #211a14); --blue-l: color-mix(in srgb, var(--blue) 35%, #211a14);
+    --hl: rgba(247, 181, 0, .32);
+  }
+  :root[data-skin="rilakkuma"]:not([data-theme="light"]) .pet-perch .pet-say { background: #2d241c; color: #f6ecdf; }
+  :root[data-skin="korilakkuma"]:not([data-theme="light"]) {
+    --bg: #171213; --card: #221a1b; --fill: #2f2425; --fill2: #291f20; --line: #382b2d;
+    --t1: #f8ece9; --t2: #dcc8c4; --t3: #a38f8b; --t4: #6f5f5c;
+    --blue: #ef98a8; --blue-d: #f7b8c3; --blue-soft: color-mix(in srgb, var(--blue) 18%, #221a1b); --blue-l: color-mix(in srgb, var(--blue) 35%, #221a1b);
+    --hl: rgba(242, 140, 160, .3);
+  }
+  :root[data-skin="korilakkuma"]:not([data-theme="light"]) .pet-perch .pet-say { background: #2f2425; color: #f8ece9; }
+}
