@@ -2866,7 +2866,7 @@
   }
 
   // ───────── 상세 화면 (픽·합격선을 누르면) ─────────
-  const NEWS_ALL = () => ((D.news && D.news.items) || []).filter((n) => !TUTOR || (!/정윤/.test(n.title + n.body) && !['대학', '바이오', '바이오 산업'].includes(n.scope)));
+  const NEWS_ALL = () => ((D.news && D.news.items) || []).filter((n) => (n.for || []).length ? n.for.includes(U.who) : (!TUTOR || (!/정윤/.test(n.title + n.body) && !['대학', '바이오', '바이오 산업'].includes(n.scope))));  // for 가 있는 글은 그 학생만 (10/28)
   if (TUTOR && D.news && D.news.items) D.news.items = NEWS_ALL();  // 소식 탭·홈·대학 탭 어디서든 같은 목록
   const srcList = (src) => (src || []).length ? `<div class="eyebrow" style="margin-top:20px">출처</div><div class="list">${src.map((x) => `<a class="li btnlike" href="${esc(x.url)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="ico">${ic('pin')}</div><div class="body"><div class="t" style="font-size:14px">${esc(x.name)}</div><div class="d">원문 보기</div></div><span class="chev"></span></a>`).join('')}</div>` : '';
   const newsRows = (L) => L.length ? `<div class="eyebrow" style="margin-top:20px">관련 소식</div><div class="list">${L.slice(0, 5).map((n) => `<div class="li btnlike" data-dn="${esc(n.id)}"><div class="ico">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'sm') : ic('news')}</div><div class="body"><div class="t" style="font-size:15px">${esc(n.title)}</div><div class="d">${md(n.date)} · ${esc(n.scope || '')}</div></div><span class="chev"></span></div>`).join('')}</div>` : '';
@@ -4723,7 +4723,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610290053'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610290722'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
