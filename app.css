@@ -2640,3 +2640,5 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   }
   :root[data-skin="korilakkuma"]:not([data-theme="light"]) .pet-perch .pet-say { background: #2f2425; color: #f8ece9; }
 }
+/* 곰 둘은 머리가 커서 다른 펫보다 작게 보여요 → 조금 키움 */
+.pet-perch[data-skin="rilakkuma"] img, .pet-perch[data-skin="korilakkuma"] img { transform: scale(1.18); transform-origin: 50% 90%; }
