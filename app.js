@@ -650,6 +650,8 @@
     $$('[data-giftx]').forEach((b) => (b.onclick = () => { const k = b.dataset.giftx; S.gifts = gAll().map((x) => (x.skin === k && !x.open ? { ...x, x: Date.now() } : x)); S.gift = {}; save('gifts', 'gift'); toast('선물을 거둬들였어요'); render(); }));
     $$('[data-giftopen]').forEach((b) => (b.onclick = () => { giftCheck.seen = (gPend()[0] || {}).at; giftPop(); }));
     $$('[data-midedit]').forEach((b) => (b.onclick = midSheet));
+    $$('.pr-rv[data-prk]').forEach((b) => (b.onclick = () => { const m = (UI.prOn || {})[(UI.run || {}).unit] || {}; const k = b.dataset.prk; m[k] = !m[k]; b.classList.toggle('on', !!m[k]); }));
+    $$('[data-prall]').forEach((b) => (b.onclick = () => { UI.prAll = !UI.prAll; render(); }));
     const ns = $('#nt-send'); if (ns) ns.onclick = () => { const t = $('#nt-t').value.trim(); if (!t) return toast('한마디를 적어 주세요'); S.note = { text: t, at: Date.now() }; save('note'); toast(`${NMI()} 홈 맨 위에 띄웠어요`); render(); };
     const nd = $('#nt-del'); if (nd) nd.onclick = () => { S.note = {}; save('note'); toast('내렸어요'); render(); };
     const nt = $('#nt-thx'); if (nt) nt.onclick = () => { S.note.thx = Date.now(); save('note'); const r = nt.getBoundingClientRect(); boom(r.left + r.width / 2, r.top + r.height / 2, 2); ding(3); setTimeout(render, 500); };
@@ -4342,8 +4344,10 @@
   // 학교 프린트 원문 보기: 쪽마다 카드, 빈칸·답은 눌러서 확인 (10/28 선생님 «윤건이 꺼 다 옮겨줘 학교 프린트 5과 6과»)
   function printRun() {
     const u = NXU[UI.run.unit]; if (!u || !(u.print || []).length) { UI.run = null; return hwView(); }
-    const rv = (t) => `<button class="pr-rv" type="button" onclick="this.classList.toggle('on')"><span>${esc(t)}</span></button>`;
-    const bl = (s) => esc(s).replace(/\{\{([^}]+)\}\}/g, (m, a) => `<button class="pr-rv pr-gap" type="button" onclick="this.classList.toggle('on')"><span>${a}</span></button>`);
+    // 눌러 본 답·「답 다 보기」는 UI 에 기억해요. 안 그러면 1분마다 다시 그릴 때 도로 가려져요 (10/28 선생님 «답 보기 자꾸 사라져»)
+    UI.prOn = UI.prOn || {}; const seen = UI.prOn[u.id] = UI.prOn[u.id] || {}; let kk = 0;
+    const rv = (t, cls = '') => { const k = kk++; return `<button class="pr-rv ${cls} ${seen[k] ? 'on' : ''}" data-prk="${k}" type="button"><span>${esc(t)}</span></button>`; };
+    const bl = (s) => esc(s).replace(/\{\{([^}]+)\}\}/g, (m, a) => rv(a, 'pr-gap').replace(`<span>${esc(a)}</span>`, `<span>${a}</span>`));
     const txt = (t) => nxRich(t);
     const block = (b) => {
       const h = b.h ? `<p class="pr-h">${esc(b.h)}</p>` : '';
@@ -4357,7 +4361,8 @@
       if (b.type === 'passage') return `${h}<div class="pr-psg">${txt(b.text || '')}</div>`;
       return `${h}<p class="pr-s">${esc(JSON.stringify(b))}</p>`;
     };
-    return `<div class="pr-root"><div class="row between"><button class="btn sm" data-nxu="${esc(u.id)}" type="button">‹ ${esc(u.code)} 단원</button><button class="btn sm" type="button" onclick="const r=this.closest('.pr-root');r.classList.toggle('all');this.textContent=r.classList.contains('all')?'답 다 숨기기':'답 다 보기'">답 다 보기</button></div>
+    const all = !!UI.prAll;
+    return `<div class="pr-root ${all ? 'all' : ''}"><div class="row between pr-bar"><button class="btn sm" data-nxu="${esc(u.id)}" type="button">‹ ${esc(u.code)} 단원</button><button class="btn sm ${all ? 'primary' : ''}" data-prall type="button">${all ? '답 다 가리기' : '답 다 보기'}</button></div>
       <h1 class="h1">${esc(u.code)} 학교 프린트</h1><p class="sub">둔촌중 프린트 그대로예요. 빈칸·답은 눌러서 확인해요</p>
       ${u.print.map((pg) => `<section class="card pr-page"><div class="card-h"><h2>${esc(pg.title)}</h2><span class="tiny">${pg.no}쪽</span></div>${(pg.blocks || []).map(block).join('')}</section>`).join('')}</div>`;
   }
@@ -4700,7 +4705,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610282100'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610282107'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

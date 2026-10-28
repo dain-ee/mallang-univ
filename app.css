@@ -2580,3 +2580,4 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .pr-rv.on::after, .pr-root.all .pr-rv::after { content: none; }
 .pr-rv.pr-gap { min-width: 4em; padding: 0 8px; border-bottom: 2px solid var(--t4); border-radius: 6px 6px 0 0; background: transparent; }
 .pr-vt td:first-child { white-space: nowrap; }
+.pr-bar { position: sticky; top: 56px; z-index: 5; margin: 0 -4px; padding: 8px 4px; background: var(--bg); }
