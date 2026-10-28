@@ -4432,7 +4432,7 @@
   function nxUnitView() {
     const u = NXU[UI.nxUnit]; if (!u) { UI.nxUnit = null; return hwView(); }
     const rows = ['c', 'q', 'x', 'e', 's', 'd', 'w'].map((p) => NXSETS[`${u.id}:${p}`]).filter(Boolean);
-    const pd = { c: u.subj === 'eng' ? '단어·숙어 뜻 고르기' : '교과서 핵심 문장의 빈칸 채우기', q: '단원 개념 문제', x: '학교 기출 · 변형 문제를 다 모아서', e: '영영 풀이 보고 영어 단어 쓰기 · 프린트 단어 전부', s: '학교 프린트의 단어 예문·대화·본문·문법 문장을 우리말 보고 영작', d: '조건에 맞게 문장 쓰기', w: '프린트 빈칸·영작·고르기 문제 그대로' };
+    const pd = { c: u.subj === 'eng' ? '단어·숙어 뜻 고르기' : '교과서 핵심 문장의 빈칸 채우기', q: '단원 개념 문제', x: '학교 기출 · 변형 문제를 다 모아서', e: '프린트에 영영 풀이가 적힌 단어만 · 풀이 보고 영어 단어 쓰기', s: '학교 프린트의 단어 예문·대화·본문·문법 문장을 우리말 보고 영작', d: '조건에 맞게 문장 쓰기', w: '프린트 빈칸·영작·고르기 문제 그대로' };
     const printRow = (u.print || []).length ? `<div class="li btnlike" data-task="print:${esc(u.id)}"><div class="ico">${ic('memo')}</div><div class="body"><div class="t">학교 프린트 보기</div><div class="d">${u.print.length}쪽 · 단어·듣기·문법·본문·워크북·단원평가 그대로, 답은 눌러서 확인</div></div><span class="chev"></span></div>` : '';
     return `<div class="row between"><button class="btn sm" data-nxu="" type="button">‹ 숙제</button><span class="tiny">${esc(NX_SN[u.subj])} ${esc(u.code)}</span></div>
       <h1 class="h1">${esc(u.code)} ${esc(u.title)}</h1><p class="sub">${esc(u.sub || '')}</p>
@@ -4700,7 +4700,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610282058'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610282100'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
