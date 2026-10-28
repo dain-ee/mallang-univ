@@ -2525,3 +2525,15 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .wc-h .btn { font-size: 18px; }
 .wl-pick .wl-chev { width: 18px; height: 18px; opacity: 1; color: var(--t3); transition: transform .2s ease; }
 .wl-pick.open .wl-chev { transform: rotate(180deg); color: var(--blue); }
+
+/* 리포트 「이번 주 한 것」 자동 줄: 알약 대신 한 줄씩 (10/28) */
+.dform .wk-l { display: flex; flex-direction: column; gap: 2px; margin: 4px 0 12px; }
+.dform .wk-l .tk { width: 100%; min-height: 48px; padding: 8px 12px 8px 8px; border-radius: 12px; background: none; align-items: flex-start; justify-content: flex-start; }
+.dform .wk-l .tk i { margin-top: 1px; }
+.dform .wk-l .tk span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.dform .wk-l .tk b { font-weight: 600; color: var(--t1); line-height: 1.35; }
+.dform .wk-l .tk b em { font-style: normal; color: #1b64da; }
+.dform .wk-l .tk small { font-size: 13px; font-weight: 500; color: var(--t3); line-height: 1.4; }
+.dform .wk-l .tk.on { background: none; color: var(--t1); }
+.dform .wk-l .tk:not(.on) { opacity: .45; }
+.dform .wk-l .tk:not(.on) b { text-decoration: line-through; }
