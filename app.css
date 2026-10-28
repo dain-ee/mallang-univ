@@ -2560,3 +2560,23 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .cl-ov { margin: 0 0 14px; padding: 10px 14px; border-radius: 12px; background: var(--fill2); }
 .cl-ov summary { cursor: pointer; font-weight: 700; font-size: 14px; color: var(--t2); }
 .cl-ov[open] summary { margin-bottom: 8px; }
+
+/* 학교 프린트 보기 (10/28) */
+.pr-root .card.pr-page { margin-top: 16px; }
+.pr-h { margin: 18px 0 8px; font-size: 14px; font-weight: 700; color: var(--t2); }
+.pr-h:first-child { margin-top: 0; }
+.pr-s { margin: 0 0 8px; font-size: 16px; line-height: 1.75; color: var(--t1); word-break: keep-all; }
+.pr-sub { margin: -4px 0 10px; font-size: 13px; color: var(--t3); line-height: 1.5; }
+.pr-note { padding: 8px 0; border-bottom: 1px solid var(--line); }
+.pr-note:last-child { border-bottom: 0; }
+.pr-psg { margin: 0 0 10px; padding: 12px 14px; border-radius: 12px; background: var(--fill2); font-size: 15px; line-height: 1.7; white-space: pre-wrap; color: var(--t1); }
+.pr-ch { margin: 0 0 8px; padding-left: 22px; }
+.pr-ch li { margin: 3px 0; font-size: 15px; line-height: 1.55; }
+.pr-root.all .pr-ch li.ans, .pr-ch li.ans.on { font-weight: 700; color: var(--blue); }
+.pr-ans { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.pr-rv { position: relative; display: inline-block; min-width: 2.5em; margin: 0 2px; padding: 2px 10px; border: 0; border-radius: 8px; background: var(--fill); font: inherit; font-size: 15px; line-height: 1.6; color: transparent; cursor: pointer; vertical-align: baseline; }
+.pr-rv::after { content: "답 보기"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--t3); }
+.pr-rv.on, .pr-root.all .pr-rv { color: var(--blue); background: color-mix(in srgb, var(--blue) 10%, transparent); font-weight: 700; }
+.pr-rv.on::after, .pr-root.all .pr-rv::after { content: none; }
+.pr-rv.pr-gap { min-width: 4em; padding: 0 8px; border-bottom: 2px solid var(--t4); border-radius: 6px 6px 0 0; background: transparent; }
+.pr-vt td:first-child { white-space: nowrap; }

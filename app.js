@@ -4191,7 +4191,7 @@
   // 문제는 학생 코드로 잠긴 묶음(D.nx)에만 있어요. 기록 S.nx = { a: { 문항: { ok, v, at } }, done: [{ id, title, kind, ok, n, at, ms }], st: { 세트: { t0, fin } }, wd: { 'ko:w1': { s, w } } }
   const NXD = D.nx || {};
   const NX_SN = { eng: '영어', hist: '역사', sci: '과학' };
-  const NX_PART = { c: '개념 빈칸', q: '단원 문제', x: '기출' };
+  const NX_PART = { c: '개념 빈칸', q: '단원 문제', x: '기출', s: '프린트 문장 영작', d: '조건 영작', w: '프린트 연습 문제' };  // s·d·w·print = 학교 프린트 (10/28)
   const nxPartName = (u, p) => (p === 'c' && u.subj === 'eng' ? '단어' : NX_PART[p]);
   const NXSETS = {}, NXQ = {}, NXU = {};
   (() => {
@@ -4199,7 +4199,7 @@
     for (const m of NXD.mocks || []) add({ ...m, kind: 'mock' });
     for (const sb of NXD.subjects || []) for (const u of sb.units) {
       NXU[u.id] = u;
-      for (const p of ['c', 'q', 'x']) if (u.parts[p].length) add({ id: `${u.id}:${p}`, title: `${NX_SN[u.subj]} ${u.code} ${nxPartName(u, p)}`, sub: u.title, subj: u.subj, kind: p, unit: u.id, qs: u.parts[p] });
+      for (const p of ['c', 'q', 'x', 's', 'd', 'w']) if ((u.parts[p] || []).length) add({ id: `${u.id}:${p}`, title: `${NX_SN[u.subj]} ${u.code} ${nxPartName(u, p)}`, sub: u.title, subj: u.subj, kind: p, unit: u.id, qs: u.parts[p] });
       for (const pp of u.papers) add({ id: `${u.id}:x:${pp.id}`, title: pp.title, sub: `${NX_SN[u.subj]} ${u.code} 기출`, subj: u.subj, kind: 'x', unit: u.id, qs: u.parts.x.filter((q) => q.pp === pp.id) });
     }
     const WD = NXD.words; if (WD) for (const m of ['ko', 'en']) add({ id: 'jw:' + m, title: m === 'ko' ? '단어 시험 뜻 쓰기' : '단어 시험 영어 쓰기', sub: WD.when || '', subj: 'eng', kind: 'words', mode: m, qs: WD.words.map((w) => ({ i: `jw:${m}:${w.id}`, t: 'w' + m, q: m === 'ko' ? w.en : w.ko, w, cat: 'Day ' + w.day })) });
@@ -4339,6 +4339,28 @@
     });
   }
   // 단어 시험 (주아): 틀린 단어는 몇 장 뒤에 또 나오고, 한 번 틀린 단어는 두 번 연달아 맞혀야 외운 걸로 쳐요
+  // 학교 프린트 원문 보기: 쪽마다 카드, 빈칸·답은 눌러서 확인 (10/28 선생님 «윤건이 꺼 다 옮겨줘 학교 프린트 5과 6과»)
+  function printRun() {
+    const u = NXU[UI.run.unit]; if (!u || !(u.print || []).length) { UI.run = null; return hwView(); }
+    const rv = (t) => `<button class="pr-rv" type="button" onclick="this.classList.toggle('on')"><span>${esc(t)}</span></button>`;
+    const bl = (s) => esc(s).replace(/\{\{([^}]+)\}\}/g, (m, a) => `<button class="pr-rv pr-gap" type="button" onclick="this.classList.toggle('on')"><span>${a}</span></button>`);
+    const txt = (t) => nxRich(t);
+    const block = (b) => {
+      const h = b.h ? `<p class="pr-h">${esc(b.h)}</p>` : '';
+      if (b.type === 'vocab') return `${h}<div class="cl-tw"><table class="cl-t pr-vt"><tbody>${(b.rows || []).map((r) => `<tr><td>${esc(r[0])}</td><td>${rv(r[1] || '')}</td><td>${esc(r[2] || '')}${r[3] ? `<div class="tiny">${esc(r[3])}</div>` : ''}</td></tr>`).join('')}</tbody></table></div>`;
+      if (b.type === 'blank') return `${h}<p class="pr-s">${bl(b.s || '')}</p>${b.ko || b.g ? `<p class="pr-sub">${esc([b.ko, b.g].filter(Boolean).join(' · '))}</p>` : ''}`;
+      if (b.type === 'text') return `${h}${(b.lines || []).map((l) => `<p class="pr-s">${txt(l)}</p>`).join('')}`;
+      if (b.type === 'table') return `${h}<div class="cl-tw"><table class="cl-t"><thead><tr>${(b.head || []).map((x) => `<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${(b.rows || []).map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+      if (b.type === 'write') return `${h}<p class="pr-s">${txt(b.q || '')}</p><div class="pr-ans">${(b.ans || []).map(rv).join('')}</div>`;
+      if (b.type === 'notes') return `${h}${(b.items || []).map(([s, n]) => `<div class="pr-note"><p class="pr-s">${txt(s)}</p>${n ? `<p class="pr-sub">${esc(n)}</p>` : ''}</div>`).join('')}`;
+      if (b.type === 'mc') { const an = Array.isArray(b.answer) ? b.answer : [b.answer]; return `${h}${b.passage ? `<div class="pr-psg">${txt(b.passage)}</div>` : ''}<p class="pr-s">${txt(b.q || '')}</p><ol class="pr-ch">${(b.choices || []).map((c, i) => `<li class="${an.includes(i) ? 'ans' : ''}">${esc(c)}</li>`).join('')}</ol>${b.exp ? `<div class="pr-ans">${rv(b.exp)}</div>` : ''}`; }
+      if (b.type === 'passage') return `${h}<div class="pr-psg">${txt(b.text || '')}</div>`;
+      return `${h}<p class="pr-s">${esc(JSON.stringify(b))}</p>`;
+    };
+    return `<div class="pr-root"><div class="row between"><button class="btn sm" data-nxu="${esc(u.id)}" type="button">‹ ${esc(u.code)} 단원</button><button class="btn sm" type="button" onclick="const r=this.closest('.pr-root');r.classList.toggle('all');this.textContent=r.classList.contains('all')?'답 다 숨기기':'답 다 보기'">답 다 보기</button></div>
+      <h1 class="h1">${esc(u.code)} 학교 프린트</h1><p class="sub">둔촌중 프린트 그대로예요. 빈칸·답은 눌러서 확인해요</p>
+      ${u.print.map((pg) => `<section class="card pr-page"><div class="card-h"><h2>${esc(pg.title)}</h2><span class="tiny">${pg.no}쪽</span></div>${(pg.blocks || []).map(block).join('')}</section>`).join('')}</div>`;
+  }
   function nxwRun() {
     const r = UI.run, s = NXSETS[r.id], m = s.mode, x = nxS(), W = s.qs, got = W.filter((q) => nxWdGot(m, q.w.id)).length;
     if (!r.q) r.q = shuffle(W.filter((q) => !nxWdGot(m, q.w.id)).map((q) => q.i));
@@ -4409,11 +4431,12 @@
   }
   function nxUnitView() {
     const u = NXU[UI.nxUnit]; if (!u) { UI.nxUnit = null; return hwView(); }
-    const rows = ['c', 'q', 'x'].map((p) => NXSETS[`${u.id}:${p}`]).filter(Boolean);
-    const pd = { c: u.subj === 'eng' ? '단어·숙어 뜻 고르기' : '교과서 핵심 문장의 빈칸 채우기', q: '단원 개념 문제', x: '학교 기출 · 변형 문제를 다 모아서' };
+    const rows = ['c', 'q', 'x', 's', 'd', 'w'].map((p) => NXSETS[`${u.id}:${p}`]).filter(Boolean);
+    const pd = { c: u.subj === 'eng' ? '단어·숙어 뜻 고르기' : '교과서 핵심 문장의 빈칸 채우기', q: '단원 개념 문제', x: '학교 기출 · 변형 문제를 다 모아서', s: '학교 프린트의 단어 예문·대화·본문·문법 문장을 우리말 보고 영작', d: '조건에 맞게 문장 쓰기', w: '프린트 빈칸·영작·고르기 문제 그대로' };
+    const printRow = (u.print || []).length ? `<div class="li btnlike" data-task="print:${esc(u.id)}"><div class="ico">${ic('memo')}</div><div class="body"><div class="t">학교 프린트 보기</div><div class="d">${u.print.length}쪽 · 단어·듣기·문법·본문·워크북·단원평가 그대로, 답은 눌러서 확인</div></div><span class="chev"></span></div>` : '';
     return `<div class="row between"><button class="btn sm" data-nxu="" type="button">‹ 숙제</button><span class="tiny">${esc(NX_SN[u.subj])} ${esc(u.code)}</span></div>
       <h1 class="h1">${esc(u.code)} ${esc(u.title)}</h1><p class="sub">${esc(u.sub || '')}</p>
-      <div class="grid"><section class="card c12"><div class="card-h"><h2>단원 공부</h2><span class="tiny">개념부터 기출까지 차례로 풀어요</span></div><div class="list">${rows.map((s) => nxRow(s, { title: nxPartName(u, s.kind), icon: s.kind === 'c' ? 'bulb' : s.kind === 'q' ? 'pencil' : 'target', d: `${pd[s.kind]} · ${(() => { const g = nxProg(s); return g.d ? `${g.d} / ${g.n} 풀었어요` : `${g.n}문제`; })()}` })).join('')}</div></section>
+      <div class="grid"><section class="card c12"><div class="card-h"><h2>단원 공부</h2><span class="tiny">개념부터 기출까지 차례로 풀어요</span></div><div class="list">${printRow}${rows.map((s) => nxRow(s, { title: nxPartName(u, s.kind), icon: s.kind === 'c' ? 'bulb' : s.kind === 'q' ? 'pencil' : s.kind === 'x' ? 'target' : s.kind === 'w' ? 'memo' : 'eng', d: `${pd[s.kind]} · ${(() => { const g = nxProg(s); return g.d ? `${g.d} / ${g.n} 풀었어요` : `${g.n}문제`; })()}` })).join('')}</div></section>
       ${u.papers.length ? `<section class="card c12"><div class="card-h"><h2>기출 시험지별로</h2><span class="tiny">${u.papers.length}개</span></div><div class="list">${u.papers.map((pp) => nxRow(NXSETS[`${u.id}:x:${pp.id}`], { icon: 'memo' })).join('')}</div></section>` : ''}</div>`;
   }
   function nxRecent() {
@@ -4677,7 +4700,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610281848'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610282046'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -5568,7 +5591,7 @@
     let html = '';
     syncGoals();
     redoFix();
-    if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'nx' ? nxRun() : UI.run.kind === 'nxw' ? nxwRun() : '';
+    if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'nx' ? nxRun() : UI.run.kind === 'nxw' ? nxwRun() : UI.run.kind === 'print' ? printRun() : '';
     else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'tme' ? tmeView() : UI.tab === 'picks' ? picksView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'exam' ? examView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
     const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'hw' ? (UI.nxUnit || '') + (UI.nxSubj || '') : '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '');
@@ -5641,6 +5664,7 @@
     else if (k.startsWith('ink:')) { const [, c, n] = k.split(':'); return inkLec(c, n); }
     else if (k === 'fin' || k.startsWith('fin:')) { const sj = k.slice(4), c = sj && (finToday().find((x) => x.subj === sj && !finDone(x)) || FIN_ORDER.find((x) => x.subj === sj && !finDone(x)) || finToday().find((x) => x.subj === sj)); UI.tab = 'hw'; UI.run = c ? { kind: 'fin', cid: c.id, read: finDone(c) } : { kind: 'fin' }; }
     else if (k.startsWith('drill:')) { UI.tab = 'hw'; UI.run = { kind: 'drill', id: k.slice(6) }; }
+    else if (k.startsWith('print:')) { UI.tab = 'hw'; UI.run = { kind: 'print', unit: k.slice(6) }; }
     else if (k.startsWith('jg:')) { const [, u, st, sc] = k.split(':'); UI.tab = 'hw'; UI.run = { kind: 'gram', unit: +u, step: +st, secs: sc ? sc.split('') : null }; }
     else if (k.startsWith('cu:')) { UI.tab = 'hw'; UI.run = { kind: 'unit', ref: CH_UNITS.findIndex((u) => String(u.unit) === k.slice(3)), back: 'hw' }; }
     else { UI.tab = 'hw'; UI.run = null; }
