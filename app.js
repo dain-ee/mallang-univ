@@ -731,7 +731,7 @@
   // 자정이 지나면 보던 날(어제)에 머물러요. 「오늘로」를 누르면 넘어가요
   let bootDay = realToday();
   setInterval(() => { const n = realToday(); if (n !== bootDay) { if (!TEACHER && !PEEK && !UI.dayOff) { UI.dayOff = -1; toast('자정이 지났어요. 하던 숙제는 어제 것으로 이어서 보여 줘요'); if (!UI.run) render(); } bootDay = n; } }, 20000);
-  const dayNav = () => { const off = DAY_OFF(), t = today(), lab = off === 0 ? '오늘' : off === -1 ? '어제' : off === 1 ? '내일' : `${md(t)} ${DOW[dowOf(t)]}요일`; return `<div class="day-nav ${off ? 'off' : ''}"><button type="button" data-dayoff="-1" aria-label="전날" ${off <= -7 ? 'disabled' : ''}>‹</button><b>${esc(lab)}${off ? ` <small>${esc(md(t))}</small>` : ''}</b><button type="button" data-dayoff="1" aria-label="다음 날" ${off >= 1 ? 'disabled' : ''}>›</button>${off ? '<button type="button" class="day-today" data-dayoff="0">오늘로</button>' : ''}</div>`; };
+  const dayNav = () => { const off = DAY_OFF(), t = today(), lab = off === 0 ? '오늘' : off === -1 ? '어제' : off === 1 ? '내일' : `${md(t)} ${DOW[dowOf(t)]}요일`; return `<div class="day-nav ${off ? 'off' : ''}"><button type="button" data-dayoff="-1" aria-label="전날" ${off <= -7 ? 'disabled' : ''}>‹</button><b>${esc(lab)}${off === -1 || off === 1 ? ` <small>${esc(md(t))}</small>` : ''}</b><button type="button" data-dayoff="1" aria-label="다음 날" ${off >= 1 ? 'disabled' : ''}>›</button>${off ? '<button type="button" class="day-today" data-dayoff="0">오늘로</button>' : ''}</div>`; };
   function railCards(inline) {
     const cls = inline ? 'rail-inline c12' : '';
     const { tasks, off } = todayTasks();
@@ -4723,7 +4723,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610290815'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610290818'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
