@@ -1346,10 +1346,15 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 .my-prev[data-rprev] { cursor: pointer; text-decoration: underline; text-decoration-color: var(--t4); text-underline-offset: 3px; }
 .my-edit { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
 .my-edit summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--t2); }
-.my-ed { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
-.my-ed .my-in .inp { width: 88px; height: 44px; text-align: center; font-size: 16px; font-weight: 700; }
-.my-ed input[type=date] { width: 160px; height: 44px; }
-.my-ed .btn { margin-left: auto; }
+.my-ed { margin-top: 4px; }
+.my-er { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.my-er:last-of-type { border-bottom: 0; }
+.my-el { flex: none; font-size: 14px; font-weight: 600; color: var(--t2); }
+.my-ed .my-in { justify-content: flex-end; }
+.my-ed .my-in .inp { width: 84px; height: 44px; text-align: center; font-size: 16px; font-weight: 700; }
+.my-ed input[type=date] { width: auto; min-width: 150px; height: 44px; padding: 0 12px; background: var(--fill); font-size: 16px; font-weight: 700; }
+.my-ed .btn { margin-top: 12px; }
+@media (max-width: 420px) { .my-ed .my-in .inp { width: 68px; } }
 
 .home-h1 { margin-bottom: 52px; }
 .hl-g { background: linear-gradient(transparent 55%, rgba(124, 214, 92, .38) 55%); color: inherit; padding: 0 2px; border-radius: 2px; }
