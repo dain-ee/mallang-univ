@@ -4357,7 +4357,7 @@
       if (b.type === 'table') return `${h}<div class="cl-tw"><table class="cl-t"><thead><tr>${(b.head || []).map((x) => `<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${(b.rows || []).map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
       if (b.type === 'write') return `${h}<p class="pr-s">${txt(b.q || '')}</p><div class="pr-ans">${(b.ans || []).map(rv).join('')}</div>`;
       if (b.type === 'notes') return `${h}${(b.items || []).map(([s, n]) => `<div class="pr-note"><p class="pr-s">${txt(s)}</p>${n ? `<p class="pr-sub">${esc(n)}</p>` : ''}</div>`).join('')}`;
-      if (b.type === 'mc') { const an = Array.isArray(b.answer) ? b.answer : [b.answer]; return `${h}${b.passage ? `<div class="pr-psg">${txt(b.passage)}</div>` : ''}<p class="pr-s">${txt(b.q || '')}</p><ol class="pr-ch">${(b.choices || []).map((c, i) => `<li class="${an.includes(i) ? 'ans' : ''}">${esc(c)}</li>`).join('')}</ol>${b.exp ? `<div class="pr-ans">${rv(b.exp)}</div>` : ''}`; }
+      if (b.type === 'mc') { const an = (Array.isArray(b.answer) ? b.answer : [b.answer]).filter((x) => x != null), at = an.map((i) => (b.choices || [])[i]).filter(Boolean).join(', '); return `${h}${b.passage ? `<div class="pr-psg">${txt(b.passage)}</div>` : ''}<p class="pr-s">${txt(b.q || '')}</p><ol class="pr-ch">${(b.choices || []).map((c, i) => `<li class="${an.includes(i) ? 'ans' : ''}">${esc(c)}</li>`).join('')}</ol><div class="pr-ans">${rv(at ? `정답 ${at}${b.exp ? ' · ' + b.exp : ''}` : (b.exp || '답 없음'))}</div>`; }
       if (b.type === 'passage') return `${h}<div class="pr-psg">${txt(b.text || '')}</div>`;
       return `${h}<p class="pr-s">${esc(JSON.stringify(b))}</p>`;
     };
@@ -4705,7 +4705,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610282200'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610282220'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
