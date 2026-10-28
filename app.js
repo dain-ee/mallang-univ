@@ -1267,7 +1267,11 @@
   // 천일문 개념 정리: 한 줄 핵심 · 표 · 포인트(예문 강조) · 꼭 외울 것(가리고 외우기) · 시험 함정
   function chLesson(un) {
     const L = un.lesson, hl = (ex, h) => { const e = esc(ex || ''); if (!h || !ex.includes(h)) return e; return e.replace(esc(h), `<mark>${esc(h)}</mark>`); };
+    // 교재 설명 원문: 천일문 기본 책의 설명을 그대로 (10/28 선생님 «설명은 하나도 빠지면 안 돼, 원문 자체가 중요해»)
+    const bookHtml = (B) => { let out = '', ul = false; const endUl = () => { if (ul) { out += '</ul>'; ul = false; } }; for (const it of B) { if (it.k === 'b') { if (!ul) { out += '<ul>'; ul = true; } out += `<li>${esc(it.t)}</li>`; continue; } endUl(); if (it.k === 'h') out += `<h4>${esc(it.t)}</h4>`; else if (it.k === 'fs') out += `<h4 class="cl-fs">Further Study · ${esc(it.t)}</h4>`; else if (it.k === 'ex') out += `<div class="cl-ex"><span>${esc(it.t)}</span>${it.ko ? `<em>${esc(it.ko)}</em>` : ''}</div>`; else if (it.k === 'note') out += `<p class="cl-note">${esc(it.t)}</p>`; else out += `<p>${esc(it.t)}</p>`; } endUl(); return out; };
+    const book = (L.book || []).length ? `<div class="card cl-book"><div class="card-h"><h3>${ic('eng')} 교재 설명 <span class="tiny">천일문 기본 원문 그대로</span></h3></div>${L.overview && L.overview.length ? `<details class="cl-ov"><summary>Chapter Overview</summary>${bookHtml(L.overview)}</details>` : ''}${bookHtml(L.book)}</div>` : '';
     return `<div class="card cl-top"><div class="q-no">Unit ${esc(un.unit)}</div><h1 class="h1" style="margin-top:4px">${esc(un.title)}</h1><p class="cl-hook">${esc(L.hook || '')}</p></div>
+      ${book}
       ${L.table ? `<div class="card"><div class="card-h"><h3>${esc(L.table.cap || '한눈에 보기')}</h3></div><div class="cl-tw"><table class="cl-t"><thead><tr>${L.table.head.map((h) => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${L.table.rows.map((r) => `<tr${r.some((c) => String(c).includes('절대 안 됨')) ? ' class="cl-no"' : ''}>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>` : ''}
       <div class="card"><div class="card-h"><h3>핵심 포인트</h3></div><div class="cl-pts">${(L.points || []).map((p, k) => `<div class="cl-pt"><span class="cl-n">${k + 1}</span><div><b>${esc(p.t)}</b><p>${esc(p.d)}</p>${p.ex ? `<div class="cl-ex"><span>${hl(p.ex, p.hl)}</span>${p.ko ? `<em>${esc(p.ko)}</em>` : ''}</div>` : ''}</div></div>`).join('')}</div></div>
       ${(L.memo || []).length ? `<div class="card cl-memo"><div class="card-h"><h3>${ic('target')} 꼭 외울 것</h3><button class="btn sm" type="button" onclick="const c=this.closest('.cl-memo');c.classList.toggle('hide');c.querySelectorAll('li').forEach(x=>x.classList.remove('show'));this.textContent=c.classList.contains('hide')?'다 보기':'가리고 외우기'">가리고 외우기</button></div><ol>${L.memo.map((m) => `<li onclick="this.classList.toggle('show')"><span>${esc(m)}</span></li>`).join('')}</ol><p class="tiny" style="margin:8px 0 0">가린 다음 하나씩 떠올려 보고 눌러서 확인해요</p></div>` : ''}
@@ -4673,7 +4677,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610281822'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610281828'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

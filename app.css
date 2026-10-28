@@ -2547,3 +2547,16 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .mid-r { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .mid-r label { font-weight: 600; font-size: 15px; }
 .mid-r .inp { width: 104px; text-align: right; }
+
+/* 천일문 교재 설명 원문 카드 (10/28) */
+.cl-book h4 { margin: 18px 0 6px; font-size: 15px; font-weight: 700; color: var(--t1); }
+.cl-book h4:first-of-type { margin-top: 4px; }
+.cl-book h4.cl-fs { margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--line); color: var(--blue); }
+.cl-book p { margin: 0 0 10px; font-size: 15px; line-height: 1.65; color: var(--t1); word-break: keep-all; }
+.cl-book p.cl-note { padding: 10px 12px; border-radius: 10px; background: var(--fill2); font-size: 14px; color: var(--t2); }
+.cl-book ul { margin: 0 0 10px; padding-left: 18px; }
+.cl-book li { margin: 4px 0; font-size: 15px; line-height: 1.6; color: var(--t1); word-break: keep-all; }
+.cl-book .cl-ex { margin: 6px 0 12px; }
+.cl-ov { margin: 0 0 14px; padding: 10px 14px; border-radius: 12px; background: var(--fill2); }
+.cl-ov summary { cursor: pointer; font-weight: 700; font-size: 14px; color: var(--t2); }
+.cl-ov[open] summary { margin-bottom: 8px; }
