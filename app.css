@@ -2592,6 +2592,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   --shadow-pop: 0 2px 10px rgba(110, 75, 30, .10), 0 3px 20px rgba(110, 75, 30, .05);
   --skin-bg: none;
   --skin-band: repeating-linear-gradient(90deg, #f3d9b5 0 20px, #fff3cf 20px 40px, #e9c89a 40px 60px);
+  --pb-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'%3E%3Cpath d='M50 90C20 66 2 50 2 28 2 13 13 2 28 2c9 0 17 5 22 12C55 7 63 2 72 2c15 0 26 11 26 26 0 22-18 38-48 62z' fill='%23f7b500'/%3E%3C/svg%3E"); --pb-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'%3E%3Cpath d='M50 90C20 66 2 50 2 28 2 13 13 2 28 2c9 0 17 5 22 12C55 7 63 2 72 2c15 0 26 11 26 26 0 22-18 38-48 62z' fill='%23ffd866'/%3E%3C/svg%3E");
   --ht-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'%3E%3Cpath d='M50 90C20 66 2 50 2 28 2 13 13 2 28 2c9 0 17 5 22 12C55 7 63 2 72 2c15 0 26 11 26 26 0 22-18 38-48 62z' fill='%23f7b500'/%3E%3C/svg%3E");
   --ht-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 4l13 30 32 3-24 21 7 32-28-17-28 17 7-32L5 37l32-3z' fill='%23ffcf3f' stroke='%23e9a800' stroke-width='4' stroke-linejoin='round'/%3E%3C/svg%3E");
   --ht-c: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 100'%3E%3Cpath d='M40 4C56 30 72 46 72 64a32 32 0 0 1-64 0C8 46 24 30 40 4z' fill='%23f7b500'/%3E%3Cellipse cx='30' cy='60' rx='7' ry='11' fill='%23fff3c4' opacity='.8'/%3E%3C/svg%3E");
@@ -2610,6 +2611,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   --shadow-pop: 0 2px 10px rgba(120, 70, 80, .10), 0 3px 20px rgba(120, 70, 80, .05);
   --skin-bg: none;
   --skin-band: repeating-linear-gradient(90deg, #f7cdd5 0 20px, #fff0e6 20px 40px, #f3dfcf 40px 60px);
+  --pb-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'%3E%3Cpath d='M50 90C20 66 2 50 2 28 2 13 13 2 28 2c9 0 17 5 22 12C55 7 63 2 72 2c15 0 26 11 26 26 0 22-18 38-48 62z' fill='%23f28ca0'/%3E%3C/svg%3E"); --pb-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'%3E%3Cpath d='M50 90C20 66 2 50 2 28 2 13 13 2 28 2c9 0 17 5 22 12C55 7 63 2 72 2c15 0 26 11 26 26 0 22-18 38-48 62z' fill='%23e63946'/%3E%3C/svg%3E");
   --ht-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'%3E%3Cpath d='M50 90C20 66 2 50 2 28 2 13 13 2 28 2c9 0 17 5 22 12C55 7 63 2 72 2c15 0 26 11 26 26 0 22-18 38-48 62z' fill='%23f28ca0'/%3E%3C/svg%3E");
   --ht-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 110'%3E%3Cpath d='M50 108C22 92 8 72 8 50 8 30 24 22 50 22s42 8 42 28c0 22-14 42-42 58z' fill='%23e63946'/%3E%3Cpath d='M30 22c6-10 14-14 20-14s14 4 20 14c-8-2-14-2-20 0-6-2-12-2-20 0z' fill='%2355b24c'/%3E%3Cg fill='%23ffe1a8'%3E%3Ccircle cx='38' cy='48' r='3'/%3E%3Ccircle cx='58' cy='52' r='3'/%3E%3Ccircle cx='46' cy='70' r='3'/%3E%3Ccircle cx='64' cy='74' r='3'/%3E%3Ccircle cx='32' cy='68' r='3'/%3E%3C/g%3E%3C/svg%3E");
   --ht-c: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%23ffb5c6'%3E%3Ccircle cx='50' cy='22' r='17'/%3E%3Ccircle cx='78' cy='42' r='17'/%3E%3Ccircle cx='68' cy='76' r='17'/%3E%3Ccircle cx='32' cy='76' r='17'/%3E%3Ccircle cx='22' cy='42' r='17'/%3E%3C/g%3E%3Ccircle cx='50' cy='52' r='13' fill='%23fff0b3'/%3E%3C/svg%3E");
@@ -2619,11 +2621,12 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 :root[data-skin="korilakkuma"] .pet-perch .pet-say { background: #fff1f3; color: #6b4650; box-shadow: 0 2px 10px rgba(130, 70, 90, .14); }
 :root[data-skin="korilakkuma"] .tabs button .cnt, :root[data-skin="korilakkuma"] .top .cnt, :root[data-skin="korilakkuma"] .tabbar .cnt { background: #e07a8c; color: #fff; }
 /* 곰 옆에 동동 뜨는 하트 (쿠로미 하트와 같은 자리·같은 움직임, 색만 테마별) */
-.pet-hts.bear i { filter: drop-shadow(0 3px 4px rgba(120, 80, 40, .22)); }
-.pet-hts.bear i:nth-child(3n+1) { background-image: var(--ht-a); }
-.pet-hts.bear i:nth-child(3n+2) { background-image: var(--ht-b); }
-.pet-hts.bear i:nth-child(3n) { background-image: var(--ht-c); }
-.pet-hts.bear i:nth-child(1) { width: 20px; height: 20px; } .pet-hts.bear i:nth-child(3) { width: 16px; height: 18px; } .pet-hts.bear i:nth-child(5) { width: 12px; height: 12px; top: -14px; } .pet-hts.bear i:nth-child(6) { width: 13px; height: 13px; top: -8px; }
+/* 곰 테마 팡: 펫을 누르거나 정답일 때 하트가 펫에서 터져 나와요 (떠 있는 장식은 없앴어요 10/28) */
+.pb { position: absolute; left: 50%; top: 42%; width: 0; height: 0; pointer-events: none; z-index: 2; }
+.pb i { position: absolute; left: -9px; top: -9px; width: 18px; height: 18px; background: var(--pb-a) center / contain no-repeat; rotate: var(--r); animation: pb-fly .95s cubic-bezier(.2, .75, .3, 1) both; filter: drop-shadow(0 2px 3px rgba(120, 80, 40, .2)); }
+.pb i:nth-child(even) { width: 13px; height: 13px; background-image: var(--pb-b); }
+@keyframes pb-fly { 0% { transform: translate(0, 0) scale(.3); opacity: 0; } 15% { opacity: 1; } 75% { opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .pb { display: none; } }
 @media (prefers-color-scheme: dark) {
   :root[data-skin="rilakkuma"]:not([data-theme="light"]) {
     --bg: #15110d; --card: #211a14; --fill: #2d241c; --fill2: #27201a; --line: #352b22;
