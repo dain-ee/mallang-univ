@@ -2237,7 +2237,7 @@
     return `<section class="card ${cls}"><div class="card-h"><h2>과목별 오답</h2></div>${subjRows.length ? `<p class="sub" style="margin:-4px 0 16px">막대가 길수록 많이 틀린 과목이에요. 다시 맞히면 진하게 채워져요</p><div class="sw-chart">${subjRows.sort((a, b) => b.all - a.all).map((r) => { const done = r.all - r.open, c = SUBJ_COLOR[r.k]; return `<div class="sw-row"><span class="sw-n"><span class="dot" style="background:${c}"></span>${r.n}</span><div class="sw-track"><div class="sw-bar" style="width:${(r.all / mx) * 100}%;background:color-mix(in srgb, ${c} 22%, #fff)"><i style="width:${(done / r.all) * 100}%;background:${c}"></i></div></div><span class="sw-v">${done ? `<b style="color:${c}">${Math.round((done / r.all) * 100)}%</b> 다시 맞힘` : ''}</span></div>`; }).join('')}</div>` : `<div class="empty">${ic('memo')}<b>아직 없어요</b></div>`}</section>`;
   }
   function wrongView() {
-    const all = wrongList(); const f = UI.wrongSubj;
+    const all = wrongList().filter((w) => !wrGone(w)); const f = UI.wrongSubj;  // 교재가 바뀌어 없어진 문제는 목록에도 안 보여요
     const subs = Object.entries(SUBJ_NAMES).filter(([k]) => all.some((w) => w.subj === k));
     const L = all.filter((w) => f === 'all' || w.subj === f);
     const open = L.filter((w) => !w.cleared), done = L.filter((w) => w.cleared);
@@ -4652,7 +4652,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610281257'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610281302'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
