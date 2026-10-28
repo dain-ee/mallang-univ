@@ -4642,7 +4642,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280914'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280917'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -5708,7 +5708,9 @@
   let rsT = 0, lastW = window.innerWidth; window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (Math.abs(window.innerWidth - lastW) > 80 && !$('.sheet')) { lastW = window.innerWidth; render(); } }, 250); });
   $('#me').onclick = () => go(DASH_ONLY ? 'tme' : 'me');
   if (DASH_ONLY) tLoad();
-  if (PEEK) { const bar = document.createElement('div'); bar.className = 'peek-bar'; bar.innerHTML = '<span>' + esc(NMI()) + '가 보는 화면 · 눌러도 저장되지 않아요</span><button type="button">' + (STU_TAB ? '닫기' : '선생님 화면으로') + '</button>'; document.body.appendChild(bar); $('button', bar).onclick = () => { if (STU_TAB) { window.close(); return; } try { sessionStorage.removeItem('mu:peek'); } catch (e) {} location.reload(); }; }
+  if (PEEK) { const bar = document.createElement('div'); bar.className = 'peek-bar'; bar.innerHTML = '<span>' + esc(NMI()) + '가 보는 화면 · 눌러도 저장되지 않아요</span><button type="button">선생님 화면으로</button>'; document.body.appendChild(bar);
+    // 새 탭이 막혀 같은 탭에서 열렸으면 window.close() 가 안 돼요. 이 탭의 학생·미리 보기 기억을 지우고 선생님 화면으로 돌아가요
+    $('button', bar).onclick = () => { try { ['mu:peek', 'mu:who', 'mu:after'].forEach((k) => sessionStorage.removeItem(k)); } catch (e) {} if (window.opener) { try { window.close(); } catch (e) {} } setTimeout(() => location.reload(), 150); }; }
   $('#pomo-top').onclick = openPomo;
   $('#coin-top').onclick = openWallet;
   $('#bell-top').onclick = toggleBell;
