@@ -47,8 +47,10 @@
   // + 그날 푼 것 중 틀린 건 바로 다 오늘 풀 오답에 (10/27 선생님 «그날그날 틀린 건 바로 다 오답 노트로»)
   //   모의고사(정윤)만 한꺼번에 많으면 힘들어서 하루 3문제씩 (선생님 오답 숙제 그대로)
   const wrFirst = (w) => w.first || w.at || 0;
+  // 더 못 푸는 오답: 교재가 바뀌어 문제가 없어진 것 (천일문 예전 문제 등). 목록·개수·오늘 풀 오답에서 다 빼요
+  const wrGone = (w) => !!(w && (w.gone || (w.src === 'eng' && w.ref && w.ref.v !== 2 && CH_UNITS.some((u) => u.v2))));
   const todayWr = () => { const out = [], t = today(); for (const h of (S.hw || []).filter((x) => !x.done && (!x.due || x.due <= t))) for (const id of hwWr(h)) if (!wrTried(h, id) && !out.includes(id)) out.push(id);
-    for (const [id, w] of Object.entries(S.wrong || {}).filter(([id, w]) => !w.cleared && w.src !== 'mock' && !String(id).startsWith('mock:') && !out.includes(id)).sort((a, b) => wrFirst(a[1]) - wrFirst(b[1]))) out.push(id); return out; };
+    for (const [id, w] of Object.entries(S.wrong || {}).filter(([id, w]) => !w.cleared && !wrGone(w) && w.src !== 'mock' && !String(id).startsWith('mock:') && !out.includes(id)).sort((a, b) => wrFirst(a[1]) - wrFirst(b[1]))) out.push(id); return out; };
   const hwNow = () => (S.hw || []).filter((h) => !hwDone(h) && (!h.due || h.due <= today()));
   const rich = (t) => esc(t).replace(/&lt;(\/?)(b|u|i|em|strong)&gt;/g, '<$1$2>').replace(/&lt;br\s*\/?&gt;/g, '<br>');
   const fmt1 = (x) => (x == null || isNaN(x) ? '-' : (Math.round(x * 10) / 10).toFixed(1));
@@ -233,7 +235,7 @@
   }
   // 오답 묶음
   const wrongList = () => Object.entries(S.wrong || {}).map(([id, w]) => ({ id, ...w })).sort((a, b) => (b.at || 0) - (a.at || 0));
-  const openWrong = () => wrongList().filter((w) => !w.cleared && !(w.src === 'eng' && w.ref && w.ref.v !== 2 && CH_UNITS.some((u) => u.v2)));
+  const openWrong = () => wrongList().filter((w) => !w.cleared && !wrGone(w));
   const SUBJ_NAMES = { kor: '국어', math: '수학', eng: '영어', hist: '한국사', soc: '통합사회', sci: '통합과학' };
   if (TUTOR) Object.assign(SUBJ_NAMES, { hist: '역사', sci: '과학' });  // 과외 학생(윤건) 시험 오답은 중학교 역사·과학
 
@@ -2253,22 +2255,30 @@
       </div>`;
   }
   // 오답 하나 다시 풀기
+  // 문제를 못 찾는 오답(교재 교체 등)은 빈 화면 대신 오답에서 빼고 다음으로 넘어가요
+  function wrSkip(id) {
+    const w = S.wrong[id]; if (w && !w.gone) { w.gone = true; save('wrong'); }
+    const r = UI.run || {}, q = r.queue || [];
+    setTimeout(() => { if (q.length) UI.run = { kind: 'retry', id: q[0], queue: q.slice(1), back: r.back }; else { UI.run = null; UI.tab = r.back || 'wrong'; } toast('교재가 바뀌어 더 못 푸는 문제는 뺐어요'); render(); }, 0);
+    return '';
+  }
   function retryRun() {
     const id = UI.run.id, w = S.wrong[id]; if (!w) { UI.run = null; return wrongView(); }
     const queue = UI.run.queue || [];
     const head = `<div class="row between">${UI.run.back === 'hw' ? '<button class="btn sm" data-go="hw" type="button">‹ 숙제</button>' : '<button class="btn sm" data-go="wrong" type="button">‹ 오답 노트</button>'}<span class="tiny">${esc(w.subjName || '')} · ${esc(w.area || '')}${queue.length ? ` · 남은 ${queue.length}` : ''}</span></div>`;
     const a = UI.run.ans;
     let body = '', wide = false;
-    if (w.src === 'sci') { const q = qById(w.qid); if (!q) return head; body = `<div class="card"><div class="q-no">${esc(w.sub || '')}</div><div style="margin-top:8px">${qBody(q)}</div></div>${choicesHtml(q, a ? a.pick : null)}${a ? verdict(a.ok) + (q.exp ? `<div class="explain"><b>해설</b><br>${esc(q.exp)}</div>` : '') : ''}`; UI.run.q = q; }
-    else if (w.src === 'jg') { const u = jgU(w.ref.u), q = u && u.questions.find((x) => x.id === w.ref.id); if (!q) return head; body = `<div class="card"><div class="q-no">Grammar Unit ${esc(u.no)} · ${esc(q.section || '')}</div><div class="q-text jg-q" style="margin-top:8px">${q.prompt}</div>${a ? '' : q.choices ? `<div class="jg-ops">${q.choices.map((c, j) => `<button type="button" class="chip jg-op" data-jro="${j}">${esc(c)}</button>`).join('')}</div>` : '<div class="row" style="gap:8px"><input class="inp" id="jr-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="답을 써요"><button class="btn primary" id="jr-ok" type="button">확인</button></div>'}</div>${a ? verdict(a.ok) + `<div class="explain"><b>정답</b> ${esc(q.answers[0])}${q.why ? '<br>' + esc(q.why) : ''}</div>` : ''}`; UI.run.q = q; }
-    else if (w.src === 'eng') { const un = CH_UNITS.find((u) => u.ch === w.ref.ch && u.unit === w.ref.unit); const q = un && (!!un.v2 === (w.ref.v === 2)) && un.questions[w.ref.i]; if (!q) return head; body = `<div class="card"><div class="q-no">천일문 Unit ${esc(un.unit)} · ${esc(un.title)}</div><div style="margin-top:8px">${qBody(q)}</div></div>${q.choices ? choicesHtml(q, a ? a.pick : null) : `<div class="explain"><b>정답</b> ${esc(q.answerText || '')}</div><div class="row"><button class="btn soft" data-self="1" type="button">맞혔어요</button><button class="btn" data-self="0" type="button">아직이에요</button></div>`}${a ? verdict(a.ok) + (q.exp ? `<div class="explain">${esc(q.exp)}</div>` : '') : ''}`; UI.run.q = q; }
+    if (wrGone(w)) return wrSkip(id);
+    if (w.src === 'sci') { const q = qById(w.qid); if (!q) return wrSkip(id); body = `<div class="card"><div class="q-no">${esc(w.sub || '')}</div><div style="margin-top:8px">${qBody(q)}</div></div>${choicesHtml(q, a ? a.pick : null)}${a ? verdict(a.ok) + (q.exp ? `<div class="explain"><b>해설</b><br>${esc(q.exp)}</div>` : '') : ''}`; UI.run.q = q; }
+    else if (w.src === 'jg') { const u = jgU(w.ref.u), q = u && u.questions.find((x) => x.id === w.ref.id); if (!q) return wrSkip(id); body = `<div class="card"><div class="q-no">Grammar Unit ${esc(u.no)} · ${esc(q.section || '')}</div><div class="q-text jg-q" style="margin-top:8px">${q.prompt}</div>${a ? '' : q.choices ? `<div class="jg-ops">${q.choices.map((c, j) => `<button type="button" class="chip jg-op" data-jro="${j}">${esc(c)}</button>`).join('')}</div>` : '<div class="row" style="gap:8px"><input class="inp" id="jr-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="답을 써요"><button class="btn primary" id="jr-ok" type="button">확인</button></div>'}</div>${a ? verdict(a.ok) + `<div class="explain"><b>정답</b> ${esc(q.answers[0])}${q.why ? '<br>' + esc(q.why) : ''}</div>` : ''}`; UI.run.q = q; }
+    else if (w.src === 'eng') { const un = CH_UNITS.find((u) => u.ch === w.ref.ch && u.unit === w.ref.unit); const q = un && (!!un.v2 === (w.ref.v === 2)) && un.questions[w.ref.i]; if (!q) return wrSkip(id); body = `<div class="card"><div class="q-no">천일문 Unit ${esc(un.unit)} · ${esc(un.title)}</div><div style="margin-top:8px">${qBody(q)}</div></div>${q.choices ? choicesHtml(q, a ? a.pick : null) : `<div class="explain"><b>정답</b> ${esc(q.answerText || '')}</div><div class="row"><button class="btn soft" data-self="1" type="button">맞혔어요</button><button class="btn" data-self="0" type="button">아직이에요</button></div>`}${a ? verdict(a.ok) + (q.exp ? `<div class="explain">${esc(q.exp)}</div>` : '') : ''}`; UI.run.q = q; }
     else if (w.src === 'word') { const ww = w.word; const opts = UI.run.opts || (UI.run.opts = sshuffle([ww.ko, ...sshuffle(WORDS.filter((x) => x.ko !== ww.ko), 'wr:' + ww.en).slice(0, 3).map((x) => x.ko)], 'wr:' + ww.en + ':o')); body = `<div class="card" style="text-align:center;padding:40px"><div style="font-size:32px;font-weight:800">${esc(ww.en)}</div></div><div class="choices">${opts.map((o, k) => `<button class="choice ${a ? (o === ww.ko ? 'right' : k === a.pick ? 'wrong' : '') : ''}" data-pick="${k}" type="button" ${a ? 'disabled' : ''}><span class="n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div>${a ? verdict(a.ok) : ''}`; UI.run.q = { answer: opts.indexOf(ww.ko) }; }
-    else if (w.src === 'g3') { const it = G3.find((x) => x.id === w.g3) || MM.find((x) => x.id === w.g3); if (!it) return head; body = `<div class="card"><div class="q-no">${esc(it.src || '')} <span class="tag">${esc(it.type || '')}</span></div><div class="q-text" style="margin-top:8px">${esc(it.q)}</div><div class="q-box" style="font-size:15.5px;line-height:1.85;font-weight:400">${esc(it.passage)}</div></div>${choicesHtml(it, a ? a.pick : null)}${a ? verdict(a.ok) + (it.exp ? `<div class="explain">${esc(it.exp)}</div>` : '') : ''}`; UI.run.q = it; }
-    else if (w.src === 'drill') { const d = allDrills().find((x) => x.id === w.set), q = d && d.qs[w.i]; if (!q) return head; body = `<div class="card"><div class="q-no">${esc(d.title || '')} ${w.i + 1}번</div><div style="margin-top:8px">${qBody(q)}</div></div>${choicesHtml(q, a ? a.pick : null)}${a ? verdict(a.ok) + (q.exp ? `<div class="explain">${esc(q.exp)}</div>` : '') : ''}`; UI.run.q = q; }
-    else if (w.src === 'nx') { const z = NXQ[w.qi]; if (!z) return head; const v = nxView(z.q, a ? { ok: a.ok, v: a.pick } : null); wide = !!v.psg; body = v.psg ? `<div class="nx-split">${v.psg}<div class="nx-side">${v.side}</div></div>` : v.side; UI.run.q = z.q; }
+    else if (w.src === 'g3') { const it = G3.find((x) => x.id === w.g3) || MM.find((x) => x.id === w.g3); if (!it) return wrSkip(id); body = `<div class="card"><div class="q-no">${esc(it.src || '')} <span class="tag">${esc(it.type || '')}</span></div><div class="q-text" style="margin-top:8px">${esc(it.q)}</div><div class="q-box" style="font-size:15.5px;line-height:1.85;font-weight:400">${esc(it.passage)}</div></div>${choicesHtml(it, a ? a.pick : null)}${a ? verdict(a.ok) + (it.exp ? `<div class="explain">${esc(it.exp)}</div>` : '') : ''}`; UI.run.q = it; }
+    else if (w.src === 'drill') { const d = allDrills().find((x) => x.id === w.set), q = d && d.qs[w.i]; if (!q) return wrSkip(id); body = `<div class="card"><div class="q-no">${esc(d.title || '')} ${w.i + 1}번</div><div style="margin-top:8px">${qBody(q)}</div></div>${choicesHtml(q, a ? a.pick : null)}${a ? verdict(a.ok) + (q.exp ? `<div class="explain">${esc(q.exp)}</div>` : '') : ''}`; UI.run.q = q; }
+    else if (w.src === 'nx') { const z = NXQ[w.qi]; if (!z) return wrSkip(id); const v = nxView(z.q, a ? { ok: a.ok, v: a.pick } : null); wide = !!v.psg; body = v.psg ? `<div class="nx-split">${v.psg}<div class="nx-side">${v.side}</div></div>` : v.side; UI.run.q = z.q; }
     else if (w.src === 'mock') {
       const m = MOCKS.find((x) => x.id === w.exam), ms = m && mockSubj(m, w.subj), q = ms && ms.qs.find((x) => x.no === w.no);
-      if (!q) return head;
+      if (!q) return wrSkip(id);
       body = `<div class="card"><div class="q-no">${esc(m.title)} · ${esc(ms.name || SUBJ_NAMES[w.subj])} ${q.no}번 <span class="tag">${esc(q.area || '')}${q.sub ? ' · ' + esc(q.sub) : ''}</span> <span class="tag">${q.points}점</span></div>
         ${q.img && q.img.length ? q.img.map((src) => `<img class="q-img" style="margin-top:12px" src="${esc(src)}" alt="${q.no}번 문제" loading="lazy">`).join('') : `<p class="muted" style="margin:12px 0 0">문제지 ${esc(q.page || '')}쪽 ${q.no}번을 펴고 다시 풀어 보세요</p>`}${q.pageImg && !(q.passage && q.passage.length) ? `<button class="btn sm soft" style="margin-top:12px" data-page="${esc(q.pageImg)}" type="button">지문까지 전체 쪽 보기</button>` : ''}</div>
         ${typeof q.answer === 'number' && q.answer <= 5 && !q.short ? `<div class="num5">${[1, 2, 3, 4, 5].map((k) => `<button class="choice ${a ? (k === q.answer ? 'right' : k === a.pick ? 'wrong' : '') : ''}" data-pick="${k}" type="button" ${a ? 'disabled' : ''}>${'①②③④⑤'[k - 1]}</button>`).join('')}</div>` : `<div class="card"><input class="inp" id="short" inputmode="numeric" placeholder="답 (숫자)" ${a ? 'disabled' : ''}>${a ? '' : '<button class="btn primary block" style="margin-top:12px" id="short-ok" type="button">확인</button>'}</div>`}
@@ -4642,7 +4652,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610280917'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610281230'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
