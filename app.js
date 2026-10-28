@@ -338,7 +338,7 @@
     const top = (f) => Math.max(...prev.map((v) => +v[f] || 0));
     if (!prev.length) return;
     if (!Object.keys(d.wans || {}).length && !d.wdone && prev.some((v) => v.words === d.words) && WORDS.length) { d.words = Math.min(top('words') + 1, Math.ceil(WORDS.length / 10) - 1); S.eng.wordDay = Math.max(S.eng.wordDay || 0, d.words); ch = true; }
-    if (!Object.keys(uStore(d)).length && !uDone(d) && prev.some((v) => v.unit === d.unit) && CH_UNITS.length) { d.unit = Math.min(top('unit') + 1, CH_UNITS.length - 1); S.eng.unit = Math.max(S.eng.unit || 0, d.unit); ch = true; }
+    // 천일문 유닛은 안 끝냈으면 다음 날에도 같은 유닛이 그대로 (건너뛰지 않아요). 10/29 정윤 «어제 하던 게 다음 유닛으로 넘어가서 불편»
     const g3a = (i) => G3[i] && (S.eng.g3ans || {})[G3[i].id];
     if (!d.g3done && !g3a(d.g3) && prev.some((v) => v.g3 === d.g3) && G3.length) { d.g3 = Math.min(top('g3') + 1, G3.length - 1); S.eng.g3 = Math.max(S.eng.g3 || 0, d.g3); ch = true; }
     if (ch) save('eng');
@@ -4723,7 +4723,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610290722'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610290815'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
