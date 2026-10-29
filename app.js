@@ -617,8 +617,9 @@
   const PET_BURST = new Set(['rilakkuma', 'korilakkuma', 'monchhichi']);  // 몬치치는 사진이라 3D 동작이 없어서 팡 터지는 걸로 보완 (10/29)
   function petBurst(el, n = 12) {
     el = el || $('.pet-perch'); if (!el || !PET_BURST.has(el.dataset.skin) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (el.dataset.skin === 'monchhichi') n = Math.max(n, 20);  // 사진 펫은 팡이 유일한 액션이라 크게·많이 (10/29 «빨간 스프링클 같은 게 좀…»)
     const b = document.createElement('span'); b.className = 'pb'; b.setAttribute('aria-hidden', 'true');
-    b.innerHTML = Array.from({ length: n }, (_, i) => { const a = (-Math.PI / 2) + (Math.random() - 0.5) * Math.PI * 1.6, d = 70 + Math.random() * 70; return `<i style="--dx:${Math.round(Math.cos(a) * d)}px;--dy:${Math.round(Math.sin(a) * d - 20)}px;--r:${Math.round((Math.random() - 0.5) * 60)}deg;animation-delay:${Math.round(Math.random() * 120)}ms"></i>`; }).join('');
+    b.innerHTML = Array.from({ length: n }, (_, i) => { const big = el.dataset.skin === 'monchhichi', a = (-Math.PI / 2) + (Math.random() - 0.5) * Math.PI * (big ? 1.9 : 1.6), d = (big ? 90 : 70) + Math.random() * (big ? 110 : 70); return `<i style="--dx:${Math.round(Math.cos(a) * d)}px;--dy:${Math.round(Math.sin(a) * d - 20)}px;--r:${Math.round((Math.random() - 0.5) * 60)}deg;animation-delay:${Math.round(Math.random() * 120)}ms"></i>`; }).join('');
     el.appendChild(b); setTimeout(() => b.remove(), 1400);
   }
   function noteCard() {
@@ -4809,7 +4810,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610291110'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610291127'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

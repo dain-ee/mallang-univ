@@ -2672,9 +2672,12 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 }
 /* 곰 둘은 머리가 커서 다른 펫보다 작게 보여요 → 조금 키움 */
 .pet-perch[data-skin="rilakkuma"] img, .pet-perch[data-skin="korilakkuma"] img { transform: scale(1.18); transform-origin: 50% 90%; }
-/* 몬치치: 실제 털인형 사진 컷아웃. 누르면 빨간 리본색 하트가 팡 (10/29) */
+/* 몬치치: 실제 털인형 사진 컷아웃. 누르면 빨간 하트·리본·별이 크게 팡 (10/29 «스프링클 같아» → 키움) */
 .pet-perch[data-skin="monchhichi"] img { transform: scale(1.1); transform-origin: 50% 90%; }
-:root[data-skin="monchhichi"] { --pb-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'%3E%3Cpath d='M50 90C20 66 2 50 2 28 2 13 13 2 28 2c9 0 17 5 22 12C55 7 63 2 72 2c15 0 26 11 26 26 0 22-18 38-48 62z' fill='%23e2333d'/%3E%3C/svg%3E"); --pb-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 4l12 30 32 2-25 20 9 32-28-18-28 18 9-32L6 36l32-2z' fill='%23ffd166'/%3E%3C/svg%3E"); }
+.pet-perch[data-skin="monchhichi"] .pb i { width: 26px; height: 26px; left: -13px; top: -13px; animation-duration: 1.25s; filter: drop-shadow(0 3px 4px rgba(120, 30, 40, .28)); }
+.pet-perch[data-skin="monchhichi"] .pb i:nth-child(even) { width: 18px; height: 18px; background-image: var(--pb-b); }
+.pet-perch[data-skin="monchhichi"] .pb i:nth-child(3n) { width: 30px; height: 30px; background-image: var(--pb-c); }
+:root[data-skin="monchhichi"] { --pb-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'%3E%3Cpath d='M50 90C20 66 2 50 2 28 2 13 13 2 28 2c9 0 17 5 22 12C55 7 63 2 72 2c15 0 26 11 26 26 0 22-18 38-48 62z' fill='%23e2333d'/%3E%3C/svg%3E"); --pb-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 4l12 30 32 2-25 20 9 32-28-18-28 18 9-32L6 36l32-2z' fill='%23ffd166'/%3E%3C/svg%3E"); --pb-c: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 70'%3E%3Cpath d='M50 35C40 18 18 8 8 18c-9 9 0 26 42 17zM50 35c10-17 32-27 42-17 9 9 0 26-42 17z' fill='%23e2333d'/%3E%3Cpath d='M50 35c-6 9-10 20-12 30l12-8 12 8c-2-10-6-21-12-30z' fill='%23c92730'/%3E%3Ccircle cx='50' cy='35' r='7' fill='%23b31f28'/%3E%3C/svg%3E"); }
 
 /* 보는 날 화살표 (숙제 탭 머리) */
 .day-nav { display: inline-flex; align-items: center; gap: 4px; padding: 4px; border-radius: 999px; background: var(--fill); }
