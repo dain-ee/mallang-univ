@@ -662,6 +662,7 @@
     $$('[data-giftx]').forEach((b) => (b.onclick = () => { const k = b.dataset.giftx; S.gifts = gAll().map((x) => (x.skin === k && !x.open ? { ...x, x: Date.now() } : x)); S.gift = {}; save('gifts', 'gift'); toast('선물을 거둬들였어요'); render(); }));
     $$('[data-giftopen]').forEach((b) => (b.onclick = () => { giftCheck.seen = (gPend()[0] || {}).at; giftPop(); }));
     $$('[data-midedit]').forEach((b) => (b.onclick = midSheet));
+    $$('[data-lag]').forEach((b) => (b.onclick = () => lagSheet(+b.dataset.lag)));
     $$('[data-dayoff]').forEach((b) => (b.onclick = () => { const v = +b.dataset.dayoff, was = UI.dayOff || 0; UI.dayOff = v === 0 ? 0 : Math.max(-7, Math.min(1, was + v)); if (UI.dayOff === was) return; const dir = UI.dayOff < was ? 'r' : 'l'; render(); $$('main > *').forEach((el) => { el.classList.add('day-in-' + dir); el.addEventListener('animationend', () => el.classList.remove('day-in-' + dir), { once: true }); }); }));  // 날을 넘길 때 옆으로 미끄러져 들어와요
     $$('.pr-rv[data-prk]').forEach((b) => (b.onclick = () => { const m = (UI.prOn || {})[(UI.run || {}).unit] || {}; const k = b.dataset.prk; m[k] = !m[k]; b.classList.toggle('on', !!m[k]); }));
     $$('[data-prall]').forEach((b) => (b.onclick = () => { UI.prAll = !UI.prAll; render(); }));
@@ -1019,6 +1020,8 @@
   // 10/29 선생님 «홈에 어느 항목이 밀렸는지 가늠이 안 와. 단어·천일문같이 매일 하는 건 밀려도 보이지 않아. 원래 어디였는데 어떻게 밀렸는지 간트차트처럼»
   // 줄마다 날짜 칸: 파랑 = 한 날, 빨강 = 하기로 했는데 안 한 날, 옅은 파랑 = 앞으로 할 날, 테두리 = 오늘. 밀린 줄만 위에, 제때 하는 건 아래 한 줄로
   const LAG_PAST = 10, LAG_FUT = 5;
+  // 마감 있는 숙제: 낸 날~마감은 기간 막대, 마감 다음 날부터 오늘까지 빨강
+  const lagSpan = (days, c0, due) => { const di = (d) => Math.round((new Date(d) - new Date(days[0])) / 864e5); return [{ a: di(c0), b: di(due) + 1, st: 'span' }, { a: di(due) + 1, b: LAG_PAST + 1, st: 'miss' }]; };
   function lagRows() {
     const t = today(), days = Array.from({ length: LAG_PAST + LAG_FUT + 1 }, (_, i) => addD(t, i - LAG_PAST)), rows = [];
     const EDAYS = (S.eng || {}).days || {}, SDAYS = (S.sci || {}).days || {};
@@ -1053,15 +1056,17 @@
     if (!TUTOR) for (const it of myOpen()) {
       if (isPlan(it)) continue;
       const c0 = it.at ? dateOf(it.at) : addD(it.due, -7), u = it.unit === '쪽' ? '쪽' : it.unit === '건' ? '' : '문제', dn = myDone(it), over = it.due < t;
-      if (it.unit === '건') { if (!over) continue; rows.push({ go: 'my:' + it.id, icon: 'write', t: it.book, cells: days.map((d) => ({ d, st: d === it.due ? 'miss' : d >= c0 && d < it.due ? 'span' : 'off' })), behind: 1, unit: '개', d: `${md(it.due)}까지였는데 아직 안 했어요 · ${myCls(it.cls).name}` }); continue; }
+      if (it.unit === '건') { if (!over) continue; rows.push({ go: 'my:' + it.id, icon: 'write', t: it.book, cells: [], segs: lagSpan(days, c0, it.due), behind: 1, unit: '개', d: `${md(it.due)}까지였는데 아직 안 했어요 · ${myCls(it.cls).name}` }); continue; }
       const SD = myStudy(it), all = Math.max(1, myDaysLeft(it.due, SD, c0)), past = myDaysLeft(Math.min(addD(t, -1), it.due), SD, c0), exp = over ? it.total : Math.round((it.total * past) / all), beh = Math.max(0, exp - dn);
       const cells = days.map((d) => { const lg = (it.log || {})[d]; if (d < c0 || d > it.due) return { d, st: 'off' }; const on = SD.includes(dowOf(d)); if (lg && lg.n) return { d, st: st0(d, true, true), lb: String(lg.n) }; if (mySkip(it, d)) return { d, st: 'span' }; return { d, st: on ? st0(d, false, true) : 'span' }; });
-      rows.push({ go: 'my:' + it.id, icon: 'write', t: it.book, cells, behind: beh, unit: u, d: over ? `${md(it.due)} 마감이 지났어요 · ${it.total - dn}${u} 남았어요` : beh ? `원래 지금쯤 ${exp}${u} → ${dn}${u} 했어요 · ${md(it.due)} 마감까지 ${it.total - dn}${u}` : `${dn}/${it.total}${u} · 지금쯤 할 만큼 하고 있어요 · ${md(it.due)} 마감` });
+      const i0 = Math.round((new Date(c0) - new Date(days[0])) / 864e5), i1 = Math.round((new Date(it.due) - new Date(days[0])) / 864e5) + 1, pe = i0 + (i1 - i0) * Math.min(1, dn / it.total), segs = [{ a: i0, b: i1, st: 'span' }, { a: i0, b: pe, st: 'done' }];
+      if (over) segs.push({ a: i1, b: LAG_PAST + 1, st: 'miss' }); else if (beh > 0) segs.push({ a: pe, b: LAG_PAST + 0.5, st: 'miss' });
+      rows.push({ go: 'my:' + it.id, icon: 'write', t: it.book, cells, segs, behind: beh, unit: u, d: over ? `${md(it.due)} 마감이 지났어요 · ${it.total - dn}${u} 남았어요` : beh ? `원래 지금쯤 ${exp}${u} → ${dn}${u} 했어요 · ${md(it.due)} 마감까지 ${it.total - dn}${u}` : `${dn}/${it.total}${u} · 지금쯤 할 만큼 하고 있어요 · ${md(it.due)} 마감` });
     }
     // 선생님 숙제: 마감 지난 것
     for (const h of (S.hw || []).filter((x) => !hwDone(x) && x.due && x.due < t)) {
       const c0 = h.at ? dateOf(h.at) : addD(h.due, -3), late = Math.round((new Date(t) - new Date(h.due)) / 864e5);
-      rows.push({ hw: h.id, icon: 'pin', t: h.title, cells: days.map((d) => ({ d, st: d === h.due ? 'miss' : d >= c0 && d < h.due ? 'span' : 'off' })), behind: late, unit: '일', d: `${md(h.due)}까지 숙제 · ${late}일 지났어요${h.subj ? ` · ${h.subj}` : ''}` });
+      rows.push({ hw: h.id, icon: 'pin', t: h.title, cells: [], segs: lagSpan(days, c0, h.due), behind: late, unit: '일', d: `${md(h.due)}까지 숙제 · ${late}일 지났어요${h.subj ? ` · ${h.subj}` : ''}` });
     }
     // 인강: 그날 듣기로 한 강의
     { const I = inkS(); const by = {};
@@ -1074,19 +1079,25 @@
     }
     return { days, rows };
   }
+  // 칸 상태를 막대 조각으로: 같은 상태가 이어지면 한 조각. 자리는 창 시작부터 며칠째인지(0~16)
+  const lagSegs = (cells) => { const out = []; cells.forEach((c, i) => { const st = c.st === 'todo' ? 'plan' : c.st === 'done todo' ? 'done' : c.st; if (st === 'off') return; const L = out[out.length - 1]; if (L && L.st === st && L.b === i) L.b = i + 1; else out.push({ a: i, b: i + 1, st }); }); return out; };
   function lagCard() {
-    const { days, rows } = lagRows(), t = today(), late = rows.filter((r) => r.behind > 0), ok = rows.filter((r) => !r.behind);
+    const { days, rows } = lagRows(), t = today(), N = days.length, late = rows.filter((r) => r.behind > 0);
     if (!late.length) return '';
-    const tot = late.reduce((a, r) => a + (r.unit === '개' ? r.behind : 1), 0);
-    const axis = `<div class="lag-axis">${days.map((d) => `<span class="${d === t ? 'today' : dowOf(d) === 0 ? 'sun' : ''}">${+d.slice(8)}</span>`).join('')}</div>`;
-    const row = (r) => `<div class="lag-row btnlike" ${r.hw ? `data-hwopen="${esc(r.hw)}"` : `data-task="${esc(r.go)}"`}><div class="lag-h"><div class="lag-ic">${ic(r.icon)}</div><b>${esc(r.t)}</b><span class="lag-bd">${r.behind}${r.unit} ${r.unit === '일' ? '지남' : '밀림'}</span></div>
-      <div class="lag-g">${r.cells.map((c) => `<i class="${c.st}" title="${md(c.d)}${c.lb ? ' · ' + esc(c.lb) : ''}"></i>`).join('')}</div><div class="d">${esc(r.d)}</div></div>`;
-    return `<section class="card c12 lag-card"><div class="card-h"><h2>${ic('clock')} 밀린 것 한눈에</h2><span class="tiny">${late.length}줄 · ${tot}개</span></div>
-      <p class="sub" style="margin:0 0 12px">칸 하나가 하루예요. <i class="lag-k done"></i>한 날 <i class="lag-k miss"></i>하기로 했는데 안 한 날 <i class="lag-k todo"></i>오늘 <i class="lag-k plan"></i>앞으로 할 날</p>
-      ${axis}${late.sort((a, b) => b.behind - a.behind).map(row).join('')}
-      ${ok.length ? `<p class="lag-foot">제때 하고 있는 것: ${[...new Set(ok.map((r) => r.t))].map(esc).join(' · ')}</p>` : ''}</section>`;
+    rows.sort((a, b) => (b.behind > 0) - (a.behind > 0) || b.behind - a.behind); lagCard.rows = rows;
+    const tot = late.reduce((a, r) => a + (r.unit === '개' ? r.behind : 1), 0), pc = (x) => `${(Math.max(0, Math.min(N, x)) / N) * 100}%`;
+    const we = days.map((d, i) => (dowOf(d) === 0 || dowOf(d) === 6) ? `<i class="g-we" style="left:${pc(i)};width:${pc(1)}"></i>` : '').join(''), now = `<i class="g-now" style="left:${pc(LAG_PAST + 0.5)}"></i>`;
+    const bar = (g) => g.b > g.a ? `<i class="gb ${g.st}" style="left:${pc(g.a)};width:${(Math.max(0, Math.min(N, g.b) - Math.max(0, g.a)) / N) * 100}%"></i>` : '';
+    const row = (r, i) => `<div class="g-row ${r.behind ? '' : 'ok'}" data-lag="${i}" role="button" tabindex="0"><div class="g-lb">${esc(r.t)}</div><div class="g-tr">${we}${(r.segs || lagSegs(r.cells)).map(bar).join('')}${now}</div><div class="g-bd">${r.behind ? `<span class="lag-bd">${r.behind}${r.unit === '개' ? '' : r.unit}</span>` : '<span class="lag-ok">제때</span>'}</div></div>`;
+    return `<section class="card c12 lag-card"><div class="card-h"><h2>${ic('clock')} 밀린 것 한눈에</h2><span class="tiny"><b class="red">${tot}개</b> 밀림 · 줄을 누르면 자세히</span></div>
+      <div class="gantt"><div></div><div class="g-ax">${days.map((d) => `<span class="${d === t ? 'today' : dowOf(d) === 0 ? 'sun' : ''}">${d === t ? '오늘' : +d.slice(8)}</span>`).join('')}</div><div></div>${rows.map(row).join('')}</div>
+      <p class="tiny lag-leg"><i class="lag-k done"></i>한 것 <i class="lag-k miss"></i>밀린 것 <i class="lag-k plan"></i>앞으로 <i class="lag-k span"></i>기간 <i class="lag-k now"></i>오늘</p></section>`;
   }
-
+  function lagSheet(i) {
+    const r = (lagCard.rows || [])[i]; if (!r) return;
+    sheet(`<span class="eyebrow">${r.behind ? `<b class="red">${r.behind}${r.unit} ${r.unit === '일' ? '지남' : '밀림'}</b>` : '제때 하고 있어요'}</span><h2 style="margin-top:6px">${esc(r.t)}</h2><p class="sub">${esc(r.d)}</p>
+      <button class="btn primary big block" id="lag-go" type="button" style="margin-top:16px">${r.hw ? '숙제 보기' : '하러 가기'}</button>`, (el, close) => { $('#lag-go', el).onclick = () => { close(); setTimeout(() => (r.hw ? hwSheet(r.hw) : startTask(r.go)), 250); }; });
+  }
   // 마감을 다음 할 요일로 하루 미뤄요
   // 마감이 이미 지났으면 오늘 다음 할 요일로 (옛 마감 다음 날로 가면 여전히 지난 날이라 안 나뉘었어요 10/28)
   function myPush(it) { const old = it.due; let d = addD(it.due < today() ? today() : it.due, 1); for (let i = 0; i < 7 && !myStudy(it).includes(dowOf(d)); i++) d = addD(d, 1); it.orig = it.orig || old; it.due = d; return `원래 ${md(it.orig)}까지였는데 ${md(d)} ${DOW[dowOf(d)]}요일까지로 미뤄졌어요`; }
@@ -4795,7 +4806,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610290927'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610290940'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
