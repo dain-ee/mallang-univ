@@ -1075,7 +1075,7 @@
       for (const [cid, L0] of Object.entries(by)) { const c = inkC(cid), last = {}; for (const x of L0) if (!last[x.l.no] || last[x.l.no].d < x.d) last[x.l.no] = x; const L = Object.values(last).sort((a, b) => a.d.localeCompare(b.d));
         const cells = days.map((d) => { const X = L.filter((x) => x.d === d); if (!X.length) return { d, st: L0.some((x) => x.d === d) ? 'span' : 'off' }; return { d, st: st0(d, X.every((x) => x.st), true), lb: String(X.length) }; }); const miss = L.filter((x) => x.d < t && !x.st);
         const same = INK.filter((x) => x.subj === c.subj).length > 1;
-        rows.push({ go: miss[0] ? 'ink:' + cid + ':' + miss[0].l.no : 'ink:' + cid + ':' + L[0].l.no, icon: INK_IC[cid] || 'books', t: `${c.subj} 인강${same && c.teacher ? ` · ${c.teacher}` : ''}`, cells, behind: miss.length, unit: '강', d: miss.length ? `${miss.map((x) => x.l.title).slice(0, 2).join(' · ')}${miss.length > 2 ? ` 외 ${miss.length - 2}강` : ''} 안 들었어요` : '하기로 한 날 다 들었어요' }); }
+        rows.push({ go: miss[0] ? 'ink:' + cid + ':' + miss[0].l.no : 'ink:' + cid + ':' + L[0].l.no, icon: INK_IC[cid] || 'books', t: `${c.subj} 인강${same ? ` · ${String(c.title || c.teacher || '').replace(/^\[[^\]]*\]\s*/, '').split(/[(<]/)[0].trim().slice(0, 10)}` : ''}`, cells, behind: miss.length, unit: '강', d: miss.length ? `${miss.map((x) => x.l.title).slice(0, 2).join(' · ')}${miss.length > 2 ? ` 외 ${miss.length - 2}강` : ''} 안 들었어요` : '하기로 한 날 다 들었어요' }); }
     }
     return { days, rows };
   }
@@ -1090,7 +1090,7 @@
     const bar = (g) => g.b > g.a ? `<i class="gb ${g.st}" style="left:${pc(g.a)};width:${(Math.max(0, Math.min(N, g.b) - Math.max(0, g.a)) / N) * 100}%"></i>` : '';
     const row = (r, i) => `<div class="g-row ${r.behind ? '' : 'ok'}" data-lag="${i}" role="button" tabindex="0"><div class="g-lb">${esc(r.t)}</div><div class="g-tr">${we}${(r.segs || lagSegs(r.cells)).map(bar).join('')}${now}</div><div class="g-bd">${r.behind ? `<span class="lag-bd">${r.behind}${r.unit === '개' ? '' : r.unit}</span>` : '<span class="lag-ok">제때</span>'}</div></div>`;
     return `<section class="card c12 lag-card"><div class="card-h"><h2>${ic('clock')} 밀린 것 한눈에</h2><span class="tiny"><b class="red">${tot}개</b> 밀림 · 줄을 누르면 자세히</span></div>
-      <div class="gantt"><div></div><div class="g-ax">${days.map((d) => `<span class="${d === t ? 'today' : dowOf(d) === 0 ? 'sun' : ''}">${d === t ? '오늘' : +d.slice(8)}</span>`).join('')}</div><div></div>${rows.map(row).join('')}</div>
+      <div class="gantt"><div></div><div class="g-ax">${days.map((d) => `<span class="${d === t ? 'today' : dowOf(d) === 0 ? 'sun' : ''}">${+d.slice(8)}</span>`).join('')}</div><div></div>${rows.map(row).join('')}</div>
       <p class="tiny lag-leg"><i class="lag-k done"></i>한 것 <i class="lag-k miss"></i>밀린 것 <i class="lag-k plan"></i>앞으로 <i class="lag-k span"></i>기간 <i class="lag-k now"></i>오늘</p></section>`;
   }
   function lagSheet(i) {
@@ -4806,7 +4806,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610290940'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610290943'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
