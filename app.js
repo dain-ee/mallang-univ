@@ -497,7 +497,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${TUTOR ? `${fireNews()}${lessonHero()}${midCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${hwGo}${giftHome()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${perfCard()}${finCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${TUTOR ? `${fireNews()}${lessonHero()}${lagCard()}${midCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${lagCard()}${hwGo}${giftHome()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${perfCard()}${finCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -1013,6 +1013,75 @@
     return `<section class="card c12 miss-card"><div class="card-h"><h2>${when} 못 한 숙제가 있어요</h2><span class="tiny">${L.length}개</span></div><div class="list">${L.map(({ it, d, was, now, nd, left, over }) => `<div class="li miss-it"><div class="body"><div class="t">${esc(it.book)}</div>
       <div class="d">${ds.length > 1 ? `${md(d)} · ` : ''}${nd ? `남은 ${nd}일에 나누면 하루 ${was}${u(it)} → <b class="${avg && now > avg ? 'red' : 'blue'}">${now}${u(it)}</b>` : over ? `<b class="red">마감이 지났어요</b> · 남은 ${left}${u(it)} · 미루면 다시 나눠요` : '마감까지 남은 날이 없어요'}</div></div>
       <div class="miss-b"><button class="btn sm primary" type="button" data-miss="split|${esc(it.id)}|${d}">${nd ? '나눠 하기' : '오늘 할게요'}</button><button class="btn sm" type="button" data-miss="push|${esc(it.id)}|${d}">미루기</button><button class="btn sm" type="button" data-miss="did|${esc(it.id)}|${d}|${was}">했어요</button></div></div>`).join('')}</div></section>`;
+  }
+
+  // ───────── 밀린 것 한눈에 (간트) ─────────
+  // 10/29 선생님 «홈에 어느 항목이 밀렸는지 가늠이 안 와. 단어·천일문같이 매일 하는 건 밀려도 보이지 않아. 원래 어디였는데 어떻게 밀렸는지 간트차트처럼»
+  // 줄마다 날짜 칸: 파랑 = 한 날, 빨강 = 하기로 했는데 안 한 날, 옅은 파랑 = 앞으로 할 날, 테두리 = 오늘. 밀린 줄만 위에, 제때 하는 건 아래 한 줄로
+  const LAG_PAST = 10, LAG_FUT = 5;
+  function lagRows() {
+    const t = today(), days = Array.from({ length: LAG_PAST + LAG_FUT + 1 }, (_, i) => addD(t, i - LAG_PAST)), rows = [];
+    const EDAYS = (S.eng || {}).days || {}, SDAYS = (S.sci || {}).days || {};
+    const st0 = (d, done, on) => d === t ? (done ? 'done todo' : 'todo') : d < t ? (done ? 'done' : on ? 'miss' : 'off') : on ? 'plan' : 'off';
+    // 매일 과제: 할 요일이거나 그날 손댄 기록이 있으면 「하기로 한 날」. 지난 날에 안 끝냈으면 밀림
+    if (!TUTOR) {
+      const first = Object.keys({ ...EDAYS, ...SDAYS }).sort()[0] || t;
+      const unitsDone = new Set(Object.values(EDAYS).filter(uDone).map((e) => e.unit));
+      const DK = {
+        unit: (d) => { const e = EDAYS[d], on = onDay('unit', new Date(d + 'T00:00:00')) && d >= first, un = e && CH_UNITS[e.unit]; const touched = !!(e && Object.keys((uV2(e) ? e.uans2 : e.uans) || {}).length); if (!e && !on) return null; if (!on && !touched && !(e && unitsDone.has(e.unit))) return null; return { done: !!(e && unitsDone.has(e.unit)), lb: un ? `Unit ${un.unit}` : '' }; },
+        words: (d) => { const e = EDAYS[d], on = onDay('words', new Date(d + 'T00:00:00')) && d >= first; if (!e && !on) return null; const n = e ? Object.keys(e.wans || {}).length : 0, need = e ? Math.min(10, wordsFor(e.words).length) : 10; if (!on && !n) return null; return { done: !!(e && (e.wdone || (need && n >= need))), lb: e ? wordsLabel(e.words) : '' }; },
+        g3: (d) => { const e = EDAYS[d], on = onDay('g3', new Date(d + 'T00:00:00')) && d >= first; if (!e && !on) return null; if (!on && !g3Did(e)) return null; return { done: g3Did(e), lb: '' }; },
+        sci: (d) => { const e = SDAYS[d], on = onDay('sci', new Date(d + 'T00:00:00')) && d >= first; if (!e && !on) return null; const s = e ? dayStat(e) : { n: 0, done: 0 }; if (!on && !s.done && !(e && e.read)) return null; const c = e && SCI.concepts.find((x) => x.id === e.c); return { done: s.n > 0 && s.done >= s.n, lb: c ? c.title : '' }; },
+      };
+      const NM = { unit: ['천일문 유닛', 'eng'], words: ['워드마스터 단어', 'books'], g3: ['고3 영어 한 문제', 'write'], sci: ['오늘의 과학', 'sci'] };
+      for (const k of Object.keys(DK)) {
+        if (!planOf(k).length && !Object.keys(k === 'sci' ? SDAYS : EDAYS).length) continue;
+        if (k === 'unit' && !CH_UNITS.length || k === 'words' && !WORDS.length || k === 'g3' && !G3.length || k === 'sci' && !SCI.concepts.length) continue;
+        const cells = days.map((d) => { const x = DK[k](d); return { d, st: x ? st0(d, x.done, true) : 'off', lb: x ? x.lb : '' }; });
+        const miss = cells.filter((c) => c.st === 'miss');
+        rows.push({ go: k, icon: NM[k][1], t: NM[k][0], cells, behind: miss.length, unit: '개', d: miss.length ? `${miss.map((c) => c.lb || md(c.d)).join(' · ')} 안 했어요 (${miss.map((c) => md(c.d)).join(' · ')})` : '밀린 것 없이 하고 있어요' });
+      }
+    }
+    // 기말 예습: 과목마다 날짜별 몫(fday) 대비 한 것
+    if (FIN_ON) for (const f of FIN) {
+      const L = FIN_ORDER.filter((c) => c.subj === f.subj), idx = (d) => Math.round((new Date(d) - new Date(FIN_START)) / 864e5);
+      const cells = days.map((d) => { const I = L.filter((c) => c.fday === idx(d)); if (!I.length) return { d, st: 'off' }; return { d, st: st0(d, I.every(finDone), true), lb: String(I.length) }; });
+      const exp = L.filter((c) => c.fday < finDay()), beh = exp.filter((c) => !finDone(c));
+      rows.push({ go: 'fin:' + f.subj, icon: f.subj === 'hist' ? 'scroll' : 'books', t: f.subj === 'eng' ? '올림포스 지문' : `${f.name} 기말 예습`, cells, behind: beh.length, unit: '개', d: beh.length ? `원래 어제까지 ${exp.length}개 → ${exp.length - beh.length}개 했어요 · ${beh.map((c) => c.title).slice(0, 3).join(' · ')}${beh.length > 3 ? ` 외 ${beh.length - 3}개` : ''}` : `어제까지 몫 ${exp.length}개 다 했어요 · ${finEndTxt(f.subj)}` });
+    }
+    // 학원·학교 숙제: 넣은 날부터 마감까지 할 요일에 고르게 → 지금쯤 했어야 할 양과 비교
+    if (!TUTOR) for (const it of myOpen()) {
+      if (isPlan(it)) continue;
+      const c0 = it.at ? dateOf(it.at) : addD(it.due, -7), u = it.unit === '쪽' ? '쪽' : it.unit === '건' ? '' : '문제', dn = myDone(it), over = it.due < t;
+      if (it.unit === '건') { if (!over) continue; rows.push({ go: 'my:' + it.id, icon: 'write', t: it.book, cells: days.map((d) => ({ d, st: d === it.due ? 'miss' : d >= c0 && d < it.due ? 'span' : 'off' })), behind: 1, unit: '개', d: `${md(it.due)}까지였는데 아직 안 했어요 · ${myCls(it.cls).name}` }); continue; }
+      const SD = myStudy(it), all = Math.max(1, myDaysLeft(it.due, SD, c0)), past = myDaysLeft(Math.min(addD(t, -1), it.due), SD, c0), exp = over ? it.total : Math.round((it.total * past) / all), beh = Math.max(0, exp - dn);
+      const cells = days.map((d) => { const lg = (it.log || {})[d]; if (d < c0 || d > it.due) return { d, st: 'off' }; const on = SD.includes(dowOf(d)); if (lg && lg.n) return { d, st: st0(d, true, true), lb: String(lg.n) }; if (mySkip(it, d)) return { d, st: 'span' }; return { d, st: on ? st0(d, false, true) : 'span' }; });
+      rows.push({ go: 'my:' + it.id, icon: 'write', t: it.book, cells, behind: beh, unit: u, d: over ? `${md(it.due)} 마감이 지났어요 · ${it.total - dn}${u} 남았어요` : beh ? `원래 지금쯤 ${exp}${u} → ${dn}${u} 했어요 · ${md(it.due)} 마감까지 ${it.total - dn}${u}` : `${dn}/${it.total}${u} · 지금쯤 할 만큼 하고 있어요 · ${md(it.due)} 마감` });
+    }
+    // 선생님 숙제: 마감 지난 것
+    for (const h of (S.hw || []).filter((x) => !hwDone(x) && x.due && x.due < t)) {
+      const c0 = h.at ? dateOf(h.at) : addD(h.due, -3), late = Math.round((new Date(t) - new Date(h.due)) / 864e5);
+      rows.push({ hw: h.id, icon: 'pin', t: h.title, cells: days.map((d) => ({ d, st: d === h.due ? 'miss' : d >= c0 && d < h.due ? 'span' : 'off' })), behind: late, unit: '일', d: `${md(h.due)}까지 숙제 · ${late}일 지났어요${h.subj ? ` · ${h.subj}` : ''}` });
+    }
+    // 인강: 그날 듣기로 한 강의
+    { const I = inkS(); const by = {};
+      for (const [d, m] of Object.entries(I.days || {})) for (const [cid, nos] of Object.entries(m || {})) for (const no of nos) { const c = inkC(cid), l = inkL(c, no); if (!l) continue; (by[cid] = by[cid] || []).push({ d, l, st: inkSt(c, l) }); }
+      for (const [cid, L] of Object.entries(by)) { const c = inkC(cid); const cells = days.map((d) => { const X = L.filter((x) => x.d === d); if (!X.length) return { d, st: 'off' }; return { d, st: st0(d, X.every((x) => x.st), true), lb: String(X.length) }; }); const miss = L.filter((x) => x.d < t && !x.st);
+        rows.push({ go: miss[0] ? 'ink:' + cid + ':' + miss[0].l.no : 'ink:' + cid + ':' + L[0].l.no, icon: INK_IC[cid] || 'books', t: `${c.subj} 인강`, cells, behind: miss.length, unit: '강', d: miss.length ? `${miss.map((x) => x.l.title).slice(0, 2).join(' · ')}${miss.length > 2 ? ` 외 ${miss.length - 2}강` : ''} 안 들었어요` : '하기로 한 날 다 들었어요' }); }
+    }
+    return { days, rows };
+  }
+  function lagCard() {
+    const { days, rows } = lagRows(), t = today(), late = rows.filter((r) => r.behind > 0), ok = rows.filter((r) => !r.behind);
+    if (!late.length) return '';
+    const tot = late.reduce((a, r) => a + (r.unit === '개' ? r.behind : 1), 0);
+    const axis = `<div class="lag-axis">${days.map((d) => `<span class="${d === t ? 'today' : dowOf(d) === 0 ? 'sun' : ''}">${d === t ? '오늘' : +d.slice(8)}</span>`).join('')}</div>`;
+    const row = (r) => `<div class="lag-row btnlike" ${r.hw ? `data-hwopen="${esc(r.hw)}"` : `data-task="${esc(r.go)}"`}><div class="lag-h"><div class="lag-ic">${ic(r.icon)}</div><b>${esc(r.t)}</b><span class="lag-bd">${r.behind}${r.unit} ${r.unit === '일' ? '지남' : '밀림'}</span></div>
+      <div class="lag-g">${r.cells.map((c) => `<i class="${c.st}" title="${md(c.d)}${c.lb ? ' · ' + esc(c.lb) : ''}"></i>`).join('')}</div><div class="d">${esc(r.d)}</div></div>`;
+    return `<section class="card c12 lag-card"><div class="card-h"><h2>${ic('clock')} 밀린 것 한눈에</h2><span class="tiny">${late.length}줄 · ${tot}개</span></div>
+      <p class="sub" style="margin:0 0 12px">칸 하나가 하루예요. <i class="lag-k done"></i>한 날 <i class="lag-k miss"></i>하기로 했는데 안 한 날 <i class="lag-k plan"></i>앞으로 할 날</p>
+      ${axis}${late.sort((a, b) => b.behind - a.behind).map(row).join('')}
+      ${ok.length ? `<p class="lag-foot">제때 하고 있는 것: ${ok.map((r) => esc(r.t)).join(' · ')}</p>` : ''}</section>`;
   }
 
   // 마감을 다음 할 요일로 하루 미뤄요
@@ -4723,7 +4792,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610290818'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610290921'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
