@@ -1799,7 +1799,8 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const skinPic = (k) => (k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
+  const ASSET_V = '202610291252', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
     const own = owned(), pend = gPend();
@@ -1828,7 +1829,7 @@
       if (navigator.vibrate) navigator.vibrate(20);
       const reveal = () => {
         S.profile.skins = [...new Set([...(S.profile.skins || []), k])]; S.gifts = gAll().map((x) => (x.skin === k ? { ...x, open: Date.now() } : x)); S.gift = {}; save('profile', 'gifts', 'gift');
-        inn.innerHTML = page(`${esc(SKINS[k].n)} 테마를<br>받았어요`, '내 정보에서 언제든 바꿀 수 있어요', `${petals()}<img class="gf-pet" src="assets/pets/${k}/yay.webp" alt="" onerror="this.src='${skinPic(k)}'">`, '바로 써 볼게요', '나중에');
+        inn.innerHTML = page(`${esc(SKINS[k].n)} 테마를<br>받았어요`, '내 정보에서 언제든 바꿀 수 있어요', `${petals()}<img class="gf-pet" src="${av(`assets/pets/${k}/yay.webp`)}" alt="" onerror="this.src='${skinPic(k)}'">`, '바로 써 볼게요', '나중에');
         inn.style.setProperty('--gk', SKINS[k].c); inn.classList.add('won');
         const r = $('.gf-pet', inn).getBoundingClientRect(); boom(r.left + r.width / 2, r.top + r.height / 2, 4); ding(8); if (navigator.vibrate) navigator.vibrate([60, 40, 120]);
         $('#gf-a', inn).onclick = () => { S.profile.skin = k; save('profile'); close(); toast(`${SKINS[k].n} 테마로 바꿨어요`); };
@@ -1854,7 +1855,7 @@
     const base = 'perch'; // 첫 카드 왼쪽 위에 걸침 · 자는 동작은 안 씀 (사용자)
     const el = document.createElement('button'); el.type = 'button'; el.className = 'pet-perch' + (petDock.shown ? ' still' : ''); petDock.shown = true; el.dataset.skin = t; el.dataset.mo = petLinesKey(); el.setAttribute('aria-label', SKINS[t].n);
     const lines = petLines(), motto = lines.length ? 1 : 0; let li = 0; // 말풍선: 선생님 한마디 · 내 한마디 (누가 한 말인지 위에 작게) · 둘 다 있으면 번갈아
-    el.innerHTML = `${t === 'kuromi' ? '<span class="pet-hts" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : t === 'bamdol' ? '<span class="pet-lvs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : ''}<span class="pet-say ${motto ? 'motto' : ''}" style="visibility:hidden" ${motto ? '' : 'hidden'}>${lines.length ? petSayHtml(lines[0]) : ''}</span><img alt="" src="${pdir}/${pmap('perch')}.png">`;
+    el.innerHTML = `${t === 'kuromi' ? '<span class="pet-hts" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : t === 'bamdol' ? '<span class="pet-lvs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : ''}<span class="pet-say ${motto ? 'motto' : ''}" style="visibility:hidden" ${motto ? '' : 'hidden'}>${lines.length ? petSayHtml(lines[0]) : ''}</span><img alt="" src="${av(`${pdir}/${pmap('perch')}.png`)}">`;
     const im = $('img', el); im.onerror = () => { el.remove(); host.classList.remove('has-perch'); }; im.onload = () => { if (el.isConnected) host.classList.add('has-perch'); };
     host.appendChild(el); el.dataset.r0 = el.style.right || '';
     // 카드 바로 위 오른쪽에 버튼이 있으면(예: 매일 과제 요일) 그 왼쪽으로 비켜 앉음
@@ -1896,7 +1897,7 @@
       if (!el.t) fill(best[1]); put(best[2], best[3]);
       const r = sy.getBoundingClientRect(); if (r.top < hb + 4) sy.style.top = `${parseFloat(sy.style.top) + hb + 4 - r.top}px`; sy.style.visibility = ''; };  // 자리 잡기 전엔 숨겨 둬요 (처음 자리에 떴다가 휙 옮겨 가서 버벅여 보였어요 10/28)  // 위 메뉴 줄 밑으로는 절대 안 들어가요
     addEventListener('resize', () => { if (el.isConnected) { fitSay(); hideHts(); } });
-    const play = (n) => fetch(`${pdir}/${pmap(n)}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).then((b) => { const u = URL.createObjectURL(b); im.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); }).catch(() => {});
+    const play = (n) => fetch(av(`${pdir}/${pmap(n)}.webp`)).then((r) => { if (!r.ok) throw 0; return r.blob(); }).then((b) => { const u = URL.createObjectURL(b); im.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); }).catch(() => {});
     if (!RM()) play(base);
     // 같은 표정만 있으면 심심해서, 가끔 혼자 기뻐해요
     clearInterval(petDock.iv); if (!RM()) petDock.iv = setInterval(() => { if (!el.isConnected) return clearInterval(petDock.iv); if (document.hidden || el.t) return; play(petDock.alt = petDock.alt === 'perch_yay' && PET_WINK.has(t) ? 'perch_wink' : 'perch_yay'); setTimeout(() => { if (el.isConnected && !el.t) play(base); }, 2600); }, 9000 + Math.random() * 8000);
@@ -1921,11 +1922,11 @@
     });
   }
   const GH_NEXT = { hello: ['idle', 2000] }, GH_BLOB = {};
-  const gh = (n, cls = '') => `<img class="gh ${cls}" data-gh="${n}" src="${petBase()}/${n}.png" onerror="this.onerror=null;this.src='assets/ghost/${n}.png'" alt="">`;
+  const gh = (n, cls = '') => `<img class="gh ${cls}" data-gh="${n}" src="${av(`${petBase()}/${n}.png`)}" onerror="this.onerror=null;this.src='assets/ghost/${n}.png'" alt="">`;
   function ghFill(root) {
     for (const img of (root || document).querySelectorAll('img[data-gh]:not([data-ghd])')) {
       const n = img.dataset.gh; img.dataset.ghd = '1'; if (RM()) continue;
-      (GH_BLOB[petBase() + n] = GH_BLOB[petBase() + n] || fetch(`${petBase()}/${n}.webp`).then((r) => { if (!r.ok) throw 0; return r.blob(); }).catch(() => fetch(`assets/ghost/${n}.webp`).then((r) => r.blob()))).then((b) => { const u = URL.createObjectURL(b); img.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); const nx = GH_NEXT[n]; if (nx) setTimeout(() => { if (img.isConnected) { img.dataset.gh = nx[0]; delete img.dataset.ghd; ghFill(img.parentNode); } }, nx[1]); }).catch(() => {});
+      (GH_BLOB[petBase() + n] = GH_BLOB[petBase() + n] || fetch(av(`${petBase()}/${n}.webp`)).then((r) => { if (!r.ok) throw 0; return r.blob(); }).catch(() => fetch(av(`assets/ghost/${n}.webp`)).then((r) => r.blob()))).then((b) => { const u = URL.createObjectURL(b); img.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); const nx = GH_NEXT[n]; if (nx) setTimeout(() => { if (img.isConnected) { img.dataset.gh = nx[0]; delete img.dataset.ghd; ghFill(img.parentNode); } }, nx[1]); }).catch(() => {});
     }
   }
   // 배포 중이거나 인터넷이 잠깐 끊겨 그림을 못 받으면 조금 뒤 두 번까지 다시 받아요 (깨진 그림이 남지 않게)
@@ -4810,7 +4811,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610291250'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610291252'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
