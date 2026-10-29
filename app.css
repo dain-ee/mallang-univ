@@ -2673,7 +2673,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 /* 곰 둘은 머리가 커서 다른 펫보다 작게 보여요 → 조금 키움 */
 .pet-perch[data-skin="rilakkuma"] img, .pet-perch[data-skin="korilakkuma"] img { transform: scale(1.18); transform-origin: 50% 90%; }
 /* 몬치치: 실제 털인형 사진 컷아웃. 누르면 빨간 하트·리본·별이 크게 팡 (10/29 «스프링클 같아» → 키움) */
-.pet-perch[data-skin="monchhichi"] img { transform: scale(1.1); transform-origin: 50% 90%; }
+.pet-perch[data-skin="monchhichi"] img { transform: scale(1.1); transform-origin: 50% 78.125%; }  /* 잘린 선(300/384)을 기준으로 키워서 선이 카드 윗변에 딱 */
 .pet-perch[data-skin="monchhichi"] .pb i { width: 26px; height: 26px; left: -13px; top: -13px; animation-duration: 1.25s; filter: drop-shadow(0 3px 4px rgba(120, 30, 40, .28)); }
 .pet-perch[data-skin="monchhichi"] .pb i:nth-child(even) { width: 18px; height: 18px; background-image: var(--pb-b); }
 .pet-perch[data-skin="monchhichi"] .pb i:nth-child(3n) { width: 30px; height: 30px; background-image: var(--pb-c); }
