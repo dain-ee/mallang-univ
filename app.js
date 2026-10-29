@@ -1084,7 +1084,7 @@
     return `<section class="card c12 lag-card"><div class="card-h"><h2>${ic('clock')} 밀린 것 한눈에</h2><span class="tiny">${late.length}줄 · ${tot}개</span></div>
       <p class="sub" style="margin:0 0 12px">칸 하나가 하루예요. <i class="lag-k done"></i>한 날 <i class="lag-k miss"></i>하기로 했는데 안 한 날 <i class="lag-k todo"></i>오늘 <i class="lag-k plan"></i>앞으로 할 날</p>
       ${axis}${late.sort((a, b) => b.behind - a.behind).map(row).join('')}
-      ${ok.length ? `<p class="lag-foot">제때 하고 있는 것: ${ok.map((r) => esc(r.t)).join(' · ')}</p>` : ''}</section>`;
+      ${ok.length ? `<p class="lag-foot">제때 하고 있는 것: ${[...new Set(ok.map((r) => r.t))].map(esc).join(' · ')}</p>` : ''}</section>`;
   }
 
   // 마감을 다음 할 요일로 하루 미뤄요
@@ -4795,7 +4795,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610290924'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610290927'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
