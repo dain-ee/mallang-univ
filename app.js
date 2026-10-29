@@ -1032,13 +1032,15 @@
     const st0 = (d, done, on) => d === t ? (done ? 'done todo' : 'todo') : d < t ? (done ? 'done' : on ? 'miss' : 'off') : on ? 'plan' : 'off';
     // 매일 과제: 할 요일이거나 그날 손댄 기록이 있으면 「하기로 한 날」. 지난 날에 안 끝냈으면 밀림
     if (!TUTOR) {
-      const first = Object.keys({ ...EDAYS, ...SDAYS }).sort()[0] || t;
+      // 첫 기록이 아니라 「처음으로 뭔가 푼 날」부터 세요: 앱을 처음 켠 날(10/24 토)은 기록만 있고 아무것도 안 풀어서 밀림으로 잡혔어요 (10/29 선생님 «Day 1 은 맨 처음에 했을 거예요»)
+      const did = (d) => { const e = EDAYS[d], sc = SDAYS[d]; return !!(e && (Object.keys(e.wans || {}).length || Object.keys(e.uans || {}).length || Object.keys(e.uans2 || {}).length || e.wdone || e.udone || e.udone2 || g3Did(e))) || !!(sc && Object.keys(sc.ans || {}).length); };
+      const first = Object.keys({ ...EDAYS, ...SDAYS }).sort().find(did) || t;
       const unitsDone = new Set(Object.values(EDAYS).filter(uDone).map((e) => e.unit));
       const DK = {
-        unit: (d) => { const e = EDAYS[d], on = onDay('unit', new Date(d + 'T00:00:00')) && d >= first, un = e && CH_UNITS[e.unit]; const touched = !!(e && Object.keys((uV2(e) ? e.uans2 : e.uans) || {}).length); if (!e && !on) return null; if (!on && !touched && !(e && unitsDone.has(e.unit))) return null; return { done: !!(e && unitsDone.has(e.unit)), lb: un ? `Unit ${un.unit}` : '' }; },
-        words: (d) => { const e = EDAYS[d], on = onDay('words', new Date(d + 'T00:00:00')) && d >= first; if (!e && !on) return null; const n = e ? Object.keys(e.wans || {}).length : 0, need = e ? Math.min(10, wordsFor(e.words).length) : 10; if (!on && !n) return null; return { done: !!(e && (e.wdone || (need && n >= need))), lb: e ? wordsLabel(e.words) : '' }; },
-        g3: (d) => { const e = EDAYS[d], on = onDay('g3', new Date(d + 'T00:00:00')) && d >= first; if (!e && !on) return null; if (!on && !g3Did(e)) return null; return { done: g3Did(e), lb: '' }; },
-        sci: (d) => { const e = SDAYS[d], on = onDay('sci', new Date(d + 'T00:00:00')) && d >= first; if (!e && !on) return null; const s = e ? dayStat(e) : { n: 0, done: 0 }; if (!on && !s.done && !(e && e.read)) return null; const c = e && SCI.concepts.find((x) => x.id === e.c); return { done: s.n > 0 && s.done >= s.n, lb: c ? c.title : '' }; },
+        unit: (d) => { const e = EDAYS[d], on = onDay('unit', new Date(d + 'T00:00:00')) && d >= first, un = e && CH_UNITS[e.unit]; const touched = !!(e && Object.keys((uV2(e) ? e.uans2 : e.uans) || {}).length); if (!e && !on) return null; if (d < first && !touched) return null; if (!on && !touched && !(e && unitsDone.has(e.unit))) return null; return { done: !!(e && unitsDone.has(e.unit)), lb: un ? `Unit ${un.unit}` : '' }; },
+        words: (d) => { const e = EDAYS[d], on = onDay('words', new Date(d + 'T00:00:00')) && d >= first; if (!e && !on) return null; const n = e ? Object.keys(e.wans || {}).length : 0, need = e ? Math.min(10, wordsFor(e.words).length) : 10; if (!on && !n) return null; if (d < first && !n && !e.wdone) return null; return { done: !!(e && (e.wdone || (need && n >= need))), lb: e ? wordsLabel(e.words) : '' }; },
+        g3: (d) => { const e = EDAYS[d], on = onDay('g3', new Date(d + 'T00:00:00')) && d >= first; if (!e && !on) return null; if (!on && !g3Did(e)) return null; if (d < first && !g3Did(e)) return null; return { done: g3Did(e), lb: '' }; },
+        sci: (d) => { const e = SDAYS[d], on = onDay('sci', new Date(d + 'T00:00:00')) && d >= first; if (!e && !on) return null; const s = e ? dayStat(e) : { n: 0, done: 0 }; if (!on && !s.done && !(e && e.read)) return null; if (d < first && !s.done) return null; const c = e && SCI.concepts.find((x) => x.id === e.c); return { done: s.n > 0 && s.done >= s.n, lb: c ? c.title : '' }; },
       };
       const NM = { unit: ['천일문 유닛', 'eng'], words: ['워드마스터 단어', 'books'], g3: ['고3 영어 한 문제', 'write'], sci: ['오늘의 과학', 'sci'] };
       for (const k of Object.keys(DK)) {
@@ -1799,7 +1801,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610291254', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610291638', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4811,7 +4813,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610291254'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610291638'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
