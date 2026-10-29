@@ -497,7 +497,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${TUTOR ? `${fireNews()}${lessonHero()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${giftHome()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${TUTOR ? `${fireNews()}${lessonHero()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${giftHome()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${winCard()}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -1104,6 +1104,38 @@
     sheet(`<span class="eyebrow">${r.behind ? `<b class="red">${r.behind}${r.unit} ${r.unit === '일' ? '지남' : '밀림'}</b>` : '제때 하고 있어요'}</span><h2 style="margin-top:6px">${esc(r.t)}</h2><p class="sub">${esc(r.d)}</p>
       <button class="btn primary big block" id="lag-go" type="button" style="margin-top:16px">${r.hw ? '숙제 보기' : '하러 가기'}</button>`, (el, close) => { $('#lag-go', el).onclick = () => { close(); setTimeout(() => (r.hw ? hwSheet(r.hw) : startTask(r.go)), 250); }; });
   }
+  // 오늘 해낸 것: 밀린 걸 몰아서 한 날 체크 한 줄로 끝나 허무하지 않게 (10/29 선생님). 저장하는 값 없이 이미 있는 기록(log·ink·hw)으로만 계산해요
+  function myBeh(it) {
+    const t = today(), c0 = it.at ? dateOf(it.at) : addD(it.due, -7), SD = myStudy(it), dn = myDone(it), dt = (it.log && it.log[t] && it.log[t].n) || 0;
+    const all = Math.max(1, myDaysLeft(it.due, SD, c0)), past = myDaysLeft(Math.min(addD(t, -1), it.due), SD, c0), exp = it.due < t ? it.total : Math.round((it.total * past) / all);
+    const was = Math.max(0, exp - (dn - dt)), now = Math.max(0, exp - dn);
+    return { dt, was, now, caught: was - now };
+  }
+  function todayWins() {
+    const t = today(), my = [], late = [];
+    if (!TUTOR) for (const it of myS().items) {
+      const lg = (it.log || {})[t]; if (!lg || !lg.n || isPlan(it)) continue;
+      if (it.unit === '건') { if (it.due < t) late.push(it.book); continue; }
+      const b = myBeh(it); my.push({ t: it.book, n: lg.n, u: it.unit === '쪽' ? '쪽' : '문제', ...b });
+    }
+    for (const h of S.hw || []) if (h.due && h.due < t && hwDone(h) && dateOf(hwDoneAt(h) || 0) === t) late.push(h.title);
+    { const I = inkS(), plan = {}; for (const [d, m] of Object.entries(I.days || {})) for (const [cid, nos] of Object.entries(m || {})) for (const no of nos) { const k = cid + ':' + no; if (!plan[k] || plan[k] < d) plan[k] = d; }
+      for (const [k, d] of Object.entries(I.at || {})) if (d === t && I.st[k] === 'done' && plan[k] && plan[k] < t) { const [cid, no] = k.split(':'), c = inkC(cid), l = c && inkL(c, +no); if (l) late.push(`${c.subj} 인강 ${l.title}`); } }
+    const probs = my.reduce((a, x) => a + (x.u === '문제' ? x.n : 0), 0), caught = my.reduce((a, x) => a + x.caught, 0), was = my.reduce((a, x) => a + x.was, 0), rest = my.reduce((a, x) => a + x.now, 0);
+    return { my, late, probs, caught, was, rest };
+  }
+  function winCard() { try { return winCard0(); } catch (e) { return ''; } }  // 계산이 꼬여도 홈은 그대로 뜨게
+  function winCard0() {
+    const w = todayWins(), avg = myAvg(), x = avg && w.probs >= avg * 1.4 && w.probs >= 20 ? Math.round((w.probs / avg) * 10) / 10 : 0;
+    if (!w.caught && !w.late.length && !x) return '';
+    const tot = w.my.reduce((a, y) => a + y.n, 0), u = w.my.every((y) => y.u === '쪽') ? '쪽' : '문제', p = w.was ? Math.round((w.caught / w.was) * 100) : 100;
+    const big = w.caught ? `밀린 것 <b>${w.caught}${u}</b> 따라잡았어요` : w.my.length ? `오늘 <b>${tot}${u}</b> 풀었어요` : `밀린 것 <b>${w.late.length}개</b> 해치웠어요`;
+    const sub = [w.my.length && w.caught ? `오늘 ${tot}${u} 풀었어요` : '', x ? `보통 하루 ${avg}문제의 ${x}배` : '', w.late.length && (w.caught || w.my.length) ? `밀린 숙제 ${w.late.length}개도 끝` : ''].filter(Boolean).join(' · ');
+    const bar = w.was ? `<div class="win-bar"><i style="width:${p}%"></i></div><p class="tiny win-cap">아침엔 ${w.was}${u} 밀려 있었는데 ${w.rest ? `이제 <b>${w.rest}${u}</b> 남았어요` : '<b>이제 밀린 거 없어요</b>'}</p>` : '';
+    const rows = [...w.my.map((y) => `<li><span>${esc(y.t)}</span><b>${y.n}${y.u}${y.caught ? ` <em>밀린 것 ${y.caught}</em>` : ''}</b></li>`), ...w.late.slice(0, 4).map((s) => `<li><span>${esc(s)}</span><b><em>밀린 것 끝</em></b></li>`)].join('');
+    return `<section class="card c12 win-card"><div class="card-h"><h2>${ic('trophy')} 오늘 해낸 것</h2><span class="tag green">${w.rest || !w.was ? '오늘 열심히 했어요' : '밀린 것 0'}</span></div>
+      <p class="win-big">${big}</p>${sub ? `<p class="tiny win-sub">${sub}</p>` : ''}${bar}${rows ? `<ul class="win-list">${rows}</ul>` : ''}</section>`;
+  }
   // 마감을 다음 할 요일로 하루 미뤄요
   // 마감이 이미 지났으면 오늘 다음 할 요일로 (옛 마감 다음 날로 가면 여전히 지난 날이라 안 나뉘었어요 10/28)
   function myPush(it) { const old = it.due; let d = addD(it.due < today() ? today() : it.due, 1); for (let i = 0; i < 7 && !myStudy(it).includes(dowOf(d)); i++) d = addD(d, 1); it.orig = it.orig || old; it.due = d; return `원래 ${md(it.orig)}까지였는데 ${md(d)} ${DOW[dowOf(d)]}요일까지로 미뤄졌어요`; }
@@ -1256,7 +1288,7 @@
         if (it.unit === '건') { if (myFin(it)) { const at = Date.now(); for (const d of Object.keys(it.log || {})) it.log[d] = { n: 0, at }; it.fin = false; } else { it.log[t] = { n: 1, at: Date.now() }; if (!isPlan(it)) earn('my:' + it.id + ':' + t, 100, '내 숙제'); boom(innerWidth / 2, innerHeight * 0.4, 2); } save('my'); close(); render(); return; }
         const n = Math.max(0, +$('#my-n', el).value || 0), w = ($('#my-w', el).value.match(/\d+/g) || []).map(Number);
         it.log[t] = { n, w, at: Date.now(), ...(+($('#my-s0', el) || {}).value ? { s: +$('#my-s0', el).value } : {}) }; it.wrong = [...new Set([...(it.wrong || []).filter((v) => !(dt && (dt.w || []).includes(v))), ...w])].sort((a, b) => a - b);
-        save('my'); close(); render(); if (n) earn('my:' + it.id + ':' + t, 100, '학원·과외 숙제'); toast(w.length ? `틀린 ${w.length}문제는 오답 탭에 모아 뒀어요` : '오늘 것 끝! 잘했어요');
+        save('my'); close(); render(); if (n) earn('my:' + it.id + ':' + t, 100, '학원·과외 숙제'); try { const bh = myBeh(it), uu = it.unit === '쪽' ? '쪽' : '문제'; if (bh.caught > 0) { toast(`밀린 것 ${bh.caught}${uu} 따라잡았어요! ${bh.now ? `이제 ${bh.now}${uu} 남았어요` : '이제 밀린 거 없어요'}`); boom(innerWidth / 2, innerHeight * 0.4, bh.now ? 3 : 4); } else toast(w.length ? `틀린 ${w.length}문제는 오답 탭에 모아 뒀어요` : '오늘 것 끝! 잘했어요'); } catch (e) { toast('오늘 것 끝! 잘했어요'); }
         if (myFin(it)) { const r = document.body.getBoundingClientRect(); boom(innerWidth / 2, innerHeight * 0.4, 4); }
       };
       if ($('#my-fin', el)) $('#my-fin', el).onclick = () => { it.fin = !it.fin; save('my'); close(); render(); };
@@ -1801,7 +1833,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610291638', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610291958', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4813,7 +4845,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610291638'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610291958'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

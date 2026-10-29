@@ -2698,3 +2698,15 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 @keyframes day-in-l { from { transform: translateX(48px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes day-in-r { from { transform: translateX(-48px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .day-in-l, .day-in-r { animation: none; } }
+/* 오늘 해낸 것 (10/29) */
+.win-card .win-big { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin: 8px 0 0; line-height: 1.35; }
+.win-card .win-big b { color: var(--green); }
+.win-card .win-sub { margin: 4px 0 0; }
+.win-bar { height: 10px; border-radius: 99px; background: var(--red-soft); margin-top: 14px; overflow: hidden; }
+.win-bar i { display: block; height: 100%; border-radius: 99px; background: var(--green); transition: width .6s cubic-bezier(.3,1.2,.5,1); }
+.win-cap { margin: 6px 0 0; } .win-cap b { color: var(--t1); }
+.win-list { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 8px; }
+.win-list li { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+.win-list li span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--t2); }
+.win-list li b { flex: none; font-variant-numeric: tabular-nums; }
+.win-list em { font-style: normal; font-size: 12px; font-weight: 700; color: var(--green); background: var(--green-soft); padding: 2px 6px; border-radius: 6px; margin-left: 4px; }
