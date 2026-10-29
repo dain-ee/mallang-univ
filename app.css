@@ -1376,11 +1376,11 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 .lag-g i, .lag-k { display: block; height: 14px; border-radius: 4px; background: var(--fill); }
 .lag-g i.span { background: var(--fill); }
 .lag-g i.off { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
-.lag-g i.done, .lag-k.done { background: var(--blue); }
+.lag-g i.done, .lag-k.done { background: var(--green); }
 .lag-g i.miss, .lag-k.miss { background: var(--red); }
 .lag-g i.plan, .lag-k.plan { background: var(--blue-l); }
 .lag-g i.todo { background: var(--card); box-shadow: inset 0 0 0 2px var(--blue); }
-.lag-g i.todo.done { background: var(--blue); box-shadow: inset 0 0 0 2px var(--blue-d); }
+.lag-g i.todo.done { background: var(--green); box-shadow: inset 0 0 0 2px var(--blue); }
 .lag-k { display: inline-block; width: 14px; vertical-align: -2px; margin: 0 3px 0 6px; }
 .lag-row .d { margin-top: 8px; font-size: 13px; color: var(--t2); line-height: 1.5; }
 .lag-foot { margin: 12px 0 0; font-size: 13px; color: var(--t3); line-height: 1.5; }
