@@ -1063,7 +1063,7 @@
       if (isPlan(it)) continue;
       const c0 = it.at ? dateOf(it.at) : addD(it.due, -7), u = it.unit === '쪽' ? '쪽' : it.unit === '건' ? '' : '문제', dn = myDone(it), over = it.due < t;
       if (it.unit === '건') { if (!over) continue; rows.push({ go: 'my:' + it.id, icon: 'write', t: it.book, cells: [], segs: lagSpan(days, c0, it.due), behind: 1, unit: '개', d: `${md(it.due)}까지였는데 아직 안 했어요 · ${myCls(it.cls).name}` }); continue; }
-      const SD = myStudy(it), all = Math.max(1, myDaysLeft(it.due, SD, c0)), past = myDaysLeft(Math.min(addD(t, -1), it.due), SD, c0), exp = over ? it.total : Math.round((it.total * past) / all), beh = Math.max(0, exp - dn);
+      const SD = myStudy(it), all = Math.max(1, myDaysLeft(it.due, SD, c0)), past = myDaysLeft((addD(t, -1) < it.due ? addD(t, -1) : it.due), SD, c0), exp = over ? it.total : Math.round((it.total * past) / all), beh = Math.max(0, exp - dn);
       const cells = days.map((d) => { const lg = (it.log || {})[d]; if (d < c0 || d > it.due) return { d, st: 'off' }; const on = SD.includes(dowOf(d)); if (lg && lg.n) return { d, st: st0(d, true, true), lb: String(lg.n) }; if (mySkip(it, d)) return { d, st: 'span' }; return { d, st: on ? st0(d, false, true) : 'span' }; });
       const i0 = Math.round((new Date(c0) - new Date(days[0])) / 864e5), i1 = Math.round((new Date(it.due) - new Date(days[0])) / 864e5) + 1, pe = i0 + (i1 - i0) * Math.min(1, dn / it.total), segs = [{ a: i0, b: i1, st: 'span' }, { a: i0, b: pe, st: 'done' }];
       if (over) segs.push({ a: i1, b: LAG_PAST + 1, st: 'miss' }); else if (beh > 0) segs.push({ a: pe, b: LAG_PAST + 0.5, st: 'miss' });
@@ -1107,7 +1107,7 @@
   // 오늘 해낸 것: 밀린 걸 몰아서 한 날 체크 한 줄로 끝나 허무하지 않게 (10/29 선생님). 저장하는 값 없이 이미 있는 기록(log·ink·hw)으로만 계산해요
   function myBeh(it) {
     const t = today(), c0 = it.at ? dateOf(it.at) : addD(it.due, -7), SD = myStudy(it), dn = myDone(it), dt = (it.log && it.log[t] && it.log[t].n) || 0;
-    const all = Math.max(1, myDaysLeft(it.due, SD, c0)), past = myDaysLeft(Math.min(addD(t, -1), it.due), SD, c0), exp = it.due < t ? it.total : Math.round((it.total * past) / all);
+    const all = Math.max(1, myDaysLeft(it.due, SD, c0)), past = myDaysLeft((addD(t, -1) < it.due ? addD(t, -1) : it.due), SD, c0), exp = it.due < t ? it.total : Math.round((it.total * past) / all);
     const was = Math.max(0, exp - (dn - dt)), now = Math.max(0, exp - dn);
     return { dt, was, now, caught: was - now };
   }
@@ -1833,7 +1833,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610291958', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610292001', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4845,7 +4845,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610291958'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610292001'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
