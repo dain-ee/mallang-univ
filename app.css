@@ -2828,3 +2828,48 @@ button.st-k.hid:hover { background: var(--blue-soft); }
 .st-tbl th, .st-tbl td { padding: 10px 12px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
 .st-tbl th { background: var(--fill2); font-weight: 700; color: var(--t2); }
 .st-tip { margin-top: 8px; padding: 10px 12px; background: var(--blue-soft); border-radius: 10px; }
+
+/* 소단원 한눈에 정리 (흐름 그림 빈칸) */
+.mp { padding: 20px 16px; }
+.mp-sec + .mp-sec { margin-top: 24px; }
+.mp-sec h3 { margin: 0 0 12px; text-align: center; font-size: 15px; }
+.mp-sec h3 span { display: inline-block; padding: 6px 14px; border-radius: 999px; background: var(--t1); color: var(--card); font-weight: 700; }
+.mp-box { position: relative; background: var(--fill2); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+.mp-box p { margin: 0; font-size: 15px; line-height: 1.75; }
+.mp-box p + p { margin-top: 2px; }
+.mp-y { display: inline-block; margin-bottom: 4px; padding: 2px 8px; border-radius: 6px; background: var(--blue-soft); color: var(--blue-d); font-size: 13px; font-weight: 700; }
+.mp-h { display: block; margin-bottom: 4px; font-size: 15px; }
+.mp-cols { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 8px; }
+.mp-ar { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0; color: var(--t3); }
+.mp-ar i { width: 2px; height: 14px; background: var(--t4); position: relative; }
+.mp-ar i::after { content: ""; position: absolute; left: -4px; bottom: -6px; border: 5px solid transparent; border-top: 6px solid var(--t4); }
+.mp-ar span { margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--t2); }
+.mp-k { color: var(--t1); }
+.mp-k.ok { color: var(--blue); }
+.mp-k.no { color: var(--red); }
+.mp-gap { display: inline-block; min-width: 72px; height: 1.5em; margin: 0 2px; padding: 0 6px; vertical-align: -0.3em; border: 0; border-bottom: 2px solid var(--blue); border-radius: 6px 6px 0 0; background: var(--blue-soft); color: var(--blue); font-weight: 700; }
+.mp-gap.cur { background: var(--blue); color: #fff; }
+.mp-bank { position: sticky; bottom: calc(var(--tab-h) + 8px); margin-top: 12px; padding: 12px 14px; background: var(--card); border-radius: var(--r-card); box-shadow: var(--shadow-pop); z-index: 5; }
+.mp-bank .tiny { margin: 0 0 8px; }
+@media (max-width: 560px) { .mp-cols { grid-template-columns: 1fr; } .mp { padding: 16px 12px; } }
+
+/* 공부 탭 단원 단계 (개념 정리 → 빈칸 → 용어 → 순서 → 쉬운·보통·어려운 → 기출) */
+.st-steps { display: flex; gap: 8px; margin-top: 16px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.st-steps::-webkit-scrollbar { display: none; }
+.st-step { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 14px 6px 6px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); text-align: left; }
+.st-sn { flex: 0 0 auto; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--fill); color: var(--t2); font-size: 14px; font-weight: 700; }
+.st-sl { font-size: 15px; font-weight: 600; white-space: nowrap; }
+.st-step small { color: var(--t3); font-size: 12px; white-space: nowrap; }
+.st-step.done .st-sn { background: var(--blue-soft); color: var(--blue); }
+.st-step.on { border-color: var(--t1); background: var(--t1); color: var(--card); }
+.st-step.on .st-sn { background: var(--card); color: var(--t1); }
+.st-step.on small { color: var(--t4); }
+.st-next { margin-top: 12px; }
+.st-ord-done { margin: 0 0 12px; padding-left: 22px; }
+.st-ord-done li { padding: 6px 0; line-height: 1.6; border-bottom: 1px solid var(--line); }
+.st-ord-done li:last-child { border-bottom: 0; }
+.st-ord-ops { display: grid; gap: 8px; }
+.st-ord-op { padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--fill2); text-align: left; line-height: 1.55; font-size: 15px; }
+.st-ord-op:active { background: var(--blue-soft); }
+@media (min-width: 900px) { .st-steps { flex-wrap: wrap; overflow: visible; } }
+@media (max-width: 560px) { .mp-bank .jg-ops { max-height: 30vh; overflow-y: auto; } }
