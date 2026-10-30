@@ -2889,3 +2889,11 @@ button.st-k.hid:hover { background: var(--blue-soft); }
   .nx-rail .st-step.on { background: var(--t1); }
   .nx-rail .st-step small { margin-left: auto; }
 }
+/* 빈칸 채점: 그 자리에 정답, 틀리면 내 답은 밑에 작게 */
+.nx-bl-r { display: inline-flex; flex-direction: column; align-items: center; vertical-align: top; margin: 0 2px; line-height: 1.3; }
+.nx-bl-r b { padding: 4px 10px; border-bottom: 2px solid currentColor; border-radius: 8px 8px 0 0; }
+.nx-bl-r.ok b { color: var(--green); background: var(--green-soft); }
+.nx-bl-r.no b { color: var(--red); background: var(--red-soft); }
+.nx-bl-r s { margin-top: 2px; font-size: 13px; font-weight: 500; color: var(--t3); }
+.st-run .nx-wrap { max-width: none; }
+.st-run .nx-x { display: none; }

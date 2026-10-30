@@ -1858,7 +1858,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610302249', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610302254', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4476,7 +4476,7 @@
     let stem, ans = '';
     const typed = rec && rec.v != null ? String(rec.v).split(' ‖ ') : [];
     if (q.t === 'blank') {
-      let k = 0; stem = `${q.h ? `<div class="tiny" style="margin-bottom:6px">${esc(q.h)}</div>` : ''}<p class="nx-q nx-blq">${esc(q.q).replace(/\{([^}]+)\}/g, (m, a) => { const i = k++; if (!rec) return `<input class="nx-bl" data-nxin="${i}" autocomplete="off" spellcheck="false" style="width:${Math.max(4, a.length * 1.6 + 1)}em" aria-label="빈칸 ${i + 1}">`; const ok = nxAlts(a).includes(nxKey(typed[i])); return ok ? `<b class="nx-bl-ok">${esc(a)}</b>` : `${typed[i] ? `<s class="nx-bl-x">${esc(typed[i])}</s>` : ''}<b class="nx-bl-no">${esc(a)}</b>`; })}</p>`;
+      let k = 0; stem = `${q.h ? `<div class="tiny" style="margin-bottom:6px">${esc(q.h)}</div>` : ''}<p class="nx-q nx-blq">${esc(q.q).replace(/\{([^}]+)\}/g, (m, a) => { const i = k++; if (!rec) return `<input class="nx-bl" data-nxin="${i}" autocomplete="off" spellcheck="false" style="width:${Math.max(4, a.length * 1.6 + 1)}em" aria-label="빈칸 ${i + 1}">`; const ok = nxAlts(a).includes(nxKey(typed[i])); return `<span class="nx-bl-r ${ok ? 'ok' : 'no'}"><b>${esc(a)}</b>${!ok && String(typed[i] || '').trim() ? `<s>${esc(typed[i])}</s>` : ''}</span>`; })}</p>`;
       if (!rec) ans = `<div class="nx-acts"><button class="btn primary big" id="nx-go" type="button">채점하기</button><button class="nx-link" id="nx-give" type="button">모르겠어요</button></div>`;
     } else if (q.t === 'wko' || q.t === 'wen') {
       stem = `<div class="nx-word">${esc(q.q)}</div>${q.t === 'wen' && q.w.ex ? `<p class="nx-wex">${esc(q.w.ex).replace(new RegExp(q.w.en.split(' ')[0].slice(0, Math.max(3, q.w.en.split(' ')[0].length - 2)).replace(/[^a-z]/gi, '') + '\\w*', 'i'), '<span class="nx-gap"></span>')}</p>` : ''}`;
@@ -4611,6 +4611,7 @@
   // 단원 문제 화면 왼쪽(폰은 위)에 그 단원 공부 단계: 눌러서 바로 옮겨 가요 (10/30 «왼쪽에 탭이 있어야 할 거 같아, 답답해»)
   function nxRail(html) {
     const r = UI.run, s = r && NXSETS[r.id], u = s && NXU[s.unit]; if (!u || !(NXD.subjects || []).length) return html;
+    if (r.back === 'study') { UI.stS = u.subj; UI.stU = u.id; return studyView(html); }  // 공부 탭에서 연 문제는 공부 화면 그대로 가운데에서 풀어요 (10/30 «새로운 탭으로 가는 게 문제»)
     const steps = stSteps(u), q0 = (s.qs[0] || {}).i, cur = steps.find((x) => x.id === s.id) || steps.find((x) => x.k === 'set' && NXSETS[x.id].qs.some((q) => q.i === q0));
     const btn = (x, i) => { const g = x.k === 'set' ? nxProg(NXSETS[x.id]) : null, dn = x.k === 'notes' ? !!nxS().a[stReadId(u)] : x.k === 'order' ? stOrdDone(u) : g ? g.d >= g.n : false;
       return `<button type="button" class="st-step ${x === cur ? 'on' : ''} ${dn ? 'done' : ''}" ${x.k === 'set' ? `data-nx="${esc(x.id)}"` : `data-nxst="${x.k}"`}><span class="st-sn num">${dn ? '✓' : i + 1}</span><span class="st-sl">${esc(x.name)}</span>${g ? `<small class="num">${g.d}/${g.n}</small>` : ''}</button>`; };
@@ -4827,7 +4828,7 @@
   function stSteps(u) {
     const out = [], has = (id) => NXSETS[id] && NXSETS[id].qs.length, N = u.notes || {};
     const add = (k, name, id) => out.push({ k, name, id });
-    if (u.subj === 'm3') { add('notes', '지문'); add('terms', '단어'); for (const p of ['c', 'q', 'x']) if (has(`${u.id}:${p}`)) add('set', nxPartName(u, p) + (p === 'c' ? ' 문제' : ''), `${u.id}:${p}`); return out; }
+    if (u.subj === 'm3') { add('terms', '단어'); for (const p of ['c', 'q', 'x']) if (has(`${u.id}:${p}`)) add('set', nxPartName(u, p) + (p === 'c' ? ' 문제' : ''), `${u.id}:${p}`); add('notes', '지문·해석'); return out; }  // 매3영은 문제 먼저, 해석은 다 풀고 (10/30 «주르륵 설명글만»)
     add('notes', '개념 정리');
     if (u.subj !== 'eng' && has(`${u.id}:c`)) add('set', '빈칸 쓰기', `${u.id}:c`);
     add('terms', u.subj === 'eng' ? '단어' : '용어');
@@ -4962,37 +4963,38 @@
     return `<section class="card st-sec"><div class="card-h"><h2>문제 풀기</h2><span class="tiny">한 문제씩 바로 채점, 틀린 건 오답 노트로</span></div><div class="list">${printRow}${rows.map((s) => nxRow(s, { title: nxPartName(u, s.kind), icon: s.kind === 'c' ? 'bulb' : s.kind === 'q' ? 'pencil' : s.kind === 'x' ? 'target' : 'eng', d: `${pd[s.kind]} · ${(() => { const g = nxProg(s); return g.d ? `${g.d} / ${g.n} 풀었어요` : `${g.n}문제`; })()}` })).join('') || '<p class="tiny">아직 문제가 없어요</p>'}</div></section>
       ${u.papers.length ? `<section class="card st-sec"><div class="card-h"><h2>기출 시험지별로</h2><span class="tiny">${u.papers.length}개</span></div><div class="list">${u.papers.map((pp) => nxRow(NXSETS[`${u.id}:x:${pp.id}`], { icon: 'memo' })).join('')}</div></section>` : ''}`;
   }
-  function studyView() {
+  function studyView(inner) {
     const SB = NXD.subjects || [];
     if (!SB.length) return `<h1 class="h1">공부</h1><div class="card empty">${gh('sleepy', 'gh-empty')}<b>아직 공부할 단원이 없어요</b></div>`;
     if (!SB.some((x) => x.key === UI.stS)) UI.stS = SB[0].key;
     const sb = SB.find((x) => x.key === UI.stS);
     if (!sb.units.some((u) => u.id === UI.stU)) UI.stU = (sb.units.find(ypFin) || sb.units[0] || {}).id;
-    const u = NXU[UI.stU], steps = u ? stSteps(u) : [], tab = ['notes', 'terms', 'order', 'qs'].includes(UI.stT) ? UI.stT : 'notes';
+    const u = NXU[UI.stU], steps = u ? stSteps(u) : [], tab = inner ? 'run' : ['notes', 'terms', 'order', 'qs'].includes(UI.stT) ? UI.stT : u && u.subj === 'm3' ? 'terms' : 'notes';
+    const rs = inner && NXSETS[UI.run.id], q0 = rs && (rs.qs[0] || {}).i, runStep = rs && (steps.find((x) => x.id === rs.id) || steps.find((x) => x.k === 'set' && NXSETS[x.id].qs.some((q) => q.i === q0)));
     const uBtn = (x) => { const g = ['c', 'q', 'x'].map((p) => NXSETS[`${x.id}:${p}`]).filter(Boolean).map(nxProg), n = g.reduce((a, y) => a + y.n, 0), d = g.reduce((a, y) => a + y.d, 0); return `<button type="button" class="st-u ${x.id === UI.stU ? 'on' : ''}" data-stunit="${esc(x.id)}" aria-current="${x.id === UI.stU}"><span class="st-no">${esc(x.subj === 'eng' ? x.code : x.code)}</span><span class="st-ut">${esc(x.title)}</span><span class="st-pc num">${n ? Math.round((d / n) * 100) + '%' : ''}</span></button>`; };
     const fin = sb.units.filter(ypFin), old = sb.units.filter((x) => !ypFin(x));
     const side = `<nav class="st-side" aria-label="과목과 단원"><div class="seg st-subj">${SB.map((x) => `<button type="button" class="${x.key === sb.key ? 'on' : ''}" data-sts="${x.key}">${esc(x.name)}</button>`).join('')}</div>
       <div class="st-ul">${fin.length ? `<div class="eyebrow st-lh">기말 범위</div>${fin.map(uBtn).join('')}` : ''}${old.length ? `<div class="eyebrow st-lh">${fin.length ? '지난 범위' : '단원'}</div>${old.map(uBtn).join('')}` : ''}</div></nav>`;
-    const sti = steps.findIndex((x) => x.k === tab), nxt = steps[sti + 1];
+    const sti = inner ? steps.indexOf(runStep) : steps.findIndex((x) => x.k === tab), nxt = inner ? null : steps[sti + 1];
     const stepBtn = (x, i) => { const g = x.k === 'set' ? nxProg(NXSETS[x.id]) : null, dn = x.k === 'notes' ? !!nxS().a[stReadId(u)] : x.k === 'order' ? stOrdDone(u) : g ? g.d >= g.n : false;
-      return `<button type="button" class="st-step ${x.k === tab ? 'on' : ''} ${dn ? 'done' : ''}" ${x.k === 'set' ? `data-nx="${esc(x.id)}"` : `data-stt="${x.k}"`}><span class="st-sn num">${dn ? '✓' : i + 1}</span><span class="st-sl">${esc(x.name)}</span>${g ? `<small class="num">${g.d ? `${g.d}/${g.n}` : `${g.n}문제`}</small>` : ''}</button>`; };
+      return `<button type="button" class="st-step ${(inner ? x === runStep : x.k === tab) ? 'on' : ''} ${dn ? 'done' : ''}" ${x.k === 'set' ? `data-nx="${esc(x.id)}"` : `data-stt="${x.k}"`}><span class="st-sn num">${dn ? '✓' : i + 1}</span><span class="st-sl">${esc(x.name)}</span>${g ? `<small class="num">${g.d ? `${g.d}/${g.n}` : `${g.n}문제`}</small>` : ''}</button>`; };
     const nextBar = !nxt ? '' : `<div class="st-next">${tab === 'notes' && !nxS().a[stReadId(u)] ? `<button class="btn primary big block" data-stread type="button">다 읽었어요 · 다음: ${esc(nxt.name)} ›</button>` : `<button class="btn primary big block" ${nxt.k === 'set' ? `data-nx="${esc(nxt.id)}"` : `data-stt="${nxt.k}"`} type="button">다음: ${sti + 2}. ${esc(nxt.name)} ›</button>`}</div>`;
     const body = !u ? '' : `<section class="card st-head"><div class="row between"><span class="tiny">${esc(NX_SN[u.subj])} ${esc(u.code)}</span>${ypFin(u) ? '<span class="tag red">기말 범위</span>' : u.subj === 'm3' ? '' : '<span class="tag">지난 범위</span>'}</div><h2 class="st-t">${esc(u.title)}</h2>${u.sub ? `<p class="sub">${esc(u.sub)}</p>` : ''}
         <div class="st-steps" role="list" aria-label="공부 순서">${steps.map(stepBtn).join('')}${u.papers.length || (u.print || []).length ? `<button type="button" class="st-step ${tab === 'qs' ? 'on' : ''}" data-stt="qs"><span class="st-sn">${ic('memo')}</span><span class="st-sl">${(u.print || []).length ? '프린트·시험지' : '시험지별'}</span></button>` : ''}</div>
         ${tab === 'notes' || tab === 'terms' ? `<div class="row between st-tools"><span class="tiny">${tab === 'notes' ? '굵은 말이 빈칸에 나와요' : '눌러서 가렸다 보였다 해요'}</span><button type="button" class="btn sm ${UI.stHide ? 'primary' : ''}" data-sthide aria-pressed="${!!UI.stHide}">${UI.stHide ? '가린 것 다 보기' : '가리고 외우기'}</button></div>` : ''}</section>
-      ${tab === 'notes' ? stNotes(u) || '<div class="card empty"><b>정리가 아직 없어요</b></div>' : tab === 'terms' ? stTerms(u) : tab === 'order' ? stOrder(u) : stParts(u)}${nextBar}`;
+      ${inner ? `<div class="st-run">${inner}</div>` : tab === 'notes' ? stNotes(u) || '<div class="card empty"><b>정리가 아직 없어요</b></div>' : tab === 'terms' ? stTerms(u) : tab === 'order' ? stOrder(u) : stParts(u)}${nextBar}`;
     return `<h1 class="h1">공부</h1><p class="sub">${YF ? `${esc(YF.title)} ${md(YF.from)}~${md(YF.to).replace(/^\d+월 /, '')}${dday(YF.from) >= 0 ? ` · D-${dday(YF.from)}` : ''}` : '단원별로 정리하고 문제를 풀어요'}</p>
-      <div class="grid">${ypCard()}</div><div class="st-wrap">${side}<div class="st-main">${body}</div></div>`;
+      ${inner ? '' : `<div class="grid">${ypCard()}</div>`}<div class="st-wrap">${side}<div class="st-main">${body}</div></div>`;
   }
   function bindStudy() {
-    $$('[data-sts]').forEach((b) => (b.onclick = () => { UI.stS = b.dataset.sts; UI.stU = null; render(); }));
-    $$('[data-stunit]').forEach((b) => (b.onclick = () => { UI.stU = b.dataset.stunit; render(); const m = $('.st-main'); if (m && m.getBoundingClientRect().top < 0) m.scrollIntoView({ behavior: RM() ? 'auto' : 'smooth', block: 'start' }); }));
+    $$('[data-sts]').forEach((b) => (b.onclick = () => { UI.run = null; UI.stS = b.dataset.sts; UI.stU = null; UI.stT = null; render(); }));
+    $$('[data-stunit]').forEach((b) => (b.onclick = () => { UI.run = null; UI.stU = b.dataset.stunit; UI.stT = null; render(); const m = $('.st-main'); if (m && m.getBoundingClientRect().top < 0) m.scrollIntoView({ behavior: RM() ? 'auto' : 'smooth', block: 'start' }); }));
     $$('[data-sthide]').forEach((b) => (b.onclick = () => { UI.stHide = !UI.stHide; const y = scrollY; render(); scrollTo(0, y); }));
     $$('[data-stk]').forEach((b) => (b.onclick = () => b.classList.toggle('hid')));
     $$('[data-ypd]').forEach((b) => (b.onclick = () => { UI.ypDay = b.dataset.ypd; const y = scrollY; render(); scrollTo(0, y); }));
     const u = NXU[UI.stU]; if (!u) return;
     const toMain = () => { const m = $('.st-main'); if (m && m.getBoundingClientRect().top < 0) m.scrollIntoView({ block: 'start' }); };
-    $$('[data-stt]').forEach((b) => (b.onclick = () => { UI.stT = b.dataset.stt; render(); toMain(); }));
+    $$('[data-stt]').forEach((b) => (b.onclick = () => { UI.run = null; UI.stT = b.dataset.stt; render(); toMain(); }));
     $$('[data-stread]').forEach((b) => (b.onclick = () => { nxS().a[stReadId(u)] = { ok: true, at: Date.now() }; save('nx'); const st = stSteps(u), nx = st[st.findIndex((x) => x.k === 'notes') + 1]; if (nx && nx.k === 'set') return nxStart(nx.id, 'study'); UI.stT = nx ? nx.k : 'notes'; render(); toMain(); }));
     $$('[data-ordre]').forEach((b) => (b.onclick = () => { (UI.stOrd = UI.stOrd || {})[b.dataset.ordre] = { got: [], miss: 0 }; const y = scrollY; render(); scrollTo(0, y); }));
     $$('[data-ord]').forEach((b) => (b.onclick = () => {
@@ -5141,7 +5143,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610302249'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610302254'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6087,7 +6089,7 @@
   }
   function go(tab) { UI.tab = tab; UI.run = null; UI.lib = null; UI.nxUnit = null; if (tab !== 'score') UI.mockId = null; render(); window.scrollTo(0, 0); }
   function startTask(k) {
-    if (k.startsWith('yp:')) { const ys = NXSETS[k]; if (ys && ys.nav) { const u = NXU[ys.unit]; UI.stS = u.subj; UI.stU = u.id; UI.stT = ys.nav; return go('study'); } return nxStart(k, 'study'); }
+    if (k.startsWith('yp:')) { const ys = NXSETS[k]; if (ys && ys.nav) { const u = NXU[ys.unit]; UI.stS = u.subj; UI.stU = u.id; UI.stT = ys.nav; go('study'); const m = $('.st-main'); if (m) m.scrollIntoView({ block: 'start' }); return; } return nxStart(k, 'study'); }
     if (k.startsWith('study:')) { UI.stS = k.slice(6); UI.stU = null; return go('study'); }
     if (k === 'sci') { UI.tab = 'hw'; UI.run = { kind: 'sci' }; }
     else if (k === 'unit') { UI.tab = 'hw'; UI.run = { kind: 'unit' }; }
@@ -6115,7 +6117,7 @@
     render(); window.scrollTo(0, 0);
   }
   function bind() {
-    if (UI.tab === 'study' && !UI.run) bindStudy();
+    if (UI.tab === 'study' && (!UI.run || (UI.run.kind === 'nx' && UI.run.back === 'study'))) bindStudy();
     $$('[data-jgo]').forEach((x) => (x.onclick = () => { const [u, st] = x.dataset.jgo.split('|'); UI.tab = 'hw'; UI.run = { kind: 'gram', unit: +u, step: +st }; render(); window.scrollTo(0, 0); }));
     $$('[data-jlo],[data-jro],[data-jwo]').forEach((x) => (x.onclick = () => { const kind = x.dataset.jlo ? 'jl' : x.dataset.jro ? 'jr' : 'jw', [id, m] = (x.dataset.jlo || x.dataset.jro || x.dataset.jwo).split('|'); UI.tab = 'hw'; UI.run = kind === 'jw' ? { kind, id, m } : { kind, unit: +id, m }; render(); window.scrollTo(0, 0); }));
     $$('[data-calm]').forEach((x) => (x.onclick = () => { UI.calYm = x.dataset.calm; render(); }));
