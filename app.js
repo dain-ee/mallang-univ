@@ -1882,7 +1882,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610302329', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610302338', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2183,7 +2183,8 @@
   const mapShort = (m) => m.title.replace(/^[ⅠⅡⅢⅣⅤ]+-\d+\s*/, '');
   // 오늘 할 것: 개념을 다 끝낸 소단원 중 아직 빈칸이 남았거나 오늘 끝낸 것
   // 숙제로는 개념을 다 끝낸 다음 날부터 (10/30 «오늘 숙제로 하지 마, 끝났어도 내일, 안 끝났으면 끝날 때»)
-  const mapReady = (m) => mapOpen(m) && addD(mapCs(m).map(finDoneDay).sort().pop(), 1) <= today();
+  // 10/30 에 만든 기능이라 숙제로는 10/31 부터 (그 전에 끝낸 소단원도 오늘은 빼요)
+  const mapReady = (m) => mapOpen(m) && addD(mapCs(m).map(finDoneDay).sort().pop(), 1) <= today() && today() >= '2026-10-31';
   const mapToday = () => MAPS.filter((m) => mapReady(m) && (!mapDone(m) || mapDoneDay(m) === today()));
   function mapTx(s, m, ctx) {
     return rich(s).replace(/\{([^}]+)\}/g, (_, t) => {
@@ -5203,7 +5204,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610302329'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610302338'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
