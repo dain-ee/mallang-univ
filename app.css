@@ -2710,3 +2710,22 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .win-list li span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--t2); }
 .win-list li b { flex: none; font-variant-numeric: tabular-nums; }
 .win-list em { font-style: normal; font-size: 12px; font-weight: 700; color: var(--green); background: var(--green-soft); padding: 2px 6px; border-radius: 6px; margin-left: 4px; }
+/* 선생님 테마 (10/30 «블랙 레드 화이트 그레이 · 몬치치랑 다른 아예 새로운 테마 · 버튼도 검은색»): 흰 띠에 얇은 검은 선, 검은 단추, 빨강은 숫자 배지·작은 경고에만 */
+:root[data-skin="teacher"] { --blue: #111111; --blue-d: #000000; --blue-soft: #f4f4f5; --blue-l: #e4e4e7; --bg: #f4f4f5; --card: #ffffff; --t1: #111111; --t2: #4a4a4f; --t3: #8a8a90; --t4: #b8b8be; --line: #e4e4e7; --fill: #f2f2f3; --fill2: #f8f8f9; --green: #111111; --green-soft: #ededed; --amber: #8a8a90; --amber-soft: #f2f2f3; --amber-t: #4a4a4f; --red: #e2333d; --red-soft: #fcebec; --hl: rgba(17, 17, 17, .1); --skin-bg: none; --skin-band: none; }
+:root[data-skin="teacher"] .top { background: var(--card); border-bottom: 1px solid var(--t1); }
+:root[data-skin="teacher"] .tabs:not(.tabbar) > button.on { background: var(--t1); color: var(--card); }
+:root[data-skin="teacher"] .tabs:not(.tabbar) .seg-ind { background: var(--t1); }  /* 움직이는 알약도 검정 */
+:root[data-skin="teacher"] .hero-band { background: var(--t1) !important; }  /* 대학 색 띠(인라인) 대신 검정 */
+:root[data-skin="teacher"] .grow-st, :root[data-skin="teacher"] .grow-st * { color: var(--red); }
+:root[data-skin="teacher"] .nt-card .btn img.ic { filter: grayscale(1) brightness(.2); }
+:root[data-skin="teacher"] .pet-perch .pet-say { background: #111; color: #fff; border: 0; box-shadow: none; }
+:root[data-skin="teacher"] .pet-perch .pet-say .pet-who { color: rgba(255, 255, 255, .6); }
+.pet-perch[data-skin="teacher"] img { transform: scale(1.1); transform-origin: 50% 78.6%; }  /* 몬치치처럼 몸 아래 끝(302/384)이 카드 윗변에 딱 */
+.pet-perch[data-skin="teacher"] .pb i, .pet-perch[data-skin="teacher"] .pb i:nth-child(even) { width: 26px; height: 26px; left: -13px; top: -13px; animation-duration: 1.25s; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .25)); }
+.tc-av { position: relative; width: 64px; height: 64px; flex: none; border-radius: 50%; overflow: hidden; background: var(--fill); }
+.tc-av img { position: absolute; width: 230%; left: -65%; top: -38%; max-width: none; }  /* 384 정사각 그림에서 얼굴만 */
+.tc-chip { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: var(--t1); color: var(--card); font-size: 12px; font-weight: 600; vertical-align: 1px; }
+@media (prefers-color-scheme: dark) { :root[data-skin="teacher"]:not([data-theme="light"]) { --bg: #101013; --card: #1d1d22; --t1: #f4f4f5; --t2: #c3c3c9; --t3: #8a8a90; --t4: #5f5f66; --line: #2c2c34; --fill: #2c2c34; --fill2: #24242a; --blue: #e4e4e7; --blue-d: #ffffff; --blue-soft: #26262c; --blue-l: #3a3a42; --green: #f4f4f5; --green-soft: #26262c; } }
+:root[data-skin="teacher"][data-theme="dark"] { --bg: #101013; --card: #1d1d22; --t1: #f4f4f5; --t2: #c3c3c9; --t3: #8a8a90; --t4: #5f5f66; --line: #2c2c34; --fill: #2c2c34; --fill2: #24242a; --blue: #e4e4e7; --blue-d: #ffffff; --blue-soft: #26262c; --blue-l: #3a3a42; --green: #f4f4f5; --green-soft: #26262c; }
+@media (prefers-color-scheme: dark) { :root[data-skin="teacher"]:not([data-theme="light"]) .btn.primary, :root[data-skin="teacher"]:not([data-theme="light"]) .tabs:not(.tabbar) > button.on { color: #111; } }
+:root[data-skin="teacher"][data-theme="dark"] .btn.primary, :root[data-skin="teacher"][data-theme="dark"] .tabs:not(.tabbar) > button.on { color: #111; }
