@@ -1882,7 +1882,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610302321', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610302329', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2182,7 +2182,9 @@
   const mapDoneDay = (m) => mapDone(m) ? dOf(Math.max(...Object.values(mapA(m)).map((x) => x.at || 0))) : null;
   const mapShort = (m) => m.title.replace(/^[ⅠⅡⅢⅣⅤ]+-\d+\s*/, '');
   // 오늘 할 것: 개념을 다 끝낸 소단원 중 아직 빈칸이 남았거나 오늘 끝낸 것
-  const mapToday = () => MAPS.filter((m) => mapOpen(m) && (!mapDone(m) || mapDoneDay(m) === today()));
+  // 숙제로는 개념을 다 끝낸 다음 날부터 (10/30 «오늘 숙제로 하지 마, 끝났어도 내일, 안 끝났으면 끝날 때»)
+  const mapReady = (m) => mapOpen(m) && addD(mapCs(m).map(finDoneDay).sort().pop(), 1) <= today();
+  const mapToday = () => MAPS.filter((m) => mapReady(m) && (!mapDone(m) || mapDoneDay(m) === today()));
   function mapTx(s, m, ctx) {
     return rich(s).replace(/\{([^}]+)\}/g, (_, t) => {
       if (ctx.seen.has(t) || ctx.mode === 'see') { ctx.seen.add(t); return `<b class="mp-k">${t}</b>`; }
@@ -2267,7 +2269,7 @@
     const i = r.i != null ? r.i : qs.findIndex((q, k) => !(A[k] && A[k].pick != null));
     if (i < 0) {
       const ok = qs.filter((q, k) => A[k] && A[k].ok).length, nx = finToday().find((x) => !finDone(x) && x.id !== c.id) || FIN_ORDER.find((x) => !finDone(x) && x.id !== c.id);
-      const mp = MAPS.find((m) => m.id === c.unit && mapOpen(m) && !mapDone(m));
+      const mp = MAPS.find((m) => m.id === c.unit && mapReady(m) && !mapDone(m));
       return `<div class="qwrap" style="max-width:720px;margin:0 auto">${head}${doneCard(ok, qs.length, ok === qs.length ? '이 개념은 이제 내 거예요' : '틀린 건 해설을 보고 개념을 한 번 더 읽어요', `${mp ? `<button class="btn primary big block" data-fmap="${mp.id}" type="button">소단원 끝! 한눈에 정리 빈칸 채우기</button>` : ''}${nx ? `<button class="btn primary big block" data-fc="${nx.id}" type="button">다음 개념: ${esc(nx.title)}</button>` : ''}<button class="btn big block" data-finback type="button">숙제로</button><button class="btn big block" id="fr-redo" type="button">개념 다시 읽고 다시 풀기</button>`)}</div>`;
     }
     const q = qs[i], a = A[i] && A[i].pick != null ? A[i] : null;
@@ -5201,7 +5203,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610302321'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610302329'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
