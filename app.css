@@ -2755,7 +2755,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .st-blk h3 { margin: 0 0 8px; font-size: 15px; color: var(--t2); }
 .st-blk ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
 .st-blk li { font-size: 15px; line-height: 1.75; color: var(--t1); }
-.st-k { font-weight: 700; color: var(--t1); box-shadow: inset 0 -6px 0 var(--blue-soft); }
+.st-k { font-weight: 700; color: var(--t1); box-shadow: inset 0 -0.5em 0 var(--hl, #e2ff5c); }  /* 형광펜: 노랑연두 라임 (10/30) */
 button.st-k { padding: 0 2px; font: inherit; font-weight: 700; background: none; border: 0; border-radius: 6px; cursor: pointer; }
 button.st-k.hid { color: transparent; background: var(--fill); box-shadow: inset 0 0 0 1px var(--line); }
 button.st-k.hid:hover { background: var(--blue-soft); }
@@ -2897,3 +2897,16 @@ button.st-k.hid:hover { background: var(--blue-soft); }
 .nx-bl-r s { margin-top: 2px; font-size: 13px; font-weight: 500; color: var(--t3); }
 .st-run .nx-wrap { max-width: none; }
 .st-run .nx-x { display: none; }
+
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --hl: rgba(214, 255, 64, .35); } }
+.hcal-d .hc-p { font-size: 11px; font-weight: 600; color: var(--blue); }
+.hcal-d.fut { background: var(--fill2); }
+.st-lsub { margin-top: 12px; }
+.st-lsub .seg { max-width: 480px; }
+.gr-rows { display: grid; gap: 4px; }
+.gr-row { display: grid; grid-template-columns: 1fr 96px 44px; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--line); }
+.gr-row:last-child { border-bottom: 0; }
+.gr-row span { font-weight: 600; }
+.gr-row .inp { height: 40px; text-align: center; }
+.gr-row em { font-style: normal; font-size: 13px; font-weight: 700; color: var(--t3); text-align: right; }
+.gr-row em.up { color: var(--blue); } .gr-row em.down { color: var(--t2); }
