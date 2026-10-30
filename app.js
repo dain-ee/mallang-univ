@@ -509,7 +509,7 @@
     const n = N.find((x) => !(S.nr || {})[x.id]), c = Object.keys(S.nr || {}).length, nx = (NR_BADGE.find((x) => x[0] > c) || [0, '', ''])
     if (!n) return '';
     // 10/27 선생님 «핫뉴스 카드처럼, 조금 불타는 정도» → 불꽃 아이콘만 살짝 일렁여요
-    return `<section class="card c12 hot-card link fire-lite" data-news="${esc(n.id)}"><div class="hot-ic">${ic('fire')}</div><div class="hot-b"><div class="eyebrow">오늘 꼭 읽기${(n.for || []).includes(U.who) ? ` · <b class="red">${esc(NMI())} 맞춤</b>` : ''}</div><b class="hot-t">${esc(n.title)}</b><p class="tiny" style="margin:2px 0 0">8초 읽으면 🔥 불꽃 +1${nx[0] ? ` · ${nx[0] - c}개 더 읽으면 「${esc(nx[2])}」 배지` : ''}</p><div class="nr-bdgs">${NR_BADGE.map((x) => `<span class="nr-bdg ${c >= x[0] ? 'on' : ''}" title="${esc(x[3])}">${ic(x[1])}<b>${esc(x[2])}</b><small>${x[0]}개</small></span>`).join('')}</div></div></section>`;
+    return `<section class="card c12 hot-card link fire-lite" data-news="${esc(n.id)}"><div class="hot-ic">${ic('fire')}</div><div class="hot-b"><div class="eyebrow">오늘 꼭 읽기${(n.for || []).includes(U.who) ? ` · <b>${esc(NMI())} 맞춤</b>` : ''}</div><b class="hot-t">${esc(n.title)}</b><p class="tiny" style="margin:2px 0 0">8초 읽으면 🔥 불꽃 +1${nx[0] ? ` · ${nx[0] - c}개 더 읽으면 「${esc(nx[2])}」 배지` : ''}</p><div class="nr-bdgs">${NR_BADGE.map((x) => `<span class="nr-bdg ${c >= x[0] ? 'on' : ''}" title="${esc(x[3])}">${ic(x[1])}<b>${esc(x[2])}</b><small>${x[0]}개</small></span>`).join('')}</div></div></section>`;
   }
   function nameCall() { return TUTOR ? esc(NM() + (jongOf(NM()) ? '아' : '야')) : `우리 ${esc(NMI())}`; }  // 정윤이만 「우리 정윤이」, 과외 학생은 「지원아」「주아야」
   function cheer() { const t = today(); let h = 0; for (const ch of t + (S.profile.name || '')) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return CHEER[h % CHEER.length]; }
@@ -1858,7 +1858,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610302244', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610302249', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4553,6 +4553,7 @@
   function nxBind() {
     const r = UI.run;
     $$('[data-nx]').forEach((b) => (b.onclick = () => nxStart(b.dataset.nx, UI.tab === 'hw' || UI.tab === 'study' ? UI.tab : 'exam')));
+    $$('[data-nxst]').forEach((b) => (b.onclick = () => { const u = NXU[(NXSETS[(UI.run || {}).id] || {}).unit]; if (!u) return; UI.stS = u.subj; UI.stU = u.id; UI.stT = b.dataset.nxst; UI.run = null; UI.tab = 'study'; render(); window.scrollTo(0, 0); }));
     $$('[data-nxu]').forEach((b) => (b.onclick = () => { UI.nxUnit = b.dataset.nxu || null; render(); window.scrollTo(0, 0); }));
     $$('[data-nxs]').forEach((b) => (b.onclick = () => { UI.nxSubj = b.dataset.nxs; UI.nxUnit = null; render(); }));
     $$('[data-nxexit]').forEach((b) => (b.onclick = () => { const bk = (UI.run && UI.run.back) || 'exam'; UI.run = null; UI.tab = bk; render(); window.scrollTo(0, 0); }));
@@ -4606,6 +4607,14 @@
     return `<div class="pr-root ${all ? 'all' : ''}"><div class="row between pr-bar"><button class="btn sm" data-nxu="${esc(u.id)}" type="button">‹ ${esc(u.code)} 단원</button><button class="btn sm ${all ? 'primary' : ''}" data-prall type="button">${all ? '답 다 가리기' : '답 다 보기'}</button></div>
       <h1 class="h1">${esc(u.code)} 학교 프린트</h1><p class="sub">둔촌중 프린트 그대로예요. 빈칸·답은 눌러서 확인해요</p>
       ${u.print.map((pg) => `<section class="card pr-page"><div class="card-h"><h2>${esc(pg.title)}</h2><span class="tiny">${pg.no}쪽</span></div>${(pg.blocks || []).map(block).join('')}</section>`).join('')}</div>`;
+  }
+  // 단원 문제 화면 왼쪽(폰은 위)에 그 단원 공부 단계: 눌러서 바로 옮겨 가요 (10/30 «왼쪽에 탭이 있어야 할 거 같아, 답답해»)
+  function nxRail(html) {
+    const r = UI.run, s = r && NXSETS[r.id], u = s && NXU[s.unit]; if (!u || !(NXD.subjects || []).length) return html;
+    const steps = stSteps(u), q0 = (s.qs[0] || {}).i, cur = steps.find((x) => x.id === s.id) || steps.find((x) => x.k === 'set' && NXSETS[x.id].qs.some((q) => q.i === q0));
+    const btn = (x, i) => { const g = x.k === 'set' ? nxProg(NXSETS[x.id]) : null, dn = x.k === 'notes' ? !!nxS().a[stReadId(u)] : x.k === 'order' ? stOrdDone(u) : g ? g.d >= g.n : false;
+      return `<button type="button" class="st-step ${x === cur ? 'on' : ''} ${dn ? 'done' : ''}" ${x.k === 'set' ? `data-nx="${esc(x.id)}"` : `data-nxst="${x.k}"`}><span class="st-sn num">${dn ? '✓' : i + 1}</span><span class="st-sl">${esc(x.name)}</span>${g ? `<small class="num">${g.d}/${g.n}</small>` : ''}</button>`; };
+    return `<div class="nx-railw"><nav class="nx-rail" aria-label="단원 공부 순서"><div class="nx-rail-h"><span class="tiny">${esc(NX_SN[u.subj])} ${esc(u.code)}</span><b>${esc(u.title)}</b></div><div class="nx-rail-l">${steps.map(btn).join('')}</div></nav><div class="nx-railm">${html}</div></div>`;
   }
   function nxwRun() {
     const r = UI.run, s = NXSETS[r.id], m = s.mode, x = nxS(), W = s.qs, got = W.filter((q) => nxWdGot(m, q.w.id)).length;
@@ -5132,7 +5141,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610302244'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610302249'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6023,7 +6032,7 @@
     let html = '';
     syncGoals();
     redoFix();
-    if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'nx' ? nxRun() : UI.run.kind === 'nxw' ? nxwRun() : UI.run.kind === 'print' ? printRun() : '';
+    if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'nx' ? nxRail(nxRun()) : UI.run.kind === 'nxw' ? nxwRun() : UI.run.kind === 'print' ? printRun() : '';
     else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'tme' ? tmeView() : UI.tab === 'picks' ? picksView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'study' ? studyView() : UI.tab === 'exam' ? examView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
     const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'hw' ? (UI.nxUnit || '') + (UI.nxSubj || '') : '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'study' ? `${UI.stS}${UI.stU}${UI.stT}` : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '');
