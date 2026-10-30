@@ -775,6 +775,8 @@
   // 담기 · 내 생각: 소식·대학·진로 픽마다 담아 두고 짧게 생각을 남겨요 (나중에 세특·면접 소재)
   function keepBox(key, t, kind, ref, asks = []) {
     const k = (S.keep || {})[key], n = (S.notes || {})[key];
+    // 선생님 화면의 S 는 기본 학생(정윤) 기록이라, 쓰는 칸을 주면 학생 글을 덮어써요 → 학생이 쓴 걸 읽기만 (10/30 선생님 «내 홈인데 왜 정윤이가 쓴 게 있나»)
+    if (TEACHER) return n && n.text ? `<div class="keep"><div class="keep-h"><b>${ic('write')} ${esc(U.who)}이 생각</b></div><p style="white-space:pre-wrap;margin:8px 0 0">${esc(n.text)}</p><p class="tiny keep-st">${md(new Date(n.at).toLocaleDateString('sv'))}에 ${esc(U.who)}이가 남겼어요</p></div>` : '';
     return `<div class="keep" data-kk="${esc(key)}" data-kt="${esc(t)}" data-kind="${esc(kind)}" data-ref="${esc(ref)}">
       <div class="keep-h"><b>${ic('write')} 내 생각</b><button type="button" class="keep-btn ${k ? 'on' : ''}" data-keep>${k ? '★ 담았어요' : '☆ 담기'}</button></div>
       ${asks.length ? `<div class="keep-ask">${asks.map((q) => `<button type="button" data-ask>${esc(q)}</button>`).join('')}</div>` : ''}
@@ -1833,7 +1835,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610300009', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610301114', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3630,9 +3632,9 @@
   const W = () => { const w = (S.wallet = S.wallet || {}); w.log = w.log || []; w.paid = w.paid || []; w.seen = w.seen || {}; if (w.req === undefined) w.req = null; return w; };
   const wHas = (key) => { if (!WALLET && String(key).startsWith('news:')) return !!(S.nr || {})[key.slice(5)]; const w = W(); return !!w.seen[key] || w.log.some((x) => x.key === key); };  // 용돈 없는 학생(과외)은 소식 읽음을 S.nr 에
   const wBal = () => { const w = W(); return w.log.reduce((a, x) => a + x.amt, 0) - w.paid.reduce((a, x) => a + x.amt, 0); };
-  const wDay = (d = today()) => W().log.filter((x) => x.date === d && !x.bonus).reduce((a, x) => a + x.amt, 0);
+  const wDay = (d = realToday()) => W().log.filter((x) => x.date === d && !x.bonus).reduce((a, x) => a + x.amt, 0);
   const wLeft = () => Math.max(0, W_CAP - wDay());
-  const wLogs = () => W().log.filter((x) => x.date === today() && x.key.startsWith('log:')).length;
+  const wLogs = () => W().log.filter((x) => x.date === realToday() && x.key.startsWith('log:')).length;
   const wStreak = () => { const days = new Set(W().log.filter((x) => !x.bonus).map((x) => x.date)); let n = 0, i = days.has(today()) ? 0 : 1; while (days.has(pBack(i))) { n++; i++; } return n; };
   // 지금 속도: 처음 모은 날부터 오늘까지 하루 평균 (기록이 적으면 1,100원으로 어림)
   function wPace() {
@@ -3644,15 +3646,15 @@
   }
   function wEta() { const rem = W_GOAL - wBal(); if (rem <= 0) return null; const d = new Date(); d.setDate(d.getDate() + Math.ceil(rem / wPace())); return md(dateOf(d)); }
   function earn(key, amt, why, opt = {}) {
-    if (!WALLET) return 0;  // 용돈은 정윤만 (가족)
+    if (!WALLET || PEEK) return 0;  // 용돈은 정윤만 (가족) · 선생님이 학생 화면을 들여다볼 때는 안 줘요
     if ((TEACHER && !opt.teacher) || !key || wHas(key)) return 0;
     const w = W(); if (!w.since) w.since = Date.now();
     const a = opt.bonus ? amt : Math.min(amt, wLeft());
     if (a <= 0) { capNote(); return 0; }
-    const first = !opt.bonus && !w.log.some((x) => x.date === today() && !x.bonus);
-    w.log.push({ id: 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), key, date: today(), amt: a, why, at: Date.now(), ...(opt.bonus ? { bonus: 1 } : {}), ...(opt.teacher ? { teacher: 1 } : {}) });
+    const first = !opt.bonus && !w.log.some((x) => x.date === realToday() && !x.bonus);
+    w.log.push({ id: 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), key, date: realToday(), amt: a, why, at: Date.now(), ...(opt.bonus ? { bonus: 1 } : {}), ...(opt.teacher ? { teacher: 1 } : {}) });
     coinPend = true; save('wallet'); coinFx(a, why, opt.from);
-    if (first) { const n = wStreak(); if (n === 3) earn(`streak3:${today()}`, 300, '3일 연속 보너스', { bonus: true }); else if (n >= 7 && n % 7 === 0) earn(`streak7:${today()}`, 1000, `${n}일 연속 보너스`, { bonus: true }); }
+    if (first) { const n = wStreak(); if (n === 3) earn(`streak3:${realToday()}`, 300, '3일 연속 보너스', { bonus: true }); else if (n >= 7 && n % 7 === 0) earn(`streak7:${realToday()}`, 1000, `${n}일 연속 보너스`, { bonus: true }); }
     return a;
   }
   // 정답: 처음 틀렸던 문제면 오답 다시 맞히기(clearWrong)에서 100원, 아니면 20원
@@ -3660,8 +3662,11 @@
   function capNote() { if (capNote.d === today() || TEACHER) return; capNote.d = today(); coinToast(`${ic('party')}<span>오늘은 다 모았어요, 내일 또 만나요</span>`); }
   // 상태를 보고 끝낸 것에 용돈을 줘요. silent면 지갑을 처음 만들 때라 이미 끝낸 것만 표시해 둬요 (예전 것까지 한꺼번에 주지 않게)
   function walletScan(silent) {
-    if (TEACHER) return;
-    const w = W(), t = today(), give = (key, amt, why) => { if (silent) { if (!wHas(key)) w.seen[key] = 1; } else earn(key, amt, why); };
+    if (TEACHER || PEEK) return;
+    const w = W(), t = today();
+    // 화살표로 지난 날을 볼 때: 용돈 지갑이 생기기 전 날의 과제는 주지 않아요 (10/30 선생님 «이전 날 것 봤는데 왜 돈이 나가»)
+    if (!silent && w.since && t < dateOf(w.since)) return;
+    const give = (key, amt, why) => { if (silent) { if (!wHas(key)) w.seen[key] = 1; } else earn(key, amt, why); };
     for (const h of S.hw || []) if (hwDone(h)) give('hw:' + h.id, 200, '숙제 끝');
     for (const b of BADGES) if (((pomo().badges || {})[b.id]) && !wHas('badge:' + b.id)) { if (silent) w.seen['badge:' + b.id] = 1; else earn('badge:' + b.id, b.w, `배지 · ${b.t}`, { bonus: true }); }
     const sd = S.sci && S.sci.days && S.sci.days[t]; if (sd) { const st = dayStat(sd); if (st.n && st.done >= st.n) give(`set:sci:${t}`, 200, '오늘의 과학 끝'); }
@@ -4845,7 +4850,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610300009'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610301114'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
