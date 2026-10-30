@@ -624,13 +624,12 @@
     if (el.dataset.skin === 'teacher') { const u = `url("${av(`assets/pets/teacher/b_${tMood()}.png`)}")`; ['--pb-a', '--pb-b', '--pb-c'].forEach((k) => b.style.setProperty(k, u)); }  // 선생님: 지금 표정 아이콘(하트·!·?·Z·★·💢)이 한 번 더 터져요
     el.appendChild(b); setTimeout(() => b.remove(), 1400);
   }
-  // 선생님 테마 기분 (10/30): 위에서부터 먼저 맞는 것 하나. 밤 11시 → 졸림, 내 생각을 GPT 에서 붙여 넣음 → 의심, 밀린 것 → 화남, 오늘 다 함 → 뿌듯, 많이 따라잡음 → 놀람, 몇 개 함·고마워요 → 흐뭇
+  // 선생님 테마 기분 (10/30): 위에서부터 먼저 맞는 것 하나. 밤 11시 → 졸림, 밀린 것 → 화남 (GPT 로 쓴 걸 의심하는 건 «괜히 썼는데 의심하지 마»로 뺐어요), 오늘 다 함 → 뿌듯, 많이 따라잡음 → 놀람, 몇 개 함·고마워요 → 흐뭇
   const MOOD_N = { idle: '기본', happy: '흐뭇', angry: '화남', wow: '놀람', proud: '뿌듯', doubt: '의심', sleepy: '졸림' };
   function tMood() { const now = Date.now(); if (tMood.at && now - tMood.at < 1500) return tMood.v; tMood.at = now; try { return (tMood.v = tMood0()); } catch (e) { return (tMood.v = 'idle'); } }  // 한 화면 그리는 동안 여러 번 불려서 잠깐 기억해요
   function tMood0() {
     const h = new Date().getHours(), t = today();
     if (h >= 23 || h < 5) return 'sleepy';
-    if (Object.values(S.notes || {}).some((x) => x && x.at && dateOf(x.at) === t && /^\s*(gpt|chat\s*gpt|챗\s*gpt|지피티)\s*[:：]/im.test(x.text || ''))) return 'doubt';
     if (lagRows().rows.some((r) => r.behind > 0)) return 'angry';
     const real = todayTasks().tasks.filter((x) => x.icon !== 'party' && !x.memo), dn = real.filter((x) => x.done).length;
     if (real.length && dn >= real.length) return 'proud';
@@ -1856,7 +1855,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610301943', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610302001', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4872,7 +4871,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610301943'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610302001'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
