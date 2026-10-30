@@ -631,13 +631,13 @@
     });
   }
   // 곰 테마: 떠 있는 장식 대신, 펫을 누르거나 정답·배지로 팡 터질 때 하트가 펫에서 터져 나와요 (10/28 선생님 «떠 있는 건 이상해, 액션할 때 팡 터지는 게 나을 수도»)
-  const PET_BURST = new Set(['rilakkuma', 'korilakkuma', 'monchhichi', 'teacher']);  // 몬치치는 사진이라 3D 동작이 없어서 팡 터지는 걸로 보완 (10/29)
+  const PET_BURST = new Set(['rilakkuma', 'korilakkuma', 'monchhichi', 'teacher', 'woni', 'rescene']);  // 몬치치는 사진이라 3D 동작이 없어서 팡 터지는 걸로 보완 (10/29)
   function petBurst(el, n = 12) {
     el = el || $('.pet-perch'); if (!el || !PET_BURST.has(el.dataset.skin) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    if (el.dataset.skin === 'monchhichi') n = Math.max(n, 20);
+    if (el.dataset.skin === 'monchhichi' || PHOTO_PET[el.dataset.skin]) n = Math.max(n, 20);
     if (el.dataset.skin === 'teacher') n = Math.max(n, 14);  // 사진 펫은 팡이 유일한 액션이라 크게·많이 (10/29 «빨간 스프링클 같은 게 좀…»)
     const b = document.createElement('span'); b.className = 'pb'; b.setAttribute('aria-hidden', 'true');
-    b.innerHTML = Array.from({ length: n }, (_, i) => { const big = el.dataset.skin === 'monchhichi', a = (-Math.PI / 2) + (Math.random() - 0.5) * Math.PI * (big ? 1.9 : 1.6), d = (big ? 90 : 70) + Math.random() * (big ? 110 : 70); return `<i style="--dx:${Math.round(Math.cos(a) * d)}px;--dy:${Math.round(Math.sin(a) * d - 20)}px;--r:${Math.round((Math.random() - 0.5) * 60)}deg;animation-delay:${Math.round(Math.random() * 120)}ms"></i>`; }).join('');
+    b.innerHTML = Array.from({ length: n }, (_, i) => { const big = el.dataset.skin === 'monchhichi' || !!PHOTO_PET[el.dataset.skin], a = (-Math.PI / 2) + (Math.random() - 0.5) * Math.PI * (big ? 1.9 : 1.6), d = (big ? 90 : 70) + Math.random() * (big ? 110 : 70); return `<i style="--dx:${Math.round(Math.cos(a) * d)}px;--dy:${Math.round(Math.sin(a) * d - 20)}px;--r:${Math.round((Math.random() - 0.5) * 60)}deg;animation-delay:${Math.round(Math.random() * 120)}ms"></i>`; }).join('');
     if (el.dataset.skin === 'teacher') { const u = `url("${av(`assets/pets/teacher/b_${tMood()}.png`)}")`; ['--pb-a', '--pb-b', '--pb-c'].forEach((k) => b.style.setProperty(k, u)); }  // 선생님: 지금 표정 아이콘(하트·!·?·Z·★·💢)이 한 번 더 터져요
     el.appendChild(b); setTimeout(() => b.remove(), 1400);
   }
@@ -1864,7 +1864,7 @@
   // 3D 유령: 한 번만 도는 동작은 볼 때마다 처음부터 다시 돌도록 매번 새 주소(blob)로 붙여요
   // ───────── 테마: 색 전체 + 3D 인형 펫 (아직 로컬 시험 중: localStorage mu:themes=1 일 때만 보여요) ─────────
   const SKIN_DEV = (() => { try { return localStorage.getItem('mu:themes') === '1'; } catch (e) { return false; } })();
-  const SKINS = { ghost: { n: '말랑 유령', c: '#3182f6', d: '기본' }, kitty: { n: '헬로키티', c: '#e8384f', d: '빨간 리본' }, monchhichi: { n: '몬치치', c: '#e2333d', d: '털인형 빨간 리본' }, melody: { n: '마이멜로디', c: '#e35d93', d: '분홍 두건' }, chiikawa: { n: '치이카와', c: '#e07686', d: '말랑 하양' }, cinnamoroll: { n: '시나모롤', c: '#5aa6e6', d: '하늘 구름' }, kuromi: { n: '쿠로미', c: '#8a63c9', d: '검은 두건 해골' }, bamdol: { n: '밤돌이', c: '#12a594', d: '나뭇잎 셔츠' }, rilakkuma: { n: '리락쿠마', c: '#c8792a', d: '갈색 곰 노란 귀' }, korilakkuma: { n: '코리락쿠마', c: '#e07a8c', d: '크림 곰 빨간 단추' }, teacher: { n: '선생님', c: '#111111', d: '검은 터틀넥 선글라스' } };
+  const SKINS = { ghost: { n: '말랑 유령', c: '#3182f6', d: '기본' }, kitty: { n: '헬로키티', c: '#e8384f', d: '빨간 리본' }, monchhichi: { n: '몬치치', c: '#e2333d', d: '털인형 빨간 리본' }, melody: { n: '마이멜로디', c: '#e35d93', d: '분홍 두건' }, chiikawa: { n: '치이카와', c: '#e07686', d: '말랑 하양' }, cinnamoroll: { n: '시나모롤', c: '#5aa6e6', d: '하늘 구름' }, kuromi: { n: '쿠로미', c: '#8a63c9', d: '검은 두건 해골' }, bamdol: { n: '밤돌이', c: '#12a594', d: '나뭇잎 셔츠' }, rilakkuma: { n: '리락쿠마', c: '#c8792a', d: '갈색 곰 노란 귀' }, korilakkuma: { n: '코리락쿠마', c: '#e07a8c', d: '크림 곰 빨간 단추' }, teacher: { n: '선생님', c: '#111111', d: '검은 터틀넥 선글라스' }, woni: { n: '리센느 원이', c: '#ec5f95', d: '볼 콕 손하트' }, rescene: { n: '리센느', c: '#ec5f95', d: '다섯 멤버' } };
   const SKIN_Q = new URLSearchParams(location.search).get('skin');  // 시험용: 탭마다 다른 테마 (?skin=kitty)
   const owned = () => (S.profile.skins || []).filter((k) => SKINS[k]);
   // 선생님 내 정보 (이름·생일·MBTI·테마): 학생 기록과 따로 서버 「_선생님」 칸에 저장해요
@@ -1877,12 +1877,12 @@
   async function tLoad() { try { const r = await rpc('univ_get', { p_student: TPN, p_code: U.key }); const q = r && r.profile; if (q && (q._at || 0) > (TP._at || 0)) { Object.assign(TP, q); try { localStorage.setItem(TPK, JSON.stringify(TP)); } catch (e) {} render(); } } catch (e) {} }
   const skin = () => DASH_ONLY ? (SKINS[TP.skin] && (TP.skin === 'ghost' || GIFTS.includes(TP.skin)) ? TP.skin : 'ghost') : (SKIN_DEV && SKINS[SKIN_Q] ? SKIN_Q : SKINS[S.profile.skin] && (SKIN_DEV || owned().includes(S.profile.skin)) ? S.profile.skin : 'ghost');
   // 테마 선물: 선생님이 보내면 「띵동!」 → 물음표 상자가 두근두근 → 짜잔. 열심히 하면 하나씩 받아요
-  const GIFTS = ['melody', 'kitty', 'chiikawa', 'cinnamoroll', 'kuromi', 'bamdol', 'rilakkuma', 'korilakkuma', 'monchhichi', 'teacher'];  // 지금 보낼 수 있는 테마 (scripts/build.py PETS_LIVE 와 같게)
+  const GIFTS = ['melody', 'kitty', 'chiikawa', 'cinnamoroll', 'kuromi', 'bamdol', 'rilakkuma', 'korilakkuma', 'monchhichi', 'teacher', 'woni', 'rescene'];  // 지금 보낼 수 있는 테마 (scripts/build.py PETS_LIVE 와 같게)
   // 테마 선물은 여러 개를 줄 수 있어요: S.gifts = [{ skin, at, open }] (예전 S.gift 하나도 같이 읽음)
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610302338', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610310005', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -1929,6 +1929,11 @@
     petDock();
   }
   // 펫: 화면 첫 카드 윗변에 창틀처럼 두 팔을 걸치고 있어요. 누르면 폴짝, 밤엔 팔에 얼굴 묻고 졸아요
+  // 사진 펫 (리센느): 움직이지 않는 걸침 사진 perch0~4 를 누를 때마다 넘기고, 기사로 확인한 유행어를 말해요 (10/30 조사)
+  const PHOTO_PET = {
+    woni: ['안녕하세요원이입니다잘부탁드립니다', '밥은 줍니까?', '오이쉬에~', '와이리 자주 봅니까 우리', '다시 태어나도 거제에서 태어나겠다', '덕연이 딸인데요', '둘, 셋! 안녕하세요, RESCENE입니다!'],
+    rescene: ['둘, 셋! 안녕하세요, RESCENE입니다!', '미나미: 거제 야호~!', '리브: 너도? 나도!', '원이: 밥은 줍니까?', '메이: 그립감이 좋다!', '제나: 경주공주', '미나미: PD니무', '원이: 오이쉬에~', '제나: 안녕하신교'],
+  };
   const PET_WINK = new Set(['melody', 'cinnamoroll', 'kuromi', 'bamdol', 'rilakkuma', 'korilakkuma']); // 찡긋 표정이 있는 펫
   function petDock() {
     const t = skin(), host = !UI.run && $('#main .card');  // 유령은 걸치는 그림이 없어서 서 있는 그림으로 카드 위에 올라앉아요 (10/27 «다른 애들처럼 그 위에 붙어»)
@@ -1983,8 +1988,10 @@
     const play = (n) => fetch(av(`${pdir}/${pmap(n)}.webp`)).then((r) => { if (!r.ok) throw 0; return r.blob(); }).then((b) => { const u = URL.createObjectURL(b); im.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); }).catch(() => {});
     if (!RM()) play(base);
     // 같은 표정만 있으면 심심해서, 가끔 혼자 기뻐해요
-    clearInterval(petDock.iv); if (!RM() && t !== 'teacher') petDock.iv = setInterval(() => { if (!el.isConnected) return clearInterval(petDock.iv); if (document.hidden || el.t) return; play(petDock.alt = petDock.alt === 'perch_yay' && PET_WINK.has(t) ? 'perch_wink' : 'perch_yay'); setTimeout(() => { if (el.isConnected && !el.t) play(base); }, 2600); }, 9000 + Math.random() * 8000);
-    el.onclick = (e) => { e.stopPropagation(); petBurst(el); const say = $('.pet-say', el); play('perch_yay'); say.textContent = cheer(); say.hidden = false; say.classList.remove('motto'); fitSay(); clearTimeout(el.t); el.t = setTimeout(() => { el.t = 0; say.innerHTML = lines.length ? petSayHtml(lines[li]) : ''; say.hidden = !motto; say.classList.toggle('motto', !!motto); fitSay(); play(base); }, 2600); if (navigator.vibrate) navigator.vibrate(20); };
+    clearInterval(petDock.iv); if (!RM() && t !== 'teacher' && !PHOTO_PET[t]) petDock.iv = setInterval(() => { if (!el.isConnected) return clearInterval(petDock.iv); if (document.hidden || el.t) return; play(petDock.alt = petDock.alt === 'perch_yay' && PET_WINK.has(t) ? 'perch_wink' : 'perch_yay'); setTimeout(() => { if (el.isConnected && !el.t) play(base); }, 2600); }, 9000 + Math.random() * 8000);
+    // 리센느 원이: 움직이지 않는 사진 5장. 누르면 다음 사진 + 하트 + 원이 유행어 (10/31 «흔들리지 말고 하트가 누르면 나타나게», «상반신 무조건»)
+    if (PHOTO_PET[t]) { const WONI_SAY = PHOTO_PET[t]; el.wi = 0; el.onclick = (e) => { e.stopPropagation(); petBurst(el); el.wi = (el.wi + 1) % 5; im.src = av(`${pdir}/perch${el.wi}.png`); const say = $('.pet-say', el); say.textContent = WONI_SAY[(el.wj = ((el.wj || 0) + 1) % WONI_SAY.length)]; say.hidden = false; say.classList.remove('motto'); fitSay(); clearTimeout(el.t); el.t = setTimeout(() => { el.t = 0; say.innerHTML = lines.length ? petSayHtml(lines[li]) : ''; say.hidden = !motto; say.classList.toggle('motto', !!motto); fitSay(); }, 3200); if (navigator.vibrate) navigator.vibrate(20); }; }
+    else el.onclick = (e) => { e.stopPropagation(); petBurst(el); const say = $('.pet-say', el); play('perch_yay'); say.textContent = cheer(); say.hidden = false; say.classList.remove('motto'); fitSay(); clearTimeout(el.t); el.t = setTimeout(() => { el.t = 0; say.innerHTML = lines.length ? petSayHtml(lines[li]) : ''; say.hidden = !motto; say.classList.toggle('motto', !!motto); fitSay(); play(base); }, 2600); if (navigator.vibrate) navigator.vibrate(20); };
     if (lines.length > 1) { const rot = setInterval(() => { if (!el.isConnected) return clearInterval(rot); if (el.t || !el.single) return; li = (li + 1) % lines.length; const say = $('.pet-say', el); say.classList.remove('motto'); void say.offsetWidth; say.innerHTML = petSayHtml(lines[li]); say.classList.add('motto'); fitSay(); }, 7000); }
   }
   // 펫 말풍선에 띄울 말: 선생님이 쓴 한마디(홈 맨 위 그 글) + 학생이 프로필에 쓴 「나의 한마디」
@@ -5204,7 +5211,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610302338'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610310005'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
