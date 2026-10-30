@@ -1857,7 +1857,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610302102', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610302109', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4466,7 +4466,7 @@
       const areas = Object.entries(by).sort((a, b) => a[1][0] / a[1][1] - b[1][0] / b[1][1]);
       const bars = areas.length > 1 ? `<div class="nx-areas"><div class="eyebrow">영역별로 맞힌 비율</div><div class="sw-chart">${areas.slice(0, 8).map(([c, [o, t]]) => `<div class="sw-row"><span class="sw-n">${esc(c)}</span><div class="sw-track"><div class="sw-bar" style="width:100%;background:var(--fill)"><i style="width:${(o / t) * 100}%;background:${o === t ? 'var(--blue)' : o / t >= 0.6 ? 'var(--blue-l)' : 'var(--red)'}"></i></div></div><span class="sw-v num"><b>${o}</b> / ${t}</span></div>`).join('')}</div></div>` : '';
       const wr = qs.filter((q) => !store[q.i].ok).length, sc = Math.round((ok / n) * 100);
-      return `<div class="nx-wrap">${nxTop(s, n, n, sub, 1)}${doneCard(ok, n, `<b class="nx-score num">${sc}점</b>${tm ? ` · 걸린 시간 ${tm}` : ''}${wr && !r.tmp ? ' · 틀린 문제는 오답 노트에 들어갔어요' : ''}`, `${wr ? `<button class="btn primary big block" data-nxwr type="button">틀린 것만 다시 · ${wr}문제</button>` : ''}<button class="btn big block" data-go="wrong" type="button">오답 노트로</button>${s.kind === 'lesson' ? '' : '<button class="btn big block" data-nxre type="button">처음부터 다시</button>'}<button class="btn big block" data-nxexit type="button">${r.back === 'hw' ? '숙제로' : '시험으로'}</button>`, bars)}</div>`;
+      return `<div class="nx-wrap">${nxTop(s, n, n, sub, 1)}${doneCard(ok, n, `<b class="nx-score num">${sc}점</b>${tm ? ` · 걸린 시간 ${tm}` : ''}${wr && !r.tmp ? ' · 틀린 문제는 오답 노트에 들어갔어요' : ''}`, `${wr ? `<button class="btn primary big block" data-nxwr type="button">틀린 것만 다시 · ${wr}문제</button>` : ''}<button class="btn big block" data-go="wrong" type="button">오답 노트로</button>${s.kind === 'lesson' ? '' : '<button class="btn big block" data-nxre type="button">처음부터 다시</button>'}<button class="btn big block" data-nxexit type="button">${r.back === 'hw' ? '숙제로' : r.back === 'study' ? '공부로' : '시험으로'}</button>`, bars)}</div>`;
     }
     const q = qs[cur], rec = store[q.i], v = nxView(q, rec, s.kind === 'mock' ? q.n || cur + 1 : s.kind === 'lesson' ? cur + 1 : null);
     const fresh = render.nxq !== q.i; render.nxq = q.i;
@@ -4542,7 +4542,7 @@
       const ok = W.filter((q) => !(x.wd[`${m}:${q.w.id}`] || {}).w).length;
       nxFinish(s, ok, W.length);
       const st = x.st[s.id] || {}, tm = nxTime((st.fin || 0) - (st.t0 || 0));
-      return `<div class="nx-wrap">${nxTop(s, got, W.length, sub, 1)}${doneCard(ok, W.length, `${W.length}개 다 외웠어요${tm ? ` · 걸린 시간 ${tm}` : ''} · 한 번에 맞힌 단어 ${ok}개`, `<button class="btn primary big block" data-nxre type="button">처음부터 한 판 더</button><button class="btn big block" data-go="wrong" type="button">오답 노트로</button><button class="btn big block" data-nxexit type="button">${r.back === 'hw' ? '숙제로' : '시험으로'}</button>`)}</div>`;
+      return `<div class="nx-wrap">${nxTop(s, got, W.length, sub, 1)}${doneCard(ok, W.length, `${W.length}개 다 외웠어요${tm ? ` · 걸린 시간 ${tm}` : ''} · 한 번에 맞힌 단어 ${ok}개`, `<button class="btn primary big block" data-nxre type="button">처음부터 한 판 더</button><button class="btn big block" data-go="wrong" type="button">오답 노트로</button><button class="btn big block" data-nxexit type="button">${r.back === 'hw' ? '숙제로' : r.back === 'study' ? '공부로' : '시험으로'}</button>`)}</div>`;
     }
     const id = r.phase === 'wrong' ? r.last : r.q[0], q = NXQ[id] ? NXQ[id].q : null;
     if (!q) { r.q = null; return nxwRun(); }
@@ -5001,7 +5001,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610302102'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610302109'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
