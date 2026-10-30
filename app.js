@@ -1882,7 +1882,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610310025', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610310028', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -1977,14 +1977,14 @@
       const cards = $$('#main .card').filter((c) => c !== host && !c.contains(el)).map((c) => c.getBoundingClientRect()), tx = txRects().filter((q) => q.width);
       const near = [...cards.filter((q) => q.top < y1 && q.bottom > y0), ...tx.filter((q) => q.top < hr.top && q.bottom > hb)], lb = Math.max(8, ...near.filter((q) => q.right <= ir.left + 8).map((q) => q.right + 12)), rb = Math.min(innerWidth - 8, ...near.filter((q) => q.left >= ir.right - 8).map((q) => q.left - 12));  // 옆 칸 카드·위 제목 글자 끝까지만 넓혀요
       const ov = (a, q) => Math.max(0, Math.min(a.right, q.right) - Math.max(a.left, q.left)) * Math.max(0, Math.min(a.bottom, q.bottom) - Math.max(a.top, q.top));
-      const put = (left, inside) => { sy.classList.remove('side', 'flip'); sy.style.top = 'auto'; sy.style.transform = 'none'; sy.style.bottom = `${er.bottom - hr.top + 6}px`;
-        const room = left ? ir.left - 4 - lb : rb - ir.right - 4; sy.style.maxWidth = `${Math.max(inside ? 200 : 110, Math.min(320, inside ? ir.left - hr.left - 40 : room))}px`;
+      const put = (left, inside, low) => { sy.classList.remove('side', 'flip'); sy.style.top = 'auto'; sy.style.transform = 'none'; sy.style.bottom = `${er.bottom - hr.top + 6}px`;
+        const room = low ? ir.left - 4 - Math.max(8, hr.left) : left ? ir.left - 4 - lb : rb - ir.right - 4; sy.style.maxWidth = `${Math.max(inside ? 200 : 110, Math.min(320, inside ? ir.left - hr.left - 40 : room))}px`;
         if (left) { sy.style.left = 'auto'; sy.style.right = `${er.right - ir.left + 4}px`; } else { sy.classList.add('side'); sy.style.right = 'auto'; sy.style.left = `${ir.right - er.left + 4}px`; }
-        { const h = sy.offsetHeight, cy = (ir.top + Math.min(ir.bottom, hr.top)) / 2, t = Math.max(hb + 6, Math.min(cy - h / 2, hr.top - 6 - h)); sy.style.bottom = 'auto'; sy.style.top = `${t - er.top}px`; }  // inside: 옆에 자리가 없으면 앉은 카드 안 윗부분 빈 곳에  // 펫 몸 옆 가운데 높이에 (카드 윗변 아래로는 안 내려가요)
+        { const h = sy.offsetHeight, cy = (ir.top + Math.min(ir.bottom, hr.top)) / 2, t = Math.max(hb + 6, low ? hr.top - 6 - h : Math.min(cy - h / 2, hr.top - 6 - h)); sy.style.bottom = 'auto'; sy.style.top = `${t - er.top}px`; }  // inside: 옆에 자리가 없으면 앉은 카드 안 윗부분 빈 곳에  // 펫 몸 옆 가운데 높이에 (카드 윗변 아래로는 안 내려가요)
         const r = sy.getBoundingClientRect(); return (r.left < 8 || r.right > innerWidth - 8 ? 1e6 : 0) + (r.top < hb + 4 ? 1e6 : 0) + cards.reduce((n, q) => n + ov(r, q), 0) + tx.reduce((n, q) => n + ov(r, q) * 4, 0); };
       const L = petLines(), fill = (one) => { el.single = one; sy.innerHTML = one ? petSayHtml1(L[li % L.length]) : petSayHtml(); };
-      let best = null; for (const [one, lf, ins] of [[1, 1, 0], [1, 0, 0]]) { if (!el.t) fill(!!one); const sc = put(!!lf, !!ins); if (!best || sc < best[0]) best = [sc, !!one, !!lf, !!ins]; if (!sc) break; } // 다 담아 왼쪽 → 오른쪽 → 한 줄씩 왼쪽 → 오른쪽
-      if (!el.t) fill(best[1]); put(best[2], best[3]);
+      let best = null; for (const [one, lf, ins, lo] of [[1, 1, 0, 0], [1, 0, 0, 0], [1, 1, 0, 1]]) { if (!el.t) fill(!!one); const sc = put(!!lf, !!ins, !!lo); if (!best || sc < best[0]) best = [sc, !!one, !!lf, !!ins, !!lo]; if (!sc) break; }  // 셋째: 왼쪽 넓게, 카드 윗변 바로 위에 낮게 (10/31 선생님 넓은 화면에서 말풍선이 옆 카드를 덮었어요) // 다 담아 왼쪽 → 오른쪽 → 한 줄씩 왼쪽 → 오른쪽
+      if (!el.t) fill(best[1]); put(best[2], best[3], best[4]);
       const r = sy.getBoundingClientRect(); if (r.top < hb + 4) sy.style.top = `${parseFloat(sy.style.top) + hb + 4 - r.top}px`; sy.style.visibility = ''; };  // 자리 잡기 전엔 숨겨 둬요 (처음 자리에 떴다가 휙 옮겨 가서 버벅여 보였어요 10/28)  // 위 메뉴 줄 밑으로는 절대 안 들어가요
     addEventListener('resize', () => { if (el.isConnected) { fitSay(); hideHts(); } });
     const play = (n) => fetch(av(`${pdir}/${pmap(n)}.webp`)).then((r) => { if (!r.ok) throw 0; return r.blob(); }).then((b) => { const u = URL.createObjectURL(b); im.src = u; setTimeout(() => URL.revokeObjectURL(u), 8000); }).catch(() => {});
@@ -5215,7 +5215,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610310025'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610310028'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
