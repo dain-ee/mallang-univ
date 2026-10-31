@@ -2729,7 +2729,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .pet-perch[data-skin="teacher"] { clip-path: inset(-400px -600px 22% -600px); }  /* 카드 윗변 아래는 잘라서 카드 뒤에 앉은 것처럼 (10/30 «저 뿌연 하얀색은 뭔지», «딱 뒤로») */
 .pet-perch[data-skin="teacher"] .pb i, .pet-perch[data-skin="teacher"] .pb i:nth-child(even) { width: 26px; height: 26px; left: -13px; top: -13px; animation-duration: 1.25s; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .25)); }
 .tc-av { position: relative; width: 64px; height: 64px; flex: none; border-radius: 50%; overflow: hidden; background: var(--fill); }
-.tc-av img { position: absolute; width: 230%; left: -65%; top: -38%; max-width: none; }  /* 384 정사각 그림에서 얼굴만 */
+.tc-av img { position: absolute; width: 172%; left: -39%; top: -2%; max-width: none; }  /* 384 정사각 그림에서 머리 전체가 들어오게 (10/31 얼굴만 너무 크게 잘렸음) */
 .tc-chip { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: var(--t1); color: var(--card); font-size: 12px; font-weight: 600; vertical-align: 1px; }
 @media (prefers-color-scheme: dark) { :root[data-skin="teacher"]:not([data-theme="light"]) { --bg: #101013; --card: #1d1d22; --t1: #f4f4f5; --t2: #c3c3c9; --t3: #8a8a90; --t4: #5f5f66; --line: #2c2c34; --fill: #2c2c34; --fill2: #24242a; --blue: #e4e4e7; --blue-d: #ffffff; --blue-soft: #26262c; --blue-l: #3a3a42; --green: #f4f4f5; --green-soft: #26262c; } }
 :root[data-skin="teacher"][data-theme="dark"] { --bg: #101013; --card: #1d1d22; --t1: #f4f4f5; --t2: #c3c3c9; --t3: #8a8a90; --t4: #5f5f66; --line: #2c2c34; --fill: #2c2c34; --fill2: #24242a; --blue: #e4e4e7; --blue-d: #ffffff; --blue-soft: #26262c; --blue-l: #3a3a42; --green: #f4f4f5; --green-soft: #26262c; }
