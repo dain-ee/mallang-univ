@@ -1303,7 +1303,8 @@
   function mySheet(id) {
     const it = myS().items.find((x) => x.id === id); if (!it) return;
     const t = today(), x = myToday(it), dt = it.log[t];
-    sheet(`<div class="row" style="gap:8px;margin-bottom:8px"><span class="tag">${esc(myCls(it.cls).name)}</span><span class="tiny">${md(it.due)} 마감 · D-${Math.max(0, dday(it.due))}</span></div>
+    const hasA = !!MANS[MB_ID(it.book)];
+    sheet(`<div class="row" style="gap:8px;margin-bottom:8px"><span class="tag">${esc(myCls(it.cls).name)}</span><span class="tiny">${md(it.due)} 마감 · D-${Math.max(0, dday(it.due))}</span>${hasA ? '<button type="button" class="btn sm soft" id="my-qall" style="margin-left:auto">전체 정답</button>' : ''}</div>
       <label class="my-h2"><input id="my-bt" value="${esc(it.book)}" aria-label="제목 바꾸기"><span>수정</span></label><p class="tiny" style="margin:0 0 12px;line-height:1.6">${esc(it.text)}</p>
       <div class="ik-bar" style="height:8px"><i style="width:${Math.round((myDone(it) / it.total) * 100)}%"></i></div><p class="tiny" style="margin:6px 0 16px">${myDone(it)} / ${it.total}${it.unit === '쪽' ? '쪽' : '문제'} 했어요</p>
       ${it.unit === '건' ? '' : `<div class="my-today"><span class="tiny">오늘 할 것${myAvg() ? ` · 보통 하루 ${myAvg()}문제 해요` : ''}</span><b>${x.skip ? '내일로 미뤘어요' : x.n ? esc(myRange(it, x)) : '오늘 몫은 없어요'}</b>${it.orig ? `<span class="tiny">원래 ${md(it.orig)} 마감 → ${md(it.due)}로 미뤄짐</span>` : ''}${!dt && (x.n || x.skip) ? `<button type="button" class="my-skip" id="my-skip">${x.skip ? '미룬 것 취소' : '내일로 미루기'}</button>` : ''}</div>
@@ -1336,6 +1337,7 @@
         $$('[data-wn]', box).forEach((b) => (b.onclick = () => { const v = +b.dataset.wn; W.has(v) ? W.delete(v) : W.add(v); wi.value = [...W].sort((p, q) => p - q).join(' '); b.classList.toggle('on', W.has(v)); }));
         qa(a0, z); };
       // 빠른 정답: 오늘 푼 번호의 답을 한눈에, 그래프 답은 정답표 그림으로 (10/31 «마더텅 빠른답지 넣어놔»)
+      const qal = $('#my-qall', el); if (qal) qal.onclick = () => mbAllSheet(MB_ID(it.book), (mbKeys(it, it.from || 1)[0] || '').replace(/-[^-]*$/, ''));
       const qa = (a0, z) => {
         const el2 = $('#my-qa', el), bk = EB.books.find((y) => y.id === MB_ID(it.book)), A = bk && MANS[bk.id]; if (!el2) return;
         const rows = A ? Array.from({ length: z - a0 + 1 }, (_, k) => a0 + k).map((v) => { const ks = mbKeys(it, v); return { v, k: ks.length === 1 ? ks[0] : null, a: ks.length === 1 ? A[ks[0]] : null }; }) : [];
@@ -1378,6 +1380,19 @@
     return { pg, T: T / 1e4, B: Math.max(B, y + 600) / 1e4, L: L / 1e4, R: Rr / 1e4, p };
   }
   const mbCut = (c, id) => `<div class="mb-cut" style="aspect-ratio:${((c.R - c.L) / ((c.B - c.T) * c.pg.r)).toFixed(4)}"><img id="${id}" alt="" style="width:${(100 / (c.R - c.L)).toFixed(3)}%;left:${(-c.L / (c.R - c.L) * 100).toFixed(3)}%;top:${(-c.T / (c.B - c.T) * 100).toFixed(3)}%"></div>`;
+  // 책 한 권 빠른 정답 전체: 단원 칩 → 번호·정답 칸 (10/31 «전체 보기를 누르고 싶다고»)
+  function mbAllSheet(bid, g0) {
+    const bk = EB.books.find((y) => y.id === bid), A = MANS[bid]; if (!bk || !A) return;
+    const sb = (EB.sol || []).find((y) => y.id === bid + '-s'), keys = Object.keys(bk.q || A);
+    const grp = (k) => k.includes('-') ? k.slice(0, k.lastIndexOf('-')) : k.slice(0, 2) + '00번대', num = (k) => k.includes('-') ? k.slice(k.lastIndexOf('-') + 1) : k;
+    const G = [...new Set(keys.map(grp))]; let g = G.includes(g0) ? g0 : G[0];
+    const body = () => `<div class="my-qal">${keys.filter((k) => grp(k) === g).map((k) => { const a = A[k], t = a == null ? '–' : /^[1-5]$/.test(a) ? '①②③④⑤'[a - 1] : a, gr = /그래프/.test(t) && sb && sb.q[k]; return `<div class="my-qai ${String(t).length > 8 ? 'wide' : ''}"><b class="num">${esc(num(k))}</b><span>${esc(t)}</span>${gr ? `<button type="button" class="my-qag" data-qag="${esc(k)}">정답표 보기</button>` : ''}</div>`; }).join('')}</div>`;
+    sheet(`<span class="tag">${esc(bk.title)}</span><h2 style="margin:8px 0 12px">빠른 정답 전체</h2><div class="chips" id="qa-g" style="margin:0 0 12px">${G.map((x) => `<button type="button" class="chip ${x === g ? 'on' : ''}" data-qg="${esc(x)}">${esc(x)}</button>`).join('')}</div><div id="qa-b">${body()}</div>`, (el) => {
+      const bind2 = () => $$('[data-qag]', el).forEach((b) => (b.onclick = () => { const c = mbCrop(sb, b.dataset.qag); if (!c) return; const id = 'qg' + Math.random().toString(36).slice(2, 7); b.outerHTML = mbCut(c, id); ebImg(c.pg.f).then((u) => { const i = $('#' + id); if (i) i.src = u; }); }));
+      $$('[data-qg]', el).forEach((b) => (b.onclick = () => { g = b.dataset.qg; $$('[data-qg]', el).forEach((y) => y.classList.toggle('on', y === b)); segRe(b.parentNode); $('#qa-b', el).innerHTML = body(); bind2(); }));
+      bind2();
+    });
+  }
   function mbSheet(itId, v) {
     const it = myS().items.find((x) => x.id === itId); if (!it) return;
     const keys = mbKeys(it, v), bk = EB.books.find((x) => x.id === MB_ID(it.book)), sb = bk && (EB.sol || []).find((x) => x.id === bk.id + '-s');
@@ -1916,7 +1931,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610311451', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610311455', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5355,7 +5370,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311451'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311455'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
