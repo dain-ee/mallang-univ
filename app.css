@@ -3107,3 +3107,15 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 .jp-line { cursor: pointer; border-radius: 6px; transition: background-color .2s; }
 .jp-line:hover { background: var(--fill); }
 .jp-line.miss { color: var(--t4); cursor: default; }
+/* 책 읽기 (pick writing + story) */
+.jp-rs { padding: 10px 0; border-top: 1px solid var(--line); cursor: pointer; }
+.jp-rs:first-of-type { border-top: 0; }
+.jp-re { margin: 0; font-size: 20px; line-height: 1.6; font-weight: 600; }
+.jp-rk { margin: 4px 0 0; font-size: 15px; color: var(--t3); line-height: 1.5; }
+.jp-rs:active { background: var(--bg2, #f2f4f6); border-radius: 12px; }
+.jp-wl { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.jp-w { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px 14px; border-radius: 14px; border: 0; background: var(--bg2, #f2f4f6); font: inherit; cursor: pointer; text-align: left; }
+.jp-w b { font-size: 17px; }
+.jp-w small { color: var(--t3); font-size: 13px; }
+.jp-w:active { transform: scale(.96); }
+.jp-ph .btn { margin-left: 8px; vertical-align: middle; }
