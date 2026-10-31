@@ -1385,15 +1385,7 @@
     const bk = EB.books.find((y) => y.id === bid), A = MANS[bid]; if (!bk || !A) return;
     const sb = (EB.sol || []).find((y) => y.id === bid + '-s'), keys = Object.keys(bk.q || A);
     // 마더텅은 정답표 원본 쪽을 그대로 (10/31 «빠른정답이 마더텅 페이지에 없었어?»)
-    if (bid === 'mdt' && sb) {
-      const pgs = [...new Map(sb.ch.flatMap((c) => c.pages.map((p) => [p.n, { ...p, t: c.t }]))).values()], c0 = sb.ch.find((c) => c.t === g0) || sb.ch[0], at = c0.pages[0].n;
-      return sheet(`<span class="tag">${esc(bk.title)}</span><h2 style="margin:8px 0 12px">빠른 정답</h2><div class="chips" style="margin:0 0 12px">${sb.ch.map((c) => `<button type="button" class="chip ${c === c0 ? 'on' : ''}" data-qp="${c.pages[0].n}">${esc(c.t)}</button>`).join('')}</div>${pgs.map((p) => `<img class="qa-pg" data-qpg="${p.n}" alt="정답표 ${p.n}쪽" style="aspect-ratio:${(1 / p.r).toFixed(4)}">`).join('')}`, (el) => {
-        pgs.forEach((p) => ebImg(p.f).then((u) => { const i = $(`[data-qpg="${p.n}"]`, el); if (i) i.src = u; }));
-        const go = (n, sm) => { const i = $(`[data-qpg="${n}"]`, el), sh = el.closest('.sheet') || $('.sheet'); if (i && sh) sh.scrollTo({ top: sh.scrollTop + i.getBoundingClientRect().top - sh.getBoundingClientRect().top - 12, behavior: sm && !RM() ? 'smooth' : 'auto' }); };
-        $$('[data-qp]', el).forEach((b) => (b.onclick = () => { $$('[data-qp]', el).forEach((y) => y.classList.toggle('on', y === b)); segRe(b.parentNode); go(+b.dataset.qp, 1); }));
-        if (at !== pgs[0].n) setTimeout(() => go(at), 60);
-      });
-    }
+    if (bid === 'mdt' && sb) { const c0 = sb.ch.find((c) => c.t === g0) || sb.ch[0]; if ($('.sheet')) closeSheet(); return bookOpen(sb.id, null, c0.pages[0].n); }  // 마더텅은 정답표 원본을 교재처럼 크게
     const grp = (k) => k.includes('-') ? k.slice(0, k.lastIndexOf('-')) : k.slice(0, 2) + '00번대', num = (k) => k.includes('-') ? k.slice(k.lastIndexOf('-') + 1) : k;
     const G = [...new Set(keys.map(grp))]; let g = G.includes(g0) ? g0 : G[0];
     const body = () => `<div class="my-qal">${keys.filter((k) => grp(k) === g).map((k) => { const a = A[k], t = a == null ? '–' : /^[1-5]$/.test(a) ? '①②③④⑤'[a - 1] : a, gr = /그래프/.test(t) && sb && sb.q[k]; return `<div class="my-qai ${String(t).length > 6 || gr ? 'wide' : ''}"><b class="num">${esc(num(k))}</b><span>${esc(t)}</span>${gr ? `<button type="button" class="my-qag" data-qag="${esc(k)}">정답표 보기</button>` : ''}</div>`; }).join('')}</div>`;
@@ -1591,15 +1583,17 @@
   function bookView() {
     return `<h1 class="h1">기말 교재</h1><p class="sub">기말 범위를 적고, 시험 범위 교과서·문제집을 읽으면서 형광펜·밑줄을 긋고, 모르는 곳은 선생님께 물어봐요</p><div class="grid">${examCard()}${bookCard() || `<section class="card c12"><div class="empty">${gh('sleepy', 'gh-empty')}<b>아직 교과서가 없어요</b></div></section>`}</div>`;
   }
+  // 정답표(풀이책)도 교재처럼 크게 펼쳐요 (10/31 «모달로 뜨면 보이겠냐»)
+  const ebBook = (id) => EB.books.find((x) => x.id === id) || (EB.sol || []).find((x) => x.id === id);
   function bookOpen(id, cid, n, mk) {
-    const b = EB.books.find((x) => x.id === id); if (!b) return;
+    const b = ebBook(id); if (!b) return;
     const last = bkS().last[id], c = cid && ebFind(cid) ? ebFind(cid).c : null;
     const pn = n != null ? n : c ? c.pages[0].n : last && last.n ? last.n : (b.ch.find((x) => !x.ref) || b.ch[0]).pages[0].n;
-    UI.run = { kind: 'book', b: id, n: pn, mk, back: UI.run && UI.run.kind === 'book' ? UI.run.back : UI.tab };
+    UI.run = { kind: 'book', b: id, n: pn, mk, back: UI.run && UI.run.kind === 'book' ? UI.run.back : UI.tab, from: UI.run && UI.run.kind === 'book' && UI.run.b !== id ? UI.run : null };
     render(); window.scrollTo(0, 0);
   }
   // 책 한 권의 쪽을 단원 구분 없이 이어서 (넘기면 다음 단원으로 그대로 이어짐)
-  const bkPages = (b) => b.ch.flatMap((c) => c.pages.map((p) => ({ ...p, c })));
+  const bkPages = (b) => { const seen = new Set(); return b.ch.flatMap((c) => c.pages.map((p) => ({ ...p, c }))).filter((p) => !seen.has(p.n) && seen.add(p.n)); };  // 정답표는 단원끼리 쪽이 겹쳐요
   const bkOne = () => { if (UI.bkOne == null) { try { UI.bkOne = localStorage.getItem('mu:bk1') === '1'; } catch (e) { UI.bkOne = false; } } return UI.bkOne; };
   const bkWide = () => innerWidth >= 1100 && !bkOne();
   // 펼침: 짝수 쪽이 왼쪽 (교과서처럼), 바로 다음 쪽이 이어질 때만 두 쪽
@@ -1610,13 +1604,13 @@
   }
   const bkHint = (tool) => tool === 'read' ? '옆으로 밀거나 ‹ › 로 넘겨요 · 칠한 곳을 누르면 질문을 남겨요' : `단어 위를 쭉 끌어 ${tool === 'hl' ? '칠해요' : '밑줄을 그어요'} · 끄려면 ${tool === 'hl' ? '형광펜' : '밑줄'}을 한 번 더 눌러요`;
   function bookRun() {
-    const r = UI.run, b = EB.books.find((x) => x.id === r.b); if (!b) return '';
+    const r = UI.run, b = ebBook(r.b); if (!b) return '';
     const P = bkPages(b), i = Math.max(0, P.findIndex((p) => p.n === r.n)), sp = bkSpread(P, i), c = P[sp[0]].c, tool = UI.bkTool || 'read';
     const toc = b.ch.map((x) => { const sn = x.pages.filter((p) => bkS().seen[`${b.id}:${p.n}`]).length, mk = Object.values(bkS().marks).filter((m) => m.c === x.id).length; return `<button type="button" class="bk-ti ${x.id === c.id ? 'on' : ''} ${x.ref ? 'ref' : ''}" data-bkn="${x.pages[0].n}"><span class="bk-tn">${esc(x.no)}</span><span class="bk-tt">${esc(x.t)}<span class="tiny">${x.a}~${x.b}쪽${mk ? ` · 칠한 곳 ${mk}` : ''}</span></span><span class="bk-td ${sn >= x.pages.length ? 'all' : sn ? 'some' : ''}"></span></button>`; }).join('');
     const pg = (p) => { const pin = bkS().pin[`${p.c.id}:${p.n}`]; const u = ebUrl.get(p.f); return `<div class="bk-pg ${u ? 'ok' : ''}" data-pg="${p.n}" data-r="${p.r}"><img alt="${p.n}쪽" draggable="false" ${u ? `src="${u}"` : ''}><div class="bk-ly" data-ly="${p.n}"></div><button type="button" class="bk-pin ${pin ? 'on' : ''}" data-pin="${p.n}" aria-label="이 쪽 나중에 다시 보기">${pin ? '★' : '☆'}</button><span class="bk-no">${p.n}쪽</span></div>`; };
     const first = sp[0] === 0, last = sp[sp.length - 1] >= P.length - 1;
     return `<div class="bk-wrap ${tool !== 'read' ? 'pen' : ''} ${bkOne() && innerWidth >= 1100 ? 'one' : ''}">
-      <div class="bk-top"><button class="btn sm" type="button" data-bkback>‹ ${esc((TABS.find((t) => t[0] === (r.back || 'book')) || ['', '교재'])[1])}</button><div class="bk-hd"><b>${esc(b.title)}</b><span>${esc(c.no)} ${esc(c.t)}${c.ref ? ' <span class="tag">참고</span>' : ''}</span></div>${innerWidth >= 1100 ? `<button class="btn sm" type="button" id="bk-one">${bkOne() ? '두 쪽 보기' : '한 쪽 크게'}</button>` : ''}${MANS[b.id] ? '<button class="btn sm soft" type="button" id="bk-qa">빠른 정답</button>' : ''}<button class="btn sm" type="button" id="bk-toc">목차</button></div>
+      <div class="bk-top"><button class="btn sm" type="button" data-bkback>‹ ${r.from ? '문제집' : esc((TABS.find((t) => t[0] === (r.back || 'book')) || ['', '교재'])[1])}</button><div class="bk-hd"><b>${esc(b.title)}</b><span>${esc(c.no)} ${esc(c.t)}${c.ref ? ' <span class="tag">참고</span>' : ''}</span></div>${innerWidth >= 1100 ? `<button class="btn sm" type="button" id="bk-one">${bkOne() ? '두 쪽 보기' : '한 쪽 크게'}</button>` : ''}${MANS[b.id] ? '<button class="btn sm soft" type="button" id="bk-qa">빠른 정답</button>' : ''}<button class="btn sm" type="button" id="bk-toc">목차</button></div>
       <aside class="bk-side"><div class="row between" style="padding:0 8px 8px"><span class="tiny">${esc(b.pub)} · ${esc(b.range)}</span><button class="btn sm" type="button" id="bk-tocx">닫기</button></div>${toc}</aside>
       <div class="bk-stage" id="bk-stage"><button type="button" class="bk-arr l" data-turn="-1" ${first ? 'disabled' : ''} aria-label="앞 쪽">‹</button><div class="bk-spread ${sp.length > 1 ? 'two' : ''}" id="bk-spread">${sp.map((k) => pg(P[k])).join('')}</div><button type="button" class="bk-arr r" data-turn="1" ${last ? 'disabled' : ''} aria-label="다음 쪽">›</button></div>
       <div class="bk-bar"><input type="range" class="bk-sl" id="bk-sl" min="0" max="${P.length - 1}" value="${sp[0]}" style="--p:${P.length > 1 ? sp[0] / (P.length - 1) * 100 : 0}%" aria-label="쪽 고르기"><span class="bk-pn num">${sp.map((k) => P[k].n).join('~')}쪽 <span class="tiny">/ ${P.length}쪽 중 ${sp[sp.length - 1] + 1}</span></span></div>
@@ -1639,12 +1633,12 @@
     return bd < 600 ? best : -1;
   }
   function bindBook() {
-    const r = UI.run, b = EB.books.find((x) => x.id === r.b); if (!b) return;
+    const r = UI.run, b = ebBook(r.b); if (!b) return;
     const s = bkS(), P = bkPages(b), i0 = Math.max(0, P.findIndex((p) => p.n === r.n)), sp = bkSpread(P, i0);
     s.last[b.id] = { c: P[sp[0]].c.id, n: P[sp[0]].n };
     const go = (n, dir) => { if (n === r.n) return; UI.run = { ...r, n, mk: null, dir }; const y = scrollY; render(); window.scrollTo(0, bkOne() && innerWidth >= 1100 ? 0 : y); };
     const turn = (d) => { const k = d > 0 ? sp[sp.length - 1] + 1 : sp[0] - 1; if (P[k]) go(P[k].n, d); };
-    $('[data-bkback]').onclick = () => { UI.run = null; UI.tab = r.back || 'book'; document.onkeydown = null; render(); };
+    $('[data-bkback]').onclick = () => { if (r.from) { UI.run = r.from; render(); window.scrollTo(0, 0); return; } UI.run = null; UI.tab = r.back || 'book'; document.onkeydown = null; render(); };
     $$('[data-bkn]').forEach((x) => (x.onclick = () => go(+x.dataset.bkn, 0)));
     $('#bk-toc').onclick = () => $('.bk-side').classList.toggle('open');
     const bq = $('#bk-qa'); if (bq) bq.onclick = () => mbAllSheet(b.id, P[sp[0]].c.t);  // 교재 보다가 바로 정답 (10/31)
@@ -1942,7 +1936,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610311504', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610311507', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5381,7 +5375,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311504'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311507'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
