@@ -1859,10 +1859,11 @@
   function hwGoDone(h) {
     const g = h.go; if (!g) return false;
     if (g.kind === 'gram') { const u = jgU(g.unit), qs = jgQs(u, g.step, g.secs); return !!qs.length && qs.every((q) => jgRec(u, q)); }
+    if (g.kind === 'jw') { const w = jwU(g.id); return !!w && w.kind === 'pick' && jpSents(w).every((x) => jpDone(w, x)); }
     if (g.kind === 'jl') { const u = jlV({ ...g, only: 1 }), T = u && u.tracks[0]; if (!T) return false; const [a, b] = jlTally(u, 'words'), qs = (T.qs || []).map((q, i) => [q, i]).filter(([q]) => jlQOk(q)); return a >= b && qs.every(([, i]) => jGet('jl', jlK(u, T, 'q', i))); }
     return false;
   }
-  function hwGoStart(h) { const g = h.go; if (!g || !(g.kind === 'gram' ? jgU(g.unit) : jlU(g.unit))) return false; UI.tab = 'hw'; UI.lib = null; UI.run = { ...g, only: g.kind === 'jl' ? 1 : g.only }; render(); window.scrollTo(0, 0); return true; }
+  function hwGoStart(h) { const g = h.go; if (!g || !(g.kind === 'gram' ? jgU(g.unit) : g.kind === 'jw' ? jwU(g.id) : jlU(g.unit))) return false; UI.tab = 'hw'; UI.lib = null; UI.run = { ...g, only: g.kind === 'jl' ? 1 : g.only }; render(); window.scrollTo(0, 0); return true; }
   function hwSheet(id) {
     const h = (S.hw || []).find((x) => x.id === id); if (!h) return;
     const key = Object.keys(SUBJ_NAMES).find((k) => SUBJ_NAMES[k] === h.subj || (h.subj === '한국사' && k === 'hist'));
@@ -1953,7 +1954,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610311510', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610311720', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4469,6 +4470,7 @@
   const jwText = (w) => (jGet('jw', w.id + ':text') || {}).text || '';
   const jwUsed = (w, t) => (w.trans || []).filter((x) => new RegExp(`(^|[^A-Za-z])${x.replace(/[,.]/g, '').replace(/ /g, '\\s+')}\\b`, 'i').test(t || ''));
   function jwTally(w, m) {
+    if (w.kind === 'pick') { if (m === 'say') return [Math.min(3, (jGet('jw', w.id + ':say') || {}).n || 0), 3]; const L = jpSents(w).filter(jpN); return [L.filter((x) => jpDone(w, x)).length, L.length]; }
     if (m === 'idea') return [jGet('jw', w.id + ':idea') ? 1 : 0, 1];
     if (m === 'build') return [w.sents.filter((_, i) => jGet('jw', `${w.id}:b${i}`)).length, w.sents.length];
     if (m === 'trans') return [w.tq.filter((_, i) => jGet('jw', `${w.id}:t${i}`)).length, w.tq.length];
@@ -4476,8 +4478,46 @@
   }
   const jwC = (p) => `<span class="jw-c ${esc(p[1])}">${esc(p[0])}</span>`;
   function jwShuf(n, seed) { const o = jSeed([...Array(n).keys()], seed); if (o.length > 1 && o.every((v, k) => v === k)) o.push(o.shift()); return o; }
+  // ✏️ 보기 골라 쓰기 (10/31 «아예 작문을 못 하니 1~3문장, 안을 주고»): 빈칸마다 보기(뜻 같이)를 고르거나 직접 써서 문장을 완성 → 「내 대본」에 모여요
+  const JP_M = { pick: '문장 고르기', say: '내 대본' };
+  const jpSents = (w) => w.parts.flatMap((p, pi) => p.sents.map((x, si) => ({ ...x, k: `${w.id}:p${pi}.${si}`, pi })));
+  const jpVals = (w, x) => (jGet('jw', x.k) || {}).v || [];
+  const jpN = (x) => (x.f.match(/\{\d\}/g) || []).length;
+  const jpDone = (w, x) => { const v = jpVals(w, x); return Array.from({ length: jpN(x) }, (_, i) => v[i]).every((y) => y && String(y).trim()); };
+  const jpLine = (w, x, html) => x.f.replace(/\{(\d)\}/g, (_, i) => { const v = jpVals(w, x)[+i]; return html ? `<b class="jp-b ${v ? 'on' : ''}">${v ? esc(v) : '_____'}</b>` : v || '_____'; });
+  function jpRun(w, r) {
+    const m = JP_M[r.m] ? r.m : 'pick'; r.m = m;
+    const L = jpSents(w), dn = L.filter((x) => jpDone(w, x));
+    let h = jHead('✏️ Writing', w.title, '보기를 골라 문장을 만들어요', Object.entries(JP_M).map(([k, nm]) => { const [a, b] = jwTally(w, k); return [k, nm, `${a}/${b}`]; }), m, 'data-jwm');
+    h += `<section class="card"><p class="tiny" style="font-size:14px;margin:0;line-height:1.7">${esc(w.promptKo)}</p><div class="row wrap" style="margin-top:12px">${w.words.map(([e, k]) => `<span class="tag"><b>${esc(e)}</b>&nbsp;${esc(k)}</span>`).join('')}</div></section>`;
+    if (m === 'pick') {
+      h += w.parts.map((p, pi) => `<section class="card jp-part"><div class="card-h"><h3>${esc(p.h)}</h3><span class="tiny">${esc(p.tip || '')}</span></div>${L.filter((x) => x.pi === pi).map((x) => { const ok = jpDone(w, x), v = jpVals(w, x);
+        return `<div class="jp-s ${ok ? 'ok' : ''}"><p class="jp-ko">${esc(x.ko)}</p><p class="jp-en">${jpLine(w, x, true)}${ok ? ` <button type="button" class="jp-say" data-jpsay="${esc(x.k)}" aria-label="듣기">🔊</button>` : ''}</p>${(x.opts || []).map((g, gi) => `<div class="jp-ops">${g.map(([e, k]) => `<button type="button" class="jp-op ${v[gi] === e ? 'on' : ''}" data-jpk="${esc(x.k)}" data-gi="${gi}" data-v="${esc(e)}"><b>${esc(e)}</b><small>${esc(k)}</small></button>`).join('')}<button type="button" class="jp-op mine ${v[gi] && !g.some(([e]) => e === v[gi]) ? 'on' : ''}" data-jpmine="${esc(x.k)}" data-gi="${gi}"><b>✏️ 직접 쓰기</b><small>${v[gi] && !g.some(([e]) => e === v[gi]) ? esc(v[gi]) : '내 말로'}</small></button></div>`).join('')}</div>`; }).join('')}</section>`).join('');
+      h += `<section class="card"><div class="card-h"><h3>지금까지 만든 대본</h3><span class="tiny">${dn.length}/${L.length}문장</span></div><p class="jw-model">${dn.map((x) => esc(jpLine(w, x))).join(' ') || '<span class="tiny">문장을 고르면 여기 차곡차곡 쌓여요</span>'}</p>${dn.length === L.length ? '<button class="btn primary big block" data-jwm="say" type="button" style="margin-top:12px">다 만들었어요 · 소리 내어 읽기</button>' : ''}</section>`;
+    } else {
+      const n = (jGet('jw', w.id + ':say') || {}).n || 0;
+      h += `<section class="card"><div class="card-h"><h3>내 대본</h3><button class="btn sm soft" data-jpall type="button">🔊 전체 듣기</button></div>${w.parts.map((p, pi) => `<p class="jp-ph">${esc(p.h)}</p><p class="jp-script">${L.filter((x) => x.pi === pi).map((x) => jpDone(w, x) ? `<span class="jp-line" data-jpsay="${esc(x.k)}">${esc(jpLine(w, x))}</span>` : '<span class="jp-line miss">(아직 안 고른 문장)</span>').join(' ')}</p>`).join('')}
+        <p class="tiny">문장을 누르면 그 문장만 들려줘요. 따라 읽고, 안 보고도 말해 봐요</p></section>
+        <button class="tk j-tk-big ${n >= 3 ? 'on' : ''}" data-jpread type="button"><span>소리 내어 한 번 읽었어요 · ${Math.min(n, 3)}/3</span><i></i></button>`;
+    }
+    return `<div class="qwrap j-wrap">${h}</div>`;
+  }
+  function bindJp(w, r) {
+    const L = jpSents(w), byK = (k) => L.find((x) => x.k === k);
+    $$('[data-jwm]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'jw', id: w.id, m: b.dataset.jwm }; render(); window.scrollTo(0, 0); }));
+    const put = (x, gi, val, b) => { const v = [...jpVals(w, x)]; v[gi] = val; const was = jpDone(w, x); jSet('jw', x.k, { v }); if (!was && jpDone(w, x)) { jFx(true, b); if (SOUND) jSay(jpLine(w, x)); } jKeep(); };
+    $$('[data-jpk]').forEach((b) => (b.onclick = () => put(byK(b.dataset.jpk), +b.dataset.gi, b.dataset.v, b)));
+    $$('[data-jpmine]').forEach((b) => (b.onclick = () => { const x = byK(b.dataset.jpmine), gi = +b.dataset.gi, cur = jpVals(w, x)[gi] || '';
+      b.outerHTML = `<form class="jp-mine" data-jpf="${esc(x.k)}" data-gi="${gi}"><input class="inp" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="영어로 써요" value="${esc((x.opts[gi] || []).some(([e]) => e === cur) ? '' : cur)}"><button class="btn primary" type="submit">넣기</button></form>`;
+      const f = $(`[data-jpf="${CSS.escape(x.k)}"][data-gi="${gi}"]`); $('input', f).focus();
+      f.onsubmit = (e) => { e.preventDefault(); const t = $('input', f).value.trim(); if (!t) return; if (/[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(t)) return toast('영어로 써 봐요. 모르면 보기에서 골라요'); put(x, gi, t, f); }; }));
+    $$('[data-jpsay]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); const x = byK(b.dataset.jpsay); if (x) jSay(jpLine(w, x)); }));
+    const all = $('[data-jpall]'); if (all) all.onclick = () => jSay(L.filter((x) => jpDone(w, x)).map((x) => jpLine(w, x)).join(' '));
+    const rd = $('[data-jpread]'); if (rd) rd.onclick = () => { const n = ((jGet('jw', w.id + ':say') || {}).n || 0) + 1; jSet('jw', w.id + ':say', { n }); jFx(true, rd); jKeep(); };
+  }
   function jwRun() {
     const r = UI.run, w = jwU(r.id); if (!w) return jEmpty('라이팅 주제를 넣는 중이에요');
+    if (w.kind === 'pick') return jpRun(w, r);
     const m = JW_M[r.m] ? r.m : 'idea'; r.m = m;
     let h = jHead('✏️ Writing', w.title, `${w.goal}단어 이상`, Object.entries(JW_M).map(([k, nm]) => { const [a, b] = jwTally(w, k); return [k, nm, k === 'idea' ? '' : `${a}/${b}`]; }), m, 'data-jwm');
     h += `<section class="card"><p class="j-big" style="margin-top:0">${esc(w.prompt)}</p><p class="tiny" style="font-size:14px;margin:0">${esc(w.promptKo)}</p></section>`;
@@ -4514,6 +4554,7 @@
   }
   function bindJw() {
     const r = UI.run, w = jwU(r.id); if (!w) return;
+    if (w.kind === 'pick') return bindJp(w, r);
     $$('[data-jwm]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'jw', id: w.id, m: b.dataset.jwm, bi: r.bi }; render(); window.scrollTo(0, 0); }));
     $$('[data-jwidea]').forEach((b) => (b.onclick = () => { const k = w.id + ':idea'; if (jGet('jw', k)) jDel('jw', k); else { jSet('jw', k, { ok: 1 }); jFx(true, b); } jKeep(); }));
     $$('[data-jwbi]').forEach((b) => (b.onclick = () => { r.bi = +b.dataset.jwbi; r.bo = null; jKeep(); }));
@@ -4535,7 +4576,7 @@
     let h = '';
     if (JL.length) { const rows = JL.map((u) => [u, st(jlTally, JL_S, u)]); h += card(JL[0].book || 'Listening Live 2', rows.map(([u, s]) => jTile('data-jlo', u.unit, u.unit, u.title, `${u.pages} · 트랙 ${u.tracks.length}개`, s)), rows.filter(([, s]) => s.every((x) => x.n >= x.all)).length, JL.length, '유닛'); }
     if (JR.length) { const rows = JR.map((u) => [u, st(jrTally, JR_S, u)]); h += card(JR[0].book || 'Benchmark Reading 5.3', rows.map(([u, s]) => jTile('data-jro', u.unit, u.unit, u.title, [u.subject, u.pages].filter(Boolean).join(' · '), s)), rows.filter(([, s]) => s.every((x) => x.n >= x.all)).length, JR.length, '유닛'); }
-    if (JW.length) { const rows = JW.map((w) => [w, st(jwTally, JW_S, w)]); h += card('Writing', rows.map(([w, s]) => jTile('data-jwo', w.id, jNum(w.id), w.title, `${w.goal}단어 이상${w.date ? ' · ' + md(w.date) : ''}`, s)), rows.filter(([, s]) => s.every((x) => x.n >= x.all)).length, JW.length, '주제'); }
+    if (JW.length) { const rows = JW.map((w) => [w, st(jwTally, w.kind === 'pick' ? { pick: '문장', say: '대본 읽기' } : JW_S, w)]); h += card('Writing', rows.map(([w, s]) => jTile('data-jwo', w.id, jNum(w.id), w.title, `${w.kind === 'pick' ? `${jpSents(w).length}문장 · 보기 골라 쓰기` : `${w.goal}단어 이상`}${w.date ? ' · ' + md(w.date) : ''}`, s)), rows.filter(([, s]) => s.every((x) => x.n >= x.all)).length, JW.length, '주제'); }
     return h;
   }
 
@@ -5392,7 +5433,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311510'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311720'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
