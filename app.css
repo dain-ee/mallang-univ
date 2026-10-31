@@ -2314,6 +2314,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .hcal-g .hcal-d.l1 { background: var(--blue-soft); } .hcal-g .hcal-d.l2 { background: var(--blue-l); } .hcal-g .hcal-d.l3 { background: var(--blue); }
 .hcal-d.l3 .hc-n, .hcal-d.l3 .hc-c, .hcal-d.l3 .hc-h { color: #fff; }
 .hcal-g .hcal-d.today { box-shadow: inset 0 0 0 2px var(--blue); }
+.hcal-g .hcal-d.sel { box-shadow: inset 0 0 0 2px var(--t1); }
 
 /* 모의고사 글자 해설 (10/27) */
 .mx { margin-top: 12px; }
@@ -2581,6 +2582,9 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .cl-book h4:first-of-type { margin-top: 4px; }
 .cl-book h4.cl-fs { margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--line); color: var(--blue); }
 .cl-book p { margin: 0 0 10px; font-size: 15px; line-height: 1.65; color: var(--t1); word-break: keep-all; }
+.cl-book .cl-fm { margin: 0 0 8px; padding: 10px 14px; font-size: 15px; font-weight: 700; line-height: 1.55; color: var(--blue-d); background: var(--blue-soft); border-radius: 12px; }
+.cl-book .cl-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.cl-book .cl-chips span { padding: 6px 10px; font-size: 14px; line-height: 1.45; color: var(--t1); background: var(--fill2); border-radius: 10px; }
 .cl-book p.cl-note { padding: 10px 12px; border-radius: 10px; background: var(--fill2); font-size: 14px; color: var(--t2); }
 .cl-book ul { margin: 0 0 10px; padding-left: 18px; }
 .cl-book li { margin: 4px 0; font-size: 15px; line-height: 1.6; color: var(--t1); word-break: keep-all; }
@@ -2872,7 +2876,6 @@ button.st-k.hid:hover { background: var(--blue-soft); }
 .st-ord-ops { display: grid; gap: 8px; }
 .st-ord-op { padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--fill2); text-align: left; line-height: 1.55; font-size: 15px; }
 .st-ord-op:active { background: var(--blue-soft); }
-@media (min-width: 900px) { .st-steps { flex-wrap: wrap; overflow: visible; } }
 @media (max-width: 560px) { .mp-bank .jg-ops { max-height: 30vh; overflow-y: auto; } }
 
 /* 문제 화면 옆 단원 단계 */
@@ -2978,3 +2981,17 @@ button.st-k.hid:hover { background: var(--blue-soft); }
 .sx-all summary { cursor: pointer; font-size: 14px; font-weight: 700; color: var(--blue); }
 .sx-all .st-pre { margin-top: 8px; }
 .m3-go .btn { margin-top: 12px; }
+
+/* 공부 탭 윗부분을 얇게: 단계는 한 줄, 문제 풀 땐 제목만 (10/31 «위에 탭이 화면 중앙까지 잡아먹고») */
+.st-view { max-width: 320px; margin-bottom: 16px; }
+.st-steps { margin-top: 12px; }
+.st-step { gap: 6px; min-height: 36px; padding: 3px 12px 3px 3px; }
+.st-sn { width: 28px; height: 28px; font-size: 13px; }
+.st-sl { font-size: 14px; }
+.st-head .st-t { margin: 4px 0 2px; font-size: 20px; }
+.st-lsub { margin-top: 8px; }
+.st-lsub .seg button { min-height: 36px; }
+.st-head.run { padding-top: 16px; padding-bottom: 16px; }
+.st-head.run > .row.between, .st-head.run > .sub { display: none; }
+.st-head.run .st-t { margin: 0; font-size: 17px; }
+.st-run .nx-tt span { display: none; }
