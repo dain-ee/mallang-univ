@@ -1343,7 +1343,7 @@
         const rows = A ? Array.from({ length: z - a0 + 1 }, (_, k) => a0 + k).map((v) => { const ks = mbKeys(it, v); return { v, k: ks.length === 1 ? ks[0] : null, a: ks.length === 1 ? A[ks[0]] : null }; }) : [];
         if (!rows.some((r) => r.a)) { el2.innerHTML = ''; return; }
         const sb = (EB.sol || []).find((y) => y.id === bk.id + '-s');
-        el2.innerHTML = `<button type="button" class="btn sm soft my-qat" aria-expanded="${!!mySheet.qa}">${mySheet.qa ? '빠른 정답 접기' : '빠른 정답 보기'}</button><div class="my-qal" ${mySheet.qa ? '' : 'hidden'}>${rows.map((r) => { const t = r.a == null ? '–' : /^[1-5]$/.test(r.a) ? '①②③④⑤'[r.a - 1] : r.a, g = /그래프/.test(t) && sb && r.k && sb.q[r.k]; return `<div class="my-qai ${String(t).length > 8 ? 'wide' : ''}"><b class="num">${r.v}</b><span>${esc(t)}</span>${g ? `<button type="button" class="my-qag" data-qag="${esc(r.k)}">정답표 보기</button>` : ''}</div>`; }).join('')}</div>`;
+        el2.innerHTML = `<button type="button" class="btn sm soft my-qat" aria-expanded="${!!mySheet.qa}">${mySheet.qa ? '빠른 정답 접기' : '빠른 정답 보기'}</button><div class="my-qal" ${mySheet.qa ? '' : 'hidden'}>${rows.map((r) => { const t = r.a == null ? '–' : /^[1-5]$/.test(r.a) ? '①②③④⑤'[r.a - 1] : r.a, g = /그래프/.test(t) && sb && r.k && sb.q[r.k]; return `<div class="my-qai ${String(t).length > 6 || g ? 'wide' : ''}"><b class="num">${r.v}</b><span>${esc(t)}</span>${g ? `<button type="button" class="my-qag" data-qag="${esc(r.k)}">정답표 보기</button>` : ''}</div>`; }).join('')}</div>`;
         $('.my-qat', el2).onclick = () => { mySheet.qa = !mySheet.qa; qa(a0, z); };
         $$('[data-qag]', el2).forEach((b) => (b.onclick = () => { const c = mbCrop(sb, b.dataset.qag); if (!c) return; const id = 'qg' + Math.random().toString(36).slice(2, 7); b.outerHTML = mbCut(c, id); ebImg(c.pg.f).then((u) => { const i = $('#' + id); if (i) i.src = u; }); }));
       };
@@ -1386,7 +1386,7 @@
     const sb = (EB.sol || []).find((y) => y.id === bid + '-s'), keys = Object.keys(bk.q || A);
     const grp = (k) => k.includes('-') ? k.slice(0, k.lastIndexOf('-')) : k.slice(0, 2) + '00번대', num = (k) => k.includes('-') ? k.slice(k.lastIndexOf('-') + 1) : k;
     const G = [...new Set(keys.map(grp))]; let g = G.includes(g0) ? g0 : G[0];
-    const body = () => `<div class="my-qal">${keys.filter((k) => grp(k) === g).map((k) => { const a = A[k], t = a == null ? '–' : /^[1-5]$/.test(a) ? '①②③④⑤'[a - 1] : a, gr = /그래프/.test(t) && sb && sb.q[k]; return `<div class="my-qai ${String(t).length > 8 ? 'wide' : ''}"><b class="num">${esc(num(k))}</b><span>${esc(t)}</span>${gr ? `<button type="button" class="my-qag" data-qag="${esc(k)}">정답표 보기</button>` : ''}</div>`; }).join('')}</div>`;
+    const body = () => `<div class="my-qal">${keys.filter((k) => grp(k) === g).map((k) => { const a = A[k], t = a == null ? '–' : /^[1-5]$/.test(a) ? '①②③④⑤'[a - 1] : a, gr = /그래프/.test(t) && sb && sb.q[k]; return `<div class="my-qai ${String(t).length > 6 || gr ? 'wide' : ''}"><b class="num">${esc(num(k))}</b><span>${esc(t)}</span>${gr ? `<button type="button" class="my-qag" data-qag="${esc(k)}">정답표 보기</button>` : ''}</div>`; }).join('')}</div>`;
     sheet(`<span class="tag">${esc(bk.title)}</span><h2 style="margin:8px 0 12px">빠른 정답 전체</h2><div class="chips" id="qa-g" style="margin:0 0 12px">${G.map((x) => `<button type="button" class="chip ${x === g ? 'on' : ''}" data-qg="${esc(x)}">${esc(x)}</button>`).join('')}</div><div id="qa-b">${body()}</div>`, (el) => {
       const bind2 = () => $$('[data-qag]', el).forEach((b) => (b.onclick = () => { const c = mbCrop(sb, b.dataset.qag); if (!c) return; const id = 'qg' + Math.random().toString(36).slice(2, 7); b.outerHTML = mbCut(c, id); ebImg(c.pg.f).then((u) => { const i = $('#' + id); if (i) i.src = u; }); }));
       $$('[data-qg]', el).forEach((b) => (b.onclick = () => { g = b.dataset.qg; $$('[data-qg]', el).forEach((y) => y.classList.toggle('on', y === b)); segRe(b.parentNode); $('#qa-b', el).innerHTML = body(); bind2(); }));
@@ -1932,7 +1932,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610311459', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610311501', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5371,7 +5371,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311459'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311501'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

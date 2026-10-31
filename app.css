@@ -3069,7 +3069,8 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 .my-qai { display: flex; align-items: baseline; gap: 8px; padding: 8px 10px; border-radius: 10px; background: var(--fill2, var(--fill)); font-size: 15px; line-height: 1.45; }
 .my-qai.wide { grid-column: 1 / -1; flex-wrap: wrap; }
 .my-qai b { flex: none; min-width: 28px; font-size: 13px; color: var(--t3); }
-.my-qai span { color: var(--t1); font-weight: 600; word-break: keep-all; }
+.my-qai span { color: var(--t1); font-weight: 600; word-break: keep-all; white-space: nowrap; }
+.my-qai.wide span { white-space: normal; }
 .my-qai .mb-cut { flex-basis: 100%; margin-top: 6px; }
 .my-qag { margin-left: auto; padding: 4px 10px; border: 0; border-radius: 8px; background: var(--blue-soft); color: var(--blue); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
 .mb-at { margin: 0 0 10px; font-size: 15px; font-weight: 600; line-height: 1.6; color: var(--t1); word-break: keep-all; }
