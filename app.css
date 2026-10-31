@@ -3061,3 +3061,15 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 .pr-rv { transition: color .25s ease, background-color .25s ease, transform .1s; }
 @media (prefers-reduced-motion: reduce) { .nx-vd.ok, .nx-vd.ok i, .nx-vd.no.shake { animation: none; } }
 .nx-hit { border-color: var(--green) !important; background: var(--green-soft) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 25%, transparent) !important; animation: okPop .38s cubic-bezier(.3,1.6,.5,1); }
+
+/* 빠른 정답 (10/31) */
+.my-qa { margin-top: 12px; }
+.my-qal { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; margin-top: 8px; }
+.my-qal[hidden] { display: none; }
+.my-qai { display: flex; align-items: baseline; gap: 8px; padding: 8px 10px; border-radius: 10px; background: var(--fill2, var(--fill)); font-size: 15px; line-height: 1.45; }
+.my-qai.wide { grid-column: 1 / -1; flex-wrap: wrap; }
+.my-qai b { flex: none; min-width: 28px; font-size: 13px; color: var(--t3); }
+.my-qai span { color: var(--t1); font-weight: 600; word-break: keep-all; }
+.my-qai .mb-cut { flex-basis: 100%; margin-top: 6px; }
+.my-qag { margin-left: auto; padding: 4px 10px; border: 0; border-radius: 8px; background: var(--blue-soft); color: var(--blue); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.mb-at { margin: 0 0 10px; font-size: 15px; font-weight: 600; line-height: 1.6; color: var(--t1); word-break: keep-all; }

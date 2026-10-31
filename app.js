@@ -1309,7 +1309,7 @@
       ${it.unit === '건' ? '' : `<div class="my-today"><span class="tiny">오늘 할 것${myAvg() ? ` · 보통 하루 ${myAvg()}문제 해요` : ''}</span><b>${x.skip ? '내일로 미뤘어요' : x.n ? esc(myRange(it, x)) : '오늘 몫은 없어요'}</b>${it.orig ? `<span class="tiny">원래 ${md(it.orig)} 마감 → ${md(it.due)}로 미뤄짐</span>` : ''}${!dt && (x.n || x.skip) ? `<button type="button" class="my-skip" id="my-skip">${x.skip ? '미룬 것 취소' : '내일로 미루기'}</button>` : ''}</div>
       <div class="my-amt"><span>오늘 한 만큼</span><button type="button" class="btn sm" data-ma="-1">−</button><input class="inp sm" id="my-n" type="number" inputmode="numeric" min="0" value="${dt ? dt.n : x.n}"><button type="button" class="btn sm" data-ma="1">+</button></div>
       <div class="my-st" id="my-st" hidden><span class="tiny">틀린 번호를 고르려면 오늘 푼 첫 번호를 적어요</span><input class="inp" type="number" inputmode="numeric" id="my-s0" placeholder="예: 1225" value="${dt && dt.s ? dt.s : ''}"></div>
-      <div class="my-wcw" id="my-wcw"><div class="tiny" style="margin-top:14px">틀린 번호를 눌러요 · 나중에 오답 탭에서 다시 풀어요</div><div class="my-wc" id="my-wc"></div></div>
+      <div class="my-wcw" id="my-wcw"><div class="tiny" style="margin-top:14px">틀린 번호를 눌러요 · 나중에 오답 탭에서 다시 풀어요</div><div class="my-wc" id="my-wc"></div><div class="my-qa" id="my-qa"></div></div>
       <input type="hidden" id="my-w" inputmode="numeric" placeholder="예: 1225 1231 1240" value="${esc((dt && dt.w || []).join(' '))}">`}
       <button class="btn primary big block" id="my-ok" type="button" style="margin-top:16px">${it.unit === '건' ? (myFin(it) ? '아직 안 끝났어요' : '끝냈어요') : dt ? '고쳐서 저장' : '오늘 것 끝냈어요'}</button>
       <div class="row" style="gap:8px;margin-top:8px">${it.unit === '건' ? `<button class="btn block" id="my-plan" type="button">${isPlan(it) ? '꼭 할 일로 바꾸기' : '일정으로 바꾸기'}</button>` : `<button class="btn block" id="my-fin" type="button">${it.fin ? '다시 하기' : '다 끝났어요'}</button>`}<button class="btn block" id="my-del" type="button">지우기</button></div>
@@ -1333,7 +1333,18 @@
         if (!has) { box.innerHTML = ''; return; }
         const W = new Set((wi.value.match(/\d+/g) || []).map(Number)), z = Math.min(it.to != null ? it.to : Infinity, a0 + n - 1);
         box.innerHTML = Array.from({ length: z - a0 + 1 }, (_, k) => a0 + k).map((v) => `<button type="button" class="${W.has(v) ? 'on' : ''}" data-wn="${v}">${v}</button>`).join('');
-        $$('[data-wn]', box).forEach((b) => (b.onclick = () => { const v = +b.dataset.wn; W.has(v) ? W.delete(v) : W.add(v); wi.value = [...W].sort((p, q) => p - q).join(' '); b.classList.toggle('on', W.has(v)); })); };
+        $$('[data-wn]', box).forEach((b) => (b.onclick = () => { const v = +b.dataset.wn; W.has(v) ? W.delete(v) : W.add(v); wi.value = [...W].sort((p, q) => p - q).join(' '); b.classList.toggle('on', W.has(v)); }));
+        qa(a0, z); };
+      // 빠른 정답: 오늘 푼 번호의 답을 한눈에, 그래프 답은 정답표 그림으로 (10/31 «마더텅 빠른답지 넣어놔»)
+      const qa = (a0, z) => {
+        const el2 = $('#my-qa', el), bk = EB.books.find((y) => y.id === MB_ID(it.book)), A = bk && MANS[bk.id]; if (!el2) return;
+        const rows = A ? Array.from({ length: z - a0 + 1 }, (_, k) => a0 + k).map((v) => { const ks = mbKeys(it, v); return { v, k: ks.length === 1 ? ks[0] : null, a: ks.length === 1 ? A[ks[0]] : null }; }) : [];
+        if (!rows.some((r) => r.a)) { el2.innerHTML = ''; return; }
+        const sb = (EB.sol || []).find((y) => y.id === bk.id + '-s');
+        el2.innerHTML = `<button type="button" class="btn sm soft my-qat" aria-expanded="${!!mySheet.qa}">${mySheet.qa ? '빠른 정답 접기' : '빠른 정답 보기'}</button><div class="my-qal" ${mySheet.qa ? '' : 'hidden'}>${rows.map((r) => { const t = r.a == null ? '–' : /^[1-5]$/.test(r.a) ? '①②③④⑤'[r.a - 1] : r.a, g = /그래프/.test(t) && sb && r.k && sb.q[r.k]; return `<div class="my-qai ${String(t).length > 8 ? 'wide' : ''}"><b class="num">${r.v}</b><span>${esc(t)}</span>${g ? `<button type="button" class="my-qag" data-qag="${esc(r.k)}">정답표 보기</button>` : ''}</div>`; }).join('')}</div>`;
+        $('.my-qat', el2).onclick = () => { mySheet.qa = !mySheet.qa; qa(a0, z); };
+        $$('[data-qag]', el2).forEach((b) => (b.onclick = () => { const c = mbCrop(sb, b.dataset.qag); if (!c) return; const id = 'qg' + Math.random().toString(36).slice(2, 7); b.outerHTML = mbCut(c, id); ebImg(c.pg.f).then((u) => { const i = $('#' + id); if (i) i.src = u; }); }));
+      };
       if ($('#my-s0', el)) $('#my-s0', el).addEventListener('input', wc);
       if ($('#my-w', el)) { $('#my-w', el).addEventListener('input', wc); $('#my-n', el).addEventListener('input', wc); wc(); }
       $$('[data-ma]', el).forEach((b) => (b.onclick = () => { const i = $('#my-n', el); i.value = Math.max(0, (+i.value || 0) + +b.dataset.ma); wc(); }));
@@ -1396,6 +1407,7 @@
   function mbwGo(id, v, k) { UI.run = { kind: 'mbw', id, v: String(v), k: k || null, back: UI.run && UI.run.kind === 'mbw' ? UI.run.back : UI.tab }; render(); scrollTo(0, 0); }
   // 오답 다시 풀기: 답을 먼저 골라요. 맞히면 풀이가 열리고, 틀리면 다시 해보거나 해설을 봐요
   const mbAns = (bk, k) => bk && k && (MANS[bk.id] || {})[k];
+  const mbGr = (a) => !!a && String(a).length <= 14 && !/그래프|다\.|아니다|이다/.test(a);
   const mbNorm = (x) => String(x).replace(/\s+/g, '').replace(/[①②③④⑤]/g, (c) => '①②③④⑤'.indexOf(c) + 1).replace(/−/g, '-');
   const mbWc = (it, v) => 1 + ((it.wc || {})[v] || 0);
   function mbwRun() {
@@ -1403,7 +1415,7 @@
     const head = `<div class="row between"><button class="btn sm" data-go="${esc(r.back || 'wrong')}" type="button">‹ 돌아가기</button><span class="tiny">${L.length ? (i >= 0 ? `오답 ${i + 1} / ${L.length}` : `남은 오답 ${L.length}개`) : '남은 오답이 없어요'}</span></div>`;
     if (!it) return `<div class="qwrap">${head}</div>`;
     const bk = EB.books.find((x) => x.id === MB_ID(it.book)), sb = bk && (EB.sol || []).find((x) => x.id === bk.id + '-s'), keys = bk ? mbKeys(it, r.v) : [], k = r.k || (keys.length === 1 ? keys[0] : null);
-    const wrong = (it.wrong || []).includes(+r.v), nx = r.nx || (L.length ? L[(i + 1) % L.length] : null), pv = i > 0 ? L[i - 1] : null, ans = mbAns(bk, k);
+    const wrong = (it.wrong || []).includes(+r.v), nx = r.nx || (L.length ? L[(i + 1) % L.length] : null), pv = i > 0 ? L[i - 1] : null, ansT = mbAns(bk, k), ans = mbGr(ansT) ? ansT : null;  // 긴 글·그래프 답은 고르기 대신 스스로 확인
     const nav = `<div class="row" style="gap:8px;margin-top:8px">${pv ? `<button class="btn big" style="flex:1" type="button" data-mbw="${esc(pv.id)}:${esc(pv.v)}">‹ 이전</button>` : ''}${nx && !(nx.id === r.id && nx.v === r.v) ? `<button class="btn big ${r.st === 'ok' || r.show ? 'primary' : ''}" style="flex:1" type="button" data-mbw="${esc(nx.id)}:${esc(nx.v)}">다음 오답 ›</button>` : (r.st === 'ok' || r.show) ? `<button class="btn big primary" style="flex:1" type="button" data-go="${esc(r.back || 'wrong')}">오답 목록으로</button>` : ''}</div>`;
     const wc = mbWc(it, r.v);
     const top = `${head}<div class="mbw-h"><h2>${esc(r.v)}번 다시 풀기</h2><span class="tag">${esc(bk ? bk.title : it.book)}</span>${wrong || r.st ? `<span class="tag mbw-wc">${wc}번 틀림</span>` : ''}${k && k !== String(r.v).padStart(4, '0') ? `<span class="tiny">${esc(k)}</span>` : ''}</div>`;
@@ -1417,7 +1429,7 @@
     if (!c) return `<div class="qwrap" style="max-width:720px;margin:0 auto">${top}<div class="empty">${ic('think')}<b>이 번호는 문제집에서 못 찾았어요</b><span>책을 펴서 풀고 맞혔으면 아래를 눌러요</span></div>${btns}</div>`;
     return `<div class="qwrap mbw" style="max-width:1200px;margin:0 auto">${top}<div class="split mbw-split">
       <div class="psg" aria-label="문제"><div class="psg-h">문제 <span class="tiny">${c.p}쪽</span></div>${mbCut(c, 'mbw-q')}<button class="btn sm" id="mbw-pg" type="button" style="margin-top:8px">쪽 전체 보기</button></div>
-      <div class="qside">${btns}${open ? `<div class="card mbw-sol"><div class="psg-h" style="padding:0 0 8px">${bk.id === 'mdt' ? '정답' : '풀이'}</div>${sc ? mbCut(sc, 'mbw-s') : '<p class="tiny">풀이 자리를 못 찾았어요</p>'}</div>` : `<div class="mbw-lock">${ic('think')}<span>답을 맞히면 풀이가 열려요</span></div>`}</div></div></div>`;
+      <div class="qside">${btns}${open ? `<div class="card mbw-sol"><div class="psg-h" style="padding:0 0 8px">${bk.id === 'mdt' ? '정답' : '풀이'}</div>${ansT && !ans ? `<p class="mb-at">${esc(ansT)}</p>` : ''}${sc ? mbCut(sc, 'mbw-s') : '<p class="tiny">풀이 자리를 못 찾았어요</p>'}</div>` : `<div class="mbw-lock">${ic('think')}<span>답을 맞히면 풀이가 열려요</span></div>`}</div></div></div>`;
   }
   function bindMbw() {
     const r = UI.run, it = myS().items.find((x) => x.id === r.id); if (!it) return;
@@ -1904,7 +1916,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610311435', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610311451', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5343,7 +5355,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311435'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311451'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
