@@ -3011,3 +3011,5 @@ button.st-k.hid:hover { background: var(--blue-soft); }
   .st-uk button.on i { border-color: var(--card); }
   .st-uk button:not(.on):hover { background: var(--fill2); }
 }
+/* 빨간 「선물 열기」 단추 위 선물 상자는 흰색 한 가지로 (10/31 «선물박스를 하얀색으로») */
+[data-gift] .ic { filter: brightness(0) invert(1); }

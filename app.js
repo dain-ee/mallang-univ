@@ -36,7 +36,7 @@
   const PLAN_KINDS = [{ k: 'sci', t: '오늘의 과학' }, { k: 'unit', t: '천일문 유닛' }, { k: 'words', t: '워드마스터 단어 시험' }, { k: 'g3', t: '고3 영어 하루 한 문제' }];
   const DOW = ['일', '월', '화', '수', '목', '금', '토'];
   const planOf = (k) => { const p = (S.plan || {})[k]; return Array.isArray(p) ? p : [1, 2, 3, 4, 5]; };
-  const onDay = (k, d = new Date()) => planOf(k).includes(d.getDay());
+  const onDay = (k, d = new Date()) => d.getDay() !== 0 && planOf(k).includes(d.getDay());  // 일요일은 새 과제 없이 밀린 것만 (10/31)
   const anyEng = (d) => ['unit', 'words', 'g3'].some((k) => onDay(k, d));
   const anyTask = (d) => PLAN_KINDS.some((x) => onDay(x.k, d));
   // 선생님 숙제는 날짜가 된 것만 오늘 할 일에 보여요 (하루 한 개씩)
@@ -1029,7 +1029,7 @@
   }
   const myDone = (it) => Object.values(it.log || {}).reduce((a, x) => a + (x.n || 0), 0);
   // 할 요일: 수업마다 골라요(기본 월~금). 남은 할 요일 수로 나눠요
-  const myStudy = (it) => myCls(it.cls).study || it.days || [1, 2, 3, 4, 5];  // 수업 할 요일을 바꾸면 이미 넣은 숙제도 따라가요
+  const myStudy = (it) => { const d = myCls(it.cls).study || it.days || [1, 2, 3, 4, 5], w = d.filter((x) => x !== 0); return w.length ? w : d; };  // 일요일은 나누지 않고 밀린 것 하는 날 (10/31)  // 수업 할 요일을 바꾸면 이미 넣은 숙제도 따라가요
   const myDaysLeft = (due, days, from) => { let n = 0, t = from || today(); for (let i = 0; i < 60 && t <= due; i++, t = addD(t, 1)) if (days.includes(dowOf(t))) n++; return n; };
   const mySkip = (it, d) => !!(it.skip && it.skip[d || today()]);  // 그날은 미뤘어요
   const myLeftDays = (it) => Math.max(1, myDaysLeft(it.due, myStudy(it), mySkip(it) ? addD(today(), 1) : today()));
@@ -1038,12 +1038,14 @@
   // 지난 할 요일에 안 했으면 다음 날 물어봐요: 남은 날에 나눌지, 마감을 미룰지
   function myMissed() {
     const out = [], t = today();
+    if (dowOf(t) === 0) return out;  // 일요일은 밀린 것 하는 날이라 안 물어요 (10/31)
     for (const it of myOpen()) {
       if (it.unit === '건' || !it.at) continue;
       const made = new Date(it.at), md0 = `${made.getFullYear()}-${String(made.getMonth() + 1).padStart(2, '0')}-${String(made.getDate()).padStart(2, '0')}`;
       // 마감이 지난 숙제는 마감 날(마지막 할 요일) 기준으로 물어요 → 미루기로 다시 나눌 수 있게 (10/28)
       let d = it.due < t ? it.due : addD(t, -1); for (let i = 0; i < 7 && !myStudy(it).includes(dowOf(d)); i++) d = addD(d, -1);
       if (d < md0 || d > it.due || (it.log || {})[d] || mySkip(it, d) || (it.ack || {})[d]) continue;
+      if (Object.keys(it.log || {}).some((x) => x > d && x < t)) continue;  // 그 뒤(일요일 등)에 따라잡았으면 안 물어요
       const left = it.total - myDone(it); if (left <= 0) continue;
       const was = Math.ceil(left / Math.max(1, myDaysLeft(it.due, myStudy(it), d))), now = Math.ceil(left / myLeftDays(it)), nd = myDaysLeft(it.due, myStudy(it));
       // 그 전 할 요일들도 연달아 안 했으면 며칠째인지 (10/29 선생님 «월요일 숙제는 못 했는데 화·수는 했다는 건가 헷갈려»)
@@ -1055,7 +1057,7 @@
   function missCard() {
     const L = myMissed(); if (!L.length) return '';
     const avg = myAvg(), u = (it) => (it.unit === '쪽' ? '쪽' : '문제'), ds = [...new Set(L.map((x) => x.d))];
-    if (DAY_OFF()) return '';  // 지난 날을 보는 중엔 안 띄워요: 그날 기준 「전날」을 물어서 헷갈려요 (10/29)
+    if (DAY_OFF() || dowOf(today()) === 0) return '';  // 일요일은 밀린 것 하는 날이라 안 물어요 (10/31) · 지난 날을 보는 중엔 안 띄워요: 그날 기준 「전날」을 물어서 헷갈려요 (10/29)
     const mx = Math.max(...L.map((x) => x.n)), when = mx > 1 ? `${md(L.find((x) => x.n === mx).first)}부터 ${mx}일째` : ds.length === 1 ? `${md(ds[0])} ${DOW[dowOf(ds[0])]}요일에` : '지난번에';  // 다 보여 줘요 (3개만 보이고 「3개」라 해서 나머지가 있는 줄 몰랐어요 10/28)
     return `<section class="card c12 miss-card"><div class="card-h"><h2>${when} 못 한 숙제가 있어요</h2><span class="tiny">${L.length}개</span></div><div class="list">${L.map(({ it, d, was, now, nd, left, over, n, first }) => `<div class="li miss-it"><div class="body"><div class="t">${esc(it.book)}</div>
       <div class="d">${n > 1 ? `<b class="red">${md(first)}부터 ${n}일 안 했어요</b> · ` : ds.length > 1 ? `${md(d)} · ` : ''}${nd ? `남은 ${nd}일에 나누면 하루 ${was}${u(it)} → <b class="${avg && now > avg ? 'red' : 'blue'}">${now}${u(it)}</b>` : over ? `<b class="red">마감이 지났어요</b> · 남은 ${left}${u(it)} · 미루면 다시 나눠요` : '마감까지 남은 날이 없어요'}</div></div>
@@ -1183,12 +1185,20 @@
   // 마감이 이미 지났으면 오늘 다음 할 요일로 (옛 마감 다음 날로 가면 여전히 지난 날이라 안 나뉘었어요 10/28)
   function myPush(it) { const old = it.due; let d = addD(it.due < today() ? today() : it.due, 1); for (let i = 0; i < 7 && !myStudy(it).includes(dowOf(d)); i++) d = addD(d, 1); it.orig = it.orig || old; it.due = d; return `원래 ${md(it.orig)}까지였는데 ${md(d)} ${DOW[dowOf(d)]}요일까지로 미뤄졌어요`; }
   // 오늘 몫: 남은 양 ÷ 남은 날 (오늘 이미 한 건 빼고 계산해서 오늘 몫이 바뀌지 않게)
+  // 일요일 몫 = 처음 넣은 날부터 어제까지 고르게 했으면 했을 양 − 한 양 (밀린 것만, 10/31 «오늘까지 밀린 건 일요일로»)
+  function myBehind(it, dn) {
+    if (!it.at) return 0;
+    const a = new Date(it.at), st = `${a.getFullYear()}-${String(a.getMonth() + 1).padStart(2, '0')}-${String(a.getDate()).padStart(2, '0')}`, y = addD(today(), -1);
+    const all = myDaysLeft(it.due, myStudy(it), st), past = y < st ? 0 : myDaysLeft(y < it.due ? y : it.due, myStudy(it), st);
+    if (!all) return 0;
+    return Math.max(0, Math.min(it.total - (myDone(it) - dn), Math.ceil((it.total * past) / all) - (myDone(it) - dn)));
+  }
   function myToday(it) {
     const t = today(), dn = it.log && it.log[t] ? it.log[t].n : 0, left = it.total - (myDone(it) - dn);
     if (left <= 0) return { n: 0, a: null, b: null, dn };
     if (mySkip(it) && !dn) return { n: 0, a: null, b: null, dn, skip: true };
     const off = dday(it.due) >= 0 && !myStudy(it).includes(dowOf(t)) && myDaysLeft(it.due, myStudy(it)) > 0;  // 오늘은 안 하는 날
-    const n = off ? 0 : dday(it.due) < 0 ? left : Math.ceil(left / myLeftDays(it));
+    const n = off ? (dowOf(t) === 0 ? myBehind(it, dn) : 0) : dday(it.due) < 0 ? left : Math.ceil(left / myLeftDays(it));
     const a = it.from != null ? it.from + (myDone(it) - dn) : null;
     return { n, a, b: a != null ? Math.min(it.to, a + n - 1) : null, dn };
   }
@@ -1894,7 +1904,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610311137', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610311350', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4114,10 +4124,10 @@
   function jgTasks(L, nx) {
     const ch = (L.gram || []).flatMap((g) => jgChunks(g.unit, g.steps || [2, 3, 4])); if (!ch.length) return [];
     const end = nx && nx.date > L.date ? nx.date : addD(L.date, 7);
-    let nd = 0; while (addD(L.date, nd + 1) < end) nd++; nd = Math.max(1, nd);
+    const dl = []; for (let d = addD(L.date, 1); d < end; d = addD(d, 1)) if (dowOf(d) !== 0) dl.push(d); if (!dl.length) dl.push(addD(L.date, 1));  // 일요일은 비워요 (10/31)
     const t = today();
     return ch.map((c, i) => {
-      const day = addD(L.date, 1 + Math.floor((i * nd) / ch.length)), u = jgU(c.unit), qs = jgQs(u, c.step, c.secs), n = qs.filter((q) => jgRec(u, q)).length, ok = qs.filter((q) => (jgRec(u, q) || {}).ok).length, done = n >= qs.length;
+      const day = dl[Math.floor((i * dl.length) / ch.length)], u = jgU(c.unit), qs = jgQs(u, c.step, c.secs), n = qs.filter((q) => jgRec(u, q)).length, ok = qs.filter((q) => (jgRec(u, q) || {}).ok).length, done = n >= qs.length;
       return { k: `jg:${c.unit}:${c.step}:${c.secs.join('')}`, icon: 'pencil', day, t: `Unit ${c.unit} ${JG_STEP[c.step]}${c.secs.length ? ' ' + c.secs.join('·') : ''} (${qs.length}문제)`, d: done ? `${ok}/${qs.length} 맞힘` : `${day < t ? md(day) + ' 숙제 · 아직 안 했어요' : md(day) + ' 숙제'}${n ? ` · ${n}개 풀었어요` : ''}`, done };
     }).filter((x) => x.day <= t && (!x.done || x.day === t));
   }
@@ -5010,7 +5020,7 @@
       return `<div class="yc-m"><div class="yc-mh">${mo}월</div><div class="yc-g">${WDK.map((w) => `<span class="yc-w">${w}</span>`).join('')}${cells.join('')}</div></div>`;
     }).join('');
     const I = YP.filter((it) => it.day === sel);
-    const list = I.length ? `<div class="list">${I.map((it) => { const ok = ypDone(it), g = nxProg(NXSETS[it.id]), late = !ok && it.day < t; return `<div class="li btnlike ${ok ? 'is-done' : ''}" ${it.nav || it.p === 'ch' ? `data-task="${esc(it.id)}"` : `data-nx="${esc(it.id)}"`}><div class="ico">${ic(ok ? 'ok' : it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng')}</div><div class="body"><div class="t">${esc(it.title)}</div><div class="d">${esc(it.sub)} · ${ok ? (it.p === 'ch' ? '다 했어요' : `${g.ok}/${g.n} 맞힘`) : g.d ? `${g.d}/${g.n} 풀었어요` : ypQn(it, g)}</div></div>${ok ? '<span class="tag blue">끝</span>' : late ? '<span class="tag red">밀림</span>' : '<span class="chev"></span>'}</div>`; }).join('')}</div>` : `<p class="tiny yc-none">${sel >= YF.from && sel <= YF.to ? '기말고사 날이에요' : sel > YF.end && sel < YF.from ? '이때는 틀린 것 다시 풀기와 실전 연습을 해요' : new Date(sel + 'T00:00:00').getDay() === 6 ? '토요일은 수업 날이라 몫이 없어요' : '이날은 몫이 없어요'}</p>`;
+    const list = I.length ? `<div class="list">${I.map((it) => { const ok = ypDone(it), g = nxProg(NXSETS[it.id]), late = !ok && it.day < t; return `<div class="li btnlike ${ok ? 'is-done' : ''}" ${it.nav || it.p === 'ch' ? `data-task="${esc(it.id)}"` : `data-nx="${esc(it.id)}"`}><div class="ico">${ic(ok ? 'ok' : it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng')}</div><div class="body"><div class="t">${esc(it.title)}</div><div class="d">${esc(it.sub)} · ${ok ? (it.p === 'ch' ? '다 했어요' : `${g.ok}/${g.n} 맞힘`) : g.d ? `${g.d}/${g.n} 풀었어요` : ypQn(it, g)}</div></div>${ok ? '<span class="tag blue">끝</span>' : late ? '<span class="tag red">밀림</span>' : '<span class="chev"></span>'}</div>`; }).join('')}</div>` : `<p class="tiny yc-none">${sel >= YF.from && sel <= YF.to ? '기말고사 날이에요' : sel > YF.end && sel < YF.from ? '이때는 틀린 것 다시 풀기와 실전 연습을 해요' : new Date(sel + 'T00:00:00').getDay() === 6 ? '토요일은 수업 날이라 몫이 없어요' : dowOf(sel) === 0 ? '일요일은 새 몫 없이 밀린 것만 따라잡는 날이에요' : '이날은 몫이 없어요'}</p>`;
     return `<section class="card c12 yp-card"><div class="card-h"><h2>${ic('cal')} ${PF ? '공부 계획' : '기말 계획'}</h2><span class="tiny">${PF ? `${md(PF.end)}까지 천일문·매3영 매일 · ${md(YF.start)}부터 기말 범위 · ` : ''}${md(YF.end)}까지 다 끝내요 · 시험 ${md(YF.from)}</span></div>
       <div class="yp-sum"><div><b class="num">${dn}<small>/${YP.length}</small></b><span>끝낸 몫</span></div><div class="${beh.length ? 'red' : ''}"><b class="num">${beh.length}</b><span>밀린 몫</span></div><div><b class="num">${now.length}</b><span>오늘 할 몫</span></div><div><b class="num yp-end">${end ? md(end).replace('월 ', '/').replace('일', '') : '끝'}</b><span>이 속도면 끝나는 날</span></div></div>
       <div class="ik-bar yp-bar"><i style="width:${Math.round((dn / YP.length) * 100)}%"></i></div>
@@ -5307,7 +5317,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311137'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311350'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6153,7 +6163,7 @@
   }
 
   // ───────── 틀 · 메뉴 ─────────
-  const TABS = [['home', '홈', 'home'], ['hw', '숙제', 'hw'], ['study', '공부', 'books'], ['exam', '시험', 'pencil'], ['grade', '성적', 'score'], ['wrong', '오답', 'wrong'], ['book', '교재', 'books'], ['score', '성적', 'score'], ['uni', '대학', 'school'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']].filter((t) => (!ST.tabs || ST.tabs.includes(t[0])) && (t[0] !== 'exam' || Object.keys(NXSETS).length || NX_CH.length || NX_JG.length) && (t[0] !== 'study' || (NXD.subjects || []).length));  // 공부 탭은 단원 자료가 있는 학생만  // 시험 탭은 시험이 있는 학생만
+  const TABS = [['home', '홈', 'home'], ['hw', '숙제', 'hw'], ['study', '공부', 'books'], ['exam', '시험', 'pencil'], ['grade', '성적', 'score'], ['wrong', '오답', 'wrong'], ['book', '교재', 'books'], ['score', '성적', 'score'], ['uni', '대학', 'school'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']].filter((t) => (!ST.tabs || ST.tabs.includes(t[0])) && (t[0] !== 'exam' || Object.keys(NXSETS).length || NX_CH.length || NX_JG.length) && (t[0] !== 'study' || (NXD.subjects || []).length) && (t[0] !== 'grade' || (ST.tabs || []).includes('grade')));  // 중학생 성적 탭은 켠 학생만 (10/31 정윤에게 성적 탭이 둘 뜸)  // 공부 탭은 단원 자료가 있는 학생만  // 시험 탭은 시험이 있는 학생만
   const DASH_ONLY = TEACHER && !STU_TAB && ROSTER.length > 1;  // 선생님 첫 탭은 학생 관리만 (학생 화면은 새 탭으로)
   if (DASH_ONLY) TABS.splice(0, TABS.length, ['dash', '홈', 'home'], ['treport', '리포트', 'memo'], ['thw', '숙제', 'hw'], ['tgrade', '성적', 'score'], ['tsched', '수업 일정', 'cal'], ['news', '소식', 'news'], ['tstu', '학생', 'trophy']);
   function nav() {
