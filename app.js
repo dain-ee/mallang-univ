@@ -1385,7 +1385,7 @@
     const bk = EB.books.find((y) => y.id === bid), A = MANS[bid]; if (!bk || !A) return;
     const sb = (EB.sol || []).find((y) => y.id === bid + '-s'), keys = Object.keys(bk.q || A);
     // 마더텅은 정답표 원본 쪽을 그대로 (10/31 «빠른정답이 마더텅 페이지에 없었어?»)
-    if (bid === 'mdt' && sb) { const c0 = sb.ch.find((c) => c.t === g0) || sb.ch[0]; if ($('.sheet')) closeSheet(); return bookOpen(sb.id, null, c0.pages[0].n); }  // 마더텅은 정답표 원본을 교재처럼 크게
+    if (bid === 'mdt' && sb) { if ($('.sheet')) closeSheet(); UI.run = { kind: 'qa', u: g0, back: UI.run ? UI.run.back || UI.tab : UI.tab, from: UI.run && UI.run.kind === 'book' ? UI.run : null }; render(); scrollTo(0, 0); return; }  // 마더텅은 정답표 원본을 표 한 줄씩 크게
     const grp = (k) => k.includes('-') ? k.slice(0, k.lastIndexOf('-')) : k.slice(0, 2) + '00번대', num = (k) => k.includes('-') ? k.slice(k.lastIndexOf('-') + 1) : k;
     const G = [...new Set(keys.map(grp))]; let g = G.includes(g0) ? g0 : G[0];
     const body = () => `<div class="my-qal">${keys.filter((k) => grp(k) === g).map((k) => { const a = A[k], t = a == null ? '–' : /^[1-5]$/.test(a) ? '①②③④⑤'[a - 1] : a, gr = /그래프/.test(t) && sb && sb.q[k]; return `<div class="my-qai ${String(t).length > 6 || gr ? 'wide' : ''}"><b class="num">${esc(num(k))}</b><span>${esc(t)}</span>${gr ? `<button type="button" class="my-qag" data-qag="${esc(k)}">정답표 보기</button>` : ''}</div>`; }).join('')}</div>`;
@@ -1394,6 +1394,23 @@
       $$('[data-qg]', el).forEach((b) => (b.onclick = () => { g = b.dataset.qg; $$('[data-qg]', el).forEach((y) => y.classList.toggle('on', y === b)); segRe(b.parentNode); $('#qa-b', el).innerHTML = body(); bind2(); }));
       bind2();
     });
+  }
+  // 마더텅 정답표: 쪽마다 왼쪽·오른쪽 표를 잘라 화면 폭에 맞춰 세로로 이어요 (10/31 «모달로 뜨면 보이겠냐»)
+  const QA_COL = { 3: [[0.113, 0.476], [0.504, 0.867]], 4: [[0.133, 0.496], [0.523, 0.886]], 5: [[0.113, 0.476], [0.504, 0.867]] }, QA_U = { 명제: 0, 함수: 1, '유리식과 유리함수': 2, '무리식과 무리함수': 4 };
+  function qaCols() { const sb = (EB.sol || []).find((y) => y.id === 'mdt-s'); if (!sb) return []; const seen = new Set(); return sb.ch.flatMap((c) => c.pages).filter((p) => !seen.has(p.n) && seen.add(p.n)).flatMap((pg) => (QA_COL[pg.n] || [[0, 0.5], [0.5, 1]]).map(([L, R]) => ({ pg, L, R, T: 0.085, B: 0.915 }))); }
+  function qaRun() {
+    const r = UI.run, C = qaCols(), bk = EB.books.find((y) => y.id === 'mdt');
+    return `<div class="qa-wrap"><div class="qa-top"><button class="btn sm" type="button" id="qa-back">‹ ${r.from ? '문제집' : '돌아가기'}</button><b>빠른 정답</b><span class="tiny">${esc(bk ? bk.title : '마더텅')}</span></div>
+      <div class="chips qa-chips">${Object.keys(QA_U).map((u) => `<button type="button" class="chip ${u === (r.u in QA_U ? r.u : '명제') ? 'on' : ''}" data-qu="${esc(u)}">${esc(u)}</button>`).join('')}</div>
+      ${C.map((c, i) => `<div class="qa-col" data-qc="${i}">${mbCut(c, 'qa-i' + i)}</div>`).join('')}</div>`;
+  }
+  function bindQa() {
+    const r = UI.run, C = qaCols();
+    C.forEach((c, i) => ebImg(c.pg.f).then((u) => { const im = $('#qa-i' + i); if (im) im.src = u; }));
+    const go = (u, sm) => { const el = $(`[data-qc="${QA_U[u] || 0}"]`); if (el) scrollTo({ top: el.getBoundingClientRect().top + scrollY - 140, behavior: sm && !RM() ? 'smooth' : 'auto' }); };
+    $$('[data-qu]').forEach((b) => (b.onclick = () => { r.u = b.dataset.qu; $$('[data-qu]').forEach((y) => y.classList.toggle('on', y === b)); segRe(b.parentNode); go(r.u, 1); }));
+    $('#qa-back').onclick = () => { if (r.from) UI.run = r.from; else { UI.run = null; UI.tab = r.back || 'book'; } render(); scrollTo(0, 0); };
+    if (r.u && QA_U[r.u]) setTimeout(() => go(r.u), 80);
   }
   function mbSheet(itId, v) {
     const it = myS().items.find((x) => x.id === itId); if (!it) return;
@@ -1936,7 +1953,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610311507', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610311510', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5375,7 +5392,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311507'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311510'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6296,7 +6313,7 @@
     let html = '';
     syncGoals();
     redoFix();
-    if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'nx' ? nxRail(nxRun()) : UI.run.kind === 'nxw' ? nxwRun() : UI.run.kind === 'print' ? printRun() : '';
+    if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'qa' ? qaRun() : UI.run.kind === 'nx' ? nxRail(nxRun()) : UI.run.kind === 'nxw' ? nxwRun() : UI.run.kind === 'print' ? printRun() : '';
     else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'tme' ? tmeView() : UI.tab === 'picks' ? picksView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'grade' ? gradeView() : UI.tab === 'study' ? studyView() : UI.tab === 'exam' ? examView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
     const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'hw' ? (UI.nxUnit || '') + (UI.nxSubj || '') : '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'study' ? `${UI.stV}${UI.stS}${UI.stU}${UI.stT}` : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '');
@@ -6455,7 +6472,7 @@
     const sn = $('#sg-new'); if (sn) sn.onclick = () => sgbSheet(null);
     $$('#sg-pick, #sg-pick2').forEach((b) => (b.onclick = () => pickSheet(UI.sgbArea)));
     $$('[data-sg]').forEach((b) => (b.onclick = () => sgbSheet(b.dataset.sg)));
-    if (UI.run) { if (UI.run.kind === 'sci') bindSci(); if (UI.run.kind === 'unit') bindUnit(); if (UI.run.kind === 'gram') bindGram(); if (UI.run.kind === 'jl') bindJl(); if (UI.run.kind === 'jr') bindJr(); if (UI.run.kind === 'jw') bindJw(); if (UI.run.kind === 'words') bindWords(); if (UI.run.kind === 'retry') bindRetry(); if (UI.run.kind === 'g3') bindG3(); if (UI.run.kind === 'drill') bindDrill(); if (UI.run.kind === 'concept') bindConcept(); if (UI.run.kind === 'fin') bindFin(); if (UI.run.kind === 'perf') bindPerf(); if (UI.run.kind === 'book') bindBook(); if (UI.run.kind === 'mbw') bindMbw(); if (UI.run.kind === 'pomo') { bindPomo(); bindSound(); } }
+    if (UI.run) { if (UI.run.kind === 'sci') bindSci(); if (UI.run.kind === 'unit') bindUnit(); if (UI.run.kind === 'gram') bindGram(); if (UI.run.kind === 'jl') bindJl(); if (UI.run.kind === 'jr') bindJr(); if (UI.run.kind === 'jw') bindJw(); if (UI.run.kind === 'words') bindWords(); if (UI.run.kind === 'retry') bindRetry(); if (UI.run.kind === 'g3') bindG3(); if (UI.run.kind === 'drill') bindDrill(); if (UI.run.kind === 'concept') bindConcept(); if (UI.run.kind === 'fin') bindFin(); if (UI.run.kind === 'perf') bindPerf(); if (UI.run.kind === 'book') bindBook(); if (UI.run.kind === 'mbw') bindMbw(); if (UI.run.kind === 'qa') bindQa(); if (UI.run.kind === 'pomo') { bindPomo(); bindSound(); } }
     nxBind();
     $$('main [data-bell]').forEach((b) => (b.onclick = toggleBell));
     $$('[data-pomo]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); openPomo(); }));
