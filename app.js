@@ -1904,7 +1904,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610311432', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610311435', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4641,7 +4641,7 @@
       const wid = 'nx:' + q.i;
       if (!ok) addWrong(wid, { src: 'nx', qi: q.i, set: s.id, subj: q.subj || s.subj, subjName: NX_SN[q.subj || s.subj] || '영어', area: s.kind === 'mock' ? s.title : `${(NXU[s.unit || (NXSETS[(NXQ[q.i] || {}).set] || {}).unit] || {}).code || ''} ${q.cat || ''}`.trim(), sub: plain(q.q).slice(0, 40), title: `${s.title} ${(q.n || s.qs.indexOf(q) + 1)}번` });
       else { gotIt(wid); if (S.wrong && S.wrong[wid]) clearWrong(wid); }
-      if (ok) { UI.jgRun = (UI.jgRun || 0) + 1; ding(UI.jgRun); } else UI.jgRun = 0;
+      if (ok) UI.jgRun = (UI.jgRun || 0) + 1; else UI.jgRun = 0;  // 소리·팡팡은 cheerCheck 가 (10/31)
       save('nx'); render();
       if (innerWidth < 900) { const vd = $('main .nx-vd'); if (vd) vd.scrollIntoView({ block: 'center', behavior: RM() ? 'auto' : 'smooth' }); }
     });
@@ -4709,6 +4709,7 @@
     const id = r.phase === 'wrong' ? r.last : (r.q || [])[0], q = NXQ[id] && NXQ[id].q; if (!q) return;
     const k = `${m}:${q.w.id}`;
     const answer = (ok, v) => {
+      if (answer.busy) return;
       const x = nxS();  // 누를 때 다시 찾아요
       if (ok && r.hint) ok = false;  // 힌트 보고 맞힌 건 한 번 더
       const w = x.wd[k] || { s: 0, w: 0 }; if (ok) w.s++; else { w.s = 0; w.w++; } w.at = Date.now(); x.wd[k] = w;
@@ -4720,7 +4721,14 @@
       if (ok) { if (!nxWdGot(m, q.w.id)) r.q.splice(Math.min(r.q.length, 3), 0, q.i); UI.jgRun = (UI.jgRun || 0) + 1; ding(UI.jgRun); r.phase = 'ask'; }
       else { UI.jgRun = 0; r.q.splice(Math.min(r.q.length, 3), 0, q.i); r.phase = 'wrong'; r.v = v; }
       if (!r.q.length) r.q = null;
-      save('nx'); render();
+      save('nx');
+      // 맞히면 칸이 초록으로 톡 튀고 팡 터진 뒤 다음 단어로 (10/31 «누를 때 나오는 애니메이션»)
+      const hit = ok && !RM() && ($('main .nx-in-row .inp') || $(`main [data-nxp="${v}"]`));
+      if (!hit) return render();
+      answer.busy = 1;
+      $$('main [data-nxin], main [data-nxp], #nx-go').forEach((x) => (x.disabled = true));
+      hit.classList.add('nx-hit'); const b = hit.getBoundingClientRect(); boom(b.left + b.width / 2, b.top + b.height / 2, Math.min(UI.jgRun, 4));
+      setTimeout(() => { answer.busy = 0; render(); }, 380);
     };
     if (r.phase !== 'wrong') nxBindQ(q, (ok, v) => answer(ok, String(v || '').trim()));
     const h = $('#nxw-hint'); if (h) h.onclick = () => { r.hint = Math.min((r.hint || 0) + 1, q.w.en.length - 1); render(); };
@@ -5176,7 +5184,7 @@
     $$('[data-stv]').forEach((b) => (b.onclick = () => { UI.stV = b.dataset.stv; render(); window.scrollTo(0, 0); }));
     $$('[data-sts]').forEach((b) => (b.onclick = () => { UI.run = null; UI.stS = b.dataset.sts; UI.stU = null; UI.stT = null; render(); }));
     $$('[data-stunit]').forEach((b) => (b.onclick = () => { UI.run = null; UI.stU = b.dataset.stunit; UI.stT = null; UI.stP = null; render(); const m = $('.st-main'); if (m && m.getBoundingClientRect().top < 0) m.scrollIntoView({ behavior: RM() ? 'auto' : 'smooth', block: 'start' }); }));
-    $$('[data-sthide]').forEach((b) => (b.onclick = () => { UI.stHide = !UI.stHide; const y = scrollY; render(); scrollTo(0, y); }));
+    $$('[data-sthide]').forEach((b) => (b.onclick = () => { UI.stHide = !UI.stHide; const y = scrollY; render(); scrollTo(0, y); if (!RM()) $$('main button.st-k').forEach((k, i) => k.animate([{ opacity: 0, transform: 'translateY(4px) scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: 260, delay: Math.min(i, 24) * 16, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' })); }));  // 가리기·보이기를 차례로 스르륵 (10/31)
     $$('[data-stk]').forEach((b) => (b.onclick = () => { const show = b.classList.contains('hid'); b.classList.toggle('hid'); b.classList.remove('rv'); if (show) { void b.offsetWidth; b.classList.add('rv'); } }));  // 보일 때 살짝 떠오르게 (10/31 «누를 때 나오는 애니메이션»)
     $$('[data-ypd]').forEach((b) => (b.onclick = () => { UI.ypDay = b.dataset.ypd; const y = scrollY; render(); scrollTo(0, y); }));
     const u = NXU[UI.stU]; if (!u) return;
@@ -5335,7 +5343,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311432'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311435'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6259,16 +6267,18 @@
     if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'nx' ? nxRail(nxRun()) : UI.run.kind === 'nxw' ? nxwRun() : UI.run.kind === 'print' ? printRun() : '';
     else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'tme' ? tmeView() : UI.tab === 'picks' ? picksView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'grade' ? gradeView() : UI.tab === 'study' ? studyView() : UI.tab === 'exam' ? examView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
-    const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'hw' ? (UI.nxUnit || '') + (UI.nxSubj || '') : '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'study' ? `${UI.stS}${UI.stU}${UI.stT}` : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '');
+    const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'hw' ? (UI.nxUnit || '') + (UI.nxSubj || '') : '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'study' ? `${UI.stV}${UI.stS}${UI.stU}${UI.stT}` : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '');
     const depth = UI.run ? 2 : UI.lib || (UI.tab === 'score' && UI.mockId) || (UI.tab === 'hw' && UI.nxUnit) ? 1 : 0, ti = TABS.findIndex((t) => t[0] === UI.tab);
     const qm = html.match(/class="q-no">([\s\S]*?)<\/div>/), qk = UI.run ? (qm ? qm[1] : html.includes('done-card') ? 'done' : html.includes('class="lesson"') ? 'lesson' : '') : '';
-    const sub = [UI.wrongSubj, UI.sgbArea, UI.semester, UI.chartSubj, UI.mockSubj].join('|');
+    const sub = [UI.wrongSubj, UI.sgbArea, UI.semester, UI.chartSubj, UI.mockSubj, UI.ypDay, UI.hwDay].join('|');
     let dir = '';
     if (view !== render.view) dir = render.view == null ? 'boot' : depth > render.depth ? 'push' : depth < render.depth ? 'pop' : ti !== render.ti ? ((ti < 0 ? 9 : ti) > (render.ti < 0 ? 9 : render.ti) ? 'tabR' : 'tabL') : 'side';
     else if (qk && render.qk && qk !== render.qk) dir = 'push';
     if (dir === 'push' || dir === 'pop') ghost(dir);
     main.classList.remove('enter', 'soft', 'boot', 'push', 'pop', 'tabL', 'tabR', 'side');
+    const pBar = $$('main .nx-bar i').map((x) => x.style.width);  // 진행 막대는 옛 길이에서 새 길이로 쭉 (10/31)
     main.innerHTML = (TEACHER && !DASH_ONLY ? teacherBand() : '') + html;
+    if (view === render.view && !RM()) $$('main .nx-bar i').forEach((x, i) => { if (pBar[i] && pBar[i] !== x.style.width) x.animate([{ width: pBar[i] }, { width: x.style.width }], { duration: 420, easing: 'cubic-bezier(.2,.8,.2,1)' }); });
     // 탭·칸 바꿀 때는 밀지 않고, 카드 자리만 회색 실루엣으로 잠깐 보였다가 내용이 스르륵 떠요
     if (dir === 'side' || dir === 'tabL' || dir === 'tabR') { dir = ''; if (!RM()) { clearTimeout(render.sk); main.classList.remove('skel-out'); skelPaint(main); main.classList.add('skel'); render.sk = setTimeout(() => { main.classList.remove('skel'); $('.skel-ov', main)?.remove(); main.classList.add('skel-out'); setTimeout(() => main.classList.remove('skel-out'), 260); }, 280); } if (view !== render.view) cheerCheck.combo = 0; setTimeout(() => countUp(main), 300); }
     if (dir) { $$('main .card, main .h1, main .sub, main .seg, main .chips').forEach((c, i) => c.style.setProperty('--i', Math.min(i, 10))); void main.offsetWidth; main.classList.add('enter', dir); if (view !== render.view) cheerCheck.combo = 0; setTimeout(() => countUp(main), dir === 'boot' ? 260 : 120); }
@@ -6496,9 +6506,9 @@
     const b = e.target.closest('button, [data-hwopen], .li.btnlike'); tap.el = b; tap.at = Date.now();
     if (!b || RM()) return; const sel = tapSel(b); if (!sel) return;
     setTimeout(() => {
-      const n = b.isConnected && !b.closest('.page-ghost') ? b : $('main ' + sel) || $('#sheet-root ' + sel); if (!n || n.closest('.slid')) return;
+      const n = b.isConnected && !b.closest('.page-ghost') ? b : $$('main ' + sel + ', #sheet-root ' + sel).find((x) => x.offsetParent) || $('main ' + sel);  // 숨은 칸(폰 목록 등) 말고 보이는 것 (10/31) if (!n || n.closest('.slid')) return;
       if (n.matches('.choice.wrong')) bump(n, 'shake-x');
-      else if (n.matches('.choice.right, .on, .sel, [data-hwdone], .pk-it')) bump(n, 'tap-pop');
+      else if (n.matches('.choice.right, .choice.nx-good, .on, .sel, [data-hwdone], .pk-it')) bump(n, 'tap-pop');
     }, 0);
   }, true);
   document.addEventListener('click', (e) => {
@@ -6519,13 +6529,13 @@
     const dc = $('main .done-card');
     if (dc && !cheerCheck.done) { $$('.combo-pop').forEach((x) => x.remove()); dc.classList.add('in'); setTimeout(() => countUp(dc), 200); const lv = +dc.dataset.done, r = $('.done-ic', dc).getBoundingClientRect(); if (lv) { boom(r.left + r.width / 2, r.top + r.height / 2, lv === 2 ? 5 : 2); ding(lv === 2 ? 8 : 3); } }
     cheerCheck.done = !!dc;
-    const v = $('main .verdict'); const was = cheerCheck.had; cheerCheck.had = !!v;
+    const v = $('main .verdict, main .nx-vd'); const was = cheerCheck.had; cheerCheck.had = !!v;
     if (!v || was) return;
     if (!v.classList.contains('ok')) { cheerCheck.combo = 0; v.classList.add('shake'); return; }
     const c = (cheerCheck.combo = (cheerCheck.combo || 0) + 1);
     const r = v.getBoundingClientRect();
     boom(r.left + 40, r.top + r.height / 2, c);
-    const sp = v.querySelector('span'); if (sp) sp.textContent = c >= 2 ? `${c}연속 정답! ${CHEER2[Math.min(c - 2, CHEER2.length - 1)]}` : '정답이에요!';
+    const sp = v.querySelector('span'); if (sp && !/맞은 걸로/.test(sp.textContent)) sp.textContent = c >= 2 ? `${c}연속 정답! ${CHEER2[Math.min(c - 2, CHEER2.length - 1)]}` : '정답이에요!';
     if (c >= 3) { $$('.combo-pop').forEach((x) => x.remove()); const b = document.createElement('div'); b.className = 'combo-pop'; b.innerHTML = `${ic('fire')}<b>${c} COMBO</b>`; document.body.appendChild(b); setTimeout(() => b.remove(), 1400); }
     if (navigator.vibrate) navigator.vibrate(c >= 3 ? [30, 40, 30] : 25);
     ding(c);

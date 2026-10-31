@@ -665,9 +665,9 @@ main:is(.enter, .soft) .range .dot { animation: fade .3s ease both; animation-de
 .seg-ind.go { transition: transform .34s var(--spring), width .34s var(--spring), height .34s var(--spring); }
 
 /* 누를 때: 살짝 작아지고 어두워졌다가, 놓으면 통 */
-:is(.li.btnlike, .lib-it, .pk-it, .cal-next, .cal-d, .uni-grid button, .mbti-grid button, .gpick button, .pl-days button, .av-grid button, .tag-btn, .brand, .me, .sgb-area .a, .omr button, .choice, .card.link, .more, .me-av, .hw-more summary) { transition: transform .32s var(--spring), background-color .2s, filter .2s, box-shadow .15s, border-color .15s, color .2s; }
-:is(.li.btnlike, .lib-it, .pk-it, .cal-next, .uni-grid button, .tag-btn, .sgb-area .a, .me-row, .hw-more summary):active { transform: scale(.97); filter: brightness(.96); transition-duration: .1s; }
-:is(.cal-d, .mbti-grid button, .gpick button, .pl-days button, .av-grid button, .brand, .me, .me-av, .omr button):active { transform: scale(.92); transition-duration: .1s; }
+:is(.li.btnlike, .lib-it, .pk-it, .cal-next, .st-u, .st-step, .st-uk button, .m3w-i, .yc-d, .hcal-d, button.st-k, .pr-rv, .cal-d, .uni-grid button, .mbti-grid button, .gpick button, .pl-days button, .av-grid button, .tag-btn, .brand, .me, .sgb-area .a, .omr button, .choice, .card.link, .more, .me-av, .hw-more summary) { transition: transform .32s var(--spring), background-color .2s, filter .2s, box-shadow .15s, border-color .15s, color .2s; }
+:is(.li.btnlike, .lib-it, .pk-it, .cal-next, .st-u, .st-step, .st-uk button, .m3w-i, .uni-grid button, .tag-btn, .sgb-area .a, .me-row, .hw-more summary):active { transform: scale(.97); filter: brightness(.96); transition-duration: .1s; }
+:is(.cal-d, .yc-d, .hcal-d, button.st-k, .pr-rv, .mbti-grid button, .gpick button, .pl-days button, .av-grid button, .brand, .me, .me-av, .omr button):active { transform: scale(.92); transition-duration: .1s; }
 .li.btnlike:active { background-color: var(--fill); filter: none; }
 .card.link:active { transform: scale(.985); filter: brightness(.98); transition-duration: .1s; }
 .more:active { transform: scale(.94); opacity: .7; transition-duration: .1s; }
@@ -2760,8 +2760,9 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .st-blk h3 { margin: 0 0 8px; font-size: 15px; color: var(--t2); }
 .st-blk ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
 .st-blk li { font-size: 15px; line-height: 1.75; color: var(--t1); }
-.st-k { font-weight: 700; color: var(--t1); box-shadow: inset 0 -0.5em 0 var(--hl, #e2ff5c); }  /* 형광펜: 노랑연두 라임 (10/30) */
+.st-k { font-weight: 700; color: var(--t1); background: linear-gradient(transparent 58%, var(--hl, #e2ff5c) 58%); -webkit-box-decoration-break: clone; box-decoration-break: clone; }  /* 형광펜: 노랑연두 라임 (10/30) */
 button.st-k { padding: 0 2px; font: inherit; font-weight: 700; background: none; border: 0; border-radius: 6px; cursor: pointer; }
+button.st-k:not(.hid) { background: linear-gradient(transparent 58%, var(--hl, #e2ff5c) 58%); }
 button.st-k.hid { color: transparent; background: var(--fill); box-shadow: inset 0 0 0 1px var(--line); }
 button.st-k.hid:hover { background: var(--blue-soft); }
 .st-terms { display: grid; gap: 0; }
@@ -3028,10 +3029,10 @@ button.st-k.hid:hover { background: var(--blue-soft); }
 @media (max-width: 560px) { .m3-hi .gh.m3-gh { width: 64px; height: 64px; } .m3-hi h2 { font-size: 19px; } }
 
 /* 가린 뜻을 누르면: 회색 칸이 걷히며 글자가 살짝 떠올라요. 매3영 단어 칸은 칸 전체에 형광펜 띠가 깔려 어긋나 보여서 띠 없이 (10/31) */
-button.st-k { transition: background-color .2s ease, color .2s ease, box-shadow .2s ease; }
+button.st-k { transition: background-color .2s ease, color .2s ease, box-shadow .2s ease, transform .32s var(--spring); }
 button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 @keyframes stRv { from { opacity: 0; transform: translateY(6px) scale(.98); } to { opacity: 1; transform: none; } }
-.m3w-i .st-k:not(.hid) { color: var(--t1); font-weight: 600; box-shadow: none; }
+.m3w-i .st-k:not(.hid) { color: var(--t1); font-weight: 600; box-shadow: none; background: none; }
 .m3w-i .st-k { min-height: 30px; }  /* 열어도 칸 높이가 그대로 */
 @media (prefers-reduced-motion: reduce) { button.st-k.rv { animation: none; } }
 
@@ -3052,3 +3053,11 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 .cl-pg-hw { grid-column: 2; margin: 2px 0 0; font-size: 13px; color: var(--t3); line-height: 1.55; }
 .cl-pg-hw b { color: var(--t2); margin-right: 4px; }
 @media (max-width: 560px) { .cl-pg { grid-template-columns: 1fr; } .cl-pg-hw { grid-column: 1; } }
+
+/* 문제 결과: 맞으면 통 튀고 틀리면 흔들 (10/31) */
+.nx-vd.ok { animation: okPop .5s cubic-bezier(.3,1.6,.5,1); }
+.nx-vd.no.shake { animation: shake .4s; }
+.nx-vd.ok i { animation: okPop .5s .08s cubic-bezier(.3,1.6,.5,1) both; }
+.pr-rv { transition: color .25s ease, background-color .25s ease, transform .1s; }
+@media (prefers-reduced-motion: reduce) { .nx-vd.ok, .nx-vd.ok i, .nx-vd.no.shake { animation: none; } }
+.nx-hit { border-color: var(--green) !important; background: var(--green-soft) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 25%, transparent) !important; animation: okPop .38s cubic-bezier(.3,1.6,.5,1); }
