@@ -3074,3 +3074,4 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 .my-qai .mb-cut { flex-basis: 100%; margin-top: 6px; }
 .my-qag { margin-left: auto; padding: 4px 10px; border: 0; border-radius: 8px; background: var(--blue-soft); color: var(--blue); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
 .mb-at { margin: 0 0 10px; font-size: 15px; font-weight: 600; line-height: 1.6; color: var(--t1); word-break: keep-all; }
+.qa-pg { display: block; width: 100%; margin: 0 0 12px; border-radius: 12px; background: var(--fill); box-shadow: inset 0 0 0 1px var(--line); }

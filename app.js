@@ -1384,6 +1384,16 @@
   function mbAllSheet(bid, g0) {
     const bk = EB.books.find((y) => y.id === bid), A = MANS[bid]; if (!bk || !A) return;
     const sb = (EB.sol || []).find((y) => y.id === bid + '-s'), keys = Object.keys(bk.q || A);
+    // 마더텅은 정답표 원본 쪽을 그대로 (10/31 «빠른정답이 마더텅 페이지에 없었어?»)
+    if (bid === 'mdt' && sb) {
+      const pgs = [...new Map(sb.ch.flatMap((c) => c.pages.map((p) => [p.n, { ...p, t: c.t }]))).values()], c0 = sb.ch.find((c) => c.t === g0) || sb.ch[0], at = c0.pages[0].n;
+      return sheet(`<span class="tag">${esc(bk.title)}</span><h2 style="margin:8px 0 12px">빠른 정답</h2><div class="chips" style="margin:0 0 12px">${sb.ch.map((c) => `<button type="button" class="chip ${c === c0 ? 'on' : ''}" data-qp="${c.pages[0].n}">${esc(c.t)}</button>`).join('')}</div>${pgs.map((p) => `<img class="qa-pg" data-qpg="${p.n}" alt="정답표 ${p.n}쪽" style="aspect-ratio:${(1 / p.r).toFixed(4)}">`).join('')}`, (el) => {
+        pgs.forEach((p) => ebImg(p.f).then((u) => { const i = $(`[data-qpg="${p.n}"]`, el); if (i) i.src = u; }));
+        const go = (n, sm) => { const i = $(`[data-qpg="${n}"]`, el), sh = el.closest('.sheet') || $('.sheet'); if (i && sh) sh.scrollTo({ top: sh.scrollTop + i.getBoundingClientRect().top - sh.getBoundingClientRect().top - 12, behavior: sm && !RM() ? 'smooth' : 'auto' }); };
+        $$('[data-qp]', el).forEach((b) => (b.onclick = () => { $$('[data-qp]', el).forEach((y) => y.classList.toggle('on', y === b)); segRe(b.parentNode); go(+b.dataset.qp, 1); }));
+        if (at !== pgs[0].n) setTimeout(() => go(at), 60);
+      });
+    }
     const grp = (k) => k.includes('-') ? k.slice(0, k.lastIndexOf('-')) : k.slice(0, 2) + '00번대', num = (k) => k.includes('-') ? k.slice(k.lastIndexOf('-') + 1) : k;
     const G = [...new Set(keys.map(grp))]; let g = G.includes(g0) ? g0 : G[0];
     const body = () => `<div class="my-qal">${keys.filter((k) => grp(k) === g).map((k) => { const a = A[k], t = a == null ? '–' : /^[1-5]$/.test(a) ? '①②③④⑤'[a - 1] : a, gr = /그래프/.test(t) && sb && sb.q[k]; return `<div class="my-qai ${String(t).length > 6 || gr ? 'wide' : ''}"><b class="num">${esc(num(k))}</b><span>${esc(t)}</span>${gr ? `<button type="button" class="my-qag" data-qag="${esc(k)}">정답표 보기</button>` : ''}</div>`; }).join('')}</div>`;
@@ -1932,7 +1942,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610311501', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610311504', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5371,7 +5381,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311501'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311504'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
