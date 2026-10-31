@@ -2728,8 +2728,8 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .pet-perch[data-skin="teacher"] img { transform: translateY(6%) scale(1.1); transform-origin: 50% 78.6%; }  /* 몸을 조금 내려서 흐릿한 아래 끝(렌더 가장자리)은 카드 뒤로 */
 .pet-perch[data-skin="teacher"] { clip-path: inset(-400px -600px 22% -600px); }  /* 카드 윗변 아래는 잘라서 카드 뒤에 앉은 것처럼 (10/30 «저 뿌연 하얀색은 뭔지», «딱 뒤로») */
 .pet-perch[data-skin="teacher"] .pb i, .pet-perch[data-skin="teacher"] .pb i:nth-child(even) { width: 26px; height: 26px; left: -13px; top: -13px; animation-duration: 1.25s; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .25)); }
-.tc-av { position: relative; width: 64px; height: 64px; flex: none; border-radius: 50%; overflow: hidden; background: var(--fill); }
-.tc-av img { position: absolute; width: 172%; left: -39%; top: -2%; max-width: none; }  /* 384 정사각 그림에서 머리 전체가 들어오게 (10/31 얼굴만 너무 크게 잘렸음) */
+.tc-av { position: relative; width: 84px; height: 84px; flex: none; }  /* 동그라미 없이 캐릭터 그대로 (10/31 «원 안에 들어가 있는 게 싫다고») */
+.tc-av img { width: 100%; height: 100%; object-fit: contain; }
 .tc-chip { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: var(--t1); color: var(--card); font-size: 12px; font-weight: 600; vertical-align: 1px; }
 @media (prefers-color-scheme: dark) { :root[data-skin="teacher"]:not([data-theme="light"]) { --bg: #101013; --card: #1d1d22; --t1: #f4f4f5; --t2: #c3c3c9; --t3: #8a8a90; --t4: #5f5f66; --line: #2c2c34; --fill: #2c2c34; --fill2: #24242a; --blue: #e4e4e7; --blue-d: #ffffff; --blue-soft: #26262c; --blue-l: #3a3a42; --green: #f4f4f5; --green-soft: #26262c; } }
 :root[data-skin="teacher"][data-theme="dark"] { --bg: #101013; --card: #1d1d22; --t1: #f4f4f5; --t2: #c3c3c9; --t3: #8a8a90; --t4: #5f5f66; --line: #2c2c34; --fill: #2c2c34; --fill2: #24242a; --blue: #e4e4e7; --blue-d: #ffffff; --blue-soft: #26262c; --blue-l: #3a3a42; --green: #f4f4f5; --green-soft: #26262c; }
@@ -3034,3 +3034,21 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 .m3w-i .st-k:not(.hid) { color: var(--t1); font-weight: 600; box-shadow: none; }
 .m3w-i .st-k { min-height: 30px; }  /* 열어도 칸 높이가 그대로 */
 @media (prefers-reduced-motion: reduce) { button.st-k.rv { animation: none; } }
+
+.done-more { display: flex; justify-content: center; gap: 8px; margin-top: 4px; }
+.done-more:empty { display: none; }
+.done-more .btn.ghost { color: var(--t3); background: none; }
+.done-more .btn.ghost:hover { color: var(--t1); background: var(--fill2); }
+
+/* 수업 탭: 수업 진도 (10/31) */
+.cl-next .list { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+.cl-pgs { display: grid; gap: 0; }
+.cl-pg { display: grid; grid-template-columns: 120px 1fr; gap: 4px 16px; padding: 14px 0; border-top: 1px solid var(--line); }
+.cl-pg:first-child { border-top: 0; padding-top: 4px; }
+.cl-pg-d { display: grid; gap: 2px; align-content: start; }
+.cl-pg-d b { font-size: 15px; }
+.cl-pg-d span { font-size: 12px; color: var(--t3); }
+.cl-pg ul { margin: 0; padding-left: 18px; font-size: 15px; line-height: 1.65; }
+.cl-pg-hw { grid-column: 2; margin: 2px 0 0; font-size: 13px; color: var(--t3); line-height: 1.55; }
+.cl-pg-hw b { color: var(--t2); margin-right: 4px; }
+@media (max-width: 560px) { .cl-pg { grid-template-columns: 1fr; } .cl-pg-hw { grid-column: 1; } }

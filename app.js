@@ -1904,7 +1904,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610311424', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610311432', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2042,7 +2042,7 @@
     });
   }
   const GH_NEXT = { hello: ['idle', 2000] }, GH_BLOB = {};
-  const gh = (n, cls = '') => `<img class="gh ${cls}" data-gh="${n}" src="${av(`${petBase()}/${n}.png`)}" onerror="this.onerror=null;this.src='assets/ghost/${n}.png'" alt="">`;
+  const gh = (n, cls = '') => `<img class="gh ${cls}" data-gh="${n}" src="${av(`${petBase()}/${n}.png`)}" onerror="if(this.dataset.f){this.onerror=null;this.style.display='none'}else{this.dataset.f=1;this.src='assets/ghost/${n}.png'}" alt="">`;
   function ghFill(root) {
     for (const img of (root || document).querySelectorAll('img[data-gh]:not([data-ghd])')) {
       const n = img.dataset.gh; img.dataset.ghd = '1'; if (RM()) continue;
@@ -4602,7 +4602,8 @@
       const areas = Object.entries(by).sort((a, b) => a[1][0] / a[1][1] - b[1][0] / b[1][1]);
       const bars = areas.length > 1 ? `<div class="nx-areas"><div class="eyebrow">영역별로 맞힌 비율</div><div class="sw-chart">${areas.slice(0, 8).map(([c, [o, t]]) => `<div class="sw-row"><span class="sw-n">${esc(c)}</span><div class="sw-track"><div class="sw-bar" style="width:100%;background:var(--fill)"><i style="width:${(o / t) * 100}%;background:${o === t ? 'var(--blue)' : o / t >= 0.6 ? 'var(--blue-l)' : 'var(--red)'}"></i></div></div><span class="sw-v num"><b>${o}</b> / ${t}</span></div>`).join('')}</div></div>` : '';
       const wr = qs.filter((q) => !store[q.i].ok).length, sc = Math.round((ok / n) * 100);
-      return `<div class="nx-wrap">${nxTop(s, n, n, sub, 1)}${doneCard(ok, n, `<b class="nx-score num">${sc}점</b>${tm ? ` · 걸린 시간 ${tm}` : ''}${wr && !r.tmp ? ' · 틀린 문제는 오답 노트에 들어갔어요' : ''}`, `${wr ? `<button class="btn primary big block" data-nxwr type="button">틀린 것만 다시 · ${wr}문제</button>` : ''}<button class="btn big block" data-go="wrong" type="button">오답 노트로</button>${s.kind === 'lesson' ? '' : '<button class="btn big block" data-nxre type="button">처음부터 다시</button>'}<button class="btn big block" data-nxexit type="button">${r.back === 'hw' ? '숙제로' : r.back === 'study' ? '공부로' : '시험으로'}</button>`, bars)}</div>`;
+      return `<div class="nx-wrap">${nxTop(s, n, n, sub, 1)}${doneCard(ok, n, `<b class="nx-score num">${sc}점</b>${tm ? ` · 걸린 시간 ${tm}` : ''}${wr && !r.tmp ? ' · 틀린 문제는 오답 노트에 들어갔어요' : ''}`, (() => { const back = r.back === 'hw' ? '숙제로' : r.back === 'study' ? '공부로' : '시험으로';  // 단추는 큰 것 하나 + 작은 글자 단추만 (10/31 «뭐가 이렇게 버튼이 많냐»)
+        return `${wr ? `<button class="btn primary big block" data-nxwr type="button">틀린 것만 다시 · ${wr}문제</button>` : `<button class="btn primary big block" data-nxexit type="button">${back}</button>`}<div class="done-more">${s.kind === 'lesson' ? '' : '<button class="btn sm ghost" data-nxre type="button">처음부터 다시</button>'}${wr ? `<button class="btn sm ghost" data-nxexit type="button">${back}</button>` : ''}</div>`; })(), bars)}</div>`;
     }
     const q = qs[cur], rec = store[q.i], v = nxView(q, rec, s.kind === 'mock' ? q.n || cur + 1 : s.kind === 'lesson' ? cur + 1 : null);
     const fresh = render.nxq !== q.i; render.nxq = q.i;
@@ -4861,7 +4862,20 @@
       const g = s ? nxProg(s) : { d: 0, n: 0 };
       return `<div class="li is-done"><div class="ico">${ic('clock')}</div><div class="body"><div class="t">${m}/${d} 수업 시험</div><div class="d">끝까지 못 풀고 닫혔어요 · ${g.d} / ${g.n}</div></div></div>`;
     }).join('');
-    return `<h1 class="h1">시험</h1><p class="sub">수업 시간이 되면 열려요. 배운 것을 늘 섞어서 내요</p><div class="grid">${main}${past ? `<section class="card c12"><div class="card-h"><h2>지난 수업 시험</h2><span class="tiny">점수는 선생님 리포트에 가요</span></div><div class="list">${past}</div></section>` : ''}</div>`;
+    // 「수업」 탭 (10/31 «이거를 수업으로 하자, 수업 때 나갈 거를. 시험과 수업 진도»): 다음 수업 · 그때 볼 것 · 시험 · 지금까지 나간 진도
+    const c = cls(), nx = nextLesson(c), done = lsnSorted(c), last = done[0];
+    const see = YP_ON && nx ? YP.filter((it) => (!last || it.day > last.date) && it.day <= nx.date) : [];
+    const seeC = !nx || !see.length ? '' :  // 볼 것이 없으면 아래 시험 카드와 겹쳐서 빼요
+      `<section class="card c12 cl-next"><div class="card-h"><h2>${ic('cal')} 다음 수업</h2><span class="tag ${nx.date === t ? 'blue' : ''}">${nx.date === t ? '오늘' : `D-${dday(nx.date)}`}</span></div>
+      <div class="li"><div class="ico">${ic('clock')}</div><div class="body"><div class="t">${md(nx.date)}(${WDK[dowOf(nx.date)]}) ${esc(timeKo(nx.time) || '')}</div><div class="d">${see.length ? `이때까지 공부한 것을 수업에서 같이 봐요 · ${see.filter(ypDone).length}/${see.length} 했어요` : '수업 시간이 되면 시험이 열려요'}</div></div></div>
+      ${see.length ? `<div class="list">${see.map((it) => { const ok = ypDone(it); return `<div class="li btnlike ${ok ? 'is-done' : ''}" ${it.nav || it.p === 'ch' ? `data-task="${esc(it.id)}"` : `data-nx="${esc(it.id)}"`}><div class="ico">${ic(ok ? 'ok' : 'eng')}</div><div class="body"><div class="t">${esc(it.title)}</div><div class="d">${esc(it.sub)} · ${md(it.day)}${ok ? ' · 했어요' : ''}</div></div><span class="chev"></span></div>`; }).join('')}</div>` : ''}</section>`;
+    const prog = done.filter((l) => l.lesson || (l.units || []).length || (l.gram || []).length).slice(0, 12).map((l) => {
+      const ls = lines(l.lesson), un = (l.units || []).map((no) => { const u = cuByNo(no); return u ? `천일문 Unit ${u.unit} ${u.title || ''}`.trim() : ''; }).filter(Boolean), gr = (l.gram || []).map((g) => `Grammar Unit ${g.unit}`);
+      const all = [...ls, ...un.filter((x) => !ls.some((y) => y.includes(x.split(' ').slice(0, 3).join(' ')))), ...gr];
+      return `<div class="cl-pg"><div class="cl-pg-d"><b>${md(l.date)}</b><span>${l.nth ? `${esc(l.nth)}회차` : ''}${l.book ? ` · ${esc(l.book)}` : ''}</span></div><ul>${all.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>${l.hw ? `<p class="cl-pg-hw"><b>숙제</b> ${esc(l.hw)}</p>` : ''}</div>`;
+    }).join('');
+    const progC = prog ? `<section class="card c12"><div class="card-h"><h2>${ic('books')} 수업 진도</h2><span class="tiny">지금까지 수업에서 나간 것</span></div><div class="cl-pgs">${prog}</div></section>` : '';
+    return `<h1 class="h1">수업</h1><p class="sub">다음 수업 때 볼 것 · 수업 시험 · 지금까지 나간 진도</p><div class="grid">${seeC}${main}${progC}${past ? `<section class="card c12"><div class="card-h"><h2>지난 수업 시험</h2><span class="tiny">점수는 선생님 리포트에 가요</span></div><div class="list">${past}</div></section>` : ''}</div>`;
   }
   // 잠긴 시험은 열릴 시간이 되면 저절로 열려요 (시험 탭을 보고 있을 때만 다시 그려요)
   let nxK = '';
@@ -5321,7 +5335,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311424'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311432'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6197,7 +6211,7 @@
   }
 
   // ───────── 틀 · 메뉴 ─────────
-  const TABS = [['home', '홈', 'home'], ['hw', '숙제', 'hw'], ['study', '공부', 'books'], ['exam', '시험', 'pencil'], ['grade', '성적', 'score'], ['wrong', '오답', 'wrong'], ['book', '교재', 'books'], ['score', '성적', 'score'], ['uni', '대학', 'school'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']].filter((t) => (!ST.tabs || ST.tabs.includes(t[0])) && (t[0] !== 'exam' || Object.keys(NXSETS).length || NX_CH.length || NX_JG.length) && (t[0] !== 'study' || (NXD.subjects || []).length) && (t[0] !== 'grade' || (ST.tabs || []).includes('grade')));  // 중학생 성적 탭은 켠 학생만 (10/31 정윤에게 성적 탭이 둘 뜸)  // 공부 탭은 단원 자료가 있는 학생만  // 시험 탭은 시험이 있는 학생만
+  const TABS = [['home', '홈', 'home'], ['hw', '숙제', 'hw'], ['study', '공부', 'books'], ['exam', '수업', 'pencil'], ['grade', '성적', 'score'], ['wrong', '오답', 'wrong'], ['book', '교재', 'books'], ['score', '성적', 'score'], ['uni', '대학', 'school'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']].filter((t) => (!ST.tabs || ST.tabs.includes(t[0])) && (t[0] !== 'exam' || Object.keys(NXSETS).length || NX_CH.length || NX_JG.length) && (t[0] !== 'study' || (NXD.subjects || []).length) && (t[0] !== 'grade' || (ST.tabs || []).includes('grade')));  // 중학생 성적 탭은 켠 학생만 (10/31 정윤에게 성적 탭이 둘 뜸)  // 공부 탭은 단원 자료가 있는 학생만  // 시험 탭은 시험이 있는 학생만
   const DASH_ONLY = TEACHER && !STU_TAB && ROSTER.length > 1;  // 선생님 첫 탭은 학생 관리만 (학생 화면은 새 탭으로)
   if (DASH_ONLY) TABS.splice(0, TABS.length, ['dash', '홈', 'home'], ['treport', '리포트', 'memo'], ['thw', '숙제', 'hw'], ['tgrade', '성적', 'score'], ['tsched', '수업 일정', 'cal'], ['news', '소식', 'news'], ['tstu', '학생', 'trophy']);
   function nav() {
