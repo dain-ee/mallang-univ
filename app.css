@@ -2764,8 +2764,8 @@ button.st-k.hid:hover { background: var(--blue-soft); }
 .st-term { display: grid; grid-template-columns: minmax(96px, 30%) 1fr; gap: 4px 12px; align-items: baseline; padding: 12px 0; border-top: 1px solid var(--line); font-size: 15px; line-height: 1.6; }
 .st-term:first-child { border-top: 0; padding-top: 0; }
 .st-term b { color: var(--t1); }
-.st-term small { grid-column: 1; font-size: 12px; color: var(--t3); }
-.st-term > span { grid-column: 2; grid-row: 1 / span 2; color: var(--t2); }
+.st-term b small { margin-left: 4px; font-size: 12px; font-weight: 500; color: var(--t3); }  /* 품사는 단어 옆 한 줄 (10/31) */
+.st-term > span { grid-column: 2; color: var(--t2); }
 .st-flow { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
 .st-flow li { position: relative; display: grid; grid-template-columns: 88px 1fr; gap: 12px; padding: 8px 0 8px; }
 .st-flow li::before { content: ''; position: absolute; left: 96px; top: 16px; width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
@@ -2920,3 +2920,61 @@ button.st-k.hid:hover { background: var(--blue-soft); }
 :root[data-skin="woni"], :root[data-skin="rescene"] { --pb-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'%3E%3Cpath d='M50 90C20 66 2 50 2 28 2 13 13 2 28 2c9 0 17 5 22 12C55 7 63 2 72 2c15 0 26 11 26 26 0 22-18 38-48 62z' fill='%235b8fd6'/%3E%3C/svg%3E"); --pb-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'%3E%3Cpath d='M50 90C20 66 2 50 2 28 2 13 13 2 28 2c9 0 17 5 22 12C55 7 63 2 72 2c15 0 26 11 26 26 0 22-18 38-48 62z' fill='%23b9d3f3'/%3E%3C/svg%3E"); --pb-c: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'%3E%3Cpath d='M50 90C20 66 2 50 2 28 2 13 13 2 28 2c9 0 17 5 22 12C55 7 63 2 72 2c15 0 26 11 26 26 0 22-18 38-48 62z' fill='%23ffffff' stroke='%239bbde8' stroke-width='5'/%3E%3C/svg%3E"); }
 .pet-perch[data-skin="rescene"] { width: 240px; height: 240px; right: 32px; }  /* 다섯 명이 가로로 서 있어서 넓게 */
 @media (max-width: 640px) { .pet-perch[data-skin="rescene"] { width: 200px; height: 200px; right: 16px; } }
+
+/* 영어 정리: 줄글 대신 공부하는 모양 (10/31) */
+.st-kick { margin: 0 0 4px; font-size: 12px; font-weight: 700; color: var(--blue); }
+.st-sec h3 { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: 14px; font-weight: 700; color: var(--t2); }
+.st-sec h3 .ic { width: 16px; height: 16px; }
+.st-line { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: baseline; padding: 10px 0; border-top: 1px solid var(--line); }
+.st-line:first-of-type { border-top: 0; }
+.st-line b, .st-rs b, .st-bub b, .st-tb b { display: block; font-size: 16px; font-weight: 600; line-height: 1.5; color: var(--t1); }
+.st-line span, .st-bub span, .st-tb > span:last-child, .st-rs .st-ko { display: block; margin-top: 2px; font-size: 14px; line-height: 1.55; color: var(--t3); }
+.st-ln { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 4px; font-size: 12px; font-weight: 700; color: var(--t3); background: var(--fill2); border-radius: 7px; }
+.st-chat { display: grid; gap: 8px; margin: 4px 0 16px; padding: 16px; background: var(--fill2); border-radius: 16px; }
+.st-bub { justify-self: start; display: flex; gap: 10px; align-items: flex-start; max-width: 92%; padding: 12px 14px; background: var(--card); border-radius: 16px 16px 16px 4px; }
+.st-bub.a { justify-self: end; background: var(--blue-soft); border-radius: 16px 16px 4px 16px; }
+.st-bub > i, .st-qa-t { flex: none; display: inline-grid; place-items: center; width: 22px; height: 22px; font-size: 12px; font-style: normal; font-weight: 800; color: #fff; background: var(--t2); border-radius: 50%; }
+.st-bub.a > i, .st-qa-t.a { background: var(--blue); }
+.st-qa { display: grid; gap: 16px; }
+.st-qa > div { padding: 14px 16px 6px; border: 1px solid var(--line); border-radius: 16px; }
+@media (min-width: 720px) { .st-qa { grid-template-columns: 1fr 1fr; } }
+.st-tipbox, .st-trap, .st-pts { margin-top: 16px; padding: 14px 16px; background: var(--fill2); border-radius: 16px; }
+.st-tipbox ul, .st-trap ul, .st-pts ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 15px; line-height: 1.65; color: var(--t1); }
+.st-trap h3 { color: var(--red); }
+.st-formula { display: grid; gap: 2px; margin: 4px 0 0; padding: 14px 16px; font-size: 17px; font-weight: 700; line-height: 1.5; color: var(--blue-d); background: var(--blue-soft); border-radius: 16px; }
+.st-formula small { font-size: 12px; font-weight: 700; color: var(--blue); }
+.st-pts { background: none; padding: 0; margin-top: 16px; }
+.st-pts li.st-arrow { list-style: none; margin-left: -18px; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; padding: 10px 12px; background: var(--fill2); border-radius: 12px; font-size: 14px; }
+.st-arrow i { font-style: normal; font-weight: 700; color: var(--blue); }
+.st-arrow span:last-child { font-weight: 700; }
+.st-tb { margin-top: 16px; padding: 14px 16px; border: 1.5px solid var(--blue-l); border-radius: 16px; }
+.st-tb .tag { margin-bottom: 6px; }
+.st-exs { margin-top: 16px; }
+.st-read .st-para { padding: 4px 0; }
+.st-rs { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: baseline; padding: 10px 8px; margin: 0 -8px; border-radius: 12px; }
+.st-rs.key { background: var(--blue-soft); }
+.st-rs .tag { margin: 4px 0 0; }
+.st-rs em { display: inline-block; margin-top: 6px; padding: 3px 8px; font-size: 12px; font-style: normal; font-weight: 600; color: var(--blue-d); background: var(--fill2); border-radius: 8px; }
+/* 매3영 문장 구조 (10/31): 문장마다 S·V·O·C 표시 · 끊어 읽기 / · 해석 · 그 문장 단어 */
+.sx-key { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0 0 12px; padding: 10px 12px; font-size: 13px; color: var(--t2); background: var(--fill2); border-radius: 12px; }
+.sx-s { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: baseline; padding: 14px 0; border-top: 1px solid var(--line); }
+.sx-key + .sx-s { border-top: 0; }
+.sx-en { margin: 0; font-size: 17px; line-height: 2.1; color: var(--t1); }
+.sx-ko { margin: 2px 0 0; font-size: 14px; line-height: 1.6; color: var(--t3); }
+.sx-r { padding-bottom: 1px; border-bottom: 2px solid var(--sx, var(--t3)); }
+.sx-l { margin-right: 2px; padding: 0 4px; font-size: 10px; font-weight: 800; line-height: 1; color: #fff; background: var(--sx, var(--t3)); border-radius: 4px; vertical-align: 0.6em; }
+.sx-S { --sx: var(--blue); }
+.sx-V { --sx: var(--green); }
+.sx-O { --sx: #8b5cf6; }
+.sx-C { --sx: #f08c00; }
+.sx-M, .sx-A { --sx: var(--t3); }
+.sx-key .sx-r { border-bottom-width: 2px; }
+.sx-p { font-style: normal; font-weight: 700; color: var(--t3); }
+.sx-cut { font-style: normal; font-weight: 800; color: var(--blue); }
+.sx-w { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.sx-w span { padding: 4px 8px; font-size: 13px; color: var(--t2); background: var(--fill2); border-radius: 8px; }
+.sx-w b { color: var(--t1); }
+.sx-all { margin-top: 16px; }
+.sx-all summary { cursor: pointer; font-size: 14px; font-weight: 700; color: var(--blue); }
+.sx-all .st-pre { margin-top: 8px; }
+.m3-go .btn { margin-top: 12px; }
