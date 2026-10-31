@@ -1954,7 +1954,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610311720', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610311730', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4301,12 +4301,12 @@
     return [a, b];
   }
   var jlAud = null, jlT = null;  // var: render 가 먼저 불려도 괜찮게
-  function jlStop() { clearTimeout(jlT); if (jlAud) jlAud.pause(); $$('.jl-play.on').forEach((b) => b.classList.remove('on')); }
+  function jlStop() { clearTimeout(jlT); clearInterval(jlT); if (jlAud) jlAud.pause(); $$('.jl-play.on').forEach((b) => b.classList.remove('on')); }
   function jlPlay(url, s, e, btn) {  // 한 문장만: s초부터 e초까지 (e 가 없으면 끝까지)
     jlStop(); if (!jlAud) { jlAud = new Audio(); jlAud.preload = 'auto'; }
     if (jlAud.dataset.u !== url) { jlAud.src = url; jlAud.dataset.u = url; }
     const rate = UI.jlSlow ? 0.8 : 1; jlAud.playbackRate = rate;
-    const play = () => { jlAud.currentTime = Math.max(0, s - 0.15); jlAud.play().catch(() => {}); if (btn) btn.classList.add('on'); if (e) jlT = setTimeout(jlStop, ((e - s + 0.45) * 1000) / rate); };
+    const play = () => { jlAud.currentTime = Math.max(0, s - 0.15); jlAud.play().catch(() => {}); if (btn) btn.classList.add('on'); if (e) jlT = setInterval(() => { if (jlAud.currentTime >= e + 0.4 || jlAud.ended) jlStop(); }, 50); };  // 시계 말고 실제 재생 위치로 멈춰요 (처음엔 음원 받느라 늦게 시작해서 끝이 잘렸어요 10/31)
     if (jlAud.readyState >= 1) play(); else jlAud.addEventListener('loadedmetadata', play, { once: true });
   }
   function jlRun() {
@@ -5433,7 +5433,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311720'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311730'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
