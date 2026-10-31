@@ -1954,7 +1954,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610311747', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610311833', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4189,8 +4189,9 @@
     const head = `<div class="row between"><button class="btn sm" data-go="hw" type="button">‹ 숙제</button><span class="tiny">📗 Grammar Stage Plus 2</span></div>
       <h1 class="h1" style="margin-top:12px">Unit ${esc(u.no)} · ${esc(u.title)}</h1>
       <div class="seg" style="margin:12px 0 16px">${[2, 3, 4].map((s) => `<button type="button" class="${s === step ? 'on' : ''}" data-jgs="${s}">${JG_STEP[s]}</button>`).join('')}</div>
-      ${r.secs && r.secs.length ? `<div class="jg-only"><span>📌 오늘 숙제는 ${esc(r.secs.join('·'))}만</span><button class="btn sm" data-jgall type="button">전체 보기</button></div>` : ''}`;
+      ${r.secs && r.secs.length && !r.sheet ? `<div class="jg-only"><span>📌 오늘 숙제는 ${esc(r.secs.join('·'))}만</span><button class="btn sm" data-jgall type="button">전체 보기</button></div>` : ''}`;
     const lesson = (u.lessons || {})[step] ? `<div class="jgl">${step === 2 ? u.lessons[step] : `<div class="card"><p style="margin:0">${u.lessons[step]}</p></div>`}</div>` : '';
+    if (r.sheet) return jgSheet(u, qs, head);
     if (cur < 0) {
       const ok = qs.filter((q) => (jgRec(u, q) || {}).ok).length;
       const nx = TUTOR ? tutorTasks().find((t) => !t.done) : null;
@@ -4206,11 +4207,41 @@
       ${a ? `${verdict(a.ok)}${a.ok ? '' : `<div class="explain"><b>정답</b> ${esc(q.answers[0])}</div>`}${q.why ? `<div class="explain"><b>해설</b> ${esc(q.why)}</div>` : ''}<div class="cta-bar jg-cta"><button class="btn primary big block" id="next" type="button">${qs.some((x) => !jgRec(u, x)) ? '다음 문제' : '결과 보기'}</button></div>` : ''}
       ${qs.some((x) => jgRec(u, x)) && lesson ? `<details class="jg-again"><summary>설명 다시 보기</summary>${lesson}</details>` : ''}</div>`;
   }
+  // 시험지처럼 세로로 쭉 (10/31 선생님 «시험처럼 세로로 쭉, 하나 할 때마다 바로바로, 지시문도»): 파트마다 공통 지시문을 한 번 위에, 문제는 번호대로
+  const jgCut = (L) => { if (L.length < 2) return ''; let p = L[0]; for (const x of L) while (!x.startsWith(p)) p = p.slice(0, -1); const k = p.lastIndexOf('<br>'); return k > 0 ? p.slice(0, k + 4) : ''; };
+  function jgSheet(u, qs, head) {
+    const done = qs.filter((q) => jgRec(u, q)).length, ok = qs.filter((q) => (jgRec(u, q) || {}).ok).length;
+    const groups = []; qs.forEach((q) => { const g = groups[groups.length - 1]; if (g && g.sec === q.section) g.qs.push(q); else groups.push({ sec: q.section, qs: [q] }); });
+    let no = 0;
+    const body = groups.map((g) => { const cp = jgCut(g.qs.map((q) => q.prompt));
+      return `<section class="card jgs-part"><div class="jgs-sec">${esc(String(g.sec).replace(/^\S+\s·\s/, ''))}</div>${cp ? `<div class="jgs-dir">${cp.replace(/<br>$/, '')}</div>` : ''}${g.qs.map((q) => { no++; const a = jgRec(u, q), body = q.prompt.slice(cp.length);
+        const box = q.choices ? `<div class="jg-ops">${q.choices.map((c, j) => `<button type="button" class="chip jg-op ${a && jgNorm(a.v) === jgNorm(c) ? (a.ok ? 'right' : 'wrong') : ''}" data-jsq="${q.id}" data-jo="${j}" ${a ? 'disabled' : ''}>${esc(c)}</button>`).join('')}</div>`
+          : `<form class="row jgs-in" data-jsf="${q.id}" style="gap:8px"><input class="inp" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="답을 써요" value="${a ? esc(a.v) : ''}" ${a ? 'disabled' : ''}>${a ? '' : '<button class="btn primary" type="submit">확인</button>'}</form>`;
+        return `<div class="jgs-q ${a ? (a.ok ? 'ok' : 'no') : ''}" id="jgs-${q.id}"><div class="jgs-n">${a ? (a.ok ? '⭕' : '❌') : no}</div><div class="jgs-b"><div class="jg-q">${body}</div>${box}${a && !a.ok ? `<div class="jgs-ans"><b>정답</b> ${esc(q.answers[0])}</div>` : ''}${a && q.why ? `<div class="jgs-why">${esc(q.why)}</div>` : ''}</div></div>`; }).join('')}</section>`; }).join('');
+    return `<div class="qwrap jgs" style="max-width:820px;margin:0 auto">${head}
+      <div class="card jgs-top"><div><b>Review Test</b><small>Grammar Stage Plus 2 · Unit ${esc(u.no)} ${esc(u.title)}</small></div><div class="jgs-score">${done ? `<b>${ok}</b> / ${qs.length}` : `${qs.length}문제`}</div></div>
+      ${body}
+      ${done === qs.length ? `<div class="card" style="text-align:center"><b style="font-size:20px">${ok} / ${qs.length} 맞혔어요</b><p class="tiny">틀린 문제는 오답 노트에 쌓였어요</p><button class="btn big block" data-jgre type="button">처음부터 다시 풀기</button></div>` : ''}</div>`;
+  }
+  function bindJgSheet(u, r) {
+    const qs = jgQs(u, r.step, r.secs), byId = (id) => qs.find((q) => q.id === +id);
+    const mark = (q, v, el) => {
+      if (!q || !String(v).trim()) return; const ok = jgOk(q, v), id = `jg:u${u.no}:${q.id}`;
+      S.jg = S.jg || {}; S.jg['u' + u.no + ':' + q.id] = { ok, v: String(v).trim(), at: Date.now() };
+      if (ok) { gotIt(id); clearWrong(id); UI.jgRun = (UI.jgRun || 0) + 1; ding(UI.jgRun); if (el) { const b = el.getBoundingClientRect(); boom(b.left + b.width / 2, b.top, UI.jgRun >= 5 ? 2 : 1); } }
+      else { UI.jgRun = 0; addWrong(id, { src: 'jg', subj: 'eng', subjName: '영어', area: `Grammar Unit ${u.no}`, sub: q.section, title: String(q.prompt).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60), ref: { u: u.no, id: q.id } }); }
+      save('jg'); const y = scrollY; render(); window.scrollTo(0, y); jgCheer(u, r);
+      const nx = qs.find((x) => !jgRec(u, x)); const f = nx && $(`[data-jsf="${nx.id}"] input`); if (f && f.getBoundingClientRect().top < innerHeight) f.focus({ preventScroll: true });
+    };
+    $$('[data-jsq]').forEach((b) => (b.onclick = () => { const q = byId(b.dataset.jsq); mark(q, q.choices[+b.dataset.jo], b); }));
+    $$('[data-jsf]').forEach((f) => (f.onsubmit = (e) => { e.preventDefault(); mark(byId(f.dataset.jsf), $('input', f).value, f); }));
+  }
   function bindGram() {
     const r = UI.run, u = jgU(r.unit); if (!u) return;
     $$('[data-jgs]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'gram', unit: r.unit, step: +b.dataset.jgs }; render(); window.scrollTo(0, 0); }));
     const al = $('[data-jgall]'); if (al) al.onclick = () => { UI.run = { kind: 'gram', unit: r.unit, step: r.step }; render(); };
     const re = $('[data-jgre]'); if (re) re.onclick = () => { S.jg = S.jg || {}; for (const q of jgQs(u, r.step, r.secs)) delete S.jg['u' + u.no + ':' + q.id]; save('jg'); UI.run = { ...r, show: null }; render(); window.scrollTo(0, 0); };
+    if (r.sheet) return bindJgSheet(u, r);
     const qs = jgQs(u, r.step, r.secs), q = qs[r.show]; if (!q) return;
     const mark = (v, el) => {
       if (!String(v).trim()) return; const ok = jgOk(q, v), id = `jg:u${u.no}:${q.id}`;
@@ -5446,7 +5477,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311747'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311833'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
