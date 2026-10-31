@@ -3026,3 +3026,11 @@ button.st-k.hid:hover { background: var(--blue-soft); }
 .m3w-i span, .m3w-i .st-k { font-size: 15px; line-height: 1.5; color: var(--t2); text-align: left; }
 .m3w-i .st-k { padding: 2px 6px; margin: 0 -6px; font: inherit; border: 0; border-radius: 8px; background: none; cursor: pointer; }
 @media (max-width: 560px) { .m3-hi .gh.m3-gh { width: 64px; height: 64px; } .m3-hi h2 { font-size: 19px; } }
+
+/* 가린 뜻을 누르면: 회색 칸이 걷히며 글자가 살짝 떠올라요. 매3영 단어 칸은 칸 전체에 형광펜 띠가 깔려 어긋나 보여서 띠 없이 (10/31) */
+button.st-k { transition: background-color .2s ease, color .2s ease, box-shadow .2s ease; }
+button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
+@keyframes stRv { from { opacity: 0; transform: translateY(6px) scale(.98); } to { opacity: 1; transform: none; } }
+.m3w-i .st-k:not(.hid) { color: var(--t1); font-weight: 600; box-shadow: none; }
+.m3w-i .st-k { min-height: 30px; }  /* 열어도 칸 높이가 그대로 */
+@media (prefers-reduced-motion: reduce) { button.st-k.rv { animation: none; } }
