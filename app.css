@@ -2995,3 +2995,19 @@ button.st-k.hid:hover { background: var(--blue-soft); }
 .st-head.run > .row.between, .st-head.run > .sub { display: none; }
 .st-head.run .st-t { margin: 0; font-size: 17px; }
 .st-run .nx-tt span { display: none; }
+
+.st-th { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.st-th .st-t { margin: 0; }
+.st-pick select { appearance: none; -webkit-appearance: none; min-height: 36px; padding: 0 34px 0 14px; font: inherit; font-size: 15px; font-weight: 700; color: var(--card); background: var(--t1) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5 6 7.5 9 4.5' fill='none' stroke='%23fff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center; border: 0; border-radius: 999px; cursor: pointer; }
+.st-head:has(.st-th) .st-lsub { margin-top: 12px; }
+.st-uk { display: none; }
+@media (min-width: 900px) {
+  .st-pick { display: none; }
+  .st-uk { display: grid; gap: 2px; margin: 2px 0 8px 22px; padding-left: 12px; border-left: 2px solid var(--line); }
+  .st-uk button { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 12px; font: inherit; font-size: 14px; font-weight: 600; color: var(--t2); text-align: left; background: none; border: 0; border-radius: 10px; }
+  .st-uk button i { width: 14px; height: 14px; border: 1.5px solid var(--t4); border-radius: 50%; }
+  .st-uk button svg { width: 14px; height: 14px; color: var(--blue); }
+  .st-uk button.on { color: var(--card); background: var(--t1); }
+  .st-uk button.on i { border-color: var(--card); }
+  .st-uk button:not(.on):hover { background: var(--fill2); }
+}
