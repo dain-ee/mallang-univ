@@ -3013,3 +3013,16 @@ button.st-k.hid:hover { background: var(--blue-soft); }
 }
 /* 빨간 「선물 열기」 단추 위 선물 상자는 흰색 한 가지로 (10/31 «선물박스를 하얀색으로») */
 [data-gift] .ic { filter: brightness(0) invert(1); }
+
+/* 매3영 지문 시작 카드: 유령이 묻고, 단어를 그 자리에서 외워요 (10/31) */
+.m3-hi { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.m3-hi .gh.m3-gh { flex: none; width: 88px; height: 88px; object-fit: contain; }
+.m3-hi h2 { margin: 4px 0 4px; font-size: 22px; line-height: 1.4; }
+.m3-hi .sub { margin: 0; }
+.m3w-tools { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.m3w { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; margin-bottom: 20px; }
+.m3w-i { display: grid; gap: 4px; padding: 14px 16px; border-radius: 14px; background: var(--fill2); }
+.m3w-i b { font-size: 19px; line-height: 1.35; }
+.m3w-i span, .m3w-i .st-k { font-size: 15px; line-height: 1.5; color: var(--t2); text-align: left; }
+.m3w-i .st-k { padding: 2px 6px; margin: 0 -6px; font: inherit; border: 0; border-radius: 8px; background: none; cursor: pointer; }
+@media (max-width: 560px) { .m3-hi .gh.m3-gh { width: 64px; height: 64px; } .m3-hi h2 { font-size: 19px; } }

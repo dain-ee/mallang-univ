@@ -1904,7 +1904,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610311355', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610311412', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5139,7 +5139,11 @@
     const lsub = !CL ? '' : (() => { const pc = CL.c && nxProg(NXSETS[CL.c]), pq = CL.q && nxProg(NXSETS[CL.q]), rd = !!nxS().a[stLRead(u, CL)];
       const segs = CL.m3 ? [...(pc ? [['c', `① 단어 ${pc.d}/${pc.n}`, `data-nx="${esc(CL.c)}"`]] : []), ...(pq ? [['q', `② 문제 ${pq.d}/${pq.n}`, `data-nx="${esc(CL.q)}"`]] : []), ['n', `③ 문장 구조${rd ? ' ✓' : ''}`, 'data-stp="n"']] : [['n', `개념${rd ? ' ✓' : ''}`, 'data-stp="n"'], ...(pc ? [['c', `빈칸 ${pc.d}/${pc.n}`, `data-nx="${esc(CL.c)}"`]] : []), ...(pq ? [['q', `문제 ${pq.d}/${pq.n}`, `data-nx="${esc(CL.q)}"`]] : [])];
       return `<div class="st-lsub"><div class="seg">${segs.map(([k, nm, at]) => `<button type="button" class="${sub === k ? 'on' : ''}" ${at}>${nm}</button>`).join('')}</div></div>`; })();
-    const m3go = CL && CL.m3 && !inner && sub !== 'n' ? (() => { const id = sub === 'c' ? CL.c : CL.q, g = nxProg(NXSETS[id]); return `<section class="card st-sec m3-go"><div class="st-kick">${esc(CL.t)} · ${esc(((u.notes.passages || [])[CL.k] || {}).source || '')}</div><h2>${sub === 'c' ? '① 단어부터 외워요' : '② 문제를 먼저 풀어요'}</h2><p class="sub">${sub === 'c' ? `이 지문에 나오는 단어 ${g.n}개 뜻 고르기` : '해석 보기 전에 혼자 풀어 봐요. 다 풀면 문장 하나씩 구조를 봐요'}</p><button class="btn primary big block" data-nx="${esc(id)}" type="button">${g.d ? `이어서 하기 · ${g.d}/${g.n}` : `시작하기 · ${g.n}${sub === 'c' ? '개' : '문제'}`} ›</button></section>`; })() : '';
+    // 매3영 지문 시작: 단어는 그 자리에서 바로 외우고 → 뜻 고르기, 문제는 유령이 「풀어 볼까요?」 (10/31 «이건 뭔지 모르잖아»)
+    const m3go = CL && CL.m3 && !inner && sub !== 'n' ? (() => { const id = sub === 'c' ? CL.c : CL.q, g = nxProg(NXSETS[id]), P = (u.notes.passages || [])[CL.k] || {}, W = P.words || [];
+      const say = sub === 'c' ? (g.d ? `단어 ${g.d}/${g.n} 했어요. 이어서 해 볼까요?` : `이 지문 단어 ${W.length || g.n}개, 먼저 외워 볼까요?!`) : (g.d ? '문제 이어서 풀어 볼까요?' : '해석 보기 전에 혼자 풀어 볼까요?!');
+      const words = sub === 'c' && W.length ? `<div class="m3w-tools"><span class="tiny">${UI.stHide ? '회색 칸을 누르면 뜻이 보여요' : '뜻을 가리고 떠올려 봐도 좋아요'}</span><button type="button" class="btn sm ${UI.stHide ? 'primary' : ''}" data-sthide aria-pressed="${!!UI.stHide}">${UI.stHide ? '뜻 다 보기' : '뜻 가리기'}</button></div><div class="m3w">${W.map((w) => `<div class="m3w-i"><b>${esc(w.en)}</b>${UI.stHide ? `<button type="button" class="st-k hid" data-stk>${esc(w.ko)}</button>` : `<span>${esc(w.ko)}</span>`}</div>`).join('')}</div>` : '';
+      return `<section class="card st-sec m3-go"><div class="m3-hi">${gh(sub === 'c' ? 'focus' : 'peek', 'm3-gh')}<div><div class="st-kick">${esc(CL.t)} · ${esc(P.source || '')}</div><h2>${esc(say)}</h2><p class="sub">${sub === 'c' ? '다 외웠으면 뜻 고르기로 확인해요' : '다 풀면 문장 하나씩 구조를 봐요'}</p></div></div>${words}<button class="btn primary big block" data-nx="${esc(id)}" type="button">${g.d ? `이어서 하기 · ${g.d}/${g.n}` : sub === 'c' ? `다 외웠어요 · 뜻 고르기 ${g.n}개` : `문제 풀기 · ${g.n}문제`} ›</button></section>`; })() : '';
     const m3nx = CL && CL.m3 ? steps[sti + 1] : null;
     const lnext = !CL || inner || sub !== 'n' ? '' : CL.m3 ? `<div class="st-next"><button class="btn primary big block" data-stread type="button">${nxS().a[stLRead(u, CL)] ? '' : '다 봤어요 · '}다음: ${esc(m3nx ? (m3nx.L ? `${m3nx.L.m3} 지문` : m3nx.name) : '끝')} ›</button></div>` : `<div class="st-next">${!nxS().a[stLRead(u, CL)] || CL.c || CL.q ? `<button class="btn primary big block" data-stread type="button">${nxS().a[stLRead(u, CL)] ? '' : '다 읽었어요 · '}다음: ${CL.c ? `빈칸 ${NXSETS[CL.c].qs.length}개` : CL.q ? `문제 ${NXSETS[CL.q].qs.length}개` : esc((nxt || {}).name || '')} ›</button>` : ''}</div>`;
     const nextBar = CL ? lnext : !nxt ? '' : `<div class="st-next">${tab === 'notes' && !nxS().a[stReadId(u)] ? `<button class="btn primary big block" data-stread type="button">다 읽었어요 · 다음: ${esc(nxt.name)} ›</button>` : `<button class="btn primary big block" ${nxt.k === 'set' ? `data-nx="${esc(nxt.id)}"` : `data-stt="${nxt.k}"`} type="button">다음: ${sti + 2}. ${esc(nxt.name)} ›</button>`}</div>`;
@@ -5317,7 +5321,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311355'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311412'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
