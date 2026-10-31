@@ -1606,7 +1606,7 @@
     const pg = (p) => { const pin = bkS().pin[`${p.c.id}:${p.n}`]; const u = ebUrl.get(p.f); return `<div class="bk-pg ${u ? 'ok' : ''}" data-pg="${p.n}" data-r="${p.r}"><img alt="${p.n}쪽" draggable="false" ${u ? `src="${u}"` : ''}><div class="bk-ly" data-ly="${p.n}"></div><button type="button" class="bk-pin ${pin ? 'on' : ''}" data-pin="${p.n}" aria-label="이 쪽 나중에 다시 보기">${pin ? '★' : '☆'}</button><span class="bk-no">${p.n}쪽</span></div>`; };
     const first = sp[0] === 0, last = sp[sp.length - 1] >= P.length - 1;
     return `<div class="bk-wrap ${tool !== 'read' ? 'pen' : ''} ${bkOne() && innerWidth >= 1100 ? 'one' : ''}">
-      <div class="bk-top"><button class="btn sm" type="button" data-bkback>‹ ${esc((TABS.find((t) => t[0] === (r.back || 'book')) || ['', '교재'])[1])}</button><div class="bk-hd"><b>${esc(b.title)}</b><span>${esc(c.no)} ${esc(c.t)}${c.ref ? ' <span class="tag">참고</span>' : ''}</span></div>${innerWidth >= 1100 ? `<button class="btn sm" type="button" id="bk-one">${bkOne() ? '두 쪽 보기' : '한 쪽 크게'}</button>` : ''}<button class="btn sm" type="button" id="bk-toc">목차</button></div>
+      <div class="bk-top"><button class="btn sm" type="button" data-bkback>‹ ${esc((TABS.find((t) => t[0] === (r.back || 'book')) || ['', '교재'])[1])}</button><div class="bk-hd"><b>${esc(b.title)}</b><span>${esc(c.no)} ${esc(c.t)}${c.ref ? ' <span class="tag">참고</span>' : ''}</span></div>${innerWidth >= 1100 ? `<button class="btn sm" type="button" id="bk-one">${bkOne() ? '두 쪽 보기' : '한 쪽 크게'}</button>` : ''}${MANS[b.id] ? '<button class="btn sm soft" type="button" id="bk-qa">빠른 정답</button>' : ''}<button class="btn sm" type="button" id="bk-toc">목차</button></div>
       <aside class="bk-side"><div class="row between" style="padding:0 8px 8px"><span class="tiny">${esc(b.pub)} · ${esc(b.range)}</span><button class="btn sm" type="button" id="bk-tocx">닫기</button></div>${toc}</aside>
       <div class="bk-stage" id="bk-stage"><button type="button" class="bk-arr l" data-turn="-1" ${first ? 'disabled' : ''} aria-label="앞 쪽">‹</button><div class="bk-spread ${sp.length > 1 ? 'two' : ''}" id="bk-spread">${sp.map((k) => pg(P[k])).join('')}</div><button type="button" class="bk-arr r" data-turn="1" ${last ? 'disabled' : ''} aria-label="다음 쪽">›</button></div>
       <div class="bk-bar"><input type="range" class="bk-sl" id="bk-sl" min="0" max="${P.length - 1}" value="${sp[0]}" style="--p:${P.length > 1 ? sp[0] / (P.length - 1) * 100 : 0}%" aria-label="쪽 고르기"><span class="bk-pn num">${sp.map((k) => P[k].n).join('~')}쪽 <span class="tiny">/ ${P.length}쪽 중 ${sp[sp.length - 1] + 1}</span></span></div>
@@ -1637,6 +1637,7 @@
     $('[data-bkback]').onclick = () => { UI.run = null; UI.tab = r.back || 'book'; document.onkeydown = null; render(); };
     $$('[data-bkn]').forEach((x) => (x.onclick = () => go(+x.dataset.bkn, 0)));
     $('#bk-toc').onclick = () => $('.bk-side').classList.toggle('open');
+    const bq = $('#bk-qa'); if (bq) bq.onclick = () => mbAllSheet(b.id, P[sp[0]].c.t);  // 교재 보다가 바로 정답 (10/31)
     const one = $('#bk-one'); if (one) one.onclick = () => { UI.bkOne = !bkOne(); try { localStorage.setItem('mu:bk1', UI.bkOne ? '1' : '0'); } catch (e) {} render(); };
     $('#bk-tocx').onclick = () => $('.bk-side').classList.remove('open');
     $$('[data-turn]').forEach((x) => (x.onclick = () => turn(+x.dataset.turn)));
@@ -1931,7 +1932,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202610311455', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202610311459', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5370,7 +5371,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311455'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202610311459'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
