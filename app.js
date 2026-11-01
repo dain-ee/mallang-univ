@@ -127,7 +127,7 @@
     fin: (r, l) => { const ans = { ...(r.ans || {}) }; for (const [c, v] of Object.entries(l.ans || {})) ans[c] = jMerge(ans[c] || {}, v); return { ...r, ...l, ans }; },  // 기말 개념: 문제마다 나중에 푼 쪽
     jl: jMerge, jr: jMerge, jw: jMerge,
     // 기기 둘이 엇갈려도 서로 안 지우게 (11/1 정윤 저장 실패 뒤 «신문 글쓰기 저장됐다는데 하나도 없어»): 내 생각·담기는 칸마다 더 새것, 오답은 키마다, 용돈은 내역 id별로 합쳐요
-    notes: jMerge, keep: jMerge, kmi: jMerge,  // kmi: 지원 민사고 면접 연습 답 (질문마다 더 새것)
+    notes: jMerge, keep: jMerge, kmi: jMerge, nread: jMerge,  // kmi: 지원 민사고 면접 연습 답 (질문마다 더 새것)
     wrong: (r, l, rNew) => { const [o, n] = rNew ? [l, r] : [r, l]; return { ...o, ...n }; },
     wallet: (r, l, rNew) => { const [o, n] = rNew ? [l, r] : [r, l], ids = new Set((n.log || []).map((x) => x.id)); return { ...o, ...n, log: [...(n.log || []), ...(o.log || []).filter((x) => !ids.has(x.id))].sort((a, b) => (a.at || 0) - (b.at || 0)), seen: { ...(o.seen || {}), ...(n.seen || {}) } }; },
     // 테마 선물: 두 기기 것을 테마마다 합쳐요. 연 기록이 있으면 그걸, 아니면 나중에 보내거나(at) 취소한(x) 쪽을 써요 (10/27 보낸 쿠로미가 정윤이 기기 옛 기록에 덮여 사라짐)
@@ -536,7 +536,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${TUTOR ? `${giftHome()}${fireNews()}${lessonHero()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${giftHome()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${winCard()}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${TUTOR ? `${giftHome()}${upCard()}${fireNews()}${lessonHero()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${winCard()}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -630,7 +630,7 @@
   const UPS = () => ((D.updates || {}).items || []);
   function upCard() {
     const u = UPS()[0]; if (!u || ((S.party || {}).upSeen || '') >= u.date || UI.upHide) return '';
-    return `<section class="card c12 up-card"><div class="card-h"><h3>${ic('new')} 말랑대학이 새로워졌어요</h3><span class="tiny">${md(u.date)} 업데이트</span></div><ul class="up-l">${u.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul><div class="row" style="gap:8px;margin-top:12px"><button class="btn primary" type="button" data-upok>확인했어요</button><button class="btn" type="button" data-upall>지난 업데이트</button></div></section>`;
+    return `<section class="card c12 up-card"><div class="card-h"><h3>${ic('new')} 말랑대학이 새로워졌어요</h3><span class="tiny">${md(u.date)} 업데이트</span></div><ul class="up-l">${u.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul><div class="row" style="gap:8px;margin-top:12px">${u.go === 'news' ? '<button class="btn primary" type="button" data-upok="news">새 소식 탭 보러 가기</button><button class="btn" type="button" data-upok>확인했어요</button>' : '<button class="btn primary" type="button" data-upok>확인했어요</button>'}<button class="btn" type="button" data-upall>지난 업데이트</button></div></section>`;
   }
   const upList = () => UPS().length ? `<section class="card c12 up-all" id="up-all" style="margin-top:16px"><div class="card-h"><h2>${ic('new')} 말랑대학 업데이트</h2><span class="tiny">선생님이 계속 고치고 있어요</span></div>${UPS().map((u) => `<div class="up-day"><b>${md(u.date)}</b><ul class="up-l">${u.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`).join('')}</section>` : '';
   // 선생님 한마디: 선생님이 쓰면 학생 홈 맨 위에. 학생이 「고마워요」를 누르면 선생님 쪽에 「읽었어요」
@@ -737,7 +737,7 @@
   }
   function bindAlive() {
     $$('[data-gift]').forEach((b) => (b.onclick = () => { const s = seasonList().find((x) => x.id === b.dataset.gift); if (!s || wHas('season:' + s.id)) return; badgePop([{ id: s.id, key: 'season:' + s.id, w: s.gift, i: s.i, eb: '선물 도착!', t: s.hi, d: s.msg, done: render }]); }));
-    $$('[data-upok]').forEach((b) => (b.onclick = () => { if (TEACHER) UI.upHide = 1; else { S.party = S.party || {}; S.party.upSeen = UPS()[0].date; save('party'); } render(); }));
+    $$('[data-upok]').forEach((b) => (b.onclick = () => { if (TEACHER) UI.upHide = 1; else { S.party = S.party || {}; S.party.upSeen = UPS()[0].date; save('party'); } if (b.dataset.upok === 'news') { UI.run = null; UI.tab = 'news'; UI.newsF = 'all'; render(); scrollTo(0, 0); } else render(); }));
     $$('[data-upall]').forEach((b) => (b.onclick = () => { UI.tab = 'news'; UI.newsF = 'all'; render(); setTimeout(() => { const el = $('#up-all'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 60); }));
     $$('[data-ready]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); readySheet(); }));
     $$('[data-tgift]').forEach((b) => (b.onclick = () => { const k = b.dataset.tgift; S.gifts = [...gAll().filter((x) => x.skin !== k), { skin: k, at: Date.now() }]; S.gift = {}; save('gifts', 'gift'); toast(`선물을 보냈어요. ${NMI()} 앱에 곧 떠요`); render(); }));
@@ -830,20 +830,60 @@
   const nIcon = (n) => (n.scope === '교육부' ? 'bank' : /과학|바이오/.test(n.scope || '') ? 'sci' : 'news');
   // 소식 탭: 입시 · 과학 · 시사 상식
   const nGrp = (n) => (/과학|바이오/.test(n.scope || '') ? '과학' : n.scope === '시사 상식' ? '시사 상식' : '입시');
+  // 소식 탭 (11/1 리뉴얼 «요즘 소식 너무 읽기 싫게 되어 있던데… 이쁘게 구성해서 애들이 읽을 수 있게»)
+  // 그림 타일·한 줄 요약·읽는 시간, 날짜별로 묶고, 대이슈는 가로로 넘기는 카드. 읽기는 창이 아니라 한 페이지
+  const NW_C = { 입시: ['🎓', 'nc-adm'], 과학: ['🔬', 'nc-sci'], '시사 상식': ['🌏', 'nc-soc'] };
+  const NW_EMO = [[/코인|가상자산|비트코인/, '🪙'], [/해킹|보안|개인정보/, '🔐'], [/기후|온도|탄소|폭염|지구/, '🌡️'], [/백신|바이러스|에볼라|감염|독감/, '🦠'], [/유전자|DNA|유전체|크리스퍼/, '🧬'], [/미사일|전쟁|군사|휴전/, '🚀'], [/금리|경제|성장률|물가|소비|투자|매출|수출/, '📈'], [/아기|출생|저출생|인구/, '👶'], [/열차|철도|비행기|항공/, '🚄'], [/인공지능|AI|챗봇/, '🤖'], [/반도체|하이닉스|삼성전자|칩/, '💾'], [/우주|위성|달 |화성|로켓|NASA/, '🛰️'], [/뇌|신경|치매/, '🧠'], [/암|종양|치료제|신약/, '💊'], [/근육|미토콘드리아|세포/, '🔬'], [/대학|수시|정시|입시|수능/, '🎓'], [/선거|대통령|국회|정부/, '🏛️'], [/동맹|정상회담|외교|유엔|UN/, '🤝'], [/지진|화산|태풍|홍수/, '🌋'], [/바다|해양|고래/, '🐋'], [/동물|멸종|생태/, '🐾']];
+  const nwEmo = (n) => (NW_EMO.find(([r]) => r.test(n.title)) || [, (NW_C[nGrp(n)] || ['📰'])[0]])[1];
+  const nwMore = (n) => Array.isArray(n.more) ? n.more : (() => { try { const v = JSON.parse(n.more || '[]'); return Array.isArray(v) ? v : [String(v)]; } catch (e) { return n.more ? [String(n.more)] : []; } })();
+  const nwBody = (n) => String(n.body || '').replace(/^["“\s]+|["”\s]+$/g, '').trim();
+  const nwSents = (n) => nwBody(n).split(/(?<=[.?!])\s+(?=[^\s])/).map((x) => x.trim()).filter(Boolean);
+  const nwLead = (n) => { const f = nwSents(n)[0] || ''; return f.length > 70 ? f.slice(0, 68) + '…' : f; };
+  const nwMin = (n) => Math.max(1, Math.round((nwBody(n).length + (n.you || '').length) / 450));
+  const nwRead = (n) => wHas('news:' + n.id) || !!(S.nr || {})[n.id] || !!(S.nread || {})[n.id];
+  const nwDay = (d) => { const t = today(); return d === t ? '오늘' : d === addD(t, -1) ? '어제' : `${md(d)} ${DOW[dowOf(d)]}요일`; };
+  const nwTile = (n, big) => `<span class="nw-tile ${(NW_C[nGrp(n)] || [, 'nc-soc'])[1]} ${big ? 'big' : ''}">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), big ? 'md' : 'sm') : nwEmo(n)}</span>`;
   function newsView() {
     const N = (D.news && D.news.items) || [], f = UI.newsF || 'all';
     const groups = ['입시', '과학', '시사 상식'].filter((g) => N.some((n) => nGrp(n) === g));
-    const L = N.filter((n) => f === 'all' || nGrp(n) === f).sort((a, b) => String(b.date).localeCompare(String(a.date)));
     const KK = { ...(S.keep || {}) }; for (const [k, v] of Object.entries(S.notes || {})) KK[k] = { ...(KK[k] || {}), ...v, kept: !!(S.keep || {})[k] };
     for (const k of Object.keys(S.keep || {})) KK[k].kept = true;
     const KL = Object.entries(KK).sort((a, b) => (b[1].at || 0) - (a[1].at || 0)), KN = { news: '소식', uni: '대학', pick: '진로' };
     const kept = KL.length ? `<div class="list">${KL.map(([k, v]) => `<div class="li btnlike" data-kopen="${esc(v.kind)}|${esc(v.ref)}"><div class="ico">${ic(v.kind === 'uni' ? 'school' : v.kind === 'pick' ? 'dna' : 'news')}</div><div class="body"><div class="t">${v.kept ? '★ ' : ''}${esc(v.t || '')}</div><div class="d">${KN[v.kind] || ''}${v.text ? ` · <span class="kp-note">${esc(v.text.replace(/\s+/g, ' ').slice(0, 60))}${v.text.length > 60 ? '…' : ''}</span>` : ''}</div></div><span class="chev"></span></div>`).join('')}</div>` : `<div class="empty">${gh('idle', 'gh-empty')}<b>아직 담은 게 없어요</b><span>소식·대학·진로 픽에서 「☆ 담기」를 누르거나 내 생각을 남겨 보세요</span></div>`;
-    const read = (n) => wHas('news:' + n.id);
-    const item = (n) => `<div class="li btnlike ${read(n) ? 'nw-read' : ''}" data-news="${esc(n.id)}"><div class="ico">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'sm') : ic(nIcon(n))}</div><div class="body"><div class="t">${esc(n.title)}</div><div class="d">${md(n.date)} · ${esc(nGrp(n))}${n.must ? '' : n.level === '중요' ? ' · <b class="red">중요</b>' : ''}${read(n) ? '' : ' · <b class="blue">새 소식</b>'}</div></div>${read(n) ? NW_DONE : n.must ? '<span class="tag must">꼭 읽기</span>' : ''}<span class="chev"></span></div>`;
-    const MUST = N.filter((n) => n.must).sort((a, b) => read(a) - read(b) || String(b.date).localeCompare(String(a.date))).slice(0, 5);
-    return `<h1 class="h1">소식</h1><p class="sub">${D.news && D.news.updated ? md(D.news.updated) + ' 업데이트 · ' : ''}${TUTOR && !ST.career ? '시사 상식 · 교육 소식' : '입시 · 과학 · 시사 상식'}, 출처를 확인한 것만 모았어요${WALLET && !DASH_ONLY ? '. 하나 읽으면 50원' : ''}</p>
-      <div class="chips" style="margin-bottom:16px">${['all', ...groups].map((g) => `<button type="button" class="chip ${f === g ? 'on' : ''}" data-nf="${esc(g)}">${g === 'all' ? '전체' : esc(g)} <span class="tiny">${g === 'all' ? N.length : N.filter((n) => nGrp(n) === g).length}</span></button>`).join('')}<button type="button" class="chip ${f === 'keep' ? 'on' : ''}" data-nf="keep">★ 담은 것 · 내 생각 <span class="tiny">${KL.length}</span></button></div>
-      <div class="grid">${f !== 'keep' && MUST.length ? `<section class="card c12 nw-must"><div class="card-h"><h2>${ic('fire')} 꼭 읽어야 할 대이슈</h2><span class="tiny">${MUST.filter((n) => !read(n)).length ? `안 읽은 것 ${MUST.filter((n) => !read(n)).length}개` : '다 읽었어요'}</span></div><div class="list">${MUST.map(item).join('')}</div></section>` : ''}<section class="card c12">${f === 'keep' ? kept : L.length ? `<div class="list">${L.map(item).join('')}</div>` : `<div class="empty">${gh('idle', 'gh-empty')}<b>소식을 모으는 중이에요</b></div>`}</section></div>`;
+    const sorted = N.filter((n) => f === 'all' || nGrp(n) === f).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    const MUST = (f === 'all' ? N : sorted).filter((n) => n.must).sort((a, b) => nwRead(a) - nwRead(b) || String(b.date).localeCompare(String(a.date))).slice(0, 6);
+    const inMust = new Set(MUST.map((n) => n.id)), L = sorted.filter((n) => !inMust.has(n.id));
+    const unread = N.filter((n) => !nwRead(n)).length;
+    const card = (n) => `<button type="button" class="nw-card ${nwRead(n) ? 'read' : ''}" data-news="${esc(n.id)}">${nwTile(n, 1)}<span class="nw-cat">${esc(nGrp(n))} · ${nwMin(n)}분</span><b>${esc(n.title)}</b>${nwRead(n) ? `<span class="nw-ok">${NW_DONE}</span>` : '<span class="nw-go">읽으러 가기 ›</span>'}</button>`;
+    const row = (n) => `<button type="button" class="nw-row ${nwRead(n) ? 'read' : ''}" data-news="${esc(n.id)}">${nwTile(n)}<span class="nw-tx"><b>${esc(n.title)}</b><span class="nw-lead">${esc(nwLead(n))}</span><span class="nw-meta">${esc(nGrp(n))} · ${nwMin(n)}분${n.level === '중요' && !n.must ? ' · 중요' : ''}${nwRead(n) ? ' · 읽었어요' : ''}</span></span>${nwRead(n) ? '' : '<i class="nw-dot" aria-label="안 읽음"></i>'}</button>`;
+    const byDay = []; for (const n of L) { const g = byDay[byDay.length - 1]; if (g && g.d === n.date) g.L.push(n); else byDay.push({ d: n.date, L: [n] }); }
+    return `<h1 class="h1">소식</h1><p class="sub">${D.news && D.news.updated ? md(D.news.updated) + ' 업데이트 · ' : ''}${unread ? `안 읽은 소식 <b class="blue">${unread}개</b>` : '다 읽었어요'} · 출처를 확인한 것만 모았어요${WALLET && !DASH_ONLY ? ' · 하나 읽으면 50원' : ''}</p>
+      <div class="chips nw-chips">${['all', ...groups].map((g) => `<button type="button" class="chip ${f === g ? 'on' : ''}" data-nf="${esc(g)}">${g === 'all' ? '전체' : `${(NW_C[g] || [''])[0]} ${esc(g)}`} <span class="tiny">${g === 'all' ? N.length : N.filter((n) => nGrp(n) === g).length}</span></button>`).join('')}<button type="button" class="chip ${f === 'keep' ? 'on' : ''}" data-nf="keep">★ 담은 것 · 내 생각 <span class="tiny">${KL.length}</span></button></div>
+      ${f === 'keep' ? `<section class="card">${kept}</section>` : `${MUST.length ? `<div class="nw-sec-h"><b>${ic('fire')} 꼭 읽어야 할 대이슈</b><span class="tiny">${MUST.filter((n) => !nwRead(n)).length ? `안 읽은 것 ${MUST.filter((n) => !nwRead(n)).length}개 · 옆으로 넘겨요` : '다 읽었어요'}</span></div><div class="nw-rail">${MUST.map(card).join('')}</div>` : ''}
+      ${byDay.length ? byDay.map((g) => `<div class="nw-day">${nwDay(g.d)}</div><div class="nw-list">${g.L.map(row).join('')}</div>`).join('') : `<div class="empty">${gh('idle', 'gh-empty')}<b>소식을 모으는 중이에요</b></div>`}`}${f === 'all' ? upList() : ''}`;
+  }
+  // 소식 한 편: 한 페이지로 (문장 두 개씩 끊어 읽기 쉽게, 첫 문장은 크게)
+  function newsRun() {
+    const N = (D.news && D.news.items) || [], n = N.find((x) => x.id === UI.run.id); if (!n) return '';
+    const S0 = nwSents(n), paras = []; for (let i = 1; i < S0.length; i += 2) paras.push(S0.slice(i, i + 2).join(' '));
+    const more = nwMore(n), nx = N.filter((x) => x.id !== n.id && !nwRead(x)).sort((a, b) => !!b.must - !!a.must || String(b.date).localeCompare(String(a.date)))[0];
+    return `<article class="nw-art"><button class="btn sm" data-nwback type="button">‹ 소식</button>
+      <div class="nw-art-h">${nwTile(n, 1)}<div><span class="nw-cat">${n.must ? '꼭 읽기 · ' : ''}${esc(n.scope || nGrp(n))} · ${md(n.date)} · ${nwMin(n)}분</span><h1>${esc(n.title)}</h1></div></div>
+      ${readPill('news:' + n.id, 50, '소식 읽기')}${nrPill(n)}
+      ${S0[0] ? `<p class="nw-lead-big">${esc(S0[0])}</p>` : ''}${paras.map((x) => `<p class="nw-p">${esc(x)}</p>`).join('')}
+      ${n.you ? `<div class="nw-you"><div class="eyebrow">${ic('bulb')} ${esc(S.profile.name)}에게는</div><p>${esc(n.you)}</p></div>` : ''}
+      ${more.length ? `<div class="nw-deep"><div class="eyebrow">${ic('books')} 더 깊이 알아보기</div>${more.map((m, i) => `<div class="nw-deep-i"><b>${i + 1}</b><p>${esc(m)}</p></div>`).join('')}</div>` : ''}
+      ${keepBox('news:' + n.id, n.title, 'news', n.id, n.ask || [])}
+      ${(n.src || []).length ? `<div class="nw-src"><span class="tiny">출처</span>${n.src.map((x) => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.name)} ↗</a>`).join('')}</div>` : ''}
+      ${nx ? `<button type="button" class="nw-next" data-news="${esc(nx.id)}"><span class="tiny">다음 소식</span>${nwTile(nx)}<b>${esc(nx.title)}</b><span class="chev"></span></button>` : '<p class="tiny" style="text-align:center;margin:24px 0">소식을 다 읽었어요</p>'}
+    </article>`;
+  }
+  function newsRunBind() {
+    const r = UI.run, n = ((D.news && D.news.items) || []).find((x) => x.id === r.id); if (!n) return;
+    $$('[data-nwback]').forEach((b) => (b.onclick = () => { UI.run = r.prev || null; if (!r.prev) UI.tab = r.back || 'news'; render(); scrollTo(0, r.y || 0); }));
+    nrBind(main, n);
+    // 읽음 표시: 지갑이 없는 학생도 6초 넘게 보면 읽은 것으로 (목록의 파란 점이 꺼져요)
+    if (!nwRead(n) && !PEEK && !TEACHER) setTimeout(() => { if (UI.run && UI.run.kind === 'news' && UI.run.id === n.id) { S.nread = S.nread || {}; S.nread[n.id] = { at: Date.now() }; save('nread'); } }, 6000);
   }
   const NW_DONE = '<span class="tag nw-done"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>읽음</span>';
   function newsCard(cls) {
@@ -903,17 +943,13 @@
   }
 
   function newsSheet(id) {
-    const N = (D.news && D.news.items) || [];
     if (id === 'all') { closeSheet(); UI.run = null; UI.tab = 'news'; render(); scrollTo(0, 0); return; }
-    const n = N.find((x) => x.id === id); if (!n) return;
-    sheet(`<div class="row" style="margin-bottom:12px">${n.uni && uniOf(n.uni) ? emb(uniOf(n.uni), 'md') : `<span class="ico">${ic(nIcon(n))}</span>`}${n.must ? '<span class="tag must">꼭 읽기 · 대이슈</span>' : `<span class="tag ${n.level === '중요' ? 'red' : ''}">${esc(n.level || '참고')}</span>`}<span class="tiny">${md(n.date)} · ${esc(n.scope || '')}</span></div>
-      <h2>${esc(n.title)}</h2>${readPill('news:' + n.id, 50, '소식 읽기')}${nrPill(n)}<p style="line-height:1.8;color:var(--t2)">${esc(n.body)}</p>
-      ${n.you ? `<div class="deep"><div class="eyebrow">${esc(S.profile.name)}에게는</div><p>${esc(n.you)}</p></div>` : ''}
-      ${(n.more || []).length ? `<div class="nw-more"><div class="eyebrow">${ic('bulb')} 더 깊이 알아보기</div><ul>${n.more.map((m) => `<li>${esc(m)}</li>`).join('')}</ul></div>` : ''}
-      ${keepBox('news:' + n.id, n.title, 'news', n.id, n.ask || [])}
-      <div class="list" style="margin-top:16px">${(n.src || []).map((s) => `<a class="li btnlike" href="${esc(s.url)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="ico">${ic('pin')}</div><div class="body"><div class="t">${esc(s.name)}</div><div class="d">원문 보기</div></div><span class="chev"></span></a>`).join('')}</div>
-      <button class="btn big block" style="margin-top:16px" data-close type="button">목록으로</button>`, (el) => { $('[data-close]', el).onclick = closeSheet; nrBind(el, n); });
+    if (!((D.news && D.news.items) || []).some((x) => x.id === id)) return;
+    if ($('.sheet')) closeSheet();
+    const cur = UI.run && UI.run.kind === 'news' ? UI.run : null;
+    UI.run = { kind: 'news', id, prev: cur ? cur.prev : UI.run, back: cur ? cur.back : UI.tab, y: cur ? cur.y : scrollY }; render(); scrollTo(0, 0);
   }
+
 
   // ───────── 숙제 탭 ─────────
   // ───────── 기말 교과서 e-book: 쪽 그림 위에 단어 위치를 겹쳐 형광펜·밑줄·질문·나중에 보기 ─────────
@@ -2015,7 +2051,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611012347', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611012357', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5703,7 +5739,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012347'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012357'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6731,7 +6767,7 @@
     let html = '';
     syncGoals();
     redoFix();
-    if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'qa' ? qaRun() : UI.run.kind === 'nx' ? nxRail(nxRun()) : UI.run.kind === 'nxw' ? nxwRun() : UI.run.kind === 'print' ? printRun() : '';
+    if (UI.run) html = UI.run.kind === 'news' ? newsRun() : UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'qa' ? qaRun() : UI.run.kind === 'nx' ? nxRail(nxRun()) : UI.run.kind === 'nxw' ? nxwRun() : UI.run.kind === 'print' ? printRun() : '';
     else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'tme' ? tmeView() : UI.tab === 'picks' ? picksView() : UI.tab === 'kmla' ? kmlaView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'grade' ? gradeView() : UI.tab === 'study' ? studyView() : UI.tab === 'exam' ? examView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
     const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'hw' ? (UI.nxUnit || '') + (UI.nxSubj || '') : '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'study' ? `${UI.stV}${UI.stS}${UI.stU}${UI.stT}` : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '');
@@ -6866,6 +6902,7 @@
     if (UI.tab !== 'tsched') $$('[data-calm]').forEach((b) => (b.onclick = () => { UI.calM = b.dataset.calm; render(); }));  // 수업 일정 달력과 이름이 겹쳐 그쪽 월 넘기기가 안 됐어요 (10/31)
     $$('#w-sched').forEach((b) => (b.onclick = () => schedSheet()));
     kmlaBind();
+    if (UI.run && UI.run.kind === 'news') newsRunBind();
     $$('[data-kopen]').forEach((b) => (b.onclick = () => { const [k, r] = b.dataset.kopen.split('|'); openKept(k, r); }));
     $$('[data-nf]').forEach((b) => (b.onclick = () => { UI.newsF = b.dataset.nf; render(); }));
     $$('[data-cs]').forEach((b) => (b.onclick = () => { UI.chartSubj = b.dataset.cs; render(); }));
