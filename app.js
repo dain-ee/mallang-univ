@@ -125,11 +125,15 @@
   // 서버에서 한 번 받아 오기 전에는 아무것도 「최신」으로 표시하지 않아요.
   // (로그아웃 뒤 빈 기기가 「오늘 과제」를 먼저 만들어 올려서 지난 기록을 덮은 사고 2026-10-26)
   let pulled = false;
+  // 기기 저장이 꽉 차면 내용 묶음 사본(다시 받을 수 있어요)을 비우고 학생 기록을 먼저 지켜요.
+  // 내용 사본이 400만 자라 자리가 모자라면 기록 저장이 조용히 실패했고, 서버 저장도 막혔던 동안 넣은 숙제·한 숙제가 앱을 다시 열면 사라졌어요 (11/1 정윤 «숙제가 안 들어가», «했던 숙제가 바뀌어»)
+  let keepBad = false;
+  const keepS = () => { const v = JSON.stringify(S); try { localStorage.setItem(KEY, v); keepBad = false; return true; } catch (e) { try { for (const k of Object.keys(localStorage)) if (k.startsWith('mallang-univ:content')) localStorage.removeItem(k); localStorage.setItem(KEY, v); keepBad = false; return true; } catch (e2) { keepBad = true; return false; } } };
   function save(...keys) {
     if (PEEK) return;
     if (keys.includes('profile')) careerMark();
     const now = Date.now(); S._at = S._at || {}; if (pulled) for (const k of keys) S._at[k] = now;
-    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+    keepS();
     clearTimeout(pushT); pushT = setTimeout(() => { pushT = null; sync(); }, 1200);
   }
   async function rpc(fn, body) {
@@ -144,7 +148,7 @@
   let syncing = false;
   // 저장 상태 표시 (내신 입력처럼 저장 단추가 없는 곳)
   const saveSt = { at: 0, off: false, wait: false };
-  const saveStText = () => saveSt.wait ? '저장하는 중' : saveSt.off ? '인터넷이 안 돼 이 기기에만 저장했어요' : saveSt.at ? `저장됐어요 · ${String(new Date(saveSt.at).getHours()).padStart(2, '0')}:${String(new Date(saveSt.at).getMinutes()).padStart(2, '0')}` : '적으면 바로 저장돼요';
+  const saveStText = () => saveSt.wait ? '저장하는 중' : saveSt.off ? (keepBad ? '아직 저장이 안 됐어요. 인터넷을 켜 주세요' : '인터넷이 안 돼 이 기기에만 저장했어요') : saveSt.at ? `저장됐어요 · ${String(new Date(saveSt.at).getHours()).padStart(2, '0')}:${String(new Date(saveSt.at).getMinutes()).padStart(2, '0')}` : '적으면 바로 저장돼요';
   function paintSaveSt() { if (!saveSt.off && saveSt.at) saveSt.wait = false; $$('[data-savest]').forEach((x) => { x.textContent = saveStText(); x.classList.toggle('ok', !saveSt.wait && !saveSt.off && !!saveSt.at); x.classList.toggle('off', saveSt.off); }); }
   // 화면을 닫거나 다른 앱으로 넘어가면 기다리던 저장을 바로 보냄
   const flush = () => { if (pushT) { clearTimeout(pushT); pushT = null; sync(); } };
@@ -185,7 +189,7 @@
       }
       pulled = true;
       if (PEEK) { syncing = false; if (changed) syncRedraw(); return; } // 미리보기: 받아 오기만
-      try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+      keepS();
       await rpc('univ_put', { p_student: U.who, p_code: U.key, p_data: S });
       saveSt.at = Date.now(); saveSt.off = false; paintSaveSt();
       if (changed) syncRedraw();
@@ -1972,7 +1976,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611011327', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611011417', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5495,7 +5499,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611011327'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611011417'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6738,7 +6742,7 @@
   window.__univStarted = true;
   // 예전에 남긴 생각도 담은 것에 넣어요
   if (!TEACHER && S.notes) { S.keep = S.keep || {}; let ch = false; for (const [k, n] of Object.entries(S.notes)) if (n && n.text && !S.keep[k]) { S.keep[k] = { t: n.t, kind: n.kind, ref: n.ref, at: n.at || Date.now() }; ch = true; } if (ch) save('keep'); }
-  if (WALLET && !TEACHER && !W().since) { W().since = Date.now(); walletScan(true); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  if (WALLET && !TEACHER && !W().since) { W().since = Date.now(); walletScan(true); keepS(); }
   document.body.classList.add('booting'); setTimeout(() => document.body.classList.remove('booting'), 1200);
   render();
   // 새 버전이 올라오면 알아서 바뀌어요: 앱으로 돌아올 때와 10분마다 확인하고, 푸는 중이 아니면 바로 새로 고쳐요

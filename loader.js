@@ -84,7 +84,8 @@ window.__boot = [];
       if (!r || !r.ok) r = await fetch('c/' + (await hex('univ:' + st.syncKey)).slice(0, 20) + '.bin?v=' + Date.now());
       if (!r.ok) throw new Error('content ' + r.status);
       data = JSON.parse(await gunzip(await decrypt(new Uint8Array(await r.arrayBuffer()), await hex(st.syncKey))));
-      try { localStorage.setItem(CK, JSON.stringify(data)); } catch (e) {}
+      // 자리가 모자라면 낡은 사본을 지워 학생 기록 자리를 남겨요 (11/1)
+      try { localStorage.setItem(CK, JSON.stringify(data)); } catch (e) { try { localStorage.removeItem(CK); } catch (e2) {} }
     } catch (e) {
       try { data = JSON.parse(localStorage.getItem(CK)); } catch (e2) {}
       if (!data) { if (String(e.message).includes('404')) { ask('저장된 코드가 맞지 않아요. 다시 넣어 주세요.'); return; } msg('인터넷 연결을 확인해 주세요'); return; }
