@@ -2015,7 +2015,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611012303', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611012309', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5701,7 +5701,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012303'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012309'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6171,10 +6171,12 @@
     const dt = jwNextDate(), saved = ((d.jwt || {})[dt] || {}).units || [], locked = !!(((d.nx || {}).lq || {})['ls:' + dt]);
     if (!UI.jwSel || UI.jwSel.dt !== dt || UI.jwSel.nm !== nm) UI.jwSel = { dt, nm, u: new Set(saved.map(Number)) };
     const sel = UI.jwSel.u, chs = [...new Set(CH_UNITS.map((u) => +u.ch))];
+    const sum = saved.length ? `Unit ${saved.join('·')}` : '안 고르면 지난 두 수업 챕터에서 나와요';
+    // 평소엔 한 줄로 접어 둬요. 「범위 고르기」를 눌렀을 때만 펼치고, 저장하면 다시 접어요 (11/1 «범위 저장했으면 없어졌으면»)
+    if (locked || !UI.jwOpen) return `<div class="jwr-line"><div><b>${md(dt)} 천일문 시험 범위</b><span>${locked ? `${esc(sum)} · 지원이가 이미 시험을 열었어요` : esc(sum)}</span></div>${locked ? '' : `<button class="btn sm" type="button" id="jwr-open">${saved.length ? '바꾸기' : '범위 고르기'}</button>`}</div>`;
     return `<div class="eyebrow" style="margin:16px 0 6px">${md(dt)} 수업 천일문 시험 범위 · 체크한 유닛에서만 10문제</div>
-      ${locked ? '<p class="tiny" style="margin:0 0 8px">지원이가 이미 시험을 열어서 이번 시험은 안 바뀌어요</p>' : `<p class="tiny" style="margin:0 0 8px">${saved.length ? `지금 범위: 유닛 ${saved.length}개` : '안 고르면 지난 두 수업 챕터에서 나와요'}</p>`}
       <div class="jwr">${chs.map((c) => { const us = chUnits(c), all = us.every((u) => sel.has(+u.unit)), some = us.some((u) => sel.has(+u.unit)); return `<div class="jwr-ch"><button class="chip sm ${all ? 'on' : some ? 'half' : ''}" data-jwc="${c}" type="button">${esc(chName(c))}</button><div class="jwr-u">${us.map((u) => `<button class="nb ${sel.has(+u.unit) ? 'on' : ''}" data-jwu="${u.unit}" type="button" title="${esc(u.title || '')}">${u.unit}</button>`).join('')}</div></div>`; }).join('')}</div>
-      <div class="row" style="justify-content:flex-end;gap:8px;margin-top:8px"><button class="btn" type="button" id="jwr-clr">비우기</button><button class="btn primary" type="button" id="jwr-save" ${locked ? 'disabled' : ''}>범위 저장 · ${sel.size}유닛</button></div>`;
+      <div class="row" style="justify-content:flex-end;gap:8px;margin-top:8px"><button class="btn" type="button" id="jwr-x">닫기</button><button class="btn" type="button" id="jwr-clr">비우기</button><button class="btn primary" type="button" id="jwr-save">범위 저장 · ${sel.size}유닛</button></div>`;
   }
   function bindDMsg() {
     const nm = UI.mStu, busy = (b) => { if (b) b.disabled = true; };
@@ -6188,7 +6190,9 @@
     $$('[data-jwu]').forEach((b) => (b.onclick = () => { const u = +b.dataset.jwu, S0 = UI.jwSel.u; if (S0.has(u)) S0.delete(u); else S0.add(u); jwPaint(); }));
     $$('[data-jwc]').forEach((b) => (b.onclick = () => { const us = chUnits(+b.dataset.jwc).map((u) => +u.unit), S0 = UI.jwSel.u, all = us.every((u) => S0.has(u)); us.forEach((u) => (all ? S0.delete(u) : S0.add(u))); jwPaint(); }));
     const jc = $('#jwr-clr'); if (jc) jc.onclick = () => { UI.jwSel.u.clear(); jwPaint(); };
-    const js = $('#jwr-save'); if (js) js.onclick = () => { const dt = UI.jwSel.dt, L = [...UI.jwSel.u].sort((a, b) => a - b); put('jwt', (d) => { d.jwt = { ...(d.jwt || {}), [dt]: { ...((d.jwt || {})[dt] || {}), units: L } }; }, L.length ? `${md(dt)} 시험 범위를 유닛 ${L.length}개로 정했어요` : '범위를 비웠어요. 지난 수업 챕터에서 나와요', js); };
+    const jo = $('#jwr-open'); if (jo) jo.onclick = () => { UI.jwOpen = true; UI.jwSel = null; const y = scrollY; render(); scrollTo(0, y); };
+    const jx = $('#jwr-x'); if (jx) jx.onclick = () => { UI.jwOpen = false; UI.jwSel = null; const y = scrollY; render(); scrollTo(0, y); };
+    const js = $('#jwr-save'); if (js) js.onclick = () => { UI.jwOpen = false; const dt = UI.jwSel.dt, L = [...UI.jwSel.u].sort((a, b) => a - b); put('jwt', (d) => { d.jwt = { ...(d.jwt || {}), [dt]: { ...((d.jwt || {})[dt] || {}), units: L } }; }, L.length ? `${md(dt)} 시험 범위를 유닛 ${L.length}개로 정했어요` : '범위를 비웠어요. 지난 수업 챕터에서 나와요', js); };
     $$('[data-dgx]').forEach((b) => (b.onclick = () => { const k = b.dataset.dgx; put(['gifts', 'gift'], (d) => { d.gifts = (d.gifts || []).map((y) => (y.skin === k && !y.open ? { ...y, x: Date.now() } : y)); d.gift = {}; }, '선물을 거둬들였어요', b); }));
   }
   function dashView() {

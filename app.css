@@ -3191,6 +3191,10 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 :root[data-skin="bunny"] .nt-from .gh-nt { width: 100px; height: 100px; align-self: flex-end; margin: -20px -4px -41px -8px; }
 @media (max-width: 520px) { :root[data-skin="bunny"] .nt-from .gh-nt { width: 84px; height: 84px; margin: -16px -4px -42px -8px; } }
 /* 선생님 홈 · 지원 시험 범위 체크 (11/1) */
+.jwr-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding: 12px 16px; border-radius: 16px; background: var(--fill, #f2f4f6); }
+.jwr-line > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.jwr-line b { font-size: 14px; font-weight: 700; color: var(--t1); }
+.jwr-line span { font-size: 13px; color: var(--t2); }
 .jwr { display: flex; flex-direction: column; gap: 8px; }
 .jwr-ch { display: grid; grid-template-columns: 200px 1fr; align-items: start; gap: 8px; }
 .jwr-ch > .chip { width: 100%; min-width: 0; justify-content: flex-start; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; text-align: left; }
