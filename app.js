@@ -2015,7 +2015,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611012337', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611012343', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5703,7 +5703,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012337'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012343'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6679,8 +6679,10 @@
     const third = p.school ? [esc(String(p.school).replace('중학교', '중').replace('고등학교', '고')), `${p.grade}학년`] : MONTHLY ? [`${+ym.slice(5)}월 수업`, `${lsnSorted().filter((l) => ymOf(l.date) === ym).length + (+((LS0.monthSeed || {})[ym]) || 0)}회`] : ['회차', L && L.nth ? `${esc(L.nth)}회차` : '-'];
     const u = uniOf(p.uni), tabUni = TABS.some((t) => t[0] === 'uni');
     // 목표 대학: 정윤 홈처럼 로고를 크게 (윤건·지원, 10/26)
-    const goal = tabUni ? `<button type="button" class="who ls-goal" data-go="uni">${emb(u, 'xl')}<div style="min-width:0;flex:1"><div class="goal-t">${esc(p.name)}의 목표</div><div class="goal-n">${u ? esc(u.name) : '목표 대학을 골라 주세요'}</div><div class="goal-m">${u ? esc(p.major || (p.field ? p.field + ' 계열' : '')) : '눌러서 고르기'}</div></div><span class="tag" style="flex:none">${u ? '바꾸기' : '고르기'}</span></button>` : '';
-    return `<section class="card c12 hero ls-hero"><div class="hero-band" style="background:${u ? esc(u.color) : esc(ST.color || 'var(--blue)')}"></div>${goal}
+    // 지원: 목표는 대학이 아니라 민사고 (11/1 «이거 목표 고등학교로 해»). 누르면 민사고 정보
+    const K = D.kmla, ap = K && K.steps.find((x) => x.title === '원서 접수'), ad = ap ? dday(ap.date) : null;
+    const goal = K ? `<button type="button" class="who ls-goal" id="km-goal"><span class="emb xl" style="background:#24406b">민사고</span><div style="min-width:0;flex:1"><div class="goal-t">${esc(p.name)}의 목표 고등학교</div><div class="goal-n">${esc(K.name)}</div><div class="goal-m">2027학년도 입학${ad != null && ad >= 0 ? ` · 원서 접수 ${ad === 0 ? '오늘' : 'D-' + ad}` : ''}</div></div><span class="tag" style="flex:none">입시 정보</span></button>` : tabUni ? `<button type="button" class="who ls-goal" data-go="uni">${emb(u, 'xl')}<div style="min-width:0;flex:1"><div class="goal-t">${esc(p.name)}의 목표</div><div class="goal-n">${u ? esc(u.name) : '목표 대학을 골라 주세요'}</div><div class="goal-m">${u ? esc(p.major || (p.field ? p.field + ' 계열' : '')) : '눌러서 고르기'}</div></div><span class="tag" style="flex:none">${u ? '바꾸기' : '고르기'}</span></button>` : '';
+    return `<section class="card c12 hero ls-hero"><div class="hero-band" style="background:${K ? '#24406b' : u ? esc(u.color) : esc(ST.color || 'var(--blue)')}"></div>${goal}
       <div class="who ${goal ? 'ls-next' : ''}"><div style="min-width:0;flex:1"><div class="goal-t">다음 수업${nx && nx.extra ? ' · 보강' : ''}</div><div class="goal-n">${nx ? `${esc(md(nx.date))} ${esc(wdName(nx.date))}` : TEACHER ? '수업 요일을 정해 주세요' : '선생님이 곧 정해 줘요'}</div><div class="goal-m">${nx && nx.time ? esc(timeKo(nx.time)) : ''}</div></div>${nx ? `<b class="dh-dd num">${dd === 0 ? '오늘' : 'D-' + dd}</b>` : ''}</div>
       ${(() => { const ex = (ST.exams || []).filter((e) => e.date >= today() && dday(e.date) <= 30); return ex.length ? `<div class="ls-exams">${ex.map((e) => `<div class="ls-ex"><span class="ls-ex-t">시험</span><div class="ls-ex-b"><b>${esc(e.title)}</b><span>${esc(md(e.date))} ${esc(wdName(e.date))}</span></div><b class="ls-ex-d num">${dday(e.date) === 0 ? '오늘' : 'D-' + dday(e.date)}</b></div>`).join('')}</div>` : ''; })()}
       <div class="dday"><div><span>지난 수업</span><b class="num">${L ? esc(md(L.date)) : '-'}</b></div><div><span>숙제</span><b class="num ${tk.length && dn === tk.length ? 'blue' : ''}">${tk.length ? `${dn} / ${tk.length}` : '없어요'}</b></div><div><span>${third[0]}</span><b>${third[1]}</b></div></div>
@@ -6869,7 +6871,7 @@
     $$('.hw-daycard [data-dgo]').forEach((b) => (b.onclick = () => dayGo(b.dataset.dgo)));
     if (UI.tab !== 'tsched') $$('[data-calm]').forEach((b) => (b.onclick = () => { UI.calM = b.dataset.calm; render(); }));  // 수업 일정 달력과 이름이 겹쳐 그쪽 월 넘기기가 안 됐어요 (10/31)
     $$('#w-sched').forEach((b) => (b.onclick = () => schedSheet()));
-    const kmb = $('#km-more'); if (kmb) kmb.onclick = kmlaSheet; for (const [id, f] of [['#km-iv', kmiSheet], ['#km-todo', kmTodoSheet], ['#km-calc', kmCalcSheet], ['#km-run', kmRunSheet]]) { const b = $(id); if (b) b.onclick = f; }
+    const kmb = $('#km-more'); if (kmb) kmb.onclick = kmlaSheet; const kmg = $('#km-goal'); if (kmg) kmg.onclick = kmlaSheet; for (const [id, f] of [['#km-iv', kmiSheet], ['#km-todo', kmTodoSheet], ['#km-calc', kmCalcSheet], ['#km-run', kmRunSheet]]) { const b = $(id); if (b) b.onclick = f; }
     $$('[data-kopen]').forEach((b) => (b.onclick = () => { const [k, r] = b.dataset.kopen.split('|'); openKept(k, r); }));
     $$('[data-nf]').forEach((b) => (b.onclick = () => { UI.newsF = b.dataset.nf; render(); }));
     $$('[data-cs]').forEach((b) => (b.onclick = () => { UI.chartSubj = b.dataset.cs; render(); }));
