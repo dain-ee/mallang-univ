@@ -152,8 +152,26 @@
   let syncing = false;
   // 저장 상태 표시 (내신 입력처럼 저장 단추가 없는 곳)
   const saveSt = { at: 0, off: false, wait: false };
-  const saveStText = () => saveSt.wait ? '저장하는 중' : saveSt.off ? (keepBad ? '아직 저장이 안 됐어요. 인터넷을 켜 주세요' : '인터넷이 안 돼 이 기기에만 저장했어요') : saveSt.at ? `저장됐어요 · ${String(new Date(saveSt.at).getHours()).padStart(2, '0')}:${String(new Date(saveSt.at).getMinutes()).padStart(2, '0')}` : '적으면 바로 저장돼요';
-  function paintSaveSt() { if (!saveSt.off && saveSt.at) saveSt.wait = false; $$('[data-savest]').forEach((x) => { x.textContent = saveStText(); x.classList.toggle('ok', !saveSt.wait && !saveSt.off && !!saveSt.at); x.classList.toggle('off', saveSt.off); }); }
+  const saveStText = () => saveSt.wait ? '저장하는 중' : saveSt.off ? (keepBad ? '아직 저장이 안 됐어요. 인터넷을 켜 주세요' : navigator.onLine === false ? '인터넷이 안 돼 이 기기에만 저장했어요' : '서버에 저장이 안 됐어요. 이 기기에만 있어요') : saveSt.at ? `저장됐어요 · ${String(new Date(saveSt.at).getHours()).padStart(2, '0')}:${String(new Date(saveSt.at).getMinutes()).padStart(2, '0')}` : '적으면 바로 저장돼요';
+  function paintSaveSt() { if (!saveSt.off && saveSt.at) saveSt.wait = false; $$('[data-savest]').forEach((x) => { x.textContent = saveStText(); x.classList.toggle('ok', !saveSt.wait && !saveSt.off && !!saveSt.at); x.classList.toggle('off', saveSt.off); }); saveBar(); }
+  // 서버 저장이 안 되면 모든 화면 위에 계속 띄워요 (11/1 «저장이 실패하는지 저장중인지 알려주는 게 없어?»: 정윤이 반나절 저장이 안 된 걸 몰랐어요)
+  let saveFailAt = 0, saveRetry = null;
+  function saveBar() {
+    if (saveSt.off && !saveFailAt) saveFailAt = Date.now();
+    let b = document.getElementById('save-bar');
+    if (!saveSt.off) {
+      if (saveFailAt && b) { b.className = 'save-bar ok'; b.innerHTML = '다시 서버에 저장됐어요'; setTimeout(() => { if (!saveSt.off) b.remove(); }, 2500); }
+      saveFailAt = 0; clearInterval(saveRetry); saveRetry = null; return;
+    }
+    if (PEEK) return;
+    if (!b) { b = document.createElement('div'); b.id = 'save-bar'; document.body.append(b); }
+    const m = Math.round((Date.now() - saveFailAt) / 60000), net = navigator.onLine === false;
+    b.className = 'save-bar';
+    b.innerHTML = `<span>${net ? '인터넷이 끊겨서 이 기기에만 있어요' : '서버에 저장이 안 되고 있어요'}${m >= 1 ? ` · ${m}분째` : ''}<br><small>이 기기를 닫지 말고 인터넷을 확인해 주세요</small></span><button type="button">다시 저장</button>`;
+    b.querySelector('button').onclick = () => { b.querySelector('button').textContent = '저장하는 중'; sync(); };
+    if (!saveRetry) saveRetry = setInterval(() => { if (saveSt.off) sync(); }, 30000);
+  }
+  addEventListener('online', () => { if (saveSt.off) sync(); });
   // 화면을 닫거나 다른 앱으로 넘어가면 기다리던 저장을 바로 보냄
   const flush = () => { if (pushT) { clearTimeout(pushT); pushT = null; sync(); } };
   addEventListener('pagehide', flush);
@@ -1980,7 +1998,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611011427', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611011704', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5503,7 +5521,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611011427'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611011704'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

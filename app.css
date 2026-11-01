@@ -3160,3 +3160,8 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 @media (prefers-reduced-motion: reduce) { :root[data-skin="bunny"] body::before, :root[data-skin="bunny"] body::after { animation: none; } }
 @media (prefers-color-scheme: dark) { :root[data-skin="bunny"]:not([data-theme="light"]) { --bg: #17121a; --blue-soft: color-mix(in srgb, var(--blue) 18%, #1d1d22); --blue-l: color-mix(in srgb, var(--blue) 35%, #1d1d22); } :root[data-skin="bunny"]:not([data-theme="light"]) body { background: var(--bg); } :root[data-skin="bunny"]:not([data-theme="light"]) .top { background: rgba(29, 29, 34, .85); } }
 :root[data-skin="bunny"][data-theme="dark"] { --bg: #17121a; } :root[data-skin="bunny"][data-theme="dark"] body { background: var(--bg); }
+/* 서버 저장이 안 될 때 모든 화면 위에 (11/1) */
+.save-bar { position: fixed; left: 50%; top: calc(12px + env(safe-area-inset-top)); transform: translateX(-50%); z-index: 210; display: flex; align-items: center; gap: 12px; max-width: calc(100vw - 32px); padding: 10px 10px 10px 16px; border-radius: 16px; background: #191f28; color: #fff; font-size: 14px; font-weight: 600; line-height: 1.4; box-shadow: 0 4px 16px rgba(0,0,0,.18); }
+.save-bar small { font-size: 12px; font-weight: 500; color: #b0b8c1; }
+.save-bar button { flex: none; padding: 8px 12px; border: 0; border-radius: 10px; background: #3182f6; color: #fff; font: inherit; font-size: 13px; cursor: pointer; }
+.save-bar.ok { background: #e8f3ff; color: #1b64da; padding: 10px 16px; }
