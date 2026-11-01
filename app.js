@@ -630,8 +630,11 @@
   const UPS = () => ((D.updates || {}).items || []);
   function upCard() {
     const u = UPS()[0]; if (!u || ((S.party || {}).upSeen || '') >= u.date || UI.upHide) return '';
-    return `<section class="card c12 up-card"><div class="card-h"><h3>${ic('new')} 말랑대학이 새로워졌어요</h3><span class="tiny">${md(u.date)} 업데이트</span></div><ul class="up-l">${u.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul><div class="row" style="gap:8px;margin-top:12px">${u.go === 'news' ? '<button class="btn primary" type="button" data-upok="news">새 소식 탭 보러 가기</button><button class="btn" type="button" data-upok>확인했어요</button>' : '<button class="btn primary" type="button" data-upok>확인했어요</button>'}<button class="btn" type="button" data-upall>지난 업데이트</button></div></section>`;
+    // 11/2 «이거 너무 안 이쁘잖아… new도 너무 별로» → 글머리표 목록 대신 큰 그림 + 바뀐 점 세 칸 + 단추 하나
+    if (u.cards) return `<section class="card c12 up-card2"><button class="up-x" type="button" data-upok aria-label="닫기">×</button><div class="up-hd"><span class="up-emo">${esc(u.emo || '✨')}</span><div><span class="up-when">${md(u.date)} 업데이트</span><b>${esc(u.title)}</b><span class="up-sub">${esc(u.sub || '')}</span></div></div><div class="up-cards">${u.cards.map(([e, t, d]) => `<div class="up-c"><span>${esc(e)}</span><b>${esc(t)}</b><em>${esc(d)}</em></div>`).join('')}</div>${u.go ? `<button class="btn primary up-go" type="button" data-upok="${esc(u.go)}">보러 가기</button>` : '<button class="btn primary up-go" type="button" data-upok>확인했어요</button>'}</section>`;
+    return `<section class="card c12 up-card"><div class="card-h"><h3>${ic('new')} 말랑대학이 새로워졌어요</h3><span class="tiny">${md(u.date)} 업데이트</span></div><ul class="up-l">${u.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul><div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn primary" type="button" data-upok>확인했어요</button><button class="btn" type="button" data-upall>지난 업데이트</button></div></section>`;
   }
+
   const upList = () => UPS().length ? `<section class="card c12 up-all" id="up-all" style="margin-top:16px"><div class="card-h"><h2>${ic('new')} 말랑대학 업데이트</h2><span class="tiny">선생님이 계속 고치고 있어요</span></div>${UPS().map((u) => `<div class="up-day"><b>${md(u.date)}</b><ul class="up-l">${u.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`).join('')}</section>` : '';
   // 선생님 한마디: 선생님이 쓰면 학생 홈 맨 위에. 학생이 「고마워요」를 누르면 선생님 쪽에 「읽었어요」
   // 윤건 2학년 2학기 중간고사: 홈에서 과목별 점수를 적어 둬요. 성적 탭 연결은 나중에, 시험지 분석은 선생님이 시험지를 본 뒤에 (10/28 선생님)
@@ -2051,7 +2054,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611012357', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611020007', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5739,7 +5742,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012357'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611020007'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
