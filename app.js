@@ -2001,7 +2001,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611011828', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611011840', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4971,10 +4971,10 @@
   for (const q of [...NX_CH, ...NX_JG, ...NX_WM]) if (!NXQ[q.i]) NXQ[q.i] = { q, set: 'ls' };
   // 그날 수업 계획: students.json lesson.tests[날짜] 가 있으면 그것, 없으면 지난 두 수업에 적힌 Chapter·Day 로 (매주 일요일 저절로)
   const JW_CH_RE = /Ch(?:apter|atper|\.)?\s*0?(\d+)/gi, JW_DAY_RE = /Day\s*(\d+)(?:\s*[,~\-–]\s*(\d+))?/i;
-  function jwPlan(date) {
-    const o = { ...(((LS0.tests || {})[date]) || {}), ...(((S.jwt || {})[date]) || {}) }, Ls = lsnSorted().filter((l) => l.date < date);  // S.jwt: 선생님 홈에서 체크한 시험 범위 (11/1 «내가 체크해서 낼 수 있으면 베스트»)
+  function jwPlan(date, X) {  // X: 선생님 화면에서 그 학생 것으로 ({ lz, jwt, list })
+    const lz = X ? X.lz : LS0, o = { ...(((lz.tests || {})[date]) || {}), ...((((X ? X.jwt : S.jwt) || {})[date]) || {}) }, Ls = (X ? X.list : lsnSorted()).filter((l) => l.date < date);  // S.jwt: 선생님 홈에서 체크한 시험 범위 (11/1 «내가 체크해서 낼 수 있으면 베스트»)
     const chs = (txt) => [...new Set([...String(txt).matchAll(JW_CH_RE)].map((m) => +m[1]).filter((n) => CH_UNITS.some((u) => +u.ch === n)))];
-    const past = (LS0.past || []).filter((l) => l.date < date).sort((a, b) => b.date.localeCompare(a.date));
+    const past = (lz.past || []).filter((l) => l.date < date).sort((a, b) => b.date.localeCompare(a.date));
     const all = [...Ls, ...past].filter((l, i, A) => A.findIndex((x) => x.date === l.date) === i).sort((a, b) => b.date.localeCompare(a.date));  // 같은 날 기록은 하나만
     const units = (o.units || []).length ? o.units.map(Number) : null;
     const ch = units ? [...new Set(CH_UNITS.filter((u) => units.includes(+u.unit)).map((u) => +u.ch))].sort((a, b) => a - b) : o.ch || [...new Set(all.slice(0, 2).flatMap((l) => chs(l.lesson)))].sort((a, b) => a - b);
@@ -5590,7 +5590,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611011828'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611011840'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -5903,7 +5903,8 @@
     const c = dCls(r, d), lz = r.lesson || {}, prev = lsnSorted(c)[0], t = today(), units = [];
     if (prev && (prev.units || []).length) { const mx = Math.max(...prev.units); for (let k = 1; k <= prev.units.length; k++) if (cuByNo(mx + k)) units.push(mx + k); }
     const book = prev && prev.book ? prev.book.split(' · ') : lz.book ? [lz.book] : [];
-    return (DR[n] = { id: '', date: t, nth: String(dNth(r, c, t)), book: new Set(book), units: new Set(units), ch: units.length ? cuByNo(units[0]).ch : prev && (prev.units || []).length ? cuByNo(prev.units[0]).ch : (CH_UNITS[0] || {}).ch, L: new Set(), Lx: new Set(), H: new Set(units.length ? ['@cu'] : []), C: new Set(), score: '', scoreTotal: (prev && prev.scoreTotal) || '', progress: '', mt: dTotal(r, c, t), loaded: d !== undefined, touched: false, hw: new Set(), hsj: {}, hwDue: 'next', hwSubj: (r.subjects || [r.tutor ? '영어' : '기타'])[0] });
+    const ja = d !== undefined ? jwAuto(n, t) : null;
+    return (DR[n] = { id: '', date: t, nth: String(dNth(r, c, t)), book: new Set(book), units: new Set(units), ch: units.length ? cuByNo(units[0]).ch : prev && (prev.units || []).length ? cuByNo(prev.units[0]).ch : (CH_UNITS[0] || {}).ch, L: new Set(ja ? ja.L : []), Lx: new Set(), H: new Set([...(units.length ? ['@cu'] : []), ...(ja ? ja.H : [])]), C: new Set(), score: '', scoreTotal: (prev && prev.scoreTotal) || '', progress: '', mt: dTotal(r, c, t), loaded: d !== undefined, touched: false, hw: new Set(), hsj: {}, hwDue: 'next', hwSubj: (r.subjects || [r.tutor ? '영어' : '기타'])[0] });
   }
   function drFrom(n, l) {
     const r = rOf(n), c = dCls(r, dRowD(n)), u = l.units || [];
@@ -5923,7 +5924,7 @@
   const hwNext = (n) => { const r = rOf(n), c = dCls(r, dRowD(n)), nx = upcoming(c, addD(today(), 1), 3).find((u) => !u.off); return nx ? addD(nx.date, -1) : addD(today(), 6); };
   const hwDueOf = (n, k) => (k === '3' ? addD(today(), 3) : k === '7' ? addD(today(), 7) : hwNext(n));
   // 그 수업 리포트에 들어갈 숙제: 그날부터 다음 수업 전까지 낸 것
-  const hwGiven = (n, date) => { const r = rOf(n), d = dRowD(n) || {}, c = dCls(r, d), nx = upcoming(c, addD(date, 1), 3).find((u) => !u.off), end = nx ? nx.date : addD(date, 7); return (d.hw || []).filter((h) => h.at && dateOf(h.at) >= date && dateOf(h.at) < end); };
+  const hwGiven = (n, date) => { const r = rOf(n), d = dRowD(n) || {}, c = dCls(r, d), nx = upcoming(c, addD(date, 1), 3).find((u) => !u.off), end = nx ? nx.date : addD(date, 7); return (d.hw || []).filter((h) => h.at && dateOf(h.at) >= date && dateOf(h.at) < end && (!(r.lesson || {}).tests || !h.due || h.due < end)); };
   const MM_AMT = [['d1', '하루 1개'], ['d2', '하루 2개'], ['o1', '이번에 1개']];
   // 그 학생이 아직 안 푼 · 아직 안 나간 모의고사 문제 (MM 순서 = 최근 회차부터)
   const mmPool = (n, g, ty) => { const d = (dRowD(n) || {}), done = ((d.eng || {}).mmans) || {}, out = new Set((d.hw || []).filter((h) => !hwDone(h, d.wrong || {}) && h.mmq).flatMap((h) => h.mmq)); return MM.filter((q) => q.grade === g && (ty === '전체' || (MM_TY.find((t) => t[0] === ty) || [, []])[1].includes(q.type)) && !done[q.id] && !out.has(q.id)).map((q) => q.id); };
@@ -6136,14 +6137,33 @@
     }));
     dPv(n);
   }
+  // 지원 리포트 자동 채움 (11/1 «시험 보면 점수·진도·숙제가 알아서, 복습 시험 본 데는 나간 거야»): 그날 수업 계획에서
+  //   오늘 한 것 = 복습 테스트한 챕터 · 새로 나간 챕터 · 단어 테스트 Day, 숙제 = 다음 Day 두 개, 진도율 = 나간 챕터 끝 유닛
+  //   복습 줄은 「10~12챕터」로 써서 다음 주 시험 범위 계산(Ch 숫자 읽기)에 다시 안 잡혀요. 새 챕터만 「Chapter13.」로
+  function jwAuto(n, date) {
+    const r = rOf(n), lz = r.lesson || {}; if (!r.tutor || !lz.tests || !CH_UNITS.length) return null;
+    const d = dRowD(n) || {}, P = jwPlan(date, { lz, jwt: d.jwt || {}, list: lsnSorted(dCls(r, d)) }), rv = [...new Set([...P.rev.ch, ...P.ch])].sort((a, b) => a - b);
+    const L = [], H = [], span = (a) => (a.length > 1 && a[a.length - 1] - a[0] === a.length - 1 ? `${a[0]}~${a[a.length - 1]}` : a.join('·'));
+    if (rv.length) L.push(`천일문 ${span(rv)}챕터 복습 · 테스트`);
+    if (P.nextCh) L.push(`Chapter${P.nextCh}. ${(chUnits(P.nextCh)[0] || {}).chTitle || ''}`.trim());
+    if (P.days.length) { L.push(`단어 테스트 Day ${P.days.join(',')}`); const m = Math.max(...P.days); if (WORDS.some((w) => w.day === m + 1)) H.push(`워드마스터 하이스트 Day ${[m + 1, m + 2].filter((k) => WORDS.some((w) => w.day === k)).join(',')} 암기하기`); }
+    const top = Math.max(0, ...rv, P.nextCh || 0), lastU = (chUnits(top).slice(-1)[0] || {}).unit;
+    return { L, H, progress: lastU ? String(Math.round((+lastU / CH_UNITS.length) * 100)) : '' };
+  }
+  // 지원 숙제는 날마다 묶음(「11/2(월) 숙제」)이 한 달 치라 리포트엔 다음 수업 전까지 것을 한 줄씩으로 줄여요
+  function jwHwSum(G) {
+    const T = G.map((h) => h.title), us = T.map((x) => (x.match(/^천일문 Unit (\d+)/) || [])[1]).filter(Boolean).map(Number).sort((a, b) => a - b), mm = {};
+    T.forEach((x) => { const m = x.match(/^(.*모의고사) (\d+)문제$/); if (m) mm[m[1]] = (mm[m[1]] || 0) + +m[2]; });
+    return [...(us.length ? [`천일문 Unit ${us.length > 1 ? `${us[0]}~${us[us.length - 1]}` : us[0]} 하루 한 유닛`] : []), ...Object.entries(mm).map(([k, v]) => `${k} ${v}문제`), ...T.filter((x) => !/^천일문 Unit \d+/.test(x) && !/모의고사 \d+문제$/.test(x))];
+  }
   function autoProg(n) {
-    const D0 = drOf(n); if (![...D0.book].some((b) => /천일문/.test(b)) || !CH_UNITS.length) return '';
+    const D0 = drOf(n), ja = jwAuto(n, D0.date || today()); if (ja) return ja.progress; if (![...D0.book].some((b) => /천일문/.test(b)) || !CH_UNITS.length) return '';
     const past = lsnSorted(dCls(rOf(n), dRowD(n))).filter((l) => l.id !== D0.id && l.date <= D0.date), mx = Math.max(0, ...D0.units, ...past.flatMap((l) => l.units || []));
     return mx ? String(Math.round((mx / CH_UNITS.length) * 100)) : '';
   }
   function drBuild(n) {
     const r = rOf(n), D0 = drOf(n), cuOn = [...D0.book].some((b) => /천일문/.test(b)), units = cuOn ? [...D0.units].sort((a, b) => a - b) : [];
-    const lesson = [...new Set([...(units.length ? cuLine(units) : []), ...(r.tutor ? [] : wkDone(dRowD(n), D0.date || today()).filter((t) => !D0.Lx.has(t))), ...D0.L])].join('\n'), hw = [...new Set([...(units.length && D0.H.has('@cu') ? [cuHw(units)] : []), ...hwGiven(n, D0.date || today()).map((h) => (h.subj && h.subj !== '영어' ? `${h.subj} ${h.grp || h.title}` : h.grp || h.title)), ...[...D0.H].filter((t) => t !== '@cu').map((t) => (D0.hsj[t] && D0.hsj[t] !== '영어' ? `${D0.hsj[t]} ${t}` : t))])].join('\n');
+    const lesson = [...new Set([...(units.length ? cuLine(units) : []), ...(r.tutor ? [] : wkDone(dRowD(n), D0.date || today()).filter((t) => !D0.Lx.has(t))), ...D0.L])].join('\n'), hw = [...new Set([...(units.length && D0.H.has('@cu') ? [cuHw(units)] : []), ...((r.lesson || {}).tests ? jwHwSum(hwGiven(n, D0.date || today())) : hwGiven(n, D0.date || today()).map((h) => (h.subj && h.subj !== '영어' ? `${h.subj} ${h.grp || h.title}` : h.grp || h.title))), ...[...D0.H].filter((t) => t !== '@cu').map((t) => (D0.hsj[t] && D0.hsj[t] !== '영어' ? `${D0.hsj[t]} ${t}` : t))])].join('\n');
     const x = { date: D0.date || today(), nth: String(D0.nth || '').trim(), book: [...D0.book].join(' · '), units: D0.H.has('@cu') ? units : [], lesson, hw, score: String(D0.score || '').trim(), scoreTotal: String(D0.scoreTotal || '').trim(), vocabScore: String(D0.vocabScore || '').trim(), vocabTotal: String(D0.vocabTotal || '').trim(), progress: D0.progress || autoProg(n), comment: [...D0.C].join('\n') };
     if (!r.tutor) { const { finT, ...st } = wkStat(dRowD(n), x.date); x.stat = st; x.nth = ''; }
     if (r.tutor && !x.vocabScore) { const av = autoVocab(n); if (av) { x.vocabScore = av.score; x.vocabTotal = av.total; } }
