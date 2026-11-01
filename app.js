@@ -116,6 +116,10 @@
     my: myMerge,
     fin: (r, l) => { const ans = { ...(r.ans || {}) }; for (const [c, v] of Object.entries(l.ans || {})) ans[c] = jMerge(ans[c] || {}, v); return { ...r, ...l, ans }; },  // 기말 개념: 문제마다 나중에 푼 쪽
     jl: jMerge, jr: jMerge, jw: jMerge,
+    // 기기 둘이 엇갈려도 서로 안 지우게 (11/1 정윤 저장 실패 뒤 «신문 글쓰기 저장됐다는데 하나도 없어»): 내 생각·담기는 칸마다 더 새것, 오답은 키마다, 용돈은 내역 id별로 합쳐요
+    notes: jMerge, keep: jMerge,
+    wrong: (r, l, rNew) => { const [o, n] = rNew ? [l, r] : [r, l]; return { ...o, ...n }; },
+    wallet: (r, l, rNew) => { const [o, n] = rNew ? [l, r] : [r, l], ids = new Set((n.log || []).map((x) => x.id)); return { ...o, ...n, log: [...(n.log || []), ...(o.log || []).filter((x) => !ids.has(x.id))].sort((a, b) => (a.at || 0) - (b.at || 0)), seen: { ...(o.seen || {}), ...(n.seen || {}) } }; },
     // 테마 선물: 두 기기 것을 테마마다 합쳐요. 연 기록이 있으면 그걸, 아니면 나중에 보내거나(at) 취소한(x) 쪽을 써요 (10/27 보낸 쿠로미가 정윤이 기기 옛 기록에 덮여 사라짐)
     gifts: (r, l) => { const by = {}, t = (y) => Math.max(y.at || 0, y.x || 0); for (const y of [...(r || []), ...(l || [])]) { if (!y || !y.skin) continue; const o = by[y.skin]; by[y.skin] = !o ? y : o.open || y.open ? { ...(t(y) > t(o) ? y : o), open: Math.max(o.open || 0, y.open || 0) } : t(y) > t(o) ? y : o; } return Object.values(by); },
     eng: (r, l) => ({ ...r, ...l, unit: Math.max(+r.unit || 0, +l.unit || 0), wordDay: Math.max(+r.wordDay || 0, +l.wordDay || 0), g3: Math.max(+r.g3 || 0, +l.g3 || 0), g3ans: { ...(r.g3ans || {}), ...(l.g3ans || {}) }, ua: mergeUa(r.ua, l.ua), days: mergeDays(r.days, l.days) }),
@@ -844,7 +848,7 @@
       if (own) S.notes[key] = { ...keepMeta(box), text: v, at: Date.now() }; else delete S.notes[key];
       // 생각을 남기면 「담기」도 저절로 돼요 (소식 탭 「담은 것」에서 다시 봐요)
       S.keep = S.keep || {}; if (own && !S.keep[key]) { S.keep[key] = { ...keepMeta(box), at: Date.now() }; save('keep'); const kb = $('[data-keep]', box); if (kb) { kb.classList.add('on'); kb.textContent = '★ 담았어요'; } }
-      save('notes'); const st = $('.keep-st', box); if (st) st.textContent = own ? (own.length >= 15 || wHas('note:' + key) ? '저장했어요' : '저장했어요 · 15자 넘게 쓰면 +100원') : '처음 남기면 +100원';
+      save('notes'); const st = $('.keep-st', box); if (st) { st.textContent = own ? (own.length >= 15 || wHas('note:' + key) ? '저장하는 중' : '저장하는 중 · 15자 넘게 쓰면 +100원') : '처음 남기면 +100원'; if (own) st.setAttribute('data-savest', ''); }  // 「저장했어요」는 서버에 올라간 뒤에만 (11/1 기기에만 남고 서버엔 없던 일)
       if (own.length >= 15) earn('note:' + key, 100, '내 생각 남기기', { from: st });
     }, 700);
   });
@@ -1976,7 +1980,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611011417', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611011427', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5499,7 +5503,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611011417'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611011427'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
