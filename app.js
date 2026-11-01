@@ -524,7 +524,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${TUTOR ? `${fireNews()}${lessonHero()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${giftHome()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${winCard()}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${TUTOR ? `${giftHome()}${fireNews()}${lessonHero()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${giftHome()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${winCard()}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -2003,7 +2003,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611011930', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611012032', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2768,9 +2768,89 @@
 
   // ───────── 성적 탭 (모의고사 · 내신) ─────────
   function scoreView() {
+    if (srOn() && !UI.srSeen) { UI.srSeen = 1; if (UI.scoreSeg === 'mock' && !UI.mockId) UI.scoreSeg = 'study'; }  // 성적 탭 처음 열면 공부 리포트부터
     const seg = UI.scoreSeg;
-    const top = `<h1 class="h1">성적</h1><p class="sub">모의고사는 틀린 번호만 누르면 점수·등급·약한 영역이 나와요</p><div class="row between gr-top" style="gap:12px;margin-bottom:16px"><div class="seg" style="max-width:360px;flex:1 1 0;min-width:0"><button type="button" class="${seg === 'mock' ? 'on' : ''}" data-seg="mock">모의고사</button><button type="button" class="${seg === 'naesin' ? 'on' : ''}" data-seg="naesin">내신</button></div>${seg === 'mock' ? '<button class="btn primary" id="qg-open" type="button">내 등급 바로 적기</button>' : ''}</div>`;
+    const top = `<h1 class="h1">성적</h1><p class="sub">모의고사는 틀린 번호만 누르면 점수·등급·약한 영역이 나와요</p><div class="row between gr-top" style="gap:12px;margin-bottom:16px"><div class="seg" style="max-width:420px;flex:1 1 0;min-width:0">${srOn() ? `<button type="button" class="${seg === 'study' ? 'on' : ''}" data-seg="study">공부 리포트</button>` : ''}<button type="button" class="${seg === 'mock' ? 'on' : ''}" data-seg="mock">모의고사</button><button type="button" class="${seg === 'naesin' ? 'on' : ''}" data-seg="naesin">내신</button></div>${seg === 'mock' ? '<button class="btn primary" id="qg-open" type="button">내 등급 바로 적기</button>' : ''}</div>`;
+    if (seg === 'study' && srOn()) return top.replace('모의고사는 틀린 번호만 누르면 점수·등급·약한 영역이 나와요', '한 주 동안 실제로 한 양 · 속도 · 집중을 기록으로 재요') + srView();
     return top + (seg === 'naesin' && SEMS.some((x) => nsAvg(x) != null) ? `<div class="grid" style="margin-bottom:16px">${nsCard('c12')}</div>` : '') + (seg === 'mock' ? (UI.mockId ? mockDetail() : reportSection() + mockList()) : naesinView());
+  }
+  // ───────── 공부 리포트 (정윤, 11/1 선생님 «1주일 한 걸 보고 생산성(보통 아이보다 빠른지 느린지), 공부 시간 대비 집중력, 실제 공부한 양을 객관적으로.
+  //   계획 짤 때 '이번 주는 과해요 / 더 해볼까요'. 시간이 안 적혀 있으면 문제 시작~푼 시간이라도» · 모달 말고 화면, 주마다 쌓여서 나아진 게 보이게)
+  //   문항 답의 at 으로: 8분 넘게 끊기면 새 묶음 → 앱에서 실제로 푼 시간, 바로 앞 답과의 간격(10분 안) → 문항당 시간
+  function srOn() { return !TUTOR && !(NXD.subjects || []).length && location.hostname !== 'dain-ee.github.io'; }  // 선생님이 시안을 보고 괜찮다고 할 때까지 로컬에서만
+  var SR_MINE = 1793511014696;  // 11/1 선생님이 대신 넣어 준 기록은 빼요
+  var SR_K = { olymp: ['올림포스 지문', 96], g3: ['고3 영어', 96], cheonil: ['천일문', 0], 'fin-q': ['기말 문제', 0], 'fin-b': ['기말 빈칸', 0], sci: ['과학', 0], word: ['단어', 0], nx: ['수업·따로 공부', 0] };  // 둘째 값: 수능 영어 독해 문항당 1분 36초
+  var srWk = (d) => addD(d, -((new Date(d + 'T00:00:00').getDay() + 6) % 7));  // 그 주 월요일
+  var srDay = (at) => new Date(at).toLocaleDateString('sv');
+  function srEvents() {
+    if (srEvents.c && Date.now() - srEvents.c.t < 1500) return srEvents.c.v;  // 한 번 그릴 때 여러 주를 재서 잠깐만 기억
+    const A = [], put = (v, k) => { if (v && typeof v === 'object' && v.at && v.at !== SR_MINE) A.push({ at: v.at, k, ok: !!v.ok }); };
+    for (const qs of Object.values((S.fin || {}).ans || {})) for (const [k, v] of Object.entries(qs || {})) put(v, k === 'q' ? 'olymp' : k.startsWith('b') ? 'fin-b' : 'fin-q');
+    for (const x of Object.values((S.eng || {}).days || {})) { for (const v of Object.values(x.uans || {})) put(v, 'cheonil'); for (const v of Object.values(x.uans2 || {})) put(v, 'cheonil'); for (const v of Object.values(x.wans || {})) put(v, 'word'); }
+    for (const v of Object.values((S.eng || {}).g3ans || {})) put(v, 'g3');
+    for (const x of Object.values((S.sci || {}).days || {})) for (const v of Object.values(x.ans || {})) put(v, 'sci');
+    for (const v of Object.values((S.nx || {}).a || {})) put(v, 'nx');
+    A.sort((a, b) => a.at - b.at);
+    srEvents.c = { t: Date.now(), v: A }; return A;
+  }
+  var srMed = (L) => { if (!L.length) return null; const s = L.slice().sort((a, b) => a - b), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+  function srWeek(w0) {
+    const w1 = addD(w0, 7), A = srEvents(), E = A.filter((e) => { const d = srDay(e.at); return d >= w0 && d < w1; });
+    let appMin = 0, cur = null; const days = {}, gap = {}, kinds = {};
+    E.forEach((e, i) => {
+      const d = srDay(e.at); (days[d] = days[d] || { n: 0, app: 0 }).n++;
+      const K = (kinds[e.k] = kinds[e.k] || { n: 0, ok: 0 }); K.n++; if (e.ok) K.ok++;
+      if (cur && e.at - cur.end <= 8 * 60000) cur.end = e.at; else { if (cur) { const m = (cur.end - cur.start) / 60000 + 1; appMin += m; days[srDay(cur.start)].app += m; } cur = { start: e.at, end: e.at }; }
+      if (i && e.at - E[i - 1].at < 10 * 60000 && E[i - 1].k === e.k) (gap[e.k] = gap[e.k] || []).push((e.at - E[i - 1].at) / 1000);
+    });
+    if (cur) { const m = (cur.end - cur.start) / 60000 + 1; appMin += m; days[srDay(cur.start)].app += m; }
+    let man = 0, manApp = 0; const P = pomo().days || {};
+    for (let i = 0; i < 7; i++) { const d = addD(w0, i), x = P[d] || {}, m = (+x.man || 0) + (+x.min || 0); if (m) { man += m; manApp += (days[d] || {}).app || 0; } }
+    let probs = 0, pages = 0;
+    for (const it of myS().items) for (const [d, x] of Object.entries(it.log || {})) if (d >= w0 && d < w1 && x && x.n && x.at !== SR_MINE) { if (it.unit === '쪽') pages += x.n; else if (it.unit !== '건') probs += x.n; }
+    const hwDue = (S.hw || []).filter((h) => h.due && h.due >= w0 && h.due < w1), hwOk = hwDue.filter((h) => hwDone(h)).length;
+    const ok = E.filter((e) => e.ok).length;
+    return { w0, n: E.length, acc: E.length ? ok / E.length : null, appMin: Math.round(appMin), days, kinds, gap, man, manApp: Math.round(manApp), probs, pages, hwDue: hwDue.length, hwOk, act: Object.keys(days).length };
+  }
+  var srMinT = (m) => (m >= 60 ? `${Math.floor(m / 60)}시간${m % 60 ? ' ' + Math.round(m % 60) + '분' : ''}` : `${Math.round(m)}분`);
+  var srSec = (s) => (s >= 60 ? `${Math.floor(s / 60)}분${Math.round(s % 60) ? ' ' + Math.round(s % 60) + '초' : ''}` : `${Math.round(s)}초`);
+  var srPct = (a, b) => (b ? Math.round(((a - b) / b) * 100) : null);
+  function srView() {
+    const tw = srWk(today()), w0 = UI.srW && UI.srW <= tw ? UI.srW : tw, cur = srWeek(w0), prev = srWeek(addD(w0, -7));
+    const past = [1, 2, 3, 4].map((k) => srWeek(addD(w0, -7 * k))).filter((x) => x.n);
+    const avg = (f) => (past.length ? past.reduce((a, x) => a + f(x), 0) / past.length : null);
+    const wd = (w) => `${md(w)} ~ ${md(addD(w, 6))}`, live = w0 === tw;
+    // 한 줄 요약: 지난주보다
+    const dN = srPct(cur.n + cur.probs, prev.n + prev.probs), dT = srPct(cur.appMin, prev.appMin);
+    const up = (v, u) => (v == null ? '' : `<b class="${v >= 0 ? 'blue' : ''}">${v >= 0 ? '+' : ''}${v}%</b> ${u}`);
+    const pv = prev.n + prev.probs, cv = cur.n + cur.probs;
+    const headTx = pv >= 40 && pv * 4 >= cv ? [up(dN, '푼 양'), up(dT, '앱에서 푼 시간')].filter(Boolean).join(' · ') + ' <span class="tiny">지난주보다</span>' : `<b>${cv}개</b> 풀었어요 · 앱에서 ${srMinT(cur.appMin)} <span class="tiny">기록이 제대로 쌓인 첫 주라 다음 주부터 지난주와 비교해요</span>`;
+    // 속도: 종류별 문항당 시간, 지난 4주 중앙값과 비교 · 수능 기준이 있는 건 기준과도
+    const spd = Object.keys(SR_K).filter((k) => (cur.gap[k] || []).length >= 3).map((k) => {
+      const pg = past.flatMap((x) => x.gap[k] || []), m = srMed(cur.gap[k]), pm = pg.length >= 5 ? srMed(pg) : null, ref = SR_K[k][1], K = cur.kinds[k];
+      let vs = pm ? Math.round(((pm - m) / pm) * 100) : null; if (vs != null && Math.abs(vs) > 200) vs = null;
+      return `<div class="sr-sp"><div class="sr-sp-t"><b>${SR_K[k][0]}</b><span class="tiny">${K.n}문항 · 정답 ${Math.round((K.ok / K.n) * 100)}%</span></div><div class="sr-sp-v"><b class="num">${srSec(m)}</b><span class="tiny">한 문제에</span></div><div class="sr-sp-c">${vs != null ? `<span class="tag ${vs >= 0 ? 'blue' : ''}">${vs >= 0 ? `${vs}% 빨라졌어요` : `${-vs}% 느려졌어요`}</span>` : '<span class="tiny">비교할 지난 기록이 아직 없어요</span>'}${ref ? `<span class="tag ${m <= ref ? 'green' : 'warn'}">수능 기준 ${srSec(ref)} ${m <= ref ? '안쪽' : '보다 느려요'}</span>` : ''}</div></div>`;
+    }).join('');
+    // 집중: 적은 공부 시간 대비 앱에서 실제로 푼 시간
+    const perH = (x) => (x.man >= 60 ? (x.n + x.probs) / (x.man / 60) : null), ph = perH(cur), pph = srMed(past.map(perH).filter((v) => v != null));
+    // 계획 판정
+    const hwR = cur.hwDue ? cur.hwOk / cur.hwDue : null, a4 = avg((x) => x.n + x.probs);
+    const verdict = live && !cur.n && !cur.probs ? ['', '이번 주 기록이 쌓이면 판정해요'] : hwR != null && hwR < 0.6 ? ['warn', '이번 주는 과해요. 다음 주 양을 줄여요'] : hwR != null && hwR >= 0.9 && (a4 == null || cur.n + cur.probs >= a4) ? ['blue', '다 해냈어요. 더 해볼까요'] : ['green', '지금 양이 딱 좋아요'];
+    // 주마다 쌓이는 막대 (8주)
+    const W8a = Array.from({ length: 8 }, (_, k) => srWeek(addD(w0, -7 * (7 - k)))), f0 = W8a.findIndex((x) => x.n + x.probs), W8 = W8a.slice(Math.max(0, Math.min(f0 < 0 ? 4 : f0, 4))), mx = Math.max(1, ...W8.map((x) => x.n + x.probs));
+    const bars = `<div class="sr-bars">${W8.map((x) => `<button type="button" class="sr-bar ${x.w0 === w0 ? 'on' : ''}" data-srw="${x.w0}"><i style="height:${Math.round(((x.n + x.probs) / mx) * 100)}%"></i><span>${+x.w0.slice(5, 7)}/${+x.w0.slice(8)}</span></button>`).join('')}</div>`;
+    const stat = (lb, v, sub) => `<div class="sr-st"><span class="tiny">${lb}</span><b class="num">${v}</b>${sub ? `<span class="tiny">${sub}</span>` : ''}</div>`;
+    return `<div class="grid">
+      <section class="card c12 sr-head"><div class="card-h"><h2>${ic('score')} ${live ? '이번 주' : wd(w0)} 공부 리포트</h2><div class="row" style="gap:8px"><button class="btn sm soft" data-srw="${addD(w0, -7)}" type="button">지난주</button>${live ? '' : `<button class="btn sm soft" data-srw="${addD(w0, 7)}" type="button">다음 주</button>`}</div></div>
+        <p class="tiny" style="margin:-8px 0 12px">${wd(w0)}${live ? ' · 지금도 쌓이는 중' : ''}</p>
+        <p class="sr-line">${headTx}</p>
+        <div class="sr-sts">${stat('푼 문항 (앱)', `${cur.n}<small>문항</small>`, cur.acc != null ? `정답 ${Math.round(cur.acc * 100)}%` : '')}${stat('학원·책 숙제', `${cur.probs}<small>문제</small>`, cur.pages ? `${cur.pages}쪽` : '직접 체크한 것')}${stat('앱에서 실제로 푼 시간', srMinT(cur.appMin), `${cur.act}일 공부했어요`)}${stat('숙제', cur.hwDue ? `${cur.hwOk}<small>/${cur.hwDue}</small>` : '-', '이번 주 마감')}</div>
+        ${bars}</section>
+      <section class="card c6"><div class="card-h"><h2>${ic('clock')} 속도</h2><span class="tiny">한 문제 푸는 데 걸린 시간 · 지난 4주와 비교</span></div>${spd || '<p class="tiny">이번 주는 비교할 만큼 푼 문제가 아직 없어요</p>'}</section>
+      <section class="card c6"><div class="card-h"><h2>${ic('target')} 공부 시간 대비</h2><span class="tiny">적은 공부 시간 한 시간에 푼 양</span></div>
+        ${ph != null ? `<div class="sr-foc"><b class="num">${Math.round(ph)}<small>문제 / 시간</small></b>${pph ? `<span class="tag ${ph >= pph ? 'blue' : ''}">지난 4주 ${Math.round(pph)}문제 / 시간</span>` : ''}<p class="tiny">적은 시간 ${srMinT(cur.man)} 동안 앱 ${cur.n}문항 + 학원·책 ${cur.probs}문제. 시간을 안 적은 날은 빼고 재요</p></div>` : `<p class="tiny">이번 주는 공부 시간을 적은 날이 없어요. 앱에서 문제를 푼 시간은 ${srMinT(cur.appMin)}이에요</p>`}
+        <div class="sr-vd ${verdict[0]}"><b>${verdict[1]}</b><span class="tiny">${cur.hwDue ? `마감 숙제 ${cur.hwDue}개 중 ${cur.hwOk}개 했어요` : ''}${a4 != null ? `${cur.hwDue ? ' · ' : ''}지난 4주 평균 ${Math.round(a4)}개 풀었어요` : ''}</span></div></section>
+    </div>`;
   }
   function mockList() {
     const rows = examRows().slice().reverse();
@@ -5608,7 +5688,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611011930'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012032'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6767,6 +6847,7 @@
     $$('main [data-du]').forEach((b) => (b.onclick = () => uniDetail(b.dataset.du)));
     $$('[data-pk]').forEach((b) => (b.onclick = () => { const [k, i] = b.dataset.pk.split(':'); pickDetail(k, +i); }));
     if (!UI.run && UI.tab === 'sgb') bindLogs();
+    $$('[data-srw]').forEach((b) => (b.onclick = () => { UI.srW = b.dataset.srw; const y = scrollY; render(); scrollTo(0, y); }));
     if (!UI.run && UI.tab === 'score') { if (UI.scoreSeg === 'mock' && UI.mockId) bindMock(); if (UI.scoreSeg === 'naesin') bindNaesin(); }
   }
   $('#brand').onclick = () => go(DASH_ONLY ? 'dash' : 'home');  // 선생님 화면엔 「home」 탭이 없어 학생 홈이 뜨던 것
