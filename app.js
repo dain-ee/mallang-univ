@@ -2015,7 +2015,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611012311', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611012316', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5703,7 +5703,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012311'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012316'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6458,7 +6458,9 @@
   }
   function tstuView() {
     const info = dashInfo();
-    const sub = (x) => x.tutor ? `${x.c.wd.length ? `매주 ${x.c.wd.map((w) => WDK[w]).join('·')} ${esc(timeKo(x.c.time))}` : '요일 미정'}${x.lz.count === 'month' ? ' · 한 달 단위' : x.lz.total ? ` · ${x.lz.total}회 묶음` : ''}` : esc([(uniOf(x.p.uni) || {}).name, x.p.major].filter(Boolean).join(' ') || '목표 아직 없음');
+    // 이번 달 추가 수업(보강 아닌 고정 추가: 11월 윤건 화·토)이 있으면 요일·시간을 같이 보여 줘요
+    const xtra = (c) => { const ym = ymOf(today()), g = {}; for (const l of c.list || []) if (l.plan && ymOf(l.date) === ym) { const k = `${WDK[dowOf(l.date)]} ${timeKo(l.time || c.time)}`; g[k] = (g[k] || 0) + 1; } return Object.entries(g).map(([k, n]) => ` · 이번 달 ${esc(k)}${n > 1 ? ` ${n}번` : ''}`).join(''); };
+    const sub = (x) => x.tutor ? `${x.c.wd.length ? `매주 ${x.c.wd.map((w) => WDK[w]).join('·')} ${esc(timeKo(x.c.time))}` : '요일 미정'}${xtra(x.c)}${x.lz.count === 'month' ? ' · 한 달 단위' : x.lz.total ? ` · ${x.lz.total}회 묶음` : ''}` : esc([(uniOf(x.p.uni) || {}).name, x.p.major].filter(Boolean).join(' ') || '목표 아직 없음');
     const row = (x) => { const r = x.r; return `<div class="st-r">
       <div class="st-who">${sAv(r)}<div><b>${esc(r.name)}</b> <span class="tag">${esc(r.level || '')}</span>${r.edition === 'english' ? ' <span class="tag">말랑영어</span>' : ''}<small>${[`코드 ${esc(r.alias || '-')}`, x.lz.parent ? `리포트 ${esc(x.lz.parent)}` : '', loading(x) ? '불러오는 중' : '접속 ' + agoTxt(x.last)].filter(Boolean).join(' · ')}</small></div></div>
       <div class="st-c st-w"><small>${x.tutor ? '수업' : '목표'}</small><b>${sub(x)}</b></div>
