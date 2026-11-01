@@ -3168,12 +3168,21 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 .save-bar small { font-size: 12px; font-weight: 500; color: #b0b8c1; }
 .save-bar button { flex: none; padding: 8px 12px; border: 0; border-radius: 10px; background: #3182f6; color: #fff; font: inherit; font-size: 13px; cursor: pointer; }
 .save-bar.ok { background: #e8f3ff; color: #1b64da; padding: 10px 16px; }
-/* 지원 수업 카드 (11/1) */
-.jw-cl .cl-h { margin: 20px 0 8px; }
-.jw-cl .cl-ch { padding: 12px 0; border-top: 1px solid var(--line); }
-.jw-cl .cl-ch-t { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-.jw-cl .cl-ch .nb-g { margin-top: 8px; }
-.jw-cl .cl-pick { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 8px; scrollbar-width: none; }
+/* 지원 수업 카드 (11/1, 정리 «너무 더럽지 않아»): 단계마다 옅은 칸, 챕터는 한 줄 */
+.jw-cl .cl-st { margin-top: 12px; padding: 16px; border-radius: 20px; background: var(--fill); }
+.jw-cl .cl-st-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.jw-cl .cl-st-h i { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 99px; background: var(--t1); color: var(--card, #fff); font-style: normal; font-size: 12px; font-weight: 700; }
+.jw-cl .cl-st-h b { font-size: 16px; font-weight: 700; color: var(--t1); }
+.jw-cl .cl-ch { display: grid; grid-template-columns: 168px 1fr; align-items: center; gap: 12px; padding: 6px 0; }
+.jw-cl .cl-ch-t b { font-size: 14px; font-weight: 600; color: var(--t2); }
+.jw-cl .cl-ch .nb-g { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+.jw-cl .cl-ch .nb { height: 36px; min-width: 44px; padding: 0 10px; font-size: 14px; font-weight: 600; background: var(--card, #fff); }
+.jw-cl .cl-ch .nb.ok { background: var(--blue-soft); color: var(--blue-d); }
+.jw-cl .cl-st .list .li { background: var(--card); border-radius: 16px; margin-top: 8px; padding: 12px; }
+.jw-cl .cl-st .list .li .ico { background: var(--fill); }
+.jw-cl .cl-st .list .li:first-child { margin-top: 0; }
+.jw-cl .cl-pick { display: flex; gap: 6px; overflow-x: auto; padding: 0 0 8px; scrollbar-width: none; }
+@media (max-width: 640px) { .jw-cl .cl-ch { grid-template-columns: 1fr; gap: 6px; padding: 8px 0; } .jw-cl .cl-st { padding: 12px; } }
 .wm-l .li .ico.num { font-size: 13px; color: var(--t3); }
 /* 토끼 소녀: 한마디 카드 그림을 카드 아래 끝에 딱 붙게 (11/1 «살짝 더 내려와야») · 그림 아래 21% 는 빈 칸이에요 */
 :root[data-skin="bunny"] .nt-from .gh-nt { width: 100px; height: 100px; align-self: flex-end; margin: -20px -4px -41px -8px; }

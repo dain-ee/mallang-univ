@@ -2001,7 +2001,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611011840', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611011909', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5102,7 +5102,9 @@
   function jwClassCard(sl, t) {
     const P = jwPlan(sl.date), when = sl.date === t ? '오늘' : `${md(sl.date)}(${WDK[dowOf(sl.date)]})`;
     const uBtn = (u) => { const st = (S.eng.ua || {})[uKey(u)] || {}, ids = qIds(u), n = ids.filter((k) => st[k]).length; return `<button class="nb ${n >= ids.length && ids.length ? 'ok' : ''}" data-task="cl:ch:${u.unit}" type="button" title="${esc(u.title || '')}">${u.unit}</button>`; };
-    const chRow = (c) => `<div class="cl-ch"><div class="cl-ch-t"><b>${esc(chName(c))}</b><span class="tiny">Unit ${chUnits(c)[0].unit}~${chUnits(c).slice(-1)[0].unit}</span></div><div class="nb-g">${chUnits(c).map(uBtn).join('')}</div></div>`;
+    const chRow = (c) => `<div class="cl-ch"><div class="cl-ch-t"><b>${esc(chName(c))}</b></div><div class="nb-g">${chUnits(c).map(uBtn).join('')}</div></div>`;
+    // 11/1 «너무 더럽지 않아» → 단계마다 옅은 칸 하나, 챕터는 한 줄(이름 | 작은 유닛 단추)
+    const step = (k, h, sub, body) => `<div class="cl-st"><div class="cl-st-h"><i>${k}</i><b>${h}</b>${sub ? `<span class="tiny">${sub}</span>` : ''}</div>${body}</div>`;
     const test = (id, s, name) => {
       if (!sl.open) return `<div class="li"><div class="ico">${ic('clock')}</div><div class="body"><div class="t">${name}</div><div class="d">${esc(timeKo(sl.time) || '')}에 열려요 · ${nxLeft(sl.left)} 남았어요</div></div></div>`;
       if (!s) return `<div class="li"><div class="ico">${ic('clock')}</div><div class="body"><div class="t">${name}</div><div class="d">문제를 준비하고 있어요</div></div></div>`;
@@ -5112,15 +5114,11 @@
     const open = sl.open, ls = open ? nxLesson(sl.date) : null, lw = open ? nxWord(sl.date) : null;
     const pick = UI.clCh || P.nextCh || P.ch[0], allCh = [...new Set(CH_UNITS.map((u) => +u.ch))];
     return `<section class="card c12 jw-cl"><div class="card-h"><h2>${ic('cal')} ${when} 수업</h2><span class="tag ${open ? 'blue' : ''}">${open ? '수업 중' : `${esc(timeKo(sl.time) || '')} 시작`}</span></div>
-      <div class="eyebrow cl-h">① 수업 시작 · 지난 수업 다시 보기</div>
-      ${P.rev.ch.map(chRow).join('')}
-      ${P.rev.days.length ? `<div class="cl-ch"><div class="cl-ch-t"><b>워드마스터 하이스트</b><span class="tiny">누르면 그 Day 단어가 나와요</span></div><div class="cl-pick">${P.rev.days.map((d) => `<button class="chip sm" data-wmday="${d}" type="button">Day ${d}</button>`).join('')}</div></div>` : ''}
-      <div class="eyebrow cl-h">② 오늘 수업 시험 · 점수는 리포트로 가요</div>
-      <div class="list">${test('ls', ls, `천일문 시험 · ${P.ch.map(chName).join(' · ')}`)}${test('lw', lw, `단어 시험 · Day ${P.days.join('·')}`)}</div>
-      ${P.nextCh ? `<div class="eyebrow cl-h">③ 오늘 나갈 것</div>${chRow(P.nextCh)}` : ''}
-      <div class="eyebrow cl-h">④ 중간 점검 · 단원 골라서 보기 <span class="tiny">점수는 안 남겨요</span></div>
-      <div class="cl-pick">${allCh.map((c) => `<button class="chip ${+c === +pick ? 'on' : ''}" data-clch="${c}" type="button">Ch.${c}</button>`).join('')}</div>${pick ? chRow(pick) : ''}
-      ${(NXD.mocks || []).length ? `<div class="eyebrow cl-h">⑤ 모의고사</div><div class="list">${NXD.mocks.map((mk) => { const L = nxLast(mk.id); return `<div class="li btnlike" data-nx="${esc(mk.id)}"><div class="ico">${ic('eng')}</div><div class="body"><div class="t">${esc(mk.title)}</div><div class="d">${esc(mk.sub || '')} · ${mk.qs.length}문제</div></div>${L ? `<b class="num">${L.ok} / ${L.n}</b>` : '<span class="chev"></span>'}</div>`; }).join('')}</div>` : ''}
+      ${step(1, '지난 수업 다시 보기', '번호를 누르면 그 유닛이 나와요', P.rev.ch.map(chRow).join('') + (P.rev.days.length ? `<div class="cl-ch"><div class="cl-ch-t"><b>워드마스터</b></div><div class="nb-g">${P.rev.days.map((d) => `<button class="nb wd" data-wmday="${d}" type="button">Day ${d}</button>`).join('')}</div></div>` : ''))}
+      ${step(2, '오늘 수업 시험', '점수는 리포트로 가요', `<div class="list">${test('ls', ls, `천일문 시험 · Ch.${P.ch.join('·')}`)}${test('lw', lw, `단어 시험 · Day ${P.days.join('·')}`)}</div>`)}
+      ${P.nextCh ? step(3, '오늘 나갈 것', '', chRow(P.nextCh)) : ''}
+      ${step(4, '중간 점검', '단원 골라서 보기 · 점수는 안 남겨요', `<div class="cl-pick">${allCh.map((c) => `<button class="chip sm ${+c === +pick ? 'on' : ''}" data-clch="${c}" type="button">Ch.${c}</button>`).join('')}</div>${pick ? chRow(pick) : ''}`)}
+      ${(NXD.mocks || []).length ? `<div class="cl-st"><div class="cl-st-h"><i>5</i><b>모의고사</b></div><div class="list">${NXD.mocks.map((mk) => { const L = nxLast(mk.id); return `<div class="li btnlike" data-nx="${esc(mk.id)}"><div class="ico">${ic('eng')}</div><div class="body"><div class="t">${esc(mk.title)}</div><div class="d">${esc(mk.sub || '')} · ${mk.qs.length}문제</div></div>${L ? `<b class="num">${L.ok} / ${L.n}</b>` : '<span class="chev"></span>'}</div>`; }).join('')}</div></div>` : ''}
     </section>`;
   }
   function wmDaySheet(d) {
@@ -5590,7 +5588,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611011840'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611011909'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
