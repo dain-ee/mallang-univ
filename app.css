@@ -3191,9 +3191,10 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 :root[data-skin="bunny"] .nt-from .gh-nt { width: 100px; height: 100px; align-self: flex-end; margin: -20px -4px -41px -8px; }
 @media (max-width: 520px) { :root[data-skin="bunny"] .nt-from .gh-nt { width: 84px; height: 84px; margin: -16px -4px -42px -8px; } }
 /* 선생님 홈 · 지원 시험 범위 체크 (11/1) */
-.jwr { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow: auto; padding-right: 4px; }
-.jwr-ch { display: flex; align-items: flex-start; gap: 8px; }
-.jwr-ch > .chip { flex: none; min-width: 132px; justify-content: flex-start; }
+.jwr { display: flex; flex-direction: column; gap: 8px; }
+.jwr-ch { display: grid; grid-template-columns: 200px 1fr; align-items: start; gap: 8px; }
+.jwr-ch > .chip { width: 100%; min-width: 0; justify-content: flex-start; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; text-align: left; }
+@media (max-width: 640px) { .jwr-ch { grid-template-columns: 1fr; gap: 4px; } }
 .jwr-ch > .chip.half { box-shadow: inset 0 0 0 1.5px var(--blue); }
 .jwr-u { display: flex; flex-wrap: wrap; gap: 4px; }
 .jwr-u .nb { min-width: 36px; height: 32px; padding: 0 6px; border: 0; border-radius: 8px; background: var(--fill, #f2f4f6); color: var(--t2); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }

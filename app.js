@@ -110,8 +110,18 @@
     for (const y of byO.values()) items.push(y);
     const cls = [...(n.cls || [])]; for (const c of o.cls || []) if (!cls.some((x) => x.id === c.id)) cls.push(c);
     const books = [...(n.books || [])]; for (const b of o.books || []) if (!books.some((x) => x.cls === b.cls && x.name === b.name)) books.push(b);
-    return { ...o, ...n, cls, books, gone, items: items.filter((x) => !gone[x.id]) };
+    return myDedup({ ...o, ...n, cls, books, gone, items: items.filter((x) => !gone[x.id]) });
   };
+  // 같은 숙제(수업·마감·내용·양이 같음)가 둘이면 많이 한 쪽만 남기고 나머지는 gone에 넣어요. 다른 기기에서 되살아나지 않게
+  // (11/1 정윤 «똑같은 숙제 두개야, 취소 어케 하는지 모르겠어서»: 저장이 막혔던 사이 다시 넣어서 마플·올림포스가 둘씩)
+  const myKey = (x) => [x.cls, x.due, (x.text || '').trim(), x.total].join('|');
+  function myDedup(m) {
+    const by = new Map(), drop = new Set();
+    for (const x of m.items || []) { const k = myKey(x), y = by.get(k); if (!y) { by.set(k, x); continue; } const keep = myDone(x) > myDone(y) || (myDone(x) === myDone(y) && (x.at || 0) < (y.at || 0)) ? x : y; drop.add(keep === x ? y.id : x.id); by.set(k, keep); }
+    if (!drop.size) return m;
+    const now = Date.now(), gone = { ...(m.gone || {}) }; for (const id of drop) gone[id] = gone[id] || now;
+    return { ...m, gone, items: m.items.filter((x) => !drop.has(x.id)) };
+  }
   const MERGE = {
     my: myMerge,
     fin: (r, l) => { const ans = { ...(r.ans || {}) }; for (const [c, v] of Object.entries(l.ans || {})) ans[c] = jMerge(ans[c] || {}, v); return { ...r, ...l, ans }; },  // 기말 개념: 문제마다 나중에 푼 쪽
@@ -340,7 +350,9 @@
   const mmOf = (title) => { if (title && typeof title === 'object') { if (title.mmq) { const ids = title.mmq.map((id) => MM.findIndex((x) => x.id === id)).filter((i) => i >= 0); return ids.length ? ids : null; } title = title.title; } const m = String(title || '').match(/^(\d{4}년 \d+월 고\d) 모의고사 (?:(빈칸|순서·삽입|어법·어휘|대의 파악) )?\d+문제$/); if (!m || !MM.length) return null; const ids = mmPick(m[1], m[2] || '전체'); return ids.length ? ids : null; };
   const mmLeft = (ids) => ids.filter((i) => !((S.eng || {}).mmans || {})[MM[i].id]);
   // 천일문 숙제: 누르면 그 유닛 문제로, 다 풀면 저절로 「했어요」 (10/26)
-  function cuHwStart(h) { const no = cuOf(h.title), i = no ? CH_UNITS.findIndex((u) => +u.unit === no) : -1; if (i < 0) return false; UI.tab = 'hw'; UI.lib = null; UI.run = { kind: 'unit', ref: i, back: 'hw' }; render(); window.scrollTo(0, 0); return true; }
+  function cuHwStart(h) { const no = cuOf(h.title), i = no ? CH_UNITS.findIndex((u) => +u.unit === no) : -1; if (i < 0) return false;
+    // 복습 숙제(redo): 숙제 내기 전에 푼 답은 지우고 같은 문제를 처음부터 다시 풀어요. 지운 칸은 redo로 남겨야 다른 기기 옛 답이 안 돌아와요 (11/1 지원 관계사 복습)
+    if (h.redo && !h.done) { const u = CH_UNITS[i], k = uKey(u), st = ((S.eng.ua = S.eng.ua || {})[k] = S.eng.ua[k] || {}), now = Date.now(); let n = 0; for (const q of Object.keys(st)) if (st[q] && !st[q].redo && (st[q].at || 0) < (h.at || 0)) { st[q] = { at: now, redo: 1 }; n++; } if (n) save('eng'); } UI.tab = 'hw'; UI.lib = null; UI.run = { kind: 'unit', ref: i, back: 'hw' }; render(); window.scrollTo(0, 0); return true; }
   function mmHwStart(h) { const ids = mmOf(h); if (!ids) return false; const L = mmLeft(ids); UI.tab = 'hw'; UI.lib = null; UI.run = { kind: 'g3', lib: (L[0] != null ? L[0] : ids[0]), mm: true, q: ids }; render(); window.scrollTo(0, 0); return true; }
   function engToday(force) {
     const t = today(); S.eng = S.eng || { unit: 0, wordDay: 0, days: {} }; S.eng.days = S.eng.days || {};
@@ -1329,8 +1341,8 @@
       const addC = (day) => { const n = $('#my-nn', el).value.trim(); if (!n) { toast('수업 이름을 먼저 적어요'); return; } const c = { id: 'c' + Date.now().toString(36), name: n, day }; M.cls.push(c); cid = c.id; addCls = false; $('#my-nn', el).value = ''; save('my'); draw(el); };
       $$('[data-nd]', el).forEach((b) => (b.onclick = () => addC(+b.dataset.nd)));
       $('#my-nod', el).onclick = () => addC(null);
-      const push = (c, due, it) => M.items.push({ id: 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), cls: c, due, days: (myCls(c).study || [1, 2, 3, 4, 5]).slice(), at: Date.now(), log: {}, wrong: [], ...it });
-      $('#my-ok', el).onclick = () => {
+      let dupN = 0; const push = (c, due, it) => { if (M.items.some((y) => myKey(y) === myKey({ cls: c, due, ...it }))) { dupN++; return; } M.items.push({ id: 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), cls: c, due, days: (myCls(c).study || [1, 2, 3, 4, 5]).slice(), at: Date.now(), log: {}, wrong: [], ...it }); };
+      $('#my-ok', el).onclick = () => { dupN = 0;
         const bk1 = $('#my-bkn', el), v1 = bk1 && myCls(cid).day == null ? bk1.value.trim() : '';
         if (v1) { const x = dr(cid, v1); x.mode = '건'; x.on = true; }
         const R = allRows(); if (!R.length) { toast(myCls(cid).day == null ? '무엇을 하는지 적어요' : '교재 옆에 번호를 적어요'); return; }
@@ -1342,9 +1354,9 @@
           else push(c, due, { book: n, text: n, unit: '건', from: null, to: null, total: 1, plan: x.plan !== false });
         }
         for (const k of Object.keys(D0)) for (const [nn, y] of Object.entries(D0[k])) if (filled(y)) delete D0[k][nn];
-        M.last = cid; save('my'); sheet.dirty = true; draw(el); const nw = M.items.slice(-R.length).filter((it) => !isPlan(it) && myToday(it).n); toast(`${R.length}개 넣었어요${nw.length ? ` · 오늘 할 일에 ${nw.map((it) => `${it.book} ${myRange(it, myToday(it))}`).join(', ')}` : R.every((r) => r.x.mode === '건') ? ' · 마감까지 오늘 할 일에 일정으로 보여요' : ' · 오늘은 몫이 없어요'}`);
+        M.last = cid; save('my'); sheet.dirty = true; draw(el); const nw = M.items.slice(M.items.length - (R.length - dupN)).filter((it) => !isPlan(it) && myToday(it).n); if (dupN === R.length) { toast('이미 있는 숙제라 다시 넣지 않았어요'); return; } toast(`${R.length - dupN}개 넣었어요${dupN ? ` · ${dupN}개는 이미 있어서 뺐어요` : ''}${nw.length ? ` · 오늘 할 일에 ${nw.map((it) => `${it.book} ${myRange(it, myToday(it))}`).join(', ')}` : R.every((r) => r.x.mode === '건') ? ' · 마감까지 오늘 할 일에 일정으로 보여요' : ' · 오늘은 몫이 없어요'}`);
       };
-      $('#my-pok', el).onclick = () => { const L = $('#my-ta', el).value.split('\n').map(myParse).filter(Boolean); if (!L.length) return; const due = dueOf[cid] || myDue(myCls(cid)); L.forEach((l) => push(cid, due, l)); M.last = cid; save('my'); close(); render(); toast(`${L.length}개 넣었어요`); };
+      $('#my-pok', el).onclick = () => { dupN = 0; const L = $('#my-ta', el).value.split('\n').map(myParse).filter(Boolean); if (!L.length) return; const due = dueOf[cid] || myDue(myCls(cid)); L.forEach((l) => push(cid, due, l)); M.last = cid; save('my'); close(); render(); toast(`${L.length - dupN}개 넣었어요${dupN ? ` · ${dupN}개는 이미 있어서 뺐어요` : ''}`); };
     });
   }
   function mySheet(id) {
@@ -2003,7 +2015,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611012127', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611012303', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2559,6 +2571,7 @@
     const ed = engToday(true), ref = UI.run && UI.run.ref != null && UI.run.ref >= 0 ? UI.run.ref : null, un = CH_UNITS[ref != null ? ref : ed.unit];
     if (!un) return { ed, ref, un };
     S.eng.ua = S.eng.ua || {}; const store = ref != null ? (S.eng.ua[uKey(un)] = S.eng.ua[uKey(un)] || {}) : uStore(ed);
+    if (ref != null) for (const k of Object.keys(store)) if (store[k] && store[k].redo) delete store[k];  // 복습 숙제로 다시 풀 문제 (cuHwStart)
     return { ed, ref, un, store, ids: qIds(un) };
   }
   // 다음 문제로 갈 때 맨 위(뒤로 단추·머리)까지 올라가지 않고 문제 칸이 화면 맨 위에 오게 (선생님 10/26 「자꾸 맨 위로 가서 귀찮아」)
@@ -2597,7 +2610,7 @@
     const wk = `eng:${uKey(un)}-${cur}`;
     const live = () => unitCtx().store || store;  // 누를 때 다시 찾아요 (서버 맞춤 뒤 옛 기록에 적으면 「확인」해도 안 넘어가요 10/26)
     const mark = (ok, extra) => { const store = live(); store[cur] = { ok, at: Date.now(), ...extra }; if (!ok) addWrong(wk, { src: 'eng', subj: 'eng', subjName: '영어', area: '천일문 ' + (un.chTitle || ''), sub: un.title, ref: { ch: un.ch, unit: un.unit, i: cur, v: un.v2 ? 2 : 0 } }); else { gotIt(wk); clearWrong(wk); } save('eng');
-      if (ref != null && ids.every((k) => store[k])) { const t = cuTitle(un.unit), h = (S.hw || []).find((x) => !x.done && x.title === t); if (h) { h.done = true; h.doneAt = Date.now(); save('hw'); toast('천일문 숙제 끝!'); } }
+      if (ref != null && ids.every((k) => store[k])) { const t = cuTitle(un.unit), h = (S.hw || []).find((x) => !x.done && (x.title === t || cuOf(x.title) === +un.unit)); if (h) { h.done = true; h.doneAt = Date.now(); save('hw'); toast('천일문 숙제 끝!'); } }
       render(); };
     $$('[data-pick]').forEach((b) => (b.onclick = () => mark(+b.dataset.pick === q.answer, { pick: +b.dataset.pick })));
     const out = $('#ord-out'), picked = [];
@@ -5688,7 +5701,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012127'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012303'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6166,13 +6179,15 @@
   function bindDMsg() {
     const nm = UI.mStu, busy = (b) => { if (b) b.disabled = true; };
     $$('[data-mst]').forEach((b) => (b.onclick = () => { UI.mStu = b.dataset.mst; render(); }));
-    const put = async (key, fn, msg, b) => { busy(b); try { if (nm === U.who) { fn(S); save(key); } else await dPut(nm, key, fn); toast(msg); } catch (e) { toast('못 보냈어요. 인터넷을 확인해 주세요'); } render(); };
+    const put = async (key, fn, msg, b) => { busy(b); try { if (nm === U.who) { fn(S); save(key); } else await dPut(nm, key, fn); toast(msg); } catch (e) { toast('못 보냈어요. 인터넷을 확인해 주세요'); } const y = scrollY; render(); scrollTo(0, y); };
     const sd = $('#dm-send'); if (sd) sd.onclick = () => { const t = $('#dm-t').value.trim(); if (!t) return toast('한마디를 적어 주세요'); put('note', (d) => { d.note = { text: t, at: Date.now() }; }, `${nm} 홈 맨 위에 띄웠어요`, sd); };
     const dl = $('#dm-del'); if (dl) dl.onclick = () => put('note', (d) => { d.note = {}; }, '내렸어요', dl);
     $$('[data-dgift]').forEach((b) => (b.onclick = () => { const k = b.dataset.dgift; put(['gifts', 'gift'], (d) => { const L = [...(d.gifts || [])]; if (d.gift && d.gift.skin && !L.some((y) => y.skin === d.gift.skin)) L.push(d.gift); d.gifts = [...L.filter((y) => y.skin !== k), { skin: k, at: Date.now() }]; d.gift = {}; }, `선물을 보냈어요. ${nm} 앱에 곧 떠요`, b); }));
-    $$('[data-jwu]').forEach((b) => (b.onclick = () => { const u = +b.dataset.jwu, S0 = UI.jwSel.u; if (S0.has(u)) S0.delete(u); else S0.add(u); render(); }));
-    $$('[data-jwc]').forEach((b) => (b.onclick = () => { const us = chUnits(+b.dataset.jwc).map((u) => +u.unit), S0 = UI.jwSel.u, all = us.every((u) => S0.has(u)); us.forEach((u) => (all ? S0.delete(u) : S0.add(u))); render(); }));
-    const jc = $('#jwr-clr'); if (jc) jc.onclick = () => { UI.jwSel.u.clear(); render(); };
+    // 범위 단추는 화면을 다시 그리지 않고 그 자리만 바꿔요 (11/1 «클릭하면 자꾸 올라가»: 다시 그리면 스크롤이 Ch.1로 돌아갔어요)
+    const jwPaint = () => { const S0 = UI.jwSel.u; $$('[data-jwu]').forEach((b) => b.classList.toggle('on', S0.has(+b.dataset.jwu))); $$('[data-jwc]').forEach((b) => { const us = chUnits(+b.dataset.jwc).map((u) => +u.unit), n = us.filter((u) => S0.has(u)).length; b.classList.toggle('on', n === us.length); b.classList.toggle('half', n > 0 && n < us.length); }); const sv = $('#jwr-save'); if (sv) sv.textContent = `범위 저장 · ${S0.size}유닛`; };
+    $$('[data-jwu]').forEach((b) => (b.onclick = () => { const u = +b.dataset.jwu, S0 = UI.jwSel.u; if (S0.has(u)) S0.delete(u); else S0.add(u); jwPaint(); }));
+    $$('[data-jwc]').forEach((b) => (b.onclick = () => { const us = chUnits(+b.dataset.jwc).map((u) => +u.unit), S0 = UI.jwSel.u, all = us.every((u) => S0.has(u)); us.forEach((u) => (all ? S0.delete(u) : S0.add(u))); jwPaint(); }));
+    const jc = $('#jwr-clr'); if (jc) jc.onclick = () => { UI.jwSel.u.clear(); jwPaint(); };
     const js = $('#jwr-save'); if (js) js.onclick = () => { const dt = UI.jwSel.dt, L = [...UI.jwSel.u].sort((a, b) => a - b); put('jwt', (d) => { d.jwt = { ...(d.jwt || {}), [dt]: { ...((d.jwt || {})[dt] || {}), units: L } }; }, L.length ? `${md(dt)} 시험 범위를 유닛 ${L.length}개로 정했어요` : '범위를 비웠어요. 지난 수업 챕터에서 나와요', js); };
     $$('[data-dgx]').forEach((b) => (b.onclick = () => { const k = b.dataset.dgx; put(['gifts', 'gift'], (d) => { d.gifts = (d.gifts || []).map((y) => (y.skin === k && !y.open ? { ...y, x: Date.now() } : y)); d.gift = {}; }, '선물을 거둬들였어요', b); }));
   }
