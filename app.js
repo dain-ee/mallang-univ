@@ -98,7 +98,7 @@
   // 날짜별 기록은 통째로 바꾸지 않고 합쳐요: 같은 날이면 더 많이 한 쪽, 답은 둘 다
   const nAns = (d) => d ? Object.keys(d.ans || {}).length + Object.keys(d.uans || {}).length + Object.keys(d.uans2 || {}).length + Object.keys(d.wans || {}).length + (d.udone ? 5 : 0) + (d.udone2 ? 5 : 0) + (d.g3done ? 5 : 0) + (d.read ? 1 : 0) : -1;
   const mergeDays = (a = {}, b = {}) => { const o = { ...a }; for (const [k, v] of Object.entries(b)) { const u = o[k]; if (!u) { o[k] = v; continue; } const [hi, lo] = nAns(v) > nAns(u) ? [v, u] : [u, v]; const m = { ...hi }; for (const f of ['ans', 'uans', 'uans2', 'wans']) if (hi[f] || lo[f]) m[f] = (hi.unit === lo.unit && hi.words === lo.words && hi.c === lo.c) ? { ...(lo[f] || {}), ...(hi[f] || {}) } : hi[f]; o[k] = m; } return o; };
-  const mergeUa = (a = {}, b = {}) => { const o = { ...a }; for (const [k, v] of Object.entries(b)) o[k] = { ...(o[k] || {}), ...v }; return o; };
+  const mergeUa = (a = {}, b = {}) => { const o = { ...a }; for (const [k, v] of Object.entries(b)) { const m = { ...(o[k] || {}) }; for (const [q, z] of Object.entries(v || {})) { const y = m[q]; m[q] = !y || !z || typeof z !== 'object' || typeof y !== 'object' || (z.at || 0) >= (y.at || 0) ? z : y; } o[k] = m; } return o; };  // 문제마다 나중에 푼(at) 쪽 (11/1 선생님이 고친 답이 기기 옛 답에 덮이지 않게)
   const jAt = (v) => (v && v.at) || 0;
   const jMerge = (r = {}, l = {}) => { const o = { ...r }; for (const [k, v] of Object.entries(l)) if (!(k in o) || jAt(v) >= jAt(o[k])) o[k] = v; return o; };  // 말랑영어 리스닝·리딩·라이팅: 칸마다 더 새것
   // 학원·과외 숙제: 기기 둘에서 고쳐도 서로 안 지워요. 숙제는 id별로, 날짜 기록은 나중에 적은 쪽, 지운 숙제는 gone에 남겨요
@@ -2003,7 +2003,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611012032', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611012127', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5688,7 +5688,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012032'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012127'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
