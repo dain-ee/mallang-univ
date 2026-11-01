@@ -127,7 +127,7 @@
     fin: (r, l) => { const ans = { ...(r.ans || {}) }; for (const [c, v] of Object.entries(l.ans || {})) ans[c] = jMerge(ans[c] || {}, v); return { ...r, ...l, ans }; },  // 기말 개념: 문제마다 나중에 푼 쪽
     jl: jMerge, jr: jMerge, jw: jMerge,
     // 기기 둘이 엇갈려도 서로 안 지우게 (11/1 정윤 저장 실패 뒤 «신문 글쓰기 저장됐다는데 하나도 없어»): 내 생각·담기는 칸마다 더 새것, 오답은 키마다, 용돈은 내역 id별로 합쳐요
-    notes: jMerge, keep: jMerge,
+    notes: jMerge, keep: jMerge, kmi: jMerge,  // kmi: 지원 민사고 면접 연습 답 (질문마다 더 새것)
     wrong: (r, l, rNew) => { const [o, n] = rNew ? [l, r] : [r, l]; return { ...o, ...n }; },
     wallet: (r, l, rNew) => { const [o, n] = rNew ? [l, r] : [r, l], ids = new Set((n.log || []).map((x) => x.id)); return { ...o, ...n, log: [...(n.log || []), ...(o.log || []).filter((x) => !ids.has(x.id))].sort((a, b) => (a.at || 0) - (b.at || 0)), seen: { ...(o.seen || {}), ...(n.seen || {}) } }; },
     // 테마 선물: 두 기기 것을 테마마다 합쳐요. 연 기록이 있으면 그걸, 아니면 나중에 보내거나(at) 취소한(x) 쪽을 써요 (10/27 보낸 쿠로미가 정윤이 기기 옛 기록에 덮여 사라짐)
@@ -536,7 +536,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${TUTOR ? `${giftHome()}${fireNews()}${lessonHero()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${giftHome()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${winCard()}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${TUTOR ? `${giftHome()}${fireNews()}${lessonHero()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${giftHome()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${winCard()}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -2015,7 +2015,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611012322', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611012332', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3420,7 +3420,7 @@
 
   // 다가오는 일정: 토스처럼 가로로 넘기는 날짜 줄 + 고른 날의 일정
   function schedItems() {
-    const ev = (D.events || []).filter((e) => e.kind !== 'csat').map((e) => ({ date: e.date, t: e.title, tag: e.kind === 'exam' ? '시험' : e.kind === 'mock' ? '모의고사' : '학교', k: e.kind }));
+    const ev = (D.events || []).filter((e) => e.kind !== 'csat').map((e) => ({ date: e.date, t: e.title, tag: e.kind === 'exam' ? '시험' : e.kind === 'mock' ? '모의고사' : e.kind === 'adm' ? '입시' : '학교', k: e.kind }));
     const tl = (PICKS.timeline || []).map((x, i) => ({ date: x.when, month: x.when.length === 7, t: x.title, tag: x.kind || '입시', pi: i, k: 'pick' })).filter((o) => /^\d{4}-\d{2}/.test(o.date));
     // 같은 날 수능이 두 번 나오지 않게
     const out = ev.filter((e) => !(/수학능력/.test(e.t) && tl.some((o) => o.date === e.date && /수능/.test(o.t))));
@@ -5703,7 +5703,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012322'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012332'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6613,6 +6613,67 @@
     else if (a === 'hw') setTimeout(() => hwAddSheet(), 300);
   }
   // 과외 학생 홈 맨 위: 다음 수업 · 지난 수업 · 숙제 (선생님이면 수업 적기 · 리포트 단추)
+  // 지원 민사고 입시: 일정은 2027학년도 공식 모집요강 원문 그대로 (content/kmla.json, 11/1 선생님 «팩트 특히 진짜 일정은 제대로»)
+  function kmlaCard() {
+    const K = D.kmla; if (!K) return '';
+    const t = today(), L = K.steps, nx = L.find((x) => (x.end || x.date) >= t), dd = nx ? dday(nx.date) : null, now = nx && nx.date <= t;
+    return `<section class="card c12 km-card"><div class="card-h"><h2>${ic('target')} 민사고 입시</h2><button class="more" id="km-more" type="button">알아두면 좋은 것</button></div>
+      ${nx ? `<div class="km-next"><div><span class="tiny">다음 일정</span><b>${esc(nx.title)}</b><p>${nx.d}</p></div><b class="km-dd num">${now ? '진행 중' : dd === 0 ? 'D-DAY' : 'D-' + dd}</b></div>` : ''}
+      <div class="km-tl">${L.map((x) => `<div class="km-s ${(x.end || x.date) < t ? 'past' : ''} ${x === nx ? 'on' : ''}"><i></i><b>${md(x.date)}${x.end ? ' ~ ' + md(x.end) : ''}</b><span>${esc(x.title)}</span></div>`).join('')}</div>
+      <div class="km-go">${[['km-todo', 'pin', '준비할 것', `${(K.todo || []).filter((x) => kmi().ck[x.id]).length}/${(K.todo || []).length}`], ['km-iv', 'mic', '면접 연습', `${(K.iv || []).filter((x) => ((kmi()[x.id] || {}).t || '').trim()).length}/${(K.iv || []).length}`], ['km-calc', 'score', '내 교과성적', kmCalc() != null ? `${kmCalc().toFixed(2)}점` : '넣어 보기'], ['km-run', 'run', '셔틀런', kmRunBest() ? `최고 ${kmRunBest()}회` : `기준 ${K.run.goal}회`]].map(([id, i, t, v]) => `<button type="button" class="km-b" id="${id}">${ic(i)}<b>${t}</b><span>${v}</span></button>`).join('')}</div>
+      <p class="tiny" style="margin:12px 0 0">${esc(K.src)}</p></section>`;
+  }
+  // 지원이 민사고 준비 기록: 면접 답(질문 id) · 체크(ck) · 성취도(gr) · 셔틀런(run). 칸마다 더 새것으로 합쳐요
+  const kmi = () => { S.kmi = S.kmi || {}; for (const k of ['ck', 'gr', 'run']) if (!S.kmi[k] || typeof S.kmi[k] !== 'object') S.kmi[k] = { at: 0 }; return S.kmi; };
+  function kmCalc(gr = kmi().gr) {  // 요강: 학기 비율 × (과목 가중치로 평균 낸 환산점수). 다 A면 40점
+    const C = (D.kmla || {}).calc; if (!C) return null; let tot = 0, rat = 0;
+    for (const [k, , r] of C.sems) { let a = 0, w = 0; for (const [sk, , sw] of C.subs) { const v = gr[k + ':' + sk]; if (v && C.pts[v] != null) { a += C.pts[v] * sw; w += sw; } } if (w) { tot += (a / w) * r; rat += r; } }
+    return rat ? tot / rat : null;
+  }
+  const kmRunBest = () => Math.max(0, ...Object.entries(kmi().run).filter(([k]) => k !== 'at').map(([, v]) => +v || 0));
+  function kmTodoSheet() {
+    const K = D.kmla, M = kmi(), t = today();
+    const draw = (el) => { $('#kmt', el).innerHTML = K.todo.map((x) => { const on = !!M.ck[x.id], late = !on && x.by < t; return `<button type="button" class="km-td ${on ? 'on' : ''}" data-kmt="${x.id}"><span class="km-ck">${on ? ic('ok') : ''}</span><div><b>${esc(x.t)}</b><p>${x.d}</p><span class="tiny ${late ? 'red' : ''}">${md(x.by)}까지${late ? ' · 지났어요' : ''}</span></div></button>`; }).join(''); $$('[data-kmt]', el).forEach((b) => (b.onclick = () => { const id = b.dataset.kmt; if (M.ck[id]) delete M.ck[id]; else M.ck[id] = Date.now(); M.ck.at = Date.now(); save('kmi'); draw(el); })); };
+    sheet(`<h2>민사고 준비할 것</h2><p class="sub">요강 일정에 맞춰 날짜 순서로 정리했어요. 한 것은 눌러서 체크해요</p><div id="kmt" class="km-facts"></div>`, (el) => draw(el));
+  }
+  function kmCalcSheet() {
+    const K = D.kmla, C = K.calc, M = kmi();
+    const draw = (el) => { const v = kmCalc(); $('#kmc-v', el).innerHTML = v != null ? `<b class="num">${v.toFixed(2)}</b><span>/ 40점</span>` : '<span>성취도를 눌러 넣어요</span>'; };
+    sheet(`<h2>내 교과성적 (1단계 40점)</h2><p class="sub">${esc(C.note)}</p><div class="km-calc-v" id="kmc-v"></div>
+      ${C.sems.map(([k, n, r]) => `<div class="km-sem"><b>${n} <span class="tiny">${r}%</span></b>${C.subs.map(([sk, sn, sw]) => `<div class="km-row"><span>${sn} <small>×${sw}</small></span><div class="km-abc">${Object.keys(C.pts).map((g) => `<button type="button" class="${M.gr[k + ':' + sk] === g ? 'on' : ''}" data-kg="${k}:${sk}" data-v="${g}">${g}</button>`).join('')}</div></div>`).join('')}</div>`).join('')}`, (el) => {
+      draw(el);
+      $$('[data-kg]', el).forEach((b) => (b.onclick = () => { const k = b.dataset.kg; M.gr[k] = M.gr[k] === b.dataset.v ? undefined : b.dataset.v; if (!M.gr[k]) delete M.gr[k]; M.gr.at = Date.now(); save('kmi'); $$(`[data-kg="${k}"]`, el).forEach((x) => x.classList.toggle('on', M.gr[k] === x.dataset.v)); draw(el); }));
+    });
+  }
+  function kmRunSheet() {
+    const K = D.kmla, M = kmi();
+    const draw = (el) => { const L = Object.entries(M.run).filter(([k]) => k !== 'at').sort((a, b) => b[0].localeCompare(a[0])); $('#kmr-l', el).innerHTML = L.length ? L.map(([d, n]) => `<div class="li"><div class="body"><div class="t">${md(d)}</div></div><b class="num ${+n >= K.run.goal ? 'blue' : ''}">${n}회</b></div>`).join('') : '<p class="tiny">아직 적은 기록이 없어요</p>'; };
+    sheet(`<h2>셔틀런 연습</h2><p class="sub">${esc(K.run.note)}<br>뛴 날 횟수를 적어 두면 기준까지 얼마나 남았는지 보여요</p>
+      <div class="row" style="gap:8px;margin-top:12px"><input class="inp" id="kmr-n" type="number" inputmode="numeric" min="0" placeholder="오늘 몇 회" style="flex:1"><button class="btn primary" id="kmr-ok" type="button">적기</button></div><div class="list" id="kmr-l" style="margin-top:12px"></div>`, (el) => {
+      draw(el);
+      $('#kmr-ok', el).onclick = () => { const n = +$('#kmr-n', el).value; if (!n) return toast('횟수를 적어 주세요'); M.run[today()] = n; M.run.at = Date.now(); save('kmi'); $('#kmr-n', el).value = ''; draw(el); toast(n >= K.run.goal ? `기준 ${K.run.goal}회를 넘었어요` : `기준까지 ${K.run.goal - n}회 남았어요`); };
+    });
+  }
+  function kmlaSheet() {
+    const K = D.kmla; if (!K) return;
+    sheet(`<h2>민사고 알아두면 좋은 것</h2><p class="sub">${esc(K.src)}</p>
+      <div class="km-facts">${K.facts.map((f) => `<div class="km-f"><b>${esc(f.h)}</b><p>${f.t}</p></div>`).join('')}</div>
+      <h3 style="margin:20px 0 8px">졸업생은 어느 대학에 가나요</h3>
+      <div class="km-facts">${K.univ.map((f) => `<div class="km-f"><b>${esc(f.h)}</b><p>${f.t}</p><a class="tiny" href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.src)}</a></div>`).join('')}</div>
+      <p class="tiny" style="margin:16px 0 0">일정은 바뀔 수 있다고 요강에 적혀 있어요. 원서 내기 전에 <a href="${esc(K.srcUrl)}" target="_blank" rel="noopener">학교 홈페이지 요강</a>을 한 번 더 봐요<br>${esc(K.contact)}</p>`);
+  }
+  // 면접 연습: 질문마다 답을 적어 두면 저장돼요 (S.kmi[id] = { t, at })
+  function kmiSheet() {
+    const K = D.kmla; if (!K || !K.iv) return; kmi();
+    const n = K.iv.filter((x) => ((S.kmi[x.id] || {}).t || '').trim()).length;
+    sheet(`<h2>민사고 면접 연습</h2><p class="sub">${esc(K.ivNote)}</p>
+      <div class="km-facts"><div class="km-f"><b>이렇게 준비해요</b><p>${K.ivTips.map(esc).join('<br>')}</p></div></div>
+      <p class="tiny" id="kmi-n" style="margin:16px 0 0">${K.iv.length}개 중 ${n}개 적었어요</p>
+      ${K.iv.map((x, i) => `<div class="km-iv"><span class="tag">${esc(x.area)}</span><b>${i + 1}. ${esc(x.q)}</b><textarea class="inp" rows="4" data-kmi="${x.id}" placeholder="생각나는 대로 먼저 적고, 소리 내어 읽으며 다듬어요">${esc((S.kmi[x.id] || {}).t || '')}</textarea></div>`).join('')}`, (el) => {
+      let tm = null;
+      $$('[data-kmi]', el).forEach((ta) => (ta.oninput = () => { S.kmi[ta.dataset.kmi] = { t: ta.value, at: Date.now() }; clearTimeout(tm); tm = setTimeout(() => { save('kmi'); const c = K.iv.filter((x) => ((S.kmi[x.id] || {}).t || '').trim()).length, e = $('#kmi-n', el); if (e) e.textContent = `${K.iv.length}개 중 ${c}개 적었어요 · 저장했어요`; }, 600); }));
+    });
+  }
   function lessonHero() {
     const c = cls(), nx = nextLesson(), L = lastLesson(), tk = [...tutorTasks(), ...(S.hw || []).filter((h) => !(h.grp && h.due > today()) && (!hwDone(h) || h.due === today())).map((h) => ({ done: hwDone(h) }))], dn = tk.filter((x) => x.done).length, dd = nx ? dday(nx.date) : null, p = S.profile, ym = ymOf(today());
     const third = p.school ? [esc(String(p.school).replace('중학교', '중').replace('고등학교', '고')), `${p.grade}학년`] : MONTHLY ? [`${+ym.slice(5)}월 수업`, `${lsnSorted().filter((l) => ymOf(l.date) === ym).length + (+((LS0.monthSeed || {})[ym]) || 0)}회`] : ['회차', L && L.nth ? `${esc(L.nth)}회차` : '-'];
@@ -6808,6 +6869,7 @@
     $$('.hw-daycard [data-dgo]').forEach((b) => (b.onclick = () => dayGo(b.dataset.dgo)));
     if (UI.tab !== 'tsched') $$('[data-calm]').forEach((b) => (b.onclick = () => { UI.calM = b.dataset.calm; render(); }));  // 수업 일정 달력과 이름이 겹쳐 그쪽 월 넘기기가 안 됐어요 (10/31)
     $$('#w-sched').forEach((b) => (b.onclick = () => schedSheet()));
+    const kmb = $('#km-more'); if (kmb) kmb.onclick = kmlaSheet; for (const [id, f] of [['#km-iv', kmiSheet], ['#km-todo', kmTodoSheet], ['#km-calc', kmCalcSheet], ['#km-run', kmRunSheet]]) { const b = $(id); if (b) b.onclick = f; }
     $$('[data-kopen]').forEach((b) => (b.onclick = () => { const [k, r] = b.dataset.kopen.split('|'); openKept(k, r); }));
     $$('[data-nf]').forEach((b) => (b.onclick = () => { UI.newsF = b.dataset.nf; render(); }));
     $$('[data-cs]').forEach((b) => (b.onclick = () => { UI.chartSubj = b.dataset.cs; render(); }));

@@ -3236,3 +3236,46 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 .sr-vd.blue { background: var(--blue-soft); } .sr-vd.blue b { color: var(--blue-d); }
 .sr-vd.warn { background: #fff4e5; } .sr-vd.warn b { color: #c76a00; }
 @media (max-width: 640px) { .sr-sts { grid-template-columns: repeat(2, 1fr); } .sr-line { font-size: 16px; } }
+
+/* 지원 민사고 입시 카드 */
+.km-next { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; border-radius: 16px; background: var(--fill, #f2f4f6); }
+.km-next b { display: block; font-size: 18px; font-weight: 700; color: var(--t1); margin-top: 2px; }
+.km-next p { margin: 4px 0 0; font-size: 13px; line-height: 1.5; color: var(--t2); }
+.km-dd { flex: none; font-size: 24px; font-weight: 800; color: var(--blue); }
+.km-tl { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 16px; }
+.km-s { position: relative; display: flex; flex-direction: column; gap: 2px; padding-top: 16px; font-size: 12px; color: var(--t2); }
+.km-s i { position: absolute; top: 4px; left: 0; right: 0; height: 4px; border-radius: 2px; background: var(--fill, #e5e8eb); }
+.km-s.on i, .km-s.past i { background: var(--blue); }
+.km-s.past { opacity: .5; }
+.km-s b { font-size: 13px; font-weight: 700; color: var(--t1); }
+.km-s.on b { color: var(--blue); }
+.km-facts { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.km-f { padding: 12px 16px; border-radius: 16px; background: var(--fill, #f2f4f6); }
+.km-f b { font-size: 14px; font-weight: 700; color: var(--t1); }
+.km-f p { margin: 4px 0 0; font-size: 14px; line-height: 1.6; color: var(--t2); }
+.km-f a { display: inline-block; margin-top: 4px; color: var(--t3); }
+@media (max-width: 640px) { .km-tl { grid-template-columns: repeat(3, 1fr); row-gap: 12px; } }
+.km-iv { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.km-iv .tag { align-self: flex-start; }
+.km-iv b { font-size: 15px; font-weight: 700; line-height: 1.5; color: var(--t1); }
+.km-iv textarea { min-height: 96px; }
+.km-go { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
+.km-b { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px; border: 0; border-radius: 16px; background: var(--fill, #f2f4f6); font: inherit; text-align: left; cursor: pointer; }
+.km-b b { font-size: 14px; font-weight: 700; color: var(--t1); }
+.km-b span { font-size: 13px; color: var(--t2); }
+.km-td { display: flex; gap: 12px; align-items: flex-start; width: 100%; padding: 12px 16px; border: 0; border-radius: 16px; background: var(--fill, #f2f4f6); font: inherit; text-align: left; cursor: pointer; }
+.km-td b { font-size: 14px; font-weight: 700; color: var(--t1); }
+.km-td p { margin: 4px 0; font-size: 13px; line-height: 1.5; color: var(--t2); }
+.km-td.on b { color: var(--t3); text-decoration: line-through; }
+.km-ck { flex: none; width: 24px; height: 24px; border-radius: 8px; background: var(--card, #fff); display: grid; place-items: center; }
+.km-calc-v { display: flex; align-items: baseline; gap: 4px; margin: 12px 0; }
+.km-calc-v b { font-size: 32px; font-weight: 800; color: var(--blue); }
+.km-calc-v span { color: var(--t2); font-size: 14px; }
+.km-sem { margin-top: 16px; }
+.km-sem > b { display: block; font-size: 15px; margin-bottom: 4px; }
+.km-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 0; font-size: 14px; color: var(--t2); }
+.km-row small { color: var(--t3); }
+.km-abc { display: flex; gap: 4px; }
+.km-abc button { width: 36px; height: 32px; border: 0; border-radius: 8px; background: var(--fill, #f2f4f6); font: inherit; font-weight: 700; color: var(--t2); cursor: pointer; }
+.km-abc button.on { background: var(--blue); color: #fff; }
+@media (max-width: 640px) { .km-go { grid-template-columns: repeat(2, 1fr); } }
