@@ -3279,3 +3279,8 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 .km-abc button { width: 36px; height: 32px; border: 0; border-radius: 8px; background: var(--fill, #f2f4f6); font: inherit; font-weight: 700; color: var(--t2); cursor: pointer; }
 .km-abc button.on { background: var(--blue); color: #fff; }
 @media (max-width: 640px) { .km-go { grid-template-columns: repeat(2, 1fr); } }
+.km-sems { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 32px; }
+.km-sec .km-iv textarea { min-height: 112px; }
+@media (max-width: 760px) { .km-sems { grid-template-columns: 1fr; } }
+.km-head { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+.km-logo { width: 28px; height: 28px; vertical-align: -6px; }

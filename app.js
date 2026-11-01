@@ -2015,7 +2015,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611012343', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611012347', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5703,7 +5703,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012343'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611012347'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6614,65 +6614,59 @@
   }
   // 과외 학생 홈 맨 위: 다음 수업 · 지난 수업 · 숙제 (선생님이면 수업 적기 · 리포트 단추)
   // 지원 민사고 입시: 일정은 2027학년도 공식 모집요강 원문 그대로 (content/kmla.json, 11/1 선생님 «팩트 특히 진짜 일정은 제대로»)
-  function kmlaCard() {
-    const K = D.kmla; if (!K) return '';
-    const t = today(), L = K.steps, nx = L.find((x) => (x.end || x.date) >= t), dd = nx ? dday(nx.date) : null, now = nx && nx.date <= t;
-    return `<section class="card c12 km-card"><div class="card-h"><h2>${ic('target')} 민사고 입시</h2><button class="more" id="km-more" type="button">알아두면 좋은 것</button></div>
-      ${nx ? `<div class="km-next"><div><span class="tiny">다음 일정</span><b>${esc(nx.title)}</b><p>${nx.d}</p></div><b class="km-dd num">${now ? '진행 중' : dd === 0 ? 'D-DAY' : 'D-' + dd}</b></div>` : ''}
-      <div class="km-tl">${L.map((x) => `<div class="km-s ${(x.end || x.date) < t ? 'past' : ''} ${x === nx ? 'on' : ''}"><i></i><b>${md(x.date)}${x.end ? ' ~ ' + md(x.end) : ''}</b><span>${esc(x.title)}</span></div>`).join('')}</div>
-      <div class="km-go">${[['km-todo', 'pin', '준비할 것', `${(K.todo || []).filter((x) => kmi().ck[x.id]).length}/${(K.todo || []).length}`], ['km-iv', 'mic', '면접 연습', `${(K.iv || []).filter((x) => ((kmi()[x.id] || {}).t || '').trim()).length}/${(K.iv || []).length}`], ['km-calc', 'score', '내 교과성적', kmCalc() != null ? `${kmCalc().toFixed(2)}점` : '넣어 보기'], ['km-run', 'run', '셔틀런', kmRunBest() ? `최고 ${kmRunBest()}회` : `기준 ${K.run.goal}회`]].map(([id, i, t, v]) => `<button type="button" class="km-b" id="${id}">${ic(i)}<b>${t}</b><span>${v}</span></button>`).join('')}</div>
-      <p class="tiny" style="margin:12px 0 0">${esc(K.src)}</p></section>`;
-  }
-  // 지원이 민사고 준비 기록: 면접 답(질문 id) · 체크(ck) · 성취도(gr) · 셔틀런(run). 칸마다 더 새것으로 합쳐요
-  const kmi = () => { S.kmi = S.kmi || {}; for (const k of ['ck', 'gr', 'run']) if (!S.kmi[k] || typeof S.kmi[k] !== 'object') S.kmi[k] = { at: 0 }; return S.kmi; };
+  // 홈에는 요약 카드, 자세한 건 「민사고」 탭 한 페이지 (11/1 «왜 또 모달로… 얘한테 중요한 사안이잖아»)
+  const kmi = () => { S.kmi = S.kmi || {}; for (const k of ['ck', 'gr', 'run']) if (!S.kmi[k] || typeof S.kmi[k] !== 'object') S.kmi[k] = { at: 0 }; return S.kmi; };  // 면접 답(질문 id) · 체크(ck) · 성취도(gr) · 셔틀런(run), 칸마다 더 새것으로 합쳐요
   function kmCalc(gr = kmi().gr) {  // 요강: 학기 비율 × (과목 가중치로 평균 낸 환산점수). 다 A면 40점
     const C = (D.kmla || {}).calc; if (!C) return null; let tot = 0, rat = 0;
     for (const [k, , r] of C.sems) { let a = 0, w = 0; for (const [sk, , sw] of C.subs) { const v = gr[k + ':' + sk]; if (v && C.pts[v] != null) { a += C.pts[v] * sw; w += sw; } } if (w) { tot += (a / w) * r; rat += r; } }
     return rat ? tot / rat : null;
   }
   const kmRunBest = () => Math.max(0, ...Object.entries(kmi().run).filter(([k]) => k !== 'at').map(([, v]) => +v || 0));
-  function kmTodoSheet() {
-    const K = D.kmla, M = kmi(), t = today();
-    const draw = (el) => { $('#kmt', el).innerHTML = K.todo.map((x) => { const on = !!M.ck[x.id], late = !on && x.by < t; return `<button type="button" class="km-td ${on ? 'on' : ''}" data-kmt="${x.id}"><span class="km-ck">${on ? ic('ok') : ''}</span><div><b>${esc(x.t)}</b><p>${x.d}</p><span class="tiny ${late ? 'red' : ''}">${md(x.by)}까지${late ? ' · 지났어요' : ''}</span></div></button>`; }).join(''); $$('[data-kmt]', el).forEach((b) => (b.onclick = () => { const id = b.dataset.kmt; if (M.ck[id]) delete M.ck[id]; else M.ck[id] = Date.now(); M.ck.at = Date.now(); save('kmi'); draw(el); })); };
-    sheet(`<h2>민사고 준비할 것</h2><p class="sub">요강 일정에 맞춰 날짜 순서로 정리했어요. 한 것은 눌러서 체크해요</p><div id="kmt" class="km-facts"></div>`, (el) => draw(el));
+  const kmCounts = () => { const K = D.kmla, M = kmi(); return { td: K.todo.filter((x) => M.ck[x.id]).length, iv: K.iv.filter((x) => ((M[x.id] || {}).t || '').trim()).length }; };
+  function kmTimeline(K) {
+    const t = today(), L = K.steps, nx = L.find((x) => (x.end || x.date) >= t), dd = nx ? dday(nx.date) : null, now = nx && nx.date <= t;
+    return `${nx ? `<div class="km-next"><div><span class="tiny">다음 일정</span><b>${esc(nx.title)}</b><p>${nx.d}</p></div><b class="km-dd num">${now ? '진행 중' : dd === 0 ? 'D-DAY' : 'D-' + dd}</b></div>` : ''}
+      <div class="km-tl">${L.map((x) => `<div class="km-s ${(x.end || x.date) < t ? 'past' : ''} ${x === nx ? 'on' : ''}"><i></i><b>${md(x.date)}${x.end ? ' ~ ' + md(x.end) : ''}</b><span>${esc(x.title)}</span></div>`).join('')}</div>`;
   }
-  function kmCalcSheet() {
-    const K = D.kmla, C = K.calc, M = kmi();
-    const draw = (el) => { const v = kmCalc(); $('#kmc-v', el).innerHTML = v != null ? `<b class="num">${v.toFixed(2)}</b><span>/ 40점</span>` : '<span>성취도를 눌러 넣어요</span>'; };
-    sheet(`<h2>내 교과성적 (1단계 40점)</h2><p class="sub">${esc(C.note)}</p><div class="km-calc-v" id="kmc-v"></div>
-      ${C.sems.map(([k, n, r]) => `<div class="km-sem"><b>${n} <span class="tiny">${r}%</span></b>${C.subs.map(([sk, sn, sw]) => `<div class="km-row"><span>${sn} <small>×${sw}</small></span><div class="km-abc">${Object.keys(C.pts).map((g) => `<button type="button" class="${M.gr[k + ':' + sk] === g ? 'on' : ''}" data-kg="${k}:${sk}" data-v="${g}">${g}</button>`).join('')}</div></div>`).join('')}</div>`).join('')}`, (el) => {
-      draw(el);
-      $$('[data-kg]', el).forEach((b) => (b.onclick = () => { const k = b.dataset.kg; M.gr[k] = M.gr[k] === b.dataset.v ? undefined : b.dataset.v; if (!M.gr[k]) delete M.gr[k]; M.gr.at = Date.now(); save('kmi'); $$(`[data-kg="${k}"]`, el).forEach((x) => x.classList.toggle('on', M.gr[k] === x.dataset.v)); draw(el); }));
-    });
+  function kmlaCard() {
+    const K = D.kmla; if (!K) return ''; const c = kmCounts();
+    return `<section class="card c12 km-card"><div class="card-h"><h2><img class="km-logo" src="assets/uni/kmla.png" alt=""> 민사고 입시</h2><button class="more" data-kmgo="" type="button">전체 보기</button></div>${kmTimeline(K)}
+      <div class="km-go">${[['todo', 'pin', '준비할 것', `${c.td}/${K.todo.length}`], ['iv', 'mic', '면접 연습', `${c.iv}/${K.iv.length}`], ['calc', 'score', '내 교과성적', kmCalc() != null ? `${kmCalc().toFixed(2)}점` : '넣어 보기'], ['run', 'run', '셔틀런', kmRunBest() ? `최고 ${kmRunBest()}회` : `기준 ${K.run.goal}회`]].map(([id, i, t, v]) => `<button type="button" class="km-b" data-kmgo="${id}">${ic(i)}<b>${t}</b><span>${v}</span></button>`).join('')}</div></section>`;
   }
-  function kmRunSheet() {
-    const K = D.kmla, M = kmi();
-    const draw = (el) => { const L = Object.entries(M.run).filter(([k]) => k !== 'at').sort((a, b) => b[0].localeCompare(a[0])); $('#kmr-l', el).innerHTML = L.length ? L.map(([d, n]) => `<div class="li"><div class="body"><div class="t">${md(d)}</div></div><b class="num ${+n >= K.run.goal ? 'blue' : ''}">${n}회</b></div>`).join('') : '<p class="tiny">아직 적은 기록이 없어요</p>'; };
-    sheet(`<h2>셔틀런 연습</h2><p class="sub">${esc(K.run.note)}<br>뛴 날 횟수를 적어 두면 기준까지 얼마나 남았는지 보여요</p>
-      <div class="row" style="gap:8px;margin-top:12px"><input class="inp" id="kmr-n" type="number" inputmode="numeric" min="0" placeholder="오늘 몇 회" style="flex:1"><button class="btn primary" id="kmr-ok" type="button">적기</button></div><div class="list" id="kmr-l" style="margin-top:12px"></div>`, (el) => {
-      draw(el);
-      $('#kmr-ok', el).onclick = () => { const n = +$('#kmr-n', el).value; if (!n) return toast('횟수를 적어 주세요'); M.run[today()] = n; M.run.at = Date.now(); save('kmi'); $('#kmr-n', el).value = ''; draw(el); toast(n >= K.run.goal ? `기준 ${K.run.goal}회를 넘었어요` : `기준까지 ${K.run.goal - n}회 남았어요`); };
-    });
+  function kmlaView() {
+    const K = D.kmla; if (!K) return ''; const M = kmi(), t = today(), C = K.calc, c = kmCounts();
+    const sec = (id, title, sub, body) => `<section class="card c12 km-sec" id="km-${id}"><div class="card-h"><h2>${title}</h2>${sub ? `<span class="tiny">${sub}</span>` : ''}</div>${body}</section>`;
+    const todo = K.todo.map((x) => { const on = !!M.ck[x.id], late = !on && x.by < t; return `<button type="button" class="km-td ${on ? 'on' : ''}" data-kmt="${x.id}"><span class="km-ck">${on ? ic('ok') : ''}</span><div><b>${esc(x.t)}</b><p>${x.d}</p><span class="tiny ${late ? 'red' : ''}">${md(x.by)}까지${late ? ' · 지났어요' : ''}</span></div></button>`; }).join('');
+    const calc = `<p class="tiny" style="margin:0">${esc(C.note)}</p><div class="km-calc-v" id="kmc-v"></div><div class="km-sems">${C.sems.map(([k, n, r]) => `<div class="km-sem"><b>${n} <span class="tiny">${r}%</span></b>${C.subs.map(([sk, sn, sw]) => `<div class="km-row"><span>${sn} <small>×${sw}</small></span><div class="km-abc">${Object.keys(C.pts).map((g) => `<button type="button" class="${M.gr[k + ':' + sk] === g ? 'on' : ''}" data-kg="${k}:${sk}" data-v="${g}">${g}</button>`).join('')}</div></div>`).join('')}</div>`).join('')}</div>`;
+    const run = `<p class="tiny" style="margin:0">${esc(K.run.note)}. 뛴 날 횟수를 적어 두면 기준까지 얼마나 남았는지 보여요</p><div class="row" style="gap:8px;margin-top:12px;max-width:420px"><input class="inp" id="kmr-n" type="number" inputmode="numeric" min="0" placeholder="오늘 몇 회" style="flex:1"><button class="btn primary" id="kmr-ok" type="button">적기</button></div><div class="list" id="kmr-l" style="margin-top:8px"></div>`;
+    const iv = `<p class="tiny" style="margin:0">${esc(K.ivNote)}</p><div class="km-f" style="margin-top:12px"><b>이렇게 준비해요</b><p>${K.ivTips.map(esc).join('<br>')}</p></div>${K.iv.map((x, i) => `<div class="km-iv"><span class="tag">${esc(x.area)}</span><b>${i + 1}. ${esc(x.q)}</b><textarea class="inp" rows="4" data-kmi="${x.id}" placeholder="생각나는 대로 먼저 적고, 소리 내어 읽으며 다듬어요">${esc((M[x.id] || {}).t || '')}</textarea></div>`).join('')}`;
+    const facts = `<div class="km-facts">${K.facts.map((f) => `<div class="km-f"><b>${esc(f.h)}</b><p>${f.t}</p></div>`).join('')}</div>`;
+    const univ = `<div class="km-facts">${K.univ.map((f) => `<div class="km-f"><b>${esc(f.h)}</b><p>${f.t}</p><a class="tiny" href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.src)}</a></div>`).join('')}</div>`;
+    return `<div class="km-head">${emb({ logo: 'assets/uni/kmla.png', name: K.name }, 'xl')}<div><h1 class="h1" style="margin:0">민사고 입시</h1><p class="tiny" style="margin:4px 0 0">${esc(K.name)} · 2027학년도 입학</p></div></div><p class="sub">${esc(K.src)} 그대로예요. 일정은 바뀔 수 있다고 요강에 적혀 있어서, 원서 내기 전에 <a href="${esc(K.srcUrl)}" target="_blank" rel="noopener">학교 홈페이지 요강</a>을 한 번 더 봐요</p>
+      <div class="grid">${sec('tl', `${ic('cal')} 일정`, '', kmTimeline(K))}
+      ${sec('todo', `${ic('pin')} 준비할 것`, `<span id="kmt-n">${c.td}/${K.todo.length}</span>`, `<div class="km-facts">${todo}</div>`)}
+      ${sec('calc', `${ic('score')} 내 교과성적`, '1단계 40점', calc)}
+      ${sec('run', `${ic('run')} 셔틀런`, `여자 기준 ${K.run.goal}회`, run)}
+      ${sec('iv', `${ic('mic')} 면접 연습`, `<span id="kmi-n">${c.iv}/${K.iv.length}개 적었어요</span>`, iv)}
+      ${sec('facts', `${ic('bulb')} 알아두면 좋은 것`, '', facts)}
+      ${sec('univ', `${ic('grad')} 졸업생은 어느 대학에 가나요`, '', univ)}
+      <p class="tiny c12" style="margin:0">${esc(K.contact)}</p></div>`;
   }
-  function kmlaSheet() {
-    const K = D.kmla; if (!K) return;
-    sheet(`<h2>민사고 알아두면 좋은 것</h2><p class="sub">${esc(K.src)}</p>
-      <div class="km-facts">${K.facts.map((f) => `<div class="km-f"><b>${esc(f.h)}</b><p>${f.t}</p></div>`).join('')}</div>
-      <h3 style="margin:20px 0 8px">졸업생은 어느 대학에 가나요</h3>
-      <div class="km-facts">${K.univ.map((f) => `<div class="km-f"><b>${esc(f.h)}</b><p>${f.t}</p><a class="tiny" href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.src)}</a></div>`).join('')}</div>
-      <p class="tiny" style="margin:16px 0 0">일정은 바뀔 수 있다고 요강에 적혀 있어요. 원서 내기 전에 <a href="${esc(K.srcUrl)}" target="_blank" rel="noopener">학교 홈페이지 요강</a>을 한 번 더 봐요<br>${esc(K.contact)}</p>`);
-  }
-  // 면접 연습: 질문마다 답을 적어 두면 저장돼요 (S.kmi[id] = { t, at })
-  function kmiSheet() {
-    const K = D.kmla; if (!K || !K.iv) return; kmi();
-    const n = K.iv.filter((x) => ((S.kmi[x.id] || {}).t || '').trim()).length;
-    sheet(`<h2>민사고 면접 연습</h2><p class="sub">${esc(K.ivNote)}</p>
-      <div class="km-facts"><div class="km-f"><b>이렇게 준비해요</b><p>${K.ivTips.map(esc).join('<br>')}</p></div></div>
-      <p class="tiny" id="kmi-n" style="margin:16px 0 0">${K.iv.length}개 중 ${n}개 적었어요</p>
-      ${K.iv.map((x, i) => `<div class="km-iv"><span class="tag">${esc(x.area)}</span><b>${i + 1}. ${esc(x.q)}</b><textarea class="inp" rows="4" data-kmi="${x.id}" placeholder="생각나는 대로 먼저 적고, 소리 내어 읽으며 다듬어요">${esc((S.kmi[x.id] || {}).t || '')}</textarea></div>`).join('')}`, (el) => {
-      let tm = null;
-      $$('[data-kmi]', el).forEach((ta) => (ta.oninput = () => { S.kmi[ta.dataset.kmi] = { t: ta.value, at: Date.now() }; clearTimeout(tm); tm = setTimeout(() => { save('kmi'); const c = K.iv.filter((x) => ((S.kmi[x.id] || {}).t || '').trim()).length, e = $('#kmi-n', el); if (e) e.textContent = `${K.iv.length}개 중 ${c}개 적었어요 · 저장했어요`; }, 600); }));
-    });
+  function kmlaBind() {
+    const K = D.kmla, M = kmi(); if (!K) return;
+    const go = (to) => { UI.tab = 'kmla'; UI.run = null; UI.kmTo = to; render(); };
+    $$('[data-kmgo]').forEach((b) => (b.onclick = () => go(b.dataset.kmgo)));
+    const kg = $('#km-goal'); if (kg) kg.onclick = () => go('');
+    if (UI.tab !== 'kmla' || UI.run) return;
+    if (UI.kmTo != null) { const el = UI.kmTo && $('#km-' + UI.kmTo); UI.kmTo = null; if (el) setTimeout(() => scrollTo({ top: el.getBoundingClientRect().top + scrollY - 88, behavior: RM() ? 'auto' : 'smooth' }), 60); else scrollTo(0, 0); }
+    // 체크·성적·셔틀런은 다시 그리지 않고 그 자리만 바꿔요 (스크롤이 튀지 않게)
+    $$('[data-kmt]').forEach((b) => (b.onclick = () => { const id = b.dataset.kmt; if (M.ck[id]) delete M.ck[id]; else M.ck[id] = Date.now(); M.ck.at = Date.now(); save('kmi'); const on = !!M.ck[id]; b.classList.toggle('on', on); $('.km-ck', b).innerHTML = on ? ic('ok') : ''; const n = $('#kmt-n'); if (n) n.textContent = `${kmCounts().td}/${K.todo.length}`; }));
+    const cv = () => { const v = kmCalc(), e = $('#kmc-v'); if (e) e.innerHTML = v != null ? `<b class="num">${v.toFixed(2)}</b><span>/ 40점</span>` : '<span>학기마다 과목 성취도를 눌러 넣어요</span>'; }; cv();
+    $$('[data-kg]').forEach((b) => (b.onclick = () => { const k = b.dataset.kg; if (M.gr[k] === b.dataset.v) delete M.gr[k]; else M.gr[k] = b.dataset.v; M.gr.at = Date.now(); save('kmi'); $$(`[data-kg="${k}"]`).forEach((x) => x.classList.toggle('on', M.gr[k] === x.dataset.v)); cv(); }));
+    const rl = () => { const L = Object.entries(M.run).filter(([k]) => k !== 'at').sort((a, b) => b[0].localeCompare(a[0])), e = $('#kmr-l'); if (e) e.innerHTML = L.length ? L.map(([d, n]) => `<div class="li"><div class="body"><div class="t">${md(d)}</div></div><b class="num ${+n >= K.run.goal ? 'blue' : ''}">${n}회</b></div>`).join('') : '<p class="tiny">아직 적은 기록이 없어요</p>'; }; rl();
+    const ro = $('#kmr-ok'); if (ro) ro.onclick = () => { const n = +$('#kmr-n').value; if (!n) return toast('횟수를 적어 주세요'); M.run[today()] = n; M.run.at = Date.now(); save('kmi'); $('#kmr-n').value = ''; rl(); toast(n >= K.run.goal ? `기준 ${K.run.goal}회를 넘었어요` : `기준까지 ${K.run.goal - n}회 남았어요`); };
+    let tm = null;
+    $$('[data-kmi]').forEach((ta) => (ta.oninput = () => { M[ta.dataset.kmi] = { t: ta.value, at: Date.now() }; clearTimeout(tm); tm = setTimeout(() => { save('kmi'); const e = $('#kmi-n'); if (e) e.textContent = `${kmCounts().iv}/${K.iv.length}개 적었어요 · 저장했어요`; }, 600); }));
   }
   function lessonHero() {
     const c = cls(), nx = nextLesson(), L = lastLesson(), tk = [...tutorTasks(), ...(S.hw || []).filter((h) => !(h.grp && h.due > today()) && (!hwDone(h) || h.due === today())).map((h) => ({ done: hwDone(h) }))], dn = tk.filter((x) => x.done).length, dd = nx ? dday(nx.date) : null, p = S.profile, ym = ymOf(today());
@@ -6681,7 +6675,7 @@
     // 목표 대학: 정윤 홈처럼 로고를 크게 (윤건·지원, 10/26)
     // 지원: 목표는 대학이 아니라 민사고 (11/1 «이거 목표 고등학교로 해»). 누르면 민사고 정보
     const K = D.kmla, ap = K && K.steps.find((x) => x.title === '원서 접수'), ad = ap ? dday(ap.date) : null;
-    const goal = K ? `<button type="button" class="who ls-goal" id="km-goal"><span class="emb xl" style="background:#24406b">민사고</span><div style="min-width:0;flex:1"><div class="goal-t">${esc(p.name)}의 목표 고등학교</div><div class="goal-n">${esc(K.name)}</div><div class="goal-m">2027학년도 입학${ad != null && ad >= 0 ? ` · 원서 접수 ${ad === 0 ? '오늘' : 'D-' + ad}` : ''}</div></div><span class="tag" style="flex:none">입시 정보</span></button>` : tabUni ? `<button type="button" class="who ls-goal" data-go="uni">${emb(u, 'xl')}<div style="min-width:0;flex:1"><div class="goal-t">${esc(p.name)}의 목표</div><div class="goal-n">${u ? esc(u.name) : '목표 대학을 골라 주세요'}</div><div class="goal-m">${u ? esc(p.major || (p.field ? p.field + ' 계열' : '')) : '눌러서 고르기'}</div></div><span class="tag" style="flex:none">${u ? '바꾸기' : '고르기'}</span></button>` : '';
+    const goal = K ? `<button type="button" class="who ls-goal" id="km-goal">${emb({ logo: 'assets/uni/kmla.png', name: K.name }, 'xl')}<div style="min-width:0;flex:1"><div class="goal-t">${esc(p.name)}의 목표 고등학교</div><div class="goal-n">${esc(K.name)}</div><div class="goal-m">2027학년도 입학${ad != null && ad >= 0 ? ` · 원서 접수 ${ad === 0 ? '오늘' : 'D-' + ad}` : ''}</div></div><span class="tag" style="flex:none">입시 정보</span></button>` : tabUni ? `<button type="button" class="who ls-goal" data-go="uni">${emb(u, 'xl')}<div style="min-width:0;flex:1"><div class="goal-t">${esc(p.name)}의 목표</div><div class="goal-n">${u ? esc(u.name) : '목표 대학을 골라 주세요'}</div><div class="goal-m">${u ? esc(p.major || (p.field ? p.field + ' 계열' : '')) : '눌러서 고르기'}</div></div><span class="tag" style="flex:none">${u ? '바꾸기' : '고르기'}</span></button>` : '';
     return `<section class="card c12 hero ls-hero"><div class="hero-band" style="background:${K ? '#24406b' : u ? esc(u.color) : esc(ST.color || 'var(--blue)')}"></div>${goal}
       <div class="who ${goal ? 'ls-next' : ''}"><div style="min-width:0;flex:1"><div class="goal-t">다음 수업${nx && nx.extra ? ' · 보강' : ''}</div><div class="goal-n">${nx ? `${esc(md(nx.date))} ${esc(wdName(nx.date))}` : TEACHER ? '수업 요일을 정해 주세요' : '선생님이 곧 정해 줘요'}</div><div class="goal-m">${nx && nx.time ? esc(timeKo(nx.time)) : ''}</div></div>${nx ? `<b class="dh-dd num">${dd === 0 ? '오늘' : 'D-' + dd}</b>` : ''}</div>
       ${(() => { const ex = (ST.exams || []).filter((e) => e.date >= today() && dday(e.date) <= 30); return ex.length ? `<div class="ls-exams">${ex.map((e) => `<div class="ls-ex"><span class="ls-ex-t">시험</span><div class="ls-ex-b"><b>${esc(e.title)}</b><span>${esc(md(e.date))} ${esc(wdName(e.date))}</span></div><b class="ls-ex-d num">${dday(e.date) === 0 ? '오늘' : 'D-' + dday(e.date)}</b></div>`).join('')}</div>` : ''; })()}
@@ -6692,7 +6686,7 @@
   }
 
   // ───────── 틀 · 메뉴 ─────────
-  const TABS = [['home', '홈', 'home'], ['hw', '숙제', 'hw'], ['study', '공부', 'books'], ['exam', '수업', 'pencil'], ['grade', '성적', 'score'], ['wrong', '오답', 'wrong'], ['book', '교재', 'books'], ['score', '성적', 'score'], ['uni', '대학', 'school'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']].filter((t) => (!ST.tabs || ST.tabs.includes(t[0])) && (t[0] !== 'exam' || Object.keys(NXSETS).length || NX_CH.length || NX_JG.length) && (t[0] !== 'study' || (NXD.subjects || []).length) && (t[0] !== 'grade' || (ST.tabs || []).includes('grade')));  // 중학생 성적 탭은 켠 학생만 (10/31 정윤에게 성적 탭이 둘 뜸)  // 공부 탭은 단원 자료가 있는 학생만  // 시험 탭은 시험이 있는 학생만
+  const TABS = [['home', '홈', 'home'], ['kmla', '민사고', 'target'], ['hw', '숙제', 'hw'], ['study', '공부', 'books'], ['exam', '수업', 'pencil'], ['grade', '성적', 'score'], ['wrong', '오답', 'wrong'], ['book', '교재', 'books'], ['score', '성적', 'score'], ['uni', '대학', 'school'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']].filter((t) => (t[0] === 'kmla' ? !!D.kmla : !ST.tabs || ST.tabs.includes(t[0])) && (t[0] !== 'exam' || Object.keys(NXSETS).length || NX_CH.length || NX_JG.length) && (t[0] !== 'study' || (NXD.subjects || []).length) && (t[0] !== 'grade' || (ST.tabs || []).includes('grade')));  // 중학생 성적 탭은 켠 학생만 (10/31 정윤에게 성적 탭이 둘 뜸)  // 공부 탭은 단원 자료가 있는 학생만  // 시험 탭은 시험이 있는 학생만
   const DASH_ONLY = TEACHER && !STU_TAB && ROSTER.length > 1;  // 선생님 첫 탭은 학생 관리만 (학생 화면은 새 탭으로)
   if (DASH_ONLY) TABS.splice(0, TABS.length, ['dash', '홈', 'home'], ['treport', '리포트', 'memo'], ['thw', '숙제', 'hw'], ['tgrade', '성적', 'score'], ['tsched', '수업 일정', 'cal'], ['news', '소식', 'news'], ['tstu', '학생', 'trophy']);
   function nav() {
@@ -6738,7 +6732,7 @@
     syncGoals();
     redoFix();
     if (UI.run) html = UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'qa' ? qaRun() : UI.run.kind === 'nx' ? nxRail(nxRun()) : UI.run.kind === 'nxw' ? nxwRun() : UI.run.kind === 'print' ? printRun() : '';
-    else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'tme' ? tmeView() : UI.tab === 'picks' ? picksView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'grade' ? gradeView() : UI.tab === 'study' ? studyView() : UI.tab === 'exam' ? examView() : sgbView();
+    else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'tme' ? tmeView() : UI.tab === 'picks' ? picksView() : UI.tab === 'kmla' ? kmlaView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'grade' ? gradeView() : UI.tab === 'study' ? studyView() : UI.tab === 'exam' ? examView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
     const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'hw' ? (UI.nxUnit || '') + (UI.nxSubj || '') : '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'study' ? `${UI.stV}${UI.stS}${UI.stU}${UI.stT}` : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '');
     const depth = UI.run ? 2 : UI.lib || (UI.tab === 'score' && UI.mockId) || (UI.tab === 'hw' && UI.nxUnit) ? 1 : 0, ti = TABS.findIndex((t) => t[0] === UI.tab);
@@ -6871,7 +6865,7 @@
     $$('.hw-daycard [data-dgo]').forEach((b) => (b.onclick = () => dayGo(b.dataset.dgo)));
     if (UI.tab !== 'tsched') $$('[data-calm]').forEach((b) => (b.onclick = () => { UI.calM = b.dataset.calm; render(); }));  // 수업 일정 달력과 이름이 겹쳐 그쪽 월 넘기기가 안 됐어요 (10/31)
     $$('#w-sched').forEach((b) => (b.onclick = () => schedSheet()));
-    const kmb = $('#km-more'); if (kmb) kmb.onclick = kmlaSheet; const kmg = $('#km-goal'); if (kmg) kmg.onclick = kmlaSheet; for (const [id, f] of [['#km-iv', kmiSheet], ['#km-todo', kmTodoSheet], ['#km-calc', kmCalcSheet], ['#km-run', kmRunSheet]]) { const b = $(id); if (b) b.onclick = f; }
+    kmlaBind();
     $$('[data-kopen]').forEach((b) => (b.onclick = () => { const [k, r] = b.dataset.kopen.split('|'); openKept(k, r); }));
     $$('[data-nf]').forEach((b) => (b.onclick = () => { UI.newsF = b.dataset.nf; render(); }));
     $$('[data-cs]').forEach((b) => (b.onclick = () => { UI.chartSubj = b.dataset.cs; render(); }));
