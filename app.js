@@ -1193,12 +1193,14 @@
     if (!all) return 0;
     return Math.max(0, Math.min(it.total - (myDone(it) - dn), Math.ceil((it.total * past) / all) - (myDone(it) - dn)));
   }
+  // 일요일을 고른 수업에 어제·오늘 넣은 숙제는 밀린 게 아니라 새 숙제라 일요일부터 나눠요 (11/1 정윤 «일요일부터 반영했으면 오늘부터 할 일에»)
+  const myFresh = (it) => { if (!it.at) return false; const a = new Date(it.at), st = `${a.getFullYear()}-${String(a.getMonth() + 1).padStart(2, '0')}-${String(a.getDate()).padStart(2, '0')}`; return st >= addD(today(), -1) && (myCls(it.cls).study || it.days || []).includes(0); };
   function myToday(it) {
     const t = today(), dn = it.log && it.log[t] ? it.log[t].n : 0, left = it.total - (myDone(it) - dn);
     if (left <= 0) return { n: 0, a: null, b: null, dn };
     if (mySkip(it) && !dn) return { n: 0, a: null, b: null, dn, skip: true };
     const off = dday(it.due) >= 0 && !myStudy(it).includes(dowOf(t)) && myDaysLeft(it.due, myStudy(it)) > 0;  // 오늘은 안 하는 날
-    const n = off ? (dowOf(t) === 0 ? myBehind(it, dn) : 0) : dday(it.due) < 0 ? left : Math.ceil(left / myLeftDays(it));
+    const n = off ? (dowOf(t) === 0 ? (myFresh(it) ? Math.ceil(left / (myLeftDays(it) + 1)) : myBehind(it, dn)) : 0) : dday(it.due) < 0 ? left : Math.ceil(left / myLeftDays(it));
     const a = it.from != null ? it.from + (myDone(it) - dn) : null;
     return { n, a, b: a != null ? Math.min(it.to, a + n - 1) : null, dn };
   }
@@ -1250,6 +1252,18 @@
       $('#my-new', el).hidden = !addCls;
       const ks = Object.keys(D0[cid] || {}), bk = myBooks(cid).map((b) => b.name);
       const names = [...bk, ...ks.filter((n) => n === base(n) && !bk.includes(n))].flatMap((n) => [n, ...ks.filter((k) => k !== n && base(k) === n).sort()]);
+      const one = myCls(cid).day == null;  // 학교 숙제·수행평가: 무엇을 · 언제까지 · 넣기 만 (11/1 정윤 «이해가 안 가서 더 쉽게»)
+      $('#my-due', el).style.display = one ? 'none' : '';
+      if (one) {
+        const q = names.filter((n) => filled(dr(cid, n)));
+        $('#my-rows', el).innerHTML = `<div class="my-one-f"><label class="my-one-l"><span class="tiny">무엇을 해요?</span><input class="inp" id="my-bkn" placeholder="예: 국어 수행평가 보고서"></label><label class="my-one-l"><span class="tiny">언제까지?</span><input type="date" class="inp" id="my-od" value="${due}"></label></div>${q.length ? `<div class="tiny" style="margin-top:12px">넣을 것</div>${q.map((n) => rowHtml(n, dr(cid, n))).join('')}` : ''}`;
+        $('#my-od', el).onchange = (e) => { if (e.target.value) dueOf[cid] = e.target.value; };
+        $('#my-bkn', el).onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) $('#my-ok', el).click(); };
+        $$('[data-mc]', el).forEach((b) => (b.onclick = () => { if (b.dataset.mc === '+') addCls = !addCls; else cid = b.dataset.mc; draw(el); }));
+        $$('.my-row', el).forEach((r) => { const x = dr(cid, r.dataset.rn), on = $('[data-ron]', r), pl = $('[data-rplan]', r); if (on) on.onclick = () => { x.on = !x.on; draw(el); }; if (pl) pl.onclick = () => { x.plan = x.plan === false; draw(el); }; });
+        const k = allRows().length; $('#my-ok', el).textContent = k ? `${k + ($('#my-bkn', el).value.trim() ? 1 : 0)}개 넣기` : '넣기';
+        return;
+      }
       $('#my-rows', el).innerHTML = names.map((n) => rowHtml(n, dr(cid, n))).join('') + `<div class="my-addrow"><input class="inp" id="my-bkn" placeholder="${myCls(cid).day == null ? '할 일 적기 (예: 수행평가 보고서)' : '다른 교재 이름'}"><button type="button" class="btn sm" id="my-bka">+ 추가</button></div>`;
       const sd = myCls(cid).study || [1, 2, 3, 4, 5], nd = myDaysLeft(due, sd);
       const sdT = sd.length === 5 && [1, 2, 3, 4, 5].every((d) => sd.includes(d)) ? '월~금' : [1, 2, 3, 4, 5, 6, 0].filter((d) => sd.includes(d)).map((d) => DOW[d]).join('·');
@@ -1286,7 +1300,9 @@
       $('#my-nod', el).onclick = () => addC(null);
       const push = (c, due, it) => M.items.push({ id: 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), cls: c, due, days: (myCls(c).study || [1, 2, 3, 4, 5]).slice(), at: Date.now(), log: {}, wrong: [], ...it });
       $('#my-ok', el).onclick = () => {
-        const R = allRows(); if (!R.length) { toast('교재 옆에 번호를 적어요'); return; }
+        const bk1 = $('#my-bkn', el), v1 = bk1 && myCls(cid).day == null ? bk1.value.trim() : '';
+        if (v1) { const x = dr(cid, v1); x.mode = '건'; x.on = true; }
+        const R = allRows(); if (!R.length) { toast(myCls(cid).day == null ? '무엇을 하는지 적어요' : '교재 옆에 번호를 적어요'); return; }
         for (let { c, n, x } of R) {
           const due = dueOf[c] || myDue(myCls(c)); n = base(n); const tt = (x.memo || '').trim(), bn = tt ? `${n} ${tt}` : n;
           if (x.mode !== '건' && !myBooks(c).some((b) => b.name === n)) M.books.push({ cls: c, name: n });
@@ -1295,7 +1311,7 @@
           else push(c, due, { book: n, text: n, unit: '건', from: null, to: null, total: 1, plan: x.plan !== false });
         }
         for (const k of Object.keys(D0)) for (const [nn, y] of Object.entries(D0[k])) if (filled(y)) delete D0[k][nn];
-        M.last = cid; save('my'); sheet.dirty = true; draw(el); toast(`${R.length}개 넣었어요 · 더 넣거나 닫아요`);
+        M.last = cid; save('my'); sheet.dirty = true; draw(el); const nw = M.items.slice(-R.length).filter((it) => !isPlan(it) && myToday(it).n); toast(`${R.length}개 넣었어요${nw.length ? ` · 오늘 할 일에 ${nw.map((it) => `${it.book} ${myRange(it, myToday(it))}`).join(', ')}` : R.every((r) => r.x.mode === '건') ? ' · 마감까지 오늘 할 일에 일정으로 보여요' : ' · 오늘은 몫이 없어요'}`);
       };
       $('#my-pok', el).onclick = () => { const L = $('#my-ta', el).value.split('\n').map(myParse).filter(Boolean); if (!L.length) return; const due = dueOf[cid] || myDue(myCls(cid)); L.forEach((l) => push(cid, due, l)); M.last = cid; save('my'); close(); render(); toast(`${L.length}개 넣었어요`); };
     });
@@ -1954,7 +1970,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611010008', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611011219', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5477,7 +5493,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611010008'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611011219'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

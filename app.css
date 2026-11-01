@@ -3139,3 +3139,6 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 .jgs-q.ok { animation: okPop .35s ease; }
 .jgs-q.no .jgs-b { animation: shake .3s ease; }
 .jgs-box { display: inline-block; margin-top: 8px; padding: 8px 18px; border: 1.5px solid var(--t3); border-radius: 6px; font-weight: 600; letter-spacing: .02em; }
+.my-one-f { display: grid; gap: 12px; margin-top: 16px; }
+.my-one-l { display: grid; gap: 6px; }
+.my-one-l .inp { width: 100%; }
