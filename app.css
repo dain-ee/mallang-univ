@@ -3419,3 +3419,11 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 :root[data-skin="headphone"][data-theme="dark"] { --bg: #17121a; } :root[data-skin="headphone"][data-theme="dark"] body { background: var(--bg); }
 :root[data-skin="headphone"] .nt-from .gh-nt { width: 100px; height: 100px; align-self: flex-end; margin: -20px -4px -41px -8px; }
 @media (max-width: 520px) { :root[data-skin="headphone"] .nt-from .gh-nt { width: 84px; height: 84px; margin: -16px -4px -42px -8px; } }
+/* 리포트 칸·주 이동 한 줄 (11/2 «이 이상한 배치는 뭐야») */
+.sr-bar-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.sr-bar-row .sr-tabs { margin: 0; flex: 1 1 300px; }
+.sr-wk { display: flex; align-items: center; gap: 4px; margin: 0; background: var(--card); border-radius: 12px; padding: 4px; }
+.sr-wk b { font-size: 14px; padding: 0 8px; white-space: nowrap; }
+.sr-wk-b { width: 32px; height: 32px; border: 0; border-radius: 8px; background: var(--fill); color: var(--t2); font-size: 18px; cursor: pointer; }
+.sr-wk-b:disabled { opacity: .35; cursor: default; }
+.tt-b.app { left: 2px; background: #c9d1dc; }
