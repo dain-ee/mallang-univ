@@ -2054,7 +2054,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611020008', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611021112', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5742,7 +5742,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611020008'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611021112'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6662,9 +6662,9 @@
   }
   const kmRunBest = () => Math.max(0, ...Object.entries(kmi().run).filter(([k]) => k !== 'at').map(([, v]) => +v || 0));
   const kmCounts = () => { const K = D.kmla, M = kmi(); return { td: K.todo.filter((x) => M.ck[x.id]).length, iv: K.iv.filter((x) => ((M[x.id] || {}).t || '').trim()).length }; };
-  function kmTimeline(K) {
+  function kmTimeline(K, noNext) {
     const t = today(), L = K.steps, nx = L.find((x) => (x.end || x.date) >= t), dd = nx ? dday(nx.date) : null, now = nx && nx.date <= t;
-    return `${nx ? `<div class="km-next"><div><span class="tiny">다음 일정</span><b>${esc(nx.title)}</b><p>${nx.d}</p></div><b class="km-dd num">${now ? '진행 중' : dd === 0 ? 'D-DAY' : 'D-' + dd}</b></div>` : ''}
+    return `${nx && !noNext ? `<div class="km-next"><div><span class="tiny">다음 일정</span><b>${esc(nx.title)}</b><p>${nx.d}</p></div><b class="km-dd num">${now ? '진행 중' : dd === 0 ? 'D-DAY' : 'D-' + dd}</b></div>` : ''}
       <div class="km-tl">${L.map((x) => `<div class="km-s ${(x.end || x.date) < t ? 'past' : ''} ${x === nx ? 'on' : ''}"><i></i><b>${md(x.date)}${x.end ? ' ~ ' + md(x.end) : ''}</b><span>${esc(x.title)}</span></div>`).join('')}</div>`;
   }
   function kmlaCard() {
@@ -6681,8 +6681,13 @@
     const iv = `<p class="tiny" style="margin:0">${esc(K.ivNote)}</p><div class="km-f" style="margin-top:12px"><b>이렇게 준비해요</b><p>${K.ivTips.map(esc).join('<br>')}</p></div>${K.iv.map((x, i) => `<div class="km-iv"><span class="tag">${esc(x.area)}</span><b>${i + 1}. ${esc(x.q)}</b><textarea class="inp" rows="4" data-kmi="${x.id}" placeholder="생각나는 대로 먼저 적고, 소리 내어 읽으며 다듬어요">${esc((M[x.id] || {}).t || '')}</textarea></div>`).join('')}`;
     const facts = `<div class="km-facts">${K.facts.map((f) => `<div class="km-f"><b>${esc(f.h)}</b><p>${f.t}</p></div>`).join('')}</div>`;
     const univ = `<div class="km-facts">${K.univ.map((f) => `<div class="km-f"><b>${esc(f.h)}</b><p>${f.t}</p><a class="tiny" href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.src)}</a></div>`).join('')}</div>`;
-    return `<div class="km-head">${emb({ logo: 'assets/uni/kmla.png', name: K.name }, 'xl')}<div><h1 class="h1" style="margin:0">민사고 입시</h1><p class="tiny" style="margin:4px 0 0">${esc(K.name)} · 2027학년도 입학</p></div></div><p class="sub">${esc(K.src)} 그대로예요. 일정은 바뀔 수 있다고 요강에 적혀 있어서, 원서 내기 전에 <a href="${esc(K.srcUrl)}" target="_blank" rel="noopener">학교 홈페이지 요강</a>을 한 번 더 봐요</p>
-      <div class="grid">${sec('tl', `${ic('cal')} 일정`, '', kmTimeline(K))}
+    // 11/2 «이거 왜 이렇게 안 예쁘냐» → 로고·제목이 바탕에 떠 있던 머리를 카드 하나로: 다음 일정 D-day 크게 (전체 일정은 바로 아래 카드)
+    const nx = K.steps.find((x) => (x.end || x.date) >= t), dd = nx ? Math.round((new Date(nx.date) - new Date(t)) / 864e5) : null;
+    const head = `<section class="km-hero"><div class="km-hero-t">${emb({ logo: 'assets/uni/kmla.png', name: K.name }, 'xl')}<div><span class="km-hero-e">2027학년도 입학 준비</span><h1>${esc(K.name)}</h1></div></div>
+      ${nx ? `<div class="km-hero-d"><div><span>다음 일정</span><b>${esc(nx.title)}</b><em>${md(nx.date)}${nx.end ? ' ~ ' + md(nx.end) : ''}</em><p>${nx.d}</p></div><strong>${dd > 0 ? 'D-' + dd : dd === 0 ? '오늘' : '진행 중'}</strong></div>` : ''}
+      <p class="km-hero-n">${esc(K.src)} 그대로예요. 원서 내기 전에 <a href="${esc(K.srcUrl)}" target="_blank" rel="noopener">학교 요강</a>을 한 번 더 봐요</p></section>`;
+    return `${head}
+      <div class="grid">${sec('tl', `${ic('cal')} 일정`, '', kmTimeline(K, 1))}
       ${sec('todo', `${ic('pin')} 준비할 것`, `<span id="kmt-n">${c.td}/${K.todo.length}</span>`, `<div class="km-facts">${todo}</div>`)}
       ${sec('calc', `${ic('score')} 내 교과성적`, '1단계 40점', calc)}
       ${sec('run', `${ic('run')} 셔틀런`, `여자 기준 ${K.run.goal}회`, run)}
