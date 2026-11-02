@@ -3491,3 +3491,13 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 .hw-float i { flex: none; width: 7px; height: 7px; border-radius: 50%; background: #4dabf7; animation: myTmP 1.2s ease-in-out infinite; }
 .hw-float.paused i { background: #8b95a1; animation: none; }
 @media (max-width: 899px) { .hw-float { top: auto; bottom: calc(var(--tab-h) + 12px + env(safe-area-inset-bottom)); } }
+
+/* 리포트 아래 칸: 위 큰 탭(공부 리포트·모의고사·내신)과 같은 모양이면 무슨 탭인지 헷갈려서 글자 밑줄 탭으로 (11/2) */
+.sr-bar-row .sr-tabs, .sr-tabs { display: flex; gap: 20px; max-width: none; flex: 1 1 auto; border-bottom: 1px solid var(--line, #e5e8eb); padding: 0 4px; }
+.sr-tabs button { flex: none; position: relative; padding: 10px 0 12px; border: 0; background: none; font: inherit; font-size: 16px; font-weight: 600; color: var(--t3); cursor: pointer; }
+.sr-tabs button.on { color: var(--t1); font-weight: 700; }
+.sr-tabs button.on::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; border-radius: 2px; background: var(--t1); }
+button.my-run { border: 0; font-family: inherit; cursor: pointer; }
+.hw-float em { font-style: normal; font-size: 12px; font-weight: 700; padding: 2px 6px; border-radius: 99px; background: rgba(255,255,255,.16); color: #fff; }
+.my-runs { flex: none; display: inline-flex; align-items: center; gap: 6px; }
+.my-pz { flex: none; background: var(--fill); color: var(--t2); font-weight: 700; }

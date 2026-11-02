@@ -828,7 +828,7 @@
     const R = 80, L = Math.PI * R;
     const todo = `<section class="card tight ${cls}"><div class="card-h"><h3>${DAY_OFF() ? `${DAY_OFF() === -1 ? '어제' : md(today())} 할 일` : '오늘 할 일'}</h3>${DAY_OFF() ? '<button class="more" data-dayoff="0">오늘로</button>' : ''}<button class="more" data-go="hw">숙제</button></div>
       <div class="arch"><svg viewBox="0 0 200 100"><path d="M20 96 A80 80 0 0 1 180 96" fill="none" stroke="var(--fill)" stroke-width="12" stroke-linecap="round"/><path class="ring-arc" d="M20 96 A80 80 0 0 1 180 96" fill="none" stroke="var(--blue)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L * (1 - frac)}"/></svg><div class="c"><span class="tiny">오늘</span><br><b class="num">${Math.round(frac * 100)}%</b> <span class="muted">완료</span></div></div>
-      <div class="list">${tasks.length ? tasks.map((t) => `<div class="li btnlike" ${t.hw ? `data-hwopen="${esc(t.hw)}"` : `data-task="${t.k}"`}><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${esc(t.t)}</div><div class="d">${esc(t.d)}</div></div>${myRowTm(t.k, t.done)}</div>`).join('') : `<div class="empty">${ic('party')}<b>오늘 할 일이 없어요</b></div>`}</div></section>`;
+      <div class="list">${tasks.length ? tasks.map((t) => `<div class="li btnlike" ${t.hw ? `data-hwopen="${esc(t.hw)}"` : `data-task="${t.k}"`}><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${esc(t.t)}</div><div class="d">${esc(t.d)}</div></div>${myRowTm(t.hw ? 'hw:' + t.hw : t.k, t.done, t.t)}</div>`).join('') : `<div class="empty">${ic('party')}<b>오늘 할 일이 없어요</b></div>`}</div></section>`;
     return inline ? todo : clockWidget() + pomoCard('pm-rail') + hotCard('') + todo + ddayWidget();
   }
   const nIcon = (n) => (n.scope === '교육부' ? 'bank' : /과학|바이오/.test(n.scope || '') ? 'sci' : 'news');
@@ -1403,33 +1403,61 @@
   //   토마토 타이머의 재기 모드를 그대로 써요: 끝내면 시간표(slog)에 과목·숙제 이름으로 남아요
   const mySubj = (it) => ['수학', '국어', '영어', '과학', '사회'].find((k) => (myCls(it.cls).name + it.book).includes(k)) || '학원 숙제';
   function myTmHTML(it) {
-    const r = P.run, dn = UI.myTmDone;
-    if (r && r.hw === it.id) return `<div class="my-tm on ${r.paused ? 'paused' : ''}"><div class="my-tm-t"><span>${r.paused ? '잠깐 멈췄어요' : '공부하는 중'}</span><b class="num" data-pmt>${pShow()}</b></div><div class="my-tm-bs"><button class="btn" type="button" data-mt="pause">${r.paused ? '이어 하기' : '멈추기'}</button><button class="btn primary" type="button" data-mt="end">끝</button></div></div>`;
+    const tk = 'my:' + it.id, r = tmOf(tk), cur = P.run, dn = UI.myTmDone;
+    if (UI.myTmAsk === it.id) return `<div class="my-tm ask"><div class="my-tm-t">${cur ? `<span>${esc(cur.ti || cur.subj)} 하는 중이에요</span><b>멈추고 이걸 시작할까요?</b>` : '<span>지금부터 시간을 재요</span><b>진짜로 시작할까요?</b>'}</div><div class="my-tm-bs"><button class="btn" type="button" data-mt="no">아니요</button><button class="btn primary" type="button" data-mt="go">시작</button></div></div>`;
+    if (r) return `<div class="my-tm on ${r.paused ? 'paused' : ''}"><div class="my-tm-t"><span>${r.paused ? '잠깐 멈췄어요' : '공부하는 중'}</span><b class="num" ${r === cur ? 'data-pmt' : ''}>${tmShow(r)}</b></div><div class="my-tm-bs"><button class="btn" type="button" data-mt="pause">${r.paused ? '이어 하기' : '멈추기'}</button><button class="btn primary" type="button" data-mt="end">끝</button></div></div>`;
     if (dn && dn.id === it.id) return `<div class="my-tm done"><div class="my-tm-t"><span>수고했어요!</span><b>${hm(dn.m)} 공부했어요</b></div><div class="row between" style="gap:8px"><p class="tiny" style="margin:0">아래에 오늘 한 만큼 적어 주세요</p><button class="btn sm" type="button" data-mt="ask">또 재기</button></div></div>`;
-    if (r) return `<div class="my-tm"><div class="my-tm-t"><span>다른 타이머가 돌고 있어요</span><b>${esc(r.ti || r.subj)} <span class="num" data-pmt>${pShow()}</span></b></div></div>`;
-    if (UI.myTmAsk === it.id) return `<div class="my-tm ask"><div class="my-tm-t"><span>지금부터 시간을 재요</span><b>진짜로 시작할까요?</b></div><div class="my-tm-bs"><button class="btn" type="button" data-mt="no">아니요</button><button class="btn primary" type="button" data-mt="go">시작</button></div></div>`;
     return `<div class="my-tm"><div class="my-tm-t"><span>이 숙제 하는 시간 재기</span><b>${ic('clock')} 시작하면 옆에서 시간이 가요</b></div><button class="btn primary" type="button" data-mt="ask">시작하기</button></div>`;
   }
-  function myTmStart(it) { P.run = { mode: 'focus', watch: 1, pick: 'sw', t0: Date.now(), acc: 0, seg: [], paused: false, subj: mySubj(it), ti: it.book, hw: it.id, dur: 0 }; P.offer = null; UI.myTmDone = null; pSave(); ding(1); if (navigator.vibrate) navigator.vibrate(20); pLoop(); }
-  // 목록 줄 오른쪽: 시작 단추, 재는 중이면 «진행 중 12:34» (11/2 «옆에 시작이 있고, 되면 여기에도 진행 중이라는 걸 알아야 해»)
-  // 11/2 «화살표를 빼고 다 시작이라 하면»: 줄 끝은 화살표 대신 늘 「시작」. 앱 안 공부는 줄을 누른 것과 같아요
-  function myRowTm(k, done) {
-    if (TEACHER) return '<span class="chev"></span>';
-    if (done) return '<span class="tag blue">끝</span>';
-    const go = `<span class="btn sm my-go">${ic('clock')}시작</span>`;
-    if (!k || !String(k).startsWith('my:')) return go;
-    const id = String(k).slice(3), it = myS().items.find((x) => x.id === id), r = P.run; if (!it) return go;
-    if (r && r.hw === id) return `<span class="my-run ${r.paused ? 'paused' : ''}"><i></i>${r.paused ? '멈춤' : '진행 중'} <b class="num" data-pmt>${pShow()}</b></span>`;
-    if (r || isPlan(it)) return go;
-    return `<button class="btn sm my-go" type="button" data-mygo="${esc(id)}">${ic('clock')}시작</button>`;
+  function myTmStart(it) { tmStart('my:' + it.id, it.book, mySubj(it)); UI.myTmDone = null; }
+  // 무엇이든 시작 (11/2 «인강도 뭐든지 다 해야 해, 다른 게 안 멈췄으면 멈출까요 하고, 그걸 나중에 다시 이어 할 수도»)
+  //   P.run 하나만 돌고, 멈춰 둔 것은 P.held 에 남아요. 줄마다 tk(줄 열쇠)로 찾아요
+  const tkOf = (r) => r ? r.tk || (r.hw ? 'my:' + r.hw : '') : '';
+  const tmOf = (tk) => (P.run && tkOf(P.run) === tk ? P.run : (P.held || []).find((x) => tkOf(x) === tk)) || null;
+  const tmSubj = (t) => [['국어', '국어'], ['영어', '영어'], ['수학', '수학'], ['과학', '과학'], ['한국사', '사회'], ['역사', '사회'], ['사회', '사회']].find(([k]) => String(t).includes(k))?.[1] || '자유';
+  const tmShow = (r) => r === P.run ? pShow() : mmss(Math.floor(pWatchSec(r)));
+  function tmHold() {  // 지금 도는 것을 멈춰서 옆에 둬요
+    const r = P.run; if (!r) return; const n = Date.now();
+    if (!r.paused) { if (r.watch) { r.acc += n - r.t0; r.seg.push([r.t0, n]); } else r.left = pLeft(); r.paused = true; }
+    P.held = (P.held || []).filter((x) => x !== r); if (r.watch) P.held.push(r); P.run = null;
   }
-  function myGoAsk(id) {
-    const it = myS().items.find((x) => x.id === id); if (!it || P.run) return;
-    sheet(`<h2>${esc(it.book)} 시작할까요?</h2><p class="sub">지금부터 시간을 재요. 다 하면 이 줄을 눌러 「끝」을 눌러요</p><div class="pm-btns"><button class="btn big" id="mg-no" type="button">아니요</button><button class="btn primary big" id="mg-go" type="button">시작</button></div>`, (el, close) => {
+  function tmStart(tk, ti, subj) {
+    const h = (P.held || []).find((x) => tkOf(x) === tk);
+    if (P.run && tkOf(P.run) === tk) { if (P.run.paused) pPause(); return; }
+    tmHold();
+    if (h) { P.held = P.held.filter((x) => x !== h); h.t0 = Date.now(); h.paused = false; P.run = h; }
+    else P.run = { mode: 'focus', watch: 1, pick: 'sw', t0: Date.now(), acc: 0, seg: [], paused: false, subj: subj || tmSubj(ti), ti, tk, ...(tk.startsWith('my:') ? { hw: tk.slice(3) } : {}), dur: 0 };
+    P.offer = null; pSave(); ding(1); if (navigator.vibrate) navigator.vibrate(20); pLoop();
+  }
+  function tmGo(tk, ti, after) {
+    const cur = P.run && tkOf(P.run) !== tk ? P.run : null, h = tmOf(tk), again = h && h !== P.run;
+    sheet(`<h2>${cur ? `${esc(cur.ti || cur.subj)} 하는 중이에요` : `${esc(ti)} ${again ? '이어 할까요?' : '시작할까요?'}`}</h2><p class="sub">${cur ? `멈추고 ${esc(ti)} ${again ? '이어 할까요' : '시작할까요'}?<br>지금 하던 건 멈춰 두었다가 나중에 「이어 하기」로 다시 잴 수 있어요` : again ? `멈춘 ${tmShow(h)}에서 이어서 재요` : '지금부터 시간을 재요. 다 하면 떠 있는 시간을 눌러 「끝」을 눌러요'}</p><div class="pm-btns"><button class="btn big" id="mg-no" type="button">아니요</button><button class="btn primary big" id="mg-go" type="button">${cur ? (again ? '멈추고 이어 하기' : '멈추고 시작') : again ? '이어 하기' : '시작'}</button></div>`, (el, close) => {
       $('#mg-no', el).onclick = close;
-      $('#mg-go', el).onclick = () => { myTmStart(it); close(); render(); toast(`${it.book} 시작! 시간을 재고 있어요`); };
+      $('#mg-go', el).onclick = () => { tmStart(tk, ti); close(); render(); toast(`${ti} ${again ? '이어서' : '시작!'} 시간을 재고 있어요`); if (after) after(); };  // 바로 열어야 인강 새 창이 막히지 않아요
     });
   }
+  // 떠 있는 시간·진행 중 표시를 누르면: 멈추기·끝·하러 가기
+  function tmSheet(tk) {
+    const r = tmOf(tk); if (!r) return; if (r.hw && tk.startsWith('my:')) return mySheet(r.hw);
+    const isCur = r === P.run;
+    sheet(`<h2>${esc(r.ti || r.subj)}</h2><p class="sub">${isCur && !r.paused ? '공부하는 중' : '잠깐 멈췄어요'} · <b class="num" ${isCur ? 'data-pmt' : ''}>${tmShow(r)}</b></p><div class="pm-btns"><button class="btn big" id="tm-p" type="button">${isCur && !r.paused ? '멈추기' : '이어 하기'}</button><button class="btn primary big" id="tm-e" type="button">끝</button></div>`, (el, close) => {
+      $('#tm-p', el).onclick = () => { close(); if (isCur) { pPause(); } else tmGo(tk, r.ti); };
+      $('#tm-e', el).onclick = () => { close(); pWatchEnd(r); };
+    });
+  }
+  // 목록 줄 오른쪽: 시작 단추, 재는 중이면 «진행 중 12:34» (11/2 «옆에 시작이 있고, 되면 여기에도 진행 중이라는 걸 알아야 해»)
+  // 11/2 «화살표를 빼고 다 시작이라 하면»: 줄 끝은 화살표 대신 늘 「시작」. 앱 안 공부는 줄을 누른 것과 같아요
+  function myRowTm(k, done, ti) {
+    if (TEACHER) return '<span class="chev"></span>';
+    if (done) return '<span class="tag blue">끝</span>';
+    k = String(k || ''); if (!k) return '';
+    const r = tmOf(k), my = k.startsWith('my:') ? myS().items.find((x) => x.id === k.slice(3)) : null;
+    if (my && isPlan(my)) return `<span class="btn sm my-go">${ic('clock')}시작</span>`;
+    if (!ti) ti = my ? my.book : k;
+    if (r) { const on = r === P.run && !r.paused; return `<span class="my-runs"><button type="button" class="my-run ${on ? '' : 'paused'}" data-tmopen="${esc(k)}"><i></i>${on ? '진행 중' : '멈춤'} <b class="num" ${r === P.run ? 'data-pmt' : ''}>${tmShow(r)}</b></button><button type="button" class="btn sm my-pz" data-tmpz="${esc(k)}" data-tmti="${esc(ti)}">${on ? '멈추기' : '이어 하기'}</button></span>`; }
+    return `<button class="btn sm my-go" type="button" data-tmgo="${esc(k)}" data-tmti="${esc(ti)}">${ic('clock')}시작</button>`;
+  }
+  function myGoAsk(id) { const it = myS().items.find((x) => x.id === id); if (it) tmGo('my:' + id, it.book); }
   function myTmBind(it) {
     const box = $('#my-tm'); if (!box || TEACHER) return;
     const draw = () => { box.innerHTML = myTmHTML(it); myTmBind(it); };
@@ -1438,8 +1466,8 @@
       if (k === 'ask') { UI.myTmAsk = it.id; UI.myTmDone = null; return draw(); }
       if (k === 'no') { UI.myTmAsk = null; return draw(); }
       if (k === 'go') { UI.myTmAsk = null; myTmStart(it); render(); return draw(); }
-      if (k === 'pause') { pPause(); return draw(); }
-      if (k === 'end') { const m = pWatchEnd(); if (m) UI.myTmDone = { id: it.id, m }; draw(); }
+      if (k === 'pause') { const r = tmOf('my:' + it.id); if (r && r !== P.run && P.run) { UI.myTmAsk = it.id; return draw(); } if (r && r !== P.run) tmStart('my:' + it.id, it.book); else pPause(); render(); return draw(); }
+      if (k === 'end') { const m = pWatchEnd(tmOf('my:' + it.id)); if (m) UI.myTmDone = { id: it.id, m }; draw(); }
     }));
   }
   function mySheet(id) {
@@ -1903,8 +1931,8 @@
         const { tasks } = todayTasks(), real = tasks.filter((t) => t.icon !== 'party' && !t.memo), dn = real.filter((t) => t.done).length;
         const by = (a, b) => String(a.due || '').localeCompare(String(b.due || ''));
         const later = TEACHER ? hwList.filter((h) => !hwDone(h) && h.due && h.due > today()).sort(by) : [], done = hwList.filter((h) => hwDone(h)).sort(by).reverse();
-        const hrow = (h, later) => `<div class="li btnlike" data-hwopen="${esc(h.id)}">${(h.nx && NXSETS[h.nx]) || mmOf(h) ? `<div class="ico">${ic(hwDone(h) ? 'ok' : 'pin')}</div>` : `<button class="ico" data-hwdone="${esc(h.id)}" style="border:0;cursor:pointer" aria-label="완료">${ic(hwDone(h) ? 'ok' : 'pin')}</button>`}<div class="body"><div class="t" style="${hwDone(h) ? 'color:var(--t3);text-decoration:line-through' : later ? 'color:var(--t2);font-weight:500' : ''}">${esc(h.title)}</div><div class="d">${[h.subj, h.due ? md(h.due) + (later ? ' 숙제' : '') : ''].filter(Boolean).map(esc).join(' · ')}</div></div>${TEACHER ? `<button class="btn sm" data-hwdel="${esc(h.id)}" type="button">지우기</button>` : ''}${myRowTm('', hwDone(h))}</div>`;
-        const row = (t) => `<div class="li btnlike ${t.done ? 'is-done' : ''}" ${t.hw ? `data-hwopen="${esc(t.hw)}"` : `data-task="${esc(t.k)}"`}><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${esc(t.t)}${t.hw ? ' <span class="tag">선생님</span>' : ''}</div><div class="d">${esc(t.d)}</div></div>${myRowTm(t.k, t.done)}</div>`;
+        const hrow = (h, later) => `<div class="li btnlike" data-hwopen="${esc(h.id)}">${(h.nx && NXSETS[h.nx]) || mmOf(h) ? `<div class="ico">${ic(hwDone(h) ? 'ok' : 'pin')}</div>` : `<button class="ico" data-hwdone="${esc(h.id)}" style="border:0;cursor:pointer" aria-label="완료">${ic(hwDone(h) ? 'ok' : 'pin')}</button>`}<div class="body"><div class="t" style="${hwDone(h) ? 'color:var(--t3);text-decoration:line-through' : later ? 'color:var(--t2);font-weight:500' : ''}">${esc(h.title)}</div><div class="d">${[h.subj, h.due ? md(h.due) + (later ? ' 숙제' : '') : ''].filter(Boolean).map(esc).join(' · ')}</div></div>${TEACHER ? `<button class="btn sm" data-hwdel="${esc(h.id)}" type="button">지우기</button>` : ''}${myRowTm('hw:' + h.id, hwDone(h), h.title)}</div>`;
+        const row = (t) => `<div class="li btnlike ${t.done ? 'is-done' : ''}" ${t.hw ? `data-hwopen="${esc(t.hw)}"` : `data-task="${esc(t.k)}"`}><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${esc(t.t)}${t.hw ? ' <span class="tag">선생님</span>' : ''}</div><div class="d">${esc(t.d)}</div></div>${myRowTm(t.hw ? 'hw:' + t.hw : t.k, t.done, t.t)}</div>`;
         const tog = (pn, label, n) => n ? `<button type="button" data-pn="${pn}" data-lb="${label} <b>${n}</b>" onclick="const s=this.closest('section'),p=s.querySelector('[data-pane='+this.dataset.pn+']'),o=p.hidden;s.querySelectorAll('.hw-pane').forEach(x=>x.hidden=true);this.parentNode.querySelectorAll('button[data-lb]').forEach(b=>{b.classList.remove('on');b.innerHTML=b.dataset.lb});if(o){p.hidden=false;this.classList.add('on');this.textContent='접기'}">${label} <b>${n}</b></button>` : '';
         return `<section class="card ${TUTOR ? 'c8' : 'c12'}"><div class="card-h"><h2>오늘 할 것</h2>${real.length ? `<span class="tiny">${real.length}개 중 <b class="${dn === real.length ? 'blue' : ''}">${dn}개</b> 끝</span>` : ''}${TEACHER ? '<button class="btn sm soft" id="hw-add" type="button">숙제 내기</button>' : ''}</div>
           ${real.length ? `<div class="td-prog"><i style="width:${(dn / real.length) * 100}%"></i></div>` : ''}
@@ -2100,7 +2128,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611021541', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611021613', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2878,6 +2906,8 @@
   const SR_TEST = (() => { try { return localStorage.getItem('mu:offline') === '1' && localStorage.getItem('mu:sr') === '1'; } catch (e) { return false; } })();  // 테스트: 과외 학생 오프라인 탭에서도 리포트를 열어 봐요
   if (SR_TEST) window.__myRow = (id) => { const L = myTasks().filter((t) => t.k === 'my:' + id); return L.map((t) => `<div class="li btnlike" data-task="${esc(t.k)}"><div class="ico">${ic(t.icon)}</div><div class="body"><div class="t">${esc(t.t)}</div><div class="d">${esc(t.d)}</div></div>${myRowTm(t.k, t.done)}</div>`).join(''); };
   if (SR_TEST) window.__myGo = (id) => myGoAsk(id);
+  if (SR_TEST) window.__rowTm = (k, ti) => myRowTm(k, false, ti);
+  if (SR_TEST) window.__tm = () => JSON.stringify({ run: P.run && { tk: tkOf(P.run), ti: P.run.ti, paused: P.run.paused }, held: (P.held || []).map((x) => ({ tk: tkOf(x), ti: x.ti, sec: Math.round(pWatchSec(x)) })) });
   if (SR_TEST) window.__myTest = (it) => { if (!myS().items.some((x) => x.id === it.id)) myS().items.push({ log: {}, wrong: [], days: [1, 2, 3, 4, 5], at: Date.now(), ...it }); mySheet(it.id); };  // 오프라인 시험 탭에서만
   function srOn() { return SR_TEST || (!TUTOR && !(NXD.subjects || []).length && (location.hostname !== 'dain-ee.github.io' || ROLE_T)); }  // 선생님이 시안을 보고 괜찮다고 할 때까지 로컬·선생님이 연 학생 탭에서만 (정윤 앱엔 아직 안 보여요)
   var SR_MINE = 1793511014696;  // 11/1 선생님이 대신 넣어 준 기록은 빼요
@@ -2982,7 +3012,7 @@
       <section class="card c6"><div class="card-h"><h2>${ic('target')} 공부 시간 대비</h2><span class="tiny">적은 공부 시간 한 시간에 푼 양</span></div>
         ${ph != null ? `<div class="sr-foc"><b class="num">${Math.round(ph)}<small>문제 / 시간</small></b>${pph ? `<span class="tag ${ph >= pph ? 'blue' : ''}">지난 4주 ${Math.round(pph)}문제 / 시간</span>` : ''}<p class="tiny">적은 시간 ${srMinT(cur.man)} 동안 앱 ${cur.n}문항 + 학원·책 ${cur.probs}문제. 시간을 안 적은 날은 빼고 재요</p></div>` : `<p class="tiny">이번 주는 공부 시간을 적은 날이 없어요. 앱에서 문제를 푼 시간은 ${srMinT(cur.appMin)}이에요</p>`}
         <div class="sr-vd ${verdict[0]}"><b>${verdict[1]}</b><span class="tiny">${cur.hwDue ? `마감 숙제 ${cur.hwDue}개 중 ${cur.hwOk}개 했어요` : ''}${a4 != null ? `${cur.hwDue ? ' · ' : ''}지난 4주 평균 ${Math.round(a4)}개 풀었어요` : ''}</span></div></section>`;
-    const tab = UI.srTab || 'sum', tabs = `<div class="seg sr-tabs">${[['sum', '요약'], ['time', '시간표'], ['speed', '속도·집중']].map(([k, t]) => `<button type="button" class="${tab === k ? 'on' : ''}" data-srtab="${k}">${t}</button>`).join('')}</div>`;
+    const tab = UI.srTab || 'sum', tabs = `<div class="sr-tabs" role="tablist">${[['sum', '요약'], ['time', '시간표'], ['speed', '속도·집중']].map(([k, t]) => `<button type="button" class="${tab === k ? 'on' : ''}" data-srtab="${k}">${t}</button>`).join('')}</div>`;
     const wkNav = `<div class="sr-wk"><button class="sr-wk-b" data-srw="${addD(w0, -7)}" type="button" aria-label="지난주">‹</button><b>${live ? '이번 주' : wd(w0)}</b><button class="sr-wk-b" data-srw="${addD(w0, 7)}" type="button" aria-label="다음 주" ${live ? 'disabled' : ''}>›</button></div>`;
     if (tab === 'time') return `<div class="sr-bar-row">${tabs}${wkNav}</div><div class="grid">${srTime(w0)}</div>`;
     if (tab === 'speed') return `<div class="sr-bar-row">${tabs}${wkNav}</div><div class="grid">${SPEED}</div>`;
@@ -3975,14 +4005,15 @@
     let pill = $('#pomo-pill');
     // 숙제 재는 중: 위쪽 가운데 작게 떠서 어느 화면에서든 시간이 보여요. 누르면 그 숙제가 열려요 (11/2 «저장 안 된다고 할 때처럼, 다른 거 누르는 데 방해 안 되게»)
     let hf = $('#hw-float');
-    if (r && r.hw && !TEACHER) {
+    const fr = r && tkOf(r) ? r : !r && (P.held || []).length ? P.held[P.held.length - 1] : null;
+    if (fr && !TEACHER) {
       if (!hf) { hf = document.createElement('button'); hf.id = 'hw-float'; hf.type = 'button'; hf.className = 'hw-float'; document.body.appendChild(hf); }
-      hf.onclick = () => mySheet(r.hw);
-      const k = r.hw + (r.paused ? 'p' : '');
-      if (hf.dataset.k !== k) { hf.dataset.k = k; hf.classList.toggle('paused', !!r.paused); hf.innerHTML = `<i></i><span>${esc(r.ti || '숙제')} ${r.paused ? '멈춤' : '진행 중'}</span><b class="num"></b>`; }
-      $('b', hf).textContent = pShow();
+      hf.onclick = () => tmSheet(tkOf(fr));
+      const ps = fr.paused || fr !== r, k = tkOf(fr) + (ps ? 'p' : '') + (P.held || []).length;
+      if (hf.dataset.k !== k) { hf.dataset.k = k; hf.classList.toggle('paused', ps); hf.innerHTML = `<i></i><span>${esc(fr.ti || '숙제')} ${ps ? '멈춤' : '진행 중'}</span><b class="num"></b>${(P.held || []).length > (fr === r ? 0 : 1) ? `<em>+${(P.held || []).length - (fr === r ? 0 : 1)}</em>` : ''}`; }
+      $('b', hf).textContent = tmShow(fr);
     } else if (hf) hf.remove();
-    if ((r || listening()) && !on && !(r && (ht || r.hw)) && !TEACHER) {
+    if ((r || listening()) && !on && !(r && (ht || tkOf(r))) && !TEACHER) {
       const k = r ? r.mode + (r.paused ? 'p' : '') + (listening() ? 'h' : '') : 'h';
       if (!pill) { pill = document.createElement('button'); pill.id = 'pomo-pill'; pill.type = 'button'; pill.className = 'pomo-pill'; pill.setAttribute('aria-label', '토마토 타이머 열기'); pill.onclick = openPomo; document.body.appendChild(pill); }
       if (pill.dataset.k !== k) { pill.dataset.k = k; pill.innerHTML = r ? `${ic(r.mode === 'break' ? 'coffee' : 'tomato')}<b class="num"></b><span>${r.paused ? '멈춤' : r.mode === 'break' ? '쉬는 중' : '집중 중'}</span>${listening() ? ic('headph', 'pm-hp') : ''}` : `${ic('headph')}<span>${MUS ? '음악 듣는 중' : '집중 소리 켜짐'}</span>`; }
@@ -4011,15 +4042,15 @@
     sheet(`<h2>그만할까요?</h2><p class="sub">지금 멈추면 이번 토마토는 안 익어요. ${mmss(pLeft())}만 더 하면 토마토 하나예요</p><div class="pm-btns"><button class="btn big" id="ps-no" type="button">그만하기</button><button class="btn primary big" id="ps-go" type="button">계속하기</button></div>`, (el, close) => { $('#ps-go', el).onclick = close; $('#ps-no', el).onclick = () => { close(); pStop(); }; });
   }
   const slogPut = (s0, e0, subj, k, ti) => { if (e0 - s0 < 60000) return; S.slog = S.slog || {}; S.slog[k + s0] = { s: s0, e: e0, subj, k, at: Date.now(), ...(ti ? { ti } : {}) }; };
-  function pWatchEnd() {
-    const r = P.run; if (!r) return; const n = Date.now();
+  function pWatchEnd(r = P.run) {
+    if (!r) return; const n = Date.now();
     const seg = r.paused ? r.seg : [...r.seg, [r.t0, n]], sec = pWatchSec(r), m = Math.round(sec / 60);
-    P.run = null; P.offer = null; pSave(); pLoop();
+    if (r === P.run) { P.run = null; P.offer = null; } P.held = (P.held || []).filter((x) => x !== r); pSave(); pLoop();
     if (m < 1) { render(); toast('1분이 안 돼서 안 남겼어요'); return 0; }
     for (const [a, b] of seg) slogPut(a, b, r.subj, 'w', r.ti);
     const po = pomo(), d = today(), x = po.days[d] = po.days[d] || { n: 0, min: 0, subj: {} }; x.min = (x.min || 0) + m;
     save('pomo', 'slog'); render(); ding(3); if (navigator.vibrate) navigator.vibrate([60, 40, 120]);
-    if (r.hw) { boom(innerWidth / 2, innerHeight * 0.4, m >= 30 ? 5 : 3); toast(`수고했어요! ${r.ti} ${hm(m)} 공부했어요`); }
+    if (r.tk || r.hw) { boom(innerWidth / 2, innerHeight * 0.4, m >= 30 ? 5 : 3); toast(`수고했어요! ${r.ti} ${hm(m)} 공부했어요`); }
     else toast(`${r.subj} ${hm(m)} 남겼어요 · 오늘 ${hm(sMin(d))}`);
     return m;
   }
@@ -5863,7 +5894,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611021541'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611021613'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6910,6 +6941,7 @@
     main.classList.remove('enter', 'soft', 'boot', 'push', 'pop', 'tabL', 'tabR', 'side');
     const pBar = $$('main .nx-bar i').map((x) => x.style.width);  // 진행 막대는 옛 길이에서 새 길이로 쭉 (10/31)
     main.innerHTML = (TEACHER && !DASH_ONLY ? teacherBand() : '') + html;
+    if (SR_TEST && window.__tstBox) main.insertAdjacentHTML('afterbegin', window.__tstBox());  // 오프라인 시험 탭에서만: 시험 줄을 앱이 같이 그려요
     if (view === render.view && !RM()) $$('main .nx-bar i').forEach((x, i) => { if (pBar[i] && pBar[i] !== x.style.width) x.animate([{ width: pBar[i] }, { width: x.style.width }], { duration: 420, easing: 'cubic-bezier(.2,.8,.2,1)' }); });
     // 탭·칸 바꿀 때는 밀지 않고, 카드 자리만 회색 실루엣으로 잠깐 보였다가 내용이 스르륵 떠요
     if (dir === 'side' || dir === 'tabL' || dir === 'tabR') { dir = ''; if (!RM()) { clearTimeout(render.sk); main.classList.remove('skel-out'); skelPaint(main); main.classList.add('skel'); render.sk = setTimeout(() => { main.classList.remove('skel'); $('.skel-ov', main)?.remove(); main.classList.add('skel-out'); setTimeout(() => main.classList.remove('skel-out'), 260); }, 280); } if (view !== render.view) cheerCheck.combo = 0; setTimeout(() => countUp(main), 300); }
@@ -7010,7 +7042,13 @@
     $$('[data-go]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); if (b.dataset.seg) UI.scoreSeg = b.dataset.seg; go(b.dataset.go); }));
     $$('[data-goalset]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); goalSheet(); }));
     $$('[data-task]').forEach((b) => (b.onclick = () => startTask(b.dataset.task)));
-    $$('[data-mygo]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); myGoAsk(b.dataset.mygo); }));
+    $$('[data-tmgo]').forEach((b) => (b.onclick = (e) => {
+      e.stopPropagation(); const tk = b.dataset.tmgo, li = b.closest('[data-task], [data-hwopen]');
+      const sel = li ? (li.dataset.hwopen ? `[data-hwopen="${CSS.escape(li.dataset.hwopen)}"]` : `[data-task="${CSS.escape(li.dataset.task)}"]`) : '';
+      tmGo(tk, b.dataset.tmti, tk.startsWith('my:') || !sel ? null : () => { const x = $(sel); if (x) x.click(); });  // 앱 안 공부·인강은 시작하면 바로 열어요
+    }));
+    $$('[data-tmpz]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); const k = b.dataset.tmpz, r = tmOf(k); if (!r) return; if (r === P.run) { pPause(); toast(r.paused ? '멈췄어요 · 「이어 하기」로 다시 재요' : '이어서 재요'); } else tmGo(k, b.dataset.tmti); }));
+    $$('[data-tmopen]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); tmSheet(b.dataset.tmopen); }));
     $$('[data-clch]').forEach((b) => (b.onclick = () => { UI.clCh = +b.dataset.clch; render(); }));
     $$('[data-wmday]').forEach((b) => (b.onclick = () => wmDaySheet(b.dataset.wmday)));
     $$('#ink-set, [data-inkset]').forEach((b) => (b.onclick = inkSettings));
