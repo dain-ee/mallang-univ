@@ -3506,3 +3506,24 @@ button.my-run { border: 0; font-family: inherit; cursor: pointer; }
 .my-tm .btn.primary { background: var(--t1); color: var(--card); }
 .my-tm .btn.primary:hover { background: var(--t2); }
 .my-go .ic { opacity: 1; }
+
+/* 시간표: 가로 요일 7칸, 세로 시간 (11/2) */
+.tv-wrap { display: grid; grid-template-columns: 40px repeat(7, minmax(0, 1fr)); gap: 4px; }
+.tv-hrs span { position: absolute; right: 6px; transform: translateY(-7px); font-size: 11px; color: var(--t3); white-space: nowrap; }
+.tv-col { min-width: 0; }
+.tv-dh { width: 100%; height: 60px; border: 0; border-radius: 12px; background: transparent; font: inherit; display: grid; justify-items: center; align-content: center; gap: 0; cursor: pointer; color: inherit; margin-bottom: 6px; }
+.tv-dh b { font-size: 14px; color: var(--t1); }
+.tv-dh span { font-size: 12px; color: var(--t3); }
+.tv-dh em { font-style: normal; font-size: 11px; font-weight: 700; color: var(--t1); min-height: 14px; }
+.tv-col.today .tv-dh b { color: var(--blue); }
+.tv-col.on .tv-dh { background: var(--blue-soft); }
+.tv-col.fut { opacity: .45; }
+.tv-col.fut .tv-dh { cursor: default; }
+.tv-body { position: relative; border-radius: 8px; background: repeating-linear-gradient(to bottom, var(--line) 0 1px, transparent 1px 40px), var(--fill2); }
+.tv-col.on .tv-body { background: repeating-linear-gradient(to bottom, var(--line) 0 1px, transparent 1px 40px), var(--blue-soft); }
+.tv-b { position: absolute; left: 3px; right: 3px; border: 0; padding: 0; border-radius: 5px; background: var(--c); cursor: pointer; overflow: hidden; display: grid; place-items: start center; }
+.tv-b.app { background: #c9d1dc; left: 30%; }
+.tv-b.live { animation: tvLive 2s ease-in-out infinite; }
+@keyframes tvLive { 50% { opacity: .6; } }
+.tv-b span { font-size: 11px; font-weight: 700; color: #fff; padding: 3px 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+@media (max-width: 600px) { .tv-wrap { grid-template-columns: 30px repeat(7, minmax(0, 1fr)); gap: 2px; } .tv-b span { display: none; } .tv-hrs span { font-size: 10px; right: 3px; } }

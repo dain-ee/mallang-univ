@@ -1441,7 +1441,7 @@
   const tmShow = (r) => r === P.run ? pShow() : mmss(Math.floor(pWatchSec(r)));
   function tmHold() {  // 지금 도는 것을 멈춰서 옆에 둬요
     const r = P.run; if (!r) return; const n = Date.now();
-    if (!r.paused) { if (r.watch) { r.acc += n - r.t0; r.seg.push([r.t0, n]); } else r.left = pLeft(); r.paused = true; }
+    if (!r.paused) { if (r.watch) { r.acc += n - r.t0; r.seg.push([r.t0, n]); slogPut(r.t0, n, r.subj, 'w', r.ti); save('slog'); } else r.left = pLeft(); r.paused = true; }
     P.held = (P.held || []).filter((x) => x !== r); if (r.watch) P.held.push(r); P.run = null;
   }
   function tmStart(tk, ti, subj) {
@@ -2155,7 +2155,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611021656', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611021700', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2982,35 +2982,38 @@
   var srLD = (t) => srDay(t - 5 * 3600000);  // 새벽 0~5시는 전날로
   function srBlocks(w0) {
     const w1 = addD(w0, 7), B = [];
-    for (const x of Object.values(S.slog || {})) { const d = srLD(x.s); if (d >= w0 && d < w1) B.push({ d, s: x.s, e: x.e, t: x.subj || '자유', ti: x.ti, k: x.k === 't' ? '토마토 타이머' : x.ti ? '숙제하며 잰 시간' : '직접 잰 시간' }); }
+    const L0 = Object.assign({}, S.slog || {}), r0 = typeof P !== 'undefined' && P.run;  // 지금 재는 칸도 바로 보여요 (11/2 «바로바로 기록이 되어야»)
+    if (r0 && r0.watch && !r0.paused) L0['w' + r0.t0] = { s: r0.t0, e: Date.now(), subj: r0.subj, k: 'w', ti: r0.ti, live: 1 };
+    for (const x of Object.values(L0)) { const d = srLD(x.s); if (d >= w0 && d < w1 && x.e > x.s) B.push({ d, s: x.s, e: x.e, t: x.subj || '자유', ti: x.ti, live: x.live, k: x.live ? '지금 재는 중' : x.k === 't' ? '토마토 타이머' : x.ti ? '「시작」으로 잰 시간' : '직접 잰 시간' }); }
     let cur = null; const flush = () => { if (!cur) return; const top = Object.entries(cur.n).sort((a, b) => b[1] - a[1])[0][0]; B.push({ d: srLD(cur.s), s: cur.s, e: Math.max(cur.e, cur.s + 60000), t: '앱', k: `앱 · ${SR_K[top][0]} ${cur.c}문항` }); cur = null; };
     for (const e of srEvents()) { const d = srLD(e.at); if (d < w0 || d >= w1) continue; if (cur && e.at - cur.e <= 20 * 60000) { cur.e = e.at; cur.c++; cur.n[e.k] = (cur.n[e.k] || 0) + 1; } else { flush(); cur = { s: e.at, e: e.at, c: 1, n: { [e.k]: 1 } }; } }
     flush();
     return B.sort((a, b) => a.s - b.s);
   }
   // 11/2 «시간표는 완전히 바꿔야 할 듯» → 세로 칸 대신 요일마다 하루 막대 한 줄 + 고른 날의 기록 목록
+  // 11/2 «가로가 일, 세로가 시간» → 요일 7칸 위에서 아래로 시간이 내려가요. 칸을 누르면 그날 기록 목록
   function srTime(w0) {
     const B = srBlocks(w0), D7 = Array.from({ length: 7 }, (_, i) => addD(w0, i));
     const base = (d) => new Date(d + 'T05:00:00').getTime(), off = (b, t) => (t - base(b.d)) / 60000;  // 그날 새벽 5시부터 몇 분
     let h0 = 8, h1 = 24; for (const b of B) { h0 = Math.min(h0, 5 + Math.floor(off(b, b.s) / 60)); h1 = Math.max(h1, 5 + Math.ceil(off(b, b.e) / 60)); }
-    h1 = Math.min(h1, 29); const span = (h1 - h0) * 60, X = (b, t) => Math.max(0, Math.min(100, ((off(b, t) - (h0 - 5) * 60) / span) * 100));
+    h1 = Math.min(h1, 29); const PH = 40, Y = (b, t) => Math.max(0, Math.min((h1 - h0) * PH, ((off(b, t) - (h0 - 5) * 60) / 60) * PH));
     const hl = (h) => { const x = h % 24; return x === 0 ? '밤 12시' : x < 12 ? `오전 ${x}시` : x === 12 ? '낮 12시' : `${x - 12}시`; };
-    const ticks = []; for (let h = Math.ceil(h0 / 3) * 3; h <= h1; h += 3) ticks.push(h);
     const dayB = (d) => B.filter((b) => b.d === d), dayM = (d) => dayB(d).reduce((a, b) => a + (b.e - b.s) / 60000, 0);
     const tot = {}; for (const b of B) tot[b.t] = (tot[b.t] || 0) + (b.e - b.s) / 60000;
     const all = Object.values(tot).reduce((a, v) => a + v, 0);
     const tm = (t) => new Date(t).toTimeString().slice(0, 5), hmm = (m) => (m ? `${Math.floor(m / 60)}:${String(Math.round(m % 60)).padStart(2, '0')}` : '');
     const sel = D7.includes(UI.ttDay) ? UI.ttDay : D7.includes(today()) && dayB(today()).length ? today() : [...D7].reverse().find((d) => dayB(d).length) || (D7.includes(today()) ? today() : w0);
-    const nm = (b) => (b.t === '앱' ? b.k.replace(/^앱 · /, '앱 · ') : `${b.t}${b.ti ? ' · ' + b.ti : ''}`);
-    const rows = D7.map((d) => { const L = dayB(d), m = dayM(d), fut = d > today();
-      return `<button type="button" class="tt-row ${d === sel ? 'on' : ''} ${d === today() ? 'today' : ''} ${fut ? 'fut' : ''}" data-ttd="${d}" ${fut ? 'disabled' : ''}><span class="tt-d"><b>${DOW[dowOf(d)]}</b><em>${+d.slice(8)}</em></span><span class="tt-strip">${L.map((b) => `<i class="${b.t === '앱' ? 'app' : ''}" style="left:${X(b, b.s).toFixed(2)}%;width:${Math.max(0.8, X(b, b.e) - X(b, b.s)).toFixed(2)}%;--c:${SR_C[b.t] || SR_C.자유}"></i>`).join('')}</span><span class="tt-sum num">${m ? hmm(m) : fut ? '' : '-'}</span></button>`; }).join('');
+    const nm = (b) => (b.t === '앱' ? b.k : `${b.t}${b.ti ? ' · ' + b.ti : ''}`);
+    const hrs = []; for (let h = h0; h <= h1; h++) hrs.push(h);
+    const cols = D7.map((d) => { const L = dayB(d), m = dayM(d), fut = d > today();
+      return `<div class="tv-col ${d === sel ? 'on' : ''} ${d === today() ? 'today' : ''} ${fut ? 'fut' : ''}"><button type="button" class="tv-dh" data-ttd="${d}" ${fut ? 'disabled' : ''}><b>${DOW[dowOf(d)]}</b><span>${+d.slice(8)}</span><em class="num">${m ? hmm(m) : ''}</em></button><div class="tv-body" style="height:${(h1 - h0) * PH}px">${L.map((b) => { const y = Y(b, b.s), h = Math.max(4, Y(b, b.e) - y); return `<button type="button" class="tv-b ${b.t === '앱' ? 'app' : ''} ${b.live ? 'live' : ''}" data-ttd="${d}" style="top:${y.toFixed(1)}px;height:${h.toFixed(1)}px;--c:${SR_C[b.t] || SR_C.자유}" title="${esc(tm(b.s) + '~' + tm(b.e) + ' ' + nm(b))}">${h >= 18 && b.t !== '앱' ? `<span>${esc(b.ti || b.t)}</span>` : ''}</button>`; }).join('')}</div></div>`; }).join('');
     const SL = dayB(sel), sm = dayM(sel);
-    const list = SL.length ? SL.map((b) => `<div class="tt-it"><span class="tt-tm num">${tm(b.s)}<em>${tm(b.e)}</em></span><i style="--c:${SR_C[b.t] || SR_C.자유}" class="${b.t === '앱' ? 'app' : ''}"></i><div class="tt-nm"><b>${esc(nm(b))}</b><span>${b.t === '앱' ? '앱에서 푼 시간 · 저절로 남아요' : b.k}</span></div><span class="tt-m num">${srMinT((b.e - b.s) / 60000)}</span></div>`).join('') : `<p class="tiny" style="margin:8px 0 0">${sel === today() ? '오늘은 아직 기록이 없어요' : '이날은 기록이 없어요'}</p>`;
+    const list = SL.length ? SL.map((b) => `<div class="tt-it"><span class="tt-tm num">${tm(b.s)}<em>${b.live ? '지금' : tm(b.e)}</em></span><i style="--c:${SR_C[b.t] || SR_C.자유}" class="${b.t === '앱' ? 'app' : ''}"></i><div class="tt-nm"><b>${esc(nm(b))}</b><span>${b.t === '앱' ? '앱에서 푼 시간 · 저절로 남아요' : b.k}</span></div><span class="tt-m num">${srMinT((b.e - b.s) / 60000)}</span></div>`).join('') : `<p class="tiny" style="margin:8px 0 0">${sel === today() ? '오늘은 아직 기록이 없어요' : '이날은 기록이 없어요'}</p>`;
     const leg = Object.entries(tot).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<span class="tt-lg"><i style="--c:${SR_C[k] || SR_C.자유}"></i>${k === '앱' ? '앱 문제 풀이' : esc(k)} <b>${srMinT(v)}</b></span>`).join('');
     return `<section class="card c12 tt-card"><div class="tt-top"><div><span class="tiny">이번 주 모두</span><b class="num">${all ? srMinT(all) : '0분'}</b></div><div class="tt-lgs">${leg}</div></div>
-      <div class="tt-days"><div class="tt-axis"><span></span><span class="tt-ax">${ticks.map((h) => `<em style="left:${(((h - h0) * 60) / span) * 100}%">${hl(h).replace('오전 ', '').replace('낮 ', '')}</em>`).join('')}</span><span></span></div>${rows}</div></section>
+      <div class="tv-wrap"><div class="tv-hrs"><div class="tv-dh"></div><div style="position:relative;height:${(h1 - h0) * PH}px">${hrs.map((h) => `<span style="top:${(h - h0) * PH}px">${hl(h).replace('오전 ', '').replace('낮 ', '')}</span>`).join('')}</div></div>${cols}</div></section>
       <section class="card c12 tt-detail"><div class="card-h"><h2>${md(sel)} ${DOW[dowOf(sel)]}요일</h2><span class="tag ${sm ? 'blue' : ''}">${sm ? srMinT(sm) : '기록 없음'}</span></div>${list}
-      <p class="tiny" style="margin:16px 0 0">회색은 앱에서 문제를 푼 시간이라 저절로 남아요. 색은 학원·책 숙제를 「시작하기」로 잰 시간이에요. 새벽 5시 전은 전날로 쳐요</p></section>`;
+      <p class="tiny" style="margin:16px 0 0">회색은 앱에서 문제를 푼 시간이라 저절로 남아요. 색은 「시작」으로 잰 시간이에요. 재는 중이면 바로 칸이 생겨요. 새벽 5시 전은 전날로 쳐요</p></section>`;
   }
   function srView() {
     const tw = srWk(today()), w0 = UI.srW && UI.srW <= tw ? UI.srW : tw, cur = srWeek(w0), prev = srWeek(addD(w0, -7));
@@ -4051,7 +4054,12 @@
     document.title = r ? `${r.paused ? '⏸' : r.watch ? '⏱' : r.mode === 'break' ? '☕' : '🍅'} ${pShow()} · ${BRAND}` : (U.tabStu ? `${U.who} · ${BRAND}` : BRAND);
   }
   let pT = 0;
-  function pTick() { const r = P.run; if (r && !r.paused && Date.now() >= r.endAt) return pFinish(); pPaint(); }
+  let pLive = 0;
+  function pTick() {
+    const r = P.run, n = Date.now(); if (r && !r.paused && n >= r.endAt) return pFinish();
+    if (r && r.watch && !r.paused && !TEACHER && n - r.t0 >= 60000 && n - pLive >= 5 * 60000) { pLive = n; slogPut(r.t0, n, r.subj, 'w', r.ti); save('slog'); }  // 재는 중에도 5분마다 서버에 남겨요: 선생님 화면·다른 기기에서 바로 보여요
+    pPaint();
+  }
   function pLoop() { clearInterval(pT); pT = 0; if (P.run && !P.run.paused) pT = setInterval(pTick, 500); pTick(); }
   const pRedraw = () => { if ((UI.run && UI.run.kind === 'pomo') || (!UI.run && UI.tab === 'home')) render(); else nav(); };
   function openPomo() { UI.run = { kind: 'pomo' }; render(); window.scrollTo(0, 0); }
@@ -4062,7 +4070,7 @@
     pSave(); ding(1); if (navigator.vibrate) navigator.vibrate(20); render(); pLoop();
   }
   function pPause() { const r = P.run; if (!r) return;
-    if (r.watch) { const n = Date.now(); if (r.paused) { r.t0 = n; r.paused = false; } else { r.acc += n - r.t0; r.seg.push([r.t0, n]); r.paused = true; } pSave(); render(); pLoop(); return; } if (r.paused) { r.endAt = Date.now() + r.left * 1000; r.paused = false; } else { r.left = pLeft(); r.paused = true; } pSave(); render(); pLoop(); }
+    if (r.watch) { const n = Date.now(); if (r.paused) { r.t0 = n; r.paused = false; } else { r.acc += n - r.t0; r.seg.push([r.t0, n]); r.paused = true; slogPut(r.t0, n, r.subj, 'w', r.ti); save('slog'); } pSave(); render(); pLoop(); return; } if (r.paused) { r.endAt = Date.now() + r.left * 1000; r.paused = false; } else { r.left = pLeft(); r.paused = true; } pSave(); render(); pLoop(); }
   function pStop() { P.run = null; P.offer = null; pSave(); pLoop(); render(); }
   function pStopAsk() {
     const r = P.run; if (!r) return;
@@ -5923,7 +5931,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611021656'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611021700'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
