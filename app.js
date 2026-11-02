@@ -2155,7 +2155,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611021716', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611022336', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2724,7 +2724,9 @@
     const cur = UI.run && UI.run.kind === 'unit' && UI.run.show != null ? UI.run.show : left;
     UI.run = { kind: 'unit', show: cur, ref, back, g3lib };
     const head = `<div class="row between">${back === 'g3' ? (g3lib != null ? (UI.run.mm ? `<button class="btn sm" data-lmm="${g3lib}" type="button">‹ 모의고사 문제로</button>` : `<button class="btn sm" data-lg="${g3lib}" type="button">‹ 고3 문제로</button>`) : '<button class="btn sm" data-task="g3" type="button">‹ 고3 문제로</button>') : back === 'lib' ? '<button class="btn sm" data-lib="cheonil" type="button">‹ 천일문 목록</button>' : back === 'exam' ? '<button class="btn sm" data-go="exam" type="button">‹ 수업</button>' : '<button class="btn sm" data-go="hw" type="button">‹ 숙제</button>'}<span class="tiny">천일문 Ch.${esc(un.ch)} ${esc(un.chTitle || '')}</span></div>
-      ${un.lesson ? chLesson(un) : `<div class="card"><div class="q-no">Unit ${esc(un.unit)}</div><h1 class="h1" style="margin-top:4px">${esc(un.title)}</h1><p style="line-height:1.8;color:var(--t2);margin:8px 0 0">${esc(un.concept || '')}</p></div>`}
+      ${(() => { const jb = cur >= 0 && qs.length ? `<button class="btn primary big block cl-jump" data-toq type="button">문제 ${ids.filter((k) => !store[k]).length}개 바로 풀기 ↓</button><p class="tiny" style="margin:-8px 0 16px;text-align:center">문제는 설명 아래 맨 끝에 있어요. 설명을 읽고 내려가도 되고, 바로 가도 돼요</p>` : '';
+        if (!un.lesson) return `<div class="card"><div class="q-no">Unit ${esc(un.unit)}</div><h1 class="h1" style="margin-top:4px">${esc(un.title)}</h1><p style="line-height:1.8;color:var(--t2);margin:8px 0 0">${esc(un.concept || '')}</p></div>` + jb;
+        const h = chLesson(un), e = h.indexOf('</p></div>', h.indexOf('cl-hook')) + 10; return h.slice(0, e) + jb + h.slice(e); })()}
       <div class="card"><div class="card-h"><h3>문장으로 이해하기</h3></div><div class="list">${(un.sentences || []).map((s) => `<div class="li" style="align-items:flex-start"><div class="body"><div class="t" style="font-size:16px;line-height:1.6">${esc(s.en)}</div><div class="d" style="margin-top:4px">${esc(s.ko)}</div>${s.point ? `<div class="tiny blue" style="margin-top:4px">${esc(s.point)}</div>` : ''}</div><span class="tag">${esc(s.src || '')}</span></div>`).join('')}</div></div>`;
     if (cur < 0 || cur == null) {
       const ok = ids.filter((k) => store[k] && store[k].ok).length;
@@ -5932,7 +5934,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611021716'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611022336'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7177,6 +7179,7 @@
       b.onmouseleave = () => { const t = $('#tv-tip'); if (t) t.remove(); };
     });
     { const t = $('#tv-tip'); if (t) t.remove(); }
+    $$('[data-toq]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); toQ(); }));  // 천일문 숙제: 설명이 길어 문제를 못 찾아서 (11/2 지원)
     $$('[data-srtab]').forEach((b) => (b.onclick = () => { UI.srTab = b.dataset.srtab; const y = scrollY; render(); scrollTo(0, y); }));
     $$('[data-ttd]').forEach((b) => (b.onclick = () => { UI.ttDay = b.dataset.ttd; const y = scrollY; render(); scrollTo(0, y); }));
     if (!UI.run && UI.tab === 'score') { if (UI.scoreSeg === 'mock' && UI.mockId) bindMock(); if (UI.scoreSeg === 'naesin') bindNaesin(); }
