@@ -2155,7 +2155,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611021707', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611021716', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3006,14 +3006,14 @@
     const nm = (b) => (b.t === '앱' ? b.k : `${b.t}${b.ti ? ' · ' + b.ti : ''}`);
     const hrs = []; for (let h = h0; h <= h1; h++) hrs.push(h);
     const cols = D7.map((d) => { const L = dayB(d), m = dayM(d), fut = d > today();
-      return `<div class="tv-col ${d === sel ? 'on' : ''} ${d === today() ? 'today' : ''} ${fut ? 'fut' : ''}"><button type="button" class="tv-dh" data-ttd="${d}" ${fut ? 'disabled' : ''}><b>${DOW[dowOf(d)]}</b><span>${+d.slice(8)}</span><em class="num">${m ? hmm(m) : ''}</em></button><div class="tv-body" style="height:${(h1 - h0) * PH}px">${L.map((b) => { const y = Y(b, b.s), h = Math.max(4, Y(b, b.e) - y); return `<button type="button" class="tv-b ${b.t === '앱' ? 'app' : ''} ${b.live ? 'live' : ''}" data-ttd="${d}" style="top:${y.toFixed(1)}px;height:${h.toFixed(1)}px;--c:${SR_C[b.t] || SR_C.자유}" title="${esc(tm(b.s) + '~' + tm(b.e) + ' ' + nm(b))}">${h >= 18 && b.t !== '앱' ? `<span>${esc(b.ti || b.t)}</span>` : ''}</button>`; }).join('')}</div></div>`; }).join('');
+      return `<div class="tv-col ${d === sel ? 'on' : ''} ${d === today() ? 'today' : ''} ${fut ? 'fut' : ''}"><button type="button" class="tv-dh" data-ttd="${d}" ${fut ? 'disabled' : ''}><b>${DOW[dowOf(d)]}</b><span>${+d.slice(8)}</span><em class="num">${m ? hmm(m) : ''}</em></button><div class="tv-body" style="height:${(h1 - h0) * PH}px">${L.map((b) => { const y = Y(b, b.s), h = Math.max(22, Y(b, b.e) - y); return `<button type="button" class="tv-b ${b.t === '앱' ? 'app' : ''} ${b.live ? 'live' : ''}" data-ttd="${d}" style="top:${y.toFixed(1)}px;height:${h.toFixed(1)}px;--c:${SR_C[b.t] || SR_C.자유}" data-tip="${esc(`${tm(b.s)} ~ ${b.live ? '지금' : tm(b.e)} · ${srMinT((b.e - b.s) / 60000)}|${nm(b)}|${b.t === '앱' ? '앱에서 문제를 푼 시간 · 저절로 남아요' : b.k}`)}"><span>${esc(b.t === '앱' ? '앱 문제' : b.ti || b.t)} <b class="num">${srMinT((b.e - b.s) / 60000)}</b></span></button>`; }).join('')}</div></div>`; }).join('');
     const SL = dayB(sel), sm = dayM(sel);
     const list = SL.length ? SL.map((b) => `<div class="tt-it"><span class="tt-tm num">${tm(b.s)}<em>${b.live ? '지금' : tm(b.e)}</em></span><i style="--c:${SR_C[b.t] || SR_C.자유}" class="${b.t === '앱' ? 'app' : ''}"></i><div class="tt-nm"><b>${esc(nm(b))}</b><span>${b.t === '앱' ? '앱에서 푼 시간 · 저절로 남아요' : b.k}</span></div><span class="tt-m num">${srMinT((b.e - b.s) / 60000)}</span></div>`).join('') : `<p class="tiny" style="margin:8px 0 0">${sel === today() ? '오늘은 아직 기록이 없어요' : '이날은 기록이 없어요'}</p>`;
     const leg = Object.entries(tot).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<span class="tt-lg"><i style="--c:${SR_C[k] || SR_C.자유}"></i>${k === '앱' ? '앱 문제 풀이' : esc(k)} <b>${srMinT(v)}</b></span>`).join('');
     return `<section class="card c12 tt-card"><div class="tt-top"><div><span class="tiny">이번 주 모두</span><b class="num">${all ? srMinT(all) : '0분'}</b></div><div class="tt-lgs">${leg}</div></div>
       <div class="tv-wrap"><div class="tv-hrs"><div class="tv-dh"></div><div style="position:relative;height:${(h1 - h0) * PH}px">${hrs.map((h) => `<span style="top:${(h - h0) * PH}px">${hl(h).replace('오전 ', '').replace('낮 ', '')}</span>`).join('')}</div></div>${cols}</div></section>
       <section class="card c12 tt-detail"><div class="card-h"><h2>${md(sel)} ${DOW[dowOf(sel)]}요일</h2><span class="tag ${sm ? 'blue' : ''}">${sm ? srMinT(sm) : '기록 없음'}</span></div>${list}
-      <p class="tiny" style="margin:16px 0 0">회색은 앱에서 문제를 푼 시간이라 저절로 남아요. 색은 「시작」으로 잰 시간이에요. 재는 중이면 바로 칸이 생겨요. 새벽 5시 전은 전날로 쳐요</p></section>`;
+      <p class="tiny" style="margin:16px 0 0">막대는 그 시각에 공부한 거예요. 위가 시작, 아래가 끝이고 길수록 오래 했어요(짧아도 글씨가 보이게 조금 두껍게 그려요). 마우스를 올리면 무엇인지 나와요. 회색은 앱에서 문제를 푼 시간이라 저절로 남아요. 색은 「시작」으로 잰 시간이에요. 재는 중이면 바로 칸이 생겨요. 새벽 5시 전은 전날로 쳐요</p></section>`;
   }
   function srView() {
     const tw = srWk(today()), w0 = UI.srW && UI.srW <= tw ? UI.srW : tw, cur = srWeek(w0), prev = srWeek(addD(w0, -7));
@@ -5932,7 +5932,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611021707'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611021716'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7168,6 +7168,15 @@
     $$('[data-pk]').forEach((b) => (b.onclick = () => { const [k, i] = b.dataset.pk.split(':'); pickDetail(k, +i); }));
     if (!UI.run && UI.tab === 'sgb') bindLogs();
     $$('[data-srw]').forEach((b) => (b.onclick = () => { UI.srW = b.dataset.srw; const y = scrollY; render(); scrollTo(0, y); }));
+    // 시간표 칸에 마우스를 올리면 무엇인지 띄우고, 벗어나면 바로 지워요 (11/2)
+    $$('.tv-b[data-tip]').forEach((b) => {
+      b.onmouseenter = () => { let t = $('#tv-tip'); if (!t) { t = document.createElement('div'); t.id = 'tv-tip'; t.className = 'tv-tip'; document.body.appendChild(t); }
+        const [a, n, k] = b.dataset.tip.split('|'); t.innerHTML = `<b>${esc(n)}</b><span>${esc(a)}</span><em>${esc(k)}</em>`;
+        const r = b.getBoundingClientRect(), w = t.offsetWidth, x = Math.min(innerWidth - w - 8, Math.max(8, r.left + r.width / 2 - w / 2));
+        t.style.left = x + 'px'; t.style.top = (r.top - t.offsetHeight - 8 < 8 ? r.bottom + 8 : r.top - t.offsetHeight - 8) + 'px'; };
+      b.onmouseleave = () => { const t = $('#tv-tip'); if (t) t.remove(); };
+    });
+    { const t = $('#tv-tip'); if (t) t.remove(); }
     $$('[data-srtab]').forEach((b) => (b.onclick = () => { UI.srTab = b.dataset.srtab; const y = scrollY; render(); scrollTo(0, y); }));
     $$('[data-ttd]').forEach((b) => (b.onclick = () => { UI.ttDay = b.dataset.ttd; const y = scrollY; render(); scrollTo(0, y); }));
     if (!UI.run && UI.tab === 'score') { if (UI.scoreSeg === 'mock' && UI.mockId) bindMock(); if (UI.scoreSeg === 'naesin') bindNaesin(); }
