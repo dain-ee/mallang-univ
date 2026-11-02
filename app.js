@@ -351,8 +351,9 @@
   const mmLeft = (ids) => ids.filter((i) => !((S.eng || {}).mmans || {})[MM[i].id]);
   // 천일문 숙제: 누르면 그 유닛 문제로, 다 풀면 저절로 「했어요」 (10/26)
   function cuHwStart(h) { const no = cuOf(h.title), i = no ? CH_UNITS.findIndex((u) => +u.unit === no) : -1; if (i < 0) return false;
-    // 복습 숙제(redo): 숙제 내기 전에 푼 답은 지우고 같은 문제를 처음부터 다시 풀어요. 지운 칸은 redo로 남겨야 다른 기기 옛 답이 안 돌아와요 (11/1 지원 관계사 복습)
-    if (h.redo && !h.done) { const u = CH_UNITS[i], k = uKey(u), st = ((S.eng.ua = S.eng.ua || {})[k] = S.eng.ua[k] || {}), now = Date.now(); let n = 0; for (const q of Object.keys(st)) if (st[q] && !st[q].redo && (st[q].at || 0) < (h.at || 0)) { st[q] = { at: now, redo: 1 }; n++; } if (n) save('eng'); } UI.tab = 'hw'; UI.lib = null; UI.run = { kind: 'unit', ref: i, back: 'hw' }; render(); window.scrollTo(0, 0); return true; }
+    // 복습 숙제(redo)는 숙제 칸(유닛@숙제id)에 새로 풀어요. 수업 때 푼 기록은 공부로 그대로 둬요 (11/2 선생님 «그건 공부고 숙제는 리셋»)
+    //   예전엔 수업 답을 지웠는데, 화면이 redo 표시를 지우고 저장해서 서버에서 옛 답이 되살아났어요
+    UI.tab = 'hw'; UI.lib = null; UI.run = { kind: 'unit', ref: i, back: 'hw', ...(h.redo ? { hwk: h.id } : {}) }; render(); window.scrollTo(0, 0); return true; }
   function mmHwStart(h) { const ids = mmOf(h); if (!ids) return false; const L = mmLeft(ids); UI.tab = 'hw'; UI.lib = null; UI.run = { kind: 'g3', lib: (L[0] != null ? L[0] : ids[0]), mm: true, q: ids }; render(); window.scrollTo(0, 0); return true; }
   function engToday(force) {
     const t = today(); S.eng = S.eng || { unit: 0, wordDay: 0, days: {} }; S.eng.days = S.eng.days || {};
@@ -2155,7 +2156,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611022341', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611022350', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2310,7 +2311,7 @@
   // 푼 답은 S.redo 에 잠깐 맡겨 두고 처음부터 다시 풀어요. 끝까지 다시 풀면 새 답이 남고,
   // 중간에 나가면 안 푼 문제는 맡겨 둔 답으로 되돌려요 (숙제가 「안 함」으로 바뀌지 않게)
   // ua 는 uKey 로: 새 문제판(:2) 칸이라야 다시 풀기가 돼요 (11/2 지원 «다시 풀기 눌러도 다시 풀 수가 없어요»)
-  const redoKey = () => { const r = UI.run; if (!r) return ''; if (r.kind === 'sci') return 'sci:' + today(); if (r.kind === 'drill') return 'dr:' + r.id; if (r.kind === 'unit') { const un = CH_UNITS[r.ref != null ? r.ref : engToday(true).unit]; return r.ref != null ? 'ua:' + uKey(un) : 'ud:' + today(); } if (r.kind === 'words') return r.day != null ? 'wa:' + r.day : 'wd:' + today(); return ''; };
+  const redoKey = () => { const r = UI.run; if (!r) return ''; if (r.kind === 'sci') return 'sci:' + today(); if (r.kind === 'drill') return 'dr:' + r.id; if (r.kind === 'unit') { const un = CH_UNITS[r.ref != null ? r.ref : engToday(true).unit]; return r.ref != null ? 'ua:' + uKey(un) + (r.hwk ? '@' + r.hwk : '') : 'ud:' + today(); } if (r.kind === 'words') return r.day != null ? 'wa:' + r.day : 'wd:' + today(); return ''; };
   function redoStore(key) {
     const i = key.indexOf(':'), k = key.slice(0, i), a = key.slice(i + 1);
     return k === 'sci' ? [(S.sci.days[a] || {}).ans, 'sci'] : k === 'dr' ? [(S.drillAns || {})[a], 'drillAns'] : k === 'ud' ? [(S.eng.days[a] || {}).uans, 'eng'] : k === 'ua' ? [(S.eng.ua || {})[a], 'eng'] : k === 'wd' ? [(S.eng.days[a] || {}).wans, 'eng'] : k === 'wa' ? [(S.eng.wa || {})[a], 'eng'] : [null];
@@ -2711,7 +2712,7 @@
   function unitCtx() {
     const ed = engToday(true), ref = UI.run && UI.run.ref != null && UI.run.ref >= 0 ? UI.run.ref : null, un = CH_UNITS[ref != null ? ref : ed.unit];
     if (!un) return { ed, ref, un };
-    S.eng.ua = S.eng.ua || {}; const store = ref != null ? (S.eng.ua[uKey(un)] = S.eng.ua[uKey(un)] || {}) : uStore(ed);
+    S.eng.ua = S.eng.ua || {}; const uk = uKey(un) + (ref != null && UI.run.hwk ? '@' + UI.run.hwk : ''), store = ref != null ? (S.eng.ua[uk] = S.eng.ua[uk] || {}) : uStore(ed);
     if (ref != null) for (const k of Object.keys(store)) if (store[k] && store[k].redo) delete store[k];  // 복습 숙제로 다시 풀 문제 (cuHwStart)
     return { ed, ref, un, store, ids: qIds(un) };
   }
@@ -2723,7 +2724,7 @@
     if (!un) return `<div class="card empty">${ic('eng')}<b>천일문 자료를 넣는 중이에요</b></div>`;
     const qs = un.questions || []; const qi = ids.find((k) => !store[k]); const left = qi == null ? -1 : qi;
     const cur = UI.run && UI.run.kind === 'unit' && UI.run.show != null ? UI.run.show : left;
-    UI.run = { kind: 'unit', show: cur, ref, back, g3lib };
+    UI.run = { kind: 'unit', show: cur, ref, back, g3lib, ...(UI.run && UI.run.hwk ? { hwk: UI.run.hwk } : {}) };
     const head = `<div class="row between">${back === 'g3' ? (g3lib != null ? (UI.run.mm ? `<button class="btn sm" data-lmm="${g3lib}" type="button">‹ 모의고사 문제로</button>` : `<button class="btn sm" data-lg="${g3lib}" type="button">‹ 고3 문제로</button>`) : '<button class="btn sm" data-task="g3" type="button">‹ 고3 문제로</button>') : back === 'lib' ? '<button class="btn sm" data-lib="cheonil" type="button">‹ 천일문 목록</button>' : back === 'exam' ? '<button class="btn sm" data-go="exam" type="button">‹ 수업</button>' : '<button class="btn sm" data-go="hw" type="button">‹ 숙제</button>'}<span class="tiny">천일문 Ch.${esc(un.ch)} ${esc(un.chTitle || '')}</span></div>
       ${(() => { const jb = cur >= 0 && qs.length ? `<button class="btn primary big block cl-jump" data-toq type="button">문제 ${ids.filter((k) => !store[k]).length}개 바로 풀기 ↓</button><p class="tiny" style="margin:-8px 0 16px;text-align:center">문제는 설명 아래 맨 끝에 있어요. 설명을 읽고 내려가도 되고, 바로 가도 돼요</p>` : '';
         if (!un.lesson) return `<div class="card"><div class="q-no">Unit ${esc(un.unit)}</div><h1 class="h1" style="margin-top:4px">${esc(un.title)}</h1><p style="line-height:1.8;color:var(--t2);margin:8px 0 0">${esc(un.concept || '')}</p></div>` + jb;
@@ -2753,7 +2754,7 @@
     const wk = `eng:${uKey(un)}-${cur}`;
     const live = () => unitCtx().store || store;  // 누를 때 다시 찾아요 (서버 맞춤 뒤 옛 기록에 적으면 「확인」해도 안 넘어가요 10/26)
     const mark = (ok, extra) => { const store = live(); store[cur] = { ok, at: Date.now(), ...extra }; if (!ok) addWrong(wk, { src: 'eng', subj: 'eng', subjName: '영어', area: '천일문 ' + (un.chTitle || ''), sub: un.title, ref: { ch: un.ch, unit: un.unit, i: cur, v: un.v2 ? 2 : 0 } }); else { gotIt(wk); clearWrong(wk); } save('eng');
-      if (ref != null && ids.every((k) => store[k])) { const t = cuTitle(un.unit), h = (S.hw || []).find((x) => !x.done && (x.title === t || cuOf(x.title) === +un.unit)); if (h) { h.done = true; h.doneAt = Date.now(); save('hw'); toast('천일문 숙제 끝!'); } }
+      if (ref != null && ids.every((k) => store[k])) { const t = cuTitle(un.unit), hk = UI.run && UI.run.hwk, h = (S.hw || []).find((x) => !x.done && (x.title === t || cuOf(x.title) === +un.unit) && (x.redo ? x.id === hk : !hk)); if (h) { h.done = true; h.doneAt = Date.now(); save('hw'); toast('천일문 숙제 끝!'); } }
       render(); };
     $$('[data-pick]').forEach((b) => (b.onclick = () => mark(+b.dataset.pick === q.answer, { pick: +b.dataset.pick })));
     const out = $('#ord-out'), picked = [];
@@ -5935,7 +5936,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611022341'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611022350'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
