@@ -127,7 +127,7 @@
     fin: (r, l) => { const ans = { ...(r.ans || {}) }; for (const [c, v] of Object.entries(l.ans || {})) ans[c] = jMerge(ans[c] || {}, v); return { ...r, ...l, ans }; },  // 기말 개념: 문제마다 나중에 푼 쪽
     jl: jMerge, jr: jMerge, jw: jMerge,
     // 기기 둘이 엇갈려도 서로 안 지우게 (11/1 정윤 저장 실패 뒤 «신문 글쓰기 저장됐다는데 하나도 없어»): 내 생각·담기는 칸마다 더 새것, 오답은 키마다, 용돈은 내역 id별로 합쳐요
-    notes: jMerge, keep: jMerge, kmi: jMerge, nread: jMerge,  // kmi: 지원 민사고 면접 연습 답 (질문마다 더 새것)
+    notes: jMerge, keep: jMerge, kmi: jMerge, nread: jMerge, slog: jMerge,  // kmi: 지원 민사고 면접 연습 답 (질문마다 더 새것)
     wrong: (r, l, rNew) => { const [o, n] = rNew ? [l, r] : [r, l]; return { ...o, ...n }; },
     wallet: (r, l, rNew) => { const [o, n] = rNew ? [l, r] : [r, l], ids = new Set((n.log || []).map((x) => x.id)); return { ...o, ...n, log: [...(n.log || []), ...(o.log || []).filter((x) => !ids.has(x.id))].sort((a, b) => (a.at || 0) - (b.at || 0)), seen: { ...(o.seen || {}), ...(n.seen || {}) } }; },
     // 테마 선물: 두 기기 것을 테마마다 합쳐요. 연 기록이 있으면 그걸, 아니면 나중에 보내거나(at) 취소한(x) 쪽을 써요 (10/27 보낸 쿠로미가 정윤이 기기 옛 기록에 덮여 사라짐)
@@ -673,9 +673,9 @@
     });
   }
   // 곰 테마: 떠 있는 장식 대신, 펫을 누르거나 정답·배지로 팡 터질 때 하트가 펫에서 터져 나와요 (10/28 선생님 «떠 있는 건 이상해, 액션할 때 팡 터지는 게 나을 수도»)
-  const PET_BURST = new Set(['rilakkuma', 'korilakkuma', 'monchhichi', 'teacher', 'woni', 'rescene', 'bunny']);
+  const PET_BURST = new Set(['rilakkuma', 'korilakkuma', 'monchhichi', 'teacher', 'woni', 'rescene', 'bunny', 'headphone']);
   const BUNNY_BRIGHT = ['idle', 'happy', 'proud', 'wow', 'hug'];  // 토끼 소녀 밝은 자세 (볼에 손가락·손 흔들기·브이·두 손 볼·토끼 안기)
-  const MOOD_PET = new Set(['teacher', 'bunny']);  // 기분 따라 표정이 바뀌는 2D 펫 (m_<기분>.webp)  // 몬치치는 사진이라 3D 동작이 없어서 팡 터지는 걸로 보완 (10/29)
+  const MOOD_PET = new Set(['teacher', 'bunny', 'headphone']);  // 기분 따라 표정이 바뀌는 2D 펫 (m_<기분>.webp)  // 몬치치는 사진이라 3D 동작이 없어서 팡 터지는 걸로 보완 (10/29)
   function petBurst(el, n = 12) {
     el = el || $('.pet-perch'); if (!el || !PET_BURST.has(el.dataset.skin) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     if (el.dataset.skin === 'monchhichi' || PHOTO_PET[el.dataset.skin]) n = Math.max(n, 20);
@@ -694,7 +694,7 @@
     if (h >= 23 || h < 5) return 'sleepy';
     const real = todayTasks().tasks.filter((x) => x.icon !== 'party' && !x.memo), dn = real.filter((x) => x.done).length;
     // 토끼 소녀 (11/1 «너무 다 같은데, 미뤘을 때 아니면 밝은 것 중에 표정이 좀 바뀌었으면»): 화남은 밀린 게 있는데 오늘 아무것도 안 했을 때만, 나머지는 밝은 자세를 돌려 가며
-    if (skin() === 'bunny') { if (lagRows().rows.some((r) => r.behind > 0) && !dn) return 'angry'; if (real.length && dn >= real.length) return 'proud'; return tMood.pick || (tMood.pick = BUNNY_BRIGHT[Math.floor(Math.random() * BUNNY_BRIGHT.length)]); }
+    if (skin() === 'bunny' || skin() === 'headphone') { if (lagRows().rows.some((r) => r.behind > 0) && !dn) return 'angry'; if (real.length && dn >= real.length) return 'proud'; return tMood.pick || (tMood.pick = BUNNY_BRIGHT[Math.floor(Math.random() * BUNNY_BRIGHT.length)]); }
     if (lagRows().rows.some((r) => r.behind > 0)) return 'angry';
     if (real.length && dn >= real.length) return 'proud';
     if ((todayWins().caught || 0) >= 10) return 'wow';
@@ -2036,7 +2036,7 @@
   // 3D 유령: 한 번만 도는 동작은 볼 때마다 처음부터 다시 돌도록 매번 새 주소(blob)로 붙여요
   // ───────── 테마: 색 전체 + 3D 인형 펫 (아직 로컬 시험 중: localStorage mu:themes=1 일 때만 보여요) ─────────
   const SKIN_DEV = (() => { try { return localStorage.getItem('mu:themes') === '1'; } catch (e) { return false; } })();
-  const SKINS = { ghost: { n: '말랑 유령', c: '#3182f6', d: '기본' }, kitty: { n: '헬로키티', c: '#e8384f', d: '빨간 리본' }, monchhichi: { n: '몬치치', c: '#e2333d', d: '털인형 빨간 리본' }, melody: { n: '마이멜로디', c: '#e35d93', d: '분홍 두건' }, chiikawa: { n: '치이카와', c: '#e07686', d: '말랑 하양' }, cinnamoroll: { n: '시나모롤', c: '#5aa6e6', d: '하늘 구름' }, kuromi: { n: '쿠로미', c: '#8a63c9', d: '검은 두건 해골' }, bamdol: { n: '밤돌이', c: '#12a594', d: '나뭇잎 셔츠' }, rilakkuma: { n: '리락쿠마', c: '#c8792a', d: '갈색 곰 노란 귀' }, korilakkuma: { n: '코리락쿠마', c: '#e07a8c', d: '크림 곰 빨간 단추' }, teacher: { n: '선생님', c: '#111111', d: '검은 터틀넥 선글라스' }, bunny: { n: '토끼 소녀', c: '#ee7fa6', d: '분홍 니트 토끼 인형' }, woni: { n: '리센느 원이', c: '#5b8fd6', d: '볼 콕 손하트' }, rescene: { n: '리센느', c: '#5b8fd6', d: '다섯 멤버' } };
+  const SKINS = { ghost: { n: '말랑 유령', c: '#3182f6', d: '기본' }, kitty: { n: '헬로키티', c: '#e8384f', d: '빨간 리본' }, monchhichi: { n: '몬치치', c: '#e2333d', d: '털인형 빨간 리본' }, melody: { n: '마이멜로디', c: '#e35d93', d: '분홍 두건' }, chiikawa: { n: '치이카와', c: '#e07686', d: '말랑 하양' }, cinnamoroll: { n: '시나모롤', c: '#5aa6e6', d: '하늘 구름' }, kuromi: { n: '쿠로미', c: '#8a63c9', d: '검은 두건 해골' }, bamdol: { n: '밤돌이', c: '#12a594', d: '나뭇잎 셔츠' }, rilakkuma: { n: '리락쿠마', c: '#c8792a', d: '갈색 곰 노란 귀' }, korilakkuma: { n: '코리락쿠마', c: '#e07a8c', d: '크림 곰 빨간 단추' }, teacher: { n: '선생님', c: '#111111', d: '검은 터틀넥 선글라스' }, bunny: { n: '토끼 소녀', c: '#ee7fa6', d: '분홍 니트 토끼 인형' }, headphone: { n: '헤드폰 소녀', c: '#b394e6', d: '분홍 헤드폰 흰 스웨터' }, woni: { n: '리센느 원이', c: '#5b8fd6', d: '볼 콕 손하트' }, rescene: { n: '리센느', c: '#5b8fd6', d: '다섯 멤버' } };
   const SKIN_Q = new URLSearchParams(location.search).get('skin');  // 시험용: 탭마다 다른 테마 (?skin=kitty)
   const owned = () => (S.profile.skins || []).filter((k) => SKINS[k]);
   // 선생님 내 정보 (이름·생일·MBTI·테마): 학생 기록과 따로 서버 「_선생님」 칸에 저장해요
@@ -2049,12 +2049,12 @@
   async function tLoad() { try { const r = await rpc('univ_get', { p_student: TPN, p_code: U.key }); const q = r && r.profile; if (q && (q._at || 0) > (TP._at || 0)) { Object.assign(TP, q); try { localStorage.setItem(TPK, JSON.stringify(TP)); } catch (e) {} render(); } } catch (e) {} }
   const skin = () => DASH_ONLY ? (SKINS[TP.skin] && (TP.skin === 'ghost' || GIFTS.includes(TP.skin)) ? TP.skin : 'ghost') : (SKIN_DEV && SKINS[SKIN_Q] ? SKIN_Q : SKINS[S.profile.skin] && (SKIN_DEV || owned().includes(S.profile.skin)) ? S.profile.skin : 'ghost');
   // 테마 선물: 선생님이 보내면 「띵동!」 → 물음표 상자가 두근두근 → 짜잔. 열심히 하면 하나씩 받아요
-  const GIFTS = ['melody', 'kitty', 'chiikawa', 'cinnamoroll', 'kuromi', 'bamdol', 'rilakkuma', 'korilakkuma', 'monchhichi', 'teacher', 'woni', 'rescene', 'bunny'];  // 지금 보낼 수 있는 테마 (scripts/build.py PETS_LIVE 와 같게)
+  const GIFTS = ['melody', 'kitty', 'chiikawa', 'cinnamoroll', 'kuromi', 'bamdol', 'rilakkuma', 'korilakkuma', 'monchhichi', 'teacher', 'woni', 'rescene', 'bunny', 'headphone'];  // 지금 보낼 수 있는 테마 (scripts/build.py PETS_LIVE 와 같게)
   // 테마 선물은 여러 개를 줄 수 있어요: S.gifts = [{ skin, at, open }] (예전 S.gift 하나도 같이 읽음)
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611021112', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611021122', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2168,7 +2168,7 @@
     clearInterval(petDock.iv); if (!RM() && !MOOD_PET.has(t) && !PHOTO_PET[t]) petDock.iv = setInterval(() => { if (!el.isConnected) return clearInterval(petDock.iv); if (document.hidden || el.t) return; play(petDock.alt = petDock.alt === 'perch_yay' && PET_WINK.has(t) ? 'perch_wink' : 'perch_yay'); setTimeout(() => { if (el.isConnected && !el.t) play(base); }, 2600); }, 9000 + Math.random() * 8000);
     // 리센느 원이: 움직이지 않는 사진 5장. 누르면 다음 사진 + 하트 + 원이 유행어 (10/31 «흔들리지 말고 하트가 누르면 나타나게», «상반신 무조건»)
     // 토끼 소녀: 가끔 다른 밝은 자세로 바뀌고, 누르면 하트와 함께 바로 다른 자세 (화남·졸림일 때는 그대로)
-    if (t === 'bunny' && !RM()) { const nextB = () => { if (!BUNNY_BRIGHT.includes(tMood())) return; tMood.pick = BUNNY_BRIGHT.filter((x) => x !== tMood.pick)[Math.floor(Math.random() * (BUNNY_BRIGHT.length - 1))]; tMood.at = 0; play(base); }; el.nextB = nextB; petDock.iv = setInterval(() => { if (!el.isConnected) return clearInterval(petDock.iv); if (!document.hidden && !el.t) nextB(); }, 14000 + Math.random() * 8000); }
+    if ((t === 'bunny' || t === 'headphone') && !RM()) { const nextB = () => { if (!BUNNY_BRIGHT.includes(tMood())) return; tMood.pick = BUNNY_BRIGHT.filter((x) => x !== tMood.pick)[Math.floor(Math.random() * (BUNNY_BRIGHT.length - 1))]; tMood.at = 0; play(base); }; el.nextB = nextB; petDock.iv = setInterval(() => { if (!el.isConnected) return clearInterval(petDock.iv); if (!document.hidden && !el.t) nextB(); }, 14000 + Math.random() * 8000); }
     if (PHOTO_PET[t]) { const WONI_SAY = PHOTO_PET[t]; el.wi = 0; el.onclick = (e) => { e.stopPropagation(); petBurst(el); el.wi = (el.wi + 1) % PHOTO_WHO[t].length; im.src = av(`${pdir}/perch${el.wi}.png`); const say = $('.pet-say', el), who = PHOTO_WHO[t][el.wi], mine = who ? WONI_SAY.filter((x) => x.startsWith(who + ':')) : t === 'rescene' ? WONI_SAY.filter((x) => !x.includes(':')) : WONI_SAY; say.textContent = mine[(el.wj = ((el.wj || 0) + 1)) % mine.length]; say.hidden = false; say.classList.remove('motto'); fitSay(); clearTimeout(el.t); el.t = setTimeout(() => { el.t = 0; say.innerHTML = lines.length ? petSayHtml(lines[li]) : ''; say.hidden = !motto; say.classList.toggle('motto', !!motto); fitSay(); }, 3200); if (navigator.vibrate) navigator.vibrate(20); }; }
     else el.onclick = (e) => { e.stopPropagation(); petBurst(el); const say = $('.pet-say', el); if (el.nextB) el.nextB(); else play('perch_yay'); say.textContent = cheer(); say.hidden = false; say.classList.remove('motto'); fitSay(); clearTimeout(el.t); el.t = setTimeout(() => { el.t = 0; say.innerHTML = lines.length ? petSayHtml(lines[li]) : ''; say.hidden = !motto; say.classList.toggle('motto', !!motto); fitSay(); play(base); }, 2600); if (navigator.vibrate) navigator.vibrate(20); };
     if (lines.length > 1) { const rot = setInterval(() => { if (!el.isConnected) return clearInterval(rot); if (el.t || !el.single) return; li = (li + 1) % lines.length; const say = $('.pet-say', el); say.classList.remove('motto'); void say.offsetWidth; say.innerHTML = petSayHtml(lines[li]); say.classList.add('motto'); fitSay(); }, 7000); }
@@ -2829,7 +2829,8 @@
   // ───────── 공부 리포트 (정윤, 11/1 선생님 «1주일 한 걸 보고 생산성(보통 아이보다 빠른지 느린지), 공부 시간 대비 집중력, 실제 공부한 양을 객관적으로.
   //   계획 짤 때 '이번 주는 과해요 / 더 해볼까요'. 시간이 안 적혀 있으면 문제 시작~푼 시간이라도» · 모달 말고 화면, 주마다 쌓여서 나아진 게 보이게)
   //   문항 답의 at 으로: 8분 넘게 끊기면 새 묶음 → 앱에서 실제로 푼 시간, 바로 앞 답과의 간격(10분 안) → 문항당 시간
-  function srOn() { return !TUTOR && !(NXD.subjects || []).length && (location.hostname !== 'dain-ee.github.io' || ROLE_T); }  // 선생님이 시안을 보고 괜찮다고 할 때까지 로컬·선생님이 연 학생 탭에서만 (정윤 앱엔 아직 안 보여요)
+  const SR_TEST = (() => { try { return localStorage.getItem('mu:offline') === '1' && localStorage.getItem('mu:sr') === '1'; } catch (e) { return false; } })();  // 테스트: 과외 학생 오프라인 탭에서도 리포트를 열어 봐요
+  function srOn() { return SR_TEST || (!TUTOR && !(NXD.subjects || []).length && (location.hostname !== 'dain-ee.github.io' || ROLE_T)); }  // 선생님이 시안을 보고 괜찮다고 할 때까지 로컬·선생님이 연 학생 탭에서만 (정윤 앱엔 아직 안 보여요)
   var SR_MINE = 1793511014696;  // 11/1 선생님이 대신 넣어 준 기록은 빼요
   var SR_K = { olymp: ['올림포스 지문', 0], g3: ['고3 영어', 96], cheonil: ['천일문', 0], 'fin-q': ['기말 문제', 0], 'fin-b': ['기말 빈칸', 0], sci: ['과학', 0], word: ['단어', 0], nx: ['수업·따로 공부', 0] };  // 둘째 값: 수능 영어 독해 문항당 1분 36초. 올림포스는 기말(내신) 지문을 꼼꼼히 보는 거라 수능 시간과 안 견줘요 (11/1 선생님 «내신이니까 느릴 수 있지»)
   var srWk = (d) => addD(d, -((new Date(d + 'T00:00:00').getDay() + 6) % 7));  // 그 주 월요일
@@ -2867,6 +2868,34 @@
   var srMinT = (m) => (m >= 60 ? `${Math.floor(m / 60)}시간${m % 60 ? ' ' + Math.round(m % 60) + '분' : ''}` : `${Math.round(m)}분`);
   var srSec = (s) => (s >= 60 ? `${Math.floor(s / 60)}분${Math.round(s % 60) ? ' ' + Math.round(s % 60) + '초' : ''}` : `${Math.round(s)}초`);
   var srPct = (a, b) => (b ? Math.round(((a - b) / b) * 100) : null);
+  // 시간표 (11/2 «시간별로 내가 뭘 한지 나오잖아, 결과로 보여 주면 좋을 것 같아»): 월~일 칸에 몇 시에 무엇을 했는지 블록으로
+  //   직접 잰 것(시작·끝, 토마토)은 과목 색, 앱에서 문제 푼 것은 답 시각을 8분 안쪽끼리 묶은 블록. 하루는 새벽 5시에 바뀌어요
+  var SR_C = { 국어: '#f59f00', 수학: '#3182f6', 영어: '#8b5cf6', 과학: '#03b26c', 사회: '#e8590c', 숙제: '#0ca5b0', 오답: '#f04452', 단어: '#d6336c', 내신: '#5c7cfa', 자유: '#868e96', 앱: '#b0b8c1' };
+  var srLD = (t) => srDay(t - 5 * 3600000);  // 새벽 0~5시는 전날로
+  function srBlocks(w0) {
+    const w1 = addD(w0, 7), B = [];
+    for (const x of Object.values(S.slog || {})) { const d = srLD(x.s); if (d >= w0 && d < w1) B.push({ d, s: x.s, e: x.e, t: x.subj || '자유', k: x.k === 't' ? '토마토' : '직접 잰 시간' }); }
+    let cur = null; const flush = () => { if (!cur) return; const top = Object.entries(cur.n).sort((a, b) => b[1] - a[1])[0][0]; B.push({ d: srLD(cur.s), s: cur.s, e: Math.max(cur.e, cur.s + 60000), t: '앱', k: `앱 · ${SR_K[top][0]} ${cur.c}문항` }); cur = null; };
+    for (const e of srEvents()) { const d = srLD(e.at); if (d < w0 || d >= w1) continue; if (cur && e.at - cur.e <= 8 * 60000) { cur.e = e.at; cur.c++; cur.n[e.k] = (cur.n[e.k] || 0) + 1; } else { flush(); cur = { s: e.at, e: e.at, c: 1, n: { [e.k]: 1 } }; } }
+    flush();
+    return B.sort((a, b) => a.s - b.s);
+  }
+  function srTime(w0) {
+    const B = srBlocks(w0), HH = 28;  // 한 시간 높이
+    const off = (b, t) => (t - new Date(b.d + 'T05:00:00').getTime()) / 60000;  // 그날 새벽 5시부터 몇 분
+    let h0 = 8, h1 = 24; for (const b of B) { h0 = Math.min(h0, 5 + Math.floor(off(b, b.s) / 60)); h1 = Math.max(h1, 5 + Math.ceil(off(b, b.e) / 60)); }
+    h1 = Math.min(h1, 29); const hrs = Array.from({ length: h1 - h0 }, (_, i) => h0 + i);
+    const hl = (h) => { const x = h % 24; return x === 0 ? '밤 12시' : x < 12 ? `오전 ${x}시` : x === 12 ? '낮 12시' : `${x - 12}시`; };
+    const tot = {}; for (const b of B) tot[b.t] = (tot[b.t] || 0) + (b.e - b.s) / 60000;
+    const dayM = (d) => B.filter((b) => b.d === d).reduce((a, b) => a + (b.e - b.s) / 60000, 0);
+    const tm = (t) => new Date(t).toTimeString().slice(0, 5);
+    const cols = Array.from({ length: 7 }, (_, i) => addD(w0, i)).map((d) => `<div class="tt-col ${d === today() ? 'today' : ''}"><div class="tt-dh"><b>${DOW[dowOf(d)]}</b><span>${+d.slice(8)}</span><em>${dayM(d) ? `${Math.floor(dayM(d) / 60)}:${String(Math.round(dayM(d) % 60)).padStart(2, '0')}` : ''}</em></div><div class="tt-body" style="height:${hrs.length * HH}px">${B.filter((b) => b.d === d).map((b) => { const y = ((off(b, b.s) - (h0 - 5) * 60) / 60) * HH, h = Math.max(3, ((b.e - b.s) / 3600000) * HH); return `<button type="button" class="tt-b ${b.t === '앱' ? 'app' : ''}" style="top:${y.toFixed(1)}px;height:${h.toFixed(1)}px;--c:${SR_C[b.t] || SR_C.자유}" data-tt="${esc(`${md(b.d)} ${tm(b.s)}~${tm(b.e)} · ${b.t === '앱' ? b.k : `${b.t} · ${b.k}`} · ${srMinT((b.e - b.s) / 60000)}`)}">${h >= 16 && b.t !== '앱' ? `<span>${esc(b.t)}</span>` : ''}</button>`; }).join('')}</div></div>`).join('');
+    const leg = Object.entries(tot).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<span class="tt-lg"><i style="--c:${SR_C[k] || SR_C.자유}"></i>${k === '앱' ? '앱에서 문제 풀이' : esc(k)} <b>${srMinT(v)}</b></span>`).join('');
+    return `<section class="card c12 tt-card"><div class="card-h"><h2>${ic('cal')} 시간표</h2><span class="tiny">블록을 누르면 몇 시에 무엇을 했는지 나와요</span></div>
+      ${B.length ? `<div class="tt-lgs">${leg}</div><p class="tt-info tiny" id="tt-info">&nbsp;</p><div class="tt-grid"><div class="tt-hrs" style="padding-top:56px">${hrs.map((h) => `<span style="height:${HH}px">${hl(h)}</span>`).join('')}</div>${cols}</div>`
+        : '<p class="tiny">이번 주는 아직 잰 시간이 없어요. 토마토 타이머에서 「시작·끝 재기」로 시작하고 끝을 누르면 여기 쌓여요</p>'}
+      <p class="tiny" style="margin:12px 0 0">색 블록은 정윤이가 직접 시작·끝을 누른 시간, 회색 블록은 앱에서 문제를 푼 시간이에요. 새벽 5시 전은 전날로 쳐요</p></section>`;
+  }
   function srView() {
     const tw = srWk(today()), w0 = UI.srW && UI.srW <= tw ? UI.srW : tw, cur = srWeek(w0), prev = srWeek(addD(w0, -7));
     const past = [1, 2, 3, 4].map((k) => srWeek(addD(w0, -7 * k))).filter((x) => x.n);
@@ -2892,16 +2921,21 @@
     const W8a = Array.from({ length: 8 }, (_, k) => srWeek(addD(w0, -7 * (7 - k)))), f0 = W8a.findIndex((x) => x.n + x.probs), W8 = W8a.slice(Math.max(0, Math.min(f0 < 0 ? 4 : f0, 4))), mx = Math.max(1, ...W8.map((x) => x.n + x.probs));
     const bars = `<div class="sr-bars">${W8.map((x) => `<button type="button" class="sr-bar ${x.w0 === w0 ? 'on' : ''}" data-srw="${x.w0}"><i style="height:${Math.round(((x.n + x.probs) / mx) * 100)}%"></i><span>${+x.w0.slice(5, 7)}/${+x.w0.slice(8)}</span></button>`).join('')}</div>`;
     const stat = (lb, v, sub) => `<div class="sr-st"><span class="tiny">${lb}</span><b class="num">${v}</b>${sub ? `<span class="tiny">${sub}</span>` : ''}</div>`;
-    return `<div class="grid">
+    const SPEED = `      <section class="card c6"><div class="card-h"><h2>${ic('clock')} 속도</h2><span class="tiny">한 문제 푸는 데 걸린 시간 · 지난 4주와 비교</span></div>${spd || '<p class="tiny">이번 주는 비교할 만큼 푼 문제가 아직 없어요</p>'}</section>
+      <section class="card c6"><div class="card-h"><h2>${ic('target')} 공부 시간 대비</h2><span class="tiny">적은 공부 시간 한 시간에 푼 양</span></div>
+        ${ph != null ? `<div class="sr-foc"><b class="num">${Math.round(ph)}<small>문제 / 시간</small></b>${pph ? `<span class="tag ${ph >= pph ? 'blue' : ''}">지난 4주 ${Math.round(pph)}문제 / 시간</span>` : ''}<p class="tiny">적은 시간 ${srMinT(cur.man)} 동안 앱 ${cur.n}문항 + 학원·책 ${cur.probs}문제. 시간을 안 적은 날은 빼고 재요</p></div>` : `<p class="tiny">이번 주는 공부 시간을 적은 날이 없어요. 앱에서 문제를 푼 시간은 ${srMinT(cur.appMin)}이에요</p>`}
+        <div class="sr-vd ${verdict[0]}"><b>${verdict[1]}</b><span class="tiny">${cur.hwDue ? `마감 숙제 ${cur.hwDue}개 중 ${cur.hwOk}개 했어요` : ''}${a4 != null ? `${cur.hwDue ? ' · ' : ''}지난 4주 평균 ${Math.round(a4)}개 풀었어요` : ''}</span></div></section>`;
+    const tab = UI.srTab || 'sum', tabs = `<div class="seg sr-tabs">${[['sum', '요약'], ['time', '시간표'], ['speed', '속도·집중']].map(([k, t]) => `<button type="button" class="${tab === k ? 'on' : ''}" data-srtab="${k}">${t}</button>`).join('')}</div>`;
+    const wkNav = `<div class="row between sr-wk"><b>${live ? '이번 주' : wd(w0)}</b><div class="row" style="gap:8px"><span class="tiny">${wd(w0)}</span><button class="btn sm soft" data-srw="${addD(w0, -7)}" type="button">‹ 지난주</button>${live ? '' : `<button class="btn sm soft" data-srw="${addD(w0, 7)}" type="button">다음 주 ›</button>`}</div></div>`;
+    if (tab === 'time') return `${tabs}${wkNav}<div class="grid">${srTime(w0)}</div>`;
+    if (tab === 'speed') return `${tabs}${wkNav}<div class="grid">${SPEED}</div>`;
+    return `${tabs}<div class="grid">
       <section class="card c12 sr-head"><div class="card-h"><h2>${ic('score')} ${live ? '이번 주' : wd(w0)} 공부 리포트</h2><div class="row" style="gap:8px"><button class="btn sm soft" data-srw="${addD(w0, -7)}" type="button">지난주</button>${live ? '' : `<button class="btn sm soft" data-srw="${addD(w0, 7)}" type="button">다음 주</button>`}</div></div>
         <p class="tiny" style="margin:-8px 0 12px">${wd(w0)}${live ? ' · 지금도 쌓이는 중' : ''}</p>
         <p class="sr-line">${headTx}</p>
         <div class="sr-sts">${stat('푼 문항 (앱)', `${cur.n}<small>문항</small>`, cur.acc != null ? `정답 ${Math.round(cur.acc * 100)}%` : '')}${stat('학원·책 숙제', `${cur.probs}<small>문제</small>`, cur.pages ? `${cur.pages}쪽` : '직접 체크한 것')}${stat('앱에서 실제로 푼 시간', srMinT(cur.appMin), `${cur.act}일 공부했어요`)}${stat('숙제', cur.hwDue ? `${cur.hwOk}<small>/${cur.hwDue}</small>` : '-', '이번 주 마감')}</div>
         ${bars}</section>
-      <section class="card c6"><div class="card-h"><h2>${ic('clock')} 속도</h2><span class="tiny">한 문제 푸는 데 걸린 시간 · 지난 4주와 비교</span></div>${spd || '<p class="tiny">이번 주는 비교할 만큼 푼 문제가 아직 없어요</p>'}</section>
-      <section class="card c6"><div class="card-h"><h2>${ic('target')} 공부 시간 대비</h2><span class="tiny">적은 공부 시간 한 시간에 푼 양</span></div>
-        ${ph != null ? `<div class="sr-foc"><b class="num">${Math.round(ph)}<small>문제 / 시간</small></b>${pph ? `<span class="tag ${ph >= pph ? 'blue' : ''}">지난 4주 ${Math.round(pph)}문제 / 시간</span>` : ''}<p class="tiny">적은 시간 ${srMinT(cur.man)} 동안 앱 ${cur.n}문항 + 학원·책 ${cur.probs}문제. 시간을 안 적은 날은 빼고 재요</p></div>` : `<p class="tiny">이번 주는 공부 시간을 적은 날이 없어요. 앱에서 문제를 푼 시간은 ${srMinT(cur.appMin)}이에요</p>`}
-        <div class="sr-vd ${verdict[0]}"><b>${verdict[1]}</b><span class="tiny">${cur.hwDue ? `마감 숙제 ${cur.hwDue}개 중 ${cur.hwOk}개 했어요` : ''}${a4 != null ? `${cur.hwDue ? ' · ' : ''}지난 4주 평균 ${Math.round(a4)}개 풀었어요` : ''}</span></div></section>
+      <section class="card c12 link sr-go" data-srtab="time"><div class="row between"><div><b>${ic('cal')} 시간표로 보기</b><p class="tiny" style="margin:4px 0 0">몇 시에 무엇을 했는지 한 주를 칸으로 봐요</p></div><span class="chev"></span></div></section>
     </div>`;
   }
   function mockList() {
@@ -3709,8 +3743,8 @@
   // 집중 25·45분을 끝내면 토마토 하나. 하루 기록은 S.pomo(서버), 도는 타이머는 이 기기에 둬서 새로 고쳐도 이어져요
   // 남은 시간은 끝나는 시각(endAt)으로 계산해서, 탭을 가려 두거나 다른 화면에 가도 틀리지 않아요
   const PKEY = 'mallang-univ:pomo:' + U.who, TITLE = document.title, PR = 116, PC = 2 * Math.PI * PR;
-  const PM = { f25: { t: '25분', min: 25, mode: 'focus' }, f45: { t: '45분', min: 45, mode: 'focus' }, br: { t: '쉬는 시간 5분', min: 5, mode: 'break' }, br15: { t: '쉬는 시간 15분', min: 15, mode: 'break' } };
-  const PM_SUBJ = ['오답', '숙제', '과학', '영어', '단어', '내신', '자유'];
+  const PM = { sw: { t: '시작·끝 재기', min: 0, mode: 'focus', watch: 1 }, f25: { t: '25분', min: 25, mode: 'focus' }, f45: { t: '45분', min: 45, mode: 'focus' }, br: { t: '쉬는 시간 5분', min: 5, mode: 'break' }, br15: { t: '쉬는 시간 15분', min: 15, mode: 'break' } };
+  const PM_SUBJ = ['국어', '수학', '영어', '과학', '사회', '숙제', '오답', '단어', '내신', '자유'];
   const PM_FOCUS = ['폰은 잠깐 뒤집어 둬요', '지금 이 집중이 실력이 돼요', '딱 이것만 생각해요', '모르는 건 표시만 하고 넘어가요', '거의 다 왔어요, 조금만 더'];
   const PM_BREAK = ['물 한 잔 마셔요', '창밖 먼 곳을 봐요', '기지개 한 번 쭉 켜요', '눈 감고 숨 크게 쉬어요'];
   const pRead = () => { try { return JSON.parse(localStorage.getItem(PKEY)) || null; } catch (e) { return null; } };
@@ -3776,13 +3810,18 @@
     $('button', el).onclick = close; el.onclick = (e) => { if (e.target === el) close(); };
   }
   const pHas = (b) => !!(pomo().badges || {})[b.id] || b.ok();
-  const pDur = () => (P.run ? P.run.dur : PM[P.pick].min * 60);
-  const pLeft = () => { const r = P.run; if (!r) return pDur(); return r.paused ? r.left : Math.max(0, Math.ceil((r.endAt - Date.now()) / 1000)); };
+  // 시작·끝 재기 (11/2 «정윤이 시작 종료 버튼 해 줘, 그래서 네가 측정할 수 있게»): 끝날 시각이 없고 지난 시간을 세요. 멈춘 동안은 빼고, 이어 한 토막마다 시간표에 남겨요
+  const pWatchSec = (r) => Math.floor(((r.acc || 0) + (r.paused ? 0 : Date.now() - r.t0)) / 1000);
+  const pDur = () => (P.run ? (P.run.watch ? 3600 : P.run.dur) : PM[P.pick].watch ? 3600 : PM[P.pick].min * 60);
+  const pLeft = () => { const r = P.run; if (r && r.watch) return pWatchSec(r) % 3600; if (!r) return PM[P.pick].watch ? 0 : pDur(); return r.paused ? r.left : Math.max(0, Math.ceil((r.endAt - Date.now()) / 1000)); };
   const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  const pShow = () => { const r = P.run; if (r && r.watch) { const t = pWatchSec(r); return t >= 3600 ? `${Math.floor(t / 3600)}:${mmss(t % 3600)}` : mmss(t); } return mmss(pLeft()); };
   const tomRow = (n, g, cls = '') => `<div class="pm-row ${cls}">${Array.from({ length: Math.max(g, n) }, (_, i) => `<img class="${i < n ? 'on' : ''}" src="icons/${IC.tomato}.svg" alt="">`).join('')}</div>`;
   function pLine() {
     const r = P.run, n = pDay().n, g = pGoal(), st = pStreak();
     if (r && r.paused) return '잠깐 멈췄어요, 준비되면 이어 해요';
+    if (r && r.watch) return '끝나면 「끝」을 눌러요. 공부한 시간이 시간표에 남아요';
+    if (!r && PM[P.pick].watch) return '시작을 누르고, 다 하면 끝을 눌러요. 몇 시에 무엇을 했는지 남아요';
     if (r && r.mode === 'break') return PM_BREAK[Math.floor((r.dur - pLeft()) / 75) % PM_BREAK.length];
     if (r) return PM_FOCUS[Math.min(PM_FOCUS.length - 1, Math.floor((1 - pLeft() / r.dur) * PM_FOCUS.length))];
     if (P.offer === 'break') return '토마토 하나 완성! 5분 쉬어 가요';
@@ -3809,7 +3848,7 @@
   function pomoCard(cls) {
     const n = pDay().n, g = pGoal(), st = pStreak(), r = P.run;
     return `<section class="card ${cls} pm-home link" data-pomo><div class="pm-h-ic">${ic('tomato')}</div>
-      <div class="pm-h-b"><div class="eyebrow">토마토 타이머${st ? ` · ${ic('fire')} ${st}일 연속` : ''}</div><b class="pm-h-t">${r ? `${r.mode === 'break' ? '쉬는 중' : '집중하는 중'} <span class="num blue" data-pmt>${mmss(pLeft())}</span>` : sMin(today()) ? `오늘 공부 ${hm(sMin(today()))}` : n ? `오늘 토마토 ${n}개${n >= g ? ', 목표 달성!' : ''}` : '오늘 첫 토마토를 키워 봐요'}</b><p class="tiny" style="margin:2px 0 0">${esc(pLine())}</p></div>
+      <div class="pm-h-b"><div class="eyebrow">토마토 타이머${st ? ` · ${ic('fire')} ${st}일 연속` : ''}</div><b class="pm-h-t">${r ? `${r.watch ? '재는 중' : r.mode === 'break' ? '쉬는 중' : '집중하는 중'} <span class="num blue" data-pmt>${pShow()}</span>` : sMin(today()) ? `오늘 공부 ${hm(sMin(today()))}` : n ? `오늘 토마토 ${n}개${n >= g ? ', 목표 달성!' : ''}` : '오늘 첫 토마토를 키워 봐요'}</b><p class="tiny" style="margin:2px 0 0">${esc(pLine())}</p></div>
       ${tomRow(n, g, 'sm')}${TEACHER ? '' : `<button class="btn primary" type="button" data-pomo>${r ? '타이머 보기' : '집중 시작'}</button>`}</section>`;
   }
   function studyCard() {
@@ -3850,15 +3889,15 @@
     const lv = (d) => { const x = pDay(d).n; return !x ? '' : x >= g ? 'l3' : x >= 2 ? 'l2' : 'l1'; };
     const days = Array.from({ length: 28 }, (_, i) => pBack(27 - i));
     const ctl = TEACHER ? '<p class="tiny" style="margin:0">선생님 보기에서는 기록만 볼 수 있어요</p>'
-      : !r ? `<div class="pm-btns ${P.offer ? '' : 'one'}">${P.offer ? `<button class="btn big" id="pm-skip" type="button">${P.offer === 'break' ? '바로 집중' : '더 쉬기'}</button>` : ''}<button class="btn primary big" id="pm-start" type="button">${mode === 'break' ? '쉬는 시간 시작' : '집중 시작'}</button></div>`
-      : `<div class="pm-btns"><button class="btn big" id="pm-stop" type="button">그만하기</button><button class="btn big ${r.paused ? 'primary' : 'soft'}" id="pm-pause" type="button">${r.paused ? '이어 하기' : '일시정지'}</button></div>`;
+      : !r ? `<div class="pm-btns ${P.offer ? '' : 'one'}">${P.offer ? `<button class="btn big" id="pm-skip" type="button">${P.offer === 'break' ? '바로 집중' : '더 쉬기'}</button>` : ''}<button class="btn primary big" id="pm-start" type="button">${PM[P.pick].watch ? '시작' : mode === 'break' ? '쉬는 시간 시작' : '집중 시작'}</button></div>`
+      : `<div class="pm-btns"><button class="btn big ${r.watch ? 'primary' : ''}" id="pm-stop" type="button">${r.watch ? '끝' : '그만하기'}</button><button class="btn big ${r.paused ? 'primary' : 'soft'}" id="pm-pause" type="button">${r.paused ? '이어 하기' : '일시정지'}</button></div>`;
     return `<div class="qwrap" style="max-width:760px;margin:0 auto">
       <div class="row between"><button class="btn sm" data-go="home" type="button">‹ 홈</button><div class="row" style="gap:8px">${st ? `<span class="tag red">${ic('fire')} ${st}일 연속</span>` : ''}<button class="bell-btn ${SOUND ? 'on' : ''}" type="button" data-bell aria-label="${SOUND ? '소리 켜짐, 눌러서 무음' : '무음, 눌러서 소리 켜기'}">${bellSVG(SOUND)}</button></div></div>
       <div><h1 class="h1" style="margin:4px 0 4px">토마토 타이머</h1><p class="sub" id="pm-line" style="margin:0">${esc(pLine())}</p></div>
       <section class="card pm-card ${mode} ${r && !r.paused ? 'running' : ''}">
         <div class="chips">${Object.entries(PM).map(([k, m]) => `<button class="chip ${(r ? r.pick : P.pick) === k ? 'on' : ''}" type="button" data-pm="${k}" ${r || TEACHER ? 'disabled' : ''}>${m.t}</button>`).join('')}</div>
         <div class="pm-ring"><svg viewBox="0 0 260 260" aria-hidden="true"><circle cx="130" cy="130" r="${PR}" fill="none" stroke="var(--fill)" stroke-width="14"/><circle id="pm-arc" cx="130" cy="130" r="${PR}" fill="none" stroke="${mode === 'break' ? 'var(--green)' : 'var(--red)'}" stroke-width="14" stroke-linecap="round" stroke-dasharray="${PC}" stroke-dashoffset="${PC * (1 - pLeft() / pDur())}" transform="rotate(-90 130 130)"/></svg>
-          <div class="pm-c">${r && !r.paused && mode === 'focus' ? gh('focus', 'pm-tom pm-gh') : ic(mode === 'break' ? 'coffee' : 'tomato', 'pm-tom')}<b class="num" id="pm-time">${mmss(pLeft())}</b><span>${r ? (r.paused ? '잠깐 멈춤' : mode === 'break' ? '쉬는 중' : '집중하는 중') : mode === 'break' ? '쉬는 시간' : '집중 준비'}</span></div></div>
+          <div class="pm-c">${r && !r.paused && mode === 'focus' ? gh('focus', 'pm-tom pm-gh') : ic(mode === 'break' ? 'coffee' : 'tomato', 'pm-tom')}<b class="num" id="pm-time">${pShow()}</b><span>${r ? (r.paused ? '잠깐 멈춤' : r.watch ? '재는 중' : mode === 'break' ? '쉬는 중' : '집중하는 중') : PM[P.pick].watch ? '시작하면 재요' : mode === 'break' ? '쉬는 시간' : '집중 준비'}</span></div></div>
         ${mode === 'focus' ? `<div class="pm-subj"><span class="eyebrow">무엇을 공부해요?</span><div class="chips">${PM_SUBJ.map((s) => `<button class="chip sm ${(r ? r.subj : P.subj) === s ? 'on' : ''}" type="button" data-psj="${s}" ${TEACHER ? 'disabled' : ''}>${s}</button>`).join('')}</div></div>` : ''}
         ${ctl}
       </section>
@@ -3872,18 +3911,18 @@
   }
   function pPaint() {
     const r = P.run, left = pLeft(), on = UI.run && UI.run.kind === 'pomo';
-    const t = $('#pm-time'); if (t) t.textContent = mmss(left);
+    const t = $('#pm-time'); if (t) t.textContent = pShow();
     const a = $('#pm-arc'); if (a) a.style.strokeDashoffset = PC * (1 - left / pDur());
     const ln = $('#pm-line'); if (ln && r) ln.textContent = pLine();
-    $$('[data-pmt]').forEach((ht) => (ht.textContent = mmss(left)));
+    $$('[data-pmt]').forEach((ht) => (ht.textContent = pShow()));
     let pill = $('#pomo-pill');
     if ((r || listening()) && !on && !(r && ht) && !TEACHER) {
       const k = r ? r.mode + (r.paused ? 'p' : '') + (listening() ? 'h' : '') : 'h';
       if (!pill) { pill = document.createElement('button'); pill.id = 'pomo-pill'; pill.type = 'button'; pill.className = 'pomo-pill'; pill.setAttribute('aria-label', '토마토 타이머 열기'); pill.onclick = openPomo; document.body.appendChild(pill); }
       if (pill.dataset.k !== k) { pill.dataset.k = k; pill.innerHTML = r ? `${ic(r.mode === 'break' ? 'coffee' : 'tomato')}<b class="num"></b><span>${r.paused ? '멈춤' : r.mode === 'break' ? '쉬는 중' : '집중 중'}</span>${listening() ? ic('headph', 'pm-hp') : ''}` : `${ic('headph')}<span>${MUS ? '음악 듣는 중' : '집중 소리 켜짐'}</span>`; }
-      if (r) $('b', pill).textContent = mmss(left);
+      if (r) $('b', pill).textContent = pShow();
     } else if (pill) pill.remove();
-    document.title = r ? `${r.paused ? '⏸' : r.mode === 'break' ? '☕' : '🍅'} ${mmss(left)} · ${BRAND}` : (U.tabStu ? `${U.who} · ${BRAND}` : BRAND);
+    document.title = r ? `${r.paused ? '⏸' : r.watch ? '⏱' : r.mode === 'break' ? '☕' : '🍅'} ${pShow()} · ${BRAND}` : (U.tabStu ? `${U.who} · ${BRAND}` : BRAND);
   }
   let pT = 0;
   function pTick() { const r = P.run; if (r && !r.paused && Date.now() >= r.endAt) return pFinish(); pPaint(); }
@@ -3892,15 +3931,29 @@
   function openPomo() { UI.run = { kind: 'pomo' }; render(); window.scrollTo(0, 0); }
   function pStart() {
     if (TEACHER) return; const m = PM[P.pick], dur = m.min * 60;
+    if (m.watch) { P.run = { mode: 'focus', watch: 1, pick: 'sw', t0: Date.now(), acc: 0, seg: [], paused: false, subj: P.subj, dur: 0 }; P.offer = null; pSave(); ding(1); if (navigator.vibrate) navigator.vibrate(20); render(); pLoop(); return; }
     P.run = { mode: m.mode, pick: P.pick, dur, endAt: Date.now() + dur * 1000, left: dur, paused: false, subj: P.subj }; P.offer = null;
     pSave(); ding(1); if (navigator.vibrate) navigator.vibrate(20); render(); pLoop();
   }
-  function pPause() { const r = P.run; if (!r) return; if (r.paused) { r.endAt = Date.now() + r.left * 1000; r.paused = false; } else { r.left = pLeft(); r.paused = true; } pSave(); render(); pLoop(); }
+  function pPause() { const r = P.run; if (!r) return;
+    if (r.watch) { const n = Date.now(); if (r.paused) { r.t0 = n; r.paused = false; } else { r.acc += n - r.t0; r.seg.push([r.t0, n]); r.paused = true; } pSave(); render(); pLoop(); return; } if (r.paused) { r.endAt = Date.now() + r.left * 1000; r.paused = false; } else { r.left = pLeft(); r.paused = true; } pSave(); render(); pLoop(); }
   function pStop() { P.run = null; P.offer = null; pSave(); pLoop(); render(); }
   function pStopAsk() {
     const r = P.run; if (!r) return;
+    if (r.watch) return pWatchEnd();
     if (r.mode === 'break' || r.dur - pLeft() < 60) return pStop();
     sheet(`<h2>그만할까요?</h2><p class="sub">지금 멈추면 이번 토마토는 안 익어요. ${mmss(pLeft())}만 더 하면 토마토 하나예요</p><div class="pm-btns"><button class="btn big" id="ps-no" type="button">그만하기</button><button class="btn primary big" id="ps-go" type="button">계속하기</button></div>`, (el, close) => { $('#ps-go', el).onclick = close; $('#ps-no', el).onclick = () => { close(); pStop(); }; });
+  }
+  const slogPut = (s0, e0, subj, k) => { if (e0 - s0 < 60000) return; S.slog = S.slog || {}; S.slog[k + s0] = { s: s0, e: e0, subj, k, at: Date.now() }; };
+  function pWatchEnd() {
+    const r = P.run; if (!r) return; const n = Date.now();
+    const seg = r.paused ? r.seg : [...r.seg, [r.t0, n]], sec = pWatchSec(r), m = Math.round(sec / 60);
+    P.run = null; P.offer = null; pSave(); pLoop();
+    if (m < 1) { render(); return toast('1분이 안 돼서 안 남겼어요'); }
+    for (const [a, b] of seg) slogPut(a, b, r.subj, 'w');
+    const po = pomo(), d = today(), x = po.days[d] = po.days[d] || { n: 0, min: 0, subj: {} }; x.min = (x.min || 0) + m;
+    save('pomo', 'slog'); render(); ding(3); if (navigator.vibrate) navigator.vibrate([60, 40, 120]);
+    toast(`${r.subj} ${hm(m)} 남겼어요 · 오늘 ${hm(sMin(d))}`);
   }
   function pFinish() {
     const r = P.run; if (!r) return;
@@ -3909,9 +3962,9 @@
     const cx = innerWidth / 2, cy = innerHeight * 0.4; let nb = [], x = null;
     if (r.mode === 'focus') {
       const po = pomo(), d = today(); x = po.days[d] = po.days[d] || { n: 0, min: 0, subj: {} }; x.subj = x.subj || {};
-      x.n = (x.n || 0) + 1; x.min = (x.min || 0) + Math.round(r.dur / 60); x.subj[r.subj] = (x.subj[r.subj] || 0) + 1;
+      x.n = (x.n || 0) + 1; x.min = (x.min || 0) + Math.round(r.dur / 60); x.subj[r.subj] = (x.subj[r.subj] || 0) + 1; slogPut(r.endAt - r.dur * 1000, r.endAt, r.subj, 't');
       po.badges = po.badges || {}; nb = BADGES.filter((b) => b.ok() && !po.badges[b.id]); for (const b of nb) po.badges[b.id] = d;
-      save('pomo'); P.offer = 'break'; P.lastFocus = PM[r.pick] ? r.pick : 'f25'; P.pick = r.dur >= 45 * 60 ? 'br15' : 'br';
+      save('pomo', 'slog'); P.offer = 'break'; P.lastFocus = PM[r.pick] ? r.pick : 'f25'; P.pick = r.dur >= 45 * 60 ? 'br15' : 'br';
     } else { P.offer = 'focus'; P.pick = P.lastFocus || 'f25'; }
     pSave(); pRedraw(); pPaint();
     if (r.mode === 'focus') {
@@ -5742,7 +5795,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611021112'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611021122'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6730,7 +6783,7 @@
   }
 
   // ───────── 틀 · 메뉴 ─────────
-  const TABS = [['home', '홈', 'home'], ['kmla', '민사고', 'target'], ['hw', '숙제', 'hw'], ['study', '공부', 'books'], ['exam', '수업', 'pencil'], ['grade', '성적', 'score'], ['wrong', '오답', 'wrong'], ['book', '교재', 'books'], ['score', '성적', 'score'], ['uni', '대학', 'school'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']].filter((t) => (t[0] === 'kmla' ? !!D.kmla : !ST.tabs || ST.tabs.includes(t[0])) && (t[0] !== 'exam' || Object.keys(NXSETS).length || NX_CH.length || NX_JG.length) && (t[0] !== 'study' || (NXD.subjects || []).length) && (t[0] !== 'grade' || (ST.tabs || []).includes('grade')));  // 중학생 성적 탭은 켠 학생만 (10/31 정윤에게 성적 탭이 둘 뜸)  // 공부 탭은 단원 자료가 있는 학생만  // 시험 탭은 시험이 있는 학생만
+  const TABS = [['home', '홈', 'home'], ['kmla', '민사고', 'target'], ['hw', '숙제', 'hw'], ['study', '공부', 'books'], ['exam', '수업', 'pencil'], ['grade', '성적', 'score'], ['wrong', '오답', 'wrong'], ['book', '교재', 'books'], ['score', '성적', 'score'], ['uni', '대학', 'school'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']].filter((t) => (t[0] === 'kmla' ? !!D.kmla : t[0] === 'score' && SR_TEST ? true : !ST.tabs || ST.tabs.includes(t[0])) && (t[0] !== 'exam' || Object.keys(NXSETS).length || NX_CH.length || NX_JG.length) && (t[0] !== 'study' || (NXD.subjects || []).length) && (t[0] !== 'grade' || (ST.tabs || []).includes('grade')));  // 중학생 성적 탭은 켠 학생만 (10/31 정윤에게 성적 탭이 둘 뜸)  // 공부 탭은 단원 자료가 있는 학생만  // 시험 탭은 시험이 있는 학생만
   const DASH_ONLY = TEACHER && !STU_TAB && ROSTER.length > 1;  // 선생님 첫 탭은 학생 관리만 (학생 화면은 새 탭으로)
   if (DASH_ONLY) TABS.splice(0, TABS.length, ['dash', '홈', 'home'], ['treport', '리포트', 'memo'], ['thw', '숙제', 'hw'], ['tgrade', '성적', 'score'], ['tsched', '수업 일정', 'cal'], ['news', '소식', 'news'], ['tstu', '학생', 'trophy']);
   function nav() {
@@ -6974,6 +7027,8 @@
     $$('[data-pk]').forEach((b) => (b.onclick = () => { const [k, i] = b.dataset.pk.split(':'); pickDetail(k, +i); }));
     if (!UI.run && UI.tab === 'sgb') bindLogs();
     $$('[data-srw]').forEach((b) => (b.onclick = () => { UI.srW = b.dataset.srw; const y = scrollY; render(); scrollTo(0, y); }));
+    $$('[data-srtab]').forEach((b) => (b.onclick = () => { UI.srTab = b.dataset.srtab; const y = scrollY; render(); scrollTo(0, y); }));
+    $$('[data-tt]').forEach((b) => (b.onclick = () => { const i = $('#tt-info'); if (i) i.textContent = b.dataset.tt; $$('.tt-b.on').forEach((x) => x.classList.remove('on')); b.classList.add('on'); }));
     if (!UI.run && UI.tab === 'score') { if (UI.scoreSeg === 'mock' && UI.mockId) bindMock(); if (UI.scoreSeg === 'naesin') bindNaesin(); }
   }
   $('#brand').onclick = () => go(DASH_ONLY ? 'dash' : 'home');  // 선생님 화면엔 「home」 탭이 없어 학생 홈이 뜨던 것
