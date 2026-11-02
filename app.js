@@ -1001,6 +1001,7 @@
           ${s === 'done' ? `<div class="deep"><b>들었어요</b>${q ? ` · 미니 퀴즈 ${q.n}문제 중 ${q.ok}개 맞혔어요` : ''}</div>` : l.pct ? `<div class="deep">사이트에서 ${l.pct}%까지 들었어요. 이어서 들어요</div>` : ''}
           <a class="btn primary big block" href="${esc(c.url)}" target="_blank" rel="noopener" style="margin-top:12px">${esc(c.siteName)}에서 듣기</a>
           <p class="tiny" style="margin:8px 0 16px">로그인돼 있으면 강좌 페이지가 바로 열려요. 목록에서 <b>${c.site === 'etoos' ? esc(l.title.split(' ')[0]) : 'No.' + l.no}</b> ${c.site === 'etoos' ? '▶' : '「영상보기」'}를 눌러요</p>
+          ${s === 'done' ? '' : `<div id="tm-box" style="margin:0 0 12px">${tmBoxHTML('ink:' + k, `${c.subj} 인강 · ${l.title}`)}</div>`}
           ${s === 'done' ? (Q.length ? '<button class="btn primary big block" id="ik-view" type="button">문제와 정답 보기</button><button class="btn big block" id="ik-quiz" type="button" style="margin-top:8px">미니 퀴즈 다시 풀기</button>' : '') : `<button class="btn big block" id="ik-done" type="button">${Q.length ? `다 들었어요 · 미니 퀴즈 ${Q.length}문제` : '다 들었어요'}</button>`}
           <div class="row" style="gap:8px;margin-top:8px">${s === 'skip' ? '<button class="btn sm" id="ik-undo" type="button">다시 들을 목록에 넣기</button>' : s === 'done' ? '<button class="btn sm" id="ik-undo" type="button">아직 안 들은 걸로 바꾸기</button>' : '<button class="btn sm" id="ik-skip" type="button">이 강의는 안 들을래요</button>'}</div>`;
         // 오늘 들을 강의 바꾸기 (2026-10-26 정윤: 누르면 목록 보고 들을 걸 고르게)
@@ -1008,6 +1009,7 @@
         alt.sort((a, b) => (cf.pick.includes(b.no) - cf.pick.includes(a.no)) || a.no - b.no);
         if (mine && !s && alt.length) $('#ik-b', el).insertAdjacentHTML('beforeend', `<div class="ik-swap"><b>오늘 다른 강의 들을래요</b><span class="tiny">누르면 오늘 할 일이 그 강의로 바뀌어요</span><div class="ik-lecs" data-ilid="sw">${alt.map((x) => `<button type="button" class="ik-lec ${cf.pick.includes(x.no) ? 'on' : ''}" data-isw="${x.no}"><i>${cf.pick.includes(x.no) ? '★' : ''}</i><span><b>${esc(x.title)}</b><em>${x.min ? x.min + '분' : ''}${x.pct ? ` · ${x.pct}% 들음` : ''}${cf.pick.includes(x.no) ? ' · 고른 강의' : ''}</em></span></button>`).join('')}</div></div>`);
         $$('[data-isw]', el).forEach((b) => (b.onclick = () => { const no2 = +b.dataset.isw, S0 = inkS(), D0 = S0.days[today()] = S0.days[today()] || {}; D0[cid] = (D0[cid] || []).map((n) => (n === l.no ? no2 : n)); if (!cf.pick.includes(no2)) { cf.pick = [...cf.pick, no2]; S0.cfg[cid] = cf; S0._cfgAt = Date.now(); } save('ink'); close(); render(); toast('오늘 들을 강의를 바꿨어요'); setTimeout(() => inkLec(cid, no2), 300); }));
+        tmBoxBind($('#tm-box', el), 'ink:' + k, `${c.subj} 인강 · ${l.title}`);
         const on = (id, f) => { const b = $(id, el); if (b) b.onclick = f; };
         on('#ik-done', () => (Q.length ? quiz(0, []) : (inkMark(c, l, 'done'), close(), render(), toast('들었어요, 잘했어요'))));
         on('#ik-quiz', () => quiz(0, []));
@@ -1409,6 +1411,27 @@
     if (dn && dn.id === it.id) return `<div class="my-tm done"><div class="my-tm-t"><span>수고했어요!</span><b>${hm(dn.m)} 공부했어요</b></div><div class="row between" style="gap:8px"><p class="tiny" style="margin:0">아래에 오늘 한 만큼 적어 주세요</p><button class="btn sm" type="button" data-mt="ask">또 재기</button></div></div>`;
     return `<div class="my-tm"><div class="my-tm-t"><span>이 숙제 하는 시간 재기</span><b>${ic('clock')} 시작하면 옆에서 시간이 가요</b></div><button class="btn primary" type="button" data-mt="ask">시작하기</button></div>`;
   }
+  // 어느 창에든 넣는 시간 재기 상자: 시작하기 → 진짜로? → 멈추기·이어 하기·끝 (11/2 «인강 창에도 시작 멈춤이 있어야 해»)
+  function tmBoxHTML(tk, ti) {
+    if (TEACHER) return '';
+    const r = tmOf(tk), cur = P.run, dn = UI.tmDone;
+    if (UI.tmAsk === tk) return `<div class="my-tm ask"><div class="my-tm-t">${cur && cur !== r ? `<span>${esc(cur.ti || cur.subj)} 하는 중이에요</span><b>멈추고 이걸 ${r ? '이어 할까요?' : '시작할까요?'}</b>` : '<span>지금부터 시간을 재요</span><b>진짜로 시작할까요?</b>'}</div><div class="my-tm-bs"><button class="btn" type="button" data-tb="no">아니요</button><button class="btn primary" type="button" data-tb="go">${cur && cur !== r ? '멈추고 시작' : '시작'}</button></div></div>`;
+    if (r) { const on = r === cur && !r.paused; return `<div class="my-tm on ${on ? '' : 'paused'}"><div class="my-tm-t"><span>${on ? '공부하는 중' : '잠깐 멈췄어요'}</span><b class="num" ${r === cur ? 'data-pmt' : ''}>${tmShow(r)}</b></div><div class="my-tm-bs"><button class="btn" type="button" data-tb="pause">${on ? '멈추기' : '이어 하기'}</button><button class="btn primary" type="button" data-tb="end">끝</button></div></div>`; }
+    if (dn && dn.tk === tk) return `<div class="my-tm done"><div class="my-tm-t"><span>수고했어요!</span><b>${hm(dn.m)} 공부했어요</b></div><button class="btn sm" type="button" data-tb="ask">또 재기</button></div>`;
+    return `<div class="my-tm"><div class="my-tm-t"><span>공부하는 시간 재기</span><b>${ic('clock')} 시작하면 시간이 가요</b></div><button class="btn primary" type="button" data-tb="ask">시작하기</button></div>`;
+  }
+  function tmBoxBind(box, tk, ti) {
+    if (!box || TEACHER) return;
+    const draw = () => { box.innerHTML = tmBoxHTML(tk, ti); tmBoxBind(box, tk, ti); };
+    $$('[data-tb]', box).forEach((b) => (b.onclick = (e) => {
+      e.stopPropagation(); const k = b.dataset.tb, r = tmOf(tk);  // 새로 그려도 바깥을 누른 걸로 잡혀 창이 닫히지 않게
+      if (k === 'ask') { UI.tmAsk = tk; UI.tmDone = null; return draw(); }
+      if (k === 'no') { UI.tmAsk = null; return draw(); }
+      if (k === 'go') { UI.tmAsk = null; tmStart(tk, ti); render(); return draw(); }
+      if (k === 'pause') { if (r && r !== P.run && P.run) { UI.tmAsk = tk; return draw(); } if (r && r !== P.run) tmStart(tk, ti); else pPause(); render(); return draw(); }
+      if (k === 'end') { const m = pWatchEnd(r); if (m) UI.tmDone = { tk, m }; draw(); }
+    }));
+  }
   function myTmStart(it) { tmStart('my:' + it.id, it.book, mySubj(it)); UI.myTmDone = null; }
   // 무엇이든 시작 (11/2 «인강도 뭐든지 다 해야 해, 다른 게 안 멈췄으면 멈출까요 하고, 그걸 나중에 다시 이어 할 수도»)
   //   P.run 하나만 돌고, 멈춰 둔 것은 P.held 에 남아요. 줄마다 tk(줄 열쇠)로 찾아요
@@ -1439,6 +1462,8 @@
   // 떠 있는 시간·진행 중 표시를 누르면: 멈추기·끝·하러 가기
   function tmSheet(tk) {
     const r = tmOf(tk); if (!r) return; if (r.hw && tk.startsWith('my:')) return mySheet(r.hw);
+    if (tk.startsWith('ink:')) { const [cid, no] = tk.slice(4).split(':'); if (inkC(cid)) return inkLec(cid, +no); }
+    if (tk.startsWith('hw:') && (S.hw || []).some((x) => x.id === tk.slice(3))) return hwSheet(tk.slice(3));
     const isCur = r === P.run;
     sheet(`<h2>${esc(r.ti || r.subj)}</h2><p class="sub">${isCur && !r.paused ? '공부하는 중' : '잠깐 멈췄어요'} · <b class="num" ${isCur ? 'data-pmt' : ''}>${tmShow(r)}</b></p><div class="pm-btns"><button class="btn big" id="tm-p" type="button">${isCur && !r.paused ? '멈추기' : '이어 하기'}</button><button class="btn primary big" id="tm-e" type="button">끝</button></div>`, (el, close) => {
       $('#tm-p', el).onclick = () => { close(); if (isCur) { pPause(); } else tmGo(tk, r.ti); };
@@ -2046,11 +2071,13 @@
     const late = !fin && h.due && h.due < today();
     sheet(`<div class="row" style="gap:6px;margin-bottom:8px"><span class="tag">${esc(h.subj || '숙제')}</span>${h.due ? `<span class="tag ${late ? 'red' : ''}">${md(h.due)}${late ? ' · 밀림' : ''}</span>` : ''}${fin ? '<span class="tag blue">다 했어요</span>' : ''}</div>
       <h2 style="line-height:1.45">${esc(h.title)}</h2>
+      ${fin ? '' : `<div id="tm-box" style="margin:12px 0">${tmBoxHTML('hw:' + h.id, h.title)}</div>`}
       ${h.memo ? `<div class="deep" style="margin:12px 0"><div class="eyebrow">이렇게 해요</div><p style="margin:4px 0 0">${esc(h.memo)}</p></div>` : ''}
       ${ids.length ? `<div class="list" style="margin:8px 0">${ids.map((id) => { const w = S.wrong[id], t = wrTried(h, id); return `<div class="li"><div class="ico">${ic(w.cleared || t ? 'ok' : 'pin')}</div><div class="body"><div class="t" style="font-size:15px">${esc(w.subjName || '')} ${w.no}번</div><div class="d">${esc(w.sub || w.area || '')}${t && !w.cleared ? ' · 나중에 한 번 더 나와요' : ''}</div></div><span class="tag ${w.cleared ? 'blue' : t ? '' : ''}">${w.cleared ? '맞혔어요' : t ? '풀었어요' : '아직'}</span></div>`; }).join('')}</div>
         <button class="btn primary big block" id="hs-go" type="button">${left.length ? `${left.length}문제 풀기` : '한 번 더 풀어 보기'}</button>` : mmOf(h) ? `<p class="sub" style="margin:12px 0">모의고사 ${mmOf(h).length}문제예요. 다 풀면 숙제도 끝난 걸로 돼요</p><button class="btn primary big block" id="hs-mm" type="button">${mmLeft(mmOf(h)).length ? `${mmLeft(mmOf(h)).length}문제 풀기` : '다시 보기'}</button>` : h.nx && NXSETS[h.nx] ? `<p class="sub" style="margin:12px 0">${esc(NXSETS[h.nx].title)} ${NXSETS[h.nx].qs.length}${NXSETS[h.nx].kind === 'words' ? '단어' : '문제'}예요. 끝까지 풀면 숙제도 끝난 걸로 돼요</p><button class="btn primary big block" id="hs-nx" type="button">${(() => { const L = nxLast(h.nx); return L ? '한 번 더 풀기' : '시험 보러 가기'; })()}</button>` : mock ? `<p class="sub" style="margin:12px 0">10월 모의고사 ${esc(h.subj)} 문제는 오답 노트에 다 들어 있어요. 지문과 문제를 앱에서 바로 다시 풀 수 있어요</p><button class="btn soft big block" id="hs-wrong" type="button">${ic('retry')} 오답 노트에서 ${esc(SUBJ_NAMES[key])} 풀기</button>` : ''}
       ${h.go ? '<button class="btn primary big block" id="hs-go2" type="button" style="margin-top:12px">풀러 가기</button>' : ''}<div class="row" style="margin-top:16px"><button class="btn big" style="flex:1" data-x type="button">닫기</button>${ids.length || h.go || ((h.nx && NXSETS[h.nx]) || mmOf(h)) && !h.done ? '' : `<button class="btn ${h.done ? '' : 'primary'} big" style="flex:1" id="hs-done" type="button">${h.done ? '안 한 걸로 되돌리기' : '다 했어요'}</button>`}</div>`, (el, close) => {
       $('[data-x]', el).onclick = close;
+      tmBoxBind($('#tm-box', el), 'hw:' + h.id, h.title);
       const hn = $('#hs-nx', el); if (hn) hn.onclick = () => { close(); nxStart(h.nx, 'hw'); };
       const hg = $('#hs-go2', el); if (hg) hg.onclick = () => { close(); hwGoStart(h); };
       const hm = $('#hs-mm', el); if (hm) hm.onclick = () => { close(); mmHwStart(h); };
@@ -2128,7 +2155,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611021641', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611021647', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2907,6 +2934,8 @@
   if (SR_TEST) window.__myRow = (id) => { const L = myTasks().filter((t) => t.k === 'my:' + id); return L.map((t) => `<div class="li btnlike" data-task="${esc(t.k)}"><div class="ico">${ic(t.icon)}</div><div class="body"><div class="t">${esc(t.t)}</div><div class="d">${esc(t.d)}</div></div>${myRowTm(t.k, t.done)}</div>`).join(''); };
   if (SR_TEST) window.__myGo = (id) => myGoAsk(id);
   if (SR_TEST) window.__rowTm = (k, ti) => myRowTm(k, false, ti);
+  if (SR_TEST) window.__inkTest = () => { const c = INK[0]; inkLec(c.id, c.lectures[0].no); return c.id + ':' + c.lectures[0].no; };
+  if (SR_TEST) window.__hwTest = (h) => { S.hw = S.hw || []; if (!S.hw.some((x) => x.id === h.id)) S.hw.push(h); hwSheet(h.id); };
   if (SR_TEST) window.__tm = () => JSON.stringify({ run: P.run && { tk: tkOf(P.run), ti: P.run.ti, paused: P.run.paused }, held: (P.held || []).map((x) => ({ tk: tkOf(x), ti: x.ti, sec: Math.round(pWatchSec(x)) })) });
   if (SR_TEST) window.__myTest = (it) => { if (!myS().items.some((x) => x.id === it.id)) myS().items.push({ log: {}, wrong: [], days: [1, 2, 3, 4, 5], at: Date.now(), ...it }); mySheet(it.id); };  // 오프라인 시험 탭에서만
   function srOn() { return SR_TEST || (!TUTOR && !(NXD.subjects || []).length && (location.hostname !== 'dain-ee.github.io' || ROLE_T)); }  // 선생님이 시안을 보고 괜찮다고 할 때까지 로컬·선생님이 연 학생 탭에서만 (정윤 앱엔 아직 안 보여요)
@@ -5894,7 +5923,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611021641'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611021647'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
