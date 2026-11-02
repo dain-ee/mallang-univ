@@ -2155,7 +2155,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611022336', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611022341', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2309,7 +2309,8 @@
   // ───────── 다 푼 뒤 「다시 풀기」 ─────────
   // 푼 답은 S.redo 에 잠깐 맡겨 두고 처음부터 다시 풀어요. 끝까지 다시 풀면 새 답이 남고,
   // 중간에 나가면 안 푼 문제는 맡겨 둔 답으로 되돌려요 (숙제가 「안 함」으로 바뀌지 않게)
-  const redoKey = () => { const r = UI.run; if (!r) return ''; if (r.kind === 'sci') return 'sci:' + today(); if (r.kind === 'drill') return 'dr:' + r.id; if (r.kind === 'unit') { const un = CH_UNITS[r.ref != null ? r.ref : engToday(true).unit]; return r.ref != null ? 'ua:' + un.ch + '-' + un.unit : 'ud:' + today(); } if (r.kind === 'words') return r.day != null ? 'wa:' + r.day : 'wd:' + today(); return ''; };
+  // ua 는 uKey 로: 새 문제판(:2) 칸이라야 다시 풀기가 돼요 (11/2 지원 «다시 풀기 눌러도 다시 풀 수가 없어요»)
+  const redoKey = () => { const r = UI.run; if (!r) return ''; if (r.kind === 'sci') return 'sci:' + today(); if (r.kind === 'drill') return 'dr:' + r.id; if (r.kind === 'unit') { const un = CH_UNITS[r.ref != null ? r.ref : engToday(true).unit]; return r.ref != null ? 'ua:' + uKey(un) : 'ud:' + today(); } if (r.kind === 'words') return r.day != null ? 'wa:' + r.day : 'wd:' + today(); return ''; };
   function redoStore(key) {
     const i = key.indexOf(':'), k = key.slice(0, i), a = key.slice(i + 1);
     return k === 'sci' ? [(S.sci.days[a] || {}).ans, 'sci'] : k === 'dr' ? [(S.drillAns || {})[a], 'drillAns'] : k === 'ud' ? [(S.eng.days[a] || {}).uans, 'eng'] : k === 'ua' ? [(S.eng.ua || {})[a], 'eng'] : k === 'wd' ? [(S.eng.days[a] || {}).wans, 'eng'] : k === 'wa' ? [(S.eng.wa || {})[a], 'eng'] : [null];
@@ -5934,7 +5935,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611022336'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611022341'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
