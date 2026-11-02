@@ -828,7 +828,7 @@
     const R = 80, L = Math.PI * R;
     const todo = `<section class="card tight ${cls}"><div class="card-h"><h3>${DAY_OFF() ? `${DAY_OFF() === -1 ? '어제' : md(today())} 할 일` : '오늘 할 일'}</h3>${DAY_OFF() ? '<button class="more" data-dayoff="0">오늘로</button>' : ''}<button class="more" data-go="hw">숙제</button></div>
       <div class="arch"><svg viewBox="0 0 200 100"><path d="M20 96 A80 80 0 0 1 180 96" fill="none" stroke="var(--fill)" stroke-width="12" stroke-linecap="round"/><path class="ring-arc" d="M20 96 A80 80 0 0 1 180 96" fill="none" stroke="var(--blue)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L * (1 - frac)}"/></svg><div class="c"><span class="tiny">오늘</span><br><b class="num">${Math.round(frac * 100)}%</b> <span class="muted">완료</span></div></div>
-      <div class="list">${tasks.length ? tasks.map((t) => `<div class="li btnlike" ${t.hw ? `data-hwopen="${esc(t.hw)}"` : `data-task="${t.k}"`}><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${esc(t.t)}</div><div class="d">${esc(t.d)}</div></div><span class="chev"></span></div>`).join('') : `<div class="empty">${ic('party')}<b>오늘 할 일이 없어요</b></div>`}</div></section>`;
+      <div class="list">${tasks.length ? tasks.map((t) => `<div class="li btnlike" ${t.hw ? `data-hwopen="${esc(t.hw)}"` : `data-task="${t.k}"`}><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${esc(t.t)}</div><div class="d">${esc(t.d)}</div></div>${myRowTm(t.k, t.done)}<span class="chev"></span></div>`).join('') : `<div class="empty">${ic('party')}<b>오늘 할 일이 없어요</b></div>`}</div></section>`;
     return inline ? todo : clockWidget() + pomoCard('pm-rail') + hotCard('') + todo + ddayWidget();
   }
   const nIcon = (n) => (n.scope === '교육부' ? 'bank' : /과학|바이오/.test(n.scope || '') ? 'sci' : 'news');
@@ -1309,7 +1309,7 @@
   function myCard(cls) {
     const L = myOpen().sort((a, b) => (!myToday(a).n - !myToday(b).n) || a.due.localeCompare(b.due));
     return `<section class="card ${cls}"><div class="card-h"><h2>${ic('write')} 내 숙제</h2><button class="btn sm" type="button" data-myadd>+ 숙제 넣기</button></div>
-      ${L.length ? `<div class="list my-list">${L.map((it) => { const x = myToday(it), p = Math.round((myDone(it) / it.total) * 100), dd = dday(it.due); return `<div class="li btnlike" data-task="my:${esc(it.id)}"><div class="ico">${ic('write')}</div><div class="body"><div class="t">${esc(it.unit === '건' ? it.book : it.text)} <span class="tiny">${isPlan(it) ? '일정 · ' : ''}${esc(myCls(it.cls).name)}</span></div><div class="d">${it.unit === '건' ? esc(myCls(it.cls).name) : x.n ? `오늘 ${esc(myRange(it, x))}` : x.skip ? '내일로 미뤘어요' : x.dn ? '오늘 몫 끝' : '오늘은 쉬는 요일'} · <b class="${dd <= 1 ? 'red' : ''}">${dd < 0 ? '마감 지남' : dd === 0 ? '오늘 마감' : `${md(it.due)} 마감 D-${dd}`}</b></div><div class="ik-bar"><i style="width:${p}%"></i></div></div></div>`; }).join('')}</div>` : `<p class="tiny" style="margin:12px 0 0">학원·과외·학교 숙제, 수행평가, 학생회 일까지 넣어요. 문제 수가 있으면 마감까지 매일 할 만큼 「오늘 할 일」에 나눠 줘요</p>`}</section>`;
+      ${L.length ? `<div class="list my-list">${L.map((it) => { const x = myToday(it), p = Math.round((myDone(it) / it.total) * 100), dd = dday(it.due); return `<div class="li btnlike" data-task="my:${esc(it.id)}"><div class="ico">${ic('write')}</div><div class="body"><div class="t">${esc(it.unit === '건' ? it.book : it.text)} <span class="tiny">${isPlan(it) ? '일정 · ' : ''}${esc(myCls(it.cls).name)}</span></div><div class="d">${it.unit === '건' ? esc(myCls(it.cls).name) : x.n ? `오늘 ${esc(myRange(it, x))}` : x.skip ? '내일로 미뤘어요' : x.dn ? '오늘 몫 끝' : '오늘은 쉬는 요일'} · <b class="${dd <= 1 ? 'red' : ''}">${dd < 0 ? '마감 지남' : dd === 0 ? '오늘 마감' : `${md(it.due)} 마감 D-${dd}`}</b></div><div class="ik-bar"><i style="width:${p}%"></i></div></div>${myRowTm('my:' + it.id, myFin(it))}</div>`; }).join('')}</div>` : `<p class="tiny" style="margin:12px 0 0">학원·과외·학교 숙제, 수행평가, 학생회 일까지 넣어요. 문제 수가 있으면 마감까지 매일 할 만큼 「오늘 할 일」에 나눠 줘요</p>`}</section>`;
   }
   // 교재: 수업마다 기억해요. 지난번 끝 번호 다음부터 이어서 채워요
   const myBooks = (cid) => { const M = myS(); M.books = M.books || [{ cls: 'c1', name: '마플 시너지' }, { cls: 'c1', name: '마더텅' }, { cls: 'c1', name: '올림포스 기출' }]; return M.books.filter((b) => b.cls === cid); };
@@ -1410,6 +1410,22 @@
     if (UI.myTmAsk === it.id) return `<div class="my-tm ask"><div class="my-tm-t"><span>지금부터 시간을 재요</span><b>진짜로 시작할까요?</b></div><div class="my-tm-bs"><button class="btn" type="button" data-mt="no">아니요</button><button class="btn primary" type="button" data-mt="go">시작</button></div></div>`;
     return `<div class="my-tm"><div class="my-tm-t"><span>이 숙제 하는 시간 재기</span><b>${ic('clock')} 시작하면 옆에서 시간이 가요</b></div><button class="btn primary" type="button" data-mt="ask">시작하기</button></div>`;
   }
+  function myTmStart(it) { P.run = { mode: 'focus', watch: 1, pick: 'sw', t0: Date.now(), acc: 0, seg: [], paused: false, subj: mySubj(it), ti: it.book, hw: it.id, dur: 0 }; P.offer = null; UI.myTmDone = null; pSave(); ding(1); if (navigator.vibrate) navigator.vibrate(20); pLoop(); }
+  // 목록 줄 오른쪽: 시작 단추, 재는 중이면 «진행 중 12:34» (11/2 «옆에 시작이 있고, 되면 여기에도 진행 중이라는 걸 알아야 해»)
+  function myRowTm(k, done) {
+    if (TEACHER || !k || !String(k).startsWith('my:')) return '';
+    const id = String(k).slice(3), it = myS().items.find((x) => x.id === id), r = P.run; if (!it) return '';
+    if (r && r.hw === id) return `<span class="my-run ${r.paused ? 'paused' : ''}"><i></i>${r.paused ? '멈춤' : '진행 중'} <b class="num" data-pmt>${pShow()}</b></span>`;
+    if (done || r || isPlan(it)) return '';
+    return `<button class="btn sm my-go" type="button" data-mygo="${esc(id)}">${ic('clock')}시작</button>`;
+  }
+  function myGoAsk(id) {
+    const it = myS().items.find((x) => x.id === id); if (!it || P.run) return;
+    sheet(`<h2>${esc(it.book)} 시작할까요?</h2><p class="sub">지금부터 시간을 재요. 다 하면 이 줄을 눌러 「끝」을 눌러요</p><div class="pm-btns"><button class="btn big" id="mg-no" type="button">아니요</button><button class="btn primary big" id="mg-go" type="button">시작</button></div>`, (el, close) => {
+      $('#mg-no', el).onclick = close;
+      $('#mg-go', el).onclick = () => { myTmStart(it); close(); render(); toast(`${it.book} 시작! 시간을 재고 있어요`); };
+    });
+  }
   function myTmBind(it) {
     const box = $('#my-tm'); if (!box || TEACHER) return;
     const draw = () => { box.innerHTML = myTmHTML(it); myTmBind(it); };
@@ -1417,7 +1433,7 @@
       e.stopPropagation(); const k = b.dataset.mt;  // 단추를 새로 그려도 바깥을 누른 걸로 잡혀 시트가 닫히지 않게
       if (k === 'ask') { UI.myTmAsk = it.id; UI.myTmDone = null; return draw(); }
       if (k === 'no') { UI.myTmAsk = null; return draw(); }
-      if (k === 'go') { UI.myTmAsk = null; P.run = { mode: 'focus', watch: 1, pick: 'sw', t0: Date.now(), acc: 0, seg: [], paused: false, subj: mySubj(it), ti: it.book, hw: it.id, dur: 0 }; P.offer = null; pSave(); ding(1); if (navigator.vibrate) navigator.vibrate(20); pLoop(); return draw(); }
+      if (k === 'go') { UI.myTmAsk = null; myTmStart(it); render(); return draw(); }
       if (k === 'pause') { pPause(); return draw(); }
       if (k === 'end') { const m = pWatchEnd(); if (m) UI.myTmDone = { id: it.id, m }; draw(); }
     }));
@@ -1884,7 +1900,7 @@
         const by = (a, b) => String(a.due || '').localeCompare(String(b.due || ''));
         const later = TEACHER ? hwList.filter((h) => !hwDone(h) && h.due && h.due > today()).sort(by) : [], done = hwList.filter((h) => hwDone(h)).sort(by).reverse();
         const hrow = (h, later) => `<div class="li btnlike" data-hwopen="${esc(h.id)}">${(h.nx && NXSETS[h.nx]) || mmOf(h) ? `<div class="ico">${ic(hwDone(h) ? 'ok' : 'pin')}</div>` : `<button class="ico" data-hwdone="${esc(h.id)}" style="border:0;cursor:pointer" aria-label="완료">${ic(hwDone(h) ? 'ok' : 'pin')}</button>`}<div class="body"><div class="t" style="${hwDone(h) ? 'color:var(--t3);text-decoration:line-through' : later ? 'color:var(--t2);font-weight:500' : ''}">${esc(h.title)}</div><div class="d">${[h.subj, h.due ? md(h.due) + (later ? ' 숙제' : '') : ''].filter(Boolean).map(esc).join(' · ')}</div></div>${TEACHER ? `<button class="btn sm" data-hwdel="${esc(h.id)}" type="button">지우기</button>` : ''}<span class="chev"></span></div>`;
-        const row = (t) => `<div class="li btnlike ${t.done ? 'is-done' : ''}" ${t.hw ? `data-hwopen="${esc(t.hw)}"` : `data-task="${esc(t.k)}"`}><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${esc(t.t)}${t.hw ? ' <span class="tag">선생님</span>' : ''}</div><div class="d">${esc(t.d)}</div></div>${t.done ? '<span class="tag blue">끝</span>' : '<span class="chev"></span>'}</div>`;
+        const row = (t) => `<div class="li btnlike ${t.done ? 'is-done' : ''}" ${t.hw ? `data-hwopen="${esc(t.hw)}"` : `data-task="${esc(t.k)}"`}><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${esc(t.t)}${t.hw ? ' <span class="tag">선생님</span>' : ''}</div><div class="d">${esc(t.d)}</div></div>${myRowTm(t.k, t.done)}${t.done ? '<span class="tag blue">끝</span>' : '<span class="chev"></span>'}</div>`;
         const tog = (pn, label, n) => n ? `<button type="button" data-pn="${pn}" data-lb="${label} <b>${n}</b>" onclick="const s=this.closest('section'),p=s.querySelector('[data-pane='+this.dataset.pn+']'),o=p.hidden;s.querySelectorAll('.hw-pane').forEach(x=>x.hidden=true);this.parentNode.querySelectorAll('button[data-lb]').forEach(b=>{b.classList.remove('on');b.innerHTML=b.dataset.lb});if(o){p.hidden=false;this.classList.add('on');this.textContent='접기'}">${label} <b>${n}</b></button>` : '';
         return `<section class="card ${TUTOR ? 'c8' : 'c12'}"><div class="card-h"><h2>오늘 할 것</h2>${real.length ? `<span class="tiny">${real.length}개 중 <b class="${dn === real.length ? 'blue' : ''}">${dn}개</b> 끝</span>` : ''}${TEACHER ? '<button class="btn sm soft" id="hw-add" type="button">숙제 내기</button>' : ''}</div>
           ${real.length ? `<div class="td-prog"><i style="width:${(dn / real.length) * 100}%"></i></div>` : ''}
@@ -2080,7 +2096,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611021143', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611021320', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2856,6 +2872,8 @@
   //   계획 짤 때 '이번 주는 과해요 / 더 해볼까요'. 시간이 안 적혀 있으면 문제 시작~푼 시간이라도» · 모달 말고 화면, 주마다 쌓여서 나아진 게 보이게)
   //   문항 답의 at 으로: 8분 넘게 끊기면 새 묶음 → 앱에서 실제로 푼 시간, 바로 앞 답과의 간격(10분 안) → 문항당 시간
   const SR_TEST = (() => { try { return localStorage.getItem('mu:offline') === '1' && localStorage.getItem('mu:sr') === '1'; } catch (e) { return false; } })();  // 테스트: 과외 학생 오프라인 탭에서도 리포트를 열어 봐요
+  if (SR_TEST) window.__myRow = (id) => { const L = myTasks().filter((t) => t.k === 'my:' + id); return L.map((t) => `<div class="li btnlike" data-task="${esc(t.k)}"><div class="ico">${ic(t.icon)}</div><div class="body"><div class="t">${esc(t.t)}</div><div class="d">${esc(t.d)}</div></div>${myRowTm(t.k, t.done)}<span class="chev"></span></div>`).join(''); };
+  if (SR_TEST) window.__myGo = (id) => myGoAsk(id);
   if (SR_TEST) window.__myTest = (it) => { if (!myS().items.some((x) => x.id === it.id)) myS().items.push({ log: {}, wrong: [], days: [1, 2, 3, 4, 5], at: Date.now(), ...it }); mySheet(it.id); };  // 오프라인 시험 탭에서만
   function srOn() { return SR_TEST || (!TUTOR && !(NXD.subjects || []).length && (location.hostname !== 'dain-ee.github.io' || ROLE_T)); }  // 선생님이 시안을 보고 괜찮다고 할 때까지 로컬·선생님이 연 학생 탭에서만 (정윤 앱엔 아직 안 보여요)
   var SR_MINE = 1793511014696;  // 11/1 선생님이 대신 넣어 준 기록은 빼요
@@ -5832,7 +5850,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611021143'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611021320'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6979,6 +6997,7 @@
     $$('[data-go]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); if (b.dataset.seg) UI.scoreSeg = b.dataset.seg; go(b.dataset.go); }));
     $$('[data-goalset]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); goalSheet(); }));
     $$('[data-task]').forEach((b) => (b.onclick = () => startTask(b.dataset.task)));
+    $$('[data-mygo]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); myGoAsk(b.dataset.mygo); }));
     $$('[data-clch]').forEach((b) => (b.onclick = () => { UI.clCh = +b.dataset.clch; render(); }));
     $$('[data-wmday]').forEach((b) => (b.onclick = () => wmDaySheet(b.dataset.wmday)));
     $$('#ink-set, [data-inkset]').forEach((b) => (b.onclick = inkSettings));
