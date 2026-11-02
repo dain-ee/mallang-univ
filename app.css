@@ -3501,3 +3501,8 @@ button.my-run { border: 0; font-family: inherit; cursor: pointer; }
 .hw-float em { font-style: normal; font-size: 12px; font-weight: 700; padding: 2px 6px; border-radius: 99px; background: rgba(255,255,255,.16); color: #fff; }
 .my-runs { flex: none; display: inline-flex; align-items: center; gap: 6px; }
 .my-pz { flex: none; background: var(--fill); color: var(--t2); font-weight: 700; }
+/* 시간 재기 단추: 테마 연보라에 흰 글씨는 흐려서 안 보인다고 해서(11/2) 떠 있는 시간과 같은 진한 색 */
+.my-go { color: var(--t1); }
+.my-tm .btn.primary { background: var(--t1); color: var(--card); }
+.my-tm .btn.primary:hover { background: var(--t2); }
+.my-go .ic { opacity: 1; }
