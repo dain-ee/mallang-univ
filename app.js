@@ -2128,7 +2128,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611021613', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611021641', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5894,7 +5894,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611021613'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611021641'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7042,11 +7042,7 @@
     $$('[data-go]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); if (b.dataset.seg) UI.scoreSeg = b.dataset.seg; go(b.dataset.go); }));
     $$('[data-goalset]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); goalSheet(); }));
     $$('[data-task]').forEach((b) => (b.onclick = () => startTask(b.dataset.task)));
-    $$('[data-tmgo]').forEach((b) => (b.onclick = (e) => {
-      e.stopPropagation(); const tk = b.dataset.tmgo, li = b.closest('[data-task], [data-hwopen]');
-      const sel = li ? (li.dataset.hwopen ? `[data-hwopen="${CSS.escape(li.dataset.hwopen)}"]` : `[data-task="${CSS.escape(li.dataset.task)}"]`) : '';
-      tmGo(tk, b.dataset.tmti, tk.startsWith('my:') || !sel ? null : () => { const x = $(sel); if (x) x.click(); });  // 앱 안 공부·인강은 시작하면 바로 열어요
-    }));
+    $$('[data-tmgo]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); tmGo(b.dataset.tmgo, b.dataset.tmti); }));  // 시작은 시간만 재요. 인강 사이트·공부 화면은 줄을 눌러 열어요 (11/2)
     $$('[data-tmpz]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); const k = b.dataset.tmpz, r = tmOf(k); if (!r) return; if (r === P.run) { pPause(); toast(r.paused ? '멈췄어요 · 「이어 하기」로 다시 재요' : '이어서 재요'); } else tmGo(k, b.dataset.tmti); }));
     $$('[data-tmopen]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); tmSheet(b.dataset.tmopen); }));
     $$('[data-clch]').forEach((b) => (b.onclick = () => { UI.clCh = +b.dataset.clch; render(); }));
