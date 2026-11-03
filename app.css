@@ -3537,3 +3537,13 @@ button.my-run { border: 0; font-family: inherit; cursor: pointer; }
 .tv-b span { padding: 0 6px; }
 .tv-b span b { font-weight: 800; opacity: .9; }
 .cl-jump { margin: 0 0 16px; }
+
+/* 시간표 기록 고치기 (11/3) */
+.tt-m { display: inline-flex; align-items: center; gap: 8px; }
+.tt-fix { border: 0; background: var(--bg); color: var(--t2); font: inherit; font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 8px; cursor: pointer; }
+.tt-fix:hover { color: var(--t1); }
+.tt-ed { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 4px 0 12px 64px; }
+.tt-ed label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--t2); }
+.tt-ed input { font: inherit; font-size: 14px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--t1); }
+.tt-ed-b { display: flex; gap: 8px; margin-left: auto; }
+@media (max-width: 600px) { .tt-ed { padding-left: 0; } .tt-ed-b { margin-left: 0; width: 100%; } .tt-ed-b .btn { flex: 1; } }
