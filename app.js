@@ -2139,7 +2139,8 @@
   // 다 풀었을 때: 큰 흰 카드 가운데 아이콘 · 점수 · 한마디, 버튼은 아래에 크게
   // 3D 유령: 한 번만 도는 동작은 볼 때마다 처음부터 다시 돌도록 매번 새 주소(blob)로 붙여요
   // ───────── 테마: 색 전체 + 3D 인형 펫 (아직 로컬 시험 중: localStorage mu:themes=1 일 때만 보여요) ─────────
-  const SKIN_DEV = (() => { try { return localStorage.getItem('mu:themes') === '1'; } catch (e) { return false; } })();
+  // 11/3 선생님 «아이들 화면이 내가 눌러서 보는 화면이랑 항상 같아야 해» → 학생 화면 보기(PEEK)에선 시험용 테마를 안 써요
+  const SKIN_DEV = !PEEK && (() => { try { return localStorage.getItem('mu:themes') === '1'; } catch (e) { return false; } })();
   const SKINS = { ghost: { n: '말랑 유령', c: '#3182f6', d: '기본' }, kitty: { n: '헬로키티', c: '#e8384f', d: '빨간 리본' }, monchhichi: { n: '몬치치', c: '#e2333d', d: '털인형 빨간 리본' }, melody: { n: '마이멜로디', c: '#e35d93', d: '분홍 두건' }, chiikawa: { n: '치이카와', c: '#e07686', d: '말랑 하양' }, cinnamoroll: { n: '시나모롤', c: '#5aa6e6', d: '하늘 구름' }, kuromi: { n: '쿠로미', c: '#8a63c9', d: '검은 두건 해골' }, bamdol: { n: '밤돌이', c: '#12a594', d: '나뭇잎 셔츠' }, rilakkuma: { n: '리락쿠마', c: '#c8792a', d: '갈색 곰 노란 귀' }, korilakkuma: { n: '코리락쿠마', c: '#e07a8c', d: '크림 곰 빨간 단추' }, teacher: { n: '선생님', c: '#111111', d: '검은 터틀넥 선글라스' }, bunny: { n: '토끼 소녀', c: '#ee7fa6', d: '분홍 니트 토끼 인형' }, headphone: { n: '헤드폰 소녀', c: '#b394e6', d: '분홍 헤드폰 흰 스웨터' }, woni: { n: '리센느 원이', c: '#5b8fd6', d: '볼 콕 손하트' }, rescene: { n: '리센느', c: '#5b8fd6', d: '다섯 멤버' } };
   const SKIN_Q = new URLSearchParams(location.search).get('skin');  // 시험용: 탭마다 다른 테마 (?skin=kitty)
   const owned = () => (S.profile.skins || []).filter((k) => SKINS[k]);
@@ -2158,7 +2159,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611031646', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611031650', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2944,7 +2945,7 @@
   if (SR_TEST) window.__hwTest = (h) => { S.hw = S.hw || []; if (!S.hw.some((x) => x.id === h.id)) S.hw.push(h); hwSheet(h.id); };
   if (SR_TEST) window.__tm = () => JSON.stringify({ run: P.run && { tk: tkOf(P.run), ti: P.run.ti, paused: P.run.paused }, held: (P.held || []).map((x) => ({ tk: tkOf(x), ti: x.ti, sec: Math.round(pWatchSec(x)) })) });
   if (SR_TEST) window.__myTest = (it) => { if (!myS().items.some((x) => x.id === it.id)) myS().items.push({ log: {}, wrong: [], days: [1, 2, 3, 4, 5], at: Date.now(), ...it }); mySheet(it.id); };  // 오프라인 시험 탭에서만
-  function srOn() { return SR_TEST || (!TUTOR && !(NXD.subjects || []).length); }  // 11/3 선생님 «정윤이는 왜 화면이 안 보이지» → 정윤 앱에도 열어요 (시간 고치기를 정윤이가 직접)
+  function srOn() { return SR_TEST || (!TUTOR && !(NXD.subjects || []).length); }  // 11/3 «정윤이는 왜 화면이 안 보이지» → 정윤 앱에도. ⛔ 선생님·학생 화면 보기에서만 보이는 기능을 만들지 않아요
   var SR_MINE = 1793511014696;  // 11/1 선생님이 대신 넣어 준 기록은 빼요
   var SR_K = { olymp: ['올림포스 지문', 0], g3: ['고3 영어', 96], cheonil: ['천일문', 0], 'fin-q': ['기말 문제', 0], 'fin-b': ['기말 빈칸', 0], sci: ['과학', 0], word: ['단어', 0], nx: ['수업·따로 공부', 0] };  // 둘째 값: 수능 영어 독해 문항당 1분 36초. 올림포스는 기말(내신) 지문을 꼼꼼히 보는 거라 수능 시간과 안 견줘요 (11/1 선생님 «내신이니까 느릴 수 있지»)
   var srWk = (d) => addD(d, -((new Date(d + 'T00:00:00').getDay() + 6) % 7));  // 그 주 월요일
@@ -5942,7 +5943,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611031646'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611031650'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
