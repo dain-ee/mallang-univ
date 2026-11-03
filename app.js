@@ -2214,7 +2214,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611040111', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611040115', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2268,7 +2268,7 @@
     ian: ['둘, 셋! 안녕하세요, Hearts2Hearts입니다!', '나랑 같이 공부할래?', '눈 깜빡깜빡 이안이에요!', '쉿, 지금은 집중하는 시간이야', '하투하 화이팅!', '웃으면 복이 온다!', '하고 싶은 것 다 하면서 살자!', '오늘 숙제 끝내고 같이 쉬자', '하츄, 오늘도 같이 힘내요!'],  // 11/4 인사·「하투하 화이팅」·「둘, 셋」(팀 구호), 「눈 깜빡깜빡 이안」(일본 공연 자기소개), 「웃으면 복이 온다」·「하고 싶은 것 다 하면서 살자」(이안 좌우명) + 공부 응원
   };
   // 리센느 다섯 명: 걸침 사진 perch0 은 단체 한 장, 1~5 는 한 명씩 (10/31 «다섯 명 다 있는 건 딱 한 번, 나머지 멤버들이 골고루 1명씩»). 말풍선은 사진 속 멤버 유행어
-  const PHOTO_WHO = { woni: ['', '', '', ''], ian: ['', '', '', ''], rescene: ['', '원이', '미나미', '리브', '메이', '제나'] };
+  const PHOTO_WHO = { woni: ['', '', '', ''], ian: ['', '', '', '', ''], rescene: ['', '원이', '미나미', '리브', '메이', '제나'] };
   const PET_WINK = new Set(['melody', 'cinnamoroll', 'kuromi', 'bamdol', 'rilakkuma', 'korilakkuma']); // 찡긋 표정이 있는 펫
   function petDock() {
     const t = skin(), host = !UI.run && $('#main .card');  // 유령은 걸치는 그림이 없어서 서 있는 그림으로 카드 위에 올라앉아요 (10/27 «다른 애들처럼 그 위에 붙어»)
@@ -6307,7 +6307,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040111'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040115'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
