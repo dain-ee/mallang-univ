@@ -2214,7 +2214,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611040131', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611040137', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5993,7 +5993,7 @@
     return `<div class="qwrap" style="max-width:760px;margin:0 auto"><div class="row between"><button class="btn sm" data-go="hw" type="button">‹ 숙제</button><span class="tiny">${esc(WQ.book)}</span></div>
       <h1 class="h1">수행평가 단어 ${p.pass}바퀴</h1><p class="sub">${md(WQ.test)} 수행평가${dd > 0 ? ` D-${dd}` : ''} · Day 하나씩 훑어보고 뜻 고르기 시험</p>
       <section class="card"><div class="row between"><b>오늘 Day ${p.days[0]}~${p.days[p.days.length - 1]}</b><span class="tiny">${nd} / ${p.days.length} 끝</span></div><div class="bar" style="margin:10px 0 4px"><span style="width:${Math.round((nd / p.days.length) * 100)}%"></span></div>
-      <div class="list">${p.days.map((dy) => { const ok = wqS().done[wqK(p, dy)]; return `<div class="li btnlike ${ok ? 'is-done' : ''}" data-wqd="${dy}"><div class="ico">${ic(ok ? 'ok' : 'books')}</div><div class="body"><div class="t">Day ${dy}</div><div class="d">단어 ${wqWords(dy).length}개 · ${ok ? '끝났어요, 다시 풀어도 돼요' : '훑어보기 → 뜻 고르기 시험'}</div></div>${ok ? '<span class="tag blue">끝</span>' : '<span class="btn sm primary">시작</span>'}</div>`; }).join('')}</div></section></div>`;
+      <div class="list">${p.days.map((dy) => { const ok = wqS().done[wqK(p, dy)]; return `<div class="li btnlike wq-day ${ok ? 'is-done' : ''}" style="--i:${p.days.indexOf(dy)}" data-wqd="${dy}"><div class="ico">${ic(ok ? 'ok' : 'books')}</div><div class="body"><div class="t">Day ${dy}</div><div class="d">단어 ${wqWords(dy).length}개 · ${ok ? '끝났어요, 다시 풀어도 돼요' : '훑어보기 → 뜻 고르기 시험'}</div></div>${ok ? '<span class="tag blue">끝</span>' : '<span class="btn sm primary">시작</span>'}</div>`; }).join('')}</div></section></div>`;
   }
   const wqPool = () => (UI.run && UI.run.pool ? UI.run.pool : UI.run && UI.run.store === 'nx' ? WMW.map((w) => ({ en: w.en, ko: w.ko, day: w.day })) : WQ ? WQ.days.flatMap((d) => wqWords(d.day)) : []);
   function wqGo(o) { UI.tab = 'hw'; UI.run = { kind: 'wq', stage: 'list', Q: o.M.map((_, i) => i).sort(() => Math.random() - 0.5), k: 0, res: [], miss: [], ch: null, ...o }; render(); window.scrollTo(0, 0); }
@@ -6001,16 +6001,16 @@
   function wqPage() {
     const r = UI.run, M = r.M;
     const head = `<div class="row between"><button class="btn sm" ${r.back ? 'data-wqback' : 'data-go="hw"'} type="button">‹ ${r.back ? 'Day 목록' : '숙제'}</button><span class="tiny">${esc(r.title)}</span></div>`;
-    if (r.stage === 'list') return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<h1 class="h1">단어 ${M.length}개</h1><p class="sub">한 번 훑고 바로 시험 봐요${r.sub ? ` · ${esc(r.sub)}` : ''}</p><div class="card wq-tb ${r.hide ? 'wq-cover' : ''}"><div class="row between"><b>뜻 ${r.hide ? '가리고 외우기' : '보며 외우기'}</b><button class="btn sm ${r.hide ? '' : 'primary'}" data-wqhide type="button">${r.hide ? '모두 보기' : '가리기'}</button></div><table class="tbl"><tbody>${M.map((w, k) => `<tr><td class="num muted" style="width:28px">${k + 1}</td><td><b style="font-size:16px">${esc(w.en)}</b> <span class="tiny">${esc(w.pos || '')}</span></td><td class="wq-ko" data-wqpeel><span>${esc(w.ko)}</span></td></tr>`).join('')}</tbody></table></div><div class="cta-bar"><button class="btn primary big block" data-wqgo type="button">시험 보기</button></div></div>`;
+    if (r.stage === 'list') return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<h1 class="h1">단어 ${M.length}개</h1><p class="sub">한 번 훑고 바로 시험 봐요${r.sub ? ` · ${esc(r.sub)}` : ''}</p><div class="card wq-tb ${r.hide ? 'wq-cover' : ''} ${r.hAnim || ''}"><div class="row between"><b>뜻 ${r.hide ? '가리고 외우기' : '보며 외우기'}</b><button class="btn sm ${r.hide ? '' : 'primary'}" data-wqhide type="button">${r.hide ? '모두 보기' : '가리기'}</button></div><table class="tbl"><tbody>${M.map((w, k) => `<tr><td class="num muted" style="width:28px">${k + 1}</td><td><b style="font-size:16px">${esc(w.en)}</b> <span class="tiny">${esc(w.pos || '')}</span></td><td class="wq-ko" data-wqpeel style="--i:${Math.min(k, 24)}"><span>${esc(w.ko)}</span></td></tr>`).join('')}</tbody></table></div><div class="cta-bar"><button class="btn primary big block" data-wqgo type="button">시험 보기</button></div></div>`;
     if (r.k >= r.Q.length) { const ok = M.length - r.miss.length;
       return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${doneCard(ok, M.length, r.miss.length ? '단어 시험 끝! 틀린 단어는 다시 맞힐 때까지 풀었고 오답 노트에 들어갔어요' : '단어 시험 끝! 한 번에 다 맞혔어요', `<button class="btn primary big block" ${r.back ? 'data-wqback' : 'data-go="hw"'} type="button">${r.back ? 'Day 목록으로' : '숙제로'}</button>`, `<div class="list done-list">${M.map((w) => `<div class="li"><div class="ico">${ic(r.miss.includes(w.en) ? 'x' : 'ok')}</div><div class="body"><div class="t">${esc(w.en)}</div><div class="d">${esc(w.ko)}</div></div></div>`).join('')}</div>`)}</div>`; }
     const w = M[r.Q[r.k]];
     if (!r.ch) { const P = wqPool().filter((x) => x.ko !== w.ko), near = P.filter((x) => x.day === w.day).sort(() => Math.random() - 0.5); r.ch = [w.ko, ...[...near, ...P.filter((x) => x.day !== w.day).sort(() => Math.random() - 0.5)].slice(0, 3).map((x) => x.ko)].sort(() => Math.random() - 0.5); }
     // 11/4 «전체 보기를 하든 해서 문제를 고를 수 있어야»: 점을 눌러도, 「전체 보기」로 번호를 눌러도 그 문제로 가요
-    const grid = r.grid ? `<div class="card wq-grid"><div class="row between"><b>문제 고르기</b><span class="tiny">맞힘 ${r.res.filter((x) => x === 'ok').length} · 틀림 ${r.res.filter((x) => x === 'no').length} · 남음 ${r.Q.filter((_, k) => !r.res[k]).length}</span></div><div class="wq-nums">${r.Q.map((i, k) => `<button type="button" class="${r.res[k] || ''}${k === r.k ? ' cur' : ''}" data-wqj="${k}"><b>${k + 1}</b><span>${esc(M[i].en)}</span></button>`).join('')}</div></div>` : '';
+    const grid = r.grid ? `<div class="card wq-grid"><div class="row between"><b>문제 고르기</b><span class="tiny">맞힘 ${r.res.filter((x) => x === 'ok').length} · 틀림 ${r.res.filter((x) => x === 'no').length} · 남음 ${r.Q.filter((_, k) => !r.res[k]).length}</span></div><div class="wq-nums">${r.Q.map((i, k) => `<button type="button" class="${r.res[k] || ''}${k === r.k ? ' cur' : ''}" style="--i:${Math.min(k, 30)}" data-wqj="${k}"><b>${k + 1}</b><span>${esc(M[i].en)}</span></button>`).join('')}</div></div>` : '';
     return `<div class="qwrap" style="max-width:640px;margin:0 auto">${head}<div class="row between wq-bar"><div class="progress-dots wq-dots">${r.Q.map((_, k) => `<i class="${r.res[k] ? r.res[k] : k === r.k ? 'cur' : ''}" data-wqj="${k}"></i>`).join('')}</div><button class="btn sm" data-wqgrid type="button">${r.grid ? '닫기' : '전체 보기'}</button></div>${grid}
-      <div class="card" style="text-align:center;padding:40px 24px"><div class="tiny">${r.k + 1} / ${r.Q.length}${r.k >= M.length ? ' · 틀린 단어 다시' : ''}</div><div style="font-size:34px;font-weight:800;margin-top:8px;letter-spacing:-0.02em">${esc(w.en)}</div><div class="tiny">${esc(w.pos || '')}</div></div>
-      <div class="choices">${r.ch.map((o, k) => `<button class="choice" data-wqp="${k}" type="button"><span class="n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div></div>`;
+      <div class="card wq-qc ${r.qAnim || ''}" style="text-align:center;padding:40px 24px"><div class="tiny">${r.k + 1} / ${r.Q.length}${r.k >= M.length ? ' · 틀린 단어 다시' : ''}</div><div style="font-size:34px;font-weight:800;margin-top:8px;letter-spacing:-0.02em">${esc(w.en)}</div><div class="tiny">${esc(w.pos || '')}</div></div>
+      <div class="choices wq-chs ${r.qAnim || ''}">${r.ch.map((o, k) => `<button class="choice" style="--i:${k}" data-wqp="${k}" type="button"><span class="n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div></div>`;
   }
   function bindWq() {
     const r = UI.run;
@@ -6019,17 +6019,23 @@
     $$('[data-wqback]').forEach((b) => (b.onclick = () => wqOpen(r.back)));
     const g = $('[data-wqgo]'); if (g) g.onclick = () => { r.stage = 'test'; render(); window.scrollTo(0, 0); };
     // 11/4 «가리기 하면 한국어 뜻이 다 가려져서 하나씩 스티커처럼 뗄 수 있게 · 다 알면 한 번에 다시 보게»
-    const hb = $('[data-wqhide]'); if (hb) hb.onclick = () => { r.hide = !r.hide; render(); };
+    r.hAnim = ''; r.qAnim = '';  // 한 번 그린 뒤엔 다시 안 움직여요
+    const hb = $('[data-wqhide]'); if (hb) hb.onclick = () => {
+      if (!r.hide) { r.hide = true; r.hAnim = 'stick-in'; return render(); }  // 스티커가 위에서부터 차례로 착 붙어요
+      const cs = $$('.wq-ko:not(.peel)'); if (RM() || !cs.length) { r.hide = false; return render(); }
+      hb.disabled = true; cs.forEach((c, i) => setTimeout(() => c.classList.add('peel'), Math.min(i, 24) * 22));  // 모두 보기: 차례로 떼어지고
+      setTimeout(() => { r.hide = false; render(); }, Math.min(cs.length, 24) * 22 + 280);
+    };
     $$('[data-wqpeel]').forEach((c) => (c.onclick = () => { if (r.hide) c.classList.toggle('peel'); }));
-    const gr = $('[data-wqgrid]'); if (gr) gr.onclick = () => { r.grid = !r.grid; render(); };
-    $$('[data-wqj]').forEach((b) => (b.onclick = () => { const k = +b.dataset.wqj; if (k !== r.k) { r.k = k; r.ch = null; } r.grid = false; render(); window.scrollTo(0, 0); }));
+    const gr = $('[data-wqgrid]'); if (gr) gr.onclick = () => { const g = $('.wq-grid'); if (g && !RM()) { g.classList.add('out'); return setTimeout(() => { r.grid = false; render(); }, 200); } r.grid = !r.grid; render(); };
+    $$('[data-wqj]').forEach((b) => (b.onclick = () => { const k = +b.dataset.wqj; if (k !== r.k) { r.k = k; r.ch = null; r.qAnim = 'q-in'; } r.grid = false; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }));
     $$('[data-wqp]').forEach((b) => (b.onclick = () => {
       const i = r.Q[r.k], w = r.M[i], ok = r.ch[+b.dataset.wqp] === w.ko;
       $$('[data-wqp]').forEach((x) => { x.disabled = true; if (r.ch[+x.dataset.wqp] === w.ko) x.classList.add('right'); });
       if (!ok) b.classList.add('wrong');
       r.res[r.k] = ok ? 'ok' : 'no';
       const wid = 'word:' + w.en; if (!ok) { r.Q.push(i); if (!r.miss.includes(w.en)) r.miss.push(w.en); if (r.store === 'wq') wqS().wrong[w.en] = (wqS().wrong[w.en] || 0) + 1; addWrong(wid, { src: 'word', subj: 'eng', subjName: '영어', area: '단어', sub: `${w.en} · ${w.ko}`, word: w }); } else { gotIt(wid); if (S.wrong[wid] && !r.miss.includes(w.en)) clearWrong(wid); }  /* 이번에 틀렸다 다시 맞힌 건 오답 노트에 남겨요 */
-      setTimeout(() => { const nx = r.Q.findIndex((_, k) => k > r.k && !r.res[k]), nf = r.Q.findIndex((_, k) => !r.res[k]); r.k = nx >= 0 ? nx : nf >= 0 ? nf : r.Q.length; r.ch = null;  /* 건너뛴 문제가 있으면 끝내기 전에 돌아가요 */
+      setTimeout(() => { r.qAnim = 'q-in'; const nx = r.Q.findIndex((_, k) => k > r.k && !r.res[k]), nf = r.Q.findIndex((_, k) => !r.res[k]); r.k = nx >= 0 ? nx : nf >= 0 ? nf : r.Q.length; r.ch = null;  /* 건너뛴 문제가 있으면 끝내기 전에 돌아가요 */
         if (r.k >= r.Q.length) { if (r.store === 'wq') { if (r.key.startsWith('w:')) for (const m of r.M) delete wqS().wrong[m.en]; wqS().done[r.key] = Date.now(); } else nxS().a[r.key] = { ok: true, v: r.miss.length, at: Date.now() }; }
         save('wq', 'nx', 'wrong'); render(); }, ok ? 450 : 1100);
     }));
@@ -6129,7 +6135,7 @@
     // 11/3 숙제에서 연 단계는 그 단계만 (옆 2·3·4 단추는 «없애 주는 게 덜 헷갈리지 않을까») · 「단원 전체 보기」로 다 펴요
     const stPick = () => `<label class="st-pick"><select data-stpick aria-label="지문 고르기">${steps.map((x, i) => { const dn = x.L ? stLDone(u, x.L) : x.k === 'set' ? (() => { const g = nxProg(NXSETS[x.id]); return g.d >= g.n; })() : false; return `<option value="${x.k === 'set' ? 'nx:' + esc(x.id) : esc(x.k)}" ${x === cur ? 'selected' : ''}>${dn ? '✓ ' : ''}${esc(x.name)}</option>`; }).join('')}</select></label>`;
     const body = !u ? '' : `<section class="card st-head ${inner ? 'run' : ''}"><div class="row between"><span class="tiny">${esc(NX_SN[u.subj])} ${esc(u.code)}</span>${ypFin(u) ? '<span class="tag red">기말 범위</span>' : u.subj === 'm3' ? '' : '<span class="tag">지난 범위</span>'}</div>${u.subj === 'm3' ? `<div class="st-th"><h2 class="st-t">${esc(u.title)}</h2>${stPick()}</div>` : `<h2 class="st-t">${esc(u.title)}</h2>`}${u.sub && !(u.subj === 'm3' && inner) ? `<p class="sub">${esc(u.sub)}</p>` : ''}
-        ${u.subj === 'm3' ? '' : `<div class="st-steps" role="list" aria-label="공부 순서">${stOnly ? stepBtn(cur, steps.indexOf(cur)) + '<button type="button" class="st-step st-all" data-stall><span class="st-sl">단원 전체 보기</span></button>' : steps.map(stepBtn).join('')}${u.papers.length || (u.print || []).length ? `<button type="button" class="st-step ${tab === 'qs' ? 'on' : ''}" data-stt="qs"><span class="st-sn">${ic('memo')}</span><span class="st-sl">${(u.print || []).length ? '프린트·시험지' : '시험지별'}</span></button>` : ''}</div>`}
+        ${u.subj === 'm3' || stOnly ? '' /* 11/4 «숙제할 때는 아예 빼라니까, 헷갈린다고. 공부할 때는 기존처럼 다 나오면 되지만» */ : `<div class="st-steps" role="list" aria-label="공부 순서">${steps.map(stepBtn).join('')}${u.papers.length || (u.print || []).length ? `<button type="button" class="st-step ${tab === 'qs' ? 'on' : ''}" data-stt="qs"><span class="st-sn">${ic('memo')}</span><span class="st-sl">${(u.print || []).length ? '프린트·시험지' : '시험지별'}</span></button>` : ''}</div>`}
         ${lsub}${tab === 'notes' || tab === 'terms' || (CL && sub === 'n' && !inner) ? `<div class="row between st-tools"><span class="tiny">${CL && CL.m3 ? '「가리고 외우기」를 켜면 해석이 가려져요. 눌러서 확인해요' : u.subj === 'eng' && tab !== 'terms' ? '「가리고 외우기」를 켜면 우리말 뜻이 가려져요' : tab !== 'terms' ? '굵은 말이 빈칸에 나와요' : '눌러서 가렸다 보였다 해요'}</span><button type="button" class="btn sm ${UI.stHide ? 'primary' : ''}" data-sthide aria-pressed="${!!UI.stHide}">${UI.stHide ? '가린 것 다 보기' : '가리고 외우기'}</button></div>` : ''}</section>
       ${inner ? `<div class="st-run">${inner}</div>` : m3go || (CL ? stNotes(u, CL) || '<div class="card empty"><b>정리가 아직 없어요</b></div>' : tab === 'notes' ? stNotes(u) || '<div class="card empty"><b>정리가 아직 없어요</b></div>' : tab === 'terms' ? stTerms(u) : tab === 'memo' ? m3Board(u) : tab === 'order' ? stOrder(u) : stParts(u))}${nextBar}`;
     return `<h1 class="h1">공부</h1><p class="sub">${YF ? `${esc(YF.title)} ${md(YF.from)}~${md(YF.to).replace(/^\d+월 /, '')}${dday(YF.from) >= 0 ? ` · D-${dday(YF.from)}` : ''}` : '단원별로 정리하고 문제를 풀어요'}</p>
@@ -6318,7 +6324,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040131'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040137'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7378,8 +7384,9 @@
     if (UI.run) html = UI.run.kind === 'news' ? newsRun() : UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'wqd' ? wqDays() : UI.run.kind === 'wq' ? wqPage() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'qa' ? qaRun() : UI.run.kind === 'nx' ? nxRail(nxRun()) : UI.run.kind === 'nxw' ? nxwRun() : UI.run.kind === 'print' ? printRun() : '';
     else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'tme' ? tmeView() : UI.tab === 'picks' ? picksView() : UI.tab === 'kmla' ? kmlaView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'report' ? reportTabView() : UI.tab === 'grade' ? gradeView() : UI.tab === 'study' ? studyView() : UI.tab === 'exam' ? examView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
-    const view = UI.run ? 'run:' + UI.run.kind : UI.tab + (UI.lib || '') + (UI.tab === 'hw' ? (UI.nxUnit || '') + (UI.nxSubj || '') : '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'study' ? `${UI.stV}${UI.stS}${UI.stU}${UI.stT}` : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '');
-    const depth = UI.run ? 2 : UI.lib || (UI.tab === 'score' && UI.mockId) || (UI.tab === 'hw' && UI.nxUnit) ? 1 : 0, ti = TABS.findIndex((t) => t[0] === UI.tab);
+    const wqv = UI.run && UI.run.kind === 'wq' ? (UI.run.stage === 'list' ? 1 : UI.run.k >= UI.run.Q.length ? 3 : 2) : 0;  // 11/4 «애니메이션 굉장히 중요»: 단어 Day 목록 → 표 → 시험 → 끝도 화면 넘기듯
+    const view = UI.run ? 'run:' + UI.run.kind + (wqv ? ':' + wqv + ':' + UI.run.key : '') : UI.tab + (UI.lib || '') + (UI.tab === 'hw' ? (UI.nxUnit || '') + (UI.nxSubj || '') : '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'study' ? `${UI.stV}${UI.stS}${UI.stU}${UI.stT}` : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '');
+    const depth = UI.run ? 2 + wqv : UI.lib || (UI.tab === 'score' && UI.mockId) || (UI.tab === 'hw' && UI.nxUnit) ? 1 : 0, ti = TABS.findIndex((t) => t[0] === UI.tab);
     const qm = html.match(/class="q-no">([\s\S]*?)<\/div>/), qk = UI.run ? (qm ? qm[1] : html.includes('done-card') ? 'done' : html.includes('class="lesson"') ? 'lesson' : '') : '';
     const sub = [UI.wrongSubj, UI.sgbArea, UI.semester, UI.chartSubj, UI.mockSubj, UI.ypDay, UI.hwDay].join('|');
     let dir = '';

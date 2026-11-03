@@ -3721,3 +3721,33 @@ button.mid-an.go b { color: var(--blue); }
 .wq-tb.wq-cover .wq-ko span { position: relative; display: inline-block; min-width: 96px; border-radius: 8px; }
 .wq-tb.wq-cover .wq-ko span::after { content: '눌러서 떼기'; position: absolute; inset: -4px -8px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: color-mix(in srgb, var(--brand, #b9a3e6) 22%, var(--card)); border: 1.5px dashed color-mix(in srgb, var(--brand, #b9a3e6) 55%, var(--card)); color: var(--t3); font-size: 12px; font-weight: 600; transition: transform .25s ease, opacity .25s ease; transform-origin: top right; }
 .wq-tb.wq-cover .wq-ko.peel span::after { opacity: 0; transform: rotate(-8deg) translate(10px, -8px); pointer-events: none; }
+
+/* 단어 시험 움직임 (11/4 «애니메이션 굉장히 중요하게 생각하는 거 알지») */
+main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(var(--i, 0) * 55ms + 80ms); }
+.wq-day .btn { transition: transform .2s var(--spring); }
+.wq-day:hover .btn { transform: translateX(-2px) scale(1.04); }
+.wq-day:active { transform: scale(.985); transition: transform .12s; }
+.wq-tb.stick-in .wq-ko span::after { animation: wqStick .38s var(--spring) both; animation-delay: calc(var(--i, 0) * 22ms); }
+@keyframes wqStick { from { opacity: 0; transform: translateY(-10px) rotate(-6deg) scale(.85); } }
+.wq-tb.wq-cover .wq-ko:not(.peel):hover span::after { transform: rotate(-2deg) scale(1.03); }
+.wq-tb.wq-cover .wq-ko span::after { transition: transform .3s var(--spring), opacity .28s ease; }
+.wq-tb.wq-cover .wq-ko.peel span::after { opacity: 0; transform: rotate(-14deg) translate(18px, -14px) scale(.9); }
+.wq-tb.wq-cover .wq-ko.peel span { animation: wqShow .3s ease both; }
+@keyframes wqShow { from { opacity: 0; transform: translateY(3px); } }
+.wq-tb .row .btn { transition: background .25s, color .25s, transform .2s var(--spring); }
+.wq-tb .row .btn:active { transform: scale(.94); }
+.wq-qc.q-in { animation: nxIn .32s var(--ease) both; }
+.wq-chs.q-in .choice { animation: waveInS .32s var(--ease) both; animation-delay: calc(var(--i, 0) * 40ms + 60ms); }
+.wq-chs .choice { transition: transform .15s var(--spring), background .2s, border-color .2s; }
+.wq-chs .choice:active { transform: scale(.98); }
+.wq-chs .choice.right { animation: tapPop .35s var(--spring); }
+.wq-chs .choice.wrong { animation: shake .4s ease; }
+.wq-dots i { transition: background .3s, transform .2s var(--spring); }
+.wq-dots i:hover { transform: scaleY(1.6); }
+.wq-grid { animation: wqDrop .3s var(--ease) both; transform-origin: top center; }
+.wq-grid.out { animation: wqUp .2s ease both; }
+@keyframes wqDrop { from { opacity: 0; transform: translateY(-8px) scale(.98); } }
+@keyframes wqUp { to { opacity: 0; transform: translateY(-8px) scale(.98); } }
+.wq-nums button { animation: waveInS .3s var(--ease) both; animation-delay: calc(var(--i, 0) * 12ms + 60ms); transition: transform .15s var(--spring), border-color .2s; }
+.wq-nums button:hover { transform: translateY(-2px); }
+@media (prefers-reduced-motion: reduce) { main .wq-day, .wq-tb .wq-ko span, .wq-tb .wq-ko span::after, .wq-qc, .wq-chs .choice, .wq-grid, .wq-nums button { animation: none !important; transition: none !important; } }
