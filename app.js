@@ -1164,7 +1164,7 @@
     const U = UI.chk || {};
     return `<section class="card c12 chk-card"><div class="card-h"><h2>${ic('ok')} 푼 것 확인</h2><span class="tiny">오답 번호를 안 적은 숙제예요</span></div><div class="list">${L.map((c) => { const key = `${c.it.id}|${c.d || 'r'}`, o = U[key] || {}, wr = new Set(o.w || []);
       if (c.k === 'range') { const z = o.z != null ? o.z : c.z;
-        return `<div class="li chk-it" data-chk="${esc(key)}"><div class="body"><div class="t">${esc(c.it.book)}${c.gone ? ' <span class="tag">지운 숙제</span>' : ''}</div><div class="d">어디까지 풀었는지 고쳐 주세요</div>
+        return `<div class="li chk-it" data-chk="${esc(key)}"><div class="body"><div class="t">${esc(c.it.book)}${c.gone ? ' <span class="tag">지운 숙제</span>' : ''}</div>
           ${o.step === 'w' ? `<div class="d">${c.a}~${z}번 중 틀린 번호를 눌러요</div><div class="my-wc">${Array.from({ length: Math.min(80, z - c.a + 1) }, (_, i) => c.a + i).map((v) => `<button type="button" class="${wr.has(v) ? 'on' : ''}" data-chkw="${v}">${v}</button>`).join('')}</div><div class="chk-b"><button class="btn sm primary" type="button" data-chkdo="save">틀린 ${wr.size}개 저장</button></div>`
           : `<div class="chk-rg"><span class="num">${c.a}번부터</span><input class="inp sm num" type="number" inputmode="numeric" data-chkz value="${z}" min="${c.a}" max="${c.it.to}"><span>번까지 풀었어요</span></div><div class="chk-b"><button class="btn sm primary" type="button" data-chkdo="all">다 맞았어요</button><button class="btn sm" type="button" data-chkdo="wr">틀린 게 있어요</button><button class="btn sm" type="button" data-chkdo="none">안 풀었어요</button></div>`}</div></div>`; }
       return `<div class="li chk-it" data-chk="${esc(key)}"><div class="body"><div class="t">${esc(c.it.book)}</div><div class="d">${md(c.d)} 푼 <b>${c.a}~${c.z}번</b> 다 맞았나요?</div>
@@ -2214,7 +2214,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611040141', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611040145', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6324,7 +6324,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040141'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040145'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
