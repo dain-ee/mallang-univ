@@ -3560,7 +3560,7 @@ button.my-run { border: 0; font-family: inherit; cursor: pointer; }
 
 /* 수업 달력 (11/3) */
 .cl-cal-w { display: grid; gap: 24px; }
-@media (min-width: 720px) { .cl-cal-w { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+@media (min-width: 720px) { .c12 .cl-cal-w { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 .cl-cal-h { margin-bottom: 8px; }
 .cl-cal-h b { font-size: 15px; }
 .cl-cal-b { display: grid; gap: 12px; align-content: start; }
@@ -3568,3 +3568,11 @@ button.my-run { border: 0; font-family: inherit; cursor: pointer; }
 .cl-cal-b .cl-pg-d b { font-size: 17px; }
 .cl-cal-b .cl-pg-d span { font-size: 13px; color: var(--t3); }
 .cl-cal-ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 15px; line-height: 1.5; }
+.yc-d small { white-space: nowrap; }
+.cl-cal-b { display: flex; flex-direction: column; gap: 12px; }
+.cl-cal-w { margin-bottom: 0; }
+.c6 .cl-cal-b { border-top: 1px solid var(--line); padding-top: 16px; }
+.cl-rng { display: grid; gap: 8px; }
+.cl-rng > div { display: flex; align-items: baseline; gap: 12px; font-size: 15px; }
+.cl-rng span { flex: none; width: 64px; font-size: 13px; font-weight: 600; color: var(--t3); }
+.cl-rng b { font-weight: 600; color: var(--t1); }
