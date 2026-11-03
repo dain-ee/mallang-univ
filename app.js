@@ -2158,7 +2158,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611031535', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611031541', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3017,7 +3017,7 @@
     // 11/3 정윤 «시간 끄는 거 착각해서 시간 늘어났는데 못 빼나» → 잰 시간은 줄마다 고치기(시작·끝 시각, 지우기)
     const canEd = (b) => b.id && !b.live && b.t !== '앱' && !TEACHER;
     const edRow = (b) => `<div class="tt-ed" data-tted="${b.id}"><label>시작 <input type="time" value="${tm(b.s)}" data-tte="s"></label><label>끝 <input type="time" value="${tm(b.e)}" data-tte="e"></label><div class="tt-ed-b"><button type="button" class="btn sm" data-ttx="del">기록 지우기</button><button type="button" class="btn sm" data-ttx="no">취소</button><button type="button" class="btn sm primary" data-ttx="ok">저장</button></div></div>`;
-    const list = SL.length ? SL.map((b) => `<div class="tt-it"><span class="tt-tm num">${tm(b.s)}<em>${b.live ? '지금' : tm(b.e)}</em></span><i style="--c:${SR_C[b.t] || SR_C.자유}" class="${b.t === '앱' ? 'app' : ''}"></i><div class="tt-nm"><b>${esc(nm(b))}</b><span>${b.t === '앱' ? '앱에서 푼 시간 · 저절로 남아요' : b.live ? `${b.k} · 멈추면 고칠 수 있어요` : `${b.k}${b.ed ? ' · 고쳤어요' : ''}`}</span></div><span class="tt-m num">${srMinT((b.e - b.s) / 60000)}${canEd(b) && UI.ttEd !== b.id ? `<button type="button" class="tt-fix" data-ttfix="${b.id}">고치기</button>` : ''}</span></div>${UI.ttEd === b.id ? edRow(b) : ''}`).join('') : `<p class="tiny" style="margin:8px 0 0">${sel === today() ? '오늘은 아직 기록이 없어요' : '이날은 기록이 없어요'}</p>`;
+    const list = SL.length ? SL.map((b) => `<div class="tt-it"><span class="tt-tm num">${tm(b.s)}<em>${b.live ? '지금' : tm(b.e)}</em></span><i style="--c:${SR_C[b.t] || SR_C.자유}" class="${b.t === '앱' ? 'app' : ''}"></i><div class="tt-nm"><b>${esc(nm(b))}</b><span>${b.t === '앱' ? '앱에서 푼 시간 · 저절로 남아요' : b.live ? `${b.k} · 멈추면 고칠 수 있어요` : `${b.k}${b.ed ? ' · 고쳤어요' : ''}`}</span></div><span class="tt-m num">${srMinT((b.e - b.s) / 60000)}${canEd(b) && UI.ttEd !== b.id ? `<button type="button" class="tt-fix" data-ttfix="${b.id}">고치기</button>` : ''}</span></div>${canEd(b) && UI.ttEd === b.id ? edRow(b) : ''}`).join('') : `<p class="tiny" style="margin:8px 0 0">${sel === today() ? '오늘은 아직 기록이 없어요' : '이날은 기록이 없어요'}</p>`;
     const leg = Object.entries(tot).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<span class="tt-lg"><i style="--c:${SR_C[k] || SR_C.자유}"></i>${k === '앱' ? '앱 문제 풀이' : esc(k)} <b>${srMinT(v)}</b></span>`).join('');
     return `<section class="card c12 tt-card"><div class="tt-top"><div><span class="tiny">이번 주 모두</span><b class="num">${all ? srMinT(all) : '0분'}</b></div><div class="tt-lgs">${leg}</div></div>
       <div class="tv-wrap"><div class="tv-hrs"><div class="tv-dh"></div><div style="position:relative;height:${(h1 - h0) * PH}px">${hrs.map((h) => `<span style="top:${(h - h0) * PH}px">${hl(h).replace('오전 ', '').replace('낮 ', '')}</span>`).join('')}</div></div>${cols}</div></section>
@@ -5942,7 +5942,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611031535'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611031541'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
