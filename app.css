@@ -3700,3 +3700,24 @@ button.mid-an.go b { color: var(--blue); }
 @media (prefers-reduced-motion: reduce) { :root[data-skin="ian"] body::before, :root[data-skin="ian"] body::after { animation: none; } }
 :root[data-skin="ian"] .top { background: rgba(255, 255, 255, .82); }
 :root[data-skin="ian"] .card { box-shadow: 0 6px 24px rgba(63, 143, 210, .08); }
+
+/* 단어 시험 문제 고르기 (11/4) */
+.wq-bar { gap: 12px; align-items: center; }
+.wq-dots { flex: 1; }
+.wq-dots i { cursor: pointer; height: 6px; border-radius: 3px; }
+.wq-grid { margin-top: 12px; }
+.wq-nums { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-top: 12px; }
+.wq-nums button { display: flex; gap: 8px; align-items: center; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); text-align: left; font: inherit; cursor: pointer; min-width: 0; }
+.wq-nums button b { color: var(--t3); font-size: 13px; flex-shrink: 0; white-space: nowrap; }
+.wq-nums button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.wq-nums button.ok { background: color-mix(in srgb, var(--blue) 10%, var(--card)); border-color: color-mix(in srgb, var(--blue) 30%, var(--card)); }
+.wq-nums button.no { background: color-mix(in srgb, var(--red) 10%, var(--card)); border-color: color-mix(in srgb, var(--red) 30%, var(--card)); }
+.wq-nums button.cur { border-color: var(--t1); box-shadow: inset 0 0 0 1px var(--t1); }
+
+/* 단어 표 가리기 스티커 (11/4) */
+.wq-tb .row { margin-bottom: 8px; }
+.wq-ko { color: var(--t2); }
+.wq-tb.wq-cover .wq-ko { cursor: pointer; }
+.wq-tb.wq-cover .wq-ko span { position: relative; display: inline-block; min-width: 96px; border-radius: 8px; }
+.wq-tb.wq-cover .wq-ko span::after { content: '눌러서 떼기'; position: absolute; inset: -4px -8px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: color-mix(in srgb, var(--brand, #b9a3e6) 22%, var(--card)); border: 1.5px dashed color-mix(in srgb, var(--brand, #b9a3e6) 55%, var(--card)); color: var(--t3); font-size: 12px; font-weight: 600; transition: transform .25s ease, opacity .25s ease; transform-origin: top right; }
+.wq-tb.wq-cover .wq-ko.peel span::after { opacity: 0; transform: rotate(-8deg) translate(10px, -8px); pointer-events: none; }

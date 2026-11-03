@@ -2214,7 +2214,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611040115', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611040131', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3079,8 +3079,8 @@
     const sel = D7.includes(UI.ttDay) ? UI.ttDay : D7.includes(today()) && dayB(today()).length ? today() : [...D7].reverse().find((d) => dayB(d).length) || (D7.includes(today()) ? today() : w0);
     const nm = (b) => (b.t === '앱' ? b.k : `${b.t}${b.ti ? ' · ' + b.ti : ''}`);
     const hrs = []; for (let h = h0; h <= h1; h++) hrs.push(h);
-    const cols = D7.map((d) => { const L = dayB(d), m = dayM(d), fut = d > today();
-      return `<div class="tv-col ${d === sel ? 'on' : ''} ${d === today() ? 'today' : ''} ${fut ? 'fut' : ''}"><button type="button" class="tv-dh" data-ttd="${d}" ${fut ? 'disabled' : ''}><b>${DOW[dowOf(d)]}</b><span>${+d.slice(8)}</span><em class="num">${m ? hmm(m) : ''}</em></button><div class="tv-body" style="height:${(h1 - h0) * PH}px">${L.map((b) => { const y = Y(b, b.s), h = Math.max(22, Y(b, b.e) - y); return `<button type="button" class="tv-b ${b.t === '앱' ? 'app' : ''} ${b.live ? 'live' : ''}" data-ttd="${d}" style="top:${y.toFixed(1)}px;height:${h.toFixed(1)}px;--c:${SR_C[b.t] || SR_C.자유}" data-tip="${esc(`${tm(b.s)} ~ ${b.live ? '지금' : tm(b.e)} · ${srMinT((b.e - b.s) / 60000)}|${nm(b)}|${b.t === '앱' ? '앱에서 문제를 푼 시간 · 저절로 남아요' : b.k}`)}"><span>${esc(b.t === '앱' ? '앱 문제' : b.ti || b.t)} <b class="num">${srMinT((b.e - b.s) / 60000)}</b></span></button>`; }).join('')}</div></div>`; }).join('');
+    const cols = D7.map((d) => { const L = dayB(d), m = dayM(d), fut = d > today(); L.bot = -99;
+      return `<div class="tv-col ${d === sel ? 'on' : ''} ${d === today() ? 'today' : ''} ${fut ? 'fut' : ''}"><button type="button" class="tv-dh" data-ttd="${d}" ${fut ? 'disabled' : ''}><b>${DOW[dowOf(d)]}</b><span>${+d.slice(8)}</span><em class="num">${m ? hmm(m) : ''}</em></button><div class="tv-body" style="height:${(h1 - h0) * PH}px">${L.map((b) => { let y = Y(b, b.s), h = Math.max(22, Y(b, b.e) - y); if (y < L.bot + 2) { h = Math.max(22, h - (L.bot + 2 - y)); y = L.bot + 2; } L.bot = y + h; /* 11/4 «왤케 겹쳐»: 짧은 칸도 22px 이라 다음 칸을 덮었어요 → 앞 칸 밑에서 시작 */ return `<button type="button" class="tv-b ${b.t === '앱' ? 'app' : ''} ${b.live ? 'live' : ''}" data-ttd="${d}" style="top:${y.toFixed(1)}px;height:${h.toFixed(1)}px;--c:${SR_C[b.t] || SR_C.자유}" data-tip="${esc(`${tm(b.s)} ~ ${b.live ? '지금' : tm(b.e)} · ${srMinT((b.e - b.s) / 60000)}|${nm(b)}|${b.t === '앱' ? '앱에서 문제를 푼 시간 · 저절로 남아요' : b.k}`)}"><span>${esc(b.t === '앱' ? '앱 문제' : b.ti || b.t)} <b class="num">${srMinT((b.e - b.s) / 60000)}</b></span></button>`; }).join('')}</div></div>`; }).join('');
     const SL = dayB(sel), sm = dayM(sel);
     // 11/3 정윤 «시간 끄는 거 착각해서 시간 늘어났는데 못 빼나» → 잰 시간은 줄마다 고치기(시작·끝 시각, 지우기)
     const canEd = (b) => b.id && !b.live && b.t !== '앱' && !TEACHER;
@@ -5988,8 +5988,12 @@
   }
   function wqDays() {
     const p = WQ && WQ.plan.find((x) => x.date === UI.run.date); if (!p) return '';
-    return `<div class="qwrap" style="max-width:760px;margin:0 auto"><button class="btn sm ghost" data-go="hw" type="button">‹ 숙제</button><h1 class="h1" style="margin:8px 0 4px">수행평가 단어 ${p.pass}바퀴</h1><p class="sub">${esc(WQ.book)} · ${md(WQ.test)} 수행평가 · Day 하나씩 보고 외운 뒤 뜻 고르기 시험</p>
-      <section class="card"><div class="list">${p.days.map((dy) => { const ok = wqS().done[wqK(p, dy)]; return `<div class="li btnlike ${ok ? 'is-done' : ''}" data-wqd="${dy}"><div class="ico">${ic(ok ? 'ok' : 'books')}</div><div class="body"><div class="t">Day ${dy}</div><div class="d">${wqWords(dy).length}개 · ${ok ? '끝 · 다시 해도 돼요' : '보기 → 가리기 → 뜻 고르기 시험'}</div></div>${ok ? '<span class="tag blue">끝</span>' : '<span class="chev"></span>'}</div>`; }).join('')}</div></section></div>`;
+    // 11/4 «이거 왤케 안 이뻐»: 단추가 한 줄을 다 먹던 것 → 단어 시험 화면과 같은 머리줄 · 몇 개 끝냈는지 막대
+    const nd = p.days.filter((dy) => wqS().done[wqK(p, dy)]).length, dd = Math.round((new Date(WQ.test) - new Date(today())) / 864e5);
+    return `<div class="qwrap" style="max-width:760px;margin:0 auto"><div class="row between"><button class="btn sm" data-go="hw" type="button">‹ 숙제</button><span class="tiny">${esc(WQ.book)}</span></div>
+      <h1 class="h1">수행평가 단어 ${p.pass}바퀴</h1><p class="sub">${md(WQ.test)} 수행평가${dd > 0 ? ` D-${dd}` : ''} · Day 하나씩 훑어보고 뜻 고르기 시험</p>
+      <section class="card"><div class="row between"><b>오늘 Day ${p.days[0]}~${p.days[p.days.length - 1]}</b><span class="tiny">${nd} / ${p.days.length} 끝</span></div><div class="bar" style="margin:10px 0 4px"><span style="width:${Math.round((nd / p.days.length) * 100)}%"></span></div>
+      <div class="list">${p.days.map((dy) => { const ok = wqS().done[wqK(p, dy)]; return `<div class="li btnlike ${ok ? 'is-done' : ''}" data-wqd="${dy}"><div class="ico">${ic(ok ? 'ok' : 'books')}</div><div class="body"><div class="t">Day ${dy}</div><div class="d">단어 ${wqWords(dy).length}개 · ${ok ? '끝났어요, 다시 풀어도 돼요' : '훑어보기 → 뜻 고르기 시험'}</div></div>${ok ? '<span class="tag blue">끝</span>' : '<span class="btn sm primary">시작</span>'}</div>`; }).join('')}</div></section></div>`;
   }
   const wqPool = () => (UI.run && UI.run.pool ? UI.run.pool : UI.run && UI.run.store === 'nx' ? WMW.map((w) => ({ en: w.en, ko: w.ko, day: w.day })) : WQ ? WQ.days.flatMap((d) => wqWords(d.day)) : []);
   function wqGo(o) { UI.tab = 'hw'; UI.run = { kind: 'wq', stage: 'list', Q: o.M.map((_, i) => i).sort(() => Math.random() - 0.5), k: 0, res: [], miss: [], ch: null, ...o }; render(); window.scrollTo(0, 0); }
@@ -5997,12 +6001,14 @@
   function wqPage() {
     const r = UI.run, M = r.M;
     const head = `<div class="row between"><button class="btn sm" ${r.back ? 'data-wqback' : 'data-go="hw"'} type="button">‹ ${r.back ? 'Day 목록' : '숙제'}</button><span class="tiny">${esc(r.title)}</span></div>`;
-    if (r.stage === 'list') return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<h1 class="h1">단어 ${M.length}개</h1><p class="sub">한 번 훑고 바로 시험 봐요${r.sub ? ` · ${esc(r.sub)}` : ''}</p><div class="card"><table class="tbl"><tbody>${M.map((w, k) => `<tr><td class="num muted" style="width:28px">${k + 1}</td><td><b style="font-size:16px">${esc(w.en)}</b> <span class="tiny">${esc(w.pos || '')}</span></td><td style="color:var(--t2)">${esc(w.ko)}</td></tr>`).join('')}</tbody></table></div><div class="cta-bar"><button class="btn primary big block" data-wqgo type="button">시험 보기</button></div></div>`;
+    if (r.stage === 'list') return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<h1 class="h1">단어 ${M.length}개</h1><p class="sub">한 번 훑고 바로 시험 봐요${r.sub ? ` · ${esc(r.sub)}` : ''}</p><div class="card wq-tb ${r.hide ? 'wq-cover' : ''}"><div class="row between"><b>뜻 ${r.hide ? '가리고 외우기' : '보며 외우기'}</b><button class="btn sm ${r.hide ? '' : 'primary'}" data-wqhide type="button">${r.hide ? '모두 보기' : '가리기'}</button></div><table class="tbl"><tbody>${M.map((w, k) => `<tr><td class="num muted" style="width:28px">${k + 1}</td><td><b style="font-size:16px">${esc(w.en)}</b> <span class="tiny">${esc(w.pos || '')}</span></td><td class="wq-ko" data-wqpeel><span>${esc(w.ko)}</span></td></tr>`).join('')}</tbody></table></div><div class="cta-bar"><button class="btn primary big block" data-wqgo type="button">시험 보기</button></div></div>`;
     if (r.k >= r.Q.length) { const ok = M.length - r.miss.length;
       return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${doneCard(ok, M.length, r.miss.length ? '단어 시험 끝! 틀린 단어는 다시 맞힐 때까지 풀었고 오답 노트에 들어갔어요' : '단어 시험 끝! 한 번에 다 맞혔어요', `<button class="btn primary big block" ${r.back ? 'data-wqback' : 'data-go="hw"'} type="button">${r.back ? 'Day 목록으로' : '숙제로'}</button>`, `<div class="list done-list">${M.map((w) => `<div class="li"><div class="ico">${ic(r.miss.includes(w.en) ? 'x' : 'ok')}</div><div class="body"><div class="t">${esc(w.en)}</div><div class="d">${esc(w.ko)}</div></div></div>`).join('')}</div>`)}</div>`; }
     const w = M[r.Q[r.k]];
     if (!r.ch) { const P = wqPool().filter((x) => x.ko !== w.ko), near = P.filter((x) => x.day === w.day).sort(() => Math.random() - 0.5); r.ch = [w.ko, ...[...near, ...P.filter((x) => x.day !== w.day).sort(() => Math.random() - 0.5)].slice(0, 3).map((x) => x.ko)].sort(() => Math.random() - 0.5); }
-    return `<div class="qwrap" style="max-width:640px;margin:0 auto">${head}<div class="progress-dots">${r.Q.map((_, k) => `<i class="${r.res[k] ? r.res[k] : k === r.k ? 'cur' : ''}"></i>`).join('')}</div>
+    // 11/4 «전체 보기를 하든 해서 문제를 고를 수 있어야»: 점을 눌러도, 「전체 보기」로 번호를 눌러도 그 문제로 가요
+    const grid = r.grid ? `<div class="card wq-grid"><div class="row between"><b>문제 고르기</b><span class="tiny">맞힘 ${r.res.filter((x) => x === 'ok').length} · 틀림 ${r.res.filter((x) => x === 'no').length} · 남음 ${r.Q.filter((_, k) => !r.res[k]).length}</span></div><div class="wq-nums">${r.Q.map((i, k) => `<button type="button" class="${r.res[k] || ''}${k === r.k ? ' cur' : ''}" data-wqj="${k}"><b>${k + 1}</b><span>${esc(M[i].en)}</span></button>`).join('')}</div></div>` : '';
+    return `<div class="qwrap" style="max-width:640px;margin:0 auto">${head}<div class="row between wq-bar"><div class="progress-dots wq-dots">${r.Q.map((_, k) => `<i class="${r.res[k] ? r.res[k] : k === r.k ? 'cur' : ''}" data-wqj="${k}"></i>`).join('')}</div><button class="btn sm" data-wqgrid type="button">${r.grid ? '닫기' : '전체 보기'}</button></div>${grid}
       <div class="card" style="text-align:center;padding:40px 24px"><div class="tiny">${r.k + 1} / ${r.Q.length}${r.k >= M.length ? ' · 틀린 단어 다시' : ''}</div><div style="font-size:34px;font-weight:800;margin-top:8px;letter-spacing:-0.02em">${esc(w.en)}</div><div class="tiny">${esc(w.pos || '')}</div></div>
       <div class="choices">${r.ch.map((o, k) => `<button class="choice" data-wqp="${k}" type="button"><span class="n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div></div>`;
   }
@@ -6012,13 +6018,18 @@
     if (r.kind !== 'wq') return;
     $$('[data-wqback]').forEach((b) => (b.onclick = () => wqOpen(r.back)));
     const g = $('[data-wqgo]'); if (g) g.onclick = () => { r.stage = 'test'; render(); window.scrollTo(0, 0); };
+    // 11/4 «가리기 하면 한국어 뜻이 다 가려져서 하나씩 스티커처럼 뗄 수 있게 · 다 알면 한 번에 다시 보게»
+    const hb = $('[data-wqhide]'); if (hb) hb.onclick = () => { r.hide = !r.hide; render(); };
+    $$('[data-wqpeel]').forEach((c) => (c.onclick = () => { if (r.hide) c.classList.toggle('peel'); }));
+    const gr = $('[data-wqgrid]'); if (gr) gr.onclick = () => { r.grid = !r.grid; render(); };
+    $$('[data-wqj]').forEach((b) => (b.onclick = () => { const k = +b.dataset.wqj; if (k !== r.k) { r.k = k; r.ch = null; } r.grid = false; render(); window.scrollTo(0, 0); }));
     $$('[data-wqp]').forEach((b) => (b.onclick = () => {
       const i = r.Q[r.k], w = r.M[i], ok = r.ch[+b.dataset.wqp] === w.ko;
       $$('[data-wqp]').forEach((x) => { x.disabled = true; if (r.ch[+x.dataset.wqp] === w.ko) x.classList.add('right'); });
       if (!ok) b.classList.add('wrong');
       r.res[r.k] = ok ? 'ok' : 'no';
       const wid = 'word:' + w.en; if (!ok) { r.Q.push(i); if (!r.miss.includes(w.en)) r.miss.push(w.en); if (r.store === 'wq') wqS().wrong[w.en] = (wqS().wrong[w.en] || 0) + 1; addWrong(wid, { src: 'word', subj: 'eng', subjName: '영어', area: '단어', sub: `${w.en} · ${w.ko}`, word: w }); } else { gotIt(wid); if (S.wrong[wid] && !r.miss.includes(w.en)) clearWrong(wid); }  /* 이번에 틀렸다 다시 맞힌 건 오답 노트에 남겨요 */
-      setTimeout(() => { r.k++; r.ch = null;
+      setTimeout(() => { const nx = r.Q.findIndex((_, k) => k > r.k && !r.res[k]), nf = r.Q.findIndex((_, k) => !r.res[k]); r.k = nx >= 0 ? nx : nf >= 0 ? nf : r.Q.length; r.ch = null;  /* 건너뛴 문제가 있으면 끝내기 전에 돌아가요 */
         if (r.k >= r.Q.length) { if (r.store === 'wq') { if (r.key.startsWith('w:')) for (const m of r.M) delete wqS().wrong[m.en]; wqS().done[r.key] = Date.now(); } else nxS().a[r.key] = { ok: true, v: r.miss.length, at: Date.now() }; }
         save('wq', 'nx', 'wrong'); render(); }, ok ? 450 : 1100);
     }));
@@ -6307,7 +6318,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040115'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040131'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
