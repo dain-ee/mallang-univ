@@ -2214,7 +2214,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611040137', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611040138', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5877,7 +5877,7 @@
     // 11/3 «역사가 굉장히 읽기 싫게 되어 있는데» → 이야기로 먼저 읽고(굵은 말 = 시험 단어), 빈칸 정리는 접어 둬요 · 국어는 교과서 원문 글을 위에
     const story = (t) => `<div class="st-story"><div class="st-kick">이야기로 읽기</div>${String(t).split(/\n\n+/).map((p) => `<p>${esc(p).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</p>`).join('')}</div>`;
     const texts = (T) => (T || []).map((x) => `<details class="st-text"><summary>${ic('eng')} 원문 · ${esc(x.title || '')}</summary><p class="st-pre">${esc(x.body || '')}</p></details>`).join('');
-    return `${(L ? [N.sections[L.sec]] : N.sections || []).map((s) => `<section class="card st-sec"><h2>${esc(s.title)}</h2>${texts(s.texts)}${s.story ? story(s.story) + `<details class="st-more"><summary>빈칸 정리로 다시 보기</summary>` : ''}${(s.blocks || []).map((b) => b.src ? `<div class="st-blk st-src"><h3>${esc(b.src.t || '')}</h3>${b.src.body ? `<p class="st-pre">${esc(b.src.body)}</p>` : ''}${b.src.note ? `<p class="st-note">${stK(b.src.note)}</p>` : ''}</div>` : `<div class="st-blk">${b.h ? `<h3>${esc(b.h)}</h3>` : ''}${(b.pts || []).length ? `<ul>${b.pts.map((p) => `<li>${stK(p)}</li>`).join('')}</ul>` : ''}${b.table ? `<div class="tbl-wrap"><table class="st-tbl"><tr>${(b.table.head || []).map((h) => `<th>${stK(h)}</th>`).join('')}</tr>${(b.table.rows || []).map((r) => `<tr>${r.map((v) => `<td>${stK(v)}</td>`).join('')}</tr>`).join('')}</table></div>` : ''}${b.tip ? `<p class="st-note st-tip">${stK(b.tip)}</p>` : ''}</div>`).join('')}${s.story ? '</details>' : ''}</section>`).join('')}${L ? '' : F}`;
+    return `${(L ? [N.sections[L.sec]] : N.sections || []).map((s) => `<section class="card st-sec"><h2>${esc(s.title)}</h2>${texts(s.texts)}${''/* 11/4 «이거 원래대로가 낫겠다. 이야기는 애들 더 못 해» → 이야기 읽기 빼고 빈칸 정리를 바로 (가리고 외우기도 다시 돼요) */}${(s.blocks || []).map((b) => b.src ? `<div class="st-blk st-src"><h3>${esc(b.src.t || '')}</h3>${b.src.body ? `<p class="st-pre">${esc(b.src.body)}</p>` : ''}${b.src.note ? `<p class="st-note">${stK(b.src.note)}</p>` : ''}</div>` : `<div class="st-blk">${b.h ? `<h3>${esc(b.h)}</h3>` : ''}${(b.pts || []).length ? `<ul>${b.pts.map((p) => `<li>${stK(p)}</li>`).join('')}</ul>` : ''}${b.table ? `<div class="tbl-wrap"><table class="st-tbl"><tr>${(b.table.head || []).map((h) => `<th>${stK(h)}</th>`).join('')}</tr>${(b.table.rows || []).map((r) => `<tr>${r.map((v) => `<td>${stK(v)}</td>`).join('')}</tr>`).join('')}</table></div>` : ''}${b.tip ? `<p class="st-note st-tip">${stK(b.tip)}</p>` : ''}</div>`).join('')}</section>`).join('')}${L ? '' : F}`;
   }
   // 매3영 문장 구조: 문장 하나씩 끊어 읽기(/) · S·V·O·C 표시 · 해석 · 그 문장에 나온 단어와 책 주석을 문장 밑에 (10/31 «문장 하나씩 보면서 구조 분석, 밑에 필기 요소 써 주고»)
   const SX_L = { S: '주어', V: '동사', O: '목적어', C: '보어', M: '수식어', A: '부사구' };
@@ -6324,7 +6324,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040137'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040138'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
