@@ -3657,3 +3657,6 @@ button.my-run { border: 0; font-family: inherit; cursor: pointer; }
 .chk-b { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .chk-rg { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-weight: 600; }
 .chk-rg .inp { width: 96px; }
+.win-list li span { display: flex; align-items: center; gap: 6px; }
+.win-list li span i { font-style: normal; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.win-list li span em { flex: none; margin-left: 0; }
