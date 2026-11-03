@@ -3752,21 +3752,19 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .wq-nums button:hover { transform: translateY(-2px); }
 @media (prefers-reduced-motion: reduce) { main .wq-day, .wq-tb .wq-ko span, .wq-tb .wq-ko span::after, .wq-qc, .wq-chs .choice, .wq-grid, .wq-nums button { animation: none !important; transition: none !important; } }
 
-/* 푼 것 확인 (11/4 «그냥 한 줄에 정렬해서 해»): 숙제 하나 = 한 줄 · 이름 | 어디까지 | 단추, 칸 위치를 줄마다 똑같이 */
+/* 푼 것 확인 (11/4 «한 줄은 고수해, 왼쪽과 단추는 좋은데 가운데 띄운 게 이상해»): 이름 바로 옆에 어디까지 붙이고, 단추만 오른쪽 */
 .chk-card .list { display: block; }
 .chk-card .chk-it { display: block; padding: 14px 0; margin: 0; border: 0; border-top: 1px solid var(--line); background: none; animation: waveInS .35s var(--ease) both; }
 .chk-card .chk-it:first-child { border-top: 0; padding-top: 4px; }
 .chk-card .chk-it::before, .chk-card .chk-it::after { display: none; }
-.chk-card .chk-it .body { display: grid; grid-template-columns: minmax(140px, 200px) 1fr auto; align-items: center; column-gap: 16px; row-gap: 6px; min-width: 0; }
-.chk-card .chk-it .t { grid-column: 1; font-size: 16px; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.chk-card .chk-it .body > .d { grid-column: 2; margin: 0; }
-.chk-card .chk-rg { grid-column: 2; display: flex; align-items: center; gap: 8px; margin: 0; font-weight: 600; font-size: 15px; white-space: nowrap; }
-.chk-card .chk-rg .inp { width: 76px; height: 40px; padding: 0 8px; text-align: center; background: var(--fill); border: 1px solid transparent; border-radius: 10px; font-size: 16px; font-weight: 700; }
+.chk-card .chk-it .body { display: flex; flex-wrap: wrap; align-items: center; column-gap: 16px; row-gap: 8px; min-width: 0; }
+.chk-card .chk-it .t { width: 160px; font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chk-card .chk-it .body > .d { margin: 0; }
+.chk-card .chk-rg { display: flex; align-items: center; gap: 6px; margin: 0; font-weight: 600; font-size: 15px; white-space: nowrap; }
+.chk-card .chk-rg .inp { width: 64px; height: 36px; padding: 0 6px; text-align: center; background: var(--fill); border: 1px solid transparent; border-radius: 10px; font-size: 15px; font-weight: 700; }
 .chk-card .chk-rg .inp:focus { border-color: var(--blue); background: var(--card); outline: none; }
-.chk-card .chk-b { grid-column: 3; display: flex; gap: 8px; margin: 0; justify-content: flex-end; }
-.chk-card .chk-b .btn { white-space: nowrap; min-width: 92px; justify-content: center; transition: transform .15s var(--spring); }
+.chk-card .chk-b { display: flex; gap: 8px; margin: 0 0 0 auto; }
+.chk-card .chk-b .btn { white-space: nowrap; transition: transform .15s var(--spring); }
 .chk-card .chk-b .btn:active { transform: scale(.96); }
-.chk-card .my-wc { grid-column: 1 / -1; margin-top: 6px; }
-@media (max-width: 760px) { .chk-card .chk-it .body { grid-template-columns: 1fr; } .chk-card .chk-it .t, .chk-card .chk-rg, .chk-card .chk-b, .chk-card .chk-it .body > .d { grid-column: 1; } .chk-card .chk-b { justify-content: flex-start; } }
-.chk-card .chk-rg > span:first-child { min-width: 76px; text-align: right; font-variant-numeric: tabular-nums; }
-@media (max-width: 760px) { .chk-card .chk-rg > span:first-child { min-width: 0; text-align: left; } }
+.chk-card .my-wc { flex-basis: 100%; margin-top: 4px; }
+@media (max-width: 760px) { .chk-card .chk-it .t { width: 100%; } .chk-card .chk-b { margin-left: 0; } }
