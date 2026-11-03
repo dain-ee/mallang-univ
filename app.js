@@ -2170,7 +2170,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611031758', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611031909', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2226,7 +2226,7 @@
   const PHOTO_WHO = { woni: ['', '', '', ''], rescene: ['', '원이', '미나미', '리브', '메이', '제나'] };
   const PET_WINK = new Set(['melody', 'cinnamoroll', 'kuromi', 'bamdol', 'rilakkuma', 'korilakkuma']); // 찡긋 표정이 있는 펫
   function petDock() {
-    const t = skin(), host = !UI.run && UI.tab !== 'report' && $('#main .card');  // 리포트(시간표·표)엔 안 앉아요 (11/3 «얘 왜 여기 있냐»)  // 유령은 걸치는 그림이 없어서 서 있는 그림으로 카드 위에 올라앉아요 (10/27 «다른 애들처럼 그 위에 붙어»)
+    const t = skin(), host = !UI.run && $('#main .card');  // 유령은 걸치는 그림이 없어서 서 있는 그림으로 카드 위에 올라앉아요 (10/27 «다른 애들처럼 그 위에 붙어»)
     const pdir = t === 'ghost' ? 'assets/ghost' : `assets/pets/${t}`, pmap = (n) => (MOOD_PET.has(t) && /^perch/.test(n) ? 'm_' + tMood() : t === 'ghost' ? { perch: 'idle', perch_yay: 'yay', perch_wink: 'yay' }[n] || n : n);
     $$('.pet-perch').forEach((x) => { if (!host || x.parentNode !== host || x.dataset.skin !== t || x.dataset.mo !== petLinesKey()) x.remove(); });
     if (!host || $('.pet-perch', host)) return;
@@ -2945,7 +2945,7 @@
     return top + (seg === 'naesin' && SEMS.some((x) => nsAvg(x) != null) ? `<div class="grid" style="margin-bottom:16px">${nsCard('c12')}</div>` : '') + (seg === 'mock' ? (UI.mockId ? mockDetail() : reportSection() + mockList()) : naesinView());
   }
   // 11/3 선생님 «공부 리포트 위에 리포트로 따로, 교재 옆에» → 성적 탭에서 빼서 「리포트」 탭
-  const reportTabView = () => `<h1 class="h1">리포트</h1><p class="sub">한 주 동안 실제로 한 양 · 속도 · 집중을 기록으로 재요</p>` + srView();
+  const reportTabView = () => { const b = srView(); return `<div class="row between wrap" style="gap:8px"><h1 class="h1">리포트</h1>${srView.nav || ''}</div><p class="sub">한 주 동안 실제로 한 양 · 속도 · 집중을 기록으로 재요</p>` + b; };
   // ───────── 공부 리포트 (정윤, 11/1 선생님 «1주일 한 걸 보고 생산성(보통 아이보다 빠른지 느린지), 공부 시간 대비 집중력, 실제 공부한 양을 객관적으로.
   //   계획 짤 때 '이번 주는 과해요 / 더 해볼까요'. 시간이 안 적혀 있으면 문제 시작~푼 시간이라도» · 모달 말고 화면, 주마다 쌓여서 나아진 게 보이게)
   //   문항 답의 at 으로: 8분 넘게 끊기면 새 묶음 → 앱에서 실제로 푼 시간, 바로 앞 답과의 간격(10분 안) → 문항당 시간
@@ -3068,9 +3068,10 @@
         <div class="sr-vd ${verdict[0]}"><b>${verdict[1]}</b><span class="tiny">${cur.hwDue ? `마감 숙제 ${cur.hwDue}개 중 ${cur.hwOk}개 했어요` : ''}${a4 != null ? `${cur.hwDue ? ' · ' : ''}지난 4주 평균 ${Math.round(a4)}개 풀었어요` : ''}</span></div></section>`;
     const tab = UI.srTab || 'sum', tabs = `<div class="sr-tabs" role="tablist">${[['sum', '요약'], ['time', '시간표'], ['speed', '속도·집중']].map(([k, t]) => `<button type="button" class="${tab === k ? 'on' : ''}" data-srtab="${k}">${t}</button>`).join('')}</div>`;
     const wkNav = `<div class="sr-wk"><button class="sr-wk-b" data-srw="${addD(w0, -7)}" type="button" aria-label="지난주">‹</button><b>${live ? '이번 주' : wd(w0)}</b><button class="sr-wk-b" data-srw="${addD(w0, 7)}" type="button" aria-label="다음 주" ${live ? 'disabled' : ''}>›</button></div>`;
-    if (tab === 'time') return `<div class="sr-bar-row">${tabs}${wkNav}</div><div class="grid">${srTime(w0)}</div>`;
-    if (tab === 'speed') return `<div class="sr-bar-row">${tabs}${wkNav}</div><div class="grid">${SPEED}</div>`;
-    return `<div class="sr-bar-row">${tabs}${wkNav}</div><div class="grid">
+    srView.nav = wkNav;  // 주 넘기기는 제목 줄 오른쪽 (11/3 «배치가»)
+    if (tab === 'time') return `<div class="sr-bar-row">${tabs}</div><div class="grid">${srTime(w0)}</div>`;
+    if (tab === 'speed') return `<div class="sr-bar-row">${tabs}</div><div class="grid">${SPEED}</div>`;
+    return `<div class="sr-bar-row">${tabs}</div><div class="grid">
       <section class="card c12 sr-head"><div class="card-h"><h2>${ic('score')} ${live ? '이번 주' : wd(w0)} 공부 리포트</h2>${live ? '<span class="tiny">지금도 쌓이는 중</span>' : ''}</div>
         <p class="sr-line">${headTx}</p>
         <div class="sr-sts">${stat('푼 문항 (앱)', `${cur.n}<small>문항</small>`, cur.acc != null ? `정답 ${Math.round(cur.acc * 100)}%` : '')}${stat('학원·책 숙제', `${cur.probs}<small>문제</small>`, cur.pages ? `${cur.pages}쪽` : '직접 체크한 것')}${stat('앱에서 실제로 푼 시간', srMinT(cur.appMin), `${cur.act}일 공부했어요`)}${stat('숙제', cur.hwDue ? `${cur.hwOk}<small>/${cur.hwDue}</small>` : '-', '이번 주 마감')}</div>
@@ -5970,7 +5971,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611031758'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611031909'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
