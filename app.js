@@ -2214,7 +2214,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611040035', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611040046', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5761,9 +5761,9 @@
     for (const u of ((NXD.subjects.find((x) => x.key === 'm3') || {}).units || [])) for (const L of stLessons(u)) { if (u.id === u0 && L.m3 === lt0) on = true; if (on) LL.push({ u, L }); }
     const out = [];
     days.forEach((d, i) => {
-      const cu = CH_UNITS[ci + i];
+      const cu = PF.chn === 0 ? null : CH_UNITS[ci + i];  /* 11/4 «그 외에는 추가 숙제 한 지문 말곤 내지 말라고» */
       if (cu) { const id = `pp:ch:${cu.unit}`, qs = [{ i: id }], title = `천일문 Unit ${cu.unit} ${cu.title || ''}`.trim(); NXSETS[id] = { id, title, sub: PF.title, subj: 'eng', kind: 'ch', qs }; out.push({ id, subj: 'eng', p: 'ch', qs, title, sub: `Ch.${cu.ch} ${cu.chTitle || ''}`, day: d, ch: ci + i }); }
-      for (const { u, L } of LL.splice(0, PF.m3n || 3)) {
+      for (const { u, L } of (PF.m3n === 0 ? [] : LL.splice(0, PF.m3n || 3))) {  /* 11/4 «오늘 한 거 4개를 수목금에 나누면 된다고»: 매3영 새 지문은 안 내요 */
         const id = `pp:${u.id}:L${L.k}`, qs = [...[L.c, L.q].filter(Boolean).flatMap((x) => NXSETS[x].qs), { i: stLRead(u, L) }], title = `매3영 Day ${u.no} ${L.t}`;
         NXSETS[id] = { id, title, sub: PF.title, subj: 'm3', kind: 'L', unit: u.id, qs, nav: 'L' + L.k }; out.push({ id, subj: 'm3', unit: u.id, p: 'L', m3: 1, qs, title, sub: u.title, nav: 'L' + L.k, day: d, nc: L.c ? NXSETS[L.c].qs.length : 0, nq: L.q ? NXSETS[L.q].qs.length : 0 });
       }
@@ -6300,7 +6300,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040035'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040046'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
