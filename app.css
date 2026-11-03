@@ -3664,3 +3664,5 @@ button.my-run { border: 0; font-family: inherit; cursor: pointer; }
 .pm-h-clk { display: block; margin-top: 2px; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
 .pm-h-bs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex-basis: 100%; }
 .pm-home .pm-h-bs .btn { width: 100%; height: 48px; }
+button.mid-an.go { width: 100%; text-align: left; border: 0; cursor: pointer; font: inherit; }
+button.mid-an.go b { color: var(--blue); }
