@@ -2170,7 +2170,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611032037', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611032051', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5337,7 +5337,9 @@
   const JW_CLS = TUTOR && !(NXD.subjects || []).length && !NXD.words;
   // 윤건 수업 (11/3 «천일문이랑 워드마스터 시험 두 개, 매3영도»): 선생님이 정한 범위(S.jwt[날짜] = { units, days, m3 })로 시험을 따로
   const YG_CLS = TUTOR && (NXD.subjects || []).length > 0;
-  const NX_WM = JW_CLS || YG_CLS ? WORDS.map((w) => { const same = WORDS.filter((x) => x.day === w.day && x.ko !== w.ko), wrong = sshuffle(same, 'wm:' + w.day + ':' + w.en).slice(0, 3).map((x) => x.ko); return { i: `wm:${w.day}:${w.en}`, t: 'mc', q: w.en, ch: [w.ko, ...wrong], a: 0, exp: `${w.en} ${w.pos || ''} ${w.ko}`.replace(/\s+/g, ' '), cat: `Day ${w.day}`, ty: '단어', day: w.day }; }) : [];
+  // 윤건 단어 시험은 워드마스터 수능 2000 (11/3 «수능2000 8,9야»), 지원은 하이스트
+  const WM_BOOK = (NXD.wm && NXD.wm.book) || '워드마스터 하이스트', WMW = NXD.wm ? NXD.wm.days.flatMap((d) => d.words.map((w) => ({ ...w, day: d.day }))) : WORDS;
+  const NX_WM = JW_CLS || YG_CLS ? WMW.map((w) => { const same = WMW.filter((x) => x.day === w.day && x.ko !== w.ko), wrong = sshuffle(same, 'wm:' + w.day + ':' + w.en).slice(0, 3).map((x) => x.ko); return { i: `wm:${w.day}:${w.en}`, t: 'mc', q: w.en, ch: [w.ko, ...wrong], a: 0, exp: `${w.en} ${w.pos || ''} ${w.ko}`.replace(/\s+/g, ' '), cat: `Day ${w.day}`, ty: '단어', day: w.day }; }) : [];
   for (const q of [...NX_CH, ...NX_JG, ...NX_WM]) if (!NXQ[q.i]) NXQ[q.i] = { q, set: 'ls' };
   // 그날 수업 계획: students.json lesson.tests[날짜] 가 있으면 그것, 없으면 지난 두 수업에 적힌 Chapter·Day 로 (매주 일요일 저절로)
   const JW_CH_RE = /Ch(?:apter|atper|\.)?\s*0?(\d+)/gi, JW_DAY_RE = /Day\s*(\d+)(?:\s*[,~\-–]\s*(\d+))?/i;
@@ -5366,7 +5368,7 @@
     let qs = saved ? saved.map(([i, perm, g]) => (NXQ[i] ? nxPerm(NXQ[i].q, perm, g) : null)).filter(Boolean) : [];
     if (!saved) { const rnd = nxRng(`${ST.name || ''}:w:${date}`), pool = NX_WM.filter((q) => P.days.includes(q.day)); qs = nxShuf(pool, rnd).slice(0, P.wn).map((q) => nxPerm(q, nxShuf(q.ch.map((_, k) => k), rnd), '단어')); }
     if (!qs.length) return null;
-    return (NXSETS[id] = { id, title: `${m}/${d} 단어 시험`, sub: `${md(date)} 수업 단어 시험 · 워드마스터 하이스트 Day ${P.days.join('·')}`, subj: 'eng', kind: 'lesson', date, qs, mix: { 단어: qs.length } });
+    return (NXSETS[id] = { id, title: `${m}/${d} 단어 시험`, sub: `${md(date)} 수업 단어 시험 · ${WM_BOOK} Day ${P.days.join('·')}`, subj: 'eng', kind: 'lesson', date, qs, mix: { 단어: qs.length } });
   }
   const nxStore = (s, r) => (r && r.tmp) || (s.kind === 'lesson' ? (nxS().la[s.id] = nxS().la[s.id] || {}) : nxS().a);
   // 수업 시간: 오늘 수업이 있고 시간이 됐으면 열림, 아니면 다음 수업 날짜·시간
@@ -5500,7 +5502,7 @@
     const fromSaved = () => saved.map(([i, perm, g]) => (NXQ[i] ? nxPerm(NXQ[i].q, perm, g) : null)).filter(Boolean);
     const rnd = nxRng(`${ST.name || ''}:${k}:${date}`), shuf = (pool, n, g) => nxShuf(pool, rnd).slice(0, n).map((q) => nxPerm(q, q.t === 'mc' && q.ch ? nxShuf(q.ch.map((_, j) => j), rnd) : null, g));
     if (k === 'ls') { if (!P.units && !saved) return null; const U = P.units || []; return mk(`${m}/${d} 천일문 시험`, `천일문 Unit ${U.length > 2 ? `${U[0]}~${U[U.length - 1]}` : U.join('·')}`, saved ? fromSaved() : shuf(NX_CH.filter((q) => U.includes(+q.unit)), P.n, '천일문'), '천일문'); }
-    if (k === 'lw') { if (!P.days && !saved) return null; const D = P.days || []; return mk(`${m}/${d} 단어 시험`, `워드마스터 Day ${D.join('·')}`, saved ? fromSaved() : shuf(NX_WM.filter((q) => D.includes(q.day)), P.wn, '단어'), '단어'); }
+    if (k === 'lw') { if (!P.days && !saved) return null; const D = P.days || []; return mk(`${m}/${d} 단어 시험`, `${WM_BOOK} Day ${D.join('·')}`, saved ? fromSaved() : shuf(NX_WM.filter((q) => D.includes(q.day)), P.wn, '단어'), '단어'); }
     if (k === 'lm') {
       if (!P.m3 && !saved) return null; const D = P.m3 || [];
       const pool = M3U().filter((u) => D.includes(+u.no)).flatMap((u) => ['c', 'q'].flatMap((pt) => (u.parts[pt] || []).filter((q) => q.t === 'mc' || q.ch)));
@@ -5538,7 +5540,7 @@
     const pm = addD(ym + '-01', -1).slice(0, 7), nm = addD(ym + '-28', 7).slice(0, 7);
     const l = L.find((x) => x.date === sel && lsnDone(x)), ls = l ? lines(l.lesson) : [], un = l ? (l.units || []).map((no) => { const u = cuByNo(no); return u ? `천일문 Unit ${u.unit} ${u.title || ''}`.trim() : ''; }).filter(Boolean) : [];
     const tests = nxS().done.filter((x) => x.kind === 'lesson' && x.id.slice(3) === sel).filter((x, i, A) => A.map((z) => z.id).lastIndexOf(x.id) === i);
-    const P = YG_CLS ? ygPlan(sel) : null, rng = P ? [P.units && ['천일문', `Unit ${P.units.join('·')}`], P.m3 && ['매3영', `Day ${P.m3.join('·')}`], P.days && ['단어 시험', `워드마스터 Day ${P.days.join('·')}`]].filter(Boolean) : [];
+    const P = YG_CLS ? ygPlan(sel) : null, rng = P ? [P.units && ['천일문', `Unit ${P.units.join('·')}`], P.m3 && ['매3영', `Day ${P.m3.join('·')}`], P.days && ['단어 시험', `${WM_BOOK} Day ${P.days.join('·')}`]].filter(Boolean) : [];
     const isUp = up.some((x) => x.date === sel) && !l;
     const body = `${l ? `<div class="cl-pg-d"><b>${md(sel)} ${WDK[dowOf(sel)]}요일</b><span>${l.nth ? `${esc(l.nth)}회차` : ''}${l.book ? ` · ${esc(l.book)}` : ''}</span></div>` : `<div class="cl-pg-d"><b>${md(sel)} ${WDK[dowOf(sel)]}요일</b><span>${isUp ? '수업 예정' : '수업 기록이 없어요'}</span></div>`}
       ${[...ls, ...un.filter((x) => !ls.some((y) => y.includes(x.split(' ').slice(0, 3).join(' '))))].length ? `<ul class="cl-cal-ul">${[...ls, ...un.filter((x) => !ls.some((y) => y.includes(x.split(' ').slice(0, 3).join(' '))))].map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
@@ -5571,8 +5573,8 @@
     </section>`;
   }
   function wmDaySheet(d) {
-    const W = WORDS.filter((w) => w.day === +d);
-    sheet(`<h2>워드마스터 하이스트 Day ${d} <span class="tiny">${W.length}개</span></h2><div class="list wm-l">${W.map((w, k) => `<div class="li"><div class="ico num">${k + 1}</div><div class="body"><div class="t">${esc(w.en)} <span class="tiny">${esc(w.pos || '')}</span></div><div class="d">${esc(w.ko)}</div></div></div>`).join('')}</div><button class="btn big block" style="margin-top:16px" data-close type="button">닫기</button>`, (el) => { $('[data-close]', el).onclick = closeSheet; });
+    const W = WMW.filter((w) => w.day === +d);
+    sheet(`<h2>${WM_BOOK} Day ${d} <span class="tiny">${W.length}개</span></h2><div class="list wm-l">${W.map((w, k) => `<div class="li"><div class="ico num">${k + 1}</div><div class="body"><div class="t">${esc(w.en)} <span class="tiny">${esc(w.pos || '')}</span></div><div class="d">${esc(w.ko)}</div></div></div>`).join('')}</div><button class="btn big block" style="margin-top:16px" data-close type="button">닫기</button>`, (el) => { $('[data-close]', el).onclick = closeSheet; });
   }
   // 잠긴 시험은 열릴 시간이 되면 저절로 열려요 (시험 탭을 보고 있을 때만 다시 그려요)
   let nxK = '';
@@ -6037,7 +6039,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611032037'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611032051'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
