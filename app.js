@@ -2172,7 +2172,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611032108', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611032122', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5679,8 +5679,10 @@
     // 하루 몫은 개수가 아니라 분량(문제 수)으로 고르게: 정리 읽기 = 15문제, 순서 맞추기 = 흐름마다 3문제만큼 (10/30 «이만큼이 하루 양이라고?»)
     const wt = (it) => (it.p === 'L' ? it.qs.length + 14 : it.nav === 'order' ? it.qs.length * 3 : it.qs.length), sum = (L) => L.reduce((a, it) => a + wt(it), 0);
     const W0 = Object.fromEntries(Object.entries(Q).map(([k, v]) => [k, sum(v)])), W = { ...W0 };
+    // 11/3 11/4~11/15 은 천일문·매3영 매일 몫이 따로 있어서, 그 날은 기말 몫을 그만큼 덜어 날마다 전체 양이 고르게 (천일문 한 유닛 = 20문제만큼)
+    const PPW = {}; for (const it of ppBuild()) PPW[it.day] = (PPW[it.day] || 0) + (it.p === 'ch' ? 20 : wt(it));
     days.forEach((d, i) => {
-      const quota = Object.values(W).reduce((a, b) => a + b, 0) / (days.length - i), used = {}; let got = 0;
+      const rest = days.slice(i).reduce((a, x) => a + (PPW[x] || 0), 0), quota = Math.max(0, (Object.values(W).reduce((a, b) => a + b, 0) + rest) / (days.length - i) - (PPW[d] || 0)), used = {}; let got = 0;
       while (got < quota * 0.9) {
         const sc = (sj) => (W0[sj] * (i + 1)) / days.length - (W0[sj] - W[sj]) - (used[sj] || 0) * 0.5, sj = Object.keys(Q).filter((x) => Q[x].length).sort((a, b) => sc(b) - sc(a))[0];
         if (!sj) break; const it = Q[sj].shift(); it.day = d; const w = wt(it); W[sj] -= w; got += w; used[sj] = (used[sj] || 0) + w; out.push(it);
@@ -5707,6 +5709,7 @@
     return out;
   }
   const YP_ON = YP.length > 0;
+  if (SR_TEST) window.__yp = () => { const D = {}; for (const it of YP) { const d = (D[it.day] = D[it.day] || { n: 0, s: {} }); d.n += it.qs.length; d.s[it.subj] = (d.s[it.subj] || 0) + it.qs.length; } return JSON.stringify(D); };  // 테스트 탭: 날마다 몫
   // 천일문 유닛은 원래 기록(S.eng.ua)으로 끝났는지 봐요. 끝났으면 계획 칸(nx.a)에도 표시해 두어 진행 숫자가 맞게
   const ppChDone = (i) => { const un = CH_UNITS[i]; if (!un) return false; const st = (S.eng.ua || {})[uKey(un)] || {}, ids = qIds(un); return ids.length > 0 && ids.every((k) => st[k]); };
   const ypDone = (it) => { if (it.p === 'ch') { const dn = ppChDone(it.ch); if (dn && !nxS().a[it.id]) nxS().a[it.id] = { ok: true, at: Date.now() }; return dn; } return it.qs.every((q) => nxS().a[q.i]); };
@@ -6050,7 +6053,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611032108'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611032122'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
