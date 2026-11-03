@@ -3576,3 +3576,12 @@ button.my-run { border: 0; font-family: inherit; cursor: pointer; }
 .cl-rng > div { display: flex; align-items: baseline; gap: 12px; font-size: 15px; }
 .cl-rng span { flex: none; width: 64px; font-size: 13px; font-weight: 600; color: var(--t3); }
 .cl-rng b { font-weight: 600; color: var(--t1); }
+
+/* 중간고사 분석 (윤건 성적 탭, 11/3) */
+.mid-sc{display:flex;align-items:baseline;gap:8px;margin:0 0 12px}.mid-sc b{font-size:20px}
+.mid-h{font-size:14px;margin:16px 0 8px}
+.mid-l{margin:0;padding-left:18px;font-size:14px;line-height:1.6}.mid-l li{margin:2px 0}
+.mid-ty{display:grid;gap:6px}.mid-tr{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) 20px;align-items:center;gap:8px;font-size:13px}
+.mid-tr i{display:block;height:8px;border-radius:4px;opacity:.75}.mid-tr b{text-align:right;font-variant-numeric:tabular-nums}
+/* 리센느 사진 테마: 빈 화면·끝 그림은 큰 오려낸 사진 대신 동그란 상반신 (11/3 «이거 좀 안 이쁜 거 같아, 배치도») */
+:root[data-skin="woni"] .empty img.gh-empty, :root[data-skin="woni"] .done-ic img.gh-done, :root[data-skin="rescene"] .empty img.gh-empty, :root[data-skin="rescene"] .done-ic img.gh-done { width: 112px; height: 112px; margin: 0 auto 8px; border-radius: 50%; object-fit: cover; object-position: 50% 0; background: var(--blue-soft); box-shadow: 0 0 0 4px #fff, 0 0 0 5px var(--blue-l); }

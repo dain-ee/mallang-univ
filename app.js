@@ -655,7 +655,9 @@
           return `<label class="gr-row"><span>${esc(sj)}</span><input class="inp num" type="number" inputmode="numeric" min="0" max="100" placeholder="점수" value="${v != null ? esc(String(v)) : ''}" data-gin="${k}|${esc(sj)}"><em class="num ${df > 0 ? 'up' : df < 0 ? 'down' : ''}">${df != null ? (df > 0 ? '+' : '') + df : ''}</em></label>`; }).join('')}</div>
         ${pav != null && av != null ? `<p class="tiny" style="margin:12px 0 0">중간고사보다 평균 ${av - pav >= 0 ? '+' : ''}${(av - pav).toFixed(1)}점</p>` : ''}</section>`;
     };
-    return `<h1 class="h1">성적</h1><p class="sub">학교 시험 점수를 적어요. 치면 바로 저장돼요</p><div class="grid">${GR_EX.map(card).join('')}</div>`;
+    // 11/3 윤건: 점수 옆에 「중간고사 분석」 (선생님 출제 방식 리포트)
+    const ana = !!NXD.mid && UI.scoreSeg === 'ana', seg = NXD.mid ? `<div class="seg" style="max-width:320px;margin-bottom:16px"><button type="button" class="${ana ? '' : 'on'}" data-seg="score">점수</button><button type="button" class="${ana ? 'on' : ''}" data-seg="ana">중간고사 분석</button></div>` : '';
+    return `<h1 class="h1">성적</h1><p class="sub">${ana ? esc(NXD.mid.sub) : '학교 시험 점수를 적어요. 치면 바로 저장돼요'}</p>${seg}${ana ? midView() : `<div class="grid">${GR_EX.map(card).join('')}</div>`}`;
   }
   function bindGrade() {
     $$('[data-gin]').forEach((x) => { x.oninput = () => { const [k, sj] = x.dataset.gin.split('|'), m = grOf(k, (GR_EX.find((e) => e[0] === k) || [])[1]), v = x.value.trim(); if (v === '') delete m.sc[sj]; else m.sc[sj] = Math.max(0, Math.min(100, +v)); save('mid'); const a = grAvg(m), t = $(`[data-gravg="${k}"]`); if (t) t.textContent = a != null ? `평균 ${a.toFixed(1)}점` : '아직 안 적었어요'; }; x.onchange = () => { const y = scrollY; render(); scrollTo(0, y); }; });
@@ -2170,7 +2172,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611032051', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611032108', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2941,8 +2943,17 @@
   function scoreView() {
     if (UI.scoreSeg === 'study') UI.scoreSeg = 'mock';  // 11/3 공부 리포트는 위 「리포트」 탭으로 나갔어요
     const seg = UI.scoreSeg;
-    const top = `<h1 class="h1">성적</h1><p class="sub">모의고사는 틀린 번호만 누르면 점수·등급·약한 영역이 나와요</p><div class="row between gr-top" style="gap:12px;margin-bottom:16px"><div class="seg" style="max-width:420px;flex:1 1 0;min-width:0"><button type="button" class="${seg === 'mock' ? 'on' : ''}" data-seg="mock">모의고사</button><button type="button" class="${seg === 'naesin' ? 'on' : ''}" data-seg="naesin">내신</button></div>${seg === 'mock' ? '<button class="btn primary" id="qg-open" type="button">내 등급 바로 적기</button>' : ''}</div>`;
-    return top + (seg === 'naesin' && SEMS.some((x) => nsAvg(x) != null) ? `<div class="grid" style="margin-bottom:16px">${nsCard('c12')}</div>` : '') + (seg === 'mock' ? (UI.mockId ? mockDetail() : reportSection() + mockList()) : naesinView());
+    const top = `<h1 class="h1">성적</h1><p class="sub">모의고사는 틀린 번호만 누르면 점수·등급·약한 영역이 나와요</p><div class="row between gr-top" style="gap:12px;margin-bottom:16px"><div class="seg" style="max-width:420px;flex:1 1 0;min-width:0"><button type="button" class="${seg === 'mock' ? 'on' : ''}" data-seg="mock">모의고사</button><button type="button" class="${seg === 'naesin' ? 'on' : ''}" data-seg="naesin">내신</button>${NXD.mid ? `<button type="button" class="${seg === 'ana' ? 'on' : ''}" data-seg="ana">중간고사 분석</button>` : ''}</div>${seg === 'mock' ? '<button class="btn primary" id="qg-open" type="button">내 등급 바로 적기</button>' : ''}</div>`;
+    return top + (seg === 'naesin' && SEMS.some((x) => nsAvg(x) != null) ? `<div class="grid" style="margin-bottom:16px">${nsCard('c12')}</div>` : '') + (seg === 'ana' && NXD.mid ? midView() : seg === 'mock' ? (UI.mockId ? mockDetail() : reportSection() + mockList()) : naesinView());
+  }
+  // 11/3 선생님 «중간고사 유형·선생님 스타일 완전히 분석, 분석 리포트도 (이 선생님은 이런 식으로 낸다)» → 윤건 성적 탭 「중간고사 분석」 (source/yg_mid2/report.json)
+  function midView() {
+    const M = NXD.mid, mx = (L) => Math.max(...L.map((x) => x[1]));
+    return `<p class="sub">${esc(M.lead)}</p><div class="grid">${M.subjects.map((s) => `<section class="card c6 mid-c"><div class="card-h"><h2>${esc(s.name)}</h2><span class="tiny">${s.n}문항 · ${esc(s.pts)}</span></div>
+      <div class="mid-sc"><b>${esc(s.score)}</b><span class="tiny">${esc(s.scoreNote || '')}</span></div>
+      <h3 class="mid-h">이 선생님은 이렇게 내요</h3><ul class="mid-l">${s.style.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
+      <h3 class="mid-h">유형</h3><div class="mid-ty">${s.types.map(([t, n]) => `<div class="mid-tr"><span>${esc(t)}</span><i style="width:${Math.round((n / mx(s.types)) * 100)}%;background:${SUBJ_COLOR[s.key] || '#3182f6'}"></i><b>${n}</b></div>`).join('')}</div>
+      <h3 class="mid-h">${s.wrong ? `틀린 문제 ${esc(s.wrong)}` : '헷갈린 곳'}</h3><ul class="mid-l">${s.weak.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></section>`).join('')}</div><p class="tiny" style="margin-top:12px">${esc(M.plan || '')}</p>`;
   }
   // 11/3 선생님 «공부 리포트 위에 리포트로 따로, 교재 옆에» → 성적 탭에서 빼서 「리포트」 탭
   const reportTabView = () => { const b = srView(); return `<div class="row between wrap" style="gap:8px"><h1 class="h1">리포트</h1>${srView.nav || ''}</div><p class="sub">한 주 동안 실제로 한 양 · 속도 · 집중을 기록으로 재요</p>` + b; };
@@ -5043,9 +5054,9 @@
   // ───────── 시험 (과외 학생: 윤건 단원·실전 · 지원 고1 모의 빈칸 · 주아 단어) ─────────
   // 문제는 학생 코드로 잠긴 묶음(D.nx)에만 있어요. 기록 S.nx = { a: { 문항: { ok, v, at } }, done: [{ id, title, kind, ok, n, at, ms }], st: { 세트: { t0, fin } }, wd: { 'ko:w1': { s, w } } }
   const NXD = D.nx || {};
-  const NX_SN = { eng: '영어', hist: '역사', sci: '과학', m3: '매3영' };
+  const NX_SN = { eng: '영어', kor: '국어', hist: '역사', sci: '과학', m3: '매3영' };
   const NX_PART = { c: '빈칸 쓰기', q: '단원 문제', x: '기출', e: '영영풀이', v: '프린트 단어 영어로 쓰기', s: '프린트 문장 영작', d: '조건 영작', w: '프린트 연습 문제' };  // s·d·w·print = 학교 프린트 (10/28)
-  const nxPartName = (u, p) => (u.subj === 'm3' ? { c: '단어', q: '지문 문제', x: '구문 TEST' }[p] : p === 'c' && u.subj === 'eng' ? '단어' : NX_PART[p]);
+  const nxPartName = (u, p) => ((u.tn || {})[p] ? u.tn[p] : u.subj === 'm3' ? { c: '단어', q: '지문 문제', x: '구문 TEST' }[p] : p === 'c' && u.subj === 'eng' ? '단어' : NX_PART[p]);
   const NX_LV = ['', '쉬운 문제', '보통 문제', '어려운 문제'];
   const NXSETS = {}, NXQ = {}, NXU = {};
   (() => {
@@ -5053,7 +5064,7 @@
     for (const m of NXD.mocks || []) add({ ...m, kind: 'mock' });
     for (const sb of NXD.subjects || []) for (const u of sb.units) {
       NXU[u.id] = u;
-      for (const p of ['c', 'q', 'x', 'e', 'v', 's', 'd', 'w']) if ((u.parts[p] || []).length) add({ id: `${u.id}:${p}`, title: `${NX_SN[u.subj]} ${u.code} ${nxPartName(u, p)}`, sub: u.title, subj: u.subj, kind: p, unit: u.id, qs: u.parts[p] });
+      for (const p of ['c', 'q', 'x', 'e', 'v', 's', 'd', 'w', ...Object.keys(u.tn || {})]) if ((u.parts[p] || []).length) add({ id: `${u.id}:${p}`, title: `${NX_SN[u.subj]} ${u.code} ${nxPartName(u, p)}`, sub: u.title, subj: u.subj, kind: p[0] === 't' ? 'x' : p, unit: u.id, qs: u.parts[p] });
       // 단원 문제를 쉬움·보통·어려움으로 나눠요 (문항 id 는 같아서 푼 기록이 그대로 이어져요) 10/30 «개념 → 빈칸 → 쉬운 문제 → 중간 문제»
       if (u.subj !== 'm3' && (u.parts.q || []).some((q) => q.lv)) for (const lv of [1, 2, 3]) { const qs = u.parts.q.filter((q) => (q.lv || 2) === lv); if (qs.length) add({ id: `${u.id}:q${lv}`, title: `${NX_SN[u.subj]} ${u.code} ${NX_LV[lv]}`, sub: u.title, subj: u.subj, kind: 'q', lvl: lv, unit: u.id, qs }); }
       for (const pp of u.papers) add({ id: `${u.id}:x:${pp.id}`, title: pp.title, sub: `${NX_SN[u.subj]} ${u.code} 기출`, subj: u.subj, kind: 'x', unit: u.id, qs: u.parts.x.filter((q) => q.pp === pp.id) });
@@ -5632,7 +5643,7 @@
     for (const L of stLessons(u)) add('L' + L.k, L.t, null, L);
     if ((N.flows || []).length) add('order', '순서 맞추기');
     add('terms', u.subj === 'eng' ? '단어 모음' : '용어 모음');
-    for (const p of ['e', 'v', 's', 'd', 'w']) if (has(`${u.id}:${p}`)) add('set', nxPartName(u, p), `${u.id}:${p}`);
+    for (const p of ['e', 'v', 's', 'd', 'w', ...Object.keys(u.tn || {})]) if (has(`${u.id}:${p}`)) add('set', nxPartName(u, p), `${u.id}:${p}`);
     if (has(`${u.id}:x`)) add('set', '기출', `${u.id}:x`);
     return out;
   }
@@ -6039,7 +6050,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611032051'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611032108'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
