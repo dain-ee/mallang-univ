@@ -36,7 +36,9 @@
   const PLAN_KINDS = [{ k: 'sci', t: '오늘의 과학' }, { k: 'unit', t: '천일문 유닛' }, { k: 'words', t: '워드마스터 단어 시험' }, { k: 'g3', t: '고3 영어 하루 한 문제' }];
   const DOW = ['일', '월', '화', '수', '목', '금', '토'];
   const planOf = (k) => { const p = (S.plan || {})[k]; return Array.isArray(p) ? p : [1, 2, 3, 4, 5]; };
-  const onDay = (k, d = new Date()) => d.getDay() !== 0 && planOf(k).includes(d.getDay());  // 일요일은 새 과제 없이 밀린 것만 (10/31)
+  // plan.end: 그날까지만 줘요 (11/3 선생님 정윤 «고3 영어 다음 주부턴 주지 마», «천일문은 다음 주 금요일까지만»)
+  const planEnd = (k) => ((S.plan || {}).end || {})[k] || '';
+  const onDay = (k, d = new Date()) => { if (d.getDay() === 0 || !planOf(k).includes(d.getDay())) return false; const e = planEnd(k), ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; return !e || ymd <= e; };  // 일요일은 새 과제 없이 밀린 것만 (10/31)
   const anyEng = (d) => ['unit', 'words', 'g3'].some((k) => onDay(k, d));
   const anyTask = (d) => PLAN_KINDS.some((x) => onDay(x.k, d));
   // 선생님 숙제는 날짜가 된 것만 오늘 할 일에 보여요 (하루 한 개씩)
@@ -1983,7 +1985,7 @@
     const PIC = { sci: 'sci', unit: 'eng', words: 'books', g3: 'write' };
     const sum = (k) => P[k].length ? (P[k].length === 7 ? '매일' : P[k].length === 5 && order.slice(0, 5).every((d) => P[k].includes(d)) ? '평일 매일' : order.filter((d) => P[k].includes(d)).map((d) => DOW[d]).join(' ') + ` · 주 ${P[k].length}회`) : '쉬어요';
     const draw = (el) => {
-      $('#pl-body', el).innerHTML = PLAN_KINDS.map((x) => `<div class="pl-item"><div class="pl-h">${ic(PIC[x.k] || 'pin')}<div><b>${esc(x.t)}</b><span class="${P[x.k].length ? 'blue' : ''}">${sum(x.k)}</span></div></div>
+      $('#pl-body', el).innerHTML = PLAN_KINDS.map((x) => `<div class="pl-item"><div class="pl-h">${ic(PIC[x.k] || 'pin')}<div><b>${esc(x.t)}</b><span class="${P[x.k].length ? 'blue' : ''}">${sum(x.k)}${planEnd(x.k) && P[x.k].length ? ` · ${planEnd(x.k) < today() ? '끝났어요' : md(planEnd(x.k)) + '까지'}` : ''}</span></div></div>
         <div class="pl-dots">${order.map((d) => `<button type="button" class="${P[x.k].includes(d) ? 'on' : ''} ${d === 0 ? 'sun' : d === 6 ? 'sat' : ''}" data-pd="${x.k}:${d}" aria-pressed="${P[x.k].includes(d)}">${DOW[d]}</button>`).join('')}</div></div>`).join('');
       $$('[data-pd]', el).forEach((b) => (b.onclick = () => { const [k, d] = b.dataset.pd.split(':'); const n = +d; P[k] = P[k].includes(n) ? P[k].filter((y) => y !== n) : [...P[k], n]; draw(el); }));
     };
@@ -1992,7 +1994,7 @@
       <div id="pl-body"></div><button class="btn primary big block" id="pl-ok" type="button" style="margin-top:20px">저장하기</button>`, (el, close) => {
       draw(el);
       $$('[data-all]', el).forEach((b) => (b.onclick = () => { for (const x of PLAN_KINDS) P[x.k] = PRE[+b.dataset.all].d.slice(); draw(el); }));
-      $('#pl-ok', el).onclick = () => { S.plan = P; save('plan'); close(); render(); toast('매일 과제 요일을 바꿨어요'); };
+      $('#pl-ok', el).onclick = () => { S.plan = { ...P, ...((S.plan || {}).end ? { end: S.plan.end } : {}) }; save('plan'); close(); render(); toast('매일 과제 요일을 바꿨어요'); };
     });
   }
   // 지난 기록: 꾸준히 칸의 날짜를 누르면 그날 한 것
@@ -2156,7 +2158,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611030005', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611031053', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5936,7 +5938,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611030005'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611031053'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
