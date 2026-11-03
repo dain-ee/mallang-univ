@@ -780,7 +780,7 @@
     const sd = sciToday(), st = dayStat(sd), ed = engToday();
     const wordsDone = Object.keys(ed.wans || {}).length >= Math.min(10, wordsFor(ed.words).length) && wordsFor(ed.words).length;
     const unitDone = uDone(ed);
-    const tasks = [];
+    const tasks = [...wqTasks()];
     if (TUTOR) { for (const t of tutorTasks()) tasks.push(t); for (const t of ypTasks()) tasks.push(t); for (const h of (S.hw || []).filter((x) => !hwDone(x) && !(x.grp && x.due > today()))) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due && h.due < today() ? `${md(h.due)} 숙제 · 아직 안 했어요` : `${h.subj && h.subj !== '영어' ? h.subj + ' · ' : ''}${h.due ? md(h.due) + '까지' : '선생님 숙제'}`, done: false }); for (const h of (S.hw || []).filter((x) => hwDone(x) && x.due === today())) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: '선생님 숙제 · 끝냈어요', done: true }); return { tasks, off: false }; }
     const off = !anyTask(new Date()) && !S.sci.days[today()] && !S.eng.days[today()];
     const has = (k) => !off && (onDay(k) || !!(k === 'sci' ? S.sci.days[today()] : S.eng.days[today()]));
@@ -797,7 +797,7 @@
     if (FIN_ON) { const L = finToday(), subs = [...new Set(L.map((c) => c.subj))].sort((x, y) => (y === 'hist') - (x === 'hist')); tasks.unshift(...subs.map((sj) => { const M = L.filter((c) => c.subj === sj), n = M.filter(finDone).length, due = FIN_DUE[sj]; return { k: 'fin:' + sj, icon: sj === 'hist' ? 'scroll' : 'books', t: sj === 'eng' ? `올림포스 지문 ${M.length}개` : `${M[0].sname} 기말 예습 ${M.length}개`, d: n >= M.length ? `오늘 것 끝 · ${finEndTxt(sj)}` : `${M.map((c) => c.title).join(' · ')} · ${n}/${M.length} · ${finEndTxt(sj)}`, done: n >= M.length }; })); }
     // 매일 영어 계획(PF) 기간엔 천일문이 계획 쪽에 Unit 41부터 들어가요 (10/31)
     if (has('unit') && CH_UNITS.length && !(TUTOR && ppOn())) { const un = CH_UNITS[ed.unit] || CH_UNITS[CH_UNITS.length - 1]; tasks.push({ k: 'unit', icon: 'eng', t: `천일문 ${un.unit ? 'Unit ' + un.unit : ''} ${un.title || ''}`.trim(), d: unitDone ? '다 했어요' : cdesc('unit', '개념 · 문장 · 문제'), done: !!unitDone }); }
-    if (has('words') && WORDS.length) tasks.push({ k: 'words', icon: 'books', t: '워드마스터 단어 10개 시험', d: wordsDone ? `${Object.values(ed.wans).filter((x) => x.ok).length}/10 맞힘` : cdesc('words', wordsLabel(ed.words)), done: !!wordsDone });
+    if (has('words') && WORDS.length && !(WQ && today() < WQ.test)) tasks.push({ k: 'words', icon: 'books', t: '워드마스터 단어 10개 시험', d: wordsDone ? `${Object.values(ed.wans).filter((x) => x.ok).length}/10 맞힘` : cdesc('words', wordsLabel(ed.words)), done: !!wordsDone });
     // 매일 기사 하나: 오늘 읽은 기사가 있으면 그게 오늘 것(끝), 없으면 안 읽은 대이슈 → 안 읽은 최신 기사
     if (WALLET || U.who === '윤건') { const N = ((D.news && D.news.items) || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date))), t = today();
       const rd = WALLET ? W().log.find((x) => x.date === t && String(x.key).startsWith('news:')) : (() => { const e = Object.entries(S.nr || {}).find(([, at]) => dateOf(at) === t); return e ? { key: 'news:' + e[0] } : null; })(), un = N.filter((n) => !wHas('news:' + n.id));
@@ -2214,7 +2214,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611040013', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611040019', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5965,6 +5965,57 @@
       bind();
     });
   }
+  // 11/4 정윤 수행평가 단어 «워드마스터 수능 2000 Day 38~50, 다음 주 수요일까지 두 바퀴, 마지막 1~2일은 틀린 것, 완전히 외워야 해 (고르기 말고) 한영·영한»
+  //   날마다 몫(D.wq.plan) · Day 하나씩: 보고 가리며 외우기 → 영→한 뜻 고르기 시험 · 틀린 건 맞힐 때까지 다시 · 틀린 단어는 S.wq.wrong 에 모여 마지막 날 한 번 더
+  const WQ = D.wq || null;
+  const wqS = () => (S.wq = S.wq || { done: {}, wrong: {} });
+  const wqWords = (dy) => (((WQ.days.find((x) => +x.day === +dy) || {}).words) || []).map((w) => ({ en: w.en, ko: w.ko, day: dy }));
+  const wqK = (p, dy) => `p${p.pass}:${dy}`;
+  const wqWrongL = () => WQ.days.flatMap((d) => wqWords(d.day)).filter((w) => wqS().wrong[w.en]);
+  const wqDone = (p) => (p.wrong ? !!wqS().done['w:' + p.date] : p.days.every((dy) => wqS().done[wqK(p, dy)]));
+  function wqTasks() {
+    if (!WQ) return [];
+    const t = today();
+    return WQ.plan.filter((p) => p.date === t || (p.date < t && !wqDone(p))).map((p) => { const k = p.wrong ? 0 : p.days.filter((dy) => wqS().done[wqK(p, dy)]).length;
+      return { k: 'wq:' + p.date, icon: 'books', t: p.wrong ? `수행평가 단어 · 틀린 것 다시 ${wqWrongL().length}개` : `수행평가 단어 ${p.pass}바퀴 · Day ${p.days[0]}~${p.days[p.days.length - 1]}`, d: `${p.date < t ? `${md(p.date)} 몫 · ` : ''}${p.wrong ? '틀렸던 단어를 다 맞힐 때까지' : `${k}/${p.days.length} Day · 보고 외운 뒤 뜻 고르기 시험`} · ${md(WQ.test)} 수행평가`, done: wqDone(p) }; });
+  }
+  function wqOpen(date) {
+    const p = WQ && WQ.plan.find((x) => x.date === date); if (!p) return;
+    if (p.wrong) { const M = wqWrongL(); if (!M.length) { wqS().done['w:' + date] = Date.now(); save('wq'); render(); return toast('틀린 단어가 없어요, 다 외웠어요!'); } return wqRun(`틀린 단어 다시 · ${M.length}개`, M, 'w:' + date, 1); }
+    sheet(`<h2>수행평가 단어 ${p.pass}바퀴</h2><p class="sub">${esc(WQ.book)} · ${md(WQ.test)} 수행평가 · Day 하나씩 보고 외운 뒤 뜻 고르기 시험</p><div class="list">${p.days.map((dy) => { const ok = wqS().done[wqK(p, dy)]; return `<div class="li btnlike ${ok ? 'is-done' : ''}" data-wqd="${dy}"><div class="ico">${ic(ok ? 'ok' : 'books')}</div><div class="body"><div class="t">Day ${dy}</div><div class="d">${wqWords(dy).length}개 · ${ok ? '끝 · 다시 해도 돼요' : '보기 → 가리기 → 뜻 고르기 시험'}</div></div>${ok ? '<span class="tag blue">끝</span>' : '<span class="chev"></span>'}</div>`; }).join('')}</div>`, (el, close) => {
+      $$('[data-wqd]', el).forEach((b) => (b.onclick = () => { close(); const dy = +b.dataset.wqd; wqRun(`Day ${dy} · ${p.pass}바퀴`, wqWords(dy), wqK(p, dy), p.pass, date); }));
+    });
+  }
+    // 11/4 정윤 «영어 주고 한국어 객관식으로 고르고» → 시험은 실제 수행평가처럼 영→한 5지선다. 보기는 같은 Day 뜻에서(헷갈리게), 틀리면 보기를 바꿔 끝에 다시
+  function wqRun(title, M, key, pass, back) {
+    const st = { stage: 'list', hide: '', Q: M.map((_, i) => i).sort(() => Math.random() - 0.5), k: 0, ans: null, miss: new Set(), wr: 0, ch: null };
+    const POOL = (m) => { const same = WQ.days.flatMap((d) => wqWords(d.day)).filter((w) => w.ko !== m.ko), near = same.filter((w) => w.day === m.day); return [...near.sort(() => Math.random() - 0.5).slice(0, 3), ...same.filter((w) => w.day !== m.day).sort(() => Math.random() - 0.5)].slice(0, 4).map((w) => w.ko); };
+    const choices = (m) => [m.ko, ...POOL(m)].sort(() => Math.random() - 0.5);
+    const body = () => {
+      if (st.stage === 'list') return `<div class="chips wq-hide">${[['', '다 보기'], ['ko', '뜻 가리기'], ['en', '영어 가리기']].map(([v, l]) => `<button class="chip sm ${st.hide === v ? 'on' : ''}" type="button" data-wqh="${v}">${l}</button>`).join('')}</div>
+        <div class="wq-list">${M.map((m) => `<div class="wq-r"><button type="button" class="wq-c ${st.hide === 'en' ? 'hid' : ''}" data-wqc>${esc(m.en)}</button><button type="button" class="wq-c ko ${st.hide === 'ko' ? 'hid' : ''}" data-wqc>${esc(m.ko)}</button></div>`).join('')}</div>
+        <p class="tiny" style="text-align:center">「뜻 가리기」로 영어만 보고 뜻을 말해 봐요. 가린 칸을 누르면 잠깐 보여요</p><button class="btn primary big block" data-wqgo type="button">다 외웠어요 · 시험 ${M.length}개 ›</button>`;
+      const i = st.Q[st.k], m = M[i], a = st.ans; if (!st.ch) st.ch = choices(m);
+      return `<div class="mr-top"><span class="tiny num">${st.k + 1} / ${st.Q.length}</span><span class="tag">영어 → 뜻 고르기${st.k >= M.length ? ' · 다시' : ''}</span></div>
+        <div class="mr-c"><b>${esc(m.en)}</b></div>
+        <div class="wq-ch">${st.ch.map((c, n) => `<button type="button" class="choice ${a ? (c === m.ko ? 'right' : a.v === c ? 'wrong' : '') : ''}" data-wqp="${n}" ${a ? 'disabled' : ''}><span class="n">${n + 1}</span>${esc(c)}</button>`).join('')}</div>
+        ${a ? `<div class="wq-res ${a.ok ? 'ok' : 'no'}"><b>${a.ok ? '맞았어요' : '틀렸어요 · 끝에 다시 나와요'}</b></div><button class="btn primary big block" data-wqnext type="button">다음</button>` : ''}`;
+    };
+    sheet(`<h2>${esc(title)}</h2><p class="sub">수행평가처럼 영어 보고 뜻 고르기 · 틀린 건 맞힐 때까지 다시 나와요</p><div id="wq-box">${body()}</div>`, (el, close) => {
+      const draw = () => { $('#wq-box', el).innerHTML = body(); bind(); };
+      const bind = () => {
+        $$('[data-wqh]', el).forEach((b) => (b.onclick = () => { st.hide = b.dataset.wqh; draw(); }));
+        $$('[data-wqc]', el).forEach((b) => (b.onclick = () => b.classList.toggle('peek')));
+        const g = $('[data-wqgo]', el); if (g) g.onclick = () => { st.stage = 'test'; draw(); };
+        $$('[data-wqp]', el).forEach((b) => (b.onclick = () => { const i = st.Q[st.k], m = M[i], v = st.ch[+b.dataset.wqp], ok = v === m.ko; st.ans = { ok, v };
+          if (!ok) { st.wr++; wqS().wrong[m.en] = (wqS().wrong[m.en] || 0) + 1; st.Q.push(i); st.miss.add(m.en); } draw(); }));
+        const nx = $('[data-wqnext]', el); if (nx) nx.onclick = () => { st.k++; st.ans = null; st.ch = null;
+          if (st.k >= st.Q.length) { if (key.startsWith('w:')) for (const m of M) delete wqS().wrong[m.en]; wqS().done[key] = Date.now(); save('wq'); close(); render(); toast(st.wr ? `끝 · ${st.miss.size}개는 다시 풀어서 맞혔어요` : '끝 · 한 번에 다 맞혔어요!'); if (back) setTimeout(() => wqOpen(back), 400); return; }
+          draw(); };
+      };
+      bind();
+    });
+  }
   // 천일문 문법 바로 보기 (매3영 ★ 문장 밑 단추)
   function chGram(n) {
     const cu = CH_UNITS.find((x) => +x.unit === +n); if (!cu) return;
@@ -6249,7 +6300,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040013'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040019'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7366,6 +7417,7 @@
   document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-chstk]'); if (b) b.classList.toggle('peel'); });
   function go(tab) { UI.tab = tab; UI.run = null; UI.stOnly = null; UI.m3rv = null; UI.lib = null; UI.nxUnit = null; if (tab !== 'score') UI.mockId = null; render(); window.scrollTo(0, 0); }
   function startTask(k) {
+    if (k.startsWith('wq:')) return wqOpen(k.slice(3));
     if (k.startsWith('cl:mq:')) { const [mid, kk] = [k.slice(6, k.lastIndexOf(':')), +k.slice(k.lastIndexOf(':') + 1)], mk = (NXD.mocks || []).find((m) => m.id === mid); if (mk && mqSet(mk, kk)) nxStart(`mq:${mid}:${kk}`, 'exam'); return; }
     if (k.startsWith('cl:hd:')) { if (hdSet(+k.slice(6))) nxStart('hd:' + k.slice(6), 'exam'); return; }
     if (k.startsWith('cl:m3:')) { const u = NXU[k.slice(6)]; if (!u) return; UI.run = null; UI.stS = 'm3'; UI.stU = u.id; UI.stT = null; UI.stP = null; UI.stV = 'unit'; go('study'); window.scrollTo(0, 0); return; }
