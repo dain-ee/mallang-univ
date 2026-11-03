@@ -1152,7 +1152,7 @@
     for (const it of [...myS().items, ...(myS().trash || [])]) {
       if (it.unit !== '번' || it.from == null) continue;
       const days = Object.keys(it.log || {}).sort(); let acc = 0;
-      for (const d of days) { const x = it.log[d], a = it.from + acc; acc += x.n || 0; if (d >= t || d < from || !x.n || (x.w || []).length || x.ok) continue; out.push({ it, d, a, z: Math.min(it.to, a + x.n - 1), k: 'ok' }); }
+      for (const d of days) { const x = it.log[d], a = it.from + acc; acc += x.n || 0; if (d >= t || d < from || !x.n || Array.isArray(x.w) || x.ok) continue; /* 숙제 창에서 저장한 날(w 칸이 있음, 빈 칸 = 틀린 것 없이 저장)은 안 물어요. 「했어요」 단추처럼 번호 없이 적힌 날만 */ out.push({ it, d, a, z: Math.min(it.to, a + x.n - 1), k: 'ok' }); }
       const gone = !!it.delAt, fin = gone || it.fin;
       if (fin && acc < it.total && !(it.ask || {}).range && (gone ? it.delAt : Date.now()) > Date.now() - 4 * 864e5) out.push({ it, a: it.from + acc, z: it.to, k: 'range', gone });
     }
@@ -2213,7 +2213,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611032314', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611032317', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6238,7 +6238,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611032314'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611032317'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
