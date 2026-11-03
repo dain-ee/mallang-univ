@@ -2170,7 +2170,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611031959', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611032037', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4600,7 +4600,9 @@
     if (!u) return `<div class="card empty">${ic('books')}<b>그래머 자료를 넣는 중이에요</b></div>`;
     const step = +r.step || 2, qs = jgQs(u, step, r.secs), left = qs.findIndex((q) => !jgRec(u, q)), cur = r.show != null ? r.show : left;
     r.show = cur;
-    const head = `<div class="row between"><button class="btn sm" data-go="hw" type="button">‹ 숙제</button><span class="tiny">📗 Grammar Stage Plus 2</span></div>
+    // 11/3 선생님 «초기화하는 버튼 위쪽에» → 이 단계 기록을 지우고 처음부터 (한 번 더 눌러야 지워요, 학생 화면 보기에서 눌러도 학생 기록이 지워져요)
+    const anyDone = qs.some((q) => jgRec(u, q));
+    const head = `<div class="row between"><button class="btn sm" data-go="hw" type="button">‹ 숙제</button><div class="row" style="gap:8px">${anyDone ? `<button class="btn sm ${UI.jgReAsk ? 'primary' : ''}" data-jgre type="button">${UI.jgReAsk ? `${JG_STEP[step]} 기록 지우기 · 한 번 더 누르면 지워요` : '처음부터 다시'}</button>` : ''}<span class="tiny">📗 Grammar Stage Plus 2</span></div></div>
       <h1 class="h1" style="margin-top:12px">Unit ${esc(u.no)} · ${esc(u.title)}</h1>
       <div class="seg" style="margin:12px 0 16px">${[2, 3, 4].map((s) => `<button type="button" class="${s === step ? 'on' : ''}" data-jgs="${s}">${JG_STEP[s]}</button>`).join('')}</div>
       ${r.secs && r.secs.length && !r.sheet ? `<div class="jg-only"><span>📌 오늘 숙제는 ${esc(r.secs.join('·'))}만</span><button class="btn sm" data-jgall type="button">전체 보기</button></div>` : ''}`;
@@ -4654,7 +4656,7 @@
     const r = UI.run, u = jgU(r.unit); if (!u) return;
     $$('[data-jgs]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'gram', unit: r.unit, step: +b.dataset.jgs }; render(); window.scrollTo(0, 0); }));
     const al = $('[data-jgall]'); if (al) al.onclick = () => { UI.run = { kind: 'gram', unit: r.unit, step: r.step }; render(); };
-    const re = $('[data-jgre]'); if (re) re.onclick = () => { S.jg = S.jg || {}; for (const q of jgQs(u, r.step, r.secs)) delete S.jg['u' + u.no + ':' + q.id]; save('jg'); UI.run = { ...r, show: null }; render(); window.scrollTo(0, 0); };
+    $$('[data-jgre]').forEach((re) => (re.onclick = () => { if (re.closest('.row.between') && !UI.jgReAsk) { UI.jgReAsk = 1; render(); clearTimeout(UI.jgReT); UI.jgReT = setTimeout(() => { if (UI.jgReAsk) { UI.jgReAsk = 0; render(); } }, 4000); return; } UI.jgReAsk = 0; S.jg = S.jg || {}; const ks = jgQs(u, r.step, r.secs).map((q) => 'u' + u.no + ':' + q.id); for (const k of ks) delete S.jg[k]; save('jg'); if (PEEK) dPut(U.who, 'jg', (d) => { d.jg = d.jg || {}; for (const k of ks) delete d.jg[k]; }).catch(() => toast('서버에 못 지웠어요')); UI.run = { ...r, show: null }; render(); window.scrollTo(0, 0); toast('처음부터 다시 풀어요'); }));
     if (r.sheet) return bindJgSheet(u, r);
     const qs = jgQs(u, r.step, r.secs), q = qs[r.show]; if (!q) return;
     const mark = (v, el) => {
@@ -6035,7 +6037,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611031959'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611032037'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
