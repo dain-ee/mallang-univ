@@ -3768,3 +3768,5 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .chk-card .chk-b .btn:active { transform: scale(.96); }
 .chk-card .my-wc { grid-column: 1 / -1; margin-top: 6px; }
 @media (max-width: 760px) { .chk-card .chk-it .body { grid-template-columns: 1fr; } .chk-card .chk-it .t, .chk-card .chk-rg, .chk-card .chk-b, .chk-card .chk-it .body > .d { grid-column: 1; } .chk-card .chk-b { justify-content: flex-start; } }
+.chk-card .chk-rg > span:first-child { min-width: 76px; text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) { .chk-card .chk-rg > span:first-child { min-width: 0; text-align: left; } }
