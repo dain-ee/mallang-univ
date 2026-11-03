@@ -1410,16 +1410,23 @@
   function myTmHTML(it) {
     const tk = 'my:' + it.id, r = tmOf(tk), cur = P.run, dn = UI.myTmDone;
     if (UI.myTmAsk === it.id) return `<div class="my-tm ask"><div class="my-tm-t">${cur ? `<span>${esc(cur.ti || cur.subj)} 하는 중이에요</span><b>멈추고 이걸 시작할까요?</b>` : '<span>지금부터 시간을 재요</span><b>진짜로 시작할까요?</b>'}</div><div class="my-tm-bs"><button class="btn" type="button" data-mt="no">아니요</button><button class="btn primary" type="button" data-mt="go">시작</button></div></div>`;
-    if (r) return `<div class="my-tm on ${r.paused ? 'paused' : ''}"><div class="my-tm-t"><span>${r.paused ? '잠깐 멈췄어요' : '공부하는 중'}</span><b class="num" ${r === cur ? 'data-pmt' : ''}>${tmShow(r)}</b></div><div class="my-tm-bs"><button class="btn" type="button" data-mt="pause">${r.paused ? '이어 하기' : '멈추기'}</button><button class="btn primary" type="button" data-mt="end">끝</button></div></div>`;
+    if (r) return `<div class="my-tm on ${r.paused ? 'paused' : ''}"><div class="my-tm-t"><span>${r.paused ? '잠깐 멈췄어요' : '공부하는 중'}</span><b class="num" ${r === cur ? 'data-pmt' : ''}>${tmShow(r)}</b></div><div class="my-tm-bs"><button class="btn" type="button" data-mt="pause">${r.paused ? '이어 하기' : '멈추기'}</button><button class="btn primary" type="button" data-mt="end">끝</button></div>${UI.tmFix === tk ? tmFixHTML(r) : `<button type="button" class="tm-fix-go" data-mt="fix">시간이 잘못 재졌으면 고치기</button>`}</div>`;
     if (dn && dn.id === it.id) return `<div class="my-tm done"><div class="my-tm-t"><span>수고했어요!</span><b>${hm(dn.m)} 공부했어요</b></div><div class="row between" style="gap:8px"><p class="tiny" style="margin:0">아래에 오늘 한 만큼 적어 주세요</p><button class="btn sm" type="button" data-mt="ask">또 재기</button></div></div>`;
     return `<div class="my-tm"><div class="my-tm-t"><span>이 숙제 하는 시간 재기</span><b>${ic('clock')} 시작하면 옆에서 시간이 가요</b></div><button class="btn primary" type="button" data-mt="ask">시작하기</button></div>`;
+  }
+  // 「시간 고치기」: 실제로 한 시간을 시·분으로 (11/3 «여기서 자동으로 기록 수정이 안 되어 있어»)
+  const tmFixHTML = (r) => { const t = pWatchSec(r), h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60); return `<div class="tm-fix"><span>실제로 한 시간</span><label><input type="number" inputmode="numeric" min="0" max="23" value="${h}" data-tfx="h">시간</label><label><input type="number" inputmode="numeric" min="0" max="59" value="${m}" data-tfx="m">분</label><div class="tm-fix-b"><button type="button" class="btn sm" data-tfx="no">취소</button><button type="button" class="btn sm primary" data-tfx="ok">고치기</button></div></div>`; };
+  function tmFixBind(box, r, draw) {
+    const q = (k) => box.querySelector(`[data-tfx="${k}"]`); if (!q('ok')) return;
+    q('no').onclick = (e) => { e.stopPropagation(); UI.tmFix = null; draw(); };
+    q('ok').onclick = (e) => { e.stopPropagation(); const ms = ((+q('h').value || 0) * 60 + (+q('m').value || 0)) * 60000; tmSetTotal(r, ms); UI.tmFix = null; render(); draw(); toast(`${hm(Math.round(ms / 60000)) || '0분'}으로 고쳤어요 · 시간표도 같이 바뀌어요`); };
   }
   // 어느 창에든 넣는 시간 재기 상자: 시작하기 → 진짜로? → 멈추기·이어 하기·끝 (11/2 «인강 창에도 시작 멈춤이 있어야 해»)
   function tmBoxHTML(tk, ti) {
     if (TEACHER) return '';
     const r = tmOf(tk), cur = P.run, dn = UI.tmDone;
     if (UI.tmAsk === tk) return `<div class="my-tm ask"><div class="my-tm-t">${cur && cur !== r ? `<span>${esc(cur.ti || cur.subj)} 하는 중이에요</span><b>멈추고 이걸 ${r ? '이어 할까요?' : '시작할까요?'}</b>` : '<span>지금부터 시간을 재요</span><b>진짜로 시작할까요?</b>'}</div><div class="my-tm-bs"><button class="btn" type="button" data-tb="no">아니요</button><button class="btn primary" type="button" data-tb="go">${cur && cur !== r ? '멈추고 시작' : '시작'}</button></div></div>`;
-    if (r) { const on = r === cur && !r.paused; return `<div class="my-tm on ${on ? '' : 'paused'}"><div class="my-tm-t"><span>${on ? '공부하는 중' : '잠깐 멈췄어요'}</span><b class="num" ${r === cur ? 'data-pmt' : ''}>${tmShow(r)}</b></div><div class="my-tm-bs"><button class="btn" type="button" data-tb="pause">${on ? '멈추기' : '이어 하기'}</button><button class="btn primary" type="button" data-tb="end">끝</button></div></div>`; }
+    if (r) { const on = r === cur && !r.paused; return `<div class="my-tm on ${on ? '' : 'paused'}"><div class="my-tm-t"><span>${on ? '공부하는 중' : '잠깐 멈췄어요'}</span><b class="num" ${r === cur ? 'data-pmt' : ''}>${tmShow(r)}</b></div><div class="my-tm-bs"><button class="btn" type="button" data-tb="pause">${on ? '멈추기' : '이어 하기'}</button><button class="btn primary" type="button" data-tb="end">끝</button></div>${UI.tmFix === tk ? tmFixHTML(r) : `<button type="button" class="tm-fix-go" data-tb="fix">시간이 잘못 재졌으면 고치기</button>`}</div>`; }
     if (dn && dn.tk === tk) return `<div class="my-tm done"><div class="my-tm-t"><span>수고했어요!</span><b>${hm(dn.m)} 공부했어요</b></div><button class="btn sm" type="button" data-tb="ask">또 재기</button></div>`;
     return `<div class="my-tm"><div class="my-tm-t"><span>공부하는 시간 재기</span><b>${ic('clock')} 시작하면 시간이 가요</b></div><button class="btn primary" type="button" data-tb="ask">시작하기</button></div>`;
   }
@@ -1433,7 +1440,9 @@
       if (k === 'go') { UI.tmAsk = null; tmStart(tk, ti); render(); return draw(); }
       if (k === 'pause') { if (r && r !== P.run && P.run) { UI.tmAsk = tk; return draw(); } if (r && r !== P.run) tmStart(tk, ti); else pPause(); render(); return draw(); }
       if (k === 'end') { const m = pWatchEnd(r); if (m) UI.tmDone = { tk, m }; draw(); }
+      if (k === 'fix') { if (r === P.run && !r.paused) pPause(); UI.tmFix = tk; render(); draw(); }
     }));
+    const r0 = tmOf(tk); if (r0) tmFixBind(box, r0, draw);
   }
   function myTmStart(it) { tmStart('my:' + it.id, it.book, mySubj(it)); UI.myTmDone = null; }
   // 무엇이든 시작 (11/2 «인강도 뭐든지 다 해야 해, 다른 게 안 멈췄으면 멈출까요 하고, 그걸 나중에 다시 이어 할 수도»)
@@ -1496,7 +1505,9 @@
       if (k === 'go') { UI.myTmAsk = null; myTmStart(it); render(); return draw(); }
       if (k === 'pause') { const r = tmOf('my:' + it.id); if (r && r !== P.run && P.run) { UI.myTmAsk = it.id; return draw(); } if (r && r !== P.run) tmStart('my:' + it.id, it.book); else pPause(); render(); return draw(); }
       if (k === 'end') { const m = pWatchEnd(tmOf('my:' + it.id)); if (m) UI.myTmDone = { id: it.id, m }; draw(); }
+      if (k === 'fix') { const r = tmOf('my:' + it.id); if (r === P.run && !r.paused) pPause(); UI.tmFix = 'my:' + it.id; render(); draw(); }
     }));
+    const r0 = tmOf('my:' + it.id); if (r0) tmFixBind(box, r0, draw);
   }
   function mySheet(id) {
     const it = myS().items.find((x) => x.id === id); if (!it) return;
@@ -2159,7 +2170,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611031650', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611031701', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3940,7 +3951,22 @@
   }
   const pHas = (b) => !!(pomo().badges || {})[b.id] || b.ok();
   // 시작·끝 재기 (11/2 «정윤이 시작 종료 버튼 해 줘, 그래서 네가 측정할 수 있게»): 끝날 시각이 없고 지난 시간을 세요. 멈춘 동안은 빼고, 이어 한 토막마다 시간표에 남겨요
-  const pWatchSec = (r) => Math.floor(((r.acc || 0) + (r.paused ? 0 : Date.now() - r.t0)) / 1000);
+  // 11/3 정윤 «시간표에서 고쳤는데 숙제 창 시간은 그대로» → 멈춘 칸마다 시간표(slog)에서 고치거나 지운 만큼 더하고 빼요
+  const pFixMs = (r) => (r.seg || []).reduce((a, [s0, e0]) => { const x = (S.slog || {})['w' + s0]; return a + (!x ? 0 : x.del ? -(e0 - s0) : x.ed ? (x.e - x.s) - (e0 - s0) : 0); }, 0);
+  const pWatchSec = (r) => Math.max(0, Math.floor(((r.acc || 0) + pFixMs(r) + (r.paused ? 0 : Date.now() - r.t0)) / 1000));
+  // 잰 시간을 통째로 고쳐요(끄는 걸 잊었을 때): 멈춘 칸의 시간표 기록을 뒤에서부터 늘리거나 줄여요
+  function tmSetTotal(r, ms) {
+    if (!r.paused) { if (r === P.run) pPause(); else return; }
+    let d = ms - pWatchSec(r) * 1000; S.slog = S.slog || {};
+    const segs = (r.seg || []).filter(([s0]) => S.slog['w' + s0] && !S.slog['w' + s0].del);
+    if (!segs.length && r.seg && r.seg.length) { const [s0, e0] = r.seg[r.seg.length - 1]; S.slog['w' + s0] = { s: s0, e: e0, subj: r.subj, k: 'w', ti: r.ti, at: Date.now() }; segs.push([s0, e0]); }
+    for (let i = segs.length - 1; i >= 0 && d !== 0; i--) {
+      const k = 'w' + segs[i][0], x = S.slog[k], len = x.e - x.s;
+      if (d > 0 || len + d >= 60000) { S.slog[k] = { ...x, e: x.e + d, ed: 1, at: Date.now() }; d = 0; }
+      else { S.slog[k] = { ...x, del: 1, ed: 1, at: Date.now() }; d += len; }
+    }
+    pSave(); save('slog');
+  }
   const pDur = () => (P.run ? (P.run.watch ? 3600 : P.run.dur) : PM[P.pick].watch ? 3600 : PM[P.pick].min * 60);
   const pLeft = () => { const r = P.run; if (r && r.watch) return pWatchSec(r) % 3600; if (!r) return PM[P.pick].watch ? 0 : pDur(); return r.paused ? r.left : Math.max(0, Math.ceil((r.endAt - Date.now()) / 1000)); };
   const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
@@ -5943,7 +5969,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611031650'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611031701'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

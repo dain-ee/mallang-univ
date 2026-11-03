@@ -3547,3 +3547,13 @@ button.my-run { border: 0; font-family: inherit; cursor: pointer; }
 .tt-ed input { font: inherit; font-size: 14px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--t1); }
 .tt-ed-b { display: flex; gap: 8px; margin-left: auto; }
 @media (max-width: 600px) { .tt-ed { padding-left: 0; } .tt-ed-b { margin-left: 0; width: 100%; } .tt-ed-b .btn { flex: 1; } }
+
+/* 숙제 창 시간 고치기 (11/3) */
+.my-tm.on { flex-wrap: wrap; }
+.tm-fix-go { flex-basis: 100%; border: 0; background: none; padding: 4px 0 0; font: inherit; font-size: 12px; font-weight: 600; color: var(--t3); text-align: left; cursor: pointer; }
+.tm-fix-go:hover { color: var(--t1); }
+.tm-fix { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.tm-fix > span { font-size: 13px; font-weight: 700; color: var(--t2); }
+.tm-fix label { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: var(--t2); }
+.tm-fix input { width: 56px; font: inherit; font-size: 15px; font-weight: 700; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--t1); text-align: right; }
+.tm-fix-b { display: flex; gap: 8px; margin-left: auto; }
