@@ -2214,7 +2214,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611040200', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611040729', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3957,6 +3957,19 @@
   const pStreak = () => { let n = 0, i = pDay().n ? 0 : 1; while (pDay(pBack(i)).n) { n++; i++; } return n; };
   const pBest = () => { let best = 0, run = 0, prev = null; for (const d of Object.keys(pomo().days).filter((k) => pomo().days[k].n).sort()) { run = prev && Math.round((new Date(d + 'T00:00:00') - new Date(prev + 'T00:00:00')) / 864e5) === 1 ? run + 1 : 1; best = Math.max(best, run); prev = d; } return best; };
   const pTotal = () => Object.values(pomo().days).reduce((a, x) => a + (x.n || 0), 0);
+  // 지난날 멈춰 둔 시간 재기는 그날 공부로 닫아요 (11/4 정윤 «오늘 안 했는데 이렇게 돼 있어»: 어제 멈춘 129:06 이 오늘 숙제 옆에 떠 있었어요)
+  function pCloseOld() {
+    const dOf = (t) => fmtDay(new Date(t + DAY_OFF() * 864e5));
+    const old = [...(P.held || []), P.run].filter((r) => r && r.watch && r.paused && (r.seg || []).length && dOf(r.seg[r.seg.length - 1][1]) < today());
+    if (!old.length) return;
+    for (const r of old) {
+      const m = Math.round(pWatchSec(r) / 60), d = dOf(r.seg[r.seg.length - 1][1]);
+      for (const [a, b] of r.seg) slogPut(a, b, r.subj, 'w', r.ti);
+      if (m >= 1) { const x = pomo().days[d] = pomo().days[d] || { n: 0, min: 0, subj: {} }; x.min = (x.min || 0) + m; }
+    }
+    P.held = (P.held || []).filter((x) => !old.includes(x)); if (old.includes(P.run)) { P.run = null; P.offer = null; }
+    pSave(); save('pomo', 'slog');
+  }
   // 공부 시간 (2026-10-27 정윤: 내 타이머로 재고 숫자만 적고 싶어요) · 직접 적은 시간과 토마토 시간 중 큰 쪽
   const sMin = (d) => { const x = pomo().days[d]; if (!x) return 0; return Math.max(x.man || 0, x.min || 0); };
   const sDays = () => Object.keys(pomo().days).filter((d) => sMin(d) > 0).sort();
@@ -6325,7 +6338,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040200'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040729'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7374,7 +7387,7 @@
   window.addEventListener('popstate', () => { render.pop = 1; if (UI.run) UI.run = null; else if (UI.tab !== 'home' && !TEACHER) UI.tab = 'home'; render(); window.scrollTo(0, 0); });
   function render() {
     { const k = navAt(), was = render.nav; if (was && k !== was && !render.pop && (k === 'run' || was === 'home')) try { history.pushState({ mu: k }, ''); } catch (e) {} render.nav = k; render.pop = 0; }
-    nxReg();
+    nxReg(); pCloseOld();
     // 1학년 2학기는 아직 학기 최종 등급이 없어서, 먼저 넣은 등급은 중간고사 등급으로 옮겨요 (한 번만)
     if (S.naesin && S.naesin['1-2'] && !S.naesin._mid12) { for (const r of Object.values(S.naesin['1-2'])) if (r && r.grade && r.midG == null && r.finG == null) { r.midG = r.grade; delete r.grade; } S.naesin._mid12 = 1; save('naesin'); }
     if (!UI.run || UI.run.kind !== 'jl') jlStop();  // 리스닝 화면을 나가면 소리도 멈춰요
