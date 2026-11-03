@@ -3557,3 +3557,14 @@ button.my-run { border: 0; font-family: inherit; cursor: pointer; }
 .tm-fix label { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: var(--t2); }
 .tm-fix input { width: 56px; font: inherit; font-size: 15px; font-weight: 700; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--t1); text-align: right; }
 .tm-fix-b { display: flex; gap: 8px; margin-left: auto; }
+
+/* 수업 달력 (11/3) */
+.cl-cal-w { display: grid; gap: 24px; }
+@media (min-width: 720px) { .cl-cal-w { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.cl-cal-h { margin-bottom: 8px; }
+.cl-cal-h b { font-size: 15px; }
+.cl-cal-b { display: grid; gap: 12px; align-content: start; }
+.cl-cal-b .cl-pg-d { display: flex; align-items: baseline; gap: 8px; }
+.cl-cal-b .cl-pg-d b { font-size: 17px; }
+.cl-cal-b .cl-pg-d span { font-size: 13px; color: var(--t3); }
+.cl-cal-ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 15px; line-height: 1.5; }

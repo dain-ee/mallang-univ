@@ -2170,7 +2170,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611031909', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611031916', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5123,8 +5123,9 @@
   const nxProg = (s) => { const a = nxStore(s), n = s.qs.length, d = s.qs.filter((q) => a[q.i]).length; return { n, d, ok: s.qs.filter((q) => (a[q.i] || {}).ok).length }; };
   const nxWdGot = (m, id) => { const r = nxS().wd[`${m}:${id}`]; return !!r && r.s >= (r.w ? 2 : 1); };
   const nxTime = (ms) => { if (!ms || ms > 3 * 3600e3) return ''; const m = Math.floor(ms / 60000), s = Math.round((ms % 60000) / 1000); return m ? `${m}분 ${s}초` : `${s}초`; };
-  function nxStart(id, back, keep) { if (!NXSETS[id] && /^ls:/.test(id)) nxLesson(id.slice(3)); if (!NXSETS[id] && /^lw:/.test(id)) nxWord(id.slice(3)); const s0 = NXSETS[id]; if (!s0) return toast('이 시험은 아직 준비 중이에요');
-    if (s0.kind === 'lesson') { const x = nxS(); if (s0.date !== nxDay(nxNow()) && !nxLast(id)) return toast('이 시험은 닫혔어요'); if (!x.lq[id]) { x.lq[id] = s0.qs.map((q) => [q.i, q.perm, q.g]); const ks = Object.keys(x.lq).sort(); for (const k of ks.slice(0, -12)) { delete x.lq[k]; delete x.la[k]; } save('nx'); } }
+  function nxStart(id, back, keep) { if (!NXSETS[id] && /^ls:/.test(id)) nxLesson(id.slice(3)); if (!NXSETS[id] && /^lw:/.test(id)) nxWord(id.slice(3)); if (/^l[smw]:/.test(id) && YG_CLS && !nxS().lq[id]) ygTest(id);  // 윤건: 열기 전엔 범위가 바뀌었을 수 있어요
+    const s0 = NXSETS[id]; if (!s0) return toast('이 시험은 아직 준비 중이에요');
+    if (s0.kind === 'lesson') { const x = nxS(); if (s0.date !== nxDay(nxNow()) && !nxLast(id)) return toast('이 시험은 닫혔어요'); if (!x.lq[id]) { x.lq[id] = s0.qs.map((q) => [q.i, q.perm, q.g]); const ks = Object.keys(x.lq).sort(); for (const k of ks.slice(0, -30)) { delete x.lq[k]; delete x.la[k]; } save('nx'); } }
     UI.tab = back || 'exam'; UI.run = { kind: NXSETS[id].kind === 'words' ? 'nxw' : 'nx', id, back: back || 'exam' }; render(); if (!keep) window.scrollTo(0, 0); }
   function nxFinish(s, ok, n) {
     const x = nxS(), st = (x.st[s.id] = x.st[s.id] || {}); if (st.fin) return; const at = Date.now(); st.fin = at;
@@ -5328,11 +5329,13 @@
   const nxSubjOf = (i) => (NXSETS[(NXQ[i] || {}).set] || {}).subj || 'eng';
   const nxPerm = (q, perm, g) => ({ ...q, ...(perm && q.t === 'mc' && perm.length === q.ch.length ? { ch: perm.map((k) => q.ch[k]), a: perm.indexOf(q.a) } : {}), perm: perm || null, g: g || '', subj: nxSubjOf(q.i) });
   // 천일문(지원) · 그래머 책 덮고(주아) 문제도 시험 문항 꼴로 (오답 노트에서 다시 풀 수 있게 NXQ 에 넣어 둬요)
-  const NX_CH = !(NXD.subjects || []).length && !NXD.words && TUTOR ? CH_UNITS.flatMap((u) => (u.questions || []).map((z, k) => [u, k, z]).filter(([, , z]) => z && Array.isArray(z.choices) && z.choices.length > 1 && z.answer != null).map(([u, k, z]) => ({ i: `${u.v2 ? 'ch2' : 'ch'}:${u.unit}:${k}`, t: 'mc', q: z.q, p: z.passage || '', ch: z.choices, a: +z.answer, exp: z.exp || '', cat: `Unit ${u.unit} ${z.type || ''}`.trim(), ty: z.type, unit: u.unit }))) : [];
+  const NX_CH = !NXD.words && TUTOR ? CH_UNITS.flatMap((u) => (u.questions || []).map((z, k) => [u, k, z]).filter(([, , z]) => z && Array.isArray(z.choices) && z.choices.length > 1 && z.answer != null).map(([u, k, z]) => ({ i: `${u.v2 ? 'ch2' : 'ch'}:${u.unit}:${k}`, t: 'mc', q: z.q, p: z.passage || '', ch: z.choices, a: +z.answer, exp: z.exp || '', cat: `Unit ${u.unit} ${z.type || ''}`.trim(), ty: z.type, unit: u.unit }))) : [];
   const NX_JG = NXD.words ? JG.flatMap((u) => jgQs(u, 4).map((z) => { const a = z.choices ? z.choices.findIndex((c) => jgNorm(c) === jgNorm((z.answers || [])[0])) : -1; return { i: `jg4:${u.no}:${z.id}`, t: a >= 0 ? 'mc' : 'short', q: z.prompt, ch: a >= 0 ? z.choices : undefined, a: a >= 0 ? a : z.answers || [], exp: z.why || '', cat: `Unit ${u.no}${z.tag ? ' ' + z.tag : ''}`, jg: z, unit: u.no }; })) : [];
   // 지원 수업 (11/1 «시험이 천일문 하나 단어 하나»): 천일문 시험(ls:날짜)과 단어 시험(lw:날짜)을 따로 · 단어는 워드마스터 하이스트 뜻 고르기 (함정은 같은 Day 뜻, 늘 같은 보기)
   const JW_CLS = TUTOR && !(NXD.subjects || []).length && !NXD.words;
-  const NX_WM = JW_CLS ? WORDS.map((w) => { const same = WORDS.filter((x) => x.day === w.day && x.ko !== w.ko), wrong = sshuffle(same, 'wm:' + w.day + ':' + w.en).slice(0, 3).map((x) => x.ko); return { i: `wm:${w.day}:${w.en}`, t: 'mc', q: w.en, ch: [w.ko, ...wrong], a: 0, exp: `${w.en} ${w.pos || ''} ${w.ko}`.replace(/\s+/g, ' '), cat: `Day ${w.day}`, ty: '단어', day: w.day }; }) : [];
+  // 윤건 수업 (11/3 «천일문이랑 워드마스터 시험 두 개, 매3영도»): 선생님이 정한 범위(S.jwt[날짜] = { units, days, m3 })로 시험을 따로
+  const YG_CLS = TUTOR && (NXD.subjects || []).length > 0;
+  const NX_WM = JW_CLS || YG_CLS ? WORDS.map((w) => { const same = WORDS.filter((x) => x.day === w.day && x.ko !== w.ko), wrong = sshuffle(same, 'wm:' + w.day + ':' + w.en).slice(0, 3).map((x) => x.ko); return { i: `wm:${w.day}:${w.en}`, t: 'mc', q: w.en, ch: [w.ko, ...wrong], a: 0, exp: `${w.en} ${w.pos || ''} ${w.ko}`.replace(/\s+/g, ' '), cat: `Day ${w.day}`, ty: '단어', day: w.day }; }) : [];
   for (const q of [...NX_CH, ...NX_JG, ...NX_WM]) if (!NXQ[q.i]) NXQ[q.i] = { q, set: 'ls' };
   // 그날 수업 계획: students.json lesson.tests[날짜] 가 있으면 그것, 없으면 지난 두 수업에 적힌 Chapter·Day 로 (매주 일요일 저절로)
   const JW_CH_RE = /Ch(?:apter|atper|\.)?\s*0?(\d+)/gi, JW_DAY_RE = /Day\s*(\d+)(?:\s*[,~\-–]\s*(\d+))?/i;
@@ -5356,7 +5359,7 @@
   const chUnits = (ch) => CH_UNITS.filter((u) => +u.ch === +ch);
   const chName = (ch) => { const u = chUnits(ch)[0]; return u ? `Ch.${ch} ${u.chTitle || ''}`.trim() : `Ch.${ch}`; };
   function nxWord(date) {
-    const id = 'lw:' + date; if (NXSETS[id]) return NXSETS[id];
+    const id = 'lw:' + date; if (NXSETS[id] && (nxS().lq[id] || !YG_CLS)) return NXSETS[id];
     const saved = nxS().lq[id], P = jwPlan(date), [, m, d] = date.split('-').map(Number);
     let qs = saved ? saved.map(([i, perm, g]) => (NXQ[i] ? nxPerm(NXQ[i].q, perm, g) : null)).filter(Boolean) : [];
     if (!saved) { const rnd = nxRng(`${ST.name || ''}:w:${date}`), pool = NX_WM.filter((q) => P.days.includes(q.day)); qs = nxShuf(pool, rnd).slice(0, P.wn).map((q) => nxPerm(q, nxShuf(q.ch.map((_, k) => k), rnd), '단어')); }
@@ -5416,6 +5419,7 @@
     return nxShuf(out, rnd).map(({ q, g }) => nxPerm(q, q.t === 'mc' && q.ch && !keep(q) ? nxShuf(q.ch.map((_, k) => k), rnd) : null, g));
   }
   function nxLesson(date) {
+    if (YG_CLS && ygPlan(date).units) return ygTest('ls:' + date);
     const id = 'ls:' + date; if (NXSETS[id] && (nxS().lq[id] || !JW_CLS)) return NXSETS[id];  // 지원: 시험을 열기 전엔 선생님이 범위를 바꿀 수 있어서 매번 다시 만들어요
     const saved = nxS().lq[id];
     const qs = saved ? saved.map(([i, perm, g]) => (NXQ[i] ? nxPerm(NXQ[i].q, perm, g) : null)).filter(Boolean) : nxMix(date);
@@ -5444,6 +5448,7 @@
       }
     }
     if (JW_CLS && sl) main = jwClassCard(sl, t);
+    if (YG_CLS && sl && (sl.open || Object.values(ygPlan(sl.date)).some((v) => Array.isArray(v)))) main = ygClassCard(sl, t);
     const today0 = sl && sl.open ? 'ls:' + sl.date : '';
     const ids = [...new Set([...x.done.filter((d) => d.kind === 'lesson').map((d) => d.id), ...Object.keys(x.lq)])].filter((id) => id !== today0 && id !== 'lw:' + (sl && sl.open ? sl.date : '') && id.slice(3) < t).sort().reverse().slice(0, 12);
     const past = ids.map((id) => {
@@ -5465,6 +5470,7 @@
       return `<div class="cl-pg"><div class="cl-pg-d"><b>${md(l.date)}</b><span>${l.nth ? `${esc(l.nth)}회차` : ''}${l.book ? ` · ${esc(l.book)}` : ''}</span></div><ul>${all.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>${l.hw ? `<p class="cl-pg-hw"><b>숙제</b> ${esc(l.hw)}</p>` : ''}</div>`;
     }).join('');
     const progC = prog ? `<section class="card c12"><div class="card-h"><h2>${ic('books')} 수업 진도</h2><span class="tiny">지금까지 수업에서 나간 것</span></div><div class="cl-pgs">${prog}</div></section>` : '';
+    if (YG_CLS) return `<h1 class="h1">수업</h1><p class="sub">다음 수업 때 볼 것 · 수업 시험 · 수업마다 한 것</p><div class="grid">${main}${clCal()}${seeC}</div>`;
     return `<h1 class="h1">수업</h1><p class="sub">다음 수업 때 볼 것 · 수업 시험 · 지금까지 나간 진도</p><div class="grid">${seeC}${main}${progC}${past ? `<section class="card c12"><div class="card-h"><h2>지난 수업 시험</h2><span class="tiny">점수는 선생님 리포트에 가요</span></div><div class="list">${past}</div></section>` : ''}</div>`;
   }
   // 지원 수업 카드 (11/1): 수업 시작에 지난 리포트 범위 · 오늘 나갈 챕터 · 시험 두 개(점수는 리포트로) · 선생님이 골라서 보는 단원 · 모의고사
@@ -5481,6 +5487,58 @@
   function mqSet(mk, k) {
     const id = `mq:${mk.id}:${k}`; if (NXSETS[id]) return NXSETS[id]; const q = mk.qs[k]; if (!q) return null;
     return (NXSETS[id] = { id, title: `${mk.title.replace(/ 빈칸추론$/, '')} ${q.n ? q.n + '번' : k + 1 + '번째'}`, sub: mk.sub || '', subj: 'eng', kind: 'mq', qs: [q] });
+  }
+  // ───────── 윤건 수업 시험 (11/3) ─────────
+  // 범위는 S.jwt[날짜] = { units: [천일문 유닛], days: [워드마스터 Day], m3: [매3영 Day], n, wn, mn } · 선생님 말 듣고 바로 바꿔요
+  const ygPlan = (date) => { const o = { ...(((LS0.tests || {})[date]) || {}), ...(((S.jwt || {})[date]) || {}) }; return { units: (o.units || []).length ? o.units.map(Number) : null, days: (o.days || []).length ? o.days.map(Number) : null, m3: (o.m3 || []).length ? o.m3.map(Number) : null, n: o.n || 15, wn: o.wn || 20, mn: o.mn || 10 }; };
+  const M3U = () => ((NXD.subjects || []).find((x) => x.key === 'm3') || {}).units || [];
+  function ygTest(id) {
+    const [k, date] = [id.slice(0, 2), id.slice(3)], P = ygPlan(date), [, m, d] = date.split('-').map(Number), saved = nxS().lq[id];
+    const mk = (title, sub, qs, g) => (qs.length ? (NXSETS[id] = { id, title, sub, subj: 'eng', kind: 'lesson', date, qs, mix: { [g]: qs.length } }) : null);
+    const fromSaved = () => saved.map(([i, perm, g]) => (NXQ[i] ? nxPerm(NXQ[i].q, perm, g) : null)).filter(Boolean);
+    const rnd = nxRng(`${ST.name || ''}:${k}:${date}`), shuf = (pool, n, g) => nxShuf(pool, rnd).slice(0, n).map((q) => nxPerm(q, q.t === 'mc' && q.ch ? nxShuf(q.ch.map((_, j) => j), rnd) : null, g));
+    if (k === 'ls') { if (!P.units && !saved) return null; const U = P.units || []; return mk(`${m}/${d} 천일문 시험`, `천일문 Unit ${U.length > 2 ? `${U[0]}~${U[U.length - 1]}` : U.join('·')}`, saved ? fromSaved() : shuf(NX_CH.filter((q) => U.includes(+q.unit)), P.n, '천일문'), '천일문'); }
+    if (k === 'lw') { if (!P.days && !saved) return null; const D = P.days || []; return mk(`${m}/${d} 단어 시험`, `워드마스터 Day ${D.join('·')}`, saved ? fromSaved() : shuf(NX_WM.filter((q) => D.includes(q.day)), P.wn, '단어'), '단어'); }
+    if (k === 'lm') {
+      if (!P.m3 && !saved) return null; const D = P.m3 || [];
+      const pool = M3U().filter((u) => D.includes(+u.no)).flatMap((u) => ['c', 'q'].flatMap((pt) => (u.parts[pt] || []).filter((q) => q.t === 'mc' || q.ch)));
+      for (const q of pool) if (!NXQ[q.i]) NXQ[q.i] = { q, set: id };
+      return mk(`${m}/${d} 매3영 시험`, `매3영 Day ${D.join('·')}`, saved ? fromSaved() : shuf(pool, P.mn, '매3영'), '매3영');
+    }
+    return null;
+  }
+  function ygClassCard(sl, t) {
+    const P = ygPlan(sl.date), when = sl.date === t ? '오늘' : `${md(sl.date)}(${WDK[dowOf(sl.date)]})`;
+    const row = (k, name, rng) => {
+      const id = `${k}:${sl.date}`, s = (P[{ ls: 'units', lw: 'days', lm: 'm3' }[k]] || nxS().lq[id]) ? ygTest(id) : null;
+      if (!s) return `<div class="li is-done"><div class="ico">${ic('clock')}</div><div class="body"><div class="t">${name}</div><div class="d">선생님이 범위를 넣으면 나와요</div></div></div>`;
+      if (!sl.open) return `<div class="li"><div class="ico">${ic('clock')}</div><div class="body"><div class="t">${esc(s.title)} · ${s.qs.length}문제</div><div class="d">${esc(s.sub)} · ${esc(timeKo(sl.time) || '')}에 열려요</div></div></div>`;
+      const g = nxProg(s), L = nxLast(s.id), fin = L && g.d >= g.n;
+      return `<div class="li btnlike" data-nx="${esc(s.id)}"><div class="ico">${ic(fin ? (L.ok === L.n ? 'trophy' : 'ok') : 'pencil')}</div><div class="body"><div class="t">${esc(s.title)} · ${g.n}문제</div><div class="d">${fin ? `${nxTime(L.ms) ? '걸린 시간 ' + nxTime(L.ms) + ' · ' : ''}점수는 선생님 리포트에 가요` : g.d ? `${g.d} / ${g.n} 풀었어요 · 이어서 풀기` : esc(s.sub)}</div></div>${fin ? `<b class="num">${L.ok} / ${L.n}</b>` : '<span class="chev"></span>'}</div>`;
+    };
+    return `<section class="card c12 jw-cl"><div class="card-h"><h2>${ic('cal')} ${when} 수업 시험</h2><span class="tag ${sl.open ? 'blue' : ''}">${sl.open ? '수업 중' : `${esc(timeKo(sl.time) || '')} 시작`}</span></div>
+      <div class="list">${row('ls', '천일문 시험')}${row('lw', '단어 시험')}${row('lm', '매3영 시험')}</div><p class="tiny nx-lock-p">한 문제씩 바로 채점돼요. 오늘 밤 12시까지 풀 수 있어요</p></section>`;
+  }
+  // 수업 달력 (11/3 «수업도 옆에 달력 있어서 그날 수업에 뭘 했는지 볼 수 있게»): 왼쪽 달, 오른쪽 고른 날 수업
+  function clCal() {
+    const c = cls(), t = today(), L = c.list, up = upcoming(c, t, 12).filter((x) => !x.off);
+    const has = (d) => L.some((l) => l.date === d && lsnDone(l)) || Object.keys(nxS().lq).some((id) => id.slice(3) === d) || nxS().done.some((x) => x.kind === 'lesson' && /^l[smw]:/.test(x.id) && x.id.slice(3) === d);
+    const last = lsnSorted(c)[0], sel = UI.clDay || (up[0] && up[0].date === t ? t : last ? last.date : t), ym = UI.clYm || sel.slice(0, 7);
+    const [y, mo] = ym.split('-').map(Number), first = new Date(y, mo - 1, 1).getDay(), nd = new Date(y, mo, 0).getDate(), cells = [];
+    for (let k = 0; k < first; k++) cells.push('<i class="yc-pad"></i>');
+    for (let dd = 1; dd <= nd; dd++) { const d = `${ym}-${String(dd).padStart(2, '0')}`, done = L.some((l) => l.date === d && lsnDone(l)), plan = up.some((x) => x.date === d); const st = done || (has(d) && d < t) ? 'done' : plan ? (d === t ? 'today' : 'plan') : ''; cells.push(`<button type="button" class="yc-d ${st} ${d === t ? 'is-t' : ''} ${d === sel ? 'sel' : ''}" data-cld="${d}"><b class="num">${dd}</b>${st ? `<small>${st === 'done' ? '수업' : '예정'}</small>` : ''}</button>`); }
+    const pm = addD(ym + '-01', -1).slice(0, 7), nm = addD(ym + '-28', 7).slice(0, 7);
+    const l = L.find((x) => x.date === sel && lsnDone(x)), ls = l ? lines(l.lesson) : [], un = l ? (l.units || []).map((no) => { const u = cuByNo(no); return u ? `천일문 Unit ${u.unit} ${u.title || ''}`.trim() : ''; }).filter(Boolean) : [];
+    const tests = nxS().done.filter((x) => x.kind === 'lesson' && x.id.slice(3) === sel).filter((x, i, A) => A.map((z) => z.id).lastIndexOf(x.id) === i);
+    const P = YG_CLS ? ygPlan(sel) : null, rng = P ? [P.units && `천일문 Unit ${P.units.join('·')}`, P.days && `워드마스터 Day ${P.days.join('·')}`, P.m3 && `매3영 Day ${P.m3.join('·')}`].filter(Boolean) : [];
+    const isUp = up.some((x) => x.date === sel) && !l;
+    const body = `${l ? `<div class="cl-pg-d"><b>${md(sel)} ${WDK[dowOf(sel)]}요일</b><span>${l.nth ? `${esc(l.nth)}회차` : ''}${l.book ? ` · ${esc(l.book)}` : ''}</span></div>` : `<div class="cl-pg-d"><b>${md(sel)} ${WDK[dowOf(sel)]}요일</b><span>${isUp ? '수업 예정' : '수업 기록이 없어요'}</span></div>`}
+      ${[...ls, ...un.filter((x) => !ls.some((y) => y.includes(x.split(' ').slice(0, 3).join(' '))))].length ? `<ul class="cl-cal-ul">${[...ls, ...un.filter((x) => !ls.some((y) => y.includes(x.split(' ').slice(0, 3).join(' '))))].map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+      ${rng.length ? `<p class="cl-pg-hw"><b>시험 범위</b> ${esc(rng.join(' · '))}</p>` : ''}
+      ${tests.length ? `<div class="list">${tests.map((x) => `<div class="li btnlike" data-nx="${esc(x.id)}"><div class="ico">${ic(x.ok === x.n ? 'trophy' : 'ok')}</div><div class="body"><div class="t">${esc(x.title)}</div><div class="d">${nxTime(x.ms) ? '걸린 시간 ' + nxTime(x.ms) : '결과 다시 보기'}</div></div><b class="num">${x.ok} / ${x.n}</b><span class="chev"></span></div>`).join('')}</div>` : ''}
+      ${l && l.hw ? `<p class="cl-pg-hw"><b>숙제</b> ${esc(l.hw)}</p>` : ''}`;
+    return `<section class="card c12 cl-cal"><div class="card-h"><h2>${ic('cal')} 수업 달력</h2><span class="tiny">날짜를 누르면 그날 수업에 한 것</span></div>
+      <div class="cl-cal-w"><div class="cl-cal-m"><div class="row between cl-cal-h"><button type="button" class="sr-wk-b" data-clym="${pm}" aria-label="지난달">‹</button><b>${y}년 ${mo}월</b><button type="button" class="sr-wk-b" data-clym="${nm}" aria-label="다음 달">›</button></div><div class="yc-g">${WDK.map((w) => `<span class="yc-w">${w}</span>`).join('')}${cells.join('')}</div></div><div class="cl-cal-b">${body}</div></div></section>`;
   }
   function jwClassCard(sl, t) {
     const P = jwPlan(sl.date), when = sl.date === t ? '오늘' : `${md(sl.date)}(${WDK[dowOf(sl.date)]})`;
@@ -5971,7 +6029,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611031909'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611031916'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7220,6 +7278,8 @@
     $$('[data-srtab]').forEach((b) => (b.onclick = () => { UI.srTab = b.dataset.srtab; const y = scrollY; render(); scrollTo(0, y); }));
     $$('[data-ttd]').forEach((b) => (b.onclick = () => { UI.ttDay = b.dataset.ttd; const y = scrollY; render(); scrollTo(0, y); }));
     const ttRe = () => { const y = scrollY; render(); scrollTo(0, y); };
+    $$('[data-cld]').forEach((b) => (b.onclick = () => { UI.clDay = b.dataset.cld; const y = scrollY; render(); scrollTo(0, y); }));
+    $$('[data-clym]').forEach((b) => (b.onclick = () => { UI.clYm = b.dataset.clym; const y = scrollY; render(); scrollTo(0, y); }));
     $$('[data-ttfix]').forEach((b) => (b.onclick = () => { UI.ttEd = b.dataset.ttfix; ttRe(); }));
     $$('[data-tted]').forEach((box) => box.querySelectorAll('[data-ttx]').forEach((b) => (b.onclick = () => {
       const id = box.dataset.tted, x = (S.slog || {})[id], act = b.dataset.ttx;
