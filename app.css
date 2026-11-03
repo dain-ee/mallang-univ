@@ -3660,3 +3660,7 @@ button.my-run { border: 0; font-family: inherit; cursor: pointer; }
 .win-list li span { display: flex; align-items: center; gap: 6px; }
 .win-list li span i { font-style: normal; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .win-list li span em { flex: none; margin-left: 0; }
+.pm-on .pm-h-t { font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pm-h-clk { display: block; margin-top: 2px; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+.pm-h-bs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex-basis: 100%; }
+.pm-home .pm-h-bs .btn { width: 100%; height: 48px; }

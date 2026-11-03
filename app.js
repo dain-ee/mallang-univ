@@ -2213,7 +2213,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611032325', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611040007', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4060,9 +4060,12 @@
   }
   function pomoCard(cls) {
     const n = pDay().n, g = pGoal(), st = pStreak(), r = P.run;
+    if (r && !TEACHER) return `<section class="card ${cls} pm-home pm-on link" data-pomo><div class="pm-h-ic">${ic(r.mode === 'break' ? 'coffee' : 'tomato')}</div>
+      <div class="pm-h-b"><div class="eyebrow">${r.paused ? '잠깐 멈췄어요' : r.watch ? '지금 공부하는 중' : r.mode === 'break' ? '쉬는 중' : '집중하는 중'}</div><b class="pm-h-t">${esc(r.ti || r.subj || '공부')}</b><b class="pm-h-clk num ${r.paused ? '' : 'blue'}" data-pmt>${pShow()}</b></div>
+      ${r.watch ? '' : tomRow(n, g, 'sm')}<div class="pm-h-bs"><button class="btn" type="button" data-pmh="pause">${r.paused ? '이어 하기' : '멈추기'}</button><button class="btn primary" type="button" data-pmh="end">${r.watch ? '끝' : '그만하기'}</button></div></section>`;  /* 11/4 «여기서 끝을 해도 좋을 것 같아» */
     return `<section class="card ${cls} pm-home link" data-pomo><div class="pm-h-ic">${ic('tomato')}</div>
-      <div class="pm-h-b"><div class="eyebrow">토마토 타이머${st ? ` · ${ic('fire')} ${st}일 연속` : ''}</div><b class="pm-h-t">${r ? `${r.ti ? `<span class="pm-h-ti">${esc(r.ti)}</span>` : ''}${r.watch ? '진행 중' : r.mode === 'break' ? '쉬는 중' : '집중하는 중'} <span class="num blue" data-pmt>${pShow()}</span>` : sMin(today()) ? `오늘 공부 ${hm(sMin(today()))}` : n ? `오늘 토마토 ${n}개${n >= g ? ', 목표 달성!' : ''}` : '오늘 첫 토마토를 키워 봐요'}</b><p class="tiny" style="margin:2px 0 0">${esc(pLine())}</p></div>
-      ${tomRow(n, g, 'sm')}${TEACHER ? '' : `<button class="btn primary" type="button" data-pomo>${r ? '타이머 보기' : '집중 시작'}</button>`}</section>`;
+      <div class="pm-h-b"><div class="eyebrow">토마토 타이머${st ? ` · ${ic('fire')} ${st}일 연속` : ''}</div><b class="pm-h-t">${r ? `${r.watch ? '진행 중' : r.mode === 'break' ? '쉬는 중' : '집중하는 중'} <span class="num blue" data-pmt>${pShow()}</span>` : sMin(today()) ? `오늘 공부 ${hm(sMin(today()))}` : n ? `오늘 토마토 ${n}개${n >= g ? ', 목표 달성!' : ''}` : '오늘 첫 토마토를 키워 봐요'}</b><p class="tiny" style="margin:2px 0 0">${esc(pLine())}</p></div>
+      ${tomRow(n, g, 'sm')}${TEACHER ? '' : '<button class="btn primary" type="button" data-pomo>집중 시작</button>'}</section>`;
   }
   function studyCard() {
     const t = sMin(today()), all = sAll(), wk = sSum(wkStart(today())), mo = sSum(today().slice(0, 8) + '01'), nd = sDays().length, st = sStreak(), bd = sBestDay();
@@ -5774,12 +5777,13 @@
     // 11/3 «이번 숙제는 천일문 2개 복습(문제 이미 풀어져 있으면 안 돼) + 매3영 오늘 2개 + 필기 복기»
     for (const [d, r] of Object.entries(NXD.rv || {})) {
       for (const s0 of r.sets || []) { const id = 'pp:' + s0.id, S0 = NXSETS[id]; if (S0) out.push({ id, subj: 'eng', p: 'rv', qs: S0.qs, title: S0.title, sub: S0.sub, day: d }); }
-      const u = r.m3 && NXU[r.m3.u]; if (!u) continue;
-      for (const L of stLessons(u).filter((x) => (r.m3.lt || []).includes(x.m3))) {
+      const u = r.m3 && NXU[r.m3.u];
+      if (u) for (const L of stLessons(u).filter((x) => (r.m3.lt || []).includes(x.m3))) {
         const id = `pp:m3rv:${u.id}:${L.m3}`, qs = [{ i: `m3rv:${u.id}:${L.m3}` }], title = `매3영 Day ${u.no} ${L.m3} 지문 복습`;
         NXSETS[id] = { id, title, sub: '핵심 문장 ★', subj: 'm3', kind: 'L', unit: u.id, qs, nav: 'L' + L.k, rv: 1 }; out.push({ id, subj: 'm3', unit: u.id, p: 'm3rv', qs, title, sub: u.title, nav: 'L' + L.k, day: d });
       }
-      const id = `pp:memo:${d}`, qs = [{ i: `memo:${d}` }]; NXSETS[id] = { id, title: '수업 필기 복기', sub: `매3영 Day ${u.no}`, subj: 'm3', kind: 'memo', unit: u.id, qs }; out.push({ id, subj: 'm3', p: 'memo', qs, title: `매3영 Day ${u.no} 필기 복기`, sub: '수업 때 담은 단어·문장', day: d, mu: u.id, lt: r.m3.lt });
+      const mm = r.memo || (r.memo === undefined && r.m3), mu = mm && NXU[mm.u]; if (!mu) continue;  /* 11/4 «수목금에 나누라니까»: 필기 복기는 따로 날을 잡을 수 있어요 */
+      const id = `pp:memo:${d}`, qs = [{ i: `memo:${d}` }]; NXSETS[id] = { id, title: '수업 필기 복기', sub: `매3영 Day ${mu.no}`, subj: 'm3', kind: 'memo', unit: mu.id, qs }; out.push({ id, subj: 'm3', p: 'memo', qs, title: `매3영 Day ${mu.no} 필기 복기`, sub: '수업 때 담은 단어·문장', day: d, mu: mu.id, lt: mm.lt });
     }
     return out;
   }
@@ -6238,7 +6242,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611032325'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040007'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7462,6 +7466,7 @@
     nxBind();
     $$('main [data-bell]').forEach((b) => (b.onclick = toggleBell));
     $$('[data-pomo]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); openPomo(); }));
+    $$('[data-pmh]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); if (b.dataset.pmh === 'end') pStopAsk(); else pPause(); }));
     $$('main [data-wallet]').forEach((b) => (b.onclick = openWallet));
     $$('[data-wact]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); walletAct(b.dataset.wact); }));
     if (UI.run && UI.run.kind === 'wallet') bindWallet();
