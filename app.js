@@ -2228,7 +2228,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611041501', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611041503', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4133,6 +4133,17 @@
     }, 2500);
   }
   if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+  // 선생님 기기 화면 크기 기록 (11/4 듀오 오른쪽 여백 원인 찾기): 화면·창·보이는 영역·안전 영역을 _선생님 기록 vp 에 남겨요. 원인 찾으면 지워요
+  function vpLog() {
+    if (!ROLE_T || PEEK) return;
+    try {
+      const pr = document.createElement('div'); pr.style.cssText = 'position:fixed;visibility:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)'; document.body.appendChild(pr);
+      const cs = getComputedStyle(pr), vv = window.visualViewport || {}, de = document.documentElement, tb = document.querySelector('.tabbar'), tr = tb ? tb.getBoundingClientRect() : {};
+      const v = { at: Date.now(), sa: STANDALONE, ua: navigator.userAgent.slice(0, 160), dpr: devicePixelRatio, screen: [screen.width, screen.height], inner: [innerWidth, innerHeight], client: [de.clientWidth, de.clientHeight], vv: [Math.round(vv.width), Math.round(vv.height), vv.scale, Math.round(vv.offsetLeft || 0), Math.round(vv.offsetTop || 0)], safe: [cs.paddingTop, cs.paddingRight, cs.paddingBottom, cs.paddingLeft], tab: [Math.round(tr.left || 0), Math.round(tr.right || 0), Math.round(tr.top || 0), Math.round(tr.bottom || 0)], meta: (document.querySelector('meta[name=viewport]') || {}).content };
+      pr.remove(); TP.vp = { ...(TP.vp || {}), [devId]: v }; tSave();
+    } catch (e) {}
+  }
+  setTimeout(vpLog, 4000); addEventListener('resize', () => { clearTimeout(vpLog.t); vpLog.t = setTimeout(vpLog, 1500); });
   setTimeout(() => pushEnsure().catch(() => {}), 9000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(() => pushEnsure().catch(() => {}), 3000); });
   const drSeen = () => { try { return PST.getItem(DR_KEY); } catch (e) { return null; } };
@@ -6556,7 +6567,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041501'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041503'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
