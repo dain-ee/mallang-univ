@@ -2228,7 +2228,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611041706', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611041708', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4109,6 +4109,15 @@
       });
     });
   }
+  // 알림 누르면 그 자리로 (11/4): sw.js 가 알림 tag 를 건네요. 쪽지는 쪽지창, 숙제·남은 일·마감은 숙제 탭, 소식은 소식 탭, 리포트·선물·선생님 요약은 홈
+  function pushGo(go) {
+    if (!go) return; go = String(go);
+    const tab = /^(hw|left|due)$/.test(go) ? 'hw' : go === 'news' ? 'news' : 'home';
+    if (UI.tab !== tab || UI.run) { UI.run = null; UI.tab = tab; render(); scrollTo(0, 0); }
+    if (go.startsWith('msg')) { const who = go.slice(4); let n = 0; const t = setInterval(() => { if (window.ncGo || ++n > 30) { clearInterval(t); if (window.ncGo) window.ncGo(who); } }, 200); }
+  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.go) pushGo(e.data.go); });
+  { const q = new URLSearchParams(location.search), g = q.get('go'); if (g) { q.delete('go'); history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); setTimeout(() => pushGo(g), 600); } }
   // 아이들이 카드를 놓치지 않게 (11/4 «아이들 쪽도 준비해»): 기기마다 한 번, 홈을 열면 안내가 저절로 떠요
   // 사파리에서 열면 깔기 안내, 홈 화면 앱으로 처음 열면 알림 켜기 (아이폰 알림 허락은 단추를 눌러야만 떠요)
   function appAuto() {
@@ -6618,7 +6627,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041706'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041708'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

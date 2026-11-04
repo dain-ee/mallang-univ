@@ -270,6 +270,7 @@ html.nc-has-fab .main{padding-bottom:calc(var(--tab-h,64px) + 104px + env(safe-a
       badge(); schedule();
     }
     fab.onclick = () => setOpen(!open);
+    window.ncGo = () => setOpen(true);  // 쪽지 알림을 누르면 바로 열어요 (app.js pushGo)
     pane.querySelector('.nc-x').onclick = () => setOpen(false);
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && open && !document.querySelector('.nc-view')) setOpen(false); });
     document.addEventListener('visibilitychange', () => { if (!document.hidden) { poll(); schedule(); } });
@@ -366,6 +367,7 @@ html.nc-has-fab .main{padding-bottom:calc(var(--tab-h,64px) + 104px + env(safe-a
       if (v) { pollInbox(); if (cur) pollThread(true); }
     }
     btn.onclick = () => setOpen(!open);
+    window.ncGo = (s) => { setOpen(true); if (s) openStu(s); };  // 학생 쪽지 알림을 누르면 그 학생 대화로
     $b('.nc-x').onclick = () => setOpen(false);
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && open && !document.querySelector('.nc-view')) setOpen(false); });
 
