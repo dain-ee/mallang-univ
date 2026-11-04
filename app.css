@@ -3848,3 +3848,5 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
   .tabs button { flex: none; padding: 8px 10px; font-size: 14px; }
 }
 @media (min-width: 900px) and (max-width: 1099px) { .brand span { display: none; } }
+/* 아이폰은 16px보다 작은 입력칸을 누르면 화면을 확대하고 그대로 둬요. 쪽지를 쓰고 나면 쪽지함이 옆으로 밀려 잘렸어요 (11/4 «폰에서 딱 안 맞고 답답해») */
+@media (pointer: coarse) { input:not([type=checkbox]):not([type=radio]):not([type=range]), textarea, select { font-size: 16px !important; } }
