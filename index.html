@@ -4,8 +4,6 @@
 <meta charset="utf-8">
   <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script>/* 듀오(선생님 폰) 홈 화면 앱: 화면은 466인데 앱 폭을 382로 알려 줘서 오른쪽이 비었어요 (11/4 기록) → 앱으로 열었을 때 폭이 모자라면 화면 폭에 맞춰요 */
-(function () { try { var sa = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches, g = screen.width - innerWidth; if (sa && g > 24 && g < 200) document.querySelector('meta[name=viewport]').setAttribute('content', 'width=' + screen.width + ', initial-scale=1, viewport-fit=cover'); } catch (e) {} })();</script>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#f2f4f6">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -24,10 +22,11 @@
 <meta name="twitter:image" content="https://dain-ee.github.io/mallang-univ/assets/og.png?v=1">
 <link rel="icon" href="assets/favicon.svg?v=2">
 <link rel="apple-touch-icon" id="ati" href="assets/appicon/ghost.png?v=1">
-<link rel="manifest" href="manifest.webmanifest?v=202611041511">
-<link rel="stylesheet" href="app.css?v=202611041511">
+<link rel="manifest" href="manifest.webmanifest?v=202611041527">
+<link rel="stylesheet" href="app.css?v=202611041527">
 </head>
 <body>
+<div class="rail-tint" aria-hidden="true"></div>
 <script>window.__t0 = Date.now();</script>
 <div id="splash" class="splash"><img class="sp-gh" src="assets/ghost/hello.webp" alt=""><b>말랑대학</b></div>
 
@@ -49,7 +48,7 @@
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <div id="boot-msg" class="boot-msg">불러오는 중…</div>
-<script src="config.js?v=202611041511"></script>
-<script src="loader.js?v=202611041511"></script>
+<script src="config.js?v=202611041527"></script>
+<script src="loader.js?v=202611041527"></script>
 </body>
 </html>

@@ -3835,3 +3835,7 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 /* 11/4 «인스타처럼» 상태 막대 밑까지 그리기(black-translucent)는 선생님 폰에서 탭바가 화면 가운데로 뜨고 더 이상해져서 되돌림. 안전 영역 여백만 남겨요 */
 .top { padding-top: env(safe-area-inset-top); }
 .tabbar { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+
+/* 듀오 접은 화면: 오른쪽 84px 칸은 사파리 상태 막대 자리라 앱이 그릴 수 없어요. 사파리는 오른쪽 끝 고정 요소 색을 따서 그 칸을 칠하니, 8px 띠를 배경색으로 깔아 앱과 이어 보이게 해요 (fold-ready 실측) */
+.rail-tint { display: none; }
+@media (pointer: coarse) { .rail-tint { display: block; position: fixed; top: 0; right: 0; bottom: 0; width: 8px; background: var(--bg); pointer-events: none; z-index: 49; } }
