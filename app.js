@@ -2215,7 +2215,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611040955', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611041000', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2487,7 +2487,7 @@
     return `<section class="card c12"><div class="card-h"><h2>${ic('books')} 매일 기말 예습</h2><span class="tiny">선생님이 날마다 나눠서 내요</span></div><div class="list">${FIN.map((f) => {
       const L = FIN_ALL.filter((x) => x.subj === f.subj), k = L.filter(finDone).length, t = T.filter((x) => x.subj === f.subj), tl = t.filter((x) => !finDone(x)).length, nm = f.subj === 'eng' ? '올림포스 지문' : f.name;
       return `<div class="li btnlike" data-task="fin:${f.subj}"><div class="ico">${ic(k >= L.length ? 'ok' : f.subj === 'hist' ? 'scroll' : 'books')}</div><div class="body"><div class="t">${esc(nm)} <span class="tiny num">${k}/${L.length}</span></div><div class="d">${t.length ? (tl ? `오늘 ${tl}개 남았어요` : '오늘 것 끝') : '오늘은 없어요'} · ${finEndTxt(f.subj)}</div><div class="ik-bar" style="height:6px;margin-top:8px"><i style="width:${Math.round((k / L.length) * 100)}%"></i></div></div></div>`;
-    }).join('')}</div></section>`;
+    }).join('')}${wqFinRow()}</div></section>`;
   }
   function finToday() {
     const t = today(), L = FIN_ORDER.filter((c) => { const d = finDoneDay(c); return !d || d >= t; });
@@ -6076,6 +6076,17 @@
     return WQ.plan.filter((p) => p.date === t || (p.date < t && !wqDone(p))).map((p) => { const k = p.wrong ? 0 : p.days.filter((dy) => wqS().done[wqK(p, dy)]).length;
       return { k: 'wq:' + p.date, icon: 'books', t: p.wrong ? `수행평가 단어 · 틀린 것 다시 ${wqWrongL().length}개` : `수행평가 단어 ${p.pass}바퀴 · Day ${p.days[0]}~${p.days[p.days.length - 1]}`, d: `${p.date < t ? `${md(p.date)} 몫 · ` : ''}${p.wrong ? '틀렸던 단어를 다 맞힐 때까지' : `${k}/${p.days.length} Day · 보고 외운 뒤 뜻 고르기 시험`} · ${md(WQ.test)} 수행평가`, done: wqDone(p) }; });
   }
+  // 기말 예습 카드에 영어 단어 수행 줄: 마감 · 지금 속도면 언제 끝나는지 (11/4 «영어 수행 마감일, 지금 속도면 언제까지 끝낼 수 있다»)
+  function wqFinRow() {
+    if (!WQ) return '';
+    const t = today(), units = WQ.plan.filter((p) => !p.wrong).flatMap((p) => p.days.map((dy) => wqK(p, dy))), k = units.filter((u) => wqS().done[u]).length, n = units.length;
+    const p0 = WQ.plan[0].date, tp = WQ.plan.find((p) => p.date === t), back = WQ.plan.filter((p) => p.date < t && !p.wrong).length ? Math.round((new Date(t) - new Date(p0)) / 864e5) : 0;
+    const days = Math.max(1, back + (tp && wqDone(tp) ? 1 : 0)), pace = k / days, dd = Math.round((new Date(WQ.test) - new Date(t)) / 864e5);
+    const early = !back && !(tp && wqDone(tp));  // 첫날 아직 덜 했으면 속도를 잴 수 없어서 계획대로 끝나는 날을 보여 줘요
+    const end = (() => { if (k >= n) return ''; if (early) return WQ.plan[WQ.plan.length - 1].date; if (!pace) return null; const x = new Date(t + 'T12:00:00'); x.setDate(x.getDate() + Math.ceil((n - k) / pace) - (tp && !wqDone(tp) ? 1 : 0)); return fmtDay(x); })();
+    const late = end && end >= WQ.test, nx = WQ.plan.find((p) => p.date >= t && !wqDone(p)) || WQ.plan.find((p) => !wqDone(p));
+    return `<div class="li btnlike" ${nx ? `data-task="wq:${nx.date}"` : ''}><div class="ico">${ic(k >= n ? 'ok' : 'eng')}</div><div class="body"><div class="t">영어 단어 수행 <span class="tiny num">${k}/${n} Day</span></div><div class="d">${tp && !tp.wrong ? (wqDone(tp) ? '오늘 것 끝 · ' : `오늘 ${tp.days.filter((dy) => !wqS().done[wqK(tp, dy)]).length}Day 남았어요 · `) : ''}${md(WQ.test)} ${wdOf(WQ.test)}요일 수행평가${dd > 0 ? ` D-${dd}` : dd === 0 ? ' 오늘' : ''} · ${end === '' ? '두 바퀴 다 끝냈어요' : end ? `${early ? '계획대로 하면' : '지금 속도면'} <b class="${late ? 'red' : ''}">${md(end)}</b>에 끝나요${late ? ', 수행평가보다 늦어요' : ''}` : '아직 시작 전이에요'}</div><div class="ik-bar" style="height:6px;margin-top:8px"><i style="width:${Math.round((k / n) * 100)}%"></i></div></div></div>`;
+  }
   // 11/4 «무슨 숙제를 모달로 해 놔»: 단어 숙제는 화면 한 장(UI.run kind 'wqd' 날 목록 · 'wq' 외우기→시험)으로, 윤건 단어도 같은 시험(«아는지 모르는지 그거 하지 말고»)
   function wqOpen(date) {
     const p = WQ && WQ.plan.find((x) => x.date === date); if (!p) return;
@@ -6420,7 +6431,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040955'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041000'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
