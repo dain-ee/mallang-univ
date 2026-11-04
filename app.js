@@ -2231,7 +2231,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611042338', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611042340', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2892,7 +2892,7 @@
   }
   // 과목별 오답 표
   function subjWrongCard(cls) {
-    const subjRows = Object.entries(SUBJ_NAMES).map(([k, n]) => { const all = wrongList().filter((w) => w.subj === k); return { k, n, all: all.length, open: all.filter((w) => !w.cleared).length }; }).filter((r) => r.all);
+    const subjRows = Object.entries(SUBJ_NAMES).map(([k, n]) => { const all = wrongList().filter((w) => w.subj === k && !wrGone(w)); return { k, n, all: all.length, open: all.filter((w) => !w.cleared).length }; }).filter((r) => r.all);
     const subjTot = subjRows.reduce((a, r) => a + r.all, 0);
     const mx = Math.max(1, ...subjRows.map((r) => r.all));
     return `<section class="card ${cls}"><div class="card-h"><h2>과목별 오답</h2></div>${subjRows.length ? `<p class="sub" style="margin:-4px 0 16px">막대가 길수록 많이 틀린 과목이에요. 다시 맞히면 진하게 채워져요</p><div class="sw-chart">${subjRows.sort((a, b) => b.all - a.all).map((r) => { const done = r.all - r.open, c = SUBJ_COLOR[r.k]; return `<div class="sw-row"><span class="sw-n"><span class="dot" style="background:${c}"></span>${r.n}</span><div class="sw-track"><div class="sw-bar" style="width:${(r.all / mx) * 100}%;background:color-mix(in srgb, ${c} 22%, #fff)"><i style="width:${(done / r.all) * 100}%;background:${c}"></i></div></div><span class="sw-v">${done ? `<b style="color:${c}">${Math.round((done / r.all) * 100)}%</b> 다시 맞힘` : ''}</span></div>`; }).join('')}</div>` : `<div class="empty">${ic('memo')}<b>아직 없어요</b></div>`}</section>`;
@@ -6632,7 +6632,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611042338'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611042340'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
