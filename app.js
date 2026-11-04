@@ -568,12 +568,15 @@
     for (const it of myS().items) for (const [d, x] of Object.entries(it.log || {})) { if (it.unit === '건' || !x.n) continue; if (it.unit === '쪽') { pages += x.n; add(d, 1); continue; } if (/수학/.test(myCls(it.cls).name) || MB_ID(it.book)) math += x.n; add(d, x.n); }
     for (const [d, v] of Object.entries((S.sci || {}).days || {})) { const n = Object.keys(v.ans || {}).length; sci += n; add(d, n); }
     for (const [d, v] of Object.entries((S.eng || {}).days || {})) { const n = Object.keys(v.uans || {}).length + Object.keys(v.wans || {}).length; eng += n; add(d, n); }
+    // 공부 탭·숙제·수업 시험(nx)과 주아 그래머(jg) 답도 세요 (11/4 «윤건이는 스트릭이 되어 있나»: 정윤 기록만 세서 윤건·주아는 늘 0이었어요)
+    let nx = 0; const nxA = (o) => { for (const v of Object.values(o || {})) if (v && typeof v.ok === 'boolean' && v.at) { nx++; add(fmtDay(new Date(v.at)), 1); } };
+    nxA((S.nx || {}).a); for (const o of Object.values((S.nx || {}).la || {})) nxA(o); nxA(S.jg);
     const L = W().log, act = new Set([...Object.keys(day), ...L.filter((x) => !String(x.key).startsWith('badge') && !String(x.key).startsWith('bonus')).map((x) => x.date)]);
     let st = 0, d = act.has(today()) ? today() : addD(today(), -1); while (act.has(d)) { st++; d = addD(d, -1); }
     const wr = Object.values(S.wrong || {}).filter((x) => x.cleared).length + myS().items.reduce((a, it) => a + (it.redo || []).length, 0);
     const keys = (p) => new Set(L.filter((x) => String(x.key).startsWith(p)).map((x) => x.key)).size;
     const wk = (o) => { let n = 0; for (let i = 0; i < 7; i++) n += day[addD(today(), -i - o)] || 0; return n; };
-    return { day, act, math, eng, sci, pages, all: math + eng + sci, days: act.size, st, wr, ink: keys('ink:'), news: keys('news:'), min: Object.values(pomo().days || {}).reduce((a, x) => a + (x.min || 0), 0), money: L.reduce((a, x) => a + (x.amt || 0), 0), w0: wk(0), w1: wk(7) };
+    return { day, act, math, eng, sci, nx, pages, all: math + eng + sci + nx, days: act.size, st, wr, ink: keys('ink:'), news: keys('news:'), min: Object.values(pomo().days || {}).reduce((a, x) => a + (x.min || 0), 0), money: L.reduce((a, x) => a + (x.amt || 0), 0), w0: wk(0), w1: wk(7) };
   }
   const GROW_MS0 = [
     { id: 'g-p50', k: 'all', n: 50, i: 'pencil', t: '문제 50개' }, { id: 'g-p100', k: 'all', n: 100, i: 'hundred', t: '문제 100개' }, { id: 'g-p300', k: 'all', n: 300, i: 'books', t: '문제 300개' }, { id: 'g-p500', k: 'all', n: 500, i: 'glow', t: '문제 500개' }, { id: 'g-p1000', k: 'all', n: 1000, i: 'trophy', t: '문제 1000개' }, { id: 'g-p3000', k: 'all', n: 3000, i: 'crown', t: '문제 3000개' },
@@ -598,7 +601,7 @@
     const D7 = Array.from({ length: 7 }, (_, i) => addD(today(), i - 6)), mx = Math.max(5, ...D7.map((d) => g.day[d] || 0));
     const csat = Math.floor(g.all / 45), up = g.w1 ? Math.round(((g.w0 - g.w1) / g.w1) * 100) : null;
     const line = !g.all ? '오늘 한 문제부터 시작해요. 쌓이는 게 여기 다 보여요' : up != null && up > 0 ? `지난주보다 ${up}% 더 했어요. 이 속도면 충분해요` : g.st >= 3 ? `${g.st}일째 이어 가고 있어요. 오늘도 하나만 더` : csat ? `수능 국어 한 회가 45문제예요. 벌써 ${csat}회 분량을 풀었어요` : '조금씩이라도 매일이 제일 세요';
-    const T = [['math', '수학 문제', g.math, '문제'], ['eng', '영어 문장·단어', g.eng, '개'], ['sci', '과학 문제', g.sci, '문제'], ['wr', '다시 맞힌 오답', g.wr, '개'], ['days', '공부한 날', g.days, '일'], ['min', '집중한 시간', Math.round(g.min / 6) / 10, '시간'], ['ink', '들은 인강', g.ink, '강'], ['news', '읽은 기사', g.news, '개']];
+    const T = [['math', '수학 문제', g.math, '문제'], ['eng', '영어 문장·단어', g.eng, '개'], ['sci', '과학 문제', g.sci, '문제'], ['nx', '공부·숙제 문제', g.nx, '문제'], ['wr', '다시 맞힌 오답', g.wr, '개'], ['days', '공부한 날', g.days, '일'], ['min', '집중한 시간', Math.round(g.min / 6) / 10, '시간'], ['ink', '들은 인강', g.ink, '강'], ['news', '읽은 기사', g.news, '개']];
     return `<section class="card ${cls} grow"><div class="card-h"><h2>${ic('trophy')} ${esc(NMI())}가 쌓아 온 것</h2>${g.st ? `<span class="grow-st">${ic('fire')} ${g.st}일 연속</span>` : ''}</div>
       <div class="grow-top"><div class="grow-big"><span class="tiny">지금까지 푼 문제</span><b class="num">${g.all}</b><span class="grow-u">문제</span><p>${esc(line)}</p></div>
         <div class="grow-wk"><div class="grow-bars">${D7.map((d) => { const n = g.day[d] || 0; return `<div class="grow-bar ${d === today() ? 'on' : ''}"><i style="height:${Math.max(n ? 8 : 3, Math.round((n / mx) * 100))}%"></i><span>${DOW[dowOf(d)]}</span></div>`; }).join('')}</div>${g.w1 ? `<span class="tiny">이번 주 ${g.w0}문제 · 지난주 ${g.w1}문제</span>` : g.w0 && g.w0 !== g.all ? `<span class="tiny">이번 주 ${g.w0}문제</span>` : ''}</div></div>
@@ -2228,7 +2231,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611042319', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611042326', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6629,7 +6632,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611042319'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611042326'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
