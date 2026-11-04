@@ -4,5 +4,8 @@
   "display": "standalone",
   "background_color": "#f2f4f6",
   "theme_color": "#f2f4f6",
-  "icons": [{ "src": "assets/appicon/ghost.png", "sizes": "512x512", "type": "image/png" }]
+  "icons": [
+    { "src": "assets/appicon/ghost-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/appicon/ghost.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
 }

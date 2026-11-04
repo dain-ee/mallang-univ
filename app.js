@@ -149,6 +149,7 @@
     if (PEEK) return;
     if (keys.includes('profile')) careerMark();
     const now = Date.now(); S._at = S._at || {}; if (pulled) for (const k of keys) S._at[k] = now;
+    if (ROLE_T && (keys.includes('hw') || keys.includes('gifts'))) { pushNew(U.who, save.snap, S); save.snap = pushIds(S); }
     keepS();
     clearTimeout(pushT); pushT = setTimeout(() => { pushT = null; sync(); }, 1200);
   }
@@ -754,6 +755,7 @@
     $$('[data-giftopen]').forEach((b) => (b.onclick = () => { giftCheck.seen = (gPend()[0] || {}).at; giftPop(); }));
     $$('[data-dropen]').forEach((b) => (b.onclick = () => drOpen()));
     $$('[data-appopen]').forEach((b) => (b.onclick = appOpen));
+    $$('[data-appinst]').forEach((b) => (b.onclick = appInstall));
     $$('[data-pushon]').forEach((b) => (b.onclick = pushOn));
     $$('[data-midedit]').forEach((b) => (b.onclick = midSheet));
     $$('[data-midana]').forEach((b) => (b.onclick = () => { UI.scoreSeg = 'ana'; UI.run = null; UI.tab = 'grade'; render(); window.scrollTo(0, 0); }));
@@ -2150,10 +2152,19 @@
   }
   // 선생님 홈(DASH_ONLY)에서는 학생을 골라 그 학생 기록에 바로 넣어요 (여러 명 한 번에)
   // 다른 학생 기록: 서버에서 최신을 받아 고친 뒤 그 칸만 새 시각으로 올려요 (학생 앱이 다음에 받아 감)
+  // 선생님이 숙제를 내거나 선물을 보내면 그 학생 폰으로 바로 알림 (11/4 «선물 오거나 이런 알림»): 서버 univ-push 함수가 기록을 다시 읽어 보내요
+  function pushIds(d) { return { hw: new Set((d.hw || []).map((h) => h.id)), g: new Set((d.gifts || []).map((x) => x.skin + ':' + x.at)) }; }
+  function pushNew(name, a, d) {
+    if (!ROLE_T || PEEK || !a) return;
+    const hw = (d.hw || []).filter((h) => !a.hw.has(h.id) && !h.done).map((h) => h.id), gifts = (d.gifts || []).filter((x) => !x.open && !x.x && !a.g.has(x.skin + ':' + x.at)).map((x) => x.skin);
+    if (!hw.length && !gifts.length) return;
+    setTimeout(() => { try { if (localStorage.getItem('mu:offline') === '1') return; fetch(`${U.sync.url}/functions/v1/univ-push`, { method: 'POST', keepalive: true, headers: { apikey: U.sync.key, Authorization: `Bearer ${U.sync.key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'rec', student: name, code: U.key, hw, gifts }) }).catch(() => {}); } catch (e) {} }, 1500);
+  }
   async function dPut(name, key, fn) {
     const d = (await rpc('univ_get', { p_student: name, p_code: U.key })) || {};
-    const out = fn(d), now = Date.now(); d._at = { ...(d._at || {}) }; for (const k of [].concat(key)) d._at[k] = now;
+    const before = pushIds(d), out = fn(d), now = Date.now(); d._at = { ...(d._at || {}) }; for (const k of [].concat(key)) d._at[k] = now;
     await rpc('univ_put', { p_student: name, p_code: U.key, p_data: d });
+    pushNew(name, before, d);
     const row = (roster.rows || []).find((x) => x.r.name === name); if (row) row.d = d;
     return out;
   }
@@ -2217,7 +2228,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611041404', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611041414', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4029,13 +4040,17 @@
   }
   const aiHidden = () => { try { return Date.now() - (+localStorage.getItem(AI_KEY) || 0) < 3 * 864e5; } catch (e) { return false; } };
   const aiUrl = () => { if (ROLE_T && (PEEK || STU_TAB)) return; try { history.replaceState(history.state, '', `${location.pathname}?k=${encodeURIComponent(U.key)}&s=${encodeURIComponent(U.who)}&r=${encodeURIComponent(U.role || 'student')}`); } catch (e) {} };
+  // 안드로이드(선생님 듀오)는 크롬이 「앱 설치」 창을 바로 띄워 줄 수 있고, 알림은 앱을 안 깔아도 켜져요 (11/4 «나 듀오인데 호환되게»)
+  const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1), ANDROID = /Android/.test(navigator.userAgent);
+  let bip = null;
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); bip = e; if (typeof UI === 'object' && !UI.run) render(); });
+  window.addEventListener('appinstalled', () => { bip = null; toast('홈 화면에 ' + BRAND + ' 앱이 생겼어요'); render(); });
+  async function appInstall() { if (!bip) return appOpen(); const e = bip; bip = null; try { await e.prompt(); await e.userChoice; } catch (er) {} render(); }
   function appCard() {
-    if (STANDALONE) {
-      if (!PUSH_OK || Notification.permission !== 'default') return '';
-      return `<section class="card c12 gift-card app-card"><span class="gift-ic"><img class="app-ic" src="${aiSrc()}" alt=""></span><div class="body"><span class="eyebrow">띵동!</span><b>알림을 켜 볼까요?</b><span class="tiny">${ROLE_T && !PEEK ? '밤마다 학생들 남은 할 일을 모아서 알려 줘요' : '할 일이 남았을 때, 리포트가 왔을 때 알려 줘요'}</span></div><button class="btn primary" type="button" data-pushon>알림 켜기</button></section>`;
-    }
-    if (aiHidden()) return '';
-    return `<section class="card c12 gift-card app-card"><span class="gift-ic"><img class="app-ic" src="${aiSrc()}" alt=""></span><div class="body"><span class="eyebrow">띵동!</span><b>앱으로 깔 수 있어요!</b><span class="tiny">핸드폰·아이패드 홈 화면에 ${esc(BRAND)} 아이콘이 생기고 숙제 알림도 받아요</span></div><button class="btn primary" type="button" data-appopen>방법 보기</button></section>`;
+    const me = ROLE_T && !PEEK, ico = `<span class="gift-ic"><img class="app-ic" src="${aiSrc()}" alt=""></span>`;
+    const pushC = PUSH_OK && Notification.permission === 'default' && (STANDALONE || !IOS) ? `<section class="card c12 gift-card app-card">${ico}<div class="body"><span class="eyebrow">띵동!</span><b>알림을 켜 볼까요?</b><span class="tiny">${me ? '학생 쪽지, 밤마다 학생들 남은 할 일을 알려 줘요' : '선생님 쪽지, 새 숙제, 선물, 남은 할 일을 알려 줘요'}</span></div><button class="btn primary" type="button" data-pushon>알림 켜기</button></section>` : '';
+    const instC = !STANDALONE && !aiHidden() ? `<section class="card c12 gift-card app-card">${ico}<div class="body"><span class="eyebrow">띵동!</span><b>앱으로 깔 수 있어요!</b><span class="tiny">핸드폰·아이패드 홈 화면에 ${esc(BRAND)} 아이콘이 생기고 숙제 알림도 받아요</span></div>${bip ? '<button class="btn primary" type="button" data-appinst>설치하기</button>' : '<button class="btn primary" type="button" data-appopen>방법 보기</button>'}</section>` : '';
+    return instC + pushC;
   }
   const SHARE_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" fill="none" stroke="#3182f6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 10H6.5A1.5 1.5 0 0 0 5 11.5v8A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-8a1.5 1.5 0 0 0-1.5-1.5H16" fill="none" stroke="#3182f6" stroke-width="1.9" stroke-linecap="round"/></svg>';
   const ADD_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="#333d4b" stroke-width="1.8"/><path d="M12 8.5v7M8.5 12h7" stroke="#333d4b" stroke-width="1.8" stroke-linecap="round"/></svg>';
@@ -4047,12 +4062,17 @@
       <h2 class="app-tt">홈 화면에 ${esc(BRAND)} 앱 만들기</h2><p class="app-sub">한 번만 해 두면 아이콘을 눌러 바로 열리고, 숙제 알림도 받을 수 있어요</p>
       <h3 class="app-h">홈 화면에 추가하기</h3>
       ${inApp ? '<div class="app-warn">지금은 카카오톡 같은 앱 안에서 열려 있어요. 오른쪽 아래 <b>⋯</b> 를 눌러 <b>「다른 브라우저로 열기」</b>로 사파리에서 열어 주세요</div>' : ''}
-      <ol class="app-steps">
+      ${ANDROID ? `<ol class="app-steps">
+        <li style="--i:0"><span class="app-n">1</span><div><b>크롬 오른쪽 위 <span class="app-k">⋮</span> 를 눌러요</b><span class="tiny">삼성 인터넷이면 아래쪽 <span class="app-k">≡</span> 를 눌러요</span></div></li>
+        <li style="--i:1"><span class="app-n">2</span><div><b>「앱 설치」 또는 「홈 화면에 추가」를 눌러요</b><span class="app-chip app-row">${ADD_SVG}앱 설치</span></div></li>
+        <li style="--i:2"><span class="app-n">3</span><div><b>「설치」를 눌러요</b><span class="tiny">홈 화면이나 앱 목록에 ${esc(BRAND)} 아이콘이 생겨요</span></div></li>
+        <li style="--i:3"><span class="app-n">4</span><div><b>${esc(BRAND)} 홈의 「알림 켜기」를 눌러요</b><span class="tiny">안드로이드는 앱을 깔기 전에도 알림을 켤 수 있어요</span></div></li>
+      </ol>` : `<ol class="app-steps">
         <li style="--i:0"><span class="app-n">1</span><div><b>사파리 주소창 옆 <span class="app-k">≡</span> 또는 <span class="app-k">⋯</span> 단추를 누르고 「공유」를 눌러요</b><span class="tiny">공유 단추가 바로 보이면 그걸 눌러도 돼요</span><span class="app-chip">${SHARE_SVG}공유</span></div></li>
         <li style="--i:1"><span class="app-n">2</span><div><b>목록을 올려 「홈 화면에 추가」를 눌러요</b><span class="app-chip app-row">${ADD_SVG}홈 화면에 추가</span></div></li>
         <li style="--i:2"><span class="app-n">3</span><div><b>오른쪽 위 「추가」를 눌러요</b><span class="tiny">「웹 앱으로 열기」가 있으면 켜 둔 채로 추가해요</span></div></li>
         <li style="--i:3"><span class="app-n">4</span><div><b>홈 화면의 ${esc(BRAND)} 아이콘으로 열고 「알림 켜기」</b><span class="tiny">할 일이 남았을 때, 리포트가 왔을 때 알려 줘요</span></div></li>
-      </ol>
+      </ol>`}
       <button class="btn primary big block" type="button" id="app-ok">알겠어요</button>
       <button class="gf-link app-later" type="button" id="app-later">나중에 할게요</button></div>`, (el, close) => {
       $('#app-ok', el).onclick = close;
@@ -6515,7 +6535,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041404'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041414'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7564,7 +7584,7 @@
   window.addEventListener('popstate', () => { render.pop = 1; if (UI.run) UI.run = null; else if (UI.tab !== 'home' && !TEACHER) UI.tab = 'home'; render(); window.scrollTo(0, 0); });
   function render() {
     { const k = navAt(), was = render.nav; if (was && k !== was && !render.pop && (k === 'run' || was === 'home')) try { history.pushState({ mu: k }, ''); } catch (e) {} render.nav = k; render.pop = 0; }
-    nxReg(); pCloseOld(); leftMark();
+    nxReg(); pCloseOld(); leftMark(); if (ROLE_T && pulled && !save.snap) save.snap = pushIds(S);
     // 1학년 2학기는 아직 학기 최종 등급이 없어서, 먼저 넣은 등급은 중간고사 등급으로 옮겨요 (한 번만)
     if (S.naesin && S.naesin['1-2'] && !S.naesin._mid12) { for (const r of Object.values(S.naesin['1-2'])) if (r && r.grade && r.midG == null && r.finG == null) { r.midG = r.grade; delete r.grade; } S.naesin._mid12 = 1; save('naesin'); }
     if (!UI.run || UI.run.kind !== 'jl') jlStop();  // 리스닝 화면을 나가면 소리도 멈춰요

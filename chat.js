@@ -24,6 +24,12 @@
     } finally { clearTimeout(t); }
   }
 
+  // 보내자마자 받는 사람 폰으로 알림 (11/4): 서버 univ-push 함수가 그 쪽지를 다시 읽어 학생↔선생님에게 보내요
+  function ping(student, id) {
+    if (off() || !id) return;
+    try { fetch(`${CFG.url}/functions/v1/univ-push`, { method: 'POST', keepalive: true, headers: { apikey: CFG.key, Authorization: `Bearer ${CFG.key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'msg', student, code: U.key, id }) }).catch(() => {}); } catch (e) {}
+  }
+
   // 사진 → 긴 쪽 1280px 이하 jpeg, 300KB 안쪽 data URL
   function shrink(file, max = 1280, limit = 300 * 1024) {
     return new Promise((ok, no) => {
@@ -273,7 +279,7 @@ html.nc-has-fab .main{padding-bottom:calc(var(--tab-h,64px) + 104px + env(safe-a
       msgs.push(tmp); list.dataset.stick = '1'; draw();
       try {
         const m = await rpc('univ_msg_send', { p_student: who, p_code: code, p_body: body, p_img: img });
-        msgs = msgs.filter((x) => x !== tmp); if (!msgs.some((x) => x.id === m.id)) msgs.push(m); msgs.sort((a, b) => a.id - b.id);
+        msgs = msgs.filter((x) => x !== tmp); if (!msgs.some((x) => x.id === m.id)) msgs.push(m); msgs.sort((a, b) => a.id - b.id); ping(who, m.id);
       } catch (er) {
         msgs = msgs.filter((x) => x !== tmp); restore(body, img);
         flash(pane, /slow/.test(er.message) ? '너무 빨리 보내고 있어요. 잠깐 뒤에 다시 보내 주세요.' : '인터넷이 끊겨서 못 보냈어요. 다시 보내 주세요.');
@@ -349,7 +355,7 @@ html.nc-has-fab .main{padding-bottom:calc(var(--tab-h,64px) + 104px + env(safe-a
       cmp = composer(th, async (body, img, restore) => {
         const lb = th.querySelector('.nc-list'), tmp = { id: 1e15 + Date.now(), sender: 'teacher', body, img, at: new Date().toISOString(), pending: true };
         msgs.push(tmp); lb.dataset.stick = '1'; renderMsgs(lb, msgs, 'teacher', seenUpto, s);
-        try { const m = await rpc('naesin_msg_reply', { p_key: TKEY, p_student: s, p_body: body, p_img: img }); msgs = msgs.filter((y) => y !== tmp); if (!msgs.some((y) => y.id === m.id)) msgs.push(m); msgs.sort((a, b) => a.id - b.id); }
+        try { const m = await rpc('naesin_msg_reply', { p_key: TKEY, p_student: s, p_body: body, p_img: img }); msgs = msgs.filter((y) => y !== tmp); if (!msgs.some((y) => y.id === m.id)) msgs.push(m); msgs.sort((a, b) => a.id - b.id); ping(s, m.id); }
         catch (e) { msgs = msgs.filter((y) => y !== tmp); restore(body, img); flash(box, '못 보냈어요. 인터넷을 확인하고 다시 보내 주세요.'); }
         if (cur === s) { lb.dataset.stick = '1'; renderMsgs(lb, msgs, 'teacher', seenUpto, s); } pollInbox();
       }, (t) => flash(box, t));
