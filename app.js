@@ -2228,7 +2228,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611041551', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611041702', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4076,7 +4076,25 @@
       <button class="btn primary big block" type="button" id="app-ok">알겠어요</button>
       <button class="gf-link app-later" type="button" id="app-later">나중에 할게요</button></div>`, (el, close) => {
       $('#app-ok', el).onclick = close;
-      $('#app-later', el).onclick = () => { try { localStorage.setItem(AI_KEY, String(Date.now())); } catch (e) {} close(); render(); };
+      $('#app-later', el).onclick = () => { try { localStorage.setItem(AI_KEY, String(Date.now())); } catch (e) {} close(); setTimeout(() => cardBye(document.querySelector('.app-card [data-appopen], .app-card [data-appinst]')?.closest('.app-card'), render), 260); };
+    });
+  }
+  // 카드 치우기 (11/4 «나중에 할게요 해도 배너가 그냥 팍 사라지네 · 그 자리가 쑥 비고 배너가 쏙 나가게»)
+  // 카드는 옆으로 쏙 빠지고, 다시 그린 뒤 아래 카드들이 원래 자리에서 빈자리로 쑥 올라와요 (다시 그리면 새 요소라서 순서로 짝지어요)
+  function cardBye(card, done) {
+    if (!card || matchMedia('(prefers-reduced-motion: reduce)').matches) return done();
+    const box = card.parentElement, list = [...box.children], at = list.indexOf(card), old = list.map((x) => x.getBoundingClientRect());
+    const sel = box.id ? '#' + box.id : box.className ? '.' + box.className.trim().split(/\s+/).join('.') : '';
+    card.style.pointerEvents = 'none';
+    card.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(36%) scale(.9)' }], { duration: 300, easing: 'cubic-bezier(.4,0,.9,.6)', fill: 'forwards' }).finished.then(() => {
+      done();
+      const nb = sel && document.querySelector(sel); if (!nb) return;
+      [...nb.children].forEach((x, j) => {
+        const o = old[j < at ? j : j + 1]; if (!o) return;
+        const r = x.getBoundingClientRect(), dx = o.left - r.left, dy = o.top - r.top;
+        if (Math.abs(dx) + Math.abs(dy) < 1) return;
+        x.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 520, delay: Math.min(j, 6) * 25, easing: 'cubic-bezier(.2,1.2,.3,1)', fill: 'backwards' });
+      });
     });
   }
   // 아이들이 카드를 놓치지 않게 (11/4 «아이들 쪽도 준비해»): 기기마다 한 번, 홈을 열면 안내가 저절로 떠요
@@ -6588,7 +6606,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041551'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041702'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
