@@ -2228,7 +2228,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611041723', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611042207', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6611,7 +6611,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041723'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611042207'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7684,7 +7684,11 @@
     if (dir === 'push' || dir === 'pop') ghost(dir);
     main.classList.remove('enter', 'soft', 'boot', 'push', 'pop', 'tabL', 'tabR', 'side');
     const pBar = $$('main .nx-bar i').map((x) => x.style.width);  // 진행 막대는 옛 길이에서 새 길이로 쭉 (10/31)
+    // 11/4 윤건 «국어에서 원문 보기 누르면 1초만 보여 주고 다시 사라져요»: 동기화로 다시 그리면 펼친 칸이 닫혔어요 → 같은 화면이면 펼친 칸을 다시 펼쳐 둬요
+    const dKey = (d) => (d.className || '') + '|' + ((d.querySelector(':scope > summary') || {}).textContent || '').trim();
+    const dOpenK = view === render.view ? new Set($$('main details[open]').map(dKey)) : null;
     main.innerHTML = (TEACHER && !DASH_ONLY ? teacherBand() : '') + html;
+    if (dOpenK && dOpenK.size) $$('main details').forEach((d) => { if (dOpenK.has(dKey(d))) d.open = true; });
     if (SR_TEST && window.__tstBox) main.insertAdjacentHTML('afterbegin', window.__tstBox());  // 오프라인 시험 탭에서만: 시험 줄을 앱이 같이 그려요
     if (view === render.view && !RM()) $$('main .nx-bar i').forEach((x, i) => { if (pBar[i] && pBar[i] !== x.style.width) x.animate([{ width: pBar[i] }, { width: x.style.width }], { duration: 420, easing: 'cubic-bezier(.2,.8,.2,1)' }); });
     // 탭·칸 바꿀 때는 밀지 않고, 카드 자리만 회색 실루엣으로 잠깐 보였다가 내용이 스르륵 떠요
