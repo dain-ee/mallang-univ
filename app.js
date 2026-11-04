@@ -2228,7 +2228,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611041417', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611041420', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4078,6 +4078,27 @@
       $('#app-ok', el).onclick = close;
       $('#app-later', el).onclick = () => { try { localStorage.setItem(AI_KEY, String(Date.now())); } catch (e) {} close(); render(); };
     });
+  }
+  // 아이들이 카드를 놓치지 않게 (11/4 «아이들 쪽도 준비해»): 기기마다 한 번, 홈을 열면 안내가 저절로 떠요
+  // 사파리에서 열면 깔기 안내, 홈 화면 앱으로 처음 열면 알림 켜기 (아이폰 알림 허락은 단추를 눌러야만 떠요)
+  function appAuto() {
+    if (TEACHER || UI.run || UI.tab !== 'home' || appAuto.on) return;
+    const k = STANDALONE ? (PUSH_OK && Notification.permission === 'default' ? 'push' : '') : (IOS || ANDROID) && !aiHidden() ? 'inst' : '';
+    if (!k) return; let seen = ''; try { seen = localStorage.getItem('mu:appauto') || ''; } catch (e) {}
+    if (seen.includes(k)) return; appAuto.on = 1;
+    setTimeout(() => {
+      appAuto.on = 0;
+      if (UI.run || UI.tab !== 'home' || document.querySelector('.gf, #sheet-root .sheet')) return;
+      try { localStorage.setItem('mu:appauto', seen + k); } catch (e) {}
+      if (k === 'inst') return bip ? appInstall() : appOpen();
+      sheet(`<div class="app-sh"><div class="app-hero"><div class="app-tile"><img src="${aiSrc()}" alt=""><span>${esc(BRAND)}</span></div></div>
+        <h2 class="app-tt">앱이 생겼어요! 알림도 켜 볼까요?</h2><p class="app-sub">꼭 필요한 것만 알려 줘요</p>
+        <ol class="app-steps" style="margin-top:20px">${[['love', '선생님 쪽지가 오면 바로'], ['pin', '선생님이 새 숙제를 내면'], ['gift', '선물이 도착하면'], ['cal', '아침에 오늘·내일 마감'], ['clock', '밤 9시에 오늘 남은 할 일']].map(([i, t], n) => `<li style="--i:${n}"><span class="app-n" style="background:none">${ic(i)}</span><div><b>${t}</b></div></li>`).join('')}</ol>
+        <button class="btn primary big block" type="button" id="app-pon">알림 켜기</button><button class="gf-link app-later" type="button" id="app-later">나중에 할게요</button></div>`, (el, close) => {
+        $('#app-pon', el).onclick = () => { close(); pushOn(); };
+        $('#app-later', el).onclick = close;
+      });
+    }, 1800);
   }
   const b64u = (s) => { const p = '='.repeat((4 - (s.length % 4)) % 4), r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(r, (c) => c.charCodeAt(0)); };
   async function pushEnsure(force) {
@@ -6535,7 +6556,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041417'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041420'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7584,7 +7605,7 @@
   window.addEventListener('popstate', () => { render.pop = 1; if (UI.run) UI.run = null; else if (UI.tab !== 'home' && !TEACHER) UI.tab = 'home'; render(); window.scrollTo(0, 0); });
   function render() {
     { const k = navAt(), was = render.nav; if (was && k !== was && !render.pop && (k === 'run' || was === 'home')) try { history.pushState({ mu: k }, ''); } catch (e) {} render.nav = k; render.pop = 0; }
-    nxReg(); pCloseOld(); leftMark(); if (ROLE_T && pulled && !save.snap) save.snap = pushIds(S);
+    nxReg(); pCloseOld(); leftMark(); appAuto(); if (ROLE_T && pulled && !save.snap) save.snap = pushIds(S);
     // 1학년 2학기는 아직 학기 최종 등급이 없어서, 먼저 넣은 등급은 중간고사 등급으로 옮겨요 (한 번만)
     if (S.naesin && S.naesin['1-2'] && !S.naesin._mid12) { for (const r of Object.values(S.naesin['1-2'])) if (r && r.grade && r.midG == null && r.finG == null) { r.midG = r.grade; delete r.grade; } S.naesin._mid12 = 1; save('naesin'); }
     if (!UI.run || UI.run.kind !== 'jl') jlStop();  // 리스닝 화면을 나가면 소리도 멈춰요
