@@ -2231,7 +2231,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611042340', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611042353', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4053,10 +4053,15 @@
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); bip = e; if (typeof UI === 'object' && !UI.run) render(); });
   window.addEventListener('appinstalled', () => { bip = null; toast('홈 화면에 ' + BRAND + ' 앱이 생겼어요'); render(); });
   async function appInstall() { if (!bip) return appOpen(); const e = bip; bip = null; try { await e.prompt(); await e.userChoice; } catch (er) {} render(); }
+  // 앱을 깔았는지(또는 「다 했어요」)는 학생 기록 appi 에 남겨요. 사파리와 홈 화면 앱은 저장소가 따로라 기기 안 기록만으론 배너가 안 사라졌어요 (11/4 정윤 «했다 했는데 배너가 안 사라져»)
+  const AI_DONE = 'mallang-univ:appdone';
+  const appHas = () => { if (!ROLE_T && S.appi && S.appi.at) return true; try { return !!localStorage.getItem(AI_DONE); } catch (e) { return false; } };
+  function appMark() { try { localStorage.setItem(AI_DONE, String(Date.now())); } catch (e) {} if (!ROLE_T && !(S.appi && S.appi.at)) { S.appi = { at: Date.now(), sa: STANDALONE }; if (!PEEK) { S._at = S._at || {}; S._at.appi = Date.now(); } save('appi'); } }
   function appCard() {
+    if (STANDALONE && !appHas()) appMark();
     const me = ROLE_T && !PEEK, ico = `<span class="gift-ic"><img class="app-ic" src="${aiSrc()}" alt=""></span>`;
     const pushC = PUSH_OK && Notification.permission === 'default' && (STANDALONE || !IOS) ? `<section class="card c12 gift-card app-card">${ico}<div class="body"><span class="eyebrow">띵동!</span><b>알림을 켜 볼까요?</b><span class="tiny">${me ? '학생 쪽지, 밤마다 학생들 남은 할 일을 알려 줘요' : '선생님 쪽지, 새 숙제, 선물, 남은 할 일을 알려 줘요'}</span></div><button class="btn primary" type="button" data-pushon>알림 켜기</button></section>` : '';
-    const instC = !STANDALONE && !aiHidden() ? `<section class="card c12 gift-card app-card">${ico}<div class="body"><span class="eyebrow">띵동!</span><b>앱으로 깔 수 있어요!</b><span class="tiny">핸드폰·아이패드 홈 화면에 ${esc(BRAND)} 아이콘이 생기고 숙제 알림도 받아요</span></div>${bip ? '<button class="btn primary" type="button" data-appinst>설치하기</button>' : '<button class="btn primary" type="button" data-appopen>방법 보기</button>'}</section>` : '';
+    const instC = !STANDALONE && !aiHidden() && !appHas() ? `<section class="card c12 gift-card app-card">${ico}<div class="body"><span class="eyebrow">띵동!</span><b>앱으로 깔 수 있어요!</b><span class="tiny">핸드폰·아이패드 홈 화면에 ${esc(BRAND)} 아이콘이 생기고 숙제 알림도 받아요</span></div>${bip ? '<button class="btn primary" type="button" data-appinst>설치하기</button>' : '<button class="btn primary" type="button" data-appopen>방법 보기</button>'}</section>` : '';
     return instC + pushC;
   }
   const SHARE_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" fill="none" stroke="#3182f6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 10H6.5A1.5 1.5 0 0 0 5 11.5v8A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-8a1.5 1.5 0 0 0-1.5-1.5H16" fill="none" stroke="#3182f6" stroke-width="1.9" stroke-linecap="round"/></svg>';
@@ -4080,9 +4085,9 @@
         <li style="--i:2"><span class="app-n">3</span><div><b>오른쪽 위 「추가」를 눌러요</b><span class="tiny">「웹 앱으로 열기」가 있으면 켜 둔 채로 추가해요</span></div></li>
         <li style="--i:3"><span class="app-n">4</span><div><b>홈 화면의 ${esc(BRAND)} 아이콘으로 열고 「알림 켜기」</b><span class="tiny">할 일이 남았을 때, 리포트가 왔을 때 알려 줘요</span></div></li>
       </ol>`}
-      <button class="btn primary big block" type="button" id="app-ok">알겠어요</button>
+      <button class="btn primary big block" type="button" id="app-ok">다 했어요</button>
       <button class="gf-link app-later" type="button" id="app-later">나중에 할게요</button></div>`, (el, close) => {
-      $('#app-ok', el).onclick = close;
+      $('#app-ok', el).onclick = () => { appMark(); close(); setTimeout(() => cardBye(document.querySelector('.app-card [data-appopen], .app-card [data-appinst]')?.closest('.app-card'), render), 260); };
       $('#app-later', el).onclick = () => { try { localStorage.setItem(AI_KEY, String(Date.now())); } catch (e) {} close(); setTimeout(() => cardBye(document.querySelector('.app-card [data-appopen], .app-card [data-appinst]')?.closest('.app-card'), render), 260); };
     });
   }
@@ -6632,7 +6637,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611042340'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611042353'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
