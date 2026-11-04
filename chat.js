@@ -113,9 +113,17 @@
     <form class="nc-form"><label class="nc-attach" title="사진 보내기" aria-label="사진 보내기"><input type="file" accept="image/*" hidden><span aria-hidden="true"></span></label>
     <textarea rows="1" placeholder="${ph}" aria-label="${ph}"></textarea><button type="submit" class="nc-send" disabled>보내기</button></form>`;
   // 쪽지함 창 열기·닫기: 단추 쪽에서 커지며 열리고, 닫을 땐 단추 쪽으로 줄어든 뒤 숨겨요 (선생님 10/27 «열리고 닫히는 애니메이션»)
+  // 폰에서 키보드가 올라오거나 화면이 확대돼도 쪽지함이 보이는 화면에 딱 맞게 (11/4 «칠 때도 문제»: 키보드 위로 빈칸이 생기고 오른쪽이 잘렸어요)
+  const VV = window.visualViewport;
+  function vvFit() {
+    const el = document.querySelector('.nc-pane:not([hidden])');
+    if (!el || !VV || !matchMedia('(max-width:899px)').matches) { if (el) el.style.cssText = ''; return; }
+    el.style.cssText = `top:${VV.offsetTop}px;left:${VV.offsetLeft}px;right:auto;bottom:auto;width:${VV.width}px;height:${VV.height}px`;
+  }
+  if (VV) { VV.addEventListener('resize', vvFit); VV.addEventListener('scroll', vvFit); }
   function showPane(el, v) {
     clearTimeout(el._ncT); el.classList.remove('nc-out');
-    if (v) { el.hidden = false; return; }
+    if (v) { el.hidden = false; vvFit(); return; }
     if (el.hidden) return;
     el.classList.add('nc-out'); el._ncT = setTimeout(() => { el.hidden = true; el.classList.remove('nc-out'); }, 180);
   }
