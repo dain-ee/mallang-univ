@@ -539,7 +539,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${lessonHero()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${winCard()}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${lessonHero()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${winCard()}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -752,6 +752,7 @@
     $$('[data-tgift]').forEach((b) => (b.onclick = () => { const k = b.dataset.tgift; S.gifts = [...gAll().filter((x) => x.skin !== k), { skin: k, at: Date.now() }]; S.gift = {}; save('gifts', 'gift'); toast(`선물을 보냈어요. ${NMI()} 앱에 곧 떠요`); render(); }));
     $$('[data-giftx]').forEach((b) => (b.onclick = () => { const k = b.dataset.giftx; S.gifts = gAll().map((x) => (x.skin === k && !x.open ? { ...x, x: Date.now() } : x)); S.gift = {}; save('gifts', 'gift'); toast('선물을 거둬들였어요'); render(); }));
     $$('[data-giftopen]').forEach((b) => (b.onclick = () => { giftCheck.seen = (gPend()[0] || {}).at; giftPop(); }));
+    $$('[data-dropen]').forEach((b) => (b.onclick = () => drOpen()));
     $$('[data-midedit]').forEach((b) => (b.onclick = midSheet));
     $$('[data-midana]').forEach((b) => (b.onclick = () => { UI.scoreSeg = 'ana'; UI.run = null; UI.tab = 'grade'; render(); window.scrollTo(0, 0); }));
     $$('[data-lag]').forEach((b) => (b.onclick = () => lagSheet(+b.dataset.lag)));
@@ -2214,7 +2215,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611040729', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611040955', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3957,6 +3958,87 @@
   const pStreak = () => { let n = 0, i = pDay().n ? 0 : 1; while (pDay(pBack(i)).n) { n++; i++; } return n; };
   const pBest = () => { let best = 0, run = 0, prev = null; for (const d of Object.keys(pomo().days).filter((k) => pomo().days[k].n).sort()) { run = prev && Math.round((new Date(d + 'T00:00:00') - new Date(prev + 'T00:00:00')) / 864e5) === 1 ? run + 1 : 1; best = Math.max(best, run); prev = d; } return best; };
   const pTotal = () => Object.values(pomo().days).reduce((a, x) => a + (x.n || 0), 0);
+  // ───────── 매일 리포트 (11/4 «리포트를 매일 「도착했어요!」 해서 열어서 모달로») ─────────
+  // 어제 하루(새벽 5시까지는 그 전날) 시간 재기(S.slog)와 숙제 푼 기록(my.items log)을 맞춰 한 장으로 보여 줘요. 저장하는 것 없이 계산만
+  const DR_KEY = 'mallang-univ:dr:' + U.who;
+  const drDay = () => { const d = new Date(Date.now() + DAY_OFF() * 864e5 - 5 * 36e5); d.setDate(d.getDate() - 1); return fmtDay(d); };
+  const drNext = (d) => { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() + 1); return fmtDay(x); };
+  const drSpan = (d) => [new Date(d + 'T05:00:00').getTime(), new Date(drNext(d) + 'T05:00:00').getTime()];
+  const drBook = (ti) => String(ti || '').split(':')[0].trim();
+  function drStat(d) {
+    const [a, b] = drSpan(d), nd = drNext(d), rows = {}, segs = [];
+    const row = (k) => rows[k] = rows[k] || { book: k, n: 0, w: 0, min: 0, cls: '' };
+    for (const v of Object.values(S.slog || {})) { if (!v || v.del || v.s < a || v.s >= b) continue; const m = (v.e - v.s) / 6e4, k = drBook(v.ti) || v.subj || '공부'; row(k).min += m; segs.push([v.s, v.e, k]); }
+    for (const it of myS().items) for (const [k, g] of Object.entries(it.log || {})) {
+      if (!(k === d || (k === nd && g.at < b)) || !g.n || it.unit === '건') continue;
+      const r = row(it.book); r.n += g.n; r.w += (g.w || []).length; r.cls = myCls(it.cls).name;
+    }
+    const list = Object.values(rows).filter((r) => r.min >= 1 || r.n).sort((x, y) => (y.n ? 1 : 0) - (x.n ? 1 : 0) || y.min - x.min);
+    segs.sort((x, y) => x[0] - y[0]);
+    return { d, list, segs, min: segs.reduce((t, [s0, e0]) => t + (e0 - s0) / 6e4, 0), n: list.reduce((t, r) => t + r.n, 0), w: list.reduce((t, r) => t + r.w, 0) };
+  }
+  // 그 책을 지난 2주 동안 한 문제에 몇 분씩 풀었는지 (시간도 재고 문제 수도 적은 날만)
+  function drPace(book, before) {
+    let m = 0, n = 0; const x = new Date(before + 'T12:00:00');
+    for (let i = 1; i <= 14; i++) { x.setDate(x.getDate() - 1); const r = drStat(fmtDay(x)).list.find((y) => y.book === book); if (r && r.n && r.min >= 1) { m += r.min; n += r.n; } }
+    return n ? m / n : 0;
+  }
+  const drClock = (t) => { const x = new Date(t), h = x.getHours(), mm = String(x.getMinutes()).padStart(2, '0'); return h < 5 ? `새벽 ${h || 12}:${mm}` : h < 12 ? `오전 ${h}:${mm}` : `${h === 12 ? 12 : h - 12}:${mm}`; };
+  function drNotes(st) {
+    const out = [], done = st.list.filter((r) => r.n && r.min >= 1);
+    const top = [...st.list].sort((x, y) => y.n - x.n)[0];
+    if (top && top.n) out.push(['muscle', `<b>${esc(top.book)}</b> ${top.n}문제를 풀었어요. 그날 가장 많이 푼 책이에요`]);
+    // 느렸던 책: 평소보다 1.4배, 평소 기록이 없으면 같은 학원 다른 책들 평균보다 1.5배 (학원마다 하나만)
+    const seen = {};
+    for (const r of [...done].sort((x, y) => y.min / y.n - x.min / x.n)) {
+      if (r.n < 5 || r.min < 30 || seen[r.cls]) continue; const pc = r.min / r.n, avg = drPace(r.book, st.d);
+      const mates = done.filter((y) => y !== r && y.cls === r.cls), mm = mates.reduce((t, y) => t + y.min, 0), mn = mates.reduce((t, y) => t + y.n, 0);
+      if (avg && pc >= avg * 1.4) { seen[r.cls] = 1; out.push(['think', `<b>${esc(r.book)}</b>은 한 문제에 ${fmt1(pc)}분 걸렸어요. 평소 ${fmt1(avg)}분보다 오래 걸렸어요. 막힌 문제가 있었으면 표시해 두고 수업 때 물어봐요`]); }
+      else if (!avg && mn && pc >= (mm / mn) * 1.5) { seen[r.cls] = 1; out.push(['think', `<b>${esc(r.book)}</b>은 한 문제에 ${fmt1(pc)}분 걸렸어요. ${mates.length > 1 ? `같은 학원 다른 책은 ${fmt1(mm / mn)}분` : `<b>${esc(mates[0].book)}</b>은 ${fmt1(mm / mn)}분`}이었어요. 막힌 문제가 있었으면 표시해 두고 수업 때 물어봐요`]); }
+    }
+    if (st.n >= 20 && !st.w) out.push(['pencil', `${st.n}문제를 풀었는데 틀린 번호가 하나도 안 적혔어요. 채점하고 틀린 번호를 적어야 오답에 모여요`]);
+    const end = st.segs.length ? Math.max(...st.segs.map((x) => x[1])) : 0, [, b] = drSpan(st.d);
+    if (end && end - (b - 5 * 36e5) > 30 * 6e4) out.push(['clock', `${drClock(end)}에 끝났어요. 오늘은 조금 일찍 시작해 볼까요?`]);
+    // 가장 가까운 마감까지 남은 양을 지금 속도로
+    const td = today(), due = myS().items.filter((it) => it.unit !== '건' && it.total && it.due >= td && !it.done).map((it) => ({ it, left: it.total - Object.values(it.log || {}).reduce((t, g) => t + (g.n || 0), 0) })).filter((x) => x.left > 0);
+    const near = due.map((x) => x.it.due).sort()[0];
+    if (near) {
+      const rows = due.filter((x) => x.it.due === near); let mins = 0, known = 0;
+      for (const x of rows) { const r = st.list.find((y) => y.book === x.it.book), pc = r && r.n && r.min >= 1 ? r.min / r.n : drPace(x.it.book, drNext(st.d)); if (pc) { mins += pc * x.left; known++; } }
+      const days = Math.round((new Date(near + 'T12:00:00') - new Date(td + 'T12:00:00')) / 864e5) + 1;
+      if (known && days > 0) out.push(['cal', `${md(near)} ${wdOf(near)}요일 마감까지 ${rows.reduce((t, x) => t + x.left, 0)}문제 남았어요. 지금 속도면 ${hm(mins)}, 하루 <b>${hm(mins / days)}</b>씩이에요`]);
+    }
+    return out;
+  }
+  const drSeen = () => { try { return PST.getItem(DR_KEY); } catch (e) { return null; } };
+  // 연 뒤에도 그날 하루는 홈에 남아요. 처음엔 「띵동!」으로 흔들리고, 열어 본 뒤엔 조용히 「다시 보기」 (11/4 «하루 종일 다시 볼 수 있게»)
+  function drHome() {
+    if (TUTOR) return ''; const d = drDay(), seen = drSeen() === d;
+    const st = drStat(d); if (st.min < 10 && !st.n) return '';
+    const cw = (S.dr || {})[d];
+    return `<section class="card c12 gift-card dr-card ${seen ? 'seen' : ''}"><span class="gift-ic">${ic('love')}</span><div class="body"><span class="eyebrow">${seen ? `${md(d)} ${wdOf(d)}요일 리포트` : '띵동!'}</span><b>${seen ? esc(cw && cw.head ? cw.head : '어제 공부 리포트') : '어제 공부 리포트가 도착했어요'}</b><span class="tiny">${seen ? '' : `${md(d)} ${wdOf(d)}요일 · `}${hm(st.min)} 공부${st.n ? ` · ${st.n}문제` : ''}</span></div><button class="btn ${seen ? '' : 'primary'}" type="button" data-dropen>${seen ? '다시 보기' : '열어 보기'}</button></section>`;
+  }
+  function drOpen(d = drDay()) {
+    try { PST.setItem(DR_KEY, d); } catch (e) {}
+    const st = drStat(d), mx = Math.max(1, ...st.list.map((r) => r.min));
+    const t0 = st.segs.length ? Math.floor(new Date(st.segs[0][0]).setMinutes(0, 0, 0)) : 0, t1 = st.segs.length ? Math.max(...st.segs.map((x) => x[1])) : 0, span = Math.max(36e5, Math.ceil((t1 - t0) / 36e5) * 36e5);
+    const hrs = []; for (let t = t0; t <= t0 + span; t += 36e5 * (span > 8 * 36e5 ? 3 : 2)) hrs.push(t);
+    // 아침마다 Claude 가 쓴 분석(scripts/daily-report.py → S.dr[날짜])이 있으면 그걸, 없으면 규칙으로 만든 짧은 글
+    const cw = (S.dr || {})[d], bOnly = (t) => esc(String(t)).replace(/&lt;(\/?)b&gt;/g, '<$1b>');
+    const notes = cw && (cw.notes || []).length ? cw.notes.map(([k, t]) => [IC[k] ? k : 'think', bOnly(t)]) : drNotes(st);
+    sheet(`<div class="dr">
+      <div class="dr-hd"><span class="dr-env">${ic('love')}</span><span class="tiny">${md(d)} ${wdOf(d)}요일 리포트</span><h2><b class="num" data-drcount="${Math.round(st.min)}">0분</b> 공부했어요</h2><p class="sub">${st.segs.length ? `${drClock(st.segs[0][0])} 시작 · ${drClock(t1)} 끝` : '시간을 잰 공부가 없어요'}${st.n ? ` · 문제 ${st.n}개` : ''}</p></div>
+      ${st.segs.length ? `<div class="dr-tl"><div class="dr-bar">${st.segs.map(([a, b]) => `<i style="left:${((a - t0) / span) * 100}%;width:${Math.max(0.6, ((b - a) / span) * 100)}%"></i>`).join('')}</div><div class="dr-hrs">${hrs.map((t) => `<span style="left:${((t - t0) / span) * 100}%">${drClock(t).replace(/:00$/, '시').replace(/^(\d+)시$/, '$1시')}</span>`).join('')}</div></div>` : ''}
+      <h3 class="dr-h">한 것</h3>
+      <div class="dr-rows">${st.list.map((r, i) => `<div class="dr-row" style="--i:${i}"><div class="dr-t"><b>${esc(r.book)}</b><span class="tiny">${esc(r.cls || '')}</span></div><div class="dr-v"><span class="num">${r.n ? `${r.n}문제` : ''}</span><span class="num">${r.min >= 1 ? hm(r.min) : '시간 안 잼'}</span>${r.n && r.min >= 1 ? `<em class="num">한 문제 ${fmt1(r.min / r.n)}분</em>` : ''}</div><div class="dr-m"><i style="width:${(r.min / mx) * 100}%"></i></div></div>`).join('')}</div>
+      ${notes.length ? `<h3 class="dr-h">${cw && cw.head ? esc(cw.head) : '짚어 볼 것'}</h3><div class="dr-notes">${notes.map(([k, t], i) => `<div class="dr-note" style="--i:${i + st.list.length}">${ic(k)}<span>${t}</span></div>`).join('')}</div>` : ''}
+      <button class="btn primary big block" type="button" id="dr-ok">확인했어요</button></div>`, (el, close) => {
+      $('#dr-ok', el).onclick = () => { close(); sheet.dirty = true; };
+      const c = $('[data-drcount]', el), to = +c.dataset.drcount, s0 = performance.now();
+      const step = (t) => { const k = RM() ? 1 : Math.min(1, (t - s0) / 900), e = 1 - Math.pow(1 - k, 3); c.textContent = hm(to * e); if (k < 1) requestAnimationFrame(step); };
+      requestAnimationFrame(step); sheet.dirty = true;
+    });
+  }
   // 지난날 멈춰 둔 시간 재기는 그날 공부로 닫아요 (11/4 정윤 «오늘 안 했는데 이렇게 돼 있어»: 어제 멈춘 129:06 이 오늘 숙제 옆에 떠 있었어요)
   function pCloseOld() {
     const dOf = (t) => fmtDay(new Date(t + DAY_OFF() * 864e5));
@@ -6338,7 +6420,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040729'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611040955'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
