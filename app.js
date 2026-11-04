@@ -2228,7 +2228,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611041414', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611041417', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4097,7 +4097,7 @@
       if (p !== 'granted') { toast('알림이 꺼져 있어요. 설정 앱 → 알림 → ' + BRAND + '에서 켤 수 있어요'); render(); return; }
       await pushEnsure(true);
       const reg = await navigator.serviceWorker.ready;
-      reg.showNotification(`${BRAND} 알림이 켜졌어요`, { body: ROLE_T && !PEEK ? '밤마다 학생들 남은 할 일을 모아서 알려 줄게요' : '할 일이 남았을 때, 리포트가 왔을 때 알려 줄게요', icon: aiSrc(), tag: 'on' });
+      reg.showNotification('알림이 켜졌어요', { body: ROLE_T && !PEEK ? '학생 쪽지랑 밤마다 학생들 남은 할 일을 알려 줄게요' : '선생님 쪽지, 새 숙제, 선물, 남은 할 일을 알려 줄게요', icon: aiSrc(), tag: 'on' });
       toast('알림을 켰어요'); render();
     } catch (e) { toast('알림을 켜지 못했어요. 잠시 뒤 다시 눌러 주세요'); }
   }
@@ -6535,7 +6535,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041414'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041417'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
