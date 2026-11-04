@@ -2228,7 +2228,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611041712', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611041717', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4178,12 +4178,14 @@
   // 손가락으로 눌러 바뀔 때 시스템 진동이 나서, 단추마다 투명 label+숨긴 스위치를 덮어요 (Peel motion.js 와 같은 방식, ios-haptics).
   // 스크립트로 누르는 건 iOS 26.5 부터 막혀서 꼭 덮개여야 해요. 안에 다른 단추·입력칸이 있는 것은 덮지 않아요
   const HAP_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const HAP_SEL = '.tabbar button, .tabbar a, .btn, .seg > button, .chip, .tab-btn';
+  // 11/4 «위에 탭을 눌러도 햅틱이 안 돼, 누르는 곳은 다 햅틱» → 누르는 것 전부: 단추·버튼 역할·누를 수 있는 카드·줄
+  // 빼는 것: 링크(a href)·접기(summary)·제출 단추 (label 이 그 기본 동작을 가로채요), 안에 입력칸·단추가 있는 것, 그리기 판
+  const HAP_SEL = 'button, [role="button"], [data-tab], .card.link, .li.btnlike, .lib-it, .pk-it, .cal-next, .st-u, .st-step, .m3w-i, .yc-d, .hcal-d, .pr-rv, .cal-d, .more, .tv-b, .chip';
   function hapWire() {
     if (!HAP_IOS) return;
     document.querySelectorAll(HAP_SEL).forEach((el) => {
-      if (el.hapOn || el.disabled || el.querySelector('input, textarea, select, button, a, [data-haptic]')) return;
-      el.hapOn = 1;
+      if (el.querySelector(':scope > [data-haptic]') || el.disabled || el.closest('a[href], summary, label, [contenteditable], [data-nohap]') || (el.type === 'submit' && el.form) || el.querySelector('input, textarea, select, button, a, label, summary, [data-haptic]')) return;
+      if (getComputedStyle(el).display === 'contents') return;
       const l = document.createElement('label'); l.setAttribute('data-haptic', ''); l.setAttribute('aria-hidden', 'true');
       l.style.cssText = 'position:absolute;inset:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent;border-radius:inherit;z-index:1';
       const sw = document.createElement('input'); sw.type = 'checkbox'; sw.setAttribute('switch', ''); sw.tabIndex = -1;
@@ -6616,7 +6618,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041712'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041717'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
