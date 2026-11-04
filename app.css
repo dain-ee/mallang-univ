@@ -3839,3 +3839,12 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 /* 듀오 접은 화면: 오른쪽 84px 칸은 사파리 상태 막대 자리라 앱이 그릴 수 없어요. 사파리는 오른쪽 끝 고정 요소 색을 따서 그 칸을 칠하니, 8px 띠를 배경색으로 깔아 앱과 이어 보이게 해요 (fold-ready 실측) */
 .rail-tint { display: none; }
 @media (pointer: coarse) { .rail-tint { display: block; position: fixed; top: 0; right: 0; bottom: 0; width: 8px; background: var(--bg); pointer-events: none; z-index: 49; } }
+/* 펼친 듀오(951)처럼 900~1279 폭: 학생은 위 메뉴가 10개라 오른쪽 돈·내 단추가 잘렸어요 (11/4). 메뉴 글씨를 줄이고, 넘치면 메뉴만 옆으로 밀려요 */
+@media (min-width: 900px) and (max-width: 1279px) {
+  .top-in { padding: 0 20px; gap: 10px; }
+  .top-in > *:not(.tabs) { flex: none; }
+  .tabs { margin-left: 0; gap: 0; min-width: 0; flex: 0 1 auto; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs button { flex: none; padding: 8px 10px; font-size: 14px; }
+}
+@media (min-width: 900px) and (max-width: 1099px) { .brand span { display: none; } }
