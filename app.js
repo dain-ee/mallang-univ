@@ -2228,7 +2228,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611041717', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611041719', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3094,21 +3094,14 @@
     const tm = (t) => new Date(t).toTimeString().slice(0, 5), hmm = (m) => (m ? `${Math.floor(m / 60)}:${String(Math.round(m % 60)).padStart(2, '0')}` : '');
     const sel = D7.includes(UI.ttDay) ? UI.ttDay : D7.includes(today()) && dayB(today()).length ? today() : [...D7].reverse().find((d) => dayB(d).length) || (D7.includes(today()) ? today() : w0);
     const nm = (b) => (b.t === '앱' ? b.k : `${b.t}${b.ti ? ' · ' + b.ti : ''}`);
+    // 하루 칸 배치: 시간은 세로로만. 짧은 칸도 글자가 보이게 20px, 앞 칸과 겹치면 그 밑에서 시작해요
+    // 11/4 «2시 넘어서 깨지는 문제» → 밤늦게 몰린 짧은 기록이 밀려 칸 밖으로 넘쳤어요. 넘치면 시간 줄을 아래로 늘려서 칸 안에 담아요 (옆으로 나누기는 «말이 안 되지»로 되돌림)
+    const tvLay = (L) => { let bot = -99; return L.map((b) => { const y0 = Y(b, b.s); let y = y0, h = Math.max(20, Y(b, b.e) - y0); if (y < bot + 2) { y = bot + 2; h = Math.max(20, h - (y - y0)); } bot = y + h; return { b, y, h, i: 0, n: 1 }; }); };
+    const lastBot = () => Math.max(0, ...D7.map((d) => { const r = tvLay(dayB(d)); return r.length ? r[r.length - 1].y + r[r.length - 1].h : 0; }));
+    for (let k = 0; k < 6 && lastBot() > (h1 - h0) * PH - 2; k++) h1++;
     const hrs = []; for (let h = h0; h <= h1; h++) hrs.push(h);
-    // 하루 칸 배치: 제 시각 자리에 두고(밀어 내리지 않아요), 글자가 보이게 최소 18px. 겹치는 무리는 줄을 나눠 옆으로 앉혀요 (구글 캘린더처럼)
-    const tvLay = (L) => {
-      const H = (h1 - h0) * PH, out = []; let cl = [], end = -1;
-      const fin = () => { const lanes = []; for (const r of cl) { let i = lanes.findIndex((bot) => bot <= r.y + .5); if (i < 0) { i = lanes.length; lanes.push(0); } lanes[i] = r.y + r.h; r.i = i; } for (const r of cl) { r.n = lanes.length; out.push(r); } cl = []; };
-      for (const b of L) {
-        const h = Math.max(18, Y(b, b.e) - Y(b, b.s)), y = Math.max(0, Math.min(Y(b, b.s), H - h));
-        if (cl.length && y >= end - .5) fin();
-        cl.push({ b, y, h }); end = Math.max(cl.length > 1 ? end : 0, y + h);
-      }
-      if (cl.length) fin();
-      return out;
-    };
     const cols = D7.map((d) => { const L = dayB(d), m = dayM(d), fut = d > today(); 
-      return `<div class="tv-col ${d === sel ? 'on' : ''} ${d === today() ? 'today' : ''} ${fut ? 'fut' : ''}"><button type="button" class="tv-dh" data-ttd="${d}" ${fut ? 'disabled' : ''}><b>${DOW[dowOf(d)]}</b><span>${+d.slice(8)}</span><em class="num">${m ? hmm(m) : ''}</em></button><div class="tv-body" style="height:${(h1 - h0) * PH}px">${tvLay(L).map(({ b, y, h, i, n }) => { /* 11/4 «왤케 겹쳐» → 밀어 내리니 칸 밖으로 넘쳤어요(«이렇게 되는 거 고쳐야 할 듯») → 겹치면 옆으로 나눠 앉혀요 */ return `<button type="button" class="tv-b ${b.t === '앱' ? 'app' : ''} ${b.live ? 'live' : ''}" data-ttd="${d}" style="top:${y.toFixed(1)}px;height:${h.toFixed(1)}px;left:calc(3px + (100% - 6px) * ${i} / ${n});right:auto;width:calc((100% - 6px) / ${n} - ${n > 1 ? 2 : 0}px);--c:${SR_C[b.t] || SR_C.자유}" data-tip="${esc(`${tm(b.s)} ~ ${b.live ? '지금' : tm(b.e)} · ${srMinT((b.e - b.s) / 60000)}|${nm(b)}|${b.t === '앱' ? '앱에서 문제를 푼 시간 · 저절로 남아요' : b.k}`)}"><span>${esc(b.t === '앱' ? '앱 문제' : b.ti || b.t)} <b class="num">${srMinT((b.e - b.s) / 60000)}</b></span></button>`; }).join('')}</div></div>`; }).join('');
+      return `<div class="tv-col ${d === sel ? 'on' : ''} ${d === today() ? 'today' : ''} ${fut ? 'fut' : ''}"><button type="button" class="tv-dh" data-ttd="${d}" ${fut ? 'disabled' : ''}><b>${DOW[dowOf(d)]}</b><span>${+d.slice(8)}</span><em class="num">${m ? hmm(m) : ''}</em></button><div class="tv-body" style="height:${(h1 - h0) * PH}px">${tvLay(L).map(({ b, y, h, i, n }) => { /* 배치는 tvLay */ return `<button type="button" class="tv-b ${b.t === '앱' ? 'app' : ''} ${b.live ? 'live' : ''}" data-ttd="${d}" style="top:${y.toFixed(1)}px;height:${h.toFixed(1)}px;left:calc(3px + (100% - 6px) * ${i} / ${n});right:auto;width:calc((100% - 6px) / ${n} - ${n > 1 ? 2 : 0}px);--c:${SR_C[b.t] || SR_C.자유}" data-tip="${esc(`${tm(b.s)} ~ ${b.live ? '지금' : tm(b.e)} · ${srMinT((b.e - b.s) / 60000)}|${nm(b)}|${b.t === '앱' ? '앱에서 문제를 푼 시간 · 저절로 남아요' : b.k}`)}"><span>${esc(b.t === '앱' ? '앱 문제' : b.ti || b.t)} <b class="num">${srMinT((b.e - b.s) / 60000)}</b></span></button>`; }).join('')}</div></div>`; }).join('');
     const SL = dayB(sel), sm = dayM(sel);
     // 11/3 정윤 «시간 끄는 거 착각해서 시간 늘어났는데 못 빼나» → 잰 시간은 줄마다 고치기(시작·끝 시각, 지우기)
     const canEd = (b) => b.id && !b.live && b.t !== '앱' && !TEACHER;
@@ -6618,7 +6611,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041717'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041719'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
