@@ -2228,7 +2228,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611042230', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611042238', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5490,7 +5490,7 @@
       const areas = Object.entries(by).sort((a, b) => a[1][0] / a[1][1] - b[1][0] / b[1][1]);
       const bars = areas.length > 1 ? `<div class="nx-areas"><div class="eyebrow">영역별로 맞힌 비율</div><div class="sw-chart">${areas.slice(0, 8).map(([c, [o, t]]) => `<div class="sw-row"><span class="sw-n">${esc(c)}</span><div class="sw-track"><div class="sw-bar" style="width:100%;background:var(--fill)"><i style="width:${(o / t) * 100}%;background:${o === t ? 'var(--blue)' : o / t >= 0.6 ? 'var(--blue-l)' : 'var(--red)'}"></i></div></div><span class="sw-v num"><b>${o}</b> / ${t}</span></div>`).join('')}</div></div>` : '';
       const wr = qs.filter((q) => !store[q.i].ok).length, sc = Math.round((ok / n) * 100);
-      return `<div class="nx-wrap">${nxTop(s, n, n, sub, 1)}${doneCard(ok, n, `<b class="nx-score num">${sc}점</b>${tm ? ` · 걸린 시간 ${tm}` : ''}${wr && !r.tmp ? ' · 틀린 문제는 오답 노트에 들어갔어요' : ''}`, (() => { const hwRun = r.back === 'study' && UI.stOnly, back = r.back === 'hw' ? '숙제로' : hwRun ? (UI.stOnly.endsWith(':run') ? '숙제 목록으로' : '이어서 하기 ›') : r.back === 'study' ? '공부로' : '시험으로';  // 11/4 숙제에서 연 문제는 끝나면 숙제로 (이어서 = 같은 숙제의 다음 칸, 다 했으면 결과 카드)  // 단추는 큰 것 하나 + 작은 글자 단추만 (10/31 «뭐가 이렇게 버튼이 많냐»)
+      return `<div class="nx-wrap">${nxTop(s, n, n, sub, 1)}${doneCard(ok, n, `<b class="nx-score num">${sc}점</b>${tm ? ` · 걸린 시간 ${tm}` : ''}${wr && !r.tmp ? ' · 틀린 문제는 오답 노트에 들어갔어요' : ''}`, (() => { const hwRun = r.back === 'study' && UI.stOnly, back = r.back === 'hw' ? '숙제 목록으로' : hwRun ? (UI.stOnly.endsWith(':run') ? '숙제 목록으로' : '이어서 하기 ›') : r.back === 'study' ? '공부로' : '시험으로';  // 11/4 숙제에서 연 문제는 끝나면 숙제로 (이어서 = 같은 숙제의 다음 칸, 다 했으면 결과 카드)  // 단추는 큰 것 하나 + 작은 글자 단추만 (10/31 «뭐가 이렇게 버튼이 많냐»)
         // 숙제로 연 단원(국어·역사·과학·영어·매3영 다 같음)의 한 칸을 끝내면: 같은 숙제의 다음 칸으로 바로, 다 했으면 「숙제 마무리」 → 결과 카드 (11/4 «역사 국어 과학 다른 영어 다 마찬가지»)
         const hl = hwRun && !UI.stOnly.endsWith(':run') ? (() => { const at = UI.stOnly.lastIndexOf(':'), hu = NXU[UI.stOnly.slice(0, at)], L = hu && stLessons(hu).find((x) => 'L' + x.k === UI.stOnly.slice(at + 1)); if (!L) return null;
           const nx = [L.c, L.q].find((id) => id && id !== s.id && NXSETS[id] && NXSETS[id].qs.some((q) => !nxS().a[q.i]));
@@ -5583,7 +5583,7 @@
       const ok = W.filter((q) => !(x.wd[`${m}:${q.w.id}`] || {}).w).length;
       nxFinish(s, ok, W.length);
       const st = x.st[s.id] || {}, tm = nxTime((st.fin || 0) - (st.t0 || 0));
-      return `<div class="nx-wrap">${nxTop(s, got, W.length, sub, 1)}${doneCard(ok, W.length, `${W.length}개 다 외웠어요${tm ? ` · 걸린 시간 ${tm}` : ''} · 한 번에 맞힌 단어 ${ok}개`, `<button class="btn primary big block" data-nxre type="button">처음부터 한 판 더</button><button class="btn big block" data-go="wrong" type="button">오답 노트로</button><button class="btn big block" data-nxexit type="button">${r.back === 'hw' ? '숙제로' : r.back === 'study' ? '공부로' : '시험으로'}</button>`)}</div>`;
+      return `<div class="nx-wrap">${nxTop(s, got, W.length, sub, 1)}${doneCard(ok, W.length, `${W.length}개 다 외웠어요${tm ? ` · 걸린 시간 ${tm}` : ''} · 한 번에 맞힌 단어 ${ok}개`, `<button class="btn primary big block" data-nxre type="button">처음부터 한 판 더</button><button class="btn big block" data-go="wrong" type="button">오답 노트로</button><button class="btn big block" data-nxexit type="button">${r.back === 'hw' ? '숙제 목록으로' : r.back === 'study' ? '공부로' : '시험으로'}</button>`)}</div>`;
     }
     const id = r.phase === 'wrong' ? r.last : r.q[0], q = NXQ[id] ? NXQ[id].q : null;
     if (!q) { r.q = null; return nxwRun(); }
@@ -6295,7 +6295,7 @@
     const head = `<div class="row between"><button class="btn sm" ${r.back ? 'data-wqback' : 'data-go="hw"'} type="button">‹ ${r.back ? 'Day 목록' : '숙제'}</button><span class="tiny">${esc(r.title)}</span></div>`;
     if (r.stage === 'list') return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<h1 class="h1">단어 ${M.length}개</h1><p class="sub">한 번 훑고 바로 시험 봐요${r.sub ? ` · ${esc(r.sub)}` : ''}</p><div class="card wq-tb ${r.hide ? 'wq-cover' : ''} ${r.hAnim || ''}"><div class="row between"><b>뜻 ${r.hide ? '가리고 외우기' : '보며 외우기'}</b><button class="btn sm ${r.hide ? '' : 'primary'}" data-wqhide type="button">${r.hide ? '모두 보기' : '가리기'}</button></div><table class="tbl"><tbody>${M.map((w, k) => `<tr><td class="num muted" style="width:28px">${k + 1}</td><td><b style="font-size:16px">${esc(w.en)}</b> <span class="tiny">${esc(w.pos || '')}</span></td><td class="wq-ko" data-wqpeel style="--i:${Math.min(k, 24)}"><span>${esc(w.ko)}</span></td></tr>`).join('')}</tbody></table></div><div class="cta-bar"><button class="btn primary big block" data-wqgo type="button">시험 보기</button></div></div>`;
     if (r.k >= r.Q.length) { const ok = M.length - r.miss.length;
-      return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${doneCard(ok, M.length, r.miss.length ? '단어 시험 끝! 틀린 단어는 다시 맞힐 때까지 풀었고 오답 노트에 들어갔어요' : '단어 시험 끝! 한 번에 다 맞혔어요', `<button class="btn primary big block" ${r.back ? 'data-wqback' : 'data-go="hw"'} type="button">${r.back ? 'Day 목록으로' : '숙제로'}</button>`, `<div class="list done-list">${M.map((w) => `<div class="li"><div class="ico">${ic(r.miss.includes(w.en) ? 'x' : 'ok')}</div><div class="body"><div class="t">${esc(w.en)}</div><div class="d">${esc(w.ko)}</div></div></div>`).join('')}</div>`)}</div>`; }
+      return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${doneCard(ok, M.length, r.miss.length ? '단어 시험 끝! 틀린 단어는 다시 맞힐 때까지 풀었고 오답 노트에 들어갔어요' : '단어 시험 끝! 한 번에 다 맞혔어요', `<button class="btn primary big block" ${r.back ? 'data-wqback' : 'data-go="hw"'} type="button">${r.back ? 'Day 목록으로' : '숙제 목록으로 ›'}</button>`, `<div class="list done-list">${M.map((w) => `<div class="li"><div class="ico">${ic(r.miss.includes(w.en) ? 'x' : 'ok')}</div><div class="body"><div class="t">${esc(w.en)}</div><div class="d">${esc(w.ko)}</div></div></div>`).join('')}</div>`)}</div>`; }
     const w = M[r.Q[r.k]];
     if (!r.ch) { const P = wqPool().filter((x) => x.ko !== w.ko), near = P.filter((x) => x.day === w.day).sort(() => Math.random() - 0.5); r.ch = [w.ko, ...[...near, ...P.filter((x) => x.day !== w.day).sort(() => Math.random() - 0.5)].slice(0, 3).map((x) => x.ko)].sort(() => Math.random() - 0.5); }
     // 11/4 «전체 보기를 하든 해서 문제를 고를 수 있어야»: 점을 눌러도, 「전체 보기」로 번호를 눌러도 그 문제로 가요
@@ -6626,7 +6626,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611042230'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611042238'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7758,7 +7758,7 @@
     if (k.startsWith('pp:ch:')) { const i = CH_UNITS.findIndex((x) => String(x.unit) === k.slice(6)); if (i < 0) return; UI.tab = 'hw'; UI.run = { kind: 'unit', ref: i, back: 'hw' }; render(); window.scrollTo(0, 0); return; }
     if (k.startsWith('pp:memo:')) return memoReview(k.slice(8));
     if (k.startsWith('pp:wm:')) { const it = YP.find((x) => x.id === k); if (it) wqGo({ title: it.title, sub: `${md(it.test)} 단어 시험 준비`, M: it.words.map((w) => ({ en: w.en, ko: w.ko, day: w.day })), key: 'wm:' + k.slice(6), store: 'nx' }); return; }
-    if (k.startsWith('yp:') || k.startsWith('pp:')) { const ys = NXSETS[k]; if (ys && ys.nav) { const u = NXU[ys.unit]; UI.stS = u.subj; UI.stU = u.id; UI.stT = ys.nav; UI.stP = ys.rv ? 'n' : null; UI.stV = 'unit'; go('study'); UI.stOnly = u.id + ':' + ys.nav; UI.m3rv = ys.rv ? ys.qs[0].i : null; render(); const m = $('.st-main'); if (m) m.scrollIntoView({ block: 'start' }); return; } { const ys = NXSETS[k]; const uu = ys && NXU[ys.unit]; nxStart(k, 'study'); if (uu) { UI.stOnly = `${uu.id}:run`; render(); } return; } }
+    if (k.startsWith('yp:') || k.startsWith('pp:')) { const ys = NXSETS[k]; if (ys && ys.nav) { const u = NXU[ys.unit]; UI.stS = u.subj; UI.stU = u.id; UI.stT = ys.nav; UI.stP = ys.rv ? 'n' : null; UI.stV = 'unit'; go('study'); UI.stOnly = u.id + ':' + ys.nav; UI.m3rv = ys.rv ? ys.qs[0].i : null; render(); const m = $('.st-main'); if (m) m.scrollIntoView({ block: 'start' }); return; } { const ys = NXSETS[k]; const uu = ys && NXU[ys.unit]; UI.stOnly = null; nxStart(k, uu ? 'study' : 'hw'); if (uu) { UI.stOnly = `${uu.id}:run`; render(); } return; }  /* 단원 없는 숙제(천일문 복습 같은 것)도 끝나면 숙제 목록으로 (11/4) */ }
     if (k.startsWith('study:')) { UI.stS = k.slice(6); UI.stU = null; return go('study'); }
     if (k === 'sci') { UI.tab = 'hw'; UI.run = { kind: 'sci' }; }
     else if (k === 'unit') { UI.tab = 'hw'; UI.run = { kind: 'unit' }; }
