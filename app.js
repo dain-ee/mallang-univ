@@ -2228,7 +2228,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611041527', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611041547', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4140,12 +4140,33 @@
       const pr = document.createElement('div'); pr.style.cssText = 'position:fixed;visibility:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)'; document.body.appendChild(pr);
       const cs = getComputedStyle(pr), vv = window.visualViewport || {}, de = document.documentElement, tb = document.querySelector('.tabbar'), tr = tb ? tb.getBoundingClientRect() : {};
       const v = { at: Date.now(), sa: STANDALONE, ua: navigator.userAgent.slice(0, 160), dpr: devicePixelRatio, screen: [screen.width, screen.height], inner: [innerWidth, innerHeight], client: [de.clientWidth, de.clientHeight], vv: [Math.round(vv.width), Math.round(vv.height), vv.scale, Math.round(vv.offsetLeft || 0), Math.round(vv.offsetTop || 0)], safe: [cs.paddingTop, cs.paddingRight, cs.paddingBottom, cs.paddingLeft], tab: [Math.round(tr.left || 0), Math.round(tr.right || 0), Math.round(tr.top || 0), Math.round(tr.bottom || 0)], meta: (document.querySelector('meta[name=viewport]') || {}).content };
-      pr.remove(); TP.vp = { ...(TP.vp || {}), [devId]: v }; tSave();
+      pr.remove(); TP.vp = { ...(TP.vp || {}), [devId + ':' + innerWidth]: v }; tSave();
     } catch (e) {}
   }
   setTimeout(vpLog, 4000); addEventListener('resize', () => { clearTimeout(vpLog.t); vpLog.t = setTimeout(vpLog, 1500); });
   setTimeout(() => pushEnsure().catch(() => {}), 9000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(() => pushEnsure().catch(() => {}), 3000); });
+  // 햅틱 (11/4 «햅틱도 넣었어?»): 아이폰은 navigator.vibrate 가 없어요. 사파리 17.4+ 의 스위치(<input type=checkbox switch>)는
+  // 손가락으로 눌러 바뀔 때 시스템 진동이 나서, 단추마다 투명 label+숨긴 스위치를 덮어요 (Peel motion.js 와 같은 방식, ios-haptics).
+  // 스크립트로 누르는 건 iOS 26.5 부터 막혀서 꼭 덮개여야 해요. 안에 다른 단추·입력칸이 있는 것은 덮지 않아요
+  const HAP_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const HAP_SEL = '.tabbar button, .tabbar a, .btn, .seg > button, .chip, .tab-btn';
+  function hapWire() {
+    if (!HAP_IOS) return;
+    document.querySelectorAll(HAP_SEL).forEach((el) => {
+      if (el.hapOn || el.disabled || el.querySelector('input, textarea, select, button, a, [data-haptic]')) return;
+      el.hapOn = 1;
+      const l = document.createElement('label'); l.setAttribute('data-haptic', ''); l.setAttribute('aria-hidden', 'true');
+      l.style.cssText = 'position:absolute;inset:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent;border-radius:inherit;z-index:1';
+      const sw = document.createElement('input'); sw.type = 'checkbox'; sw.setAttribute('switch', ''); sw.tabIndex = -1;
+      sw.style.cssText = 'position:absolute;width:1px;height:1px;margin:0;visibility:hidden';
+      sw.addEventListener('click', (e) => e.stopPropagation());
+      l.appendChild(sw);
+      if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+      el.appendChild(l);
+    });
+  }
+  if (HAP_IOS) new MutationObserver(() => { cancelAnimationFrame(hapWire.r); hapWire.r = requestAnimationFrame(hapWire); }).observe(document.body, { childList: true, subtree: true });
   const drSeen = () => { try { return PST.getItem(DR_KEY); } catch (e) { return null; } };
   // 연 뒤에도 그날 하루는 홈에 남아요. 처음엔 「띵동!」으로 흔들리고, 열어 본 뒤엔 조용히 「다시 보기」 (11/4 «하루 종일 다시 볼 수 있게»)
   function drHome() {
@@ -6567,7 +6588,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041527'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041547'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

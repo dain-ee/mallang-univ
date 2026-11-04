@@ -2,6 +2,7 @@
   "name": "말랑대학",
   "short_name": "말랑대학",
   "display": "standalone",
+  "scope": "./",
   "background_color": "#f2f4f6",
   "theme_color": "#f2f4f6",
   "icons": [
