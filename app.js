@@ -2217,7 +2217,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611041349', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611041404', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4035,20 +4035,20 @@
       return `<section class="card c12 gift-card app-card"><span class="gift-ic"><img class="app-ic" src="${aiSrc()}" alt=""></span><div class="body"><span class="eyebrow">띵동!</span><b>알림을 켜 볼까요?</b><span class="tiny">${ROLE_T && !PEEK ? '밤마다 학생들 남은 할 일을 모아서 알려 줘요' : '할 일이 남았을 때, 리포트가 왔을 때 알려 줘요'}</span></div><button class="btn primary" type="button" data-pushon>알림 켜기</button></section>`;
     }
     if (aiHidden()) return '';
-    return `<section class="card c12 gift-card app-card"><span class="gift-ic"><img class="app-ic" src="${aiSrc()}" alt=""></span><div class="body"><span class="eyebrow">띵동!</span><b>핸드폰·아이패드에 앱으로 깔 수 있어요!</b><span class="tiny">홈 화면에 ${esc(BRAND)} 아이콘이 생기고 숙제 알림도 받아요</span></div><button class="btn primary" type="button" data-appopen>방법 보기</button></section>`;
+    return `<section class="card c12 gift-card app-card"><span class="gift-ic"><img class="app-ic" src="${aiSrc()}" alt=""></span><div class="body"><span class="eyebrow">띵동!</span><b>앱으로 깔 수 있어요!</b><span class="tiny">핸드폰·아이패드 홈 화면에 ${esc(BRAND)} 아이콘이 생기고 숙제 알림도 받아요</span></div><button class="btn primary" type="button" data-appopen>방법 보기</button></section>`;
   }
   const SHARE_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" fill="none" stroke="#3182f6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 10H6.5A1.5 1.5 0 0 0 5 11.5v8A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-8a1.5 1.5 0 0 0-1.5-1.5H16" fill="none" stroke="#3182f6" stroke-width="1.9" stroke-linecap="round"/></svg>';
   const ADD_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="#333d4b" stroke-width="1.8"/><path d="M12 8.5v7M8.5 12h7" stroke="#333d4b" stroke-width="1.8" stroke-linecap="round"/></svg>';
   function appOpen() {
     aiUrl();
-    const ua = navigator.userAgent, inApp = /KAKAOTALK|Instagram|NAVER\(|Line\/|FBAN|FBAV/i.test(ua), ipad = /iPad/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const ua = navigator.userAgent, inApp = /KAKAOTALK|Instagram|NAVER\(|Line\/|FBAN|FBAV/i.test(ua);
     sheet(`<div class="app-sh">
       <div class="app-hero"><div class="app-tile"><img id="app-prev" src="${aiSrc()}" alt=""><span>${esc(BRAND)}</span></div></div>
       <h2 class="app-tt">홈 화면에 ${esc(BRAND)} 앱 만들기</h2><p class="app-sub">한 번만 해 두면 아이콘을 눌러 바로 열리고, 숙제 알림도 받을 수 있어요</p>
       <h3 class="app-h">홈 화면에 추가하기</h3>
       ${inApp ? '<div class="app-warn">지금은 카카오톡 같은 앱 안에서 열려 있어요. 오른쪽 아래 <b>⋯</b> 를 눌러 <b>「다른 브라우저로 열기」</b>로 사파리에서 열어 주세요</div>' : ''}
       <ol class="app-steps">
-        <li style="--i:0"><span class="app-n">1</span><div><b>사파리 ${ipad ? '오른쪽 위' : '아래쪽'}의 공유 단추를 눌러요</b><span class="app-chip">${SHARE_SVG}</span><span class="tiny">안 보이면 <b>⋯</b> 를 먼저 누르고 「공유」를 골라요</span></div></li>
+        <li style="--i:0"><span class="app-n">1</span><div><b>사파리 주소창 옆 <span class="app-k">≡</span> 또는 <span class="app-k">⋯</span> 단추를 누르고 「공유」를 눌러요</b><span class="tiny">공유 단추가 바로 보이면 그걸 눌러도 돼요</span><span class="app-chip">${SHARE_SVG}공유</span></div></li>
         <li style="--i:1"><span class="app-n">2</span><div><b>목록을 올려 「홈 화면에 추가」를 눌러요</b><span class="app-chip app-row">${ADD_SVG}홈 화면에 추가</span></div></li>
         <li style="--i:2"><span class="app-n">3</span><div><b>오른쪽 위 「추가」를 눌러요</b><span class="tiny">「웹 앱으로 열기」가 있으면 켜 둔 채로 추가해요</span></div></li>
         <li style="--i:3"><span class="app-n">4</span><div><b>홈 화면의 ${esc(BRAND)} 아이콘으로 열고 「알림 켜기」</b><span class="tiny">할 일이 남았을 때, 리포트가 왔을 때 알려 줘요</span></div></li>
@@ -6515,7 +6515,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041349'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041404'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
