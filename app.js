@@ -539,7 +539,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${lessonHero()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${winCard()}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${TUTOR ? `${ygFront()}${appCard()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${lessonHero()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${appCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${winCard()}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -753,6 +753,8 @@
     $$('[data-giftx]').forEach((b) => (b.onclick = () => { const k = b.dataset.giftx; S.gifts = gAll().map((x) => (x.skin === k && !x.open ? { ...x, x: Date.now() } : x)); S.gift = {}; save('gifts', 'gift'); toast('선물을 거둬들였어요'); render(); }));
     $$('[data-giftopen]').forEach((b) => (b.onclick = () => { giftCheck.seen = (gPend()[0] || {}).at; giftPop(); }));
     $$('[data-dropen]').forEach((b) => (b.onclick = () => drOpen()));
+    $$('[data-appopen]').forEach((b) => (b.onclick = appOpen));
+    $$('[data-pushon]').forEach((b) => (b.onclick = pushOn));
     $$('[data-midedit]').forEach((b) => (b.onclick = midSheet));
     $$('[data-midana]').forEach((b) => (b.onclick = () => { UI.scoreSeg = 'ana'; UI.run = null; UI.tab = 'grade'; render(); window.scrollTo(0, 0); }));
     $$('[data-lag]').forEach((b) => (b.onclick = () => lagSheet(+b.dataset.lag)));
@@ -2215,7 +2217,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611041000', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611041349', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2259,6 +2261,7 @@
     const t = skin();
     if (document.documentElement.dataset.skin !== t) document.documentElement.dataset.skin = t;
     // 로고는 테마와 상관없이 말랑 로고 그대로
+    aiApply();
     petDock();
   }
   // 펫: 화면 첫 카드 윗변에 창틀처럼 두 팔을 걸치고 있어요. 누르면 폴짝, 밤엔 팔에 얼굴 묻고 졸아요
@@ -4010,6 +4013,87 @@
     }
     return out;
   }
+  // 홈 화면 앱 (11/4 «애들이 다 애플인데 홈 화면에 추가했을 때 앱 로고를 정해 놓은 걸로 · 숙제 이거 남았다 알림도»)
+  // 사파리 「홈 화면에 추가」로 앱처럼 깔아요. 아이콘은 말랑대학 하나(assets/appicon/ghost.png · 11/4 «그냥 말랑대학만 해 주라»), 앱으로 열면 알림을 켤 수 있어요
+  // 알림은 맥의 scripts/push/send.js 가 아침(리포트 도착)·밤(오늘 남은 할 일)에 보내요. 구독은 학생 기록 push, 선생님은 _선생님 기록 profile.push
+  // 홈 화면 앱은 사파리와 저장소가 따로라서, 방법을 열 때 주소에 코드를 붙여 두면 앱으로 처음 열 때 코드를 다시 안 물어요
+  const VAPID = 'BJ6AXfB_bpk7VvwpVgdiIx8YxqV7D6WmXCiQdcpsWZXSrz8y1g4dhSF27iEXxoc91CoQckn9YYnoMKB_OZM_4AI';
+  const STANDALONE = (() => { try { return navigator.standalone === true || matchMedia('(display-mode: standalone)').matches; } catch (e) { return false; } })();
+  const PUSH_OK = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  const AI_KEY = 'mallang-univ:apphide';
+  const devId = (() => { try { let v = localStorage.getItem('mu:dev'); if (!v) { v = Math.random().toString(36).slice(2, 10); localStorage.setItem('mu:dev', v); } return v; } catch (e) { return 'x'; } })();
+  const aiSrc = () => 'assets/appicon/ghost.png?v=1';
+  function aiApply() {
+    const l = document.getElementById('ati'), h = aiSrc(); if (l && l.getAttribute('href') !== h) l.setAttribute('href', h);
+    const m = document.querySelector('meta[name="apple-mobile-web-app-title"]'); if (m && m.content !== BRAND) m.content = BRAND;
+  }
+  const aiHidden = () => { try { return Date.now() - (+localStorage.getItem(AI_KEY) || 0) < 3 * 864e5; } catch (e) { return false; } };
+  const aiUrl = () => { if (ROLE_T && (PEEK || STU_TAB)) return; try { history.replaceState(history.state, '', `${location.pathname}?k=${encodeURIComponent(U.key)}&s=${encodeURIComponent(U.who)}&r=${encodeURIComponent(U.role || 'student')}`); } catch (e) {} };
+  function appCard() {
+    if (STANDALONE) {
+      if (!PUSH_OK || Notification.permission !== 'default') return '';
+      return `<section class="card c12 gift-card app-card"><span class="gift-ic"><img class="app-ic" src="${aiSrc()}" alt=""></span><div class="body"><span class="eyebrow">띵동!</span><b>알림을 켜 볼까요?</b><span class="tiny">${ROLE_T && !PEEK ? '밤마다 학생들 남은 할 일을 모아서 알려 줘요' : '할 일이 남았을 때, 리포트가 왔을 때 알려 줘요'}</span></div><button class="btn primary" type="button" data-pushon>알림 켜기</button></section>`;
+    }
+    if (aiHidden()) return '';
+    return `<section class="card c12 gift-card app-card"><span class="gift-ic"><img class="app-ic" src="${aiSrc()}" alt=""></span><div class="body"><span class="eyebrow">띵동!</span><b>핸드폰·아이패드에 앱으로 깔 수 있어요!</b><span class="tiny">홈 화면에 ${esc(BRAND)} 아이콘이 생기고 숙제 알림도 받아요</span></div><button class="btn primary" type="button" data-appopen>방법 보기</button></section>`;
+  }
+  const SHARE_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" fill="none" stroke="#3182f6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 10H6.5A1.5 1.5 0 0 0 5 11.5v8A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-8a1.5 1.5 0 0 0-1.5-1.5H16" fill="none" stroke="#3182f6" stroke-width="1.9" stroke-linecap="round"/></svg>';
+  const ADD_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="#333d4b" stroke-width="1.8"/><path d="M12 8.5v7M8.5 12h7" stroke="#333d4b" stroke-width="1.8" stroke-linecap="round"/></svg>';
+  function appOpen() {
+    aiUrl();
+    const ua = navigator.userAgent, inApp = /KAKAOTALK|Instagram|NAVER\(|Line\/|FBAN|FBAV/i.test(ua), ipad = /iPad/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    sheet(`<div class="app-sh">
+      <div class="app-hero"><div class="app-tile"><img id="app-prev" src="${aiSrc()}" alt=""><span>${esc(BRAND)}</span></div></div>
+      <h2 class="app-tt">홈 화면에 ${esc(BRAND)} 앱 만들기</h2><p class="app-sub">한 번만 해 두면 아이콘을 눌러 바로 열리고, 숙제 알림도 받을 수 있어요</p>
+      <h3 class="app-h">홈 화면에 추가하기</h3>
+      ${inApp ? '<div class="app-warn">지금은 카카오톡 같은 앱 안에서 열려 있어요. 오른쪽 아래 <b>⋯</b> 를 눌러 <b>「다른 브라우저로 열기」</b>로 사파리에서 열어 주세요</div>' : ''}
+      <ol class="app-steps">
+        <li style="--i:0"><span class="app-n">1</span><div><b>사파리 ${ipad ? '오른쪽 위' : '아래쪽'}의 공유 단추를 눌러요</b><span class="app-chip">${SHARE_SVG}</span><span class="tiny">안 보이면 <b>⋯</b> 를 먼저 누르고 「공유」를 골라요</span></div></li>
+        <li style="--i:1"><span class="app-n">2</span><div><b>목록을 올려 「홈 화면에 추가」를 눌러요</b><span class="app-chip app-row">${ADD_SVG}홈 화면에 추가</span></div></li>
+        <li style="--i:2"><span class="app-n">3</span><div><b>오른쪽 위 「추가」를 눌러요</b><span class="tiny">「웹 앱으로 열기」가 있으면 켜 둔 채로 추가해요</span></div></li>
+        <li style="--i:3"><span class="app-n">4</span><div><b>홈 화면의 ${esc(BRAND)} 아이콘으로 열고 「알림 켜기」</b><span class="tiny">할 일이 남았을 때, 리포트가 왔을 때 알려 줘요</span></div></li>
+      </ol>
+      <button class="btn primary big block" type="button" id="app-ok">알겠어요</button>
+      <button class="gf-link app-later" type="button" id="app-later">나중에 할게요</button></div>`, (el, close) => {
+      $('#app-ok', el).onclick = close;
+      $('#app-later', el).onclick = () => { try { localStorage.setItem(AI_KEY, String(Date.now())); } catch (e) {} close(); render(); };
+    });
+  }
+  const b64u = (s) => { const p = '='.repeat((4 - (s.length % 4)) % 4), r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(r, (c) => c.charCodeAt(0)); };
+  async function pushEnsure(force) {
+    if (!PUSH_OK || PEEK || Notification.permission !== 'granted' || (!ROLE_T && !pulled)) return;
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(VAPID) });
+    const j = sub.toJSON(), box = ROLE_T ? (TP.push = TP.push || {}) : (S.push = S.push || {});
+    if (!force && box[devId] && box[devId].e === j.endpoint) return;
+    const ua = navigator.userAgent;
+    box[devId] = { e: j.endpoint, k: j.keys, at: Date.now(), d: /iPad/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? '아이패드' : /iPhone/.test(ua) ? '아이폰' : '기타' };
+    if (ROLE_T) tSave(); else save('push');
+  }
+  async function pushOn() {
+    try {
+      const p = await Notification.requestPermission();
+      if (p !== 'granted') { toast('알림이 꺼져 있어요. 설정 앱 → 알림 → ' + BRAND + '에서 켤 수 있어요'); render(); return; }
+      await pushEnsure(true);
+      const reg = await navigator.serviceWorker.ready;
+      reg.showNotification(`${BRAND} 알림이 켜졌어요`, { body: ROLE_T && !PEEK ? '밤마다 학생들 남은 할 일을 모아서 알려 줄게요' : '할 일이 남았을 때, 리포트가 왔을 때 알려 줄게요', icon: aiSrc(), tag: 'on' });
+      toast('알림을 켰어요'); render();
+    } catch (e) { toast('알림을 켜지 못했어요. 잠시 뒤 다시 눌러 주세요'); }
+  }
+  // 오늘 남은 할 일을 기록에 적어 둬요 → 밤 알림이 이걸 보고 「오늘 할 일 N개 남았어요」 (바뀔 때만 저장)
+  function leftMark() {
+    clearTimeout(leftMark.t); leftMark.t = setTimeout(() => {
+      if (TEACHER || PEEK || DAY_OFF() || !pulled || UI.run) return;
+      let L; try { L = todayTasks().tasks.filter((t) => !t.done && !t.memo); } catch (e) { return; }
+      const v = { d: realToday(), n: L.length, t: L.slice(0, 4).map((t) => String(t.t).slice(0, 40)) }, o = S.left || {};
+      if (o.d === v.d && o.n === v.n && JSON.stringify(o.t) === JSON.stringify(v.t)) return;
+      S.left = { ...v, at: Date.now() }; save('left');
+    }, 2500);
+  }
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+  setTimeout(() => pushEnsure().catch(() => {}), 9000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(() => pushEnsure().catch(() => {}), 3000); });
   const drSeen = () => { try { return PST.getItem(DR_KEY); } catch (e) { return null; } };
   // 연 뒤에도 그날 하루는 홈에 남아요. 처음엔 「띵동!」으로 흔들리고, 열어 본 뒤엔 조용히 「다시 보기」 (11/4 «하루 종일 다시 볼 수 있게»)
   function drHome() {
@@ -6431,7 +6515,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041000'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611041349'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -6940,7 +7024,7 @@
     const stuC = `<section class="card tight"><div class="card-h"><h3>학생</h3><button class="more" data-tgo="tstu" type="button">전체</button></div><div class="list">${info.map((x) => `<div class="li btnlike" data-dl="${esc(x.r.name)}">${sAv(x.r)}<div class="body"><div class="t">${esc(x.r.name)}</div><div class="d">${loading(x) ? '불러오는 중' : agoTxt(x.last)}</div></div><b class="num" style="font-size:14px">${loading(x) ? '' : x.week + '문제'}</b></div>`).join('')}</div></section>`;
     const h = new Date().getHours();
     const main = `<h1 class="h1">${tBday() === 0 ? `${esc(TP.name)}, 생일 축하해요` : `${esc(TP.name)}, ${h < 12 ? '좋은 아침이에요' : h < 18 ? '오후도 힘내요' : '오늘도 수고했어요'}`}</h1><p class="sub">${up.some((u) => u.date === t) ? `오늘 ${up.filter((u) => u.date === t).map((u) => u.x.r.name).join(' · ')} 수업이 있어요` : '오늘은 수업이 없어요'}${asks.length ? ` · 확인할 것 ${asks.length}개` : ''}</p>
-      <div class="grid">${askC}${upC}${moneyC}${dMsgCard(info)}${newsC}</div>`;
+      <div class="grid">${appCard()}${askC}${upC}${moneyC}${dMsgCard(info)}${newsC}</div>`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${clockWidget()}${hotCard('')}${stuC}</aside></div>`;
   }
   function drepView() {
@@ -7480,7 +7564,7 @@
   window.addEventListener('popstate', () => { render.pop = 1; if (UI.run) UI.run = null; else if (UI.tab !== 'home' && !TEACHER) UI.tab = 'home'; render(); window.scrollTo(0, 0); });
   function render() {
     { const k = navAt(), was = render.nav; if (was && k !== was && !render.pop && (k === 'run' || was === 'home')) try { history.pushState({ mu: k }, ''); } catch (e) {} render.nav = k; render.pop = 0; }
-    nxReg(); pCloseOld();
+    nxReg(); pCloseOld(); leftMark();
     // 1학년 2학기는 아직 학기 최종 등급이 없어서, 먼저 넣은 등급은 중간고사 등급으로 옮겨요 (한 번만)
     if (S.naesin && S.naesin['1-2'] && !S.naesin._mid12) { for (const r of Object.values(S.naesin['1-2'])) if (r && r.grade && r.midG == null && r.finG == null) { r.midG = r.grade; delete r.grade; } S.naesin._mid12 = 1; save('naesin'); }
     if (!UI.run || UI.run.kind !== 'jl') jlStop();  // 리스닝 화면을 나가면 소리도 멈춰요
