@@ -3832,3 +3832,13 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 /* 폰·듀오 앞면: 아래 탭바가 있으면 「숙제 내기」 줄이 탭바 뒤에 숨고 모의고사 칸 글자가 그 위로 겹쳤어요 (11/4) → 탭바 바로 위에 붙고 위로 올라와요 */
 .th-go { z-index: 6; }
 @media (max-width: 899px) { .th-go { bottom: calc(var(--tab-h) + env(safe-area-inset-bottom)); } }
+/* 홈 화면 앱을 화면 끝까지 (11/4 «인스타처럼 하고 싶어»): 상태 막대 밑까지 그리고(black-translucent), 시계·노치·듀오 오른쪽 시계 칸만큼 안쪽으로 비켜요 */
+.top { padding-top: env(safe-area-inset-top); }
+.top-in, .main { padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); }
+.tabbar { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+.pomo-pill { right: calc(16px + env(safe-area-inset-right)); }
+/* 상태 막대 글씨가 흰색이 돼서, 밝은 바탕에서도 시계가 보이게 맨 위에 옅은 그늘 (앱으로 열었을 때만, 상태 막대 높이만큼) */
+@media (display-mode: standalone) {
+  body::before { content: ""; position: fixed; left: 0; right: 0; top: 0; height: env(safe-area-inset-top); z-index: 400; pointer-events: none; background: linear-gradient(rgba(25, 31, 40, .42), rgba(25, 31, 40, .18)); }
+}
+@media (min-width: 900px) { .top-in { padding-left: max(32px, env(safe-area-inset-left)); padding-right: max(32px, env(safe-area-inset-right)); } .main { padding-left: max(32px, env(safe-area-inset-left)); padding-right: max(32px, env(safe-area-inset-right)); } }

@@ -127,7 +127,7 @@
 
   const CSS = `
 .nc-fab[hidden],.nc-pane[hidden],.nc-pic[hidden],.nc-badge[hidden],.nc-top [hidden]{display:none!important}
-.nc-fab{position:fixed;right:16px;bottom:calc(var(--tab-h,64px) + 16px + env(safe-area-inset-bottom) + var(--nc-lift,0px));z-index:61;display:flex;align-items:center;justify-content:center;gap:8px;width:56px;height:56px;padding:0;font:inherit;font-size:15px;font-weight:700;color:#fff;background:var(--blue);border:0;border-radius:99px;box-shadow:0 4px 14px rgba(49,130,246,.35),0 2px 6px rgba(0,27,55,.12);cursor:pointer;transition:transform .15s ease,background .15s,bottom .25s cubic-bezier(.1,.76,.55,.9)}
+.nc-fab{position:fixed;right:calc(16px + env(safe-area-inset-right));bottom:calc(var(--tab-h,64px) + 16px + env(safe-area-inset-bottom) + var(--nc-lift,0px));z-index:61;display:flex;align-items:center;justify-content:center;gap:8px;width:56px;height:56px;padding:0;font:inherit;font-size:15px;font-weight:700;color:#fff;background:var(--blue);border:0;border-radius:99px;box-shadow:0 4px 14px rgba(49,130,246,.35),0 2px 6px rgba(0,27,55,.12);cursor:pointer;transition:transform .15s ease,background .15s,bottom .25s cubic-bezier(.1,.76,.55,.9)}
 .nc-fab:hover{background:var(--blue-d)}.nc-fab:active{transform:scale(.96)}
 .nc-fab.on{background:var(--t1)}
 .nc-fab-tx{display:none}
