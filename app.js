@@ -540,7 +540,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${appCard()}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${lessonHero()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${winCard()}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${appCard()}${gdCard()}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${lessonHero()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${winCard()}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -758,6 +758,8 @@
     $$('[data-giftopen]').forEach((b) => (b.onclick = () => { giftCheck.seen = (gPend()[0] || {}).at; giftPop(); }));
     $$('[data-dropen]').forEach((b) => (b.onclick = () => drOpen()));
     $$('[data-appopen]').forEach((b) => (b.onclick = appOpen));
+    $$('[data-gdopen]').forEach((b) => (b.onclick = gdOpen));
+    $$('[data-inkpast]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); inkPast(); }));
     $$('[data-appinst]').forEach((b) => (b.onclick = appInstall));
     $$('[data-pushon]').forEach((b) => (b.onclick = pushOn));
     $$('[data-midedit]').forEach((b) => (b.onclick = midSheet));
@@ -1002,6 +1004,24 @@
   }
   const inkTasks = () => { const out = []; for (const [cid, nos] of Object.entries(inkToday() || {})) { const c = inkC(cid); if (!c) continue; for (const no of nos) { const l = inkL(c, no); if (!l) continue; const k = cid + ':' + no, st = inkSt(c, l), q = inkS().q[k]; out.push({ k: 'ink:' + k, icon: INK_IC[cid] || 'books', t: `${c.subj} 인강 · ${l.title}`, d: st === 'done' ? `들었어요${q ? ` · 퀴즈 ${q.ok}/${q.n}` : ''}` : st === 'skip' ? '안 듣기로 했어요' : `${c.teacher} · ${l.min ? l.min + '분 · ' : ''}눌러서 ${c.siteName}에서 듣기`, done: !!st }); } } return out; };
   function inkMark(c, l, st) { const s = inkS(), k = c.id + ':' + l.no; if (st) { s.st[k] = st; s.at[k] = today(); } else { s.st[k] = 'none'; delete s.at[k]; } save('ink'); }
+  // 들은 인강 적기: 오늘 할 일에 없던 강의를 들었을 때 과목 고르고 강의 골라 「들었어요」 (11/4 정윤 «사회 인강 2개 들었는데 추가를 못해서»)
+  function inkPast(cid0) {
+    const on = INK.filter((c) => inkCfg(c).on); if (!on.length) return toast('「인강 설정」에서 듣는 강좌를 먼저 골라요');
+    let cid = (on.find((c) => c.id === cid0) || on[0]).id; const pick = new Set();
+    sheet('<div id="ip-b"></div>', (el, close) => {
+      const draw = () => {
+        const c = inkC(cid), cf = inkCfg(c), L = c.lectures.filter((l) => !inkSt(c, l)).sort((a, b) => (cf.pick.includes(b.no) - cf.pick.includes(a.no)) || a.no - b.no);
+        $('#ip-b', el).innerHTML = `<h2>들은 인강 적기</h2><p class="sub">오늘 할 일에 없던 강의를 들었으면 여기서 골라요. 고른 강의는 오늘 한 것에 들어가요</p>
+          <div class="sj-g" style="margin:12px 0 4px">${on.map((x) => `<button class="sj ${x.id === cid ? 'on' : ''}" data-ipc="${x.id}" type="button">${esc(x.subj)} · ${esc(inkName(x))}</button>`).join('')}</div>
+          ${L.length ? `<div class="ik-lecs" style="max-height:44vh">${L.map((l) => `<button type="button" class="ik-lec ${pick.has(l.no) ? 'on' : ''}" data-ipl="${l.no}"><i>${pick.has(l.no) ? '✓' : ''}</i><span><b>${esc(l.title)}</b><em>${l.min ? l.min + '분' : ''}${cf.pick.includes(l.no) ? `${l.min ? ' · ' : ''}고른 강의` : ''}</em></span></button>`).join('')}</div>` : '<div class="empty"><b>이 강좌는 다 들었어요</b></div>'}
+          <button class="btn primary big block" id="ip-ok" type="button" style="margin-top:16px" ${pick.size ? '' : 'disabled'}>${pick.size ? `${pick.size}강 들었어요` : '들은 강의를 골라요'}</button>`;
+        $$('[data-ipc]', el).forEach((b) => (b.onclick = () => { if (b.dataset.ipc === cid) return; cid = b.dataset.ipc; pick.clear(); draw(); }));
+        $$('[data-ipl]', el).forEach((b) => (b.onclick = () => { const n = +b.dataset.ipl; pick.has(n) ? pick.delete(n) : pick.add(n); const y = ($('.ik-lecs', el) || {}).scrollTop; draw(); const z = $('.ik-lecs', el); if (z) z.scrollTop = y; }));
+        $('#ip-ok', el).onclick = () => { if (!pick.size) return; const c2 = inkC(cid), I = inkS(); for (const n of pick) { const l = inkL(c2, n); if (l) { I.st[cid + ':' + n] = 'done'; I.at[cid + ':' + n] = today(); } } save('ink'); gdMark('ink'); close(); render(); toast(`${c2.subj} 인강 ${pick.size}강, 오늘 한 것에 넣었어요`); };
+      };
+      draw();
+    });
+  }
   // 한 강의: 사이트로 가기 → 다 들었어요 → 미니 퀴즈
   function inkLec(cid, no) {
     const c = inkC(cid), l = inkL(c, no); if (!l) return;
@@ -1786,7 +1806,7 @@
   function inkCard(cls) {
     if (!INK.length) return '';
     const L = INK.filter((c) => inkCfg(c).on);
-    return `<section class="card ${cls}"><div class="card-h"><h2>${ic('1f3a7')} 인강</h2><button class="btn sm" id="ink-set" type="button"><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg> 인강 설정</button></div>
+    return `<section class="card ${cls}"><div class="card-h"><h2>${ic('1f3a7')} 인강</h2><div class="row" style="gap:8px">${L.length ? '<button class="btn sm soft" type="button" data-inkpast>들은 강의 적기</button>' : ''}<button class="btn sm" id="ink-set" type="button"><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg> 인강 설정</button></div></div>
       ${L.length ? `<div class="list ik-list">${L.map((c) => { const cf = inkCfg(c), P = c.lectures.filter((l) => cf.pick.includes(l.no)), dn = P.filter((l) => inkSt(c, l)).length, nx = inkQueue(c)[0], f = inkFinish(c, cf); return `<div class="li btnlike" ${nx ? `data-task="ink:${c.id}:${nx.no}"` : 'data-inkset'}><div class="ico">${ic(INK_IC[c.id] || 'books')}</div><div class="body"><div class="t">${esc(c.subj)} · ${esc(inkName(c))} <span class="tiny">${esc(c.teacher)} · ${dn}/${P.length}강</span></div><div class="d">${nx ? `다음: ${esc(nx.title)}` : '고른 강의를 다 들었어요'}${f.date && f.date > EB_EXAM ? ' · <b class="red">기말보다 늦어요</b>' : ''}</div><div class="ik-bar"><i style="width:${P.length ? (dn / P.length) * 100 : 0}%"></i></div></div></div>`; }).join('')}</div>` : `<div class="empty"><b>듣는 인강이 없어요</b><span>「인강 설정」에서 골라요</span></div>`}</section>`;
   }
   const bkS = () => { S.book = S.book || {}; S.book.marks = S.book.marks || {}; S.book.seen = S.book.seen || {}; S.book.pin = S.book.pin || {}; S.book.last = S.book.last || {}; return S.book; };
@@ -2231,7 +2251,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611042353', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611042358', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4057,6 +4077,29 @@
   const AI_DONE = 'mallang-univ:appdone';
   const appHas = () => { if (!ROLE_T && S.appi && S.appi.at) return true; try { return !!localStorage.getItem(AI_DONE); } catch (e) { return false; } };
   function appMark() { try { localStorage.setItem(AI_DONE, String(Date.now())); } catch (e) {} if (!ROLE_T && !(S.appi && S.appi.at)) { S.appi = { at: Date.now(), sa: STANDALONE }; if (!PEEK) { S._at = S._at || {}; S._at.appi = Date.now(); } save('appi'); } }
+  // 사용법 안내 배너: 앱 배너처럼 「방법 보기」 → 단계 → 「알겠어요」면 학생 기록 gdi 에 남겨 어느 기기에서도 다시 안 떠요 (11/4)
+  const gdHas = (k) => !!((S.gdi || {})[k]);
+  function gdMark(k) { if (gdHas(k)) return; S.gdi = { ...(S.gdi || {}), [k]: Date.now() }; if (!PEEK) { S._at = S._at || {}; S._at.gdi = Date.now(); } save('gdi'); }
+  function gdCard() {
+    if (TUTOR || (ROLE_T && !PEEK) || gdHas('ink') || !INK.some((c) => inkCfg(c).on)) return '';
+    return `<section class="card c12 gift-card app-card gd-card"><span class="gift-ic">${ic('1f3a7')}</span><div class="body"><span class="eyebrow">이렇게 해요</span><b>계획에 없던 인강을 들었나요?</b><span class="tiny">들은 강의를 골라 적으면 오늘 한 것에 들어가요</span></div><button class="btn primary" type="button" data-gdopen="ink">방법 보기</button></section>`;
+  }
+  function gdOpen() {
+    const bye = () => setTimeout(() => cardBye(document.querySelector('.gd-card'), render), 260);
+    sheet(`<div class="app-sh">
+      <h2 class="app-tt" style="margin-top:8px">들은 인강 적는 법</h2><p class="app-sub">오늘 할 일에 없던 강의를 들어도 이렇게 적으면 기록돼요</p>
+      <ol class="app-steps" style="margin-top:20px">
+        <li style="--i:0"><span class="app-n">1</span><div><b>아래 「숙제」 탭을 눌러요</b></div></li>
+        <li style="--i:1"><span class="app-n">2</span><div><b>「인강」 칸의 「들은 강의 적기」를 눌러요</b><span class="app-chip">들은 강의 적기</span></div></li>
+        <li style="--i:2"><span class="app-n">3</span><div><b>과목을 고르고 들은 강의를 눌러 체크해요</b><span class="tiny">여러 강을 한꺼번에 골라도 돼요</span></div></li>
+        <li style="--i:3"><span class="app-n">4</span><div><b>「○강 들었어요」를 누르면 끝</b><span class="tiny">오늘 한 것과 공부 기록에 들어가요</span></div></li>
+      </ol>
+      <button class="btn primary big block" type="button" id="gd-go">지금 적기</button>
+      <button class="gf-link app-later" type="button" id="gd-ok">알겠어요</button></div>`, (el, close) => {
+      $('#gd-go', el).onclick = () => { gdMark('ink'); close(); setTimeout(() => inkPast(), 280); };
+      $('#gd-ok', el).onclick = () => { gdMark('ink'); close(); bye(); };
+    });
+  }
   function appCard() {
     if (STANDALONE && !appHas()) appMark();
     const me = ROLE_T && !PEEK, ico = `<span class="gift-ic"><img class="app-ic" src="${aiSrc()}" alt=""></span>`;
@@ -6637,7 +6680,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611042353'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611042358'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
