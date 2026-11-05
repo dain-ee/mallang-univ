@@ -3864,3 +3864,7 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 /* 앱 설치 안내: 아이폰·갤럭시 고르기 (11/5) */
 .app-os { margin: 0 0 12px; }
 .app-steps[hidden] { display: none; }
+
+/* 바닥 막대가 화면 중간에 뜨는 것 (11/5 주아 미리 보기 캡처): 브라우저가 잡은 화면 높이가 실제 보이는 화면보다 짧게 남으면
+   bottom:0 이 중간에 붙어요. 보이는 화면 아래와의 차이(--vvfix)만큼 끌어내려요. 키보드가 올라올 땐 0이라 그대로예요 */
+.tabbar, .peek-bar, .pomo-pill { translate: 0 var(--vvfix, 0px); }

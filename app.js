@@ -2278,7 +2278,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611051848', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611051905', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6718,7 +6718,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051848'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051905'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8026,6 +8026,11 @@
   let rsT = 0, lastW = window.innerWidth; window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (Math.abs(window.innerWidth - lastW) > 80 && !$('.sheet')) { lastW = window.innerWidth; render(); } }, 250); });
   $('#me').onclick = () => go(DASH_ONLY ? 'tme' : 'me');
   if (DASH_ONLY) tLoad();
+  // 바닥 막대 자리 맞추기: 보이는 화면(visualViewport) 아래가 레이아웃 화면 아래보다 내려가 있으면 그만큼 내려요 (11/5)
+  { const vv = window.visualViewport, root = document.documentElement; let last = -1;
+    const fix = () => { const d = vv ? Math.max(0, Math.round(vv.offsetTop + vv.height - root.clientHeight)) : 0, v = d > 2 ? d : 0; if (v !== last) { last = v; root.style.setProperty('--vvfix', v + 'px'); } };
+    if (vv) { vv.addEventListener('resize', fix); vv.addEventListener('scroll', fix); }
+    window.addEventListener('resize', fix); window.addEventListener('orientationchange', () => setTimeout(fix, 300)); window.addEventListener('scroll', fix, { passive: true }); document.addEventListener('visibilitychange', fix); setInterval(fix, 1000); fix(); }
   if (PEEK) { const bar = document.createElement('div'); bar.className = 'peek-bar'; bar.innerHTML = '<span>' + esc(NMI()) + '가 보는 화면 · 눌러도 저장되지 않아요</span><button type="button">선생님 화면으로</button>'; document.body.appendChild(bar);
     // 새 탭이 막혀 같은 탭에서 열렸으면 window.close() 가 안 돼요. 이 탭의 학생·미리 보기 기억을 지우고 선생님 화면으로 돌아가요
     $('button', bar).onclick = () => { try { ['mu:peek', 'mu:who', 'mu:after'].forEach((k) => sessionStorage.removeItem(k)); } catch (e) {} if (window.opener) { try { window.close(); } catch (e) {} } setTimeout(() => location.reload(), 150); }; }
