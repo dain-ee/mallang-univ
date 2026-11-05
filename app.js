@@ -1355,6 +1355,16 @@
   }
   // 일요일을 고른 수업에 어제·오늘 넣은 숙제는 밀린 게 아니라 새 숙제라 일요일부터 나눠요 (11/1 정윤 «일요일부터 반영했으면 오늘부터 할 일에»)
   const myFresh = (it) => { if (!it.at) return false; const a = new Date(it.at), st = `${a.getFullYear()}-${String(a.getMonth() + 1).padStart(2, '0')}-${String(a.getDate()).padStart(2, '0')}`; return st >= addD(today(), -1) && (myCls(it.cls).study || it.days || []).includes(0); };
+  // 지난 날 몫을 못 채운 양: 그날 아침 남은 양 ÷ 그날부터 마감까지 할 날 − 그날 한 양 (11/5 «어제 다 안 한 게 다음 날로 밀림으로 와야»)
+  function myMissOn(it, d) {
+    if (isPlan(it) || it.unit === '건' || !it.at || d >= today() || it.due < d || mySkip(it, d) || !myStudy(it).includes(dowOf(d))) return null;
+    const a = new Date(it.at), st = `${a.getFullYear()}-${String(a.getMonth() + 1).padStart(2, '0')}-${String(a.getDate()).padStart(2, '0')}`; if (st > d) return null;
+    const before = Object.entries(it.log || {}).reduce((s0, [k, x]) => s0 + (k < d ? x.n || 0 : 0), 0), rem = it.total - before; if (rem <= 0) return null;
+    const days = myDaysLeft(it.due, myStudy(it), d); if (!days) return null;
+    const want = Math.ceil(rem / days), did = (it.log && it.log[d] && it.log[d].n) || 0;
+    return did < want ? { want, did, miss: want - did, u: it.unit === '쪽' ? '쪽' : '문제' } : null;
+  }
+  const myLastDay = (it) => { for (let i = 1; i <= 7; i++) { const d = addD(today(), -i); if (myStudy(it).includes(dowOf(d))) return d; } return null; };
   function myToday(it) {
     const t = today(), dn = it.log && it.log[t] ? it.log[t].n : 0, left = it.total - (myDone(it) - dn);
     if (left <= 0) return { n: 0, a: null, b: null, dn };
@@ -1378,8 +1388,8 @@
       if (isPlan(it)) { const dd = dday(it.due); if (dd >= 0 && (!myFin(it) || doneT)) out.push({ k: 'my:' + it.id, icon: 'cal', t: it.book, d: `일정 · ${myCls(it.cls).name} · ${dd === 0 ? '오늘' : `${md(it.due)} ${DOW[dowOf(it.due)]}요일 D-${dd}`}`, done: myFin(it), memo: true }); continue; }  // 일정: 끝날 때까지 늘 보이지만 오늘 할 일 셈에는 안 들어가요
       if (myFin(it) && !doneT) continue; if (!x.n && !doneT) continue;
       if (it.unit === '건' && !doneT && dday(it.due) > 1) continue;  // 한 번에 끝내는 일은 마감 전날·당일에만 오늘 할 일로 (그 전엔 「내 숙제」 칸에 D-day로)
-      const dd = dday(it.due);
-      out.push({ k: 'my:' + it.id, icon: 'write', t: it.unit === '건' ? it.book : `${it.book}: ${doneT ? `오늘 ${it.log[t].n}${it.unit === '쪽' ? '쪽' : '문제'} 했어요` : myRange(it, x)}`, d: `${myCls(it.cls).name} · ${dd < 0 ? '마감 지났어요' : dd === 0 ? '오늘 마감' : `${md(it.due)} ${DOW[dowOf(it.due)]}요일 마감 D-${dd}`}${it.unit === '건' ? '' : ` · ${myDone(it)}/${it.total}`}`, done: doneT });
+      const dd = dday(it.due), ld = myLastDay(it), lm = ld && !doneT ? myMissOn(it, ld) : null;
+      out.push({ late: !!lm, k: 'my:' + it.id, icon: 'write', t: it.unit === '건' ? it.book : `${it.book}: ${doneT ? `오늘 ${it.log[t].n}${it.unit === '쪽' ? '쪽' : '문제'} 했어요` : myRange(it, x)}`, d: `${myCls(it.cls).name} · ${dd < 0 ? '마감 지났어요' : dd === 0 ? '오늘 마감' : `${md(it.due)} ${DOW[dowOf(it.due)]}요일 마감 D-${dd}`}${it.unit === '건' ? '' : ` · ${myDone(it)}/${it.total}`}${lm ? ` · ${md(ld)} 몫 ${lm.miss}${lm.u} 못 했어요` : ''}`, done: doneT });
     }
     return out;
   }
@@ -2104,7 +2114,7 @@
   const ypAt = (it) => { const a = nxS().a; if (it.p === 'ch') return (a[it.id] || {}).at || 0; let m = 0; for (const q of it.qs || []) { const v = a[q.i]; if (v && v.at > m) m = v.at; } return m; };
   function calDone(d) { const out = dayItems(d); for (const it of YP) if (ypDone(it)) { const at = ypAt(it); if (at && fmtDay(new Date(at)) === d) { const g = NXSETS[it.id] ? nxProg(NXSETS[it.id]) : null; out.push({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 끝냈어요${g && it.p !== 'ch' ? ` · ${g.ok}/${g.n} 맞힘` : ''}${it.day < d ? ` · ${md(it.day)} 몫` : ''}`, go: it.id }); } } return out; }
   // 그날 몫인데 못 한 것: 윤건 기말 계획·매일 영어(YP), 정윤 기말 예습·올림포스(FIN)
-  const calMiss = (d) => { if (d >= today()) return []; const out = YP.filter((it) => it.day === d && !ypDone(it)).map((it) => ({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 못 했어요`, go: it.id })); if (FIN_ON) for (const c of FIN_ORDER) if (addD(FIN_START, c.fday) === d && !finDone(c)) out.push({ i: c.subj === 'hist' ? 'scroll' : 'books', t: `${c.subj === 'eng' ? '올림포스 지문' : c.sname + ' 기말 예습'} · ${c.title}`, d: '기말 예습 · 못 했어요', go: 'fincid:' + c.id }); return out; };
+  const calMiss = (d) => { if (d >= today()) return []; const out = YP.filter((it) => it.day === d && !ypDone(it)).map((it) => ({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 못 했어요`, go: it.id })); if (FIN_ON) for (const c of FIN_ORDER) if (addD(FIN_START, c.fday) === d && !finDone(c)) out.push({ i: c.subj === 'hist' ? 'scroll' : 'books', t: `${c.subj === 'eng' ? '올림포스 지문' : c.sname + ' 기말 예습'} · ${c.title}`, d: '기말 예습 · 못 했어요', go: 'fincid:' + c.id }); if (!TUTOR) for (const it of myS().items) { const m = myMissOn(it, d); if (m) out.push({ i: 'write', t: it.book, d: `${myCls(it.cls).name} · 이날 몫 ${m.want}${m.u} 중 ${m.did ? m.did + m.u + ' 했어요' : '못 했어요'} · ${m.miss}${m.u} 남음`, go: 'my:' + it.id }); } return out; };
   const calLeft = () => { try { return todayTasks().tasks.filter((t) => t.icon !== 'party' && !t.memo && !t.done).length; } catch (e) { return 0; } };
   function hwCal() {
     const m = UI.calM || today().slice(0, 7), [Y, M] = m.split('-').map(Number), first = new Date(Y, M - 1, 1), n = new Date(Y, M, 0).getDate(), pad = first.getDay();
@@ -2261,7 +2271,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611051420', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611051436', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6694,7 +6704,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051420'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051436'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
