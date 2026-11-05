@@ -2278,7 +2278,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611051906', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611052027', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2460,6 +2460,15 @@
     if (ch) save('redo');
   }
   document.addEventListener('click', (e) => { if (e.target.closest('[data-redo-run]')) redoStart(); });
+  // 결과 카드의 「내가 푼 것 다시 보기」: 푼 문제를 처음부터 한 문제씩 넘겨 봐요 (11/5 «자기가 푼 걸 다시 볼 수가 없는데»)
+  function rvBind(r, key, n) {
+    const go = (v) => { r[key] = v; render(); const d = $('.progress-dots'); if (d) d.scrollIntoView({ block: 'start' }); else window.scrollTo(0, 0); };
+    const b = $('[data-rv]'); if (b) b.onclick = () => { r.rv = true; go(0); };
+    const p = $('#rv-prev'); if (p) p.onclick = () => go(Math.max(0, (r[key] || 0) - 1));
+    const x = $('#rv-next'); if (x) x.onclick = () => { const k = (r[key] || 0) + 1; if (k >= n) { r.rv = false; go(null); } else go(k); };
+  }
+  const rvBar = (r, i, n) => `<div class="cta-bar nx-rvbar">${i > 0 ? '<button class="btn big" id="rv-prev" type="button">‹ 이전</button>' : ''}<button class="btn primary big block" id="rv-next" type="button">${i < n - 1 ? '다음 문제 ›' : '결과로 돌아가기'}</button></div>`;
+  const RV_BTN = '<div class="done-more"><button class="btn sm ghost" data-rv type="button">내가 푼 것 다시 보기</button></div>';
   function doneCard(ok, n, sub, btns, extra = '') {
     if (redoKey() && !TEACHER) { btns = btns.replace(/(<\/button>)/, '$1<button class="btn big block" data-redo-run type="button">다시 풀기</button>'); if (S.redo && S.redo[redoKey()]) { delete S.redo[redoKey()]; UI.redoKey = null; save('redo'); } }
     const all = n && ok === n, icon = all ? 'trophy' : ok / (n || 1) >= 0.6 ? 'party' : 'muscle';
@@ -2689,12 +2698,12 @@
     if (i < 0) {
       const ok = qs.filter((q, k) => A[k] && A[k].ok).length, nx = finToday().find((x) => !finDone(x) && x.id !== c.id) || FIN_ORDER.find((x) => !finDone(x) && x.id !== c.id);
       const mp = MAPS.find((m) => m.id === c.unit && mapReady(m) && !mapDone(m));
-      return `<div class="qwrap" style="max-width:720px;margin:0 auto">${head}${doneCard(ok, qs.length, ok === qs.length ? '이 개념은 이제 내 거예요' : '틀린 건 해설을 보고 개념을 한 번 더 읽어요', `${mp ? `<button class="btn big block" data-fmap="${mp.id}" type="button">소단원 끝! 한눈에 정리 빈칸 채우기</button>` : ''}<button class="btn primary big block" data-finback type="button">숙제 목록으로 ›</button><button class="btn big block" id="fr-redo" type="button">개념 다시 읽고 다시 풀기</button>`)}</div>`;
+      return `<div class="qwrap" style="max-width:720px;margin:0 auto">${head}${doneCard(ok, qs.length, ok === qs.length ? '이 개념은 이제 내 거예요' : '틀린 건 해설을 보고 개념을 한 번 더 읽어요', `${mp ? `<button class="btn big block" data-fmap="${mp.id}" type="button">소단원 끝! 한눈에 정리 빈칸 채우기</button>` : ''}<button class="btn primary big block" data-finback type="button">숙제 목록으로 ›</button><button class="btn big block" id="fr-redo" type="button">개념 다시 읽고 다시 풀기</button><div class="done-more"><button class="btn sm ghost" data-rv type="button">내가 푼 것 다시 보기</button></div>`)}</div>`;
     }
     const q = qs[i], a = A[i] && A[i].pick != null ? A[i] : null;
     return `<div class="qwrap" style="max-width:720px;margin:0 auto">${head}<details class="hw-more" style="margin:8px 0 0"><summary>개념 다시 보기</summary>${finRead(c)}</details>
       <div class="progress-dots">${qs.map((x, k) => `<i class="${A[k] && A[k].pick != null ? (A[k].ok ? 'ok' : 'no') : k === i ? 'cur' : ''}"></i>`).join('')}</div>
-      <div class="card"><div class="q-no">${i + 1}번</div><div style="margin-top:8px">${qBody(q)}</div></div>${choicesHtml(q, a ? a.pick : null)}${a ? verdict(a.ok) + (q.exp ? `<div class="explain"><b>해설</b><br>${rich(q.exp)}</div>` : '') + '<div class="cta-bar"><button class="btn primary big block" id="fr-next" type="button">다음</button></div>' : ''}</div>`;
+      <div class="card"><div class="q-no">${i + 1}번</div><div style="margin-top:8px">${qBody(q)}</div></div>${choicesHtml(q, a ? a.pick : null)}${a ? verdict(a.ok) + (q.exp ? `<div class="explain"><b>해설</b><br>${rich(q.exp)}</div>` : '') + (r.rv ? `<div class="cta-bar nx-rvbar">${i > 0 ? '<button class="btn big" id="rv-prev" type="button">‹ 이전</button>' : ''}<button class="btn primary big block" id="rv-next" type="button">${i < qs.length - 1 ? '다음 문제 ›' : '결과로 돌아가기'}</button></div>` : '<div class="cta-bar"><button class="btn primary big block" id="fr-next" type="button">다음</button></div>') : ''}</div>`;
   }
   function bindFin() {
     const r = UI.run, top = () => { render(); window.scrollTo(0, 0); };
@@ -2710,11 +2719,13 @@
     const fb = $('#fp-book'); if (fb) fb.onclick = () => bookOpen('eng2', null, c.page);
     const fd = $('#fp-done'); if (fd) fd.onclick = () => { const A = finA(c.id); if (finDone(c)) A.undone = { at: Date.now() }; else { A.done = { ok: 1, at: Date.now() }; earn('fin:' + c.id, 100, '올림포스 지문'); const nx = finToday().find((x) => !finDone(x)); toast('잘했어요'); if (nx) { UI.run = { kind: 'fin', cid: nx.id }; save('fin'); top(); return; } } save('fin'); UI.run = null; UI.tab = 'hw'; top(); };
     $$('[data-fb]').forEach((b) => (b.onclick = () => { const bk = finBlanks(c).find((x) => x.k === b.dataset.fb), A = finA(c.id); if (!bk || A[bk.k]) return; const p = b.dataset.o, ok = p === bk.t; A[bk.k] = { p, ok, at: Date.now() }; save('fin'); const y = window.scrollY; render(); window.scrollTo(0, y); }));
+    rvBind(r, 'i', (c.qs || []).length);
     const nx = $('#fr-next'); if (nx) nx.onclick = () => { r.i = null; render(); const d = $('.progress-dots'); if (d) d.scrollIntoView({ block: 'start' }); else window.scrollTo(0, 0); };
     const rd = $('#fr-redo'); if (rd) rd.onclick = () => { const A = finA(c.id), at = Date.now(); c.qs.forEach((q, k) => { A[k] = { at, redo: 1 }; }); save('fin'); UI.run = { kind: 'fin', cid: c.id }; top(); };
     $$('[data-pick]').forEach((b) => (b.onclick = () => {
       const A = finA(c.id), qs = c.qs || [];  // 누를 때 기록을 다시 찾아요
       const i = r.i != null ? r.i : qs.findIndex((q, k) => !(A[k] && A[k].pick != null)), q = qs[i]; if (!q) return;
+      if (A[i] && A[i].pick != null) return;
       const k = +b.dataset.pick; A[i] = { pick: k, ok: k === q.answer, at: Date.now() }; r.i = i;
       if (finDone(c)) { earn('fin:' + c.id, 100, '기말 개념'); if (finToday().every(finDone)) boom(innerWidth / 2, innerHeight * 0.4, 3); }
       save('fin'); render();
@@ -2728,21 +2739,23 @@
     const head = `<div class="row between"><button class="btn sm" data-lib="sci" type="button">‹ 과학 목록</button><span class="tiny">${esc(unitOf(c.unit).title)}</span></div>`;
     if (!UI.run.read) return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}<p class="eyebrow" style="margin:16px 0 4px">${ic('books')} 개념 · ${c.lesson && c.lesson.src ? esc(c.lesson.src) : '교과서'}</p><h1 class="h1" style="margin:0 0 8px">${esc(c.title)}</h1>${readPill('read:' + c.id, 100, '과학 개념 읽기', 10)}${lessonHtml(c)}<div class="cta-bar"><button class="btn primary big block" id="cr-go" type="button">개념 다 봤어요, 문제 ${qs.length}개 풀기</button></div></div>`;
     let i = UI.run.i != null ? UI.run.i : qs.findIndex((q) => !ans[q.id]);
-    if (i < 0) { const ok = qs.filter((q) => ans[q.id] && ans[q.id].ok).length; return `<div class="qwrap" style="max-width:720px;margin:0 auto">${head}${doneCard(ok, qs.length, ok === qs.length ? '이 개념은 이제 내 거예요' : '틀린 문제는 오답 노트에 들어갔어요', '<button class="btn primary big block" data-lib="sci" type="button">다른 개념 보기</button><button class="btn big block" id="cr-redo" type="button">처음부터 다시</button>')}</div>`; }
+    if (i < 0) { const ok = qs.filter((q) => ans[q.id] && ans[q.id].ok).length; return `<div class="qwrap" style="max-width:720px;margin:0 auto">${head}${doneCard(ok, qs.length, ok === qs.length ? '이 개념은 이제 내 거예요' : '틀린 문제는 오답 노트에 들어갔어요', '<button class="btn primary big block" data-lib="sci" type="button">다른 개념 보기</button><button class="btn big block" id="cr-redo" type="button">처음부터 다시</button>' + RV_BTN)}</div>`; }
     const q = qs[i], a = ans[q.id];
     return `<div class="qwrap" style="max-width:720px;margin:0 auto">${head}<details class="hw-more" style="margin:8px 0 0"><summary>개념 다시 보기</summary>${lessonHtml(c)}</details>
       <div class="progress-dots">${qs.map((x, k) => `<i class="${ans[x.id] ? (ans[x.id].ok ? 'ok' : 'no') : k === i ? 'cur' : ''}"></i>`).join('')}</div>
-      <div class="card"><div class="q-no">${i + 1}번 ${i >= (c.base || []).length ? '<span class="tag">깊게</span>' : ''}</div><div style="margin-top:8px">${qBody(q)}</div></div>${choicesHtml(q, a ? a.pick : null)}${a ? verdict(a.ok) + (q.exp ? `<div class="explain"><b>해설</b><br>${esc(q.exp)}</div>` : '') + '<div class="cta-bar"><button class="btn primary big block" id="cr-next" type="button">다음</button></div>' : ''}</div>`;
+      <div class="card"><div class="q-no">${i + 1}번 ${i >= (c.base || []).length ? '<span class="tag">깊게</span>' : ''}</div><div style="margin-top:8px">${qBody(q)}</div></div>${choicesHtml(q, a ? a.pick : null)}${a ? verdict(a.ok) + (q.exp ? `<div class="explain"><b>해설</b><br>${esc(q.exp)}</div>` : '') + (UI.run.rv ? rvBar(UI.run, i, qs.length) : '<div class="cta-bar"><button class="btn primary big block" id="cr-next" type="button">다음</button></div>') : ''}</div>`;
   }
   function bindConcept() {
     const r = UI.run, c = SCI.concepts.find((x) => x.id === r.cid); if (!c) return;
     const ans = S.sci.cans[c.id], qs = [...(c.base || []), ...(c.deep || [])];
     const g = $('#cr-go'); if (g) g.onclick = () => { r.read = true; r.i = null; render(); window.scrollTo(0, 0); };
     const rd = $('#cr-redo'); if (rd) rd.onclick = () => { S.sci.cans[c.id] = {}; save('sci'); UI.run = { kind: 'concept', cid: c.id }; render(); window.scrollTo(0, 0); };
+    rvBind(r, 'i', qs.length);
     const nx = $('#cr-next'); if (nx) nx.onclick = () => { r.i = null; render(); window.scrollTo(0, 0); };
     const i = r.i != null ? r.i : qs.findIndex((q) => !ans[q.id]); const q = qs[i];
     $$('[data-pick]').forEach((b) => (b.onclick = () => {
       const ans = (S.sci.cans[c.id] = S.sci.cans[c.id] || {});  // 누를 때 다시 찾아요
+      if (!q || ans[q.id]) return;
       const k = +b.dataset.pick, ok = k === q.answer; ans[q.id] = { pick: k, ok, at: Date.now() }; r.i = i;
       const wid = 'sci:' + q.id;
       if (ok) { gotIt(wid); if (S.wrong[wid]) clearWrong(wid); } else addWrong(wid, { src: 'sci', subj: 'sci', subjName: '통합과학', area: unitOf(c.unit).title.replace(/^[ⅠⅡⅢⅣⅤⅥ]+\.\s*/, ''), sub: c.title, concept: c.id, qid: q.id });
@@ -2801,10 +2814,11 @@
     }
     let i = list.findIndex((x) => !d.ans[x.q]);
     if (UI.run && UI.run.i != null && d.ans[list[UI.run.i] && list[UI.run.i].q] && UI.run.showing) i = UI.run.i;
-    if (i < 0) { const st = dayStat(d); return `<div class="qwrap" style="max-width:720px;margin:0 auto">${doneCard(st.ok, st.n, `오늘의 과학 끝!${st.all > st.n ? ` 깊게 ${st.all - st.n}문제를 더 풀었어요.` : ''} 틀린 문제는 오답 노트에 쌓였어요`, '<button class="btn primary big block" data-go="home" type="button">홈으로</button><button class="btn big block" data-go="wrong" type="button">오답 노트 보기</button>')}</div>`; }
+    const rv = !!(UI.run && UI.run.rv && UI.run.i != null && list[UI.run.i]); if (rv) i = UI.run.i;
+    if (i < 0) { const st = dayStat(d); return `<div class="qwrap" style="max-width:720px;margin:0 auto">${doneCard(st.ok, st.n, `오늘의 과학 끝!${st.all > st.n ? ` 깊게 ${st.all - st.n}문제를 더 풀었어요.` : ''} 틀린 문제는 오답 노트에 쌓였어요`, '<button class="btn primary big block" data-go="home" type="button">홈으로</button><button class="btn big block" data-go="wrong" type="button">오답 노트 보기</button>' + RV_BTN)}</div>`; }
     const it = list[i], q = qById(it.q), c = SCI.concepts.find((x) => x.id === it.c) || {};
     const a = d.ans[it.q];
-    UI.run = { kind: 'sci', i, showing: !!a };
+    UI.run = { kind: 'sci', i, showing: !!a, rv };
     return `<div class="qwrap" style="max-width:720px;margin:0 auto">
       <div class="row between"><button class="btn sm" data-go="hw" type="button">‹ 숙제</button><span class="tiny">${esc(unitOf(c.unit).title)} · ${esc(c.title || '')}</span></div>${d.one ? `<details class="hw-more" style="margin:8px 0 0"><summary>개념 다시 보기</summary>${lessonHtml(c)}</details>` : ''}
       <div class="progress-dots">${list.map((x, k) => `<i class="${d.ans[x.q] ? (d.ans[x.q].ok ? 'ok' : 'no') : k === i ? 'cur' : ''}"></i>`).join('')}</div>
@@ -2812,16 +2826,18 @@
         ${it.kind !== 'base' && it.first ? `<div class="deep" style="margin:12px 0"><div class="eyebrow">${ic('bulb')} 개념 다시 보기</div><p>${esc(c.summary || '')}</p></div>` : ''}
         <div style="margin-top:8px">${qBody(q)}</div></div>
       ${choicesHtml(q, a ? a.pick : null)}
-      ${a ? `${verdict(a.ok)}${q.exp ? `<div class="explain"><b>해설</b><br>${esc(q.exp)}</div>` : ''}${!a.ok && c.summary && it.kind === 'base' ? `<div class="deep"><div class="eyebrow">${ic('bulb')} 이 개념, 한 번 더</div><p>${esc(c.summary)}</p></div>` : ''}<div class="cta-bar"><button class="btn primary big block" id="next" type="button">${list.slice(i + 1).some((x) => !d.ans[x.q]) ? '다음 문제' : '결과 보기'}</button></div>` : ''}
+      ${a ? `${verdict(a.ok)}${q.exp ? `<div class="explain"><b>해설</b><br>${esc(q.exp)}</div>` : ''}${!a.ok && c.summary && it.kind === 'base' ? `<div class="deep"><div class="eyebrow">${ic('bulb')} 이 개념, 한 번 더</div><p>${esc(c.summary)}</p></div>` : ''}${rv ? rvBar(UI.run, i, list.length) : `<div class="cta-bar"><button class="btn primary big block" id="next" type="button">${list.slice(i + 1).some((x) => !d.ans[x.q]) ? '다음 문제' : '결과 보기'}</button></div>`}` : ''}
     </div>`;
   }
   function bindSci() {
     const d = sciToday(true);
     const ld = $('#ls-done'); if (ld) { ld.onclick = () => { sciToday(true).read = true; save('sci'); UI.run = { kind: 'sci' }; render(); window.scrollTo(0, 0); }; return; }
     const r = UI.run; if (!r || r.kind !== 'sci') return;
+    rvBind(r, 'i', d.list.length);
     const it = d.list[r.i]; if (!it) return; const q = qById(it.q), c = SCI.concepts.find((x) => x.id === it.c) || {};
     $$('[data-pick]').forEach((b) => (b.onclick = () => {
       const d = sciToday(true);  // 누를 때 다시 찾아요
+      if (d.ans[it.q]) return;
       const k = +b.dataset.pick, ok = k === q.answer; d.ans[it.q] = { pick: k, ok, at: Date.now() };
       const wid = 'sci:' + it.q;
       if (ok) { gotIt(wid); if (S.wrong[wid]) clearWrong(wid); }
@@ -2851,7 +2867,7 @@
     if (!un) return `<div class="card empty">${ic('eng')}<b>천일문 자료를 넣는 중이에요</b></div>`;
     const qs = un.questions || []; const qi = ids.find((k) => !store[k]); const left = qi == null ? -1 : qi;
     const cur = UI.run && UI.run.kind === 'unit' && UI.run.show != null ? UI.run.show : left;
-    UI.run = { kind: 'unit', show: cur, ref, back, g3lib, ...(UI.run && UI.run.hwk ? { hwk: UI.run.hwk } : {}) };
+    UI.run = { kind: 'unit', show: cur, ref, back, g3lib, ...(UI.run && UI.run.hwk ? { hwk: UI.run.hwk } : {}), ...(UI.run && UI.run.rv && cur >= 0 ? { rv: 1 } : {}) };
     const head = `<div class="row between">${back === 'g3' ? (g3lib != null ? (UI.run.mm ? `<button class="btn sm" data-lmm="${g3lib}" type="button">‹ 모의고사 문제로</button>` : `<button class="btn sm" data-lg="${g3lib}" type="button">‹ 고3 문제로</button>`) : '<button class="btn sm" data-task="g3" type="button">‹ 고3 문제로</button>') : back === 'lib' ? '<button class="btn sm" data-lib="cheonil" type="button">‹ 천일문 목록</button>' : back === 'exam' ? '<button class="btn sm" data-go="exam" type="button">‹ 수업</button>' : '<button class="btn sm" data-go="hw" type="button">‹ 숙제</button>'}<span class="tiny">천일문 Ch.${esc(un.ch)} ${esc(un.chTitle || '')}</span></div>
       ${(() => { const jb = cur >= 0 && qs.length ? `<button class="btn primary big block cl-jump" data-toq type="button">문제 ${ids.filter((k) => !store[k]).length}개 바로 풀기 ↓</button><p class="tiny" style="margin:-8px 0 16px;text-align:center">문제는 설명 아래 맨 끝에 있어요. 설명을 읽고 내려가도 되고, 바로 가도 돼요</p>` : '';
         if (!un.lesson) return `<div class="card"><div class="q-no">Unit ${esc(un.unit)}</div><h1 class="h1" style="margin-top:4px">${esc(un.title)}</h1><p style="line-height:1.8;color:var(--t2);margin:8px 0 0">${esc(un.concept || '')}</p></div>` + jb;
@@ -2860,7 +2876,7 @@
     if (cur < 0 || cur == null) {
       const ok = ids.filter((k) => store[k] && store[k].ok).length;
       if (ref == null && !uDone(ed) && qs.length) { const again = ed.udone; ed[un.v2 ? 'udone2' : 'udone'] = Date.now(); if (!again) S.eng.unit = Math.min((S.eng.unit || 0) + 1, CH_UNITS.length - 1); save('eng'); }  // 예전 문제로 이미 넘긴 날은 또 넘기지 않아요
-      return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${ref == null ? doneCard(ok, ids.length, '천일문 유닛 끝! 내일은 다음 유닛이에요', '<button class="btn primary big block" data-task="words" type="button">단어 시험 보러 가기</button><button class="btn big block" data-go="home" type="button">홈으로</button>') : doneCard(ok, ids.length, `Unit ${un.unit} 끝! 틀린 문제는 오답 노트에 들어갔어요`, `<button class="btn primary big block" data-go="hw" type="button">숙제 목록으로 ›</button>`)}</div>`;
+      return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${ref == null ? doneCard(ok, ids.length, '천일문 유닛 끝! 내일은 다음 유닛이에요', '<button class="btn primary big block" data-task="words" type="button">단어 시험 보러 가기</button><button class="btn big block" data-go="home" type="button">홈으로</button>' + RV_BTN) : doneCard(ok, ids.length, `Unit ${un.unit} 끝! 틀린 문제는 오답 노트에 들어갔어요`, `<button class="btn primary big block" data-go="hw" type="button">숙제 목록으로 ›</button>` + RV_BTN)}</div>`;
     }
     const q = qs[cur], a = store[cur];
     const isOrder = q.words && q.answerText;
@@ -2869,17 +2885,22 @@
       <div class="card"><div class="q-no">문제 ${ids.indexOf(cur) + 1} <span class="tag">${esc(q.type || '')}</span></div><div style="margin-top:8px">${qBody(q)}</div></div>
       ${isOrder ? `<div class="card"><div id="ord-out" class="q-text" style="min-height:32px">${a ? esc(a.text) : ''}</div><div class="chips" style="flex-wrap:wrap;margin-top:12px" id="ord-in">${a ? '' : sshuffle(q.words.map((w, k) => [w, k]), 'ord:' + q.words.join(' ')).map(([w, k]) => `<button class="chip" data-w="${k}" type="button">${esc(w)}</button>`).join('')}</div>${a ? '' : '<div class="row" style="margin-top:12px"><button class="btn" id="ord-reset" type="button">다시</button><button class="btn primary" id="ord-ok" type="button">확인</button></div>'}</div>`
         : q.choices ? choicesHtml(q, a ? a.pick : null) : `<div class="card"><textarea class="inp" id="free" placeholder="답을 써 보세요" ${a ? 'disabled' : ''}>${a ? esc(a.text || '') : ''}</textarea>${a ? '' : '<button class="btn primary block" style="margin-top:12px" id="free-ok" type="button">확인</button>'}</div>`}
-      ${a ? `${verdict(a.ok)}${isOrder || !q.choices ? `<div class="explain"><b>정답</b> ${esc((q.accept && q.accept.length ? q.accept.join(' / ') : '') || q.answerText || (q.choices ? q.choices[q.answer] : ''))}</div>` : ''}${q.exp ? `<div class="explain"><b>해설</b><br>${esc(q.exp)}</div>` : ''}<div class="cta-bar"><button class="btn primary big block" id="next" type="button">${ids.some((k) => !store[k]) ? '다음 문제' : '결과 보기'}</button></div>` : ''}
+      ${a ? `${verdict(a.ok)}${isOrder || !q.choices ? `<div class="explain"><b>정답</b> ${esc((q.accept && q.accept.length ? q.accept.join(' / ') : '') || q.answerText || (q.choices ? q.choices[q.answer] : ''))}</div>` : ''}${q.exp ? `<div class="explain"><b>해설</b><br>${esc(q.exp)}</div>` : ''}${UI.run.rv ? rvBar(UI.run, ids.indexOf(cur), ids.length) : `<div class="cta-bar"><button class="btn primary big block" id="next" type="button">${ids.some((k) => !store[k]) ? '다음 문제' : '결과 보기'}</button></div>`}` : ''}
     </div>`;
   }
   const normEn = (t) => String(t || '').toLowerCase().replace(/[^a-z0-9' ]/g, ' ').replace(/\s+/g, ' ').trim();
   function bindUnit() {
     if (!UI.run || UI.run.kind !== 'unit') return;
-    const { un, store, ids, ref } = unitCtx(); if (!un) return; const cur = UI.run.show; const q = (un.questions || [])[cur]; if (!q) { const n = $('#next'); if (n) n.onclick = () => { UI.run = null; render(); }; return; }
+    const { un, store, ids, ref } = unitCtx(); if (!un) return;
+    { const r = UI.run, go = (k) => { r.show = k; render(); const d = $('.progress-dots'); if (d) d.scrollIntoView({ block: 'start' }); else window.scrollTo(0, 0); }, p = ids.indexOf(r.show);  // 푼 것 다시 보기
+      const b = $('[data-rv]'); if (b) b.onclick = () => { r.rv = 1; go(ids[0]); };
+      const pv = $('#rv-prev'); if (pv) pv.onclick = () => go(ids[Math.max(0, p - 1)]);
+      const nv = $('#rv-next'); if (nv) nv.onclick = () => { if (p + 1 >= ids.length) { r.rv = 0; go(-1); } else go(ids[p + 1]); }; }
+    const cur = UI.run.show; const q = (un.questions || [])[cur]; if (!q) { const n = $('#next'); if (n) n.onclick = () => { UI.run = null; render(); }; return; }
     const keep = { kind: 'unit', ref, back: UI.run.back, g3lib: UI.run.g3lib };
     const wk = `eng:${uKey(un)}-${cur}`;
     const live = () => unitCtx().store || store;  // 누를 때 다시 찾아요 (서버 맞춤 뒤 옛 기록에 적으면 「확인」해도 안 넘어가요 10/26)
-    const mark = (ok, extra) => { const store = live(); store[cur] = { ok, at: Date.now(), ...extra }; if (!ok) addWrong(wk, { src: 'eng', subj: 'eng', subjName: '영어', area: '천일문 ' + (un.chTitle || ''), sub: un.title, ref: { ch: un.ch, unit: un.unit, i: cur, v: un.v2 ? 2 : 0 } }); else { gotIt(wk); clearWrong(wk); } save('eng');
+    const mark = (ok, extra) => { const store = live(); if (store[cur]) return; store[cur] = { ok, at: Date.now(), ...extra }; if (!ok) addWrong(wk, { src: 'eng', subj: 'eng', subjName: '영어', area: '천일문 ' + (un.chTitle || ''), sub: un.title, ref: { ch: un.ch, unit: un.unit, i: cur, v: un.v2 ? 2 : 0 } }); else { gotIt(wk); clearWrong(wk); } save('eng');
       if (ref != null && ids.every((k) => store[k])) { const t = cuTitle(un.unit), hk = UI.run && UI.run.hwk, h = (S.hw || []).find((x) => !x.done && (x.title === t || cuOf(x.title) === +un.unit) && (x.redo ? x.id === hk : !hk)); if (h) { h.done = true; h.doneAt = Date.now(); save('hw'); toast('천일문 숙제 끝!'); } }
       render(); };
     $$('[data-pick]').forEach((b) => (b.onclick = () => mark(+b.dataset.pick === q.answer, { pick: +b.dataset.pick })));
@@ -3498,15 +3519,15 @@
     const d = allDrills().find((x) => x.id === UI.run.id); if (!d) { UI.run = null; return hwView(); }
     const ans = drillAns(d.id); let i = UI.run.i != null ? UI.run.i : d.qs.findIndex((_, k) => !ans[k]);
     const head = `<div class="row between"><button class="btn sm" data-go="hw" type="button">‹ 숙제</button><span class="tiny">${esc(SUBJ_NAMES[d.subj] || d.subj)} · ${esc(d.area || '')}</span></div>`;
-    if (i < 0) { const ok = Object.values(ans).filter((x) => x.ok).length; return `<div class="qwrap" style="max-width:720px;margin:0 auto">${head}${doneCard(ok, d.qs.length, ok === d.qs.length ? '이 영역은 이제 괜찮아요' : '틀린 문제는 오답 노트에 들어갔어요', '<button class="btn primary big block" data-go="hw" type="button">숙제로</button><button class="btn big block" data-go="wrong" type="button">오답 노트</button>')}</div>`; }
+    if (i < 0) { const ok = Object.values(ans).filter((x) => x.ok).length; return `<div class="qwrap" style="max-width:720px;margin:0 auto">${head}${doneCard(ok, d.qs.length, ok === d.qs.length ? '이 영역은 이제 괜찮아요' : '틀린 문제는 오답 노트에 들어갔어요', '<button class="btn primary big block" data-go="hw" type="button">숙제로</button><button class="btn big block" data-go="wrong" type="button">오답 노트</button>' + RV_BTN)}</div>`; }
     const q = d.qs[i], a = ans[i]; UI.run.i = i;
     return `<div class="qwrap" style="max-width:720px;margin:0 auto">${head}<div class="progress-dots">${d.qs.map((_, k) => `<i class="${ans[k] ? (ans[k].ok ? 'ok' : 'no') : k === i ? 'cur' : ''}"></i>`).join('')}</div>
       <div class="card"><div class="q-no">${i + 1}번 <span class="tag blue">${esc(d.title || '선생님이 낸 문제')}</span></div>${q.img ? `<img class="q-img" style="margin-top:12px" src="${esc(q.img)}" alt="">` : ''}<div style="margin-top:8px">${qBody(q)}</div></div>
-      ${choicesHtml(q, a ? a.pick : null)}${a ? verdict(a.ok) + (q.exp ? `<div class="explain"><b>해설</b><br>${esc(q.exp)}</div>` : '') + `<div class="cta-bar"><button class="btn primary big block" id="next" type="button">${d.qs.some((_, k) => !ans[k]) ? '다음 문제' : '결과 보기'}</button></div>` : ''}</div>`;
+      ${choicesHtml(q, a ? a.pick : null)}${a ? verdict(a.ok) + (q.exp ? `<div class="explain"><b>해설</b><br>${esc(q.exp)}</div>` : '') + (UI.run.rv ? rvBar(UI.run, i, d.qs.length) : `<div class="cta-bar"><button class="btn primary big block" id="next" type="button">${d.qs.some((_, k) => !ans[k]) ? '다음 문제' : '결과 보기'}</button></div>`) : ''}</div>`;
   }
   function bindDrill() {
-    const d = allDrills().find((x) => x.id === UI.run.id); if (!d) return; const i = UI.run.i, q = d.qs[i];
-    $$('[data-pick]').forEach((b) => (b.onclick = () => { const k = +b.dataset.pick, ok = k === q.answer; S.drillAns = S.drillAns || {}; (S.drillAns[d.id] = S.drillAns[d.id] || {})[i] = { pick: k, ok, at: Date.now() }; const wid = `drill:${d.id}:${i}`; if (!ok) addWrong(wid, { src: 'drill', subj: d.subj, subjName: SUBJ_NAMES[d.subj], area: d.area || '기타', sub: (q.q || '').slice(0, 40), title: `${d.title || d.area} ${i + 1}번`, set: d.id, i }); else { gotIt(wid); if (S.wrong[wid]) clearWrong(wid); } save('drillAns'); render(); }));
+    const d = allDrills().find((x) => x.id === UI.run.id); if (!d) return; rvBind(UI.run, 'i', d.qs.length); const i = UI.run.i, q = d.qs[i];
+    $$('[data-pick]').forEach((b) => (b.onclick = () => { if (!q || (S.drillAns && S.drillAns[d.id] && S.drillAns[d.id][i])) return; const k = +b.dataset.pick, ok = k === q.answer; S.drillAns = S.drillAns || {}; (S.drillAns[d.id] = S.drillAns[d.id] || {})[i] = { pick: k, ok, at: Date.now() }; const wid = `drill:${d.id}:${i}`; if (!ok) addWrong(wid, { src: 'drill', subj: d.subj, subjName: SUBJ_NAMES[d.subj], area: d.area || '기타', sub: (q.q || '').slice(0, 40), title: `${d.title || d.area} ${i + 1}번`, set: d.id, i }); else { gotIt(wid); if (S.wrong[wid]) clearWrong(wid); } save('drillAns'); render(); }));
     const n = $('#next'); if (n) n.onclick = () => { UI.run = { kind: 'drill', id: d.id }; render(); window.scrollTo(0, 0); };
   }
   // 붙여넣기 형식: 1. 문제 / ① … ⑤ … / 정답 3 / 해설 …
@@ -5036,7 +5057,7 @@
     if (r.sheet) return jgSheet(u, qs, head);
     if (cur < 0) {
       const ok = qs.filter((q) => (jgRec(u, q) || {}).ok).length;
-      return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${doneCard(ok, qs.length, ok === qs.length ? '다 맞혔어요! 최고예요' : '틀린 문제는 오답 노트에서 다시 풀어요', `<button class="btn primary big block" data-go="hw" type="button">숙제 목록으로 ›</button><button class="btn big block" data-jgre type="button">처음부터 다시 보기</button>`)}</div>`;
+      return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${doneCard(ok, qs.length, ok === qs.length ? '다 맞혔어요! 최고예요' : '틀린 문제는 오답 노트에서 다시 풀어요', `<button class="btn primary big block" data-go="hw" type="button">숙제 목록으로 ›</button><button class="btn big block" data-jgre type="button">처음부터 다시 보기</button>` + RV_BTN)}</div>`;
     }
     const q = qs[cur], a = jgRec(u, q);
     const box = q.choices ? `<div class="jg-ops">${q.choices.map((c, j) => `<button type="button" class="chip jg-op ${a && jgNorm(a.v) === jgNorm(c) ? (a.ok ? 'right' : 'wrong') : ''}" data-jo="${j}" ${a ? 'disabled' : ''}>${esc(c)}</button>`).join('')}</div>` : `<div class="row" style="gap:8px"><input class="inp" id="jg-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="답을 써요" value="${a ? esc(a.v) : ''}" ${a ? 'disabled' : ''}>${a ? '' : '<button class="btn primary" id="jg-ok" type="button">확인</button>'}</div>`;
@@ -5083,7 +5104,9 @@
     const al = $('[data-jgall]'); if (al) al.onclick = () => { UI.run = { kind: 'gram', unit: r.unit, step: r.step }; render(); };
     $$('[data-jgre]').forEach((re) => (re.onclick = () => { if (re.closest('.row.between') && !UI.jgReAsk) { UI.jgReAsk = 1; render(); clearTimeout(UI.jgReT); UI.jgReT = setTimeout(() => { if (UI.jgReAsk) { UI.jgReAsk = 0; render(); } }, 4000); return; } UI.jgReAsk = 0; S.jg = S.jg || {}; const ks = jgQs(u, r.step, r.secs).map((q) => 'u' + u.no + ':' + q.id); for (const k of ks) delete S.jg[k]; save('jg'); if (PEEK) dPut(U.who, 'jg', (d) => { d.jg = d.jg || {}; for (const k of ks) delete d.jg[k]; }).catch(() => toast('서버에 못 지웠어요')); UI.run = { ...r, show: null }; render(); window.scrollTo(0, 0); toast('처음부터 다시 풀어요'); }));
     if (r.sheet) return bindJgSheet(u, r);
-    const qs = jgQs(u, r.step, r.secs), q = qs[r.show]; if (!q) return;
+    const qs = jgQs(u, r.step, r.secs), q = qs[r.show];
+    const rvb = $('[data-rv]'); if (rvb) rvb.onclick = () => { UI.run = { ...r, show: 0 }; render(); window.scrollTo(0, 0); };  // 푼 것 다시 보기
+    if (!q) return;
     const mark = (v, el) => {
       if (!String(v).trim()) return; const ok = jgOk(q, v), id = `jg:u${u.no}:${q.id}`;
       S.jg = S.jg || {}; S.jg['u' + u.no + ':' + q.id] = { ok, v: String(v).trim(), at: Date.now() };
@@ -5585,14 +5608,16 @@
           const nx = [L.c, L.q].find((id) => id && id !== s.id && NXSETS[id] && NXSETS[id].qs.some((q) => !nxS().a[q.i]));
           if (nx) return `<button class="btn ${wr ? '' : 'primary '}big block" data-nx="${esc(nx)}" type="button">다음 칸: ${nx === L.c ? (L.m3 ? '단어' : '빈칸') : '문제'} ${NXSETS[nx].qs.length}개 ›</button>`;
           return `<button class="btn ${wr ? '' : 'primary '}big block" data-nxexit type="button">${L.m3 && !nxS().a[stLRead(hu, L)] ? '다음 칸: 문장 구조 ›' : '숙제 마무리 ›'}</button>`; })() : null;
-        if (hl) return `${wr ? `<button class="btn primary big block" data-nxwr type="button">틀린 것만 다시 · ${wr}문제</button>` : ''}${hl}`;
-        return `${wr ? `<button class="btn primary big block" data-nxwr type="button">틀린 것만 다시 · ${wr}문제</button>` : `<button class="btn primary big block" data-nxexit type="button">${back}</button>`}<div class="done-more">${s.kind === 'lesson' ? '' : '<button class="btn sm ghost" data-nxre type="button">처음부터 다시</button>'}${wr ? `<button class="btn sm ghost" data-nxexit type="button">${back}</button>` : ''}</div>`; })(), bars)}</div>`;
+        const rvB = '<button class="btn sm ghost" data-nxrv type="button">내가 푼 것 다시 보기</button>';  // 11/5 «자기가 푼 걸 다시 볼 수가 없는데»
+        if (hl) return `${wr ? `<button class="btn primary big block" data-nxwr type="button">틀린 것만 다시 · ${wr}문제</button>` : ''}${hl}<div class="done-more">${rvB}</div>`;
+        return `${wr ? `<button class="btn primary big block" data-nxwr type="button">틀린 것만 다시 · ${wr}문제</button>` : `<button class="btn primary big block" data-nxexit type="button">${back}</button>`}<div class="done-more">${rvB}${s.kind === 'lesson' ? '' : '<button class="btn sm ghost" data-nxre type="button">처음부터 다시</button>'}${wr ? `<button class="btn sm ghost" data-nxexit type="button">${back}</button>` : ''}</div>`; })(), bars)}</div>`;
     }
     const q = qs[cur], rec = store[q.i], v = nxView(q, rec, s.kind === 'mock' ? q.n || cur + 1 : s.kind === 'lesson' ? cur + 1 : null);
     const fresh = render.nxq !== q.i; render.nxq = q.i;
     const left = qs.some((y, k) => k !== cur && !store[y.i]);
     const omr = r.omr ? `<div class="card nx-omr"><div class="nb-g">${qs.map((y, k) => `<button class="nb ${store[y.i] ? (store[y.i].ok ? 'ok' : 'no') : ''} ${k === cur ? 'cur' : ''}" data-nxj="${k}" type="button">${k + 1}</button>`).join('')}</div></div>` : '';
-    const cta = rec ? `<div class="cta-bar"><button class="btn primary big block" id="nx-next" type="button">${left ? '다음 문제' : '결과 보기'}</button></div>` : '';
+    const cta = r.rv && rec ? `<div class="cta-bar nx-rvbar">${cur > 0 ? '<button class="btn big" id="nx-prev" type="button">‹ 이전</button>' : ''}<button class="btn primary big block" id="nx-next" type="button">${cur < n - 1 ? '다음 문제 ›' : '결과로 돌아가기'}</button></div>`
+      : rec ? `<div class="cta-bar"><button class="btn primary big block" id="nx-next" type="button">${left ? '다음 문제' : '결과 보기'}</button></div>` : '';
     const side = v.side + (!rec && /^w(ko|en)$/.test(q.t) ? '<div class="nx-acts"><button class="nx-link" id="nx-give" type="button">모르겠어요</button></div>' : '');
     return `<div class="nx-wrap ${v.psg ? 'wide' : ''}">${nxTop(s, cur + 1, n, sub, dn / n, `<button class="btn sm ${r.omr ? 'soft' : ''}" data-nxomr type="button" aria-expanded="${!!r.omr}">${r.omr ? '접기' : '전체 문제 보기'}</button>`)}${omr}
       ${v.psg ? `<div class="nx-split ${fresh ? 'nx-in' : ''}">${v.psg}<div class="nx-side">${side}</div></div>` : `<div class="nx-one ${fresh ? 'nx-in' : ''}">${side}</div>`}${cta}</div>`;
@@ -5612,8 +5637,10 @@
     $$('[data-nxj]').forEach((b) => (b.onclick = () => { r.cur = +b.dataset.nxj; render(); }));
     const re = $('[data-nxre]'); if (re) re.onclick = () => { for (const q of s.qs) delete x.a[q.i]; delete x.st[s.id]; save('nx'); UI.run = { kind: 'nx', id: s.id, back: r.back }; render(); window.scrollTo(0, 0); };
     const wr = $('[data-nxwr]'); if (wr) wr.onclick = () => { UI.run = { kind: 'nx', id: s.id, back: r.back, only: qs.filter((q) => !store[q.i].ok).map((q) => q.i), tmp: {} }; render(); window.scrollTo(0, 0); };
+    const rv = $('[data-nxrv]'); if (rv) rv.onclick = () => { r.rv = true; r.cur = 0; r.omr = true; render(); window.scrollTo(0, 0); };
     const cur = r.cur != null && r.cur < qs.length ? r.cur : qs.findIndex((q) => !store[q.i]); const q = qs[cur]; if (!q) return;
-    const nx = $('#nx-next'); if (nx) nx.onclick = () => { const k = qs.findIndex((y, j) => j > cur && !store[y.i]); r.cur = k >= 0 ? k : qs.findIndex((y) => !store[y.i]); if (r.cur < 0) r.cur = null; render(); window.scrollTo(0, 0); };
+    const pv = $('#nx-prev'); if (pv) pv.onclick = () => { r.cur = Math.max(0, cur - 1); render(); window.scrollTo(0, 0); };
+    const nx = $('#nx-next'); if (nx) nx.onclick = r.rv ? () => { r.cur = cur < qs.length - 1 ? cur + 1 : null; if (r.cur == null) { r.rv = false; r.omr = false; } render(); window.scrollTo(0, 0); } : () => { const k = qs.findIndex((y, j) => j > cur && !store[y.i]); r.cur = k >= 0 ? k : qs.findIndex((y) => !store[y.i]); if (r.cur < 0) r.cur = null; render(); window.scrollTo(0, 0); };
     const self = $('[data-nxself]'); if (self) self.onclick = () => { const store = nxStore(s, r); store[q.i] = { ...store[q.i], ok: true, self: 1 }; const wid = 'nx:' + q.i; if (S.wrong && S.wrong[wid]) clearWrong(wid); save('nx'); render(); };
     if (store[q.i]) return;
     r.cur = cur;
@@ -6718,7 +6745,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051906'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611052027'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
