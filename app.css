@@ -3872,3 +3872,9 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 @media (max-width: 899px) { .peek-bar { bottom: calc(var(--tab-h) + 12px + env(safe-area-inset-bottom)); max-width: calc(100% - 24px); } }
 .nx-rvbar { display: flex; gap: 8px; }
 .nx-rvbar .btn.block { flex: 1; }
+.app-qr { display: flex; align-items: center; gap: 16px; margin: 20px 0 4px; padding: 16px; border-radius: 20px; background: var(--fill2, #f2f4f6); text-align: left; }
+.app-qr b { display: block; font-size: 16px; margin-bottom: 4px; }
+.app-qr .tiny { display: block; line-height: 1.5; }
+.app-qr-box { flex: none; width: 132px; height: 132px; border-radius: 14px; background: #fff; padding: 6px; opacity: 0; transform: scale(.94); transition: opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1); }
+.app-qr-box.on { opacity: 1; transform: none; }
+.app-qr-box svg { width: 100%; height: 100%; display: block; }

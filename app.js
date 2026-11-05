@@ -2278,7 +2278,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611052027', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611052029', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4166,12 +4166,20 @@
   }
   const SHARE_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" fill="none" stroke="#3182f6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 10H6.5A1.5 1.5 0 0 0 5 11.5v8A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-8a1.5 1.5 0 0 0-1.5-1.5H16" fill="none" stroke="#3182f6" stroke-width="1.9" stroke-linecap="round"/></svg>';
   const ADD_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="#333d4b" stroke-width="1.8"/><path d="M12 8.5v7M8.5 12h7" stroke="#333d4b" stroke-width="1.8" stroke-linecap="round"/></svg>';
+  // 학생마다 자기 QR (11/5 «여기에 넣어 달라고 각자 · 정윤이는 필요 없을 듯»)
+  function qrSvg(text, cb) {
+    const go = () => { try { const q = window.qrcode(0, 'M'); q.addData(text); q.make(); cb(q.createSvgTag({ cellSize: 6, margin: 2, scalable: true })); } catch (e) {} };
+    if (window.qrcode) return go();
+    const a = document.createElement('script'); a.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js'; a.onload = go; document.head.appendChild(a);
+  }
   function appOpen() {
     aiUrl();
+    const qrAl = U.who !== '정윤' && ((ROSTER || []).find((r) => r.name === U.who) || {}).alias;
     const ua = navigator.userAgent, inApp = /KAKAOTALK|Instagram|NAVER\(|Line\/|FBAN|FBAV/i.test(ua);
     sheet(`<div class="app-sh">
       <div class="app-hero"><div class="app-tile"><img id="app-prev" src="${aiSrc()}" alt=""><span>${esc(BRAND)}</span></div></div>
       <h2 class="app-tt">홈 화면에 ${esc(BRAND)} 앱 만들기</h2><p class="app-sub">한 번만 해 두면 아이콘을 눌러 바로 열리고, 숙제 알림도 받을 수 있어요</p>
+      ${qrAl ? `<div class="app-qr"><div class="app-qr-box" id="app-qr" aria-label="${esc(U.who)} 앱 QR"></div><div><b>폰 카메라로 찍으면 바로 열려요</b><span class="tiny">${esc(U.who)} 전용이에요. 아이폰·갤럭시 둘 다 돼요. 열린 화면에서 아래 순서대로 홈 화면에 추가해요</span></div></div>` : ''}
       <h3 class="app-h">홈 화면에 추가하기</h3>
       ${inApp ? '<div class="app-warn">지금은 카카오톡 같은 앱 안에서 열려 있어요. 오른쪽 아래 <b>⋯</b> 를 눌러 <b>「다른 브라우저로 열기」</b>로 사파리에서 열어 주세요</div>' : ''}
       <div class="sj-g app-os" role="tablist"><button class="sj ${ANDROID ? '' : 'on'}" type="button" data-aos="ios">아이폰</button><button class="sj ${ANDROID ? 'on' : ''}" type="button" data-aos="and">갤럭시</button></div>
@@ -4188,6 +4196,7 @@
       </ol>`}
       <button class="btn primary big block" type="button" id="app-ok">다 했어요</button>
       <button class="gf-link app-later" type="button" id="app-later">나중에 할게요</button></div>`, (el, close) => {
+      if (qrAl) qrSvg(location.origin + location.pathname + '?' + qrAl, (svg) => { const bx = $('#app-qr', el); if (bx) { bx.innerHTML = svg; bx.classList.add('on'); } });
       $$('[data-aos]', el).forEach((b) => (b.onclick = () => { $$('[data-aos]', el).forEach((y) => y.classList.toggle('on', y === b)); $$('[data-aosp]', el).forEach((o) => { o.hidden = o.dataset.aosp !== b.dataset.aos; if (!o.hidden) o.querySelectorAll('li').forEach((li) => { li.style.animation = 'none'; void li.offsetWidth; li.style.animation = ''; }); }); }));  // 아이폰·갤럭시 둘 다 볼 수 있게 (11/5 지원이는 갤럭시)
       $('#app-ok', el).onclick = () => { appMark(); close(); setTimeout(() => cardBye(document.querySelector('.app-card [data-appopen], .app-card [data-appinst]')?.closest('.app-card'), render), 260); };
       $('#app-later', el).onclick = () => { try { localStorage.setItem(AI_KEY, String(Date.now())); } catch (e) {} close(); setTimeout(() => cardBye(document.querySelector('.app-card [data-appopen], .app-card [data-appinst]')?.closest('.app-card'), render), 260); };
@@ -6745,7 +6754,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611052027'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611052029'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
