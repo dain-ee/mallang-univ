@@ -107,6 +107,7 @@
     const go = () => { const body = ta.value.trim(), img = pic; if (!body && !img) return; ta.value = ''; fit(); setPic(null); onSend(body, img, (b, i) => { if (!ta.value) { ta.value = b; fit(); } if (i && !pic) setPic(i); can(); }); };
     const fit = wireInput(ta, go);
     root.querySelector('.nc-form').onsubmit = (e) => { e.preventDefault(); go(); };
+    ta.addEventListener('focus', () => { const L = ta.closest('.nc-pane')?.querySelector('.nc-list'); if (L) [0, 250, 500].forEach((ms) => setTimeout(() => { L.scrollTop = L.scrollHeight; }, ms)); });  // 키보드 올라오는 동안 마지막 메시지 따라가기
     return { ta, focus: () => ta.focus() };
   }
   const FORM = (ph) => `<div class="nc-pic" hidden><img alt="보낼 사진"><button type="button" class="nc-pic-x">사진 빼기</button></div>
@@ -116,7 +117,7 @@
   // 폰에서 키보드가 올라오거나 화면이 확대돼도 쪽지함이 보이는 화면에 딱 맞게 (11/4 «칠 때도 문제»: 키보드 위로 빈칸이 생기고 오른쪽이 잘렸어요)
   const VV = window.visualViewport;
   // 폰: 쪽지창을 보이는 화면(키보드 위)에 딱 맞추고, 뒤 화면은 잠가서 같이 스크롤되지 않게 (11/5 «키보드랑 살짝 떨어져서 덜덜 떨리고 그 사이로 뒤 화면이 스크롤돼»)
-  let vvRaf = 0, lockY = null;
+  let vvRaf = 0, lockY = null, vvMax = 0;
   function bgLock(on) {
     const b = document.body;
     if (on && lockY === null) { lockY = window.scrollY; b.style.position = 'fixed'; b.style.top = -lockY + 'px'; b.style.left = '0'; b.style.right = '0'; b.style.width = '100%'; }
@@ -126,8 +127,11 @@
     const el = document.querySelector('.nc-pane:not([hidden]):not(.nc-out)');
     if (!el || !VV || !matchMedia('(max-width:899px)').matches) { if (el) { el.style.cssText = ''; el.classList.remove('nc-kb'); } bgLock(false); return; }
     bgLock(true);
-    el.classList.toggle('nc-kb', VV.height < window.innerHeight - 120);  // 키보드가 떠 있으면 아래 안전 여백(34px)을 빼야 입력칸이 키보드에 붙어요
+    vvMax = Math.max(vvMax, VV.height);
+    el.classList.toggle('nc-kb', VV.height < vvMax - 120);  // 키보드가 떠 있으면 아래 안전 여백(34px)을 빼야 입력칸이 키보드에 붙어요. 홈 화면 앱은 innerHeight 도 같이 줄어서 가장 컸던 높이와 견줘요 (11/5)
+    const L = el.querySelector('.nc-list:not([hidden])'), bot = L && L.scrollHeight - L.scrollTop - L.clientHeight < 80;
     el.style.cssText = `top:0;left:0;right:auto;bottom:auto;width:${VV.width}px;height:${VV.height}px;transform:translate3d(${VV.offsetLeft}px,${VV.offsetTop}px,0)`;
+    if (bot || (L && document.activeElement && el.contains(document.activeElement) && document.activeElement.tagName === 'TEXTAREA')) L.scrollTop = L.scrollHeight;  // 키보드가 올라와 창이 줄어도 마지막 메시지가 보이게
   }
   const vvSoon = () => { cancelAnimationFrame(vvRaf); vvRaf = requestAnimationFrame(vvFit); };
   if (VV) { VV.addEventListener('resize', vvSoon); VV.addEventListener('scroll', vvSoon); }
