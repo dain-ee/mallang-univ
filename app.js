@@ -2145,7 +2145,7 @@
   // 지난 날 = 그날 체크리스트: 한 것은 줄을 긋고(is-done), 못 한 것은 그대로 두고 「오늘로 밀림」 (11/5 «했으면 왼쪽에 줄이 쫙 그어져 있고 안 한 두 개는 오늘로 생기면서 밀림 표시»)
   const dayRows = (d) => { const fut = d > today(); if (fut) return planItems(d).map((x) => ({ ...x, st: '' })); const M = calMiss(d).map((x) => ({ ...x, st: 'miss' })); return [...calDone(d).map((x) => ({ ...x, st: 'done' })), ...M]; };
   const dayRowHtml = (x) => `<div class="li ${x.go ? 'btnlike' : ''} ${x.st === 'done' ? 'is-done' : ''}" ${x.go ? `data-dgo="${esc(x.go)}" role="button" tabindex="0"` : ''}><div class="ico">${ic(x.st === 'done' ? 'ok' : x.i)}</div><div class="body"><div class="t">${esc(x.t)}</div><div class="d">${esc(x.d)}</div></div>${x.st === 'miss' ? '<span class="tag red" style="flex:none">오늘로 밀림</span>' : x.go ? '<span class="chev"></span>' : ''}</div>`;
-  const daySub = (d, R) => { if (d > today()) return `${R.length}개 · 미리 해도 돼요`; const dn = R.filter((x) => x.st === 'done').length, ms = R.length - dn; return R.length ? `${dn}개 했어요${ms ? ` · ${ms}개는 오늘로 밀렸어요` : ''}` : '기록이 없어요'; };
+  const daySub = (d, R) => { if (d > today()) return R.length ? `${R.length}개 · 미리 해도 돼요` : dowOf(d) === 0 ? '밀린 것 하는 날' : '쉬는 날'; const dn = R.filter((x) => x.st === 'done').length, ms = R.length - dn; return R.length ? `${dn}개 했어요${ms ? ` · ${ms}개는 오늘로 밀렸어요` : ''}` : '기록이 없어요'; };
   function hwDayCard(d) {
     const fut = d > today(), R = dayRows(d), wk = '일월화수목금토'[new Date(d + 'T00:00:00').getDay()];
     return `<section class="card c8 hw-daycard"><div class="card-h"><h2>${md(d)}(${wk}) ${fut ? '할 것' : '숙제'}</h2><button class="btn sm soft" data-hwday="" type="button">오늘로</button></div>
@@ -2278,7 +2278,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611051558', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611051600', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6717,7 +6717,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051558'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051600'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
