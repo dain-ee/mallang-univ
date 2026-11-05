@@ -2273,7 +2273,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611051540', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611051541', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4104,10 +4104,13 @@
   // 사용법 안내 배너: 앱 배너처럼 「방법 보기」 → 단계 → 「알겠어요」면 학생 기록 gdi 에 남겨 어느 기기에서도 다시 안 떠요 (11/4)
   const gdHas = (k) => !!((S.gdi || {})[k]);
   function gdMark(k) { if (gdHas(k)) return; S.gdi = { ...(S.gdi || {}), [k]: Date.now() }; if (!PEEK) { S._at = S._at || {}; S._at.gdi = Date.now(); } save('gdi'); }
-  // 안내마다: 언제 띄울지 · 배너 글 · 단계 · 「지금 해 보기」 (11/5 「공부 시간은 시작 단추로」 추가)
+  // 안내마다: 언제 띄울지 · 배너 글 · 단계 · 「지금 해 보기」 (11/5 「공부 시간 직접 적기」 추가)
   const GD = {
     ink: { on: () => INK.some((c) => inkCfg(c).on), ic: '1f3a7', b: '계획에 없던 인강을 들었나요?', d: '들은 강의를 골라 적으면 오늘 한 것에 들어가요', h: '들은 인강 적는 법', sub: '오늘 할 일에 없던 강의를 들어도 이렇게 적으면 기록돼요', go: '지금 적기', act: () => inkPast(),
       steps: [['아래 「숙제」 탭을 눌러요'], ['「인강」 칸의 「들은 강의 적기」를 눌러요', '', '들은 강의 적기'], ['과목을 고르고 들은 강의를 눌러 체크해요', '여러 강을 한꺼번에 골라도 돼요'], ['「○강 들었어요」를 누르면 끝', '오늘 한 것과 공부 기록에 들어가요']] },
+    st: { on: () => !TEACHER, ic: 'clock', b: '타이머 없이 공부했나요?', d: '오늘 몇 시간 했는지 직접 적을 수 있어요', h: '공부 시간 직접 적는 법', sub: '타이머로 못 쟀어도 하루 전체 시간을 숫자로 넣으면 공부 시간에 들어가요', go: '지금 적기',
+      act: () => { openPomo(); setTimeout(() => { const c = $('.st-card'); if (c) { c.scrollIntoView({ behavior: 'smooth', block: 'start' }); setTimeout(() => { const h = $('#st-h'); if (h) h.focus({ preventScroll: true }); }, 500); } }, 80); },
+      steps: [['위쪽 토마토 단추를 눌러요', '토마토 타이머 화면이 열려요'], ['아래 「공부 시간」 칸으로 내려가요'], ['오늘 · 어제 · 그저께 중 날짜를 골라요', '어제 것도 넣을 수 있어요', '오늘'], ['몇 시간 몇 분 했는지 적고 「적기」를 눌러요', '하루 전체 시간을 적어요. 틀리면 다시 적으면 고쳐져요', '적기']] },
   };
   const gdNext = () => (TUTOR || (ROLE_T && !PEEK)) ? null : Object.keys(GD).find((k) => !gdHas(k) && GD[k].on());
   function gdCard() {
@@ -6708,7 +6711,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051540'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051541'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
