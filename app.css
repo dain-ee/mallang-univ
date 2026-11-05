@@ -3865,3 +3865,11 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 /* 앱 설치 안내: 아이폰·갤럭시 고르기 (11/5) */
 .app-os { margin: 0 0 12px; }
 .app-steps[hidden] { display: none; }
+/* 숙제 달력: 연속 기록 날 불꽃 (11/5) */
+.hcal-g .hcal-d { position: relative; }
+.hcal-d .hc-f { position: absolute; top: 2px; right: 2px; width: 14px; height: 14px; display: grid; place-items: center; font-style: normal; }
+.hcal-d .hc-f img, .hcal-d .hc-f svg { width: 14px; height: 14px; }
+.hcal-g .hcal-d.run { box-shadow: inset 0 0 0 1.5px #ffb37a; }
+.hcal-g .hcal-d.run.today { box-shadow: inset 0 0 0 2px var(--blue); }
+.hc-run { display: inline-flex; align-items: center; gap: 2px; color: #e8590c; font-weight: 700; }
+.hc-run img, .hc-run svg { width: 14px; height: 14px; }
