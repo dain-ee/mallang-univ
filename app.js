@@ -2109,13 +2109,12 @@
   function hwCal() {
     const m = UI.calM || today().slice(0, 7), [Y, M] = m.split('-').map(Number), first = new Date(Y, M - 1, 1), n = new Date(Y, M, 0).getDate(), pad = first.getDay();
     const cells = [...Array(pad).fill(null), ...Array.from({ length: n }, (_, i) => `${m}-${String(i + 1).padStart(2, '0')}`)];
-    const G = growStats(), run = new Set(); { let d = G.act.has(today()) ? today() : addD(today(), -1); while (G.act.has(d)) { run.add(d); d = addD(d, -1); } }  // 연속 기록(스트릭) 날은 달력에도 불꽃 (11/5 «했다 했는데 왜 스트릭이 안 돼 있냐고»)
-    const cnt = {}, miss = {}, qn = {}; let tot = 0, dn = 0; for (const d of cells) if (d && d <= today()) { cnt[d] = calDone(d).length; miss[d] = calMiss(d).length; qn[d] = G.day[d] || 0; tot += cnt[d]; if (cnt[d] || G.act.has(d)) dn++; } const left = calLeft();
+    const cnt = {}; let tot = 0, dn = 0; for (const d of cells) if (d && d <= today()) { cnt[d] = calDone(d).length; tot += cnt[d]; if (cnt[d]) dn++; } const left = calLeft();
     const mo = sSum(m + '-01', m + '-31');
     const prev = new Date(Y, M - 2, 1).toLocaleDateString('sv').slice(0, 7), next = new Date(Y, M, 1).toLocaleDateString('sv').slice(0, 7);
     return `<section class="card ${TUTOR ? 'c4' : 'c6'} col-card hcal-card"><div class="card-h"><h2>${ic('cal')} 숙제 달력</h2><div class="row" style="gap:2px"><button class="btn sm ghost" type="button" data-calm="${prev}" aria-label="지난달">‹</button><b class="num" style="min-width:44px;text-align:center">${M}월</b><button class="btn sm ghost" type="button" data-calm="${next}" aria-label="다음 달" ${next > addD(today().slice(0, 7) + '-15', 62).slice(0, 7) ? 'disabled' : ''}>›</button></div></div>
-      <p class="tiny" style="margin:0 0 12px">${G.st ? `<b class="hc-run">${ic('fire')} ${G.st}일 연속</b> · ` : ''}${dn ? `이번 달 ${dn}일 공부했어요${mo ? ` · 공부 ${hm(mo)}` : ''}` : '숙제를 하면 그날 칸에 쌓여요'} · ${TUTOR ? '날짜를 누르면 왼쪽에 그날 것이 나와요' : '날짜를 누르면 그날 한 숙제가 다 나와요'}</p>
-      <div class="hcal-g">${'일월화수목금토'.split('').map((w) => `<span class="hcal-w">${w}</span>`).join('')}${cells.map((d) => { if (!d) return '<i></i>'; const c = cnt[d] || 0, q = qn[d] || 0, lv = c || Math.ceil(q / 10), st = sMin(d), fut = d > today(), pl = fut ? planItems(d).length : d === today() ? left : 0, ms = miss[d] || 0; return `<button type="button" class="hcal-d ${d === today() ? 'today' : ''} ${TUTOR && UI.hwDay === d ? 'sel' : ''} ${lv ? 'l' + (lv >= 8 ? 3 : lv >= 4 ? 2 : 1) : ''} ${fut ? 'fut' : ''} ${run.has(d) ? 'run' : ''}" ${fut && !pl ? 'disabled' : `data-day="${d}"`}><span class="hc-n num">${+d.slice(8)}</span>${run.has(d) ? `<i class="hc-f">${ic('fire')}</i>` : ''}${c ? `<span class="hc-c">${c}개</span>` : q ? `<span class="hc-c">${q}문제</span>` : ''}${pl ? `<span class="hc-p">${d === today() ? '남은 ' : '할 것 '}${pl}</span>` : ''}${ms ? `<span class="hc-m">밀림 ${ms}</span>` : ''}${st ? `<span class="hc-h">${st >= 60 ? (st / 60).toFixed(1) + '시간' : st + '분'}</span>` : ''}</button>`; }).join('')}</div></section>`;
+      <p class="tiny" style="margin:0 0 12px">${dn ? `이번 달 ${dn}일 동안 ${tot}개 했어요${mo ? ` · 공부 ${hm(mo)}` : ''}` : '숙제를 하면 그날 칸에 쌓여요'} · ${TUTOR ? '날짜를 누르면 왼쪽에 그날 것이 나와요' : '날짜를 누르면 그날 한 숙제가 다 나와요'}</p>
+      <div class="hcal-g">${'일월화수목금토'.split('').map((w) => `<span class="hcal-w">${w}</span>`).join('')}${cells.map((d) => { if (!d) return '<i></i>'; const c = cnt[d] || 0, lv = c, st = sMin(d), fut = d > today(), pl = fut ? planItems(d).length : d === today() ? left : 0; return `<button type="button" class="hcal-d ${d === today() ? 'today' : ''} ${TUTOR && UI.hwDay === d ? 'sel' : ''} ${lv ? 'l' + (lv >= 8 ? 3 : lv >= 4 ? 2 : 1) : ''} ${fut ? 'fut' : ''}" ${fut && !pl ? 'disabled' : `data-day="${d}"`}><span class="hc-n num">${+d.slice(8)}</span>${c ? `<span class="hc-c">${c}개</span>` : ''}${pl ? `<span class="hc-p">할 것 ${pl}</span>` : ''}${st ? `<span class="hc-h">${st >= 60 ? (st / 60).toFixed(1) + '시간' : st + '분'}</span>` : ''}</button>`; }).join('')}</div></section>`;
   }
   // 앞날: 기말 계획(윤건)·기말 예습(정윤)에 잡힌 것 (10/30 «왜 11월 넘어가지가 않냐»)
   function planItems(d) {
@@ -2126,12 +2125,15 @@
     return out;
   }
   // 숙제 달력에서 날짜를 누르면 왼쪽 「오늘 할 것」 자리에 그날 것이 떠요 (10/31 «모달이 아니라 이 왼쪽에 뜨는 게 좋을 것 같은데»)
-  const missList = (d) => { const M = calMiss(d); return M.length ? `<h3 class="app-h" style="margin:20px 0 8px">이날 몫인데 못 한 것 <b class="red">${M.length}</b></h3><p class="tiny" style="margin:0 0 8px">오늘 할 것에 「밀렸어요」로 넘어가 있어요</p><div class="list">${M.map((it) => `<div class="li btnlike" data-dgo="${esc(it.id)}" role="button" tabindex="0"><div class="ico">${ic(it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng')}</div><div class="body"><div class="t">${esc(it.title)}</div><div class="d">${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · ${NXSETS[it.id] ? (() => { const g = nxProg(NXSETS[it.id]); return g.d ? `${g.d}/${g.n} 풀었어요` : '아직 안 했어요'; })() : '아직 안 했어요'}</div></div><span class="chev"></span></div>`).join('')}</div>` : ''; };
+  // 지난 날 = 그날 체크리스트: 한 것은 줄을 긋고(is-done), 못 한 것은 그대로 두고 「오늘로 밀림」 (11/5 «했으면 왼쪽에 줄이 쫙 그어져 있고 안 한 두 개는 오늘로 생기면서 밀림 표시»)
+  const dayRows = (d) => { const fut = d > today(); if (fut) return planItems(d).map((x) => ({ ...x, st: '' })); const M = calMiss(d).map((it) => ({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 못 했어요`, go: it.id, st: 'miss' })); return [...calDone(d).map((x) => ({ ...x, st: 'done' })), ...M]; };
+  const dayRowHtml = (x) => `<div class="li ${x.go ? 'btnlike' : ''} ${x.st === 'done' ? 'is-done' : ''}" ${x.go ? `data-dgo="${esc(x.go)}" role="button" tabindex="0"` : ''}><div class="ico">${ic(x.st === 'done' ? 'ok' : x.i)}</div><div class="body"><div class="t">${esc(x.t)}</div><div class="d">${esc(x.d)}</div></div>${x.st === 'miss' ? '<span class="tag red" style="flex:none">오늘로 밀림</span>' : x.go ? '<span class="chev"></span>' : ''}</div>`;
+  const daySub = (d, R) => { if (d > today()) return `${R.length}개 · 미리 해도 돼요`; const dn = R.filter((x) => x.st === 'done').length, ms = R.length - dn; return R.length ? `${dn}개 했어요${ms ? ` · ${ms}개는 오늘로 밀렸어요` : ''}` : '기록이 없어요'; };
   function hwDayCard(d) {
-    const fut = d > today(), out = fut ? planItems(d) : calDone(d), wk = '일월화수목금토'[new Date(d + 'T00:00:00').getDay()];
-    return `<section class="card c8 hw-daycard"><div class="card-h"><h2>${md(d)}(${wk}) ${fut ? '할 것' : '한 것'}</h2><button class="btn sm soft" data-hwday="" type="button">오늘로</button></div>
-      <p class="tiny" style="margin:-4px 0 12px">${fut ? `${out.length}개 · 미리 해도 돼요` : (() => { const q = growStats().day[d] || 0; return [out.length ? `${out.length}개 끝냈어요` : '', q ? `문제 ${q}개 풀었어요` : ''].filter(Boolean).join(' · ') || '기록이 없어요'; })()}</p>
-      ${out.length ? `<div class="list">${out.map((x) => `<div class="li ${x.go ? 'btnlike' : ''}" ${x.go ? `data-dgo="${esc(x.go)}" role="button" tabindex="0"` : ''}><div class="ico">${ic(x.i)}</div><div class="body"><div class="t">${esc(x.t)}</div><div class="d">${esc(x.d)}</div></div>${x.go ? '<span class="chev"></span>' : ic('ok')}</div>`).join('')}</div>` : `<div class="empty" style="padding:16px 0">${gh('sleepy', 'gh-empty')}<b>이날은 ${fut ? '할 것이 없어요' : (growStats().day[d] ? '끝낸 숙제는 없어요' : '기록이 없어요')}</b>${!fut && growStats().day[d] ? `<span>그래도 문제 ${growStats().day[d]}개 풀었어요. 연속 기록에 들어가요</span>` : ''}</div>`}${missList(d)}</section>`;
+    const fut = d > today(), R = dayRows(d), wk = '일월화수목금토'[new Date(d + 'T00:00:00').getDay()];
+    return `<section class="card c8 hw-daycard"><div class="card-h"><h2>${md(d)}(${wk}) ${fut ? '할 것' : '숙제'}</h2><button class="btn sm soft" data-hwday="" type="button">오늘로</button></div>
+      <p class="tiny" style="margin:-4px 0 12px">${daySub(d, R)}</p>
+      ${R.length ? `<div class="list">${R.map(dayRowHtml).join('')}</div>` : `<div class="empty" style="padding:16px 0">${gh('sleepy', 'gh-empty')}<b>이날은 ${fut ? '할 것이 없어요' : '기록이 없어요'}</b></div>`}</section>`;
   }
   function dayGo(g) {
     if (g.startsWith('fincid:')) { UI.tab = 'hw'; UI.run = { kind: 'fin', cid: g.slice(7), read: true }; render(); window.scrollTo(0, 0); }
@@ -2140,11 +2142,11 @@
     else startTask(g);
   }
   function daySheet(d) {
-    const fut = d > today(), out = fut ? planItems(d) : calDone(d);
+    const fut = d > today(), out = dayRows(d);
     const won = W().log.filter((x) => x.date === d).reduce((a, x) => a + x.amt, 0);
     const dt = new Date(d + 'T00:00:00'), wk = '일월화수목금토'[dt.getDay()];
     sheet(`<h2>${md(d)} (${wk})</h2><p class="sub">${fut ? '이날 할 것 · 미리 해도 돼요' : d === today() ? '오늘 지금까지 한 것' : '이날 한 것'}${won ? ` · 용돈 +${won.toLocaleString()}원` : ''}</p>
-      ${out.length ? `<div class="list">${out.map((x) => `<div class="li ${x.go ? 'btnlike' : ''}" ${x.go ? `data-dgo="${esc(x.go)}" role="button" tabindex="0"` : ''}><div class="ico">${ic(x.i)}</div><div class="body"><div class="t">${esc(x.t)}</div><div class="d">${esc(x.d)}</div></div>${x.go ? '<span class="chev"></span>' : ic('ok')}</div>`).join('')}</div>` : `<div class="empty">${gh('sleepy', 'gh-empty')}<b>이날은 기록이 없어요</b><span>쉬는 날도 필요해요</span></div>`}${missList(d)}`, (el, close) => {
+      ${out.length ? `<div class="list">${out.map(dayRowHtml).join('')}</div>` : `<div class="empty">${gh('sleepy', 'gh-empty')}<b>이날은 기록이 없어요</b><span>쉬는 날도 필요해요</span></div>`}`, (el, close) => {
       $$('[data-dgo]', el).forEach((b) => (b.onclick = () => { const g = b.dataset.dgo; close(); setTimeout(() => dayGo(g), 300); }));
     });
   }
@@ -2259,7 +2261,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611051406', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611051412', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6692,7 +6694,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051406'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051412'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
