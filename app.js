@@ -307,8 +307,13 @@
       const quota = Math.min(rem, d === 0 ? 1 : d >= endD ? rem : Math.max(1, Math.min(Math.ceil(rem / Math.max(1, endD + 1 - d)), 4 - forced)));
       for (let k = 0; k < quota; k++) { const sc = (sj) => (N0[sj] * (d + 1)) / (endD + 1) - (N0[sj] - Q[sj].length) - (used[sj] || 0) * 2, c = oth.filter((sj) => Q[sj].length).sort((a, b) => sc(b) - sc(a))[0]; if (!c) break; used[c] = (used[c] || 0) + 1; put(c, d); }
     }
+    // 일요일은 새 몫 없이 밀린 것 하는 날 (11/5 「정윤이도 일요일엔 비워 둬」): 11/8부터 일요일을 건너뛰고 남은 몫을 하루씩 뒤로 밀어요
+    const sun0 = Math.round((new Date('2026-11-08T00:00:00') - new Date(FIN_START + 'T00:00:00')) / 864e5), dow0 = new Date(FIN_START + 'T00:00:00').getDay(), cal = [];
+    for (let c = 0; cal.length <= 400; c++) if (!(c >= sun0 && (dow0 + c) % 7 === 0)) cal.push(c);
+    for (const c of out) c.fday = cal[c.fday];
     return out;
   })();
+  const FIN_LAST = FIN_ORDER.length ? (() => { const d = new Date(FIN_START + 'T00:00:00'); d.setDate(d.getDate() + Math.max(...FIN_ORDER.map((c) => c.fday))); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })() : FIN_END;
   const conceptOf = (qid) => SCI.concepts.find((c) => (c.base || []).some((q) => q.id === qid) || (c.deep || []).some((q) => q.id === qid));
   const qById = (qid) => { for (const c of SCI.concepts) for (const q of [...(c.base || []), ...(c.deep || [])]) if (q.id === qid) return q; return null; };
   const unitOf = (id) => SCI.units.find((u) => u.id === id) || { title: '' };
@@ -2273,7 +2278,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611051548', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611051553', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2550,7 +2555,8 @@
   }
   function finToday() {
     const t = today(), L = FIN_ORDER.filter((c) => { const d = finDoneDay(c); return !d || d >= t; });
-    const due = L.filter((c) => c.fday <= finDay() || t > FIN_END);
+    const due = L.filter((c) => c.fday <= finDay() || t > FIN_LAST);
+    if (dowOf(t) === 0) return due;  // 일요일은 밀린 것만 전부 (앞당겨 오지 않아요)
     return due.length >= 2 ? due : L.slice(0, Math.max(2, due.length));
   }
   const finRead = (c) => `<div class="card lesson">${(c.read || []).map((x) => `<p class="ls-body" style="margin:0 0 12px;line-height:1.85">${rich(x)}</p>`).join('')}
@@ -2654,7 +2660,7 @@
     if (r.map) return mapRun();
     if (!c) {
       const T = finToday(), n = FIN_ALL.filter(finDone).length, row = (x, tag) => `<div class="li btnlike" data-fc="${x.id}"><div class="ico">${ic(finDone(x) ? 'ok' : 'books')}</div><div class="body"><div class="t">${esc(x.title)}</div><div class="d">${tag ? esc(x.sname) + ' · ' : ''}${esc(x.pages || '')}쪽 · ${finDone(x) ? `${(x.qs || []).filter((q, k) => (finS().ans[x.id][k] || {}).ok).length}/${x.qs.length} 맞힘` : finPicked(x) ? `${finPicked(x)}/${x.qs.length} 풀었어요` : '읽고 3문제'}</div></div><span class="chev"></span></div>`;
-      return `<div class="qwrap" style="max-width:760px;margin:0 auto"><div class="row between"><button class="btn sm" data-finback type="button">‹ 숙제</button><span class="tiny">11월 22일까지 D-${Math.max(0, dday(FIN_END))}</span></div>
+      return `<div class="qwrap" style="max-width:760px;margin:0 auto"><div class="row between"><button class="btn sm" data-finback type="button">‹ 숙제</button><span class="tiny">${md(FIN_LAST)}까지 D-${Math.max(0, dday(FIN_LAST))}</span></div>
         <h1 class="h1" style="margin:16px 0 4px">기말 예습</h1><p class="sub">교과서 개념을 읽고 쉬운 문제 3개로 바로 확인해요. 전체 ${FIN_ALL.length}개 중 ${n}개 했어요</p>
         <div class="ik-bar" style="height:8px;margin:8px 0 16px"><i style="width:${Math.round((n / FIN_ALL.length) * 100)}%"></i></div>
         <section class="card"><div class="card-h"><h2>오늘 할 것 ${T.length}개</h2><span class="tiny">${T.filter(finDone).length}/${T.length}</span></div><div class="list">${T.map((x) => row(x, true)).join('')}</div></section>
@@ -6711,7 +6717,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051548'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051553'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
