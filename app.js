@@ -2258,7 +2258,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611051352', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611051357', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4126,12 +4126,13 @@
       <h2 class="app-tt">홈 화면에 ${esc(BRAND)} 앱 만들기</h2><p class="app-sub">한 번만 해 두면 아이콘을 눌러 바로 열리고, 숙제 알림도 받을 수 있어요</p>
       <h3 class="app-h">홈 화면에 추가하기</h3>
       ${inApp ? '<div class="app-warn">지금은 카카오톡 같은 앱 안에서 열려 있어요. 오른쪽 아래 <b>⋯</b> 를 눌러 <b>「다른 브라우저로 열기」</b>로 사파리에서 열어 주세요</div>' : ''}
-      ${ANDROID ? `<ol class="app-steps">
+      <div class="sj-g app-os" role="tablist"><button class="sj ${ANDROID ? '' : 'on'}" type="button" data-aos="ios">아이폰</button><button class="sj ${ANDROID ? 'on' : ''}" type="button" data-aos="and">갤럭시</button></div>
+      ${`<ol class="app-steps" data-aosp="and" ${ANDROID ? '' : 'hidden'}>
         <li style="--i:0"><span class="app-n">1</span><div><b>크롬 오른쪽 위 <span class="app-k">⋮</span> 를 눌러요</b><span class="tiny">삼성 인터넷이면 아래쪽 <span class="app-k">≡</span> 를 눌러요</span></div></li>
-        <li style="--i:1"><span class="app-n">2</span><div><b>「앱 설치」 또는 「홈 화면에 추가」를 눌러요</b><span class="app-chip app-row">${ADD_SVG}앱 설치</span></div></li>
+        <li style="--i:1"><span class="app-n">2</span><div><b>「앱 설치」 또는 「홈 화면에 추가」를 눌러요</b><span class="tiny">삼성 인터넷은 「현재 페이지 추가」 → 「홈 화면」을 눌러요</span><span class="app-chip app-row">${ADD_SVG}앱 설치</span></div></li>
         <li style="--i:2"><span class="app-n">3</span><div><b>「설치」를 눌러요</b><span class="tiny">홈 화면이나 앱 목록에 ${esc(BRAND)} 아이콘이 생겨요</span></div></li>
         <li style="--i:3"><span class="app-n">4</span><div><b>${esc(BRAND)} 홈의 「알림 켜기」를 눌러요</b><span class="tiny">안드로이드는 앱을 깔기 전에도 알림을 켤 수 있어요</span></div></li>
-      </ol>` : `<ol class="app-steps">
+      </ol>`}${`<ol class="app-steps" data-aosp="ios" ${ANDROID ? 'hidden' : ''}>
         <li style="--i:0"><span class="app-n">1</span><div><b>사파리 주소창 옆 <span class="app-k">≡</span> 또는 <span class="app-k">⋯</span> 단추를 누르고 「공유」를 눌러요</b><span class="tiny">공유 단추가 바로 보이면 그걸 눌러도 돼요</span><span class="app-chip">${SHARE_SVG}공유</span></div></li>
         <li style="--i:1"><span class="app-n">2</span><div><b>목록을 올려 「홈 화면에 추가」를 눌러요</b><span class="app-chip app-row">${ADD_SVG}홈 화면에 추가</span></div></li>
         <li style="--i:2"><span class="app-n">3</span><div><b>오른쪽 위 「추가」를 눌러요</b><span class="tiny">「웹 앱으로 열기」가 있으면 켜 둔 채로 추가해요</span></div></li>
@@ -4139,6 +4140,7 @@
       </ol>`}
       <button class="btn primary big block" type="button" id="app-ok">다 했어요</button>
       <button class="gf-link app-later" type="button" id="app-later">나중에 할게요</button></div>`, (el, close) => {
+      $$('[data-aos]', el).forEach((b) => (b.onclick = () => { $$('[data-aos]', el).forEach((y) => y.classList.toggle('on', y === b)); $$('[data-aosp]', el).forEach((o) => { o.hidden = o.dataset.aosp !== b.dataset.aos; if (!o.hidden) o.querySelectorAll('li').forEach((li) => { li.style.animation = 'none'; void li.offsetWidth; li.style.animation = ''; }); }); }));  // 아이폰·갤럭시 둘 다 볼 수 있게 (11/5 지원이는 갤럭시)
       $('#app-ok', el).onclick = () => { appMark(); close(); setTimeout(() => cardBye(document.querySelector('.app-card [data-appopen], .app-card [data-appinst]')?.closest('.app-card'), render), 260); };
       $('#app-later', el).onclick = () => { try { localStorage.setItem(AI_KEY, String(Date.now())); } catch (e) {} close(); setTimeout(() => cardBye(document.querySelector('.app-card [data-appopen], .app-card [data-appinst]')?.closest('.app-card'), render), 260); };
     });
@@ -6689,7 +6691,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051352'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051357'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
