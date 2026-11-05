@@ -1036,7 +1036,7 @@
           <p class="sub">${esc(c.title)}${l.min ? ` · ${l.min}분` : ''}${l.page ? ` · 교재 ${esc(l.page)}` : ''}</p>
           ${s === 'done' ? `<div class="deep"><b>들었어요</b>${q ? ` · 미니 퀴즈 ${q.n}문제 중 ${q.ok}개 맞혔어요` : ''}</div>` : l.pct ? `<div class="deep">사이트에서 ${l.pct}%까지 들었어요. 이어서 들어요</div>` : ''}
           <a class="btn primary big block" href="${esc(c.url)}" target="_blank" rel="noopener" style="margin-top:12px">${esc(c.siteName)}에서 듣기</a>
-          <p class="tiny" style="margin:8px 0 16px">로그인돼 있으면 강좌 페이지가 바로 열려요. 목록에서 <b>${c.site === 'etoos' ? esc(l.title.split(' ')[0]) : 'No.' + l.no}</b> ${c.site === 'etoos' ? '▶' : '「영상보기」'}를 눌러요</p>
+          <p class="tiny" style="margin:8px 0 16px">로그인돼 있으면 강좌 페이지가 바로 열려요. 목록에서 <b>${c.site === 'etoos' ? esc((l.title.match(/^\[([^\]]+)\]/) || [, l.title.split(' ')[0]])[1]) : 'No.' + l.no}</b> ${c.site === 'etoos' ? '옆 ▶' : '「영상보기」'}를 눌러요</p>
           ${s === 'done' ? '' : `<div id="tm-box" style="margin:0 0 12px">${tmBoxHTML('ink:' + k, `${c.subj} 인강 · ${l.title}`)}</div>`}
           ${s === 'done' ? (Q.length ? '<button class="btn primary big block" id="ik-view" type="button">문제와 정답 보기</button><button class="btn big block" id="ik-quiz" type="button" style="margin-top:8px">미니 퀴즈 다시 풀기</button>' : '') : `<button class="btn big block" id="ik-done" type="button">${Q.length ? `다 들었어요 · 미니 퀴즈 ${Q.length}문제` : '다 들었어요'}</button>`}
           <div class="row" style="gap:8px;margin-top:8px">${s === 'skip' ? '<button class="btn sm" id="ik-undo" type="button">다시 들을 목록에 넣기</button>' : s === 'done' ? '<button class="btn sm" id="ik-undo" type="button">아직 안 들은 걸로 바꾸기</button>' : '<button class="btn sm" id="ik-skip" type="button">이 강의는 안 들을래요</button>'}</div>`;
@@ -2273,7 +2273,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611051535', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611051540', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4108,8 +4108,6 @@
   const GD = {
     ink: { on: () => INK.some((c) => inkCfg(c).on), ic: '1f3a7', b: '계획에 없던 인강을 들었나요?', d: '들은 강의를 골라 적으면 오늘 한 것에 들어가요', h: '들은 인강 적는 법', sub: '오늘 할 일에 없던 강의를 들어도 이렇게 적으면 기록돼요', go: '지금 적기', act: () => inkPast(),
       steps: [['아래 「숙제」 탭을 눌러요'], ['「인강」 칸의 「들은 강의 적기」를 눌러요', '', '들은 강의 적기'], ['과목을 고르고 들은 강의를 눌러 체크해요', '여러 강을 한꺼번에 골라도 돼요'], ['「○강 들었어요」를 누르면 끝', '오늘 한 것과 공부 기록에 들어가요']] },
-    tm: { on: () => true, ic: 'clock', b: '공부 시간은 「시작」 단추로 재요', d: '숫자로 적은 시간은 언제 했는지 몰라서 시간표에 안 남아요', h: '공부 시간 재는 법', sub: '숙제마다 「시작」을 누르고 하면 시간표에 언제 무엇을 했는지 남아요', go: '숙제 탭으로 가기', act: () => { UI.tab = 'hw'; render(); window.scrollTo(0, 0); },
-      steps: [['「숙제」 탭 「오늘 할 것」에서 할 숙제 줄의 「시작」을 눌러요', '', '⏰ 시작'], ['「진짜로 시작할까요?」에서 시작을 눌러요', '어느 화면에 가도 위에 「○○ 진행 중」이 떠요'], ['잠깐 쉴 땐 「멈추기」, 다시 할 땐 「이어 하기」', '쉰 시간은 빼고 재요'], ['다 하면 「끝」을 눌러요', '그 숙제 이름으로 시간표에 칸이 생겨요. 「공부 시간」 칸에 숫자를 따로 적지 않아도 돼요']] },
   };
   const gdNext = () => (TUTOR || (ROLE_T && !PEEK)) ? null : Object.keys(GD).find((k) => !gdHas(k) && GD[k].on());
   function gdCard() {
@@ -4435,7 +4433,7 @@
     const fun = [[120, '영화 ', '편'], [150, '서울에서 부산까지 KTX ', '번'], [80, '수능 국어 시험 ', '번']].map(([u, a, b]) => (all >= u ? a + Math.floor(all / u) + b : '')).filter(Boolean).join(' · ');
     const sb = SBADGES.filter((b) => b.ok()).length, lbr = sBestRun();
     return `<section class="card c12 st-card"><div class="card-h"><h2>${ic('clock')} 공부 시간</h2>${st ? `<span class="tag red">${ic('fire')} ${st}일 연속 기록</span>` : '<span class="tag">오늘 첫 기록을 적어요</span>'}</div>
-      <div class="st-top"><div><div class="eyebrow">오늘 공부한 시간</div><b class="st-big num">${t ? hm(t) : '아직 0분'}</b><p class="tiny" style="margin:4px 0 0">${t ? esc(sCheer(t)) : '숙제 줄의 「시작」으로 재면 시간표에도 남아요'}${t && bd === today() && nd > 1 ? ' · <b class="red">최고 기록!</b>' : ''}</p></div>
+      <div class="st-top"><div><div class="eyebrow">오늘 공부한 시간</div><b class="st-big num">${t ? hm(t) : '아직 0분'}</b><p class="tiny" style="margin:4px 0 0">${t ? esc(sCheer(t)) : '타이머로 못 쟀으면 오늘 몇 시간 했는지 숫자로 적어요'}${t && bd === today() && nd > 1 ? ' · <b class="red">최고 기록!</b>' : ''}</p></div>
         <div class="st-in">${TEACHER ? '' : `<div class="chips">${[[today(), '오늘'], [pBack(1), '어제'], [pBack(2), '그저께']].map(([d, l]) => `<button class="chip sm ${ed === d ? 'on' : ''}" type="button" data-sday="${d}">${l}</button>`).join('')}</div>
           <div class="st-row"><label class="st-f"><input class="num" id="st-h" type="number" inputmode="numeric" min="0" max="20" value="${cur ? Math.floor(cur / 60) : ''}" placeholder="0" aria-label="시간"><span>시간</span></label><label class="st-f"><input class="num" id="st-m" type="number" inputmode="numeric" min="0" max="59" value="${cur ? cur % 60 : ''}" placeholder="0" aria-label="분"><span>분</span></label><button class="btn primary" id="st-save" type="button">${cur ? '고치기' : '적기'}</button></div>
           <p class="tiny" style="margin:0">${md(ed)} 하루 전체 시간을 적어요${ex.min ? ` · 토마토 ${ex.min}분보다 적으면 토마토 시간으로 쳐요` : ''}</p>`}</div></div>
@@ -6710,7 +6708,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051535'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051540'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
