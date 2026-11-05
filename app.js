@@ -2273,7 +2273,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611051528', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611051531', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4099,7 +4099,7 @@
   async function appInstall() { if (!bip) return appOpen(); const e = bip; bip = null; try { await e.prompt(); await e.userChoice; } catch (er) {} render(); }
   // 앱을 깔았는지(또는 「다 했어요」)는 학생 기록 appi 에 남겨요. 사파리와 홈 화면 앱은 저장소가 따로라 기기 안 기록만으론 배너가 안 사라졌어요 (11/4 정윤 «했다 했는데 배너가 안 사라져»)
   const AI_DONE = 'mallang-univ:appdone';
-  const appHas = () => { if (!ROLE_T && S.appi && S.appi.at) return true; try { return !!localStorage.getItem(AI_DONE); } catch (e) { return false; } };
+  const appHas = () => { if ((!ROLE_T || PEEK) && S.appi && S.appi.at) return true;  /* 학생 화면 보기도 그 학생 기록대로 (11/5) */ try { return !!localStorage.getItem(AI_DONE); } catch (e) { return false; } };
   function appMark() { try { localStorage.setItem(AI_DONE, String(Date.now())); } catch (e) {} if (!ROLE_T && !(S.appi && S.appi.at)) { S.appi = { at: Date.now(), sa: STANDALONE }; if (!PEEK) { S._at = S._at || {}; S._at.appi = Date.now(); } save('appi'); } }
   // 사용법 안내 배너: 앱 배너처럼 「방법 보기」 → 단계 → 「알겠어요」면 학생 기록 gdi 에 남겨 어느 기기에서도 다시 안 떠요 (11/4)
   const gdHas = (k) => !!((S.gdi || {})[k]);
@@ -6706,7 +6706,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051528'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051531'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
