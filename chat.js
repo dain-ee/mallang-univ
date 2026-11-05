@@ -115,17 +115,27 @@
   // 쪽지함 창 열기·닫기: 단추 쪽에서 커지며 열리고, 닫을 땐 단추 쪽으로 줄어든 뒤 숨겨요 (선생님 10/27 «열리고 닫히는 애니메이션»)
   // 폰에서 키보드가 올라오거나 화면이 확대돼도 쪽지함이 보이는 화면에 딱 맞게 (11/4 «칠 때도 문제»: 키보드 위로 빈칸이 생기고 오른쪽이 잘렸어요)
   const VV = window.visualViewport;
-  function vvFit() {
-    const el = document.querySelector('.nc-pane:not([hidden])');
-    if (!el || !VV || !matchMedia('(max-width:899px)').matches) { if (el) el.style.cssText = ''; return; }
-    el.style.cssText = `top:${VV.offsetTop}px;left:${VV.offsetLeft}px;right:auto;bottom:auto;width:${VV.width}px;height:${VV.height}px`;
+  // 폰: 쪽지창을 보이는 화면(키보드 위)에 딱 맞추고, 뒤 화면은 잠가서 같이 스크롤되지 않게 (11/5 «키보드랑 살짝 떨어져서 덜덜 떨리고 그 사이로 뒤 화면이 스크롤돼»)
+  let vvRaf = 0, lockY = null;
+  function bgLock(on) {
+    const b = document.body;
+    if (on && lockY === null) { lockY = window.scrollY; b.style.position = 'fixed'; b.style.top = -lockY + 'px'; b.style.left = '0'; b.style.right = '0'; b.style.width = '100%'; }
+    else if (!on && lockY !== null) { const y = lockY; lockY = null; b.style.position = b.style.top = b.style.left = b.style.right = b.style.width = ''; window.scrollTo(0, y); }
   }
-  if (VV) { VV.addEventListener('resize', vvFit); VV.addEventListener('scroll', vvFit); }
+  function vvFit() {
+    const el = document.querySelector('.nc-pane:not([hidden]):not(.nc-out)');
+    if (!el || !VV || !matchMedia('(max-width:899px)').matches) { if (el) { el.style.cssText = ''; el.classList.remove('nc-kb'); } bgLock(false); return; }
+    bgLock(true);
+    el.classList.toggle('nc-kb', VV.height < window.innerHeight - 120);  // 키보드가 떠 있으면 아래 안전 여백(34px)을 빼야 입력칸이 키보드에 붙어요
+    el.style.cssText = `top:0;left:0;right:auto;bottom:auto;width:${VV.width}px;height:${VV.height}px;transform:translate3d(${VV.offsetLeft}px,${VV.offsetTop}px,0)`;
+  }
+  const vvSoon = () => { cancelAnimationFrame(vvRaf); vvRaf = requestAnimationFrame(vvFit); };
+  if (VV) { VV.addEventListener('resize', vvSoon); VV.addEventListener('scroll', vvSoon); }
   function showPane(el, v) {
     clearTimeout(el._ncT); el.classList.remove('nc-out');
     if (v) { el.hidden = false; vvFit(); return; }
     if (el.hidden) return;
-    el.classList.add('nc-out'); el._ncT = setTimeout(() => { el.hidden = true; el.classList.remove('nc-out'); }, 180);
+    el.classList.add('nc-out'); el._ncT = setTimeout(() => { el.hidden = true; el.classList.remove('nc-out'); if (!document.querySelector('.nc-pane:not([hidden])')) bgLock(false); }, 180);
   }
   function flash(host, t) { const d = document.createElement('div'); d.className = 'nc-flash'; d.textContent = t; host.appendChild(d); setTimeout(() => d.remove(), 2600); }
 
@@ -180,6 +190,8 @@ html.nc-has-fab .main{padding-bottom:calc(var(--tab-h,64px) + 104px + env(safe-a
 .nc-pic img{width:56px;height:56px;object-fit:cover;border-radius:10px}
 .nc-pic-x{font:inherit;font-size:13px;font-weight:600;color:var(--t2);background:var(--fill);border:0;border-radius:99px;padding:6px 12px;cursor:pointer}
 .nc-form{display:flex;align-items:flex-end;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--card)}
+.nc-kb .nc-form{padding-bottom:10px}
+.nc-kb .nc-head{padding-top:14px}
 .nc-attach{flex:none;width:40px;height:40px;display:grid;place-items:center;color:var(--t3);background:var(--fill);border-radius:99px;cursor:pointer}
 .nc-attach span{width:20px;height:20px;background:currentColor;-webkit-mask:${PHOTO};mask:${PHOTO}}
 .nc-form textarea{flex:1;min-width:0;resize:none;height:40px;max-height:120px;padding:9px 14px;font:inherit;font-size:15px;line-height:1.45;color:var(--t1);background:var(--fill);border:0;border-radius:var(--r-btn,14px);outline:2px solid transparent}
