@@ -2131,7 +2131,7 @@
     const prev = new Date(Y, M - 2, 1).toLocaleDateString('sv').slice(0, 7), next = new Date(Y, M, 1).toLocaleDateString('sv').slice(0, 7);
     return `<section class="card c4 col-card hcal-card"><div class="card-h"><h2>${ic('cal')} 숙제 달력</h2><div class="row" style="gap:2px"><button class="btn sm ghost" type="button" data-calm="${prev}" aria-label="지난달">‹</button><b class="num" style="min-width:44px;text-align:center">${M}월</b><button class="btn sm ghost" type="button" data-calm="${next}" aria-label="다음 달" ${next > addD(today().slice(0, 7) + '-15', 62).slice(0, 7) ? 'disabled' : ''}>›</button></div></div>
       <p class="tiny" style="margin:0 0 12px">${dn ? `이번 달 ${dn}일 동안 ${tot}개 했어요${mo ? ` · 공부 ${hm(mo)}` : ''}` : '숙제를 하면 그날 칸에 쌓여요'} · 날짜를 누르면 왼쪽에 그날 것이 나와요</p>
-      <div class="hcal-g">${'일월화수목금토'.split('').map((w) => `<span class="hcal-w">${w}</span>`).join('')}${cells.map((d) => { if (!d) return '<i></i>'; const c = cnt[d] || 0, lv = c, st = sMin(d), fut = d > today(), pl = fut ? planItems(d).length : d === today() ? left : 0; return `<button type="button" class="hcal-d ${d === today() ? 'today' : ''} ${UI.hwDay === d ? 'sel' : ''} ${lv ? 'l' + (lv >= 8 ? 3 : lv >= 4 ? 2 : 1) : ''} ${fut ? 'fut' : ''}" ${fut && !pl ? 'disabled' : `data-day="${d}"`}><span class="hc-n num">${+d.slice(8)}</span>${c ? `<span class="hc-c">${c}개</span>` : ''}${pl ? `<span class="hc-p">할 것 ${pl}</span>` : ''}${st ? `<span class="hc-h">${st >= 60 ? (st / 60).toFixed(1) + '시간' : st + '분'}</span>` : ''}</button>`; }).join('')}</div></section>`;
+      <div class="hcal-g">${'일월화수목금토'.split('').map((w) => `<span class="hcal-w">${w}</span>`).join('')}${cells.map((d) => { if (!d) return '<i></i>'; const c = cnt[d] || 0, lv = c, st = sMin(d), fut = d > today(), pl = fut ? planItems(d).length : d === today() ? left : 0; return `<button type="button" class="hcal-d ${d === today() ? 'today' : ''} ${UI.hwDay === d ? 'sel' : ''} ${lv ? 'l' + (lv >= 8 ? 3 : lv >= 4 ? 2 : 1) : ''} ${fut ? 'fut' : ''}" data-day="${d}"><span class="hc-n num">${+d.slice(8)}</span>${c ? `<span class="hc-c">${c}개</span>` : ''}${pl ? `<span class="hc-p">할 것 ${pl}</span>` : ''}${st ? `<span class="hc-h">${st >= 60 ? (st / 60).toFixed(1) + '시간' : st + '분'}</span>` : ''}</button>`; }).join('')}</div></section>`;
   }
   // 앞날: 기말 계획(윤건)·기말 예습(정윤)에 잡힌 것 (10/30 «왜 11월 넘어가지가 않냐»)
   function planItems(d) {
@@ -2150,7 +2150,7 @@
     const fut = d > today(), R = dayRows(d), wk = '일월화수목금토'[new Date(d + 'T00:00:00').getDay()];
     return `<section class="card c8 hw-daycard"><div class="card-h"><h2>${md(d)}(${wk}) ${fut ? '할 것' : '숙제'}</h2><button class="btn sm soft" data-hwday="" type="button">오늘로</button></div>
       <p class="tiny" style="margin:-4px 0 12px">${daySub(d, R)}</p>
-      ${R.length ? `<div class="list">${R.map(dayRowHtml).join('')}</div>` : `<div class="empty" style="padding:16px 0">${gh('sleepy', 'gh-empty')}<b>이날은 ${fut ? '할 것이 없어요' : '기록이 없어요'}</b></div>`}</section>`;
+      ${R.length ? `<div class="list">${R.map(dayRowHtml).join('')}</div>` : `<div class="empty" style="padding:16px 0">${gh('sleepy', 'gh-empty')}<b>이날은 ${fut ? (wk === '일' ? '새 몫이 없어요' : '할 것이 없어요') : '기록이 없어요'}</b>${fut && wk === '일' ? '<span>일요일은 그 주에 밀린 것을 하는 날이에요</span>' : ''}</div>`}</section>`;
   }
   function dayGo(g) {
     if (g.startsWith('fincid:')) { UI.tab = 'hw'; UI.run = { kind: 'fin', cid: g.slice(7), read: true }; render(); window.scrollTo(0, 0); }
@@ -2163,7 +2163,7 @@
     const won = W().log.filter((x) => x.date === d).reduce((a, x) => a + x.amt, 0);
     const dt = new Date(d + 'T00:00:00'), wk = '일월화수목금토'[dt.getDay()];
     sheet(`<h2>${md(d)} (${wk})</h2><p class="sub">${fut ? '이날 할 것 · 미리 해도 돼요' : d === today() ? '오늘 지금까지 한 것' : '이날 한 것'}${won ? ` · 용돈 +${won.toLocaleString()}원` : ''}</p>
-      ${out.length ? `<div class="list">${out.map(dayRowHtml).join('')}</div>` : `<div class="empty">${gh('sleepy', 'gh-empty')}<b>이날은 기록이 없어요</b><span>쉬는 날도 필요해요</span></div>`}`, (el, close) => {
+      ${out.length ? `<div class="list">${out.map(dayRowHtml).join('')}</div>` : `<div class="empty">${gh('sleepy', 'gh-empty')}<b>${fut ? (wk === '일' ? '이날은 새 몫이 없어요' : '이날은 할 것이 없어요') : '이날은 기록이 없어요'}</b><span>${fut && wk === '일' ? '일요일은 그 주에 밀린 것을 하는 날이에요' : '쉬는 날도 필요해요'}</span></div>`}`, (el, close) => {
       $$('[data-dgo]', el).forEach((b) => (b.onclick = () => { const g = b.dataset.dgo; close(); setTimeout(() => dayGo(g), 300); }));
     });
   }
@@ -2278,7 +2278,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611051553', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611051558', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6717,7 +6717,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051553'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051558'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
