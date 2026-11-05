@@ -2251,7 +2251,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611050004', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611051317', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4057,6 +4057,8 @@
   // 홈 화면 앱은 사파리와 저장소가 따로라서, 방법을 열 때 주소에 코드를 붙여 두면 앱으로 처음 열 때 코드를 다시 안 물어요
   const VAPID = 'BJ6AXfB_bpk7VvwpVgdiIx8YxqV7D6WmXCiQdcpsWZXSrz8y1g4dhSF27iEXxoc91CoQckn9YYnoMKB_OZM_4AI';
   const STANDALONE = (() => { try { return navigator.standalone === true || matchMedia('(display-mode: standalone)').matches; } catch (e) { return false; } })();
+  // 홈 화면 앱에서 키보드가 닫힌 뒤 화면이 어긋나 아래 탭바가 떠 있던 것: 화면 크기가 돌아오면 한 번 제자리로 (11/5)
+  if (STANDALONE && window.visualViewport) { let vvH = visualViewport.height; visualViewport.addEventListener('resize', () => { const h = visualViewport.height; if (h > vvH + 80) setTimeout(() => window.scrollTo(0, window.scrollY), 60); vvH = h; }); }
   const PUSH_OK = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   const AI_KEY = 'mallang-univ:apphide';
   const devId = (() => { try { let v = localStorage.getItem('mu:dev'); if (!v) { v = Math.random().toString(36).slice(2, 10); localStorage.setItem('mu:dev', v); } return v; } catch (e) { return 'x'; } })();
@@ -6680,7 +6682,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611050004'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051317'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

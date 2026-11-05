@@ -3853,3 +3853,8 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 /* 들은 인강 적기: 과목 칩은 줄바꿈해서 다 보이게 */
 .ip-g { flex-wrap: wrap; margin: 12px 0 8px; }
 .ip-g .sj { flex: 1 1 auto; }
+/* 홈 화면 앱(iOS)에서 끝까지 스크롤해 튕길 때 아래 탭바가 같이 출렁이던 것 (11/5). 문서 튕김을 끄고 탭바는 따로 그려요 */
+@media (display-mode: standalone) {
+  html, body { overscroll-behavior-y: none; }
+  .tabbar { transform: translateZ(0); will-change: transform; }
+}
