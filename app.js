@@ -26,8 +26,10 @@
   // 보는 날: UI.dayOff 가 -1 이면 어제 숙제를 오늘처럼 보여 줘요 (자정이 지나도 하던 숙제를 이어서, 화살표로 왔다 갔다 · 정윤 10/29)
   const DAY_OFF = () => (typeof UI === 'object' && UI && UI.dayOff) || 0;
   const fmtDay = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  const realToday = () => fmtDay(new Date());
-  const today = () => fmtDay(new Date(Date.now() + DAY_OFF() * 864e5));
+  // 하루는 새벽 5시에 바뀌어요. 밤 12시를 넘겨 이어서 해도 그날 공부예요 (11/5 선생님 «기준을 정해야» → 시간표·숙제·달력·밀림·연속 모두 같은 기준)
+  const DAY_CUT = 5 * 36e5, atDay = (at) => fmtDay(new Date(at - DAY_CUT));
+  const realToday = () => atDay(Date.now());
+  const today = () => atDay(Date.now() + DAY_OFF() * 864e5);
   const md = (s) => { const [, m, d] = String(s).split('-').map(Number); return `${m}월 ${d}일`; };
   const dday = (s) => Math.ceil((new Date(s + 'T00:00:00') - new Date(today() + 'T00:00:00')) / 864e5);
   const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -569,7 +571,7 @@
     for (const [d, v] of Object.entries((S.sci || {}).days || {})) { const n = Object.keys(v.ans || {}).length; sci += n; add(d, n); }
     for (const [d, v] of Object.entries((S.eng || {}).days || {})) { const n = Object.keys(v.uans || {}).length + Object.keys(v.wans || {}).length; eng += n; add(d, n); }
     // 공부 탭·숙제·수업 시험(nx)과 주아 그래머(jg) 답도 세요 (11/4 «윤건이는 스트릭이 되어 있나»: 정윤 기록만 세서 윤건·주아는 늘 0이었어요)
-    let nx = 0; const nxA = (o) => { for (const v of Object.values(o || {})) if (v && typeof v.ok === 'boolean' && v.at) { nx++; add(fmtDay(new Date(v.at)), 1); } };
+    let nx = 0; const nxA = (o) => { for (const v of Object.values(o || {})) if (v && typeof v.ok === 'boolean' && v.at) { nx++; add(atDay(v.at), 1); } };
     nxA((S.nx || {}).a); for (const o of Object.values((S.nx || {}).la || {})) nxA(o); nxA(S.jg);
     const L = W().log, act = new Set([...Object.keys(day), ...L.filter((x) => !String(x.key).startsWith('badge') && !String(x.key).startsWith('bonus')).map((x) => x.date)]);
     let st = 0, d = act.has(today()) ? today() : addD(today(), -1); while (act.has(d)) { st++; d = addD(d, -1); }
@@ -833,9 +835,9 @@
       <div class="w-dl">${L.map((e) => { const n = dday(e.date); return `<div class="w-di ${e.big ? 'big' : ''}"><span class="w-dn">${esc(e.title)}</span><span class="w-dd">${md(e.date)}</span><b class="num ${n <= 7 ? 'red' : n <= 30 ? 'blue' : ''}">${n === 0 ? 'D-DAY' : 'D-' + n}</b></div>`; }).join('')}</div></section>`;
   }
   setInterval(() => { const d = new Date(), v = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; $$('[data-clock]').forEach((x) => { if (x.textContent !== v) x.textContent = v; }); }, 5000);
-  // 자정이 지나면 보던 날(어제)에 머물러요. 「오늘로」를 누르면 넘어가요
+  // 새벽 5시에 날이 바뀌면 새 하루로 다시 그려요 (자정엔 그대로 이어서)
   let bootDay = realToday();
-  setInterval(() => { const n = realToday(); if (n !== bootDay) { if (!TEACHER && !PEEK && !UI.dayOff) { UI.dayOff = -1; toast('자정이 지났어요. 하던 숙제는 어제 것으로 이어서 보여 줘요'); if (!UI.run) render(); } bootDay = n; } }, 20000);
+  setInterval(() => { const n = realToday(); if (n !== bootDay) { bootDay = n; if (!UI.run) render(); } }, 20000);
   const dayNav = () => { const off = DAY_OFF(), t = today(), lab = off === 0 ? '오늘' : off === -1 ? '어제' : off === 1 ? '내일' : `${md(t)} ${DOW[dowOf(t)]}요일`; return `<div class="day-nav ${off ? 'off' : ''}"><button type="button" data-dayoff="-1" aria-label="전날" ${off <= -7 ? 'disabled' : ''}>‹</button><b>${esc(lab)}${off === -1 || off === 1 ? ` <small>${esc(md(t))}</small>` : ''}</b><button type="button" data-dayoff="1" aria-label="다음 날" ${off >= 1 ? 'disabled' : ''}>›</button>${off ? '<button type="button" class="day-today" data-dayoff="0">오늘로</button>' : ''}</div>`; };
   function railCards(inline) {
     const cls = inline ? 'rail-inline c12' : '';
@@ -2099,7 +2101,7 @@
       const wn = Object.keys(e.wans || {}).length; if (wn) out.push({ i: 'books', t: '워드마스터 단어 시험', d: `${wn}개 중 ${Object.values(e.wans).filter((x) => x.ok).length}개 맞힘` });
       if (g3Did(e)) { const g = G3[e.g3 || 0]; out.push({ i: 'write', t: '고3 영어 한 문제', d: g ? `${g.type || ''} · ${g.src || ''}` : '풀었어요' }); }
     }
-    for (const h of S.hw || []) if (hwDone(h) && (h.doneAt ? new Date(h.doneAt).toLocaleDateString('sv') === d : h.due === d)) out.push({ i: 'pin', t: h.title, d: '선생님 숙제 · 끝냄' });
+    for (const h of S.hw || []) if (hwDone(h) && (h.doneAt ? atDay(h.doneAt) === d : h.due === d)) out.push({ i: 'pin', t: h.title, d: '선생님 숙제 · 끝냄' });
     // 숙제 달력 (10/27 정윤: 날짜 누르면 그날 한 숙제가 쭉) · 누르면 그 숙제로 다시 들어가요
     for (const c of FIN_ALL) if (finDoneDay(c) === d) { const q = c.page || c.text ? null : finPicked(c); out.push({ i: c.subj === 'hist' ? 'scroll' : 'books', t: `${c.subj === 'eng' ? '올림포스 지문' : c.sname + ' 기말 예습'} · ${c.title}`, d: q ? `${q}문제 풀었어요 · 눌러서 다시 보기` : '끝냈어요 · 눌러서 다시 보기', go: 'fincid:' + c.id }); }
     for (const it of myS().items) { const x = (it.log || {})[d]; if (x && (x.n || it.unit === '건')) out.push({ i: 'write', t: it.book, d: `${myCls(it.cls).name}${x.n && it.unit !== '건' ? ` · ${x.n}${it.unit === '쪽' ? '쪽' : '문제'}` : ' · 끝냄'}`, go: 'my:' + it.id }); }
@@ -2112,7 +2114,7 @@
   }
   // 달력용: 앱 안 계획 숙제(윤건 기말·매일 영어)는 dayItems 에 안 잡혀서 지난 날 칸이 비고, 밀린 것도 안 보였어요 (11/5 «어제 밀린 거 왜 안 나오지 · 당일만 개수가 없어»)
   const ypAt = (it) => { const a = nxS().a; if (it.p === 'ch') return (a[it.id] || {}).at || 0; let m = 0; for (const q of it.qs || []) { const v = a[q.i]; if (v && v.at > m) m = v.at; } return m; };
-  function calDone(d) { const out = dayItems(d); for (const it of YP) if (ypDone(it)) { const at = ypAt(it); if (at && fmtDay(new Date(at)) === d) { const g = NXSETS[it.id] ? nxProg(NXSETS[it.id]) : null; out.push({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 끝냈어요${g && it.p !== 'ch' ? ` · ${g.ok}/${g.n} 맞힘` : ''}${it.day < d ? ` · ${md(it.day)} 몫` : ''}`, go: it.id }); } } return out; }
+  function calDone(d) { const out = dayItems(d); for (const it of YP) if (ypDone(it)) { const at = ypAt(it); if (at && atDay(at) === d) { const g = NXSETS[it.id] ? nxProg(NXSETS[it.id]) : null; out.push({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 끝냈어요${g && it.p !== 'ch' ? ` · ${g.ok}/${g.n} 맞힘` : ''}${it.day < d ? ` · ${md(it.day)} 몫` : ''}`, go: it.id }); } } return out; }
   // 그날 몫인데 못 한 것: 윤건 기말 계획·매일 영어(YP), 정윤 기말 예습·올림포스(FIN)
   const calMiss = (d) => { if (d >= today()) return []; const out = YP.filter((it) => it.day === d && !ypDone(it)).map((it) => ({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 못 했어요`, go: it.id })); if (FIN_ON) for (const c of FIN_ORDER) if (addD(FIN_START, c.fday) === d && !finDone(c)) out.push({ i: c.subj === 'hist' ? 'scroll' : 'books', t: `${c.subj === 'eng' ? '올림포스 지문' : c.sname + ' 기말 예습'} · ${c.title}`, d: '기말 예습 · 못 했어요', go: 'fincid:' + c.id }); if (!TUTOR) for (const it of myS().items) { const m = myMissOn(it, d); if (m) out.push({ i: 'write', t: it.book, d: `${myCls(it.cls).name} · ${m.did ? `이날 몫 ${m.want}${m.u} 중 ${m.did}${m.u} 했어요 · ${m.miss}${m.u} 남음` : `이날 몫 ${m.want}${m.u} 못 했어요`}`, go: 'my:' + it.id }); } return out; };
   const calLeft = () => { try { return todayTasks().tasks.filter((t) => t.icon !== 'party' && !t.memo && !t.done).length; } catch (e) { return 0; } };
@@ -2271,7 +2273,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611051509', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611051528', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2498,7 +2500,7 @@
   // ───────── 기말 개념 풀기 ─────────
   const finS = () => { S.fin = S.fin || {}; S.fin.ans = S.fin.ans || {}; return S.fin; };
   const finA = (cid) => (finS().ans[cid] = finS().ans[cid] || {});
-  const dOf = (at) => { const d = new Date(at); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  const dOf = (at) => atDay(at);
   const finPicked = (c) => (c.qs || []).filter((q, k) => (finS().ans[c.id] || {})[k] && finS().ans[c.id][k].pick != null).length;
   const finDone = (c) => (c.text ? !!(finS().ans[c.id] || {}).q : c.page ? (() => { const A = finS().ans[c.id] || {}; return !!A.done && (!A.undone || A.done.at > A.undone.at); })() : !!(c.qs || []).length && finPicked(c) >= c.qs.length);
   const finDoneDay = (c) => finDone(c) ? dOf(Math.max(...Object.values(finS().ans[c.id]).map((x) => x.at || 0))) : null;
@@ -3074,7 +3076,7 @@
   var SR_MINE = 1793511014696;  // 11/1 선생님이 대신 넣어 준 기록은 빼요
   var SR_K = { olymp: ['올림포스 지문', 0], g3: ['고3 영어', 96], cheonil: ['천일문', 0], 'fin-q': ['기말 문제', 0], 'fin-b': ['기말 빈칸', 0], sci: ['과학', 0], word: ['단어', 0], nx: ['수업·따로 공부', 0] };  // 둘째 값: 수능 영어 독해 문항당 1분 36초. 올림포스는 기말(내신) 지문을 꼼꼼히 보는 거라 수능 시간과 안 견줘요 (11/1 선생님 «내신이니까 느릴 수 있지»)
   var srWk = (d) => addD(d, -((new Date(d + 'T00:00:00').getDay() + 6) % 7));  // 그 주 월요일
-  var srDay = (at) => new Date(at).toLocaleDateString('sv');
+  var srDay = (at) => new Date(at).toLocaleDateString('sv');  // 시간표 칸 계산용 달력 날짜 (하루 나누기는 srLD 가 새벽 5시 기준)
   function srEvents() {
     if (srEvents.c && Date.now() - srEvents.c.t < 1500) return srEvents.c.v;  // 한 번 그릴 때 여러 주를 재서 잠깐만 기억
     const A = [], put = (v, k) => { if (v && typeof v === 'object' && v.at && v.at !== SR_MINE) A.push({ at: v.at, k, ok: !!v.ok }); };
@@ -4296,7 +4298,7 @@
   }
   // 지난날 멈춰 둔 시간 재기는 그날 공부로 닫아요 (11/4 정윤 «오늘 안 했는데 이렇게 돼 있어»: 어제 멈춘 129:06 이 오늘 숙제 옆에 떠 있었어요)
   function pCloseOld() {
-    const dOf = (t) => fmtDay(new Date(t + DAY_OFF() * 864e5));
+    const dOf = (t) => atDay(t + DAY_OFF() * 864e5);
     const old = [...(P.held || []), P.run].filter((r) => r && r.watch && r.paused && (r.seg || []).length && dOf(r.seg[r.seg.length - 1][1]) < today());
     if (!old.length) return;
     for (const r of old) {
@@ -5743,7 +5745,7 @@
   // 수업 시험: 수업 날 수업 시간이 되면 열리고 그날 밤 12시에 닫혀요. 그 학생 문제를 늘 섞어서, 같은 날은 같은 시험
   // 시험 구성은 처음 열 때 S.nx.lq[세트] = [[문항, 보기순서, 묶음]] 으로 남겨서 다시 봐도 같아요
   const nxNow = () => { try { if (localStorage.getItem('mu:offline') === '1') { const t = new Date(localStorage.getItem('mu:now') || '').getTime(); if (t) return t; } } catch (e) {} return Date.now(); };  // mu:now 는 테스트 때만
-  const nxDay = (ms) => new Date(ms).toLocaleDateString('sv');
+  const nxDay = (ms) => atDay(ms);
   const nxRng = (s) => { let h = 1779033703 ^ s.length; for (let i = 0; i < s.length; i++) { h = Math.imul(h ^ s.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); } return () => { h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; }; };
   const nxShuf = (a, rnd) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const nxSubjOf = (i) => (NXSETS[(NXQ[i] || {}).set] || {}).subj || 'eng';
@@ -6704,7 +6706,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051509'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051528'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
