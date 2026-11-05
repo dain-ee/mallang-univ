@@ -2038,28 +2038,27 @@
     return `<div class="row between wrap" style="gap:8px"><h1 class="h1">${DAY_OFF() ? '이날의 숙제' : '오늘의 숙제'}</h1>${TEACHER ? '' : dayNav()}</div><div class="row between wrap" style="gap:8px;margin-bottom:16px"><p class="sub" style="margin:0">${TUTOR ? '지난 수업에서 배운 것을 다음 수업 전까지 풀어요' : '꼭 할 일부터 끝내요. 학원·학교 숙제는 마감까지 나눠서 매일 할 만큼만 나와요'}</p>${TUTOR ? '' : `<button class="btn sm" id="plan-open" type="button"><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg> 매일 과제 요일</button>`}</div>${perfLive().length ? `<div style="margin-bottom:16px">${perfCard()}</div>` : ''}
     <div class="grid">${TUTOR ? '' : missCard()}
       ${(() => {
-        if (TUTOR && UI.hwDay && UI.hwDay !== today()) return hwDayCard(UI.hwDay);  // 달력에서 고른 날은 모달 대신 이 자리에 (10/31)
+        if (UI.hwDay && UI.hwDay !== today()) return hwDayCard(UI.hwDay);  // 정윤도 달력에서 고른 날이 이 자리에 (11/5)  // 달력에서 고른 날은 모달 대신 이 자리에 (10/31)
         const { tasks } = todayTasks(), real = tasks.filter((t) => t.icon !== 'party' && !t.memo), dn = real.filter((t) => t.done).length;
         const by = (a, b) => String(a.due || '').localeCompare(String(b.due || ''));
         const later = TEACHER ? hwList.filter((h) => !hwDone(h) && h.due && h.due > today()).sort(by) : [], done = hwList.filter((h) => hwDone(h)).sort(by).reverse();
         const hrow = (h, later) => `<div class="li btnlike" data-hwopen="${esc(h.id)}">${(h.nx && NXSETS[h.nx]) || mmOf(h) ? `<div class="ico">${ic(hwDone(h) ? 'ok' : 'pin')}</div>` : `<button class="ico" data-hwdone="${esc(h.id)}" style="border:0;cursor:pointer" aria-label="완료">${ic(hwDone(h) ? 'ok' : 'pin')}</button>`}<div class="body"><div class="t" style="${hwDone(h) ? 'color:var(--t3);text-decoration:line-through' : later ? 'color:var(--t2);font-weight:500' : ''}">${esc(h.title)}</div><div class="d">${[h.subj, h.due ? md(h.due) + (later ? ' 숙제' : '') : ''].filter(Boolean).map(esc).join(' · ')}</div></div>${TEACHER ? `<button class="btn sm" data-hwdel="${esc(h.id)}" type="button">지우기</button>` : ''}${myRowTm('hw:' + h.id, hwDone(h), h.title)}</div>`;
         const row = (t) => `<div class="li btnlike ${t.done ? 'is-done' : ''}" ${t.hw ? `data-hwopen="${esc(t.hw)}"` : `data-task="${esc(t.k)}"`}><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${t.late && !t.done ? '<span class="tag red" style="margin-right:6px;vertical-align:2px">밀림</span>' : ''}${esc(t.t)}${t.hw ? ' <span class="tag">선생님</span>' : ''}</div><div class="d">${esc(t.d)}</div></div>${myRowTm(t.hw ? 'hw:' + t.hw : t.k, t.done, t.t)}</div>`;
         const tog = (pn, label, n) => n ? `<button type="button" data-pn="${pn}" data-lb="${label} <b>${n}</b>" onclick="const s=this.closest('section'),p=s.querySelector('[data-pane='+this.dataset.pn+']'),o=p.hidden;s.querySelectorAll('.hw-pane').forEach(x=>x.hidden=true);this.parentNode.querySelectorAll('button[data-lb]').forEach(b=>{b.classList.remove('on');b.innerHTML=b.dataset.lb});if(o){p.hidden=false;this.classList.add('on');this.textContent='접기'}">${label} <b>${n}</b></button>` : '';
-        return `<section class="card ${TUTOR ? 'c8' : 'c12'}"><div class="card-h"><h2>오늘 할 것</h2>${real.length ? `<span class="tiny">${real.length}개 중 <b class="${dn === real.length ? 'blue' : ''}">${dn}개</b> 끝</span>` : ''}${TEACHER ? '<button class="btn sm soft" id="hw-add" type="button">숙제 내기</button>' : ''}</div>
+        return `<section class="card c8"><div class="card-h"><h2>오늘 할 것</h2>${real.length ? `<span class="tiny">${real.length}개 중 <b class="${dn === real.length ? 'blue' : ''}">${dn}개</b> 끝</span>` : ''}${TEACHER ? '<button class="btn sm soft" id="hw-add" type="button">숙제 내기</button>' : ''}</div>
           ${real.length ? `<div class="td-prog"><i style="width:${(dn / real.length) * 100}%"></i></div>` : ''}
           ${(() => { const lt = real.filter((t) => t.late && !t.done).length; return lt ? `<p class="td-late"><span class="tag red">밀림</span> 지난 날 못 한 것 ${lt}개가 오늘로 넘어왔어요. 먼저 끝내 봐요</p>` : ''; })()}
           ${real.length ? `<div class="list">${[...real.filter((t) => !t.done), ...real.filter((t) => t.done)].map(row).join('')}</div>${dn === real.length ? `<div class="td-all">${gh('yay', 'gh-td')}<span>오늘 할 것을 다 끝냈어요</span></div>` : ''}` : `<div class="empty" style="padding:16px 0">${gh('sleepy', 'gh-empty')}<b>오늘은 쉬는 날이에요</b></div>`}
           ${later.length || done.length ? `<div class="hw-tog">${tog('later', '앞으로 낼 숙제', later.length)}${tog('done', '끝낸 숙제', done.length)}</div>
           ${later.length ? `<div class="hw-pane list" data-pane="later" hidden>${later.map((h) => hrow(h, true)).join('')}</div>` : ''}${done.length ? `<div class="hw-pane list" data-pane="done" hidden>${done.map((h) => hrow(h)).join('')}</div>` : ''}` : ''}</section>`;
       })()}
-      ${TUTOR ? hwCal() : ''}
+      ${hwCal()}
       ${TUTOR ? '' : myCard('c12')}
       ${TUTOR ? '' : inkCard('c12')}
       ${drillCard()}
       ${TUTOR ? gramLib() + juaLibs() : ''}
       ${libCard()}
       ${TUTOR ? (TABS.some((t) => t[0] === 'study') ? `<section class="card c12"><div class="li btnlike" data-go="study"><div class="ico">${ic('books')}</div><div class="body"><div class="t">단원 공부는 「공부」 탭에서</div><div class="d">과목·단원별 정리, 용어, 문제와 기말 계획 달력</div></div><span class="chev"></span></div></section>` : nxLib()) : ''}
-      ${TUTOR ? '' : hwCal()}
     </div>`;
   }
   function planSheet() {
@@ -2112,9 +2111,9 @@
     const cnt = {}; let tot = 0, dn = 0; for (const d of cells) if (d && d <= today()) { cnt[d] = calDone(d).length; tot += cnt[d]; if (cnt[d]) dn++; } const left = calLeft();
     const mo = sSum(m + '-01', m + '-31');
     const prev = new Date(Y, M - 2, 1).toLocaleDateString('sv').slice(0, 7), next = new Date(Y, M, 1).toLocaleDateString('sv').slice(0, 7);
-    return `<section class="card ${TUTOR ? 'c4' : 'c6'} col-card hcal-card"><div class="card-h"><h2>${ic('cal')} 숙제 달력</h2><div class="row" style="gap:2px"><button class="btn sm ghost" type="button" data-calm="${prev}" aria-label="지난달">‹</button><b class="num" style="min-width:44px;text-align:center">${M}월</b><button class="btn sm ghost" type="button" data-calm="${next}" aria-label="다음 달" ${next > addD(today().slice(0, 7) + '-15', 62).slice(0, 7) ? 'disabled' : ''}>›</button></div></div>
-      <p class="tiny" style="margin:0 0 12px">${dn ? `이번 달 ${dn}일 동안 ${tot}개 했어요${mo ? ` · 공부 ${hm(mo)}` : ''}` : '숙제를 하면 그날 칸에 쌓여요'} · ${TUTOR ? '날짜를 누르면 왼쪽에 그날 것이 나와요' : '날짜를 누르면 그날 한 숙제가 다 나와요'}</p>
-      <div class="hcal-g">${'일월화수목금토'.split('').map((w) => `<span class="hcal-w">${w}</span>`).join('')}${cells.map((d) => { if (!d) return '<i></i>'; const c = cnt[d] || 0, lv = c, st = sMin(d), fut = d > today(), pl = fut ? planItems(d).length : d === today() ? left : 0; return `<button type="button" class="hcal-d ${d === today() ? 'today' : ''} ${TUTOR && UI.hwDay === d ? 'sel' : ''} ${lv ? 'l' + (lv >= 8 ? 3 : lv >= 4 ? 2 : 1) : ''} ${fut ? 'fut' : ''}" ${fut && !pl ? 'disabled' : `data-day="${d}"`}><span class="hc-n num">${+d.slice(8)}</span>${c ? `<span class="hc-c">${c}개</span>` : ''}${pl ? `<span class="hc-p">할 것 ${pl}</span>` : ''}${st ? `<span class="hc-h">${st >= 60 ? (st / 60).toFixed(1) + '시간' : st + '분'}</span>` : ''}</button>`; }).join('')}</div></section>`;
+    return `<section class="card c4 col-card hcal-card"><div class="card-h"><h2>${ic('cal')} 숙제 달력</h2><div class="row" style="gap:2px"><button class="btn sm ghost" type="button" data-calm="${prev}" aria-label="지난달">‹</button><b class="num" style="min-width:44px;text-align:center">${M}월</b><button class="btn sm ghost" type="button" data-calm="${next}" aria-label="다음 달" ${next > addD(today().slice(0, 7) + '-15', 62).slice(0, 7) ? 'disabled' : ''}>›</button></div></div>
+      <p class="tiny" style="margin:0 0 12px">${dn ? `이번 달 ${dn}일 동안 ${tot}개 했어요${mo ? ` · 공부 ${hm(mo)}` : ''}` : '숙제를 하면 그날 칸에 쌓여요'} · 날짜를 누르면 왼쪽에 그날 것이 나와요</p>
+      <div class="hcal-g">${'일월화수목금토'.split('').map((w) => `<span class="hcal-w">${w}</span>`).join('')}${cells.map((d) => { if (!d) return '<i></i>'; const c = cnt[d] || 0, lv = c, st = sMin(d), fut = d > today(), pl = fut ? planItems(d).length : d === today() ? left : 0; return `<button type="button" class="hcal-d ${d === today() ? 'today' : ''} ${UI.hwDay === d ? 'sel' : ''} ${lv ? 'l' + (lv >= 8 ? 3 : lv >= 4 ? 2 : 1) : ''} ${fut ? 'fut' : ''}" ${fut && !pl ? 'disabled' : `data-day="${d}"`}><span class="hc-n num">${+d.slice(8)}</span>${c ? `<span class="hc-c">${c}개</span>` : ''}${pl ? `<span class="hc-p">할 것 ${pl}</span>` : ''}${st ? `<span class="hc-h">${st >= 60 ? (st / 60).toFixed(1) + '시간' : st + '분'}</span>` : ''}</button>`; }).join('')}</div></section>`;
   }
   // 앞날: 기말 계획(윤건)·기말 예습(정윤)에 잡힌 것 (10/30 «왜 11월 넘어가지가 않냐»)
   function planItems(d) {
@@ -2261,7 +2260,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611051412', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611051417', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2767,7 +2766,7 @@
   function libCard() {
     const it = (k, icn, t, d) => `<button class="lib-it" data-lib="${k}" type="button"><span class="ico">${ic(icn)}</span><b>${t}</b><span class="tiny">${d}</span></button>`;
     if (TUTOR) return CH_UNITS.length ? `<section class="card c12"><div class="card-h"><h2>전체 목록</h2><span class="tiny">숙제 말고도 골라서 공부해요</span></div><div class="lib-grid">${it('cheonil', 'eng', '천일문 기본', `${CH_UNITS.length}유닛`)}${MM.length ? it('mm', 'target', '모의고사', `고1~고3 ${MM.length}문제`) : ''}</div></section>` : '';
-    return `<section class="card c6"><div class="card-h"><h2>전체 목록</h2><span class="tiny">오늘 것 말고도 골라서 공부해요</span></div><div class="lib-grid">${it('cheonil', 'eng', '천일문', `${CH_UNITS.length}유닛`)}${it('sci', 'sci', '통합과학 개념', `${SCI.concepts.length}개 · 기말 ${SCI.concepts.filter((c) => c.exam).length}개`)}${it('words', 'books', '워드마스터', `${((ENG.words && ENG.words.days) || []).length}일`)}${MM.length ? it('mm', 'target', '모의고사', `고1~고3 ${MM.length}문제`) : ''}${it('g3', 'target', '고3 영어', `${G3.length}문제`)}</div></section>`;
+    return `<section class="card c12"><div class="card-h"><h2>전체 목록</h2><span class="tiny">오늘 것 말고도 골라서 공부해요</span></div><div class="lib-grid">${it('cheonil', 'eng', '천일문', `${CH_UNITS.length}유닛`)}${it('sci', 'sci', '통합과학 개념', `${SCI.concepts.length}개 · 기말 ${SCI.concepts.filter((c) => c.exam).length}개`)}${it('words', 'books', '워드마스터', `${((ENG.words && ENG.words.days) || []).length}일`)}${MM.length ? it('mm', 'target', '모의고사', `고1~고3 ${MM.length}문제`) : ''}${it('g3', 'target', '고3 영어', `${G3.length}문제`)}</div></section>`;
   }
   function sciRun() {
     const d = sciToday(true); const list = d.list || [];
@@ -6694,7 +6693,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051412'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051417'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7897,7 +7896,7 @@
       save('my'); render(); }));
     $$('[data-mw]').forEach((b) => (b.onclick = () => { const [id, v] = b.dataset.mw.split(':'); const it = myS().items.find((x) => x.id === id); if (it && MB_ID(it.book)) mbwGo(id, v); else mbSheet(id, v); }));
     $$('[data-news]').forEach((b) => (b.onclick = () => newsSheet(b.dataset.news)));
-    $$('[data-day]').forEach((b) => (b.onclick = () => { if (!(TUTOR && UI.tab === 'hw')) return daySheet(b.dataset.day); const d = b.dataset.day; UI.hwDay = d === today() || UI.hwDay === d ? null : d; const y = scrollY; render(); scrollTo(0, y); const c = $('.hw-daycard') || $('.td-prog'); if (c && c.getBoundingClientRect().top < 64) c.scrollIntoView({ block: 'start', behavior: RM() ? 'auto' : 'smooth' }); }));
+    $$('[data-day]').forEach((b) => (b.onclick = () => { if (UI.tab !== 'hw') return daySheet(b.dataset.day); const d = b.dataset.day; UI.hwDay = d === today() || UI.hwDay === d ? null : d; const y = scrollY; render(); scrollTo(0, y); const c = $('.hw-daycard') || $('.td-prog'); if (c && c.getBoundingClientRect().top < 64) c.scrollIntoView({ block: 'start', behavior: RM() ? 'auto' : 'smooth' }); }));
     $$('[data-hwday]').forEach((b) => (b.onclick = () => { UI.hwDay = null; const y = scrollY; render(); scrollTo(0, y); }));
     $$('.hw-daycard [data-dgo]').forEach((b) => (b.onclick = () => dayGo(b.dataset.dgo)));
     if (UI.tab !== 'tsched') $$('[data-calm]').forEach((b) => (b.onclick = () => { UI.calM = b.dataset.calm; render(); }));  // 수업 일정 달력과 이름이 겹쳐 그쪽 월 넘기기가 안 됐어요 (10/31)
