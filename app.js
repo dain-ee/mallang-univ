@@ -1583,6 +1583,8 @@
     if (r) { const on = r === P.run && !r.paused; return `<span class="my-runs"><button type="button" class="my-run ${on ? '' : 'paused'}" data-tmopen="${esc(k)}"><i></i>${on ? '진행 중' : '멈춤'} <b class="num" ${r === P.run ? 'data-pmt' : ''}>${tmShow(r)}</b></button><button type="button" class="btn sm my-pz" data-tmpz="${esc(k)}" data-tmti="${esc(ti)}">${on ? '멈추기' : '이어 하기'}</button></span>`; }
     return `<button class="btn sm my-go" type="button" data-tmgo="${esc(k)}" data-tmti="${esc(ti)}">${ic('clock')}시작</button>`;
   }
+  // 끝낸 뒤: 「오늘 한 만큼」으로 내려가 틀린 번호 칸을 반짝 (11/5)
+  function myWFocus() { setTimeout(() => { const a = $('#sheet-root .my-amt'); if (!a) return; a.scrollIntoView({ behavior: 'smooth', block: 'start' }); const w = $('#sheet-root #my-wcw'); for (const x of [a, w]) if (x && !x.hidden) { x.classList.remove('my-glow'); void x.offsetWidth; x.classList.add('my-glow'); } }, 350); }
   function myGoAsk(id) { const it = myS().items.find((x) => x.id === id); if (it) tmGo('my:' + id, it.book); }
   function myTmBind(it) {
     const box = $('#my-tm'); if (!box || TEACHER) return;
@@ -1593,7 +1595,7 @@
       if (k === 'no') { UI.myTmAsk = null; return draw(); }
       if (k === 'go') { UI.myTmAsk = null; myTmStart(it); render(); return draw(); }
       if (k === 'pause') { const r = tmOf('my:' + it.id); if (r && r !== P.run && P.run) { UI.myTmAsk = it.id; return draw(); } if (r && r !== P.run) tmStart('my:' + it.id, it.book); else pPause(); render(); return draw(); }
-      if (k === 'end') { const m = pWatchEnd(tmOf('my:' + it.id)); if (m) UI.myTmDone = { id: it.id, m }; draw(); }
+      if (k === 'end') { const m = pWatchEnd(tmOf('my:' + it.id), 1); if (m) { UI.myTmDone = { id: it.id, m }; myWFocus(); } draw(); }
       if (k === 'fix') { const r = tmOf('my:' + it.id); if (r === P.run && !r.paused) pPause(); UI.tmFix = 'my:' + it.id; render(); draw(); }
     }));
     const r0 = tmOf('my:' + it.id); if (r0) tmFixBind(box, r0, draw);
@@ -1609,13 +1611,13 @@
       ${it.unit === '건' ? '' : `<div class="my-today"><span class="tiny">오늘 할 것${myAvg() ? ` · 보통 하루 ${myAvg()}문제 해요` : ''}</span><b>${x.skip ? '내일로 미뤘어요' : x.n ? esc(myRange(it, x)) : '오늘 몫은 없어요'}</b>${it.orig ? `<span class="tiny">원래 ${md(it.orig)} 마감 → ${md(it.due)}로 미뤄짐</span>` : ''}${!dt && (x.n || x.skip) ? `<button type="button" class="my-skip" id="my-skip">${x.skip ? '미룬 것 취소' : '내일로 미루기'}</button>` : ''}</div>
       <div class="my-amt"><span>오늘 한 만큼</span><button type="button" class="btn sm" data-ma="-1">−</button><input class="inp sm" id="my-n" type="number" inputmode="numeric" min="0" value="${dt ? dt.n : x.n}"><button type="button" class="btn sm" data-ma="1">+</button></div>
       <div class="my-st" id="my-st" hidden><span class="tiny">틀린 번호를 고르려면 오늘 푼 첫 번호를 적어요</span><input class="inp" type="number" inputmode="numeric" id="my-s0" placeholder="예: 1225" value="${dt && dt.s ? dt.s : ''}"></div>
-      <div class="my-wcw" id="my-wcw"><div class="tiny" style="margin-top:14px">틀린 번호를 눌러요 · 나중에 오답 탭에서 다시 풀어요</div><div class="my-wc" id="my-wc"></div><div class="my-qa" id="my-qa"></div></div>
+      <div class="my-wcw" id="my-wcw"><div class="my-wq" id="my-wq" hidden><b>틀린 게 있었나요?</b><span>틀린 번호만 톡톡 눌러요. 다 맞았으면 아래 단추를 눌러요</span></div><div class="tiny" style="margin-top:14px">틀린 번호를 눌러요 · 나중에 오답 탭에서 다시 풀어요</div><div class="my-wc" id="my-wc"></div><div class="my-qa" id="my-qa"></div></div>
       <input type="hidden" id="my-w" inputmode="numeric" placeholder="예: 1225 1231 1240" value="${esc((dt && dt.w || []).join(' '))}">`}
       <button class="btn primary big block" id="my-ok" type="button" style="margin-top:16px">${it.unit === '건' ? (myFin(it) ? '아직 안 끝났어요' : '끝냈어요') : dt ? '고쳐서 저장' : '오늘 것 끝냈어요'}</button>
       <div class="row" style="gap:8px;margin-top:8px">${it.unit === '건' ? `<button class="btn block" id="my-plan" type="button">${isPlan(it) ? '꼭 할 일로 바꾸기' : '일정으로 바꾸기'}</button>` : `<button class="btn block" id="my-fin" type="button">${it.fin ? '다시 하기' : '다 끝났어요'}</button>`}<button class="btn block" id="my-del" type="button">지우기</button></div>
       <details class="my-edit"><summary>범위·마감 고치기</summary><div class="my-ed">${it.unit === '건' ? '' : it.from != null ? `<div class="my-er"><span class="my-el">범위</span><span class="my-in">${it.unit === '쪽' ? '<span>p.</span>' : ''}<input class="inp" type="number" inputmode="numeric" id="my-ea" value="${it.from}"><span>~</span><input class="inp" type="number" inputmode="numeric" id="my-eb" value="${it.to}"><span>${it.unit === '쪽' ? '쪽' : '번'}</span></span></div>` : `<div class="my-er"><span class="my-el">문제 수</span><span class="my-in"><input class="inp" type="number" inputmode="numeric" id="my-ec" value="${it.total}"><span>문제</span></span></div>`}
         <label class="my-er"><span class="my-el">마감</span><input type="date" class="inp sm" id="my-ed" value="${it.due}"></label><button class="btn primary big block" id="my-es" type="button">고쳐서 저장</button></div></details>`, (el, close) => {
-      myTmBind(it);
+      myTmBind(it); if (mySheet.wFocus) { mySheet.wFocus = 0; myWFocus(); }
       $('#my-es', el).onclick = () => { const a = $('#my-ea', el), b = $('#my-eb', el), c = $('#my-ec', el), d = $('#my-ed', el).value;
         if (a && b) { const f = +a.value, z = +b.value; if (!(f > 0 && z >= f)) { toast('시작과 끝 번호를 확인해요'); return; } it.from = f; it.to = z; it.total = z - f + 1; it.text = `${it.book} ${it.unit === '쪽' ? `p.${f}~${z}` : `${f}~${z}번`}`; }
         if (c) { if (!(+c.value > 0)) { toast('문제 수를 적어요'); return; } it.total = +c.value; it.text = `${it.book} ${it.total}문제`; }
@@ -1634,7 +1636,7 @@
         if (!has) { box.innerHTML = ''; return; }
         const W = new Set((wi.value.match(/\d+/g) || []).map(Number)), z = Math.min(it.to != null ? it.to : Infinity, a0 + n - 1);
         box.innerHTML = Array.from({ length: z - a0 + 1 }, (_, k) => a0 + k).map((v) => `<button type="button" class="${W.has(v) ? 'on' : ''}" data-wn="${v}">${v}</button>`).join('');
-        $$('[data-wn]', box).forEach((b) => (b.onclick = () => { const v = +b.dataset.wn; W.has(v) ? W.delete(v) : W.add(v); wi.value = [...W].sort((p, q) => p - q).join(' '); b.classList.toggle('on', W.has(v)); }));
+        $$('[data-wn]', box).forEach((b) => (b.onclick = () => { const v = +b.dataset.wn; W.has(v) ? W.delete(v) : W.add(v); wi.value = [...W].sort((p, q) => p - q).join(' '); b.classList.toggle('on', W.has(v)); const ob = $('#my-ok', el); if (ob && ob.dataset.sure) ob.textContent = W.size ? `틀린 ${W.size}개 적고 끝내기` : '틀린 거 없이 다 맞았어요'; }));
         qa(a0, z); };
       // 빠른 정답: 오늘 푼 번호의 답을 한눈에, 그래프 답은 정답표 그림으로 (10/31 «마더텅 빠른답지 넣어놔»)
       const qal = $('#my-qall', el); if (qal) qal.onclick = () => mbAllSheet(MB_ID(it.book), (mbKeys(it, it.from || 1)[0] || '').replace(/-[^-]*$/, ''));
@@ -1653,6 +1655,8 @@
       $('#my-ok', el).onclick = () => {
         if (it.unit === '건') { if (myFin(it)) { const at = Date.now(); for (const d of Object.keys(it.log || {})) it.log[d] = { n: 0, at }; it.fin = false; } else { it.log[t] = { n: 1, at: Date.now() }; if (!isPlan(it)) earn('my:' + it.id + ':' + t, 100, '내 숙제'); boom(innerWidth / 2, innerHeight * 0.4, 2); } save('my'); close(); render(); return; }
         const n = Math.max(0, +$('#my-n', el).value || 0), w = ($('#my-w', el).value.match(/\d+/g) || []).map(Number);
+        const ok0 = $('#my-ok', el), wcw = $('#my-wcw', el);
+        if (n && !w.length && wcw && !wcw.hidden && !ok0.dataset.sure && !TEACHER) { ok0.dataset.sure = 1; ok0.textContent = '틀린 거 없이 다 맞았어요'; const q = $('#my-wq', el); if (q) q.hidden = false; myWFocus(); return; }  // 틀린 번호 없이 끝내면 한 번 물어요 (11/5)
         it.log[t] = { n, w, at: Date.now(), ...(+($('#my-s0', el) || {}).value ? { s: +$('#my-s0', el).value } : {}) }; it.wrong = [...new Set([...(it.wrong || []).filter((v) => !(dt && (dt.w || []).includes(v))), ...w])].sort((a, b) => a - b);
         save('my'); close(); render(); if (n) earn('my:' + it.id + ':' + t, 100, '학원·과외 숙제'); try { const bh = myBeh(it), uu = it.unit === '쪽' ? '쪽' : '문제'; if (bh.caught > 0) { toast(`밀린 것 ${bh.caught}${uu} 따라잡았어요! ${bh.now ? `이제 ${bh.now}${uu} 남았어요` : '이제 밀린 거 없어요'}`); boom(innerWidth / 2, innerHeight * 0.4, bh.now ? 3 : 4); } else toast(w.length ? `틀린 ${w.length}문제는 오답 탭에 모아 뒀어요` : '오늘 것 끝! 잘했어요'); } catch (e) { toast('오늘 것 끝! 잘했어요'); }
         if (myFin(it)) { const r = document.body.getBoundingClientRect(); boom(innerWidth / 2, innerHeight * 0.4, 4); }
@@ -2278,7 +2282,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611052029', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611052033', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4575,7 +4579,7 @@
   }
   // 학생이 고치거나 지운 칸은 다시 안 덮어써요 (11/3)
   const slogPut = (s0, e0, subj, k, ti) => { if (e0 - s0 < 60000) return; S.slog = S.slog || {}; const o = S.slog[k + s0]; if (o && (o.ed || o.del)) return; S.slog[k + s0] = { s: s0, e: e0, subj, k, at: Date.now(), ...(ti ? { ti } : {}) }; };
-  function pWatchEnd(r = P.run) {
+  function pWatchEnd(r = P.run, inSheet) {
     if (!r) return; const n = Date.now();
     const seg = r.paused ? r.seg : [...r.seg, [r.t0, n]], sec = pWatchSec(r), m = Math.round(sec / 60);
     if (r === P.run) { P.run = null; P.offer = null; } P.held = (P.held || []).filter((x) => x !== r); pSave(); pLoop();
@@ -4585,6 +4589,8 @@
     save('pomo', 'slog'); render(); ding(3); if (navigator.vibrate) navigator.vibrate([60, 40, 120]);
     if (r.tk || r.hw) { boom(innerWidth / 2, innerHeight * 0.4, m >= 30 ? 5 : 3); toast(`수고했어요! ${r.ti} ${hm(m)} 공부했어요`); }
     else toast(`${r.subj} ${hm(m)} 남겼어요 · 오늘 ${hm(sMin(d))}`);
+    // 학원·과외 숙제(앱 밖에서 푼 문제)는 끝내는 순간 바로 「한 만큼 · 틀린 번호」 창 (11/5 «끝냈다고 하는 순간 오답 적게, 팝업이 바로 떠야 바로바로 적지»)
+    if (r.hw && !inSheet && !TEACHER) { const it = myS().items.find((x) => x.id === r.hw); if (it && it.unit !== '건' && !isPlan(it)) setTimeout(() => { UI.myTmDone = { id: it.id, m }; mySheet.wFocus = 1; mySheet(it.id); }, 450); }
     return m;
   }
   function pFinish() {
@@ -6754,7 +6760,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611052029'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611052033'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
