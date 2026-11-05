@@ -811,7 +811,7 @@
     if (has('sci') && SCI.concepts.length) tasks.push({ k: 'sci', icon: 'sci', t: sd.one ? `과학 개념: ${(SCI.concepts.find((x) => x.id === sd.c) || {}).title || ''}` : `오늘의 과학 ${st.n}문제`, d: sd.one && !sd.read ? `교과서 개념 보고 문제 ${st.n}개` : st.done >= st.n ? `${st.ok}/${st.n} 맞힘${st.all > st.n ? ` · 깊게 ${st.all - st.n}문제 더` : ''}` : `${st.done}/${st.n} 풀었어요`, done: st.done >= st.n });
     // 기말 개념은 과목마다 한 줄, 맨 위에 (한국사가 섞여 안 보인다고 해서 10/26)
     if (FIN_ON) tasks.unshift(...mapToday().map((m) => { const N = mapN(m); return { k: 'map:' + m.id, icon: 'scroll', t: `한국사 한눈에 정리 · ${mapShort(m)}`, d: mapDone(m) ? `${N.ok}/${N.n} 맞혔어요` : `소단원 흐름 그림 빈칸 ${N.n}개 · ${N.k}/${N.n}`, done: mapDone(m) }; }));
-    if (FIN_ON) { const L = finToday(), subs = [...new Set(L.map((c) => c.subj))].sort((x, y) => (y === 'hist') - (x === 'hist')); tasks.unshift(...subs.map((sj) => { const M = L.filter((c) => c.subj === sj), n = M.filter(finDone).length, due = FIN_DUE[sj]; return { k: 'fin:' + sj, icon: sj === 'hist' ? 'scroll' : 'books', t: sj === 'eng' ? `올림포스 지문 ${M.length}개` : `${M[0].sname} 기말 예습 ${M.length}개`, d: n >= M.length ? `오늘 것 끝 · ${finEndTxt(sj)}` : `${M.map((c) => c.title).join(' · ')} · ${n}/${M.length} · ${finEndTxt(sj)}`, done: n >= M.length }; })); }
+    if (FIN_ON) { const L = finToday(), subs = [...new Set(L.map((c) => c.subj))].sort((x, y) => (y === 'hist') - (x === 'hist')); tasks.unshift(...subs.map((sj) => { const M = L.filter((c) => c.subj === sj), n = M.filter(finDone).length, due = FIN_DUE[sj]; return { k: 'fin:' + sj, icon: sj === 'hist' ? 'scroll' : 'books', t: sj === 'eng' ? `올림포스 지문 ${M.length}개` : `${M[0].sname} 기말 예습 ${M.length}개`, d: n >= M.length ? `오늘 것 끝 · ${finEndTxt(sj)}` : `${M.map((c) => c.title).join(' · ')} · ${n}/${M.length} · ${finEndTxt(sj)}`, done: n >= M.length, late: !!(finLag(sj) || {}).n }; })); }
     // 매일 영어 계획(PF) 기간엔 천일문이 계획 쪽에 Unit 41부터 들어가요 (10/31)
     if (has('unit') && CH_UNITS.length && !(TUTOR && ppOn())) { const un = CH_UNITS[ed.unit] || CH_UNITS[CH_UNITS.length - 1]; tasks.push({ k: 'unit', icon: 'eng', t: `천일문 ${un.unit ? 'Unit ' + un.unit : ''} ${un.title || ''}`.trim(), d: unitDone ? '다 했어요' : cdesc('unit', '개념 · 문장 · 문제'), done: !!unitDone }); }
     if (has('words') && WORDS.length && !(WQ && today() < WQ.test)) tasks.push({ k: 'words', icon: 'books', t: '워드마스터 단어 10개 시험', d: wordsDone ? `${Object.values(ed.wans).filter((x) => x.ok).length}/10 맞힘` : cdesc('words', wordsLabel(ed.words)), done: !!wordsDone });
@@ -2282,7 +2282,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611060005', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611060007', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2530,7 +2530,18 @@
     const t = today(), L = FIN_ORDER.filter((c) => c.subj === sj && !finDone(c)); if (!L.length) return null;
     const e = addD(FIN_START, Math.max(...L.map((c) => c.fday))); return e < t ? t : e;
   }
-  const finEndTxt = (sj) => { const e = finEndDay(sj); if (!e) return '다 끝냈어요'; const g = Math.round((new Date(EB_EXAM + 'T00:00:00') - new Date(e + 'T00:00:00')) / 864e5); return `${md(e)}에 끝나요${g > 0 ? ` · 기말고사 D-${g}` : ''}`; };
+  // 밀림: 어제까지 할 몫인데 안 한 것. 밀린 날수만큼 뒤 일정이 다 밀린다고 보고 한 바퀴 끝나는 날을 셈 (11/6 «밀림 표시 · 이 속도로 하면 기말 며칠 전에 한 바퀴 돌아요»)
+  const finStudy = (d) => !(d >= '2026-11-08' && dowOf(d) === 0);  // 11/8부터 일요일은 새 몫 없음 (FIN_ORDER 달력과 같게)
+  function finLag(sj) {
+    const t = today(), L = FIN_ORDER.filter((c) => c.subj === sj && !finDone(c)); if (!L.length) return null;
+    const beh = L.filter((c) => addD(FIN_START, c.fday) < t); let e = addD(FIN_START, Math.max(...L.map((c) => c.fday))), lag = 0;
+    if (beh.length) { for (let d = addD(FIN_START, Math.min(...beh.map((c) => c.fday))); d < t; d = addD(d, 1)) if (finStudy(d)) lag++; for (let k = 0; k < lag; ) { e = addD(e, 1); if (finStudy(e)) k++; } }
+    return { n: beh.length, end: e < t ? t : e };
+  }
+  const finGap = (e) => Math.round((new Date(EB_EXAM + 'T00:00:00') - new Date(e + 'T00:00:00')) / 864e5);
+  const finEndTxt = (sj) => { const z = finLag(sj); if (!z) return '다 끝냈어요'; const g = finGap(z.end);
+    if (z.n) return `지금 속도면 ${md(z.end)}에 한 바퀴 끝${g > 0 ? ` · 기말 ${g}일 전` : g === 0 ? ' · 기말 당일' : ' · 기말 전에 못 끝나요'}`;
+    return `${md(z.end)}에 끝나요${g > 0 ? ` · 기말고사 D-${g}` : ''}`; };
   // 홈: 선생님이 매일 내는 기말 예습(구몬처럼) 한눈에 · 과목마다 한 일/전체 · 오늘 남은 것 · 끝나는 날 (10/26)
   // 수행평가 준비 (content/perf.json): 학교 수행평가를 바로 준비하게 모범 답안 · 외울 것 · 빈칸 · 교과서 사진
   const PERF = U.who === '정윤' ? (D.perf || []) : [];
@@ -2563,7 +2574,7 @@
     const T = finToday();
     return `<section class="card c12"><div class="card-h"><h2>${ic('books')} 매일 기말 예습</h2><span class="tiny">선생님이 날마다 나눠서 내요</span></div><div class="list">${FIN.map((f) => {
       const L = FIN_ALL.filter((x) => x.subj === f.subj), k = L.filter(finDone).length, t = T.filter((x) => x.subj === f.subj), tl = t.filter((x) => !finDone(x)).length, nm = f.subj === 'eng' ? '올림포스 지문' : f.name;
-      return `<div class="li btnlike" data-task="fin:${f.subj}"><div class="ico">${ic(k >= L.length ? 'ok' : f.subj === 'hist' ? 'scroll' : 'books')}</div><div class="body"><div class="t">${esc(nm)} <span class="tiny num">${k}/${L.length}</span></div><div class="d">${t.length ? (tl ? `오늘 ${tl}개 남았어요` : '오늘 것 끝') : '오늘은 없어요'} · ${finEndTxt(f.subj)}</div><div class="ik-bar" style="height:6px;margin-top:8px"><i style="width:${Math.round((k / L.length) * 100)}%"></i></div></div></div>`;
+      return `<div class="li btnlike" data-task="fin:${f.subj}"><div class="ico">${ic(k >= L.length ? 'ok' : f.subj === 'hist' ? 'scroll' : 'books')}</div><div class="body"><div class="t">${(() => { const z = finLag(f.subj); return z && z.n ? `<span class="tag red" style="margin-right:6px;vertical-align:2px">밀림 ${z.n}개</span>` : ''; })()}${esc(nm)} <span class="tiny num">${k}/${L.length}</span></div><div class="d">${t.length ? (tl ? `오늘 ${tl}개 남았어요` : '오늘 것 끝') : '오늘은 없어요'} · ${finEndTxt(f.subj)}</div><div class="ik-bar" style="height:6px;margin-top:8px"><i style="width:${Math.round((k / L.length) * 100)}%"></i></div></div></div>`;
     }).join('')}${wqFinRow()}</div></section>`;
   }
   function finToday() {
@@ -6760,7 +6771,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611060005'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611060007'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
