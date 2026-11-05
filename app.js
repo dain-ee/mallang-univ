@@ -2103,7 +2103,8 @@
   // 달력용: 앱 안 계획 숙제(윤건 기말·매일 영어)는 dayItems 에 안 잡혀서 지난 날 칸이 비고, 밀린 것도 안 보였어요 (11/5 «어제 밀린 거 왜 안 나오지 · 당일만 개수가 없어»)
   const ypAt = (it) => { const a = nxS().a; if (it.p === 'ch') return (a[it.id] || {}).at || 0; let m = 0; for (const q of it.qs || []) { const v = a[q.i]; if (v && v.at > m) m = v.at; } return m; };
   function calDone(d) { const out = dayItems(d); for (const it of YP) if (ypDone(it)) { const at = ypAt(it); if (at && fmtDay(new Date(at)) === d) { const g = NXSETS[it.id] ? nxProg(NXSETS[it.id]) : null; out.push({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 끝냈어요${g && it.p !== 'ch' ? ` · ${g.ok}/${g.n} 맞힘` : ''}${it.day < d ? ` · ${md(it.day)} 몫` : ''}`, go: it.id }); } } return out; }
-  const calMiss = (d) => d < today() ? YP.filter((it) => it.day === d && !ypDone(it)) : [];
+  // 그날 몫인데 못 한 것: 윤건 기말 계획·매일 영어(YP), 정윤 기말 예습·올림포스(FIN)
+  const calMiss = (d) => { if (d >= today()) return []; const out = YP.filter((it) => it.day === d && !ypDone(it)).map((it) => ({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 못 했어요`, go: it.id })); if (FIN_ON) for (const c of FIN_ORDER) if (addD(FIN_START, c.fday) === d && !finDone(c)) out.push({ i: c.subj === 'hist' ? 'scroll' : 'books', t: `${c.subj === 'eng' ? '올림포스 지문' : c.sname + ' 기말 예습'} · ${c.title}`, d: '기말 예습 · 못 했어요', go: 'fincid:' + c.id }); return out; };
   const calLeft = () => { try { return todayTasks().tasks.filter((t) => t.icon !== 'party' && !t.memo && !t.done).length; } catch (e) { return 0; } };
   function hwCal() {
     const m = UI.calM || today().slice(0, 7), [Y, M] = m.split('-').map(Number), first = new Date(Y, M - 1, 1), n = new Date(Y, M, 0).getDate(), pad = first.getDay();
@@ -2125,7 +2126,7 @@
   }
   // 숙제 달력에서 날짜를 누르면 왼쪽 「오늘 할 것」 자리에 그날 것이 떠요 (10/31 «모달이 아니라 이 왼쪽에 뜨는 게 좋을 것 같은데»)
   // 지난 날 = 그날 체크리스트: 한 것은 줄을 긋고(is-done), 못 한 것은 그대로 두고 「오늘로 밀림」 (11/5 «했으면 왼쪽에 줄이 쫙 그어져 있고 안 한 두 개는 오늘로 생기면서 밀림 표시»)
-  const dayRows = (d) => { const fut = d > today(); if (fut) return planItems(d).map((x) => ({ ...x, st: '' })); const M = calMiss(d).map((it) => ({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 못 했어요`, go: it.id, st: 'miss' })); return [...calDone(d).map((x) => ({ ...x, st: 'done' })), ...M]; };
+  const dayRows = (d) => { const fut = d > today(); if (fut) return planItems(d).map((x) => ({ ...x, st: '' })); const M = calMiss(d).map((x) => ({ ...x, st: 'miss' })); return [...calDone(d).map((x) => ({ ...x, st: 'done' })), ...M]; };
   const dayRowHtml = (x) => `<div class="li ${x.go ? 'btnlike' : ''} ${x.st === 'done' ? 'is-done' : ''}" ${x.go ? `data-dgo="${esc(x.go)}" role="button" tabindex="0"` : ''}><div class="ico">${ic(x.st === 'done' ? 'ok' : x.i)}</div><div class="body"><div class="t">${esc(x.t)}</div><div class="d">${esc(x.d)}</div></div>${x.st === 'miss' ? '<span class="tag red" style="flex:none">오늘로 밀림</span>' : x.go ? '<span class="chev"></span>' : ''}</div>`;
   const daySub = (d, R) => { if (d > today()) return `${R.length}개 · 미리 해도 돼요`; const dn = R.filter((x) => x.st === 'done').length, ms = R.length - dn; return R.length ? `${dn}개 했어요${ms ? ` · ${ms}개는 오늘로 밀렸어요` : ''}` : '기록이 없어요'; };
   function hwDayCard(d) {
@@ -2260,7 +2261,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611051417', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611051420', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6693,7 +6694,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051417'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611051420'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
