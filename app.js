@@ -2282,7 +2282,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611060007', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611061504', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3174,11 +3174,14 @@
     let h0 = 8, h1 = 24; for (const b of B) { h0 = Math.min(h0, 5 + Math.floor(off(b, b.s) / 60)); h1 = Math.max(h1, 5 + Math.ceil(off(b, b.e) / 60)); }
     h1 = Math.min(h1, 29); const PH = 40, Y = (b, t) => Math.max(0, Math.min((h1 - h0) * PH, ((off(b, t) - (h0 - 5) * 60) / 60) * PH));
     const hl = (h) => { const x = h % 24; return x === 0 ? '밤 12시' : x < 12 ? `오전 ${x}시` : x === 12 ? '낮 12시' : `${x - 12}시`; };
-    const dayB = (d) => B.filter((b) => b.d === d), dayM = (d) => dayB(d).reduce((a, b) => a + (b.e - b.s) / 60000, 0);
+    const dayB = (d) => B.filter((b) => b.d === d), dayG = (d) => dayB(d).reduce((a, b) => a + (b.e - b.s) / 60000, 0);
+    // 11/6 선생님 «수요일 시간 쓴 게 왜 반영이 안 되어 있으며» → 시각 없이 직접 적은 하루 공부 시간(pomo.days.man)도 그날 칸에 넣어요. 잰 시간보다 크면 그걸로 (리포트 sMin 과 같은 기준)
+    const manOf = (d) => +((pomo().days || {})[d] || {}).man || 0, manX = (d) => Math.max(0, manOf(d) - dayG(d)), dayM = (d) => dayG(d) + manX(d);
     const tot = {}; for (const b of B) tot[b.t] = (tot[b.t] || 0) + (b.e - b.s) / 60000;
+    for (const d of D7) if (manX(d)) tot['직접 적은 시간'] = (tot['직접 적은 시간'] || 0) + manX(d);
     const all = Object.values(tot).reduce((a, v) => a + v, 0);
     const tm = (t) => new Date(t).toTimeString().slice(0, 5), hmm = (m) => (m ? `${Math.floor(m / 60)}:${String(Math.round(m % 60)).padStart(2, '0')}` : '');
-    const sel = D7.includes(UI.ttDay) ? UI.ttDay : D7.includes(today()) && dayB(today()).length ? today() : [...D7].reverse().find((d) => dayB(d).length) || (D7.includes(today()) ? today() : w0);
+    const sel = D7.includes(UI.ttDay) ? UI.ttDay : D7.includes(today()) ? today() : [...D7].reverse().find((d) => dayB(d).length) || (D7.includes(today()) ? today() : w0);
     const nm = (b) => (b.t === '앱' ? b.k : `${b.t}${b.ti ? ' · ' + b.ti : ''}`);
     // 하루 칸 배치: 시간은 세로로만. 짧은 칸도 글자가 보이게 20px, 앞 칸과 겹치면 그 밑에서 시작해요
     // 11/4 «2시 넘어서 깨지는 문제» → 밤늦게 몰린 짧은 기록이 밀려 칸 밖으로 넘쳤어요. 넘치면 시간 줄을 아래로 늘려서 칸 안에 담아요 (옆으로 나누기는 «말이 안 되지»로 되돌림)
@@ -3187,12 +3190,13 @@
     for (let k = 0; k < 6 && lastBot() > (h1 - h0) * PH - 2; k++) h1++;
     const hrs = []; for (let h = h0; h <= h1; h++) hrs.push(h);
     const cols = D7.map((d) => { const L = dayB(d), m = dayM(d), fut = d > today(); 
-      return `<div class="tv-col ${d === sel ? 'on' : ''} ${d === today() ? 'today' : ''} ${fut ? 'fut' : ''}"><button type="button" class="tv-dh" data-ttd="${d}" ${fut ? 'disabled' : ''}><b>${DOW[dowOf(d)]}</b><span>${+d.slice(8)}</span><em class="num">${m ? hmm(m) : ''}</em></button><div class="tv-body" style="height:${(h1 - h0) * PH}px">${tvLay(L).map(({ b, y, h, i, n }) => { /* 배치는 tvLay */ return `<button type="button" class="tv-b ${b.t === '앱' ? 'app' : ''} ${b.live ? 'live' : ''}" data-ttd="${d}" style="top:${y.toFixed(1)}px;height:${h.toFixed(1)}px;left:calc(3px + (100% - 6px) * ${i} / ${n});right:auto;width:calc((100% - 6px) / ${n} - ${n > 1 ? 2 : 0}px);--c:${SR_C[b.t] || SR_C.자유}" data-tip="${esc(`${tm(b.s)} ~ ${b.live ? '지금' : tm(b.e)} · ${srMinT((b.e - b.s) / 60000)}|${nm(b)}|${b.t === '앱' ? '앱에서 문제를 푼 시간 · 저절로 남아요' : b.k}`)}"><span>${esc(b.t === '앱' ? '앱 문제' : b.ti || b.t)} <b class="num">${srMinT((b.e - b.s) / 60000)}</b></span></button>`; }).join('')}</div></div>`; }).join('');
+      return `<div class="tv-col ${d === sel ? 'on' : ''} ${d === today() ? 'today' : ''} ${fut ? 'fut' : ''}"><button type="button" class="tv-dh" data-ttd="${d}" ${fut ? 'disabled' : ''}><b>${DOW[dowOf(d)]}</b><span>${+d.slice(8)}</span><em class="num">${m ? hmm(m) : ''}</em>${manX(d) ? `<i class="tv-mn" title="시각 없이 직접 적은 공부 시간 ${srMinT(manOf(d))}">적음 ${hmm(manOf(d))}</i>` : ''}</button><div class="tv-body" style="height:${(h1 - h0) * PH}px">${tvLay(L).map(({ b, y, h, i, n }) => { /* 배치는 tvLay */ return `<button type="button" class="tv-b ${b.t === '앱' ? 'app' : ''} ${b.live ? 'live' : ''}" data-ttd="${d}" style="top:${y.toFixed(1)}px;height:${h.toFixed(1)}px;left:calc(3px + (100% - 6px) * ${i} / ${n});right:auto;width:calc((100% - 6px) / ${n} - ${n > 1 ? 2 : 0}px);--c:${SR_C[b.t] || SR_C.자유}" data-tip="${esc(`${tm(b.s)} ~ ${b.live ? '지금' : tm(b.e)} · ${srMinT((b.e - b.s) / 60000)}|${nm(b)}|${b.t === '앱' ? '앱에서 문제를 푼 시간 · 저절로 남아요' : b.k}`)}"><span>${esc(b.t === '앱' ? '앱 문제' : b.ti || b.t)} <b class="num">${srMinT((b.e - b.s) / 60000)}</b></span></button>`; }).join('')}</div></div>`; }).join('');
     const SL = dayB(sel), sm = dayM(sel);
     // 11/3 정윤 «시간 끄는 거 착각해서 시간 늘어났는데 못 빼나» → 잰 시간은 줄마다 고치기(시작·끝 시각, 지우기)
     const canEd = (b) => b.id && !b.live && b.t !== '앱' && !TEACHER;
     const edRow = (b) => `<div class="tt-ed" data-tted="${b.id}"><label>시작 <input type="time" value="${tm(b.s)}" data-tte="s"></label><label>끝 <input type="time" value="${tm(b.e)}" data-tte="e"></label><div class="tt-ed-b"><button type="button" class="btn sm" data-ttx="del">기록 지우기</button><button type="button" class="btn sm" data-ttx="no">취소</button><button type="button" class="btn sm primary" data-ttx="ok">저장</button></div></div>`;
-    const list = SL.length ? SL.map((b) => `<div class="tt-it"><span class="tt-tm num">${tm(b.s)}<em>${b.live ? '지금' : tm(b.e)}</em></span><i style="--c:${SR_C[b.t] || SR_C.자유}" class="${b.t === '앱' ? 'app' : ''}"></i><div class="tt-nm"><b>${esc(nm(b))}</b><span>${b.t === '앱' ? '앱에서 푼 시간 · 저절로 남아요' : b.live ? `${b.k} · 멈추면 고칠 수 있어요` : `${b.k}${b.ed ? ' · 고쳤어요' : ''}`}</span></div><span class="tt-m num">${srMinT((b.e - b.s) / 60000)}${canEd(b) && UI.ttEd !== b.id ? `<button type="button" class="tt-fix" data-ttfix="${b.id}">고치기</button>` : ''}</span></div>${canEd(b) && UI.ttEd === b.id ? edRow(b) : ''}`).join('') : `<p class="tiny" style="margin:8px 0 0">${sel === today() ? '오늘은 아직 기록이 없어요' : '이날은 기록이 없어요'}</p>`;
+    const manRow = manX(sel) ? `<div class="tt-it"><span class="tt-tm num">시각<em>없음</em></span><i style="--c:${SR_C.자유}" class="man"></i><div class="tt-nm"><b>직접 적은 공부 시간 ${srMinT(manOf(sel))}</b><span>${dayG(sel) ? `잰 시간 ${srMinT(dayG(sel))}보다 많아서 ${srMinT(manX(sel))}을 더 쳐요` : '시각 없이 적은 시간이에요'}</span></div><span class="tt-m num">${srMinT(manX(sel))}</span></div>` : '';
+    const list = manRow + (SL.length ? SL.map((b) => `<div class="tt-it"><span class="tt-tm num">${tm(b.s)}<em>${b.live ? '지금' : tm(b.e)}</em></span><i style="--c:${SR_C[b.t] || SR_C.자유}" class="${b.t === '앱' ? 'app' : ''}"></i><div class="tt-nm"><b>${esc(nm(b))}</b><span>${b.t === '앱' ? '앱에서 푼 시간 · 저절로 남아요' : b.live ? `${b.k} · 멈추면 고칠 수 있어요` : `${b.k}${b.ed ? ' · 고쳤어요' : ''}`}</span></div><span class="tt-m num">${srMinT((b.e - b.s) / 60000)}${canEd(b) && UI.ttEd !== b.id ? `<button type="button" class="tt-fix" data-ttfix="${b.id}">고치기</button>` : ''}</span></div>${canEd(b) && UI.ttEd === b.id ? edRow(b) : ''}`).join('') : manRow ? '' : `<p class="tiny" style="margin:8px 0 0">${sel === today() ? '오늘은 아직 기록이 없어요' : '이날은 기록이 없어요'}</p>`);
     const leg = Object.entries(tot).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<span class="tt-lg"><i style="--c:${SR_C[k] || SR_C.자유}"></i>${k === '앱' ? '앱 문제 풀이' : esc(k)} <b>${srMinT(v)}</b></span>`).join('');
     return `<section class="card c12 tt-card"><div class="tt-top"><div><span class="tiny">이번 주 모두</span><b class="num">${all ? srMinT(all) : '0분'}</b></div><div class="tt-lgs">${leg}</div></div>
       <div class="tv-wrap"><div class="tv-hrs"><div class="tv-dh"></div><div style="position:relative;height:${(h1 - h0) * PH}px">${hrs.map((h) => `<span style="top:${(h - h0) * PH}px">${hl(h).replace('오전 ', '').replace('낮 ', '')}</span>`).join('')}</div></div>${cols}</div></section>
@@ -6771,7 +6775,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611060007'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611061504'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
