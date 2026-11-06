@@ -1362,7 +1362,7 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 
 .my-skip { display: block; margin-top: 10px; border: 0; background: none; padding: 0; font: inherit; font-size: 13px; font-weight: 600; color: var(--t3); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 /* 밀린 것 한눈에 (간트): 왼쪽 이름 · 가운데 날짜축 위 막대 · 오른쪽 밀린 수 */
-.gantt { display: grid; grid-template-columns: 150px minmax(0, 1fr) 48px; align-items: center; row-gap: 3px; }
+.gantt { display: grid; grid-template-columns: 150px minmax(0, 1fr) minmax(48px, max-content); align-items: center; row-gap: 3px; }
 .g-row { display: contents; cursor: pointer; }
 .g-lb { font-size: 13px; font-weight: 600; color: var(--t1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 10px; line-height: 1.3; }
 .g-row.ok .g-lb { color: var(--t3); font-weight: 500; }
@@ -1381,13 +1381,13 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 .gb.miss, .lag-k.miss { background: var(--red); z-index: 1; }
 .gb.plan, .lag-k.plan { background: var(--blue-l); }
 .g-bd { text-align: right; }
-.lag-bd { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 7px; border-radius: 99px; background: var(--red-soft); color: var(--red); font-variant-numeric: tabular-nums; }
+.lag-bd { display: inline-block; white-space: nowrap; font-size: 12px; font-weight: 700; padding: 2px 7px; border-radius: 99px; background: var(--red-soft); color: var(--red); font-variant-numeric: tabular-nums; }
 .lag-ok { font-size: 11px; color: var(--t4); }
 .lag-k { display: inline-block; width: 14px; height: 10px; border-radius: 3px; vertical-align: -1px; margin: 0 3px 0 8px; background: var(--fill); }
 .lag-k.now { width: 2px; background: var(--blue); }
 .lag-leg { margin: 10px 0 0; }
 .lag-leg .lag-k:first-child { margin-left: 0; }
-@media (max-width: 640px) { .gantt { grid-template-columns: 92px minmax(0, 1fr) 36px; } .g-lb { font-size: 12px; padding-right: 8px; } .g-ax span:nth-child(even):not(.today) { visibility: hidden; } .lag-bd { font-size: 11px; padding: 2px 6px; } }
+@media (max-width: 640px) { .gantt { grid-template-columns: 92px minmax(0, 1fr) minmax(36px, max-content); } .g-lb { font-size: 12px; padding-right: 8px; } .g-ax span:nth-child(even):not(.today) { visibility: hidden; } .lag-bd { font-size: 11px; padding: 2px 6px; } }
 .miss-b { display: flex; flex: none; gap: 6px; }
 .miss-it .d b { font-weight: 700; }
 @media (max-width: 640px) { .miss-it { flex-wrap: wrap; } .miss-b { width: 100%; padding-left: 0; } }
