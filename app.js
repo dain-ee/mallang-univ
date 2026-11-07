@@ -2282,7 +2282,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611061709', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611071228', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6142,6 +6142,9 @@
       const L = (Q[sb.key] = []), L0 = L, head = (u) => `${NX_SN[sb.key]} ${u.code}`;
       for (const u of sb.units.filter(ypFin)) for (const st of stSteps(u)) {
         if (st.k === 'terms' || st.k === 'notes') continue;
+        // 11/7 범위가 소단원 몇 개뿐이면(YF.lessons) 그 소단원과 바로 뒤 선생님 스타일 세트만. 단원 전체 실전·기출·심화·순서 맞추기는 빼요
+        const LO = (YF.lessons || {})[u.id];
+        if (LO && !(st.L ? LO.includes(st.L.k) : st.k === 'set' && LO.includes((u.tsec || {})[st.id.slice(u.id.length + 1)]))) continue;
         if (st.L) {
           const L = st.L, id = `yp:${u.id}:L${L.k}`, qs = [{ i: stLRead(u, L) }, ...[L.c, L.q].filter(Boolean).flatMap((x) => NXSETS[x].qs)], title = `${head(u)} ${L.k + 1}. ${L.t}`;
           NXSETS[id] = { id, title, sub: `${u.title} · 기말 계획`, subj: sb.key, kind: 'L', unit: u.id, qs, nav: 'L' + L.k }; L0.push({ id, subj: sb.key, unit: u.id, p: 'L', qs, title, sub: u.title, nav: 'L' + L.k, nc: L.c ? NXSETS[L.c].qs.length : 0, nq: L.q ? NXSETS[L.q].qs.length : 0 });
@@ -6775,7 +6778,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611061709'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611071228'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
