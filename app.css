@@ -3918,3 +3918,6 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .jp-lb.s, .jp-b.sv-s.on { background: rgba(49, 130, 246, .12); color: #1b64da; }
 .jp-lb.v, .jp-b.sv-v.on { background: rgba(3, 178, 108, .14); color: #02804e; }
 .jp-b.sv-s:not(.on), .jp-b.sv-v:not(.on) { color: var(--t4); font-weight: 600; }
+.jua-links a.li{text-decoration:none;color:inherit}
+.jua-links a.li .t{color:#191f28}
+.jua-links a.li .d{color:#8b95a1}
