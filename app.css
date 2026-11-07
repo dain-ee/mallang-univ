@@ -3921,3 +3921,6 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .jua-links a.li{text-decoration:none;color:inherit}
 .jua-links a.li .t{color:#191f28}
 .jua-links a.li .d{color:#8b95a1}
+
+.jp-pic{display:block;width:100%;max-width:420px;margin:0 auto 12px;border-radius:16px;box-shadow:0 2px 10px rgba(0,27,55,.1)}
+.jp-cov .jp-pic{max-width:240px;margin:0 auto}

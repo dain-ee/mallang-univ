@@ -2304,7 +2304,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611072243', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611072246', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5440,7 +5440,7 @@
     if (m === 'read') {
       const ko = !UI.jpHideKo, rd = (jGet('jw', w.id + ':read') || {}).n;
       h += `<section class="card"><div class="card-h"><h3>📕 ${esc(w.book || w.title)}</h3><button class="btn sm soft" data-jpko type="button">${ko ? '뜻 가리기' : '뜻 보기'}</button></div><p class="tiny" style="margin:0">문장을 누르면 읽어 줘요. 모르는 문장은 뜻을 보고, 한 번 더 들어요</p></section>`;
-      h += w.story.map((pg) => `<section class="card jp-pg"><div class="card-h"><h3>${esc(pg.p)}쪽</h3></div>${pg.s.map(([e, k]) => `<div class="jp-rs" data-jpsayt="${esc(e)}"><p class="jp-re">${esc(e)} <span class="jp-say">🔊</span></p>${ko ? `<p class="jp-rk">${esc(k)}</p>` : ''}</div>`).join('')}</section>`).join('');
+      h += (w.cover ? `<section class="card jp-pg jp-cov"><img class="jp-pic" src="${esc(w.cover)}" alt="${esc(w.title)}" loading="lazy"></section>` : '') + w.story.map((pg) => `<section class="card jp-pg"><div class="card-h"><h3>${esc(pg.p)}쪽</h3></div>${pg.pic ? `<img class="jp-pic" src="${esc(pg.pic)}" alt="${esc(pg.p)}쪽 그림" loading="lazy">` : ''}${pg.s.map(([e, k]) => `<div class="jp-rs" data-jpsayt="${esc(e)}"><p class="jp-re">${esc(e)} <span class="jp-say">🔊</span></p>${ko ? `<p class="jp-rk">${esc(k)}</p>` : ''}</div>`).join('')}</section>`).join('');
       h += `<section class="card"><div class="card-h"><h3>단어</h3><span class="tiny">책 맨 뒤 Vocabulary + 더</span></div><div class="jp-wl">${w.words.map(([e, k]) => `<button type="button" class="jp-w" data-jpsayt="${esc(e)}"><b>${esc(e)}</b><small>${esc(k)}</small></button>`).join('')}</div></section>`;
       h += `<button class="tk j-tk-big ${rd ? 'on' : ''}" data-jpdone type="button"><span>${rd ? '다 읽었어요 · 이제 리포트 쓰기' : '다 읽었어요'}</span><i></i></button>`;
       return `<div class="qwrap j-wrap">${h}</div>`;
@@ -6820,7 +6820,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611072243'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611072246'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
