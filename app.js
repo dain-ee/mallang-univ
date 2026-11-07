@@ -549,7 +549,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${appCard()}${gdCard()}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${lessonHero()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${winCard()}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${appCard()}${gdCard()}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${lessonHero()}${juaLinks()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${winCard()}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -2095,7 +2095,7 @@
       ${TUTOR ? '' : myCard('c12')}
       ${TUTOR ? '' : inkCard('c12')}
       ${drillCard()}
-      ${TUTOR ? gramLib() + juaLibs() : ''}
+      ${TUTOR ? juaLinks() + gramLib() + juaLibs() : ''}
       ${libCard()}
       ${TUTOR ? (TABS.some((t) => t[0] === 'study') ? `<section class="card c12"><div class="li btnlike" data-go="study"><div class="ico">${ic('books')}</div><div class="body"><div class="t">단원 공부는 「공부」 탭에서</div><div class="d">과목·단원별 정리, 용어, 문제와 기말 계획 달력</div></div><span class="chev"></span></div></section>` : nxLib()) : ''}
     </div>`;
@@ -2194,10 +2194,12 @@
     const g = h.go; if (!g) return false;
     if (g.kind === 'gram') { const u = jgU(g.unit), qs = jgQs(u, g.step, g.secs); return !!qs.length && qs.every((q) => jgRec(u, q)); }
     if (g.kind === 'jw') { const w = jwU(g.id); return !!w && w.kind === 'pick' && jpSents(w).every((x) => jpDone(w, x)); }
+    if (g.kind === 'url') return false;
+    if (g.kind === 'jl' && g.m === 'dict') { const u = jlV({ ...g, only: 1 }); if (!u) return false; const [a, b] = jlTally(u, 'dict'); return b > 0 && a >= b; }
     if (g.kind === 'jl') { const u = jlV({ ...g, only: 1 }), T = u && u.tracks[0]; if (!T) return false; const [a, b] = jlTally(u, 'words'), qs = (T.qs || []).map((q, i) => [q, i]).filter(([q]) => jlQOk(q)); return a >= b && qs.every(([, i]) => jGet('jl', jlK(u, T, 'q', i))); }
     return false;
   }
-  function hwGoStart(h) { const g = h.go; if (!g || !(g.kind === 'gram' ? jgU(g.unit) : g.kind === 'jw' ? jwU(g.id) : jlU(g.unit))) return false; UI.tab = 'hw'; UI.lib = null; UI.run = { ...g, only: g.kind === 'jl' ? 1 : g.only }; render(); window.scrollTo(0, 0); return true; }
+  function hwGoStart(h) { const g = h.go; if (g && g.kind === 'url') { window.open(g.url, '_blank', 'noopener'); return true; } if (!g || !(g.kind === 'gram' ? jgU(g.unit) : g.kind === 'jw' ? jwU(g.id) : jlU(g.unit))) return false; UI.tab = 'hw'; UI.lib = null; UI.run = { ...g, only: g.kind === 'jl' ? (g.m === 'dict' ? 0 : 1) : g.only }; render(); window.scrollTo(0, 0); return true; }
   function hwSheet(id) {
     const h = (S.hw || []).find((x) => x.id === id); if (!h) return;
     const key = Object.keys(SUBJ_NAMES).find((k) => SUBJ_NAMES[k] === h.subj || (h.subj === '한국사' && k === 'hist'));
@@ -2300,7 +2302,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611072130', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611072140', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5428,7 +5430,7 @@
   const jpVals = (w, x) => (jGet('jw', x.k) || {}).v || [];
   const jpN = (x) => (x.f.match(/\{\d\}/g) || []).length;
   const jpDone = (w, x) => { const v = jpVals(w, x); return Array.from({ length: jpN(x) }, (_, i) => v[i]).every((y) => y && String(y).trim()); };
-  const jpLine = (w, x, html) => x.f.replace(/\{(\d)\}/g, (_, i) => { const v = jpVals(w, x)[+i]; return html ? `<b class="jp-b ${v ? 'on' : ''}">${v ? esc(v) : '_____'}</b>` : v || '_____'; });
+  const jpLine = (w, x, html) => x.f.replace(/\{(\d)\}/g, (_, i) => { const v = jpVals(w, x)[+i], lb = (x.lb || [])[+i]; return html ? `<b class="jp-b ${v ? 'on' : ''} ${lb === '주어' ? 'sv-s' : lb === '동사' ? 'sv-v' : ''}">${v ? esc(v) : lb ? `(${lb})` : '_____'}</b>` : v || '_____'; });
   function jpRun(w, r) {
     const M = jpM(w), m = M[r.m] ? r.m : Object.keys(M)[0]; r.m = m;
     const L = jpSents(w), dn = L.filter((x) => jpDone(w, x));
@@ -5444,7 +5446,7 @@
     h += `<section class="card"><p class="tiny" style="font-size:14px;margin:0;line-height:1.7">${esc(w.promptKo)}</p><div class="row wrap" style="margin-top:12px">${w.words.map(([e, k]) => `<span class="tag"><b>${esc(e)}</b>&nbsp;${esc(k)}</span>`).join('')}</div></section>`;
     if (m === 'pick') {
       h += w.parts.map((p, pi) => `<section class="card jp-part"><div class="card-h"><h3>${esc(p.h)}</h3><span class="tiny">${esc(p.tip || '')}</span></div>${L.filter((x) => x.pi === pi).map((x) => { const ok = jpDone(w, x), v = jpVals(w, x);
-        return `<div class="jp-s ${ok ? 'ok' : ''}"><p class="jp-ko">${esc(x.ko)}</p><p class="jp-en">${jpLine(w, x, true)}${ok ? ` <button type="button" class="jp-say" data-jpsay="${esc(x.k)}" aria-label="듣기">🔊</button>` : ''}</p>${(x.opts || []).map((g, gi) => `<div class="jp-ops">${g.map(([e, k]) => `<button type="button" class="jp-op ${v[gi] === e ? 'on' : ''}" data-jpk="${esc(x.k)}" data-gi="${gi}" data-v="${esc(e)}"><b>${esc(e)}</b><small>${esc(k)}</small></button>`).join('')}<button type="button" class="jp-op mine ${v[gi] && !g.some(([e]) => e === v[gi]) ? 'on' : ''}" data-jpmine="${esc(x.k)}" data-gi="${gi}"><b>✏️ 직접 쓰기</b><small>${v[gi] && !g.some(([e]) => e === v[gi]) ? esc(v[gi]) : '내 말로'}</small></button></div>`).join('')}</div>`; }).join('')}</section>`).join('');
+        return `<div class="jp-s ${ok ? 'ok' : ''}"><p class="jp-ko">${esc(x.ko)}</p><p class="jp-en">${jpLine(w, x, true)}${ok ? ` <button type="button" class="jp-say" data-jpsay="${esc(x.k)}" aria-label="듣기">🔊</button>` : ''}</p>${(x.opts || []).map((g, gi) => `<div class="jp-ops">${x.lb && x.lb[gi] ? `<span class="jp-lb ${x.lb[gi] === '주어' ? 's' : 'v'}">${esc(x.lb[gi])}</span>` : ''}${g.map(([e, k]) => `<button type="button" class="jp-op ${v[gi] === e ? 'on' : ''}" data-jpk="${esc(x.k)}" data-gi="${gi}" data-v="${esc(e)}"><b>${esc(e)}</b><small>${esc(k)}</small></button>`).join('')}<button type="button" class="jp-op mine ${v[gi] && !g.some(([e]) => e === v[gi]) ? 'on' : ''}" data-jpmine="${esc(x.k)}" data-gi="${gi}"><b>✏️ 직접 쓰기</b><small>${v[gi] && !g.some(([e]) => e === v[gi]) ? esc(v[gi]) : '내 말로'}</small></button></div>`).join('')}</div>`; }).join('')}</section>`).join('');
       h += `<section class="card"><div class="card-h"><h3>지금까지 만든 ${esc(w.sayNm || '대본')}</h3><span class="tiny">${dn.length}/${L.length}문장</span></div><p class="jw-model">${dn.map((x) => esc(jpLine(w, x))).join(' ') || '<span class="tiny">문장을 고르면 여기 차곡차곡 쌓여요</span>'}</p>${dn.length === L.length ? '<button class="btn primary big block" data-jwm="say" type="button" style="margin-top:12px">다 만들었어요 · 소리 내어 읽기</button>' : ''}</section>`;
     } else {
       const n = (jGet('jw', w.id + ':say') || {}).n || 0;
@@ -5457,7 +5459,7 @@
   function bindJp(w, r) {
     const L = jpSents(w), byK = (k) => L.find((x) => x.k === k);
     $$('[data-jwm]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'jw', id: w.id, m: b.dataset.jwm }; render(); window.scrollTo(0, 0); }));
-    const put = (x, gi, val, b) => { const v = [...jpVals(w, x)]; v[gi] = val; const was = jpDone(w, x); jSet('jw', x.k, { v }); if (!was && jpDone(w, x)) { jFx(true, b); if (SOUND) jSay(jpLine(w, x)); } jKeep(); };
+    const put = (x, gi, val, b) => { const A = (x.ans || [])[gi]; if (A && val.trim().toLowerCase().replace(/[.!?]$/, '') !== A.toLowerCase()) { jFx(false, b); toast(((x.why || [])[gi] || '다시 골라 봐요') + ' 🤔'); return; } const v = [...jpVals(w, x)]; v[gi] = val; const was = jpDone(w, x); jSet('jw', x.k, { v }); if (!was && jpDone(w, x)) { jFx(true, b); if (SOUND) jSay(jpLine(w, x)); } jKeep(); };
     $$('[data-jpk]').forEach((b) => (b.onclick = () => put(byK(b.dataset.jpk), +b.dataset.gi, b.dataset.v, b)));
     $$('[data-jpmine]').forEach((b) => (b.onclick = () => { const x = byK(b.dataset.jpmine), gi = +b.dataset.gi, cur = jpVals(w, x)[gi] || '';
       b.outerHTML = `<form class="jp-mine" data-jpf="${esc(x.k)}" data-gi="${gi}"><input class="inp" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="영어로 써요" value="${esc((x.opts[gi] || []).some(([e]) => e === cur) ? '' : cur)}"><button class="btn primary" type="submit">넣기</button></form>`;
@@ -5524,6 +5526,15 @@
     if (ta) ta.oninput = () => { (S.jw = S.jw || {})[w.id + ':text'] = { text: ta.value, at: Date.now() }; save('jw'); const n = jwCount(ta.value), used = jwUsed(w, ta.value);
       $('#jw-n').textContent = n; $('#jw-bar').style.width = Math.min(100, (n / w.goal) * 100) + '%';
       $('#jw-used').innerHTML = w.trans.map((x) => `<span class="jw-c ${used.includes(x) ? 't' : 'x off'}">${used.includes(x) ? '✓ ' : ''}${esc(x)}</span>`).join(''); };
+  }
+  // 11/7 선생님 «학원 거 바로가기 해 놔, 도서관은 홈페이지에 assignment 라고 되어 있는 거»: 주아 묶음에만 (DYB 월·수·금)
+  const JUA_LINKS = [
+    { t: '학원 숙제', d: 'DYB Window · 「해야 할 학습 과제」에 다 있어요', url: 'https://www.dybwindow.com/#/main', ic: 'write' },
+    { t: '도서관 과제', d: '학원 숙제 → Highlights 「숙제하기」 → Library → Assignment', url: 'https://www.dybstudy.com/', ic: 'books' },
+  ];
+  function juaLinks() {
+    if (!(D.jua || {}).units) return '';
+    return `<section class="card c12 jua-links"><div class="card-h"><h2>${ic('pin')} 학원 바로가기</h2><span class="tiny">누르면 새 창으로 열려요</span></div><div class="list">${JUA_LINKS.map((x) => `<a class="li btnlike" href="${x.url}" target="_blank" rel="noopener"><div class="ico">${ic(x.ic)}</div><div class="body"><div class="t">${esc(x.t)}</div><div class="d">${esc(x.d)}</div></div><span class="chev"></span></a>`).join('')}</div></section>`;
   }
   // 숙제 탭: 그래머 옆에 책마다 한 칸 (주아 묶음에만 자료가 있어서 다른 학생은 안 보여요)
   function juaLibs() {
@@ -6798,7 +6809,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611072130'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611072140'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
