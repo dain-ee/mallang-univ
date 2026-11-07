@@ -50,6 +50,8 @@
   const wrTried = (h, id, W = S.wrong) => { const w = W[id]; return w.cleared || (w.at || 0) > (h.at || 0); };
   const hwDone = (h, W = S.wrong) => !!h.done || (hwWr(h, W).length > 0 && hwWr(h, W).every((id) => wrTried(h, id, W))) || (W === S.wrong && hwGoDone(h));
   // 끝낸 때: 오답 숙제는 마지막으로 다시 푼 때
+  // 11/7 선생님 «밀린 걸 하면 오늘 거에 밀린 걸 한 게 되어야지, 지난날에 한 걸로 되면 안 되지»: 끝낸 날 = doneAt 날짜 (마감 날이 아니라)
+  const hwDoneToday = (h) => hwDone(h) && h.due && (h.due === today() || (h.due < today() && dateOf(hwDoneAt(h) || 0) === today()));
   const hwDoneAt = (h, W = S.wrong) => h.doneAt || Math.max(0, ...hwWr(h, W).map((id) => Math.max(W[id].clearedAt || 0, W[id].at || 0)));
   // 오늘 풀 오답: 오늘까지 낸 오답 숙제에서 아직 안 푼 것만 (전체 개수는 보여 주지 않아요)
   // + 그날 푼 것 중 틀린 건 바로 다 오늘 풀 오답에 (10/27 선생님 «그날그날 틀린 건 바로 다 오답 노트로»)
@@ -798,7 +800,7 @@
     const wordsDone = Object.keys(ed.wans || {}).length >= Math.min(10, wordsFor(ed.words).length) && wordsFor(ed.words).length;
     const unitDone = uDone(ed);
     const tasks = [...wqTasks()];
-    if (TUTOR) { for (const t of tutorTasks()) tasks.push(t); for (const t of ypTasks()) tasks.push(t); for (const h of (S.hw || []).filter((x) => !hwDone(x) && !(x.grp && x.due > today()))) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due && h.due < today() ? `${md(h.due)} 몫 · 못 했어요` : `${h.subj && h.subj !== '영어' ? h.subj + ' · ' : ''}${h.due ? md(h.due) + '까지' : '선생님 숙제'}`, late: !!(h.due && h.due < today()), done: false }); for (const h of (S.hw || []).filter((x) => hwDone(x) && x.due === today())) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: '선생님 숙제 · 끝냈어요', done: true }); return { tasks, off: false }; }
+    if (TUTOR) { for (const t of tutorTasks()) tasks.push(t); for (const t of ypTasks()) tasks.push(t); for (const h of (S.hw || []).filter((x) => !hwDone(x) && !(x.grp && x.due > today()))) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due && h.due < today() ? `${md(h.due)} 몫 · 못 했어요` : `${h.subj && h.subj !== '영어' ? h.subj + ' · ' : ''}${h.due ? md(h.due) + '까지' : '선생님 숙제'}`, late: !!(h.due && h.due < today()), done: false }); for (const h of (S.hw || []).filter(hwDoneToday)) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due < today() ? `${md(h.due)} 몫 · 오늘 따라잡았어요` : '선생님 숙제 · 끝냈어요', done: true }); return { tasks, off: false }; }
     const off = !anyTask(new Date()) && !S.sci.days[today()] && !S.eng.days[today()];
     const has = (k) => !off && (onDay(k) || !!(k === 'sci' ? S.sci.days[today()] : S.eng.days[today()]));
     // 지난번에 다 못 한 건 그대로 이어서 나와요 · 어제와 같은 숙제처럼 보이지 않게 알려 줘요
@@ -822,7 +824,7 @@
       if (n) tasks.push({ k: 'news:' + n.id, icon: n.must ? 'fire' : 'news', t: `${n.must ? '꼭 읽기' : '오늘의 기사'}: ${n.title}`, d: rd ? '읽었어요' : `${n.must ? '요즘 대이슈 · ' : ''}${WALLET ? '읽으면 50원' : '읽으면 🔥 불꽃 +1'}`, done: !!rd }); }
     { const my = myTasks(); tasks.unshift(...my.filter((x) => !x.memo)); tasks.push(...inkTasks()); tasks.__plan = my.filter((x) => x.memo); }
     for (const h of hwNow()) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due && h.due < today() ? `${md(h.due)} 몫 · 못 했어요` : '오늘 선생님 숙제', late: !!(h.due && h.due < today()), done: false });
-    for (const h of (S.hw || []).filter((x) => hwDone(x) && x.due === today())) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: '선생님 숙제 · 끝냈어요', done: true });
+    for (const h of (S.hw || []).filter(hwDoneToday)) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due < today() ? `${md(h.due)} 몫 · 오늘 따라잡았어요` : '선생님 숙제 · 끝냈어요', done: true });
     tasks.unshift(...tasks.__plan);  // 일정은 맨 위(셈은 안 해요), 그 다음 학원·학교 숙제
     return { tasks, off, sd, st, ed, wordsDone, unitDone };
   }
@@ -1247,19 +1249,24 @@
       const did = (d) => { const e = EDAYS[d], sc = SDAYS[d]; return !!(e && (Object.keys(e.wans || {}).length || Object.keys(e.uans || {}).length || Object.keys(e.uans2 || {}).length || e.wdone || e.udone || e.udone2 || g3Did(e))) || !!(sc && Object.keys(sc.ans || {}).length); };
       const first = Object.keys({ ...EDAYS, ...SDAYS }).sort().find(did) || t;
       const unitsDone = new Set(Object.values(EDAYS).filter(uDone).map((e) => e.unit));
+      // 같은 유닛·단어·과학 개념을 처음 끝낸 날 (11/7 밀린 걸 한 날은 원래 날이 아니라 한 날에 초록)
+      const fstU = {}, fstW = {}, fstS = {}, wOk = (e) => !!(e && (e.wdone || (wordsFor(e.words).length && Object.keys(e.wans || {}).length >= Math.min(10, wordsFor(e.words).length))));
+      for (const [d, e] of Object.entries(EDAYS).sort()) { if (uDone(e) && !fstU[e.unit]) fstU[e.unit] = d; if (wOk(e) && fstW[e.words] == null) fstW[e.words] = d; }
+      for (const [d, e] of Object.entries(SDAYS).sort()) { const s0 = dayStat(e); if (e.c != null && s0.n > 0 && s0.done >= s0.n && !fstS[e.c]) fstS[e.c] = d; }
+      const dl = (f, d) => ({ done: !!f && f <= d, late: !!f && f > d });
       const DK = {
-        unit: (d) => { const e = EDAYS[d], on = onDay('unit', new Date(d + 'T00:00:00')) && d >= first, un = e && CH_UNITS[e.unit]; const touched = !!(e && Object.keys((uV2(e) ? e.uans2 : e.uans) || {}).length); if (!e && !on) return null; if (d < first && !touched) return null; if (!on && !touched && !(e && unitsDone.has(e.unit))) return null; return { done: !!(e && unitsDone.has(e.unit)), lb: un ? `Unit ${un.unit}` : '' }; },
-        words: (d) => { const e = EDAYS[d], on = onDay('words', new Date(d + 'T00:00:00')) && d >= first; if (!e && !on) return null; const n = e ? Object.keys(e.wans || {}).length : 0, need = e ? Math.min(10, wordsFor(e.words).length) : 10; if (!on && !n) return null; if (d < first && !n && !e.wdone) return null; return { done: !!(e && (e.wdone || (need && n >= need))), lb: e ? wordsLabel(e.words) : '' }; },
+        unit: (d) => { const e = EDAYS[d], on = onDay('unit', new Date(d + 'T00:00:00')) && d >= first, un = e && CH_UNITS[e.unit]; const touched = !!(e && Object.keys((uV2(e) ? e.uans2 : e.uans) || {}).length); if (!e && !on) return null; if (d < first && !touched) return null; if (!on && !touched && !(e && unitsDone.has(e.unit))) return null; return { ...dl(e && fstU[e.unit], d), lb: un ? `Unit ${un.unit}` : '' }; },
+        words: (d) => { const e = EDAYS[d], on = onDay('words', new Date(d + 'T00:00:00')) && d >= first; if (!e && !on) return null; const n = e ? Object.keys(e.wans || {}).length : 0, need = e ? Math.min(10, wordsFor(e.words).length) : 10; if (!on && !n) return null; if (d < first && !n && !e.wdone) return null; return { ...(e ? dl(fstW[e.words], d) : { done: false }), lb: e ? wordsLabel(e.words) : '' }; },
         g3: (d) => { const e = EDAYS[d], on = onDay('g3', new Date(d + 'T00:00:00')) && d >= first; if (!e && !on) return null; if (!on && !g3Did(e)) return null; if (d < first && !g3Did(e)) return null; return { done: g3Did(e), lb: '' }; },
-        sci: (d) => { const e = SDAYS[d], on = onDay('sci', new Date(d + 'T00:00:00')) && d >= first; if (!e && !on) return null; const s = e ? dayStat(e) : { n: 0, done: 0 }; if (!on && !s.done && !(e && e.read)) return null; if (d < first && !s.done) return null; const c = e && SCI.concepts.find((x) => x.id === e.c); return { done: s.n > 0 && s.done >= s.n, lb: c ? c.title : '' }; },
+        sci: (d) => { const e = SDAYS[d], on = onDay('sci', new Date(d + 'T00:00:00')) && d >= first; if (!e && !on) return null; const s = e ? dayStat(e) : { n: 0, done: 0 }; if (!on && !s.done && !(e && e.read)) return null; if (d < first && !s.done) return null; const c = e && SCI.concepts.find((x) => x.id === e.c); return { ...(e && e.c != null ? dl(fstS[e.c], d) : { done: s.n > 0 && s.done >= s.n }), lb: c ? c.title : '' }; },
       };
       const NM = { unit: ['천일문 유닛', 'eng'], words: ['워드마스터 단어', 'books'], g3: ['고3 영어 한 문제', 'write'], sci: ['오늘의 과학', 'sci'] };
       for (const k of Object.keys(DK)) {
         if (!planOf(k).length && !Object.keys(k === 'sci' ? SDAYS : EDAYS).length) continue;
         if (k === 'unit' && !CH_UNITS.length || k === 'words' && !WORDS.length || k === 'g3' && !G3.length || k === 'sci' && !SCI.concepts.length) continue;
-        const cells = days.map((d) => { const x = DK[k](d); return { d, st: x ? st0(d, x.done, true) : 'off', lb: x ? x.lb : '' }; });
-        const miss = cells.filter((c) => c.st === 'miss');
-        rows.push({ go: k, icon: NM[k][1], t: NM[k][0], cells, behind: miss.length, unit: '개', d: miss.length ? `${miss.map((c) => c.lb || md(c.d)).join(' · ')} 안 했어요 (${miss.map((c) => md(c.d)).join(' · ')})` : '밀린 것 없이 하고 있어요' });
+        const cells = days.map((d) => { const x = DK[k](d); return { d, st: x ? (x.late && d < t ? 'late' : st0(d, x.done, true)) : 'off', lb: x ? x.lb : '' }; });
+        const miss = cells.filter((c) => c.st === 'miss'), lt = cells.filter((c) => c.st === 'late');
+        rows.push({ go: k, icon: NM[k][1], t: NM[k][0], cells, behind: miss.length, lateDone: lt.length, unit: '개', d: miss.length ? `${miss.map((c) => c.lb || md(c.d)).join(' · ')} 안 했어요 (${miss.map((c) => md(c.d)).join(' · ')})` : lt.length ? `${lt.map((c) => md(c.d)).join(' · ')} 몫을 그날 못 하고 나중에 했어요` : '밀린 것 없이 하고 있어요' });
       }
     }
     // 기말 예습: 과목마다 날짜별 몫(fday) 대비 한 것
@@ -1286,6 +1293,10 @@
       const c0 = h.at ? dateOf(h.at) : addD(h.due, -3), late = Math.round((new Date(t) - new Date(h.due)) / 864e5);
       rows.push({ hw: h.id, icon: 'pin', t: h.title, cells: [], segs: lagSpan(days, c0, h.due), behind: late, unit: '일', d: `${md(h.due)}까지 숙제 · ${late}일 지났어요${h.subj ? ` · ${h.subj}` : ''}` });
     }
+    { const di = (d) => Math.round((new Date(d) - new Date(days[0])) / 864e5), G = {};
+      for (const h of (S.hw || []).filter((x) => x.due && hwDone(x))) { const dd = dateOf(hwDoneAt(h) || 0); if (!(dd > h.due) || dd < days[0]) continue; const k = h.due + '|' + dd; (G[k] = G[k] || []).push(h); }
+      for (const [k, H] of Object.entries(G)) { const [due, dd] = k.split('|'), a = di(due), b = di(dd);
+        rows.push({ hw: H[0].id, icon: 'pin', t: H.length > 1 ? `${+due.slice(5, 7)}/${+due.slice(8)} 숙제 ${H.length}개` : H[0].title, cells: [], segs: [{ a, b, st: 'late' }, { a: b, b: b + 1, st: 'done' }], behind: 0, lateDone: H.length, unit: '개', d: `${md(due)} 몫${H.length > 1 ? ` (${H.map((h) => h.title).join(' · ')})` : ''}을 ${md(dd)}에 했어요 · ${Math.round((new Date(dd) - new Date(due)) / 864e5)}일 늦었어요` }); } }
     // 인강: 그날 듣기로 한 강의
     { const I = inkS(); const by = {};
       for (const [d, m] of Object.entries(I.days || {})) for (const [cid, nos] of Object.entries(m || {})) for (const no of nos) { const c = inkC(cid), l = inkL(c, no); if (!l) continue; (by[cid] = by[cid] || []).push({ d, l, st: inkSt(c, l) }); }
@@ -1300,20 +1311,20 @@
   // 칸 상태를 막대 조각으로: 같은 상태가 이어지면 한 조각. 자리는 창 시작부터 며칠째인지(0~16)
   const lagSegs = (cells) => { const out = []; cells.forEach((c, i) => { const st = c.st === 'todo' ? 'plan' : c.st === 'done todo' ? 'done' : c.st; if (st === 'off') return; const L = out[out.length - 1]; if (L && L.st === st && L.b === i) L.b = i + 1; else out.push({ a: i, b: i + 1, st }); }); return out; };
   function lagCard() {
-    const { days, rows } = lagRows(), t = today(), N = days.length, late = rows.filter((r) => r.behind > 0);
+    const { days, rows } = lagRows(), t = today(), N = days.length, late = rows.filter((r) => r.behind > 0 || r.lateDone > 0);
     if (!late.length) return '';
-    rows.splice(0, rows.length, ...late.sort((a, b) => b.behind - a.behind)); lagCard.rows = rows;  // 밀린 줄만 (10/29 선생님 «제때 한 건 안 보여줘도 돼»)
+    rows.splice(0, rows.length, ...late.sort((a, b) => b.behind - a.behind || b.lateDone - a.lateDone)); lagCard.rows = rows;  // 밀린 줄만 (10/29 선생님 «제때 한 건 안 보여줘도 돼»)
     const tot = late.reduce((a, r) => a + (r.unit === '개' ? r.behind : 1), 0), pc = (x) => `${(Math.max(0, Math.min(N, x)) / N) * 100}%`;
     const we = days.map((d, i) => (dowOf(d) === 0 || dowOf(d) === 6) ? `<i class="g-we" style="left:${pc(i)};width:${pc(1)}"></i>` : '').join(''), now = `<i class="g-now" style="left:${pc(LAG_PAST + 0.5)}"></i>`;
     const bar = (g) => g.b > g.a ? `<i class="gb ${g.st}" style="left:${pc(g.a)};width:${(Math.max(0, Math.min(N, g.b) - Math.max(0, g.a)) / N) * 100}%"></i>` : '';
-    const row = (r, i) => `<div class="g-row ${r.behind ? '' : 'ok'}" data-lag="${i}" role="button" tabindex="0"><div class="g-lb">${esc(r.t)}</div><div class="g-tr">${we}${(r.segs || lagSegs(r.cells)).map(bar).join('')}${now}</div><div class="g-bd">${r.behind ? `<span class="lag-bd">${r.behind}${r.unit === '개' ? '' : r.unit}</span>` : '<span class="lag-ok">제때</span>'}</div></div>`;
-    return `<section class="card c12 lag-card"><div class="card-h"><h2>${ic('clock')} 밀린 것 한눈에</h2><span class="tiny"><b class="red">${tot}개</b> 밀림 · 줄을 누르면 자세히</span></div>
+    const row = (r, i) => `<div class="g-row ${r.behind ? '' : 'ok'}" data-lag="${i}" role="button" tabindex="0"><div class="g-lb">${esc(r.t)}</div><div class="g-tr">${we}${(r.segs || lagSegs(r.cells)).map(bar).join('')}${now}</div><div class="g-bd">${r.behind ? `<span class="lag-bd">${r.behind}${r.unit === '개' ? '' : r.unit}</span>` : r.lateDone ? '<span class="lag-lt">늦게 함</span>' : '<span class="lag-ok">제때</span>'}</div></div>`;
+    return `<section class="card c12 lag-card"><div class="card-h"><h2>${ic('clock')} 밀린 것 한눈에</h2><span class="tiny">${tot ? `<b class="red">${tot}개</b> 밀림` : '밀린 건 다 따라잡았어요'} · 줄을 누르면 자세히</span></div>
       <div class="gantt"><div></div><div class="g-ax">${days.map((d) => `<span class="${d === t ? 'today' : dowOf(d) === 0 ? 'sun' : ''}">${+d.slice(8)}</span>`).join('')}</div><div></div>${rows.map(row).join('')}</div>
-      <p class="tiny lag-leg"><i class="lag-k done"></i>한 것 <i class="lag-k miss"></i>밀린 것 <i class="lag-k plan"></i>앞으로 <i class="lag-k span"></i>기간 <i class="lag-k now"></i>오늘</p></section>`;
+      <p class="tiny lag-leg"><i class="lag-k done"></i>한 것 <i class="lag-k miss"></i>밀린 것 <i class="lag-k late"></i>늦게 한 것 <i class="lag-k plan"></i>앞으로 <i class="lag-k span"></i>기간 <i class="lag-k now"></i>오늘</p></section>`;
   }
   function lagSheet(i) {
     const r = (lagCard.rows || [])[i]; if (!r) return;
-    sheet(`<span class="eyebrow">${r.behind ? `<b class="red">${r.behind}${r.unit} ${r.unit === '일' ? '지남' : '밀림'}</b>` : '제때 하고 있어요'}</span><h2 style="margin-top:6px">${esc(r.t)}</h2><p class="sub">${esc(r.d)}</p>
+    sheet(`<span class="eyebrow">${r.behind ? `<b class="red">${r.behind}${r.unit} ${r.unit === '일' ? '지남' : '밀림'}</b>` : r.lateDone ? '늦게 했어요' : '제때 하고 있어요'}</span><h2 style="margin-top:6px">${esc(r.t)}</h2><p class="sub">${esc(r.d)}</p>
       <button class="btn primary big block" id="lag-go" type="button" style="margin-top:16px">${r.hw ? '숙제 보기' : '하러 가기'}</button>`, (el, close) => { $('#lag-go', el).onclick = () => { close(); setTimeout(() => (r.hw ? hwSheet(r.hw) : startTask(r.go)), 250); }; });
   }
   // 오늘 해낸 것: 밀린 걸 몰아서 한 날 체크 한 줄로 끝나 허무하지 않게 (10/29 선생님). 저장하는 값 없이 이미 있는 기록(log·ink·hw)으로만 계산해요
@@ -2063,7 +2074,7 @@
         const { tasks } = todayTasks(), real = tasks.filter((t) => t.icon !== 'party' && !t.memo), dn = real.filter((t) => t.done).length;
         const by = (a, b) => String(a.due || '').localeCompare(String(b.due || ''));
         const later = TEACHER ? hwList.filter((h) => !hwDone(h) && h.due && h.due > today()).sort(by) : [], done = hwList.filter((h) => hwDone(h)).sort(by).reverse();
-        const hrow = (h, later) => `<div class="li btnlike" data-hwopen="${esc(h.id)}">${(h.nx && NXSETS[h.nx]) || mmOf(h) ? `<div class="ico">${ic(hwDone(h) ? 'ok' : 'pin')}</div>` : `<button class="ico" data-hwdone="${esc(h.id)}" style="border:0;cursor:pointer" aria-label="완료">${ic(hwDone(h) ? 'ok' : 'pin')}</button>`}<div class="body"><div class="t" style="${hwDone(h) ? 'color:var(--t3);text-decoration:line-through' : later ? 'color:var(--t2);font-weight:500' : ''}">${esc(h.title)}</div><div class="d">${[h.subj, h.due ? md(h.due) + (later ? ' 숙제' : '') : ''].filter(Boolean).map(esc).join(' · ')}</div></div>${TEACHER ? `<button class="btn sm" data-hwdel="${esc(h.id)}" type="button">지우기</button>` : ''}${myRowTm('hw:' + h.id, hwDone(h), h.title)}</div>`;
+        const hrow = (h, later) => `<div class="li btnlike" data-hwopen="${esc(h.id)}">${(h.nx && NXSETS[h.nx]) || mmOf(h) ? `<div class="ico">${ic(hwDone(h) ? 'ok' : 'pin')}</div>` : `<button class="ico" data-hwdone="${esc(h.id)}" style="border:0;cursor:pointer" aria-label="완료">${ic(hwDone(h) ? 'ok' : 'pin')}</button>`}<div class="body"><div class="t" style="${hwDone(h) ? 'color:var(--t3);text-decoration:line-through' : later ? 'color:var(--t2);font-weight:500' : ''}">${esc(h.title)}</div><div class="d">${[h.subj, h.due ? md(h.due) + (later ? ' 숙제' : '') : '', h.due && hwDone(h) && dateOf(hwDoneAt(h) || 0) > h.due ? `${md(dateOf(hwDoneAt(h)))}에 늦게 했어요` : ''].filter(Boolean).map(esc).join(' · ')}</div></div>${TEACHER ? `<button class="btn sm" data-hwdel="${esc(h.id)}" type="button">지우기</button>` : ''}${myRowTm('hw:' + h.id, hwDone(h), h.title)}</div>`;
         const row = (t) => `<div class="li btnlike ${t.done ? 'is-done' : ''}" ${t.hw ? `data-hwopen="${esc(t.hw)}"` : `data-task="${esc(t.k)}"`}><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${t.late && !t.done ? '<span class="tag red" style="margin-right:6px;vertical-align:2px">밀림</span>' : ''}${esc(t.t)}${t.hw ? ' <span class="tag">선생님</span>' : ''}</div><div class="d">${esc(t.d)}</div></div>${myRowTm(t.hw ? 'hw:' + t.hw : t.k, t.done, t.t)}</div>`;
         const tog = (pn, label, n) => n ? `<button type="button" data-pn="${pn}" data-lb="${label} <b>${n}</b>" onclick="const s=this.closest('section'),p=s.querySelector('[data-pane='+this.dataset.pn+']'),o=p.hidden;s.querySelectorAll('.hw-pane').forEach(x=>x.hidden=true);this.parentNode.querySelectorAll('button[data-lb]').forEach(b=>{b.classList.remove('on');b.innerHTML=b.dataset.lb});if(o){p.hidden=false;this.classList.add('on');this.textContent='접기'}">${label} <b>${n}</b></button>` : '';
         return `<section class="card c8"><div class="card-h"><h2>오늘 할 것</h2>${real.length ? `<span class="tiny">${real.length}개 중 <b class="${dn === real.length ? 'blue' : ''}">${dn}개</b> 끝</span>` : ''}${TEACHER ? '<button class="btn sm soft" id="hw-add" type="button">숙제 내기</button>' : ''}</div>
@@ -2282,7 +2293,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611071239', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611072056', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6778,7 +6789,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611071239'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611072056'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

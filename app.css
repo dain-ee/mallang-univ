@@ -1380,6 +1380,9 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 .gb.done, .lag-k.done { background: var(--green); z-index: 1; }
 .gb.miss, .lag-k.miss { background: var(--red); z-index: 1; }
 .gb.plan, .lag-k.plan { background: var(--blue-l); }
+/* 11/7 그날 못 하고 나중에 한 날: 빨강 빗금 (원래 날이 초록이 되지 않게) */
+.gb.late, .lag-k.late { background: repeating-linear-gradient(135deg, var(--red) 0 3px, color-mix(in srgb, var(--red) 30%, transparent) 3px 6px); z-index: 1; }
+.lag-lt { display: inline-block; white-space: nowrap; font-size: 12px; font-weight: 600; color: var(--t2); }
 .g-bd { text-align: right; }
 .lag-bd { display: inline-block; white-space: nowrap; font-size: 12px; font-weight: 700; padding: 2px 7px; border-radius: 99px; background: var(--red-soft); color: var(--red); font-variant-numeric: tabular-nums; }
 .lag-ok { font-size: 11px; color: var(--t4); }
