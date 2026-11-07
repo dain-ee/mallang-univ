@@ -2304,7 +2304,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611072217', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611072219', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5957,10 +5957,15 @@
     let main;
     if (!sl) main = `<div class="card empty c12">${gh('sleepy', 'gh-empty')}<b>수업 날이 정해지면 시험이 열려요</b><span>선생님이 수업 요일을 넣으면 여기에 나와요</span></div>`;
     // 11/7 선생님 «시험이 아니라 수업으로, 잠가 놓지 말고 열어 놔. 시작 단추만 안 되게, 선생님이 들어갔을 땐 들어갈 수 있게. 다른 애들도 마찬가지»
+    // 11/7 «내 화면에서 실제 어떤 수업인지 본다니까»: 수업 날 숙제(학원 숙제 미리 같은 것)가 있으면 그게 수업 내용
+    else if (!sl.open && (S.hw || []).some((h) => h.due === sl.date && /수업/.test(h.grp || ''))) { const LH = S.hw.filter((h) => h.due === sl.date && /수업/.test(h.grp || '')), dn = LH.filter((h) => hwDone(h)).length, wh = `${sl.date === t ? '오늘' : `${md(sl.date)}(${WDK[new Date(sl.date + 'T00:00:00').getDay()]})`} ${esc(timeKo(sl.time) || '')}`;
+      main = `<section class="card c12 nx-open"><div class="card-h"><h2>${sl.date === t ? '오늘 수업' : '다음 수업'} <span class="tiny">${wh}</span></h2><span class="tag">${nxLeft(sl.left)} 남았어요</span></div>
+      <div class="list">${LH.map((h) => `<div class="li btnlike ${hwDone(h) ? 'is-done' : ''}" data-hwopen="${esc(h.id)}"><div class="ico">${ic(hwDone(h) ? 'ok' : 'pencil')}</div><div class="body"><div class="t">${esc(String(h.title || '').replace(/^[^\p{L}\p{N}]+\s/u, ''))}</div></div><span class="chev"></span></div>`).join('')}</div>
+      <p class="tiny nx-lock-p">${dn} / ${LH.length} 했어요</p></section>`; }
     else if (!sl.open) { const s = nxLesson(sl.date), wh = `${sl.date === t ? '오늘' : `${md(sl.date)}(${WDK[new Date(sl.date + 'T00:00:00').getDay()]})`} ${esc(timeKo(sl.time) || '')}`;
       main = `<section class="card c12 nx-open"><div class="card-h"><h2>${sl.date === t ? '오늘 수업' : '다음 수업'}</h2><span class="tag">${nxLeft(sl.left)} 남았어요</span></div>
       <div class="li"><div class="ico">${ic('books')}</div><div class="body"><div class="t">${s ? `${esc(s.title)} · ${s.qs.length}문제` : '수업 문제를 준비하고 있어요'}</div><div class="d">${s ? esc(nxMixTxt(s)) : ''}</div></div></div>
-      <p class="tiny nx-lock-p">${wh}에 시작해요. 배운 것을 섞어서 풀어요. 미리 연습하고 싶으면 숙제 탭 아래 「따로 공부」에서 풀어요</p>
+      
       ${s ? (TEACHER ? `<button class="btn primary big block" data-nx="${esc(s.id)}" type="button">선생님 · 미리 들어가 보기</button>` : `<button class="btn big block" type="button" disabled>${wh}에 시작해요</button>`) : ''}</section>`; }
     else {
       const s = nxLesson(sl.date);
@@ -6815,7 +6820,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611072217'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611072219'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
