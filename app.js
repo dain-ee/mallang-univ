@@ -1199,20 +1199,21 @@
   function chkCard() {
     if (TUTOR || DAY_OFF()) return ''; const L = myChecks(); if (!L.length) return '';
     const U = UI.chk || {};
-    return `<section class="card c12 chk-card"><div class="card-h"><h2>${ic('ok')} 푼 것 확인</h2><span class="tiny">오답 번호를 안 적은 숙제예요</span></div><div class="list">${L.map((c) => { const key = `${c.it.id}|${c.d || 'r'}`, o = U[key] || {}, wr = new Set(o.w || []);
+    return `<section class="card c12 chk-card"><div class="card-h"><h2>${ic('ok')} 푼 것 확인</h2><span class="tiny">틀린 번호를 아직 안 적었어요</span></div><div class="list">${L.map((c) => { const key = `${c.it.id}|${c.d || 'r'}`, o = U[key] || {}, wr = new Set(o.w || []);
       if (c.k === 'range') { const z = o.z != null ? o.z : c.z;
         return `<div class="li chk-it" data-chk="${esc(key)}"><div class="body"><div class="t">${esc(c.it.book)}${c.gone ? ' <span class="tag">지운 숙제</span>' : ''}</div>
-          ${o.step === 'w' ? `<div class="d">${c.a}~${z}번 중 틀린 번호를 눌러요</div><div class="my-wc">${Array.from({ length: Math.min(80, z - c.a + 1) }, (_, i) => c.a + i).map((v) => `<button type="button" class="${wr.has(v) ? 'on' : ''}" data-chkw="${v}">${v}</button>`).join('')}</div><div class="chk-b"><button class="btn sm primary" type="button" data-chkdo="save">틀린 ${wr.size}개 저장</button></div>`
-          : `<div class="chk-rg"><span class="num">${c.a}번부터</span><input class="inp sm num" type="number" inputmode="numeric" data-chkz value="${z}" min="${c.a}" max="${c.it.to}"><span>번까지 풀었어요</span></div><div class="chk-b"><button class="btn sm primary" type="button" data-chkdo="all">다 맞았어요</button><button class="btn sm" type="button" data-chkdo="wr">틀린 게 있어요</button><button class="btn sm" type="button" data-chkdo="none">안 풀었어요</button></div>`}</div></div>`; }
-      return `<div class="li chk-it" data-chk="${esc(key)}"><div class="body"><div class="t">${esc(c.it.book)}</div><div class="d">${md(c.d)} 푼 <b>${c.a}~${c.z}번</b> 다 맞았나요?</div>
-        ${o.step === 'w' ? `<div class="my-wc">${Array.from({ length: c.z - c.a + 1 }, (_, i) => c.a + i).map((v) => `<button type="button" class="${wr.has(v) ? 'on' : ''}" data-chkw="${v}">${v}</button>`).join('')}</div><div class="chk-b"><button class="btn sm primary" type="button" data-chkdo="save">틀린 ${wr.size}개 저장</button></div>`
-        : `<div class="chk-b"><button class="btn sm primary" type="button" data-chkdo="all">다 맞았어요</button><button class="btn sm" type="button" data-chkdo="wr">틀린 게 있어요</button></div>`}</div></div>`; }).join('')}</div></section>`;
+          ${o.step === 'w' ? `<div class="d">${c.a}~${z}번 중 틀린 번호를 눌러요</div><div class="my-wc">${Array.from({ length: Math.min(80, z - c.a + 1) }, (_, i) => c.a + i).map((v) => `<button type="button" class="${wr.has(v) ? 'on' : ''}" data-chkw="${v}">${v}</button>`).join('')}</div><div class="chk-b"><button class="btn sm primary" type="button" data-chkdo="save">틀린 ${wr.size}개 저장</button></div></div>`
+          : `<div class="d chk-rg">${c.a}~${o.ed ? `<input class="inp sm num" type="number" inputmode="numeric" data-chkz value="${z}" min="${c.a}" max="${c.it.to}">` : `<button class="chk-zb" type="button" data-chked>${z}</button>`}번 풀었어요</div></div><div class="chk-b"><button class="btn sm" type="button" data-chkdo="wr">틀렸어요</button><button class="btn sm primary" type="button" data-chkdo="all">다 맞았어요</button><button class="btn sm x-ic" type="button" data-xmore="${esc(c.it.book)}" aria-label="더 보기">⋯</button><button hidden type="button" data-xm="안 풀었어요" data-chkdo="none"></button><button hidden type="button" data-xm="푼 번호 고치기" data-chked></button></div>`}</div>`; }
+      return `<div class="li chk-it" data-chk="${esc(key)}"><div class="body"><div class="t">${esc(c.it.book)}</div><div class="d">${md(c.d)}에 푼 ${c.a}~${c.z}번</div>
+        ${o.step === 'w' ? `<div class="my-wc">${Array.from({ length: c.z - c.a + 1 }, (_, i) => c.a + i).map((v) => `<button type="button" class="${wr.has(v) ? 'on' : ''}" data-chkw="${v}">${v}</button>`).join('')}</div><div class="chk-b"><button class="btn sm primary" type="button" data-chkdo="save">틀린 ${wr.size}개 저장</button></div></div>`
+        : `</div><div class="chk-b"><button class="btn sm" type="button" data-chkdo="wr">틀렸어요</button><button class="btn sm primary" type="button" data-chkdo="all">다 맞았어요</button></div>`}</div>`; }).join('')}</div></section>`;
   }
   document.addEventListener('click', (e) => {
-    const b = e.target.closest && e.target.closest('[data-chkw],[data-chkdo]'), row = b && b.closest('[data-chk]'); if (!row) return;
+    const b = e.target.closest && e.target.closest('[data-chkw],[data-chkdo],[data-chked]'), row = b && b.closest('[data-chk]'); if (!row) return;
     const key = row.dataset.chk, c = myChecks().find((x) => `${x.it.id}|${x.d || 'r'}` === key); if (!c) return;
     const U = (UI.chk = UI.chk || {}), o = (U[key] = U[key] || {}), zi = $('[data-chkz]', row); if (zi) o.z = Math.max(c.a, Math.min(c.it.to, +zi.value || c.z));
     const y = scrollY, again = () => { render(); scrollTo(0, y); };
+    if (b.dataset.chked != null) { o.ed = 1; again(); const z = $(`[data-chk="${CSS.escape(key)}"] [data-chkz]`); if (z) { z.focus(); z.select(); } return; }
     if (b.dataset.chkw) { const v = +b.dataset.chkw, W = new Set(o.w || []); W.has(v) ? W.delete(v) : W.add(v); o.w = [...W].sort((p, q) => p - q); return again(); }
     const k = b.dataset.chkdo, it = c.it, inList = myS().items.includes(it), tr = myS().trash || [];
     if (k === 'wr') { o.step = 'w'; return again(); }
@@ -1223,14 +1224,20 @@
     if (!inList) { const g = tr.find((x) => x.id === it.id); if (g) Object.assign(g, it); if (W.length) { myS().items.push({ ...it, id: it.id + 'r', fin: true, delAt: undefined }); myS().trash = tr.filter((x) => x.id !== it.id); } }  // 지운 숙제라도 틀린 번호가 있으면 오답 탭에 남게
     delete U[key]; save('my'); toast(W.length ? `틀린 ${W.length}문제는 오답 탭에 모아 뒀어요` : k === 'none' ? '알겠어요' : '다 맞았어요! 잘했어요'); again();
   });
+  // 「⋯」: 줄 안에 숨겨 둔 단추(data-xm)를 아래 시트로 보여 주고, 고르면 그 단추를 대신 눌러요
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest && e.target.closest('[data-xmore]'); if (!b) return; const row = b.closest('.li'), H = row ? [...row.querySelectorAll('[data-xm]')] : []; if (!H.length) return;
+    sheet(`<h2>${esc(b.dataset.xmore)}</h2><div class="xm-list">${H.map((h, i) => `<button class="btn big block" type="button" data-xi="${i}">${esc(h.dataset.xm)}</button>`).join('')}</div>`, (el, close) => { $$('[data-xi]', el).forEach((x) => (x.onclick = () => { close(); setTimeout(() => H[+x.dataset.xi].click(), 220); })); });
+  });
   function missCard() {
     const L = myMissed(); if (!L.length) return '';
     const avg = myAvg(), u = (it) => (it.unit === '쪽' ? '쪽' : '문제'), ds = [...new Set(L.map((x) => x.d))];
     if (DAY_OFF() || dowOf(today()) === 0) return '';  // 일요일은 밀린 것 하는 날이라 안 물어요 (10/31) · 지난 날을 보는 중엔 안 띄워요: 그날 기준 「전날」을 물어서 헷갈려요 (10/29)
     const mx = Math.max(...L.map((x) => x.n)), when = mx > 1 ? `${md(L.find((x) => x.n === mx).first)}부터 ${mx}일째` : ds.length === 1 ? `${md(ds[0])} ${DOW[dowOf(ds[0])]}요일에` : '지난번에';  // 다 보여 줘요 (3개만 보이고 「3개」라 해서 나머지가 있는 줄 몰랐어요 10/28)
+    // 11/7 선생님 «너무 안 이쁘다, 토스처럼»: 줄마다 큰 단추 하나 + 「⋯」(미루기·했어요는 아래에서 올라와요)
     return `<section class="card c12 miss-card"><div class="card-h"><h2>${when} 못 한 숙제가 있어요</h2><span class="tiny">${L.length}개</span></div><div class="list">${L.map(({ it, d, was, now, nd, left, over, n, first }) => `<div class="li miss-it"><div class="body"><div class="t">${esc(it.book)}</div>
-      <div class="d">${n > 1 ? `<b class="red">${md(first)}부터 ${n}일 안 했어요</b> · ` : ds.length > 1 ? `${md(d)} · ` : ''}${nd ? `남은 ${nd}일에 나누면 하루 ${was}${u(it)} → <b class="${avg && now > avg ? 'red' : 'blue'}">${now}${u(it)}</b>` : over ? `<b class="red">마감이 지났어요</b> · 남은 ${left}${u(it)} · 미루면 다시 나눠요` : '마감까지 남은 날이 없어요'}</div></div>
-      <div class="miss-b"><button class="btn sm primary" type="button" data-miss="split|${esc(it.id)}|${d}">${nd ? '나눠 하기' : '오늘 할게요'}</button><button class="btn sm" type="button" data-miss="push|${esc(it.id)}|${d}">미루기</button><button class="btn sm" type="button" data-miss="did|${esc(it.id)}|${d}|${was}">했어요</button></div></div>`).join('')}</div></section>`;
+      <div class="d">${n > 1 ? `<b class="red">${n}일째 못 했어요</b> · ` : ds.length > 1 ? `${md(d)} · ` : ''}${nd ? `남은 ${nd}일에 하루 <b class="${avg && now > avg ? 'red' : 'blue'}">${now}${u(it)}</b>씩` : over ? `<b class="red">마감 지남</b> · ${left}${u(it)} 남았어요` : '마감까지 남은 날이 없어요'}</div></div>
+      <div class="miss-b"><button class="btn sm primary" type="button" data-miss="split|${esc(it.id)}|${d}">${nd ? '나눠 하기' : '오늘 할게요'}</button><button class="btn sm x-ic" type="button" data-xmore="${esc(it.book)}" aria-label="더 보기">⋯</button><button hidden type="button" data-xm="${over ? '마감 미루기' : '하루 미루기'}" data-miss="push|${esc(it.id)}|${d}"></button><button hidden type="button" data-xm="이미 했어요" data-miss="did|${esc(it.id)}|${d}|${was}"></button></div></div>`).join('')}</div></section>`;
   }
 
   // ───────── 밀린 것 한눈에 (간트) ─────────
@@ -2293,7 +2300,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611072056', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611072125', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6789,7 +6796,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611072056'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611072125'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

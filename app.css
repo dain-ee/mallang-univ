@@ -3892,3 +3892,23 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .tv-mn { font-style: normal; font-size: 10px; font-weight: 700; color: var(--t2); border: 1.2px dashed #adb5bd; border-radius: 6px; padding: 0 4px; line-height: 15px; margin-top: 2px; white-space: nowrap; }
 .tv-col:has(.tv-mn) .tv-dh, .tv-wrap:has(.tv-mn) .tv-dh { height: 78px; }
 .tt-it i.man { background: transparent !important; border: 1.5px dashed #adb5bd; }
+
+/* 11/7 토스처럼: 못 한 숙제·푼 것 확인 줄 = 왼쪽 글 두 줄, 오른쪽 단추 하나~둘 + ⋯ */
+.miss-card .miss-it, .chk-card .chk-it { display: flex; align-items: center; gap: 12px; padding: 16px 0; margin: 0; border: 0; border-top: 1px solid var(--line); background: none; flex-wrap: nowrap; }
+.miss-card .miss-it:first-child, .chk-card .chk-it:first-child { border-top: 0; padding-top: 4px; }
+.miss-card .miss-it::before, .miss-card .miss-it::after { display: none; }
+.miss-card .miss-it .body, .chk-card .chk-it .body { display: block; flex: 1; min-width: 0; }
+.miss-card .miss-it .t, .chk-card .chk-it .t { width: auto; font-size: 16px; font-weight: 700; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.miss-card .miss-it .d, .chk-card .chk-it .body > .d { margin: 4px 0 0; font-size: 14px; font-weight: 500; color: var(--t3); }
+.miss-card .miss-b, .chk-card .chk-b { display: flex; flex: none; gap: 8px; margin: 0; width: auto; }
+.x-ic { width: 36px; padding: 0 !important; font-size: 18px; letter-spacing: 0; color: var(--t3); }
+.chk-card .chk-rg { display: block; white-space: nowrap; }
+.chk-zb { display: inline; padding: 0 2px; margin: 0; border: 0; background: none; font: inherit; color: var(--t1); font-weight: 700; text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
+.chk-card .chk-rg .inp { width: 64px; height: 32px; margin: 0 2px; }
+.chk-card .my-wc + .chk-b { margin-top: 12px; }
+.xm-list { display: grid; gap: 8px; margin-top: 16px; }
+@media (max-width: 640px) {
+  .miss-card .miss-it, .chk-card .chk-it { flex-wrap: wrap; }
+  .miss-card .miss-b, .chk-card .chk-b { width: 100%; }
+  .miss-card .miss-b .btn:not(.x-ic), .chk-card .chk-b .btn:not(.x-ic) { flex: 1; }
+}
