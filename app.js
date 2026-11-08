@@ -344,7 +344,7 @@
     // 빈칸 쓰기는 뺐어요: 답이 여러 개라 의미 없다고 하셨어요 (선생님 10/26). 개념 설명 → 그 개념 문제 → 짧은 독해만
     ...(false ? L.blanks || [] : []).map((b) => ({ type: '빈칸', q: `해석을 보고 빈칸에 알맞은 말을 쓰세요<br><b>${String(b.en).replace('___', '______')}</b>`, ko: b.ko, hint: b.hint, answerText: (b.answers || [])[0] || '', accept: b.answers || [], exp: [b.ko, b.hint].filter(Boolean).join(' · '), _mixed: 1 })),
     ...(L.qs || []).slice(0, (L.read && L.read.qs || []).length ? 4 : 5).map((q) => ({ ...q, _mixed: 1 })),  // 다 합쳐 5문제: 고르기 4 + 짧은 독해 1 (선생님 10/26)
-    ...((L.read && L.read.qs) || []).slice(0, 1).map((q) => ({ ...q, type: '독해', passage: L.read.passage, ptitle: L.read.title, pko: L.read.ko, _mixed: 1 })),
+    ...((L.read && L.read.qs) || []).slice(0, 1).map((q) => ({ ...q, type: q.abc ? '어법' : '독해', passage: q.passage || L.read.passage, ptitle: L.read.title, pko: L.read.ko, _mixed: 1 })),
   ];
   const CH_UNITS = (ENG.cheonil || []).flatMap((ch) => (ch.units || []).map((u) => (u.q2 ? { ...u, questions: ch2Qs(u.q2[CH_LV] || u.q2.std), concept: u.q2.concept || u.concept, v2: 1, ch: ch.ch, chTitle: ch.title } : { ...u, ch: ch.ch, chTitle: ch.title })));
   const uKey = (un) => un.ch + '-' + un.unit + (un.v2 ? ':2' : '');  // 새 문제는 기록 칸을 따로 (예전 기록과 번호가 안 섞이게)
@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611081919', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611081944', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2915,7 +2915,7 @@
     if (cur < 0 || cur == null) {
       const ok = ids.filter((k) => store[k] && store[k].ok).length;
       if (ref == null && !uDone(ed) && qs.length) { const again = ed.udone; ed[un.v2 ? 'udone2' : 'udone'] = Date.now(); if (!again) S.eng.unit = Math.min((S.eng.unit || 0) + 1, CH_UNITS.length - 1); save('eng'); }  // 예전 문제로 이미 넘긴 날은 또 넘기지 않아요
-      return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${ref == null ? doneCard(ok, ids.length, '천일문 유닛 끝! 내일은 다음 유닛이에요', '<button class="btn primary big block" data-task="words" type="button">단어 시험 보러 가기</button><button class="btn big block" data-go="home" type="button">홈으로</button>' + RV_BTN) : doneCard(ok, ids.length, `Unit ${un.unit} 끝! 틀린 문제는 오답 노트에 들어갔어요`, `<button class="btn primary big block" data-go="hw" type="button">숙제 목록으로 ›</button>` + RV_BTN)}</div>`;
+      return `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${ref == null ? doneCard(ok, ids.length, '천일문 유닛 끝! 내일은 다음 유닛이에요', '<button class="btn primary big block" data-task="words" type="button">단어 시험 보러 가기</button><button class="btn big block" data-go="home" type="button">홈으로</button>' + RV_BTN) : doneCard(ok, ids.length, `Unit ${un.unit} 끝! 틀린 문제는 오답 노트에 들어갔어요`, (back === 'exam' ? `<button class="btn primary big block" data-go="exam" type="button">수업 목록으로 ›</button>` : `<button class="btn primary big block" data-go="hw" type="button">숙제 목록으로 ›</button>`) + RV_BTN)}</div>`;  /* 11/8 윤건 «수업을 하고 나면 수업 목록이 아니라 숙제 목록으로 돌아가» */
     }
     const q = qs[cur], a = store[cur];
     const isOrder = q.words && q.answerText;
@@ -5587,6 +5587,7 @@
   // ───────── 시험 (과외 학생: 윤건 단원·실전 · 지원 고1 모의 빈칸 · 주아 단어) ─────────
   // 문제는 학생 코드로 잠긴 묶음(D.nx)에만 있어요. 기록 S.nx = { a: { 문항: { ok, v, at } }, done: [{ id, title, kind, ok, n, at, ms }], st: { 세트: { t0, fin } }, wd: { 'ko:w1': { s, w } } }
   const NXD = D.nx || {};
+  { const K = NXD.m3skip, sb = K && today() >= K.from && (NXD.subjects || []).find((x) => x.key === 'm3'); if (sb) sb.units = (sb.units || []).filter((u) => !(K.days || []).includes(+u.no)); }  // 11/8 윤건 매3영 Day 8 통째로 빼기 (다음 수업부터 Day 9)
   const NX_SN = { eng: '영어', kor: '국어', hist: '역사', sci: '과학', m3: '매3영' };
   const NX_PART = { c: '빈칸 쓰기', q: '단원 문제', x: '기출', e: '영영풀이', v: '프린트 단어 영어로 쓰기', s: '프린트 문장 영작', d: '조건 영작', w: '프린트 연습 문제' };  // s·d·w·print = 학교 프린트 (10/28)
   const nxPartName = (u, p) => ((u.tn || {})[p] ? u.tn[p] : u.subj === 'm3' ? { c: '단어', q: '지문 문제', x: '구문 TEST' }[p] : p === 'c' && u.subj === 'eng' ? '단어' : NX_PART[p]);
@@ -5849,6 +5850,20 @@
     const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || '');
     if (!typing && /^[1-5]$/.test(e.key)) { const b = $(`main [data-nxp="${+e.key - 1}"], main [data-pick="${UI.run.kind === 'retry' && UI.run.q && UI.run.q.mock ? +e.key : +e.key - 1}"]`); if (b && !b.disabled) { e.preventDefault(); b.click(); } }
     else if (e.key === 'Enter' && !typing) { const n = $('#nx-next') || $('#next'); if (n) { e.preventDefault(); n.click(); } }
+  });
+  // 11/8 선생님 «다음 할 때 엔터하게 해 줘, 되는 것도 안 되는 것도 있어서»: 어느 화면이든 Enter = 보이는 「다음」 단추
+  // 글을 쓰는 칸(textarea)·한글 조합 중·다른 곳이 이미 Enter 를 쓴 경우는 건드리지 않아요
+  const NEXT_RE = /^다음(\s*(문제|문장|단어|오답|소식|지문|단계|유닛|과)?\s*›?|:.*)$/;
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' || e.defaultPrevented || e.isComposing || e.keyCode === 229 || e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return;
+    const a = document.activeElement || {}, tg = a.tagName || '';
+    if (tg === 'TEXTAREA' || tg === 'SELECT' || a.isContentEditable) return;
+    if (tg === 'INPUT' && !a.disabled && !a.readOnly && a.value) return;  // 답을 쓰는 중이면 그 칸이 알아서 (채점)
+    if ((tg === 'BUTTON' || tg === 'A') && !a.disabled && !(a.closest && a.closest('button.choice, button.jg-op, [data-pick], [data-nxp], [data-jo], [data-jsq], .omr button, button.st-k, .gpick button'))) return;  // 단추에 초점이 있으면 그 단추가 눌려요 (방금 누른 보기 단추는 빼고: 보기를 다시 누르지 않고 다음으로)
+    const root = $('.sheet') || $('main'); if (!root) return;
+    const vis = (b) => !b.disabled && b.offsetParent !== null;
+    const b = [...root.querySelectorAll('#nx-next, #next, [data-next]')].find(vis) || [...root.querySelectorAll('button, a.btn')].find((x) => vis(x) && NEXT_RE.test(x.textContent.replace(/\s+/g, ' ').trim()));
+    if (b) { e.preventDefault(); b.click(); }
   });
   // 시험 탭
   function nxRow(s, opt = {}) {
@@ -6888,7 +6903,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081919'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081944'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
