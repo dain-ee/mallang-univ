@@ -3950,3 +3950,8 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .m3np-s:first-of-type { border-top: 0; }
 .m3np-en { display: flex; gap: 10px; margin: 0 0 8px; font-size: 16px; line-height: 1.6; color: var(--t1); }
 .m3np-s .m3n-i + .m3n-i { margin-top: 8px; }
+
+/* 11/8 글쓰기 「다 했어요」 */
+.jp-fin { display: grid; gap: 10px; text-align: center; }
+.jp-fin > b { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 17px; }
+.jp-s.jp-miss { border-radius: 12px; box-shadow: 0 0 0 2px var(--amber, #f5b400); }

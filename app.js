@@ -2197,7 +2197,7 @@
   function hwGoDone(h) {
     const g = h.go; if (!g) return false;
     if (g.kind === 'gram') { const u = jgU(g.unit), qs = jgQs(u, g.step, g.secs); return !!qs.length && qs.every((q) => jgRec(u, q)); }
-    if (g.kind === 'jw') { const w = jwU(g.id); return !!w && w.kind === 'pick' && jpSents(w).every((x) => jpDone(w, x)); }
+    if (g.kind === 'jw') { const w = jwU(g.id); return !!w && w.kind === 'pick' && jpSents(w).every((x) => x.opt || jpDone(w, x)); }  // opt: 우리가 덧붙인 문장은 안 써도 끝
     if (g.kind === 'url') return false;
     if (g.kind === 'jl' && g.m === 'dict') { const u = jlV({ ...g, only: 1 }); if (!u) return false; const [a, b] = jlTally(u, 'dict'); return b > 0 && a >= b; }
     if (g.kind === 'jl') { const u = jlV({ ...g, only: 1 }), T = u && u.tracks[0]; if (!T) return false; const [a, b] = jlTally(u, 'words'), qs = (T.qs || []).map((q, i) => [q, i]).filter(([q]) => jlQOk(q)); return a >= b && qs.every(([, i]) => jGet('jl', jlK(u, T, 'q', i))); }
@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611081705', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611081709', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5419,7 +5419,7 @@
   const jwText = (w) => (jGet('jw', w.id + ':text') || {}).text || '';
   const jwUsed = (w, t) => (w.trans || []).filter((x) => new RegExp(`(^|[^A-Za-z])${x.replace(/[,.]/g, '').replace(/ /g, '\\s+')}\\b`, 'i').test(t || ''));
   function jwTally(w, m) {
-    if (w.kind === 'pick') { if (m === 'read') return [(jGet('jw', w.id + ':read') || {}).n ? 1 : 0, w.story ? 1 : 0]; if (m === 'say') return [Math.min(3, (jGet('jw', w.id + ':say') || {}).n || 0), 3]; const L = jpSents(w).filter(jpN); return [L.filter((x) => jpDone(w, x)).length, L.length]; }
+    if (w.kind === 'pick') { if (m === 'read') return [(jGet('jw', w.id + ':read') || {}).n ? 1 : 0, w.story ? 1 : 0]; if (m === 'say') return [Math.min(3, (jGet('jw', w.id + ':say') || {}).n || 0), 3]; const L = jpSents(w).filter((x) => jpN(x) && !x.opt); return [L.filter((x) => jpDone(w, x)).length, L.length]; }
     if (m === 'idea') return [jGet('jw', w.id + ':idea') ? 1 : 0, 1];
     if (m === 'build') return [w.sents.filter((_, i) => jGet('jw', `${w.id}:b${i}`)).length, w.sents.length];
     if (m === 'trans') return [w.tq.filter((_, i) => jGet('jw', `${w.id}:t${i}`)).length, w.tq.length];
@@ -5450,7 +5450,7 @@
     h += `<section class="card"><p class="tiny" style="font-size:14px;margin:0;line-height:1.7">${esc(w.promptKo)}</p><div class="row wrap" style="margin-top:12px">${w.words.map(([e, k]) => `<span class="tag"><b>${esc(e)}</b>&nbsp;${esc(k)}</span>`).join('')}</div></section>`;
     if (m === 'pick') {
       h += w.parts.map((p, pi) => `<section class="card jp-part"><div class="card-h"><h3>${esc(p.h)}</h3><span class="tiny">${esc(p.tip || '')}</span></div>${L.filter((x) => x.pi === pi).map((x) => { const ok = jpDone(w, x), v = jpVals(w, x);
-        return `<div class="jp-s ${ok ? 'ok' : ''}"><p class="jp-ko">${esc(x.ko)}</p><p class="jp-en">${jpLine(w, x, true)}${ok ? ` <button type="button" class="jp-say" data-jpsay="${esc(x.k)}" aria-label="듣기">🔊</button>` : ''}</p>${(x.opts || []).map((g, gi) => `<div class="jp-ops">${x.lb && x.lb[gi] ? `<span class="jp-lb ${x.lb[gi] === '주어' ? 's' : 'v'}">${esc(x.lb[gi])}</span>` : ''}${g.map(([e, k]) => `<button type="button" class="jp-op ${v[gi] === e ? 'on' : ''}" data-jpk="${esc(x.k)}" data-gi="${gi}" data-v="${esc(e)}"><b>${esc(e)}</b><small>${esc(k)}</small></button>`).join('')}<button type="button" class="jp-op mine ${v[gi] && !g.some(([e]) => e === v[gi]) ? 'on' : ''}" data-jpmine="${esc(x.k)}" data-gi="${gi}"><b>✏️ 직접 쓰기</b><small>${v[gi] && !g.some(([e]) => e === v[gi]) ? esc(v[gi]) : '내 말로'}</small></button></div>`).join('')}</div>`; }).join('')}</section>`).join('');
+        return `<div class="jp-s ${ok ? 'ok' : ''}" data-jpk="${esc(x.k)}"><p class="jp-ko">${esc(x.ko)}</p><p class="jp-en">${jpLine(w, x, true)}${ok ? ` <button type="button" class="jp-say" data-jpsay="${esc(x.k)}" aria-label="듣기">🔊</button>` : ''}</p>${(x.opts || []).map((g, gi) => `<div class="jp-ops">${x.lb && x.lb[gi] ? `<span class="jp-lb ${x.lb[gi] === '주어' ? 's' : 'v'}">${esc(x.lb[gi])}</span>` : ''}${g.map(([e, k]) => `<button type="button" class="jp-op ${v[gi] === e ? 'on' : ''}" data-jpk="${esc(x.k)}" data-gi="${gi}" data-v="${esc(e)}"><b>${esc(e)}</b><small>${esc(k)}</small></button>`).join('')}<button type="button" class="jp-op mine ${v[gi] && !g.some(([e]) => e === v[gi]) ? 'on' : ''}" data-jpmine="${esc(x.k)}" data-gi="${gi}"><b>✏️ 직접 쓰기</b><small>${v[gi] && !g.some(([e]) => e === v[gi]) ? esc(v[gi]) : '내 말로'}</small></button></div>`).join('')}</div>`; }).join('')}</section>`).join('');
       h += `<section class="card"><div class="card-h"><h3>지금까지 만든 ${esc(w.sayNm || '대본')}</h3><span class="tiny">${dn.length}/${L.length}문장</span></div><p class="jw-model">${dn.map((x) => esc(jpLine(w, x))).join(' ') || '<span class="tiny">문장을 고르면 여기 차곡차곡 쌓여요</span>'}</p>${dn.length === L.length ? '<button class="btn primary big block" data-jwm="say" type="button" style="margin-top:12px">다 만들었어요 · 소리 내어 읽기</button>' : ''}</section>`;
     } else {
       const n = (jGet('jw', w.id + ':say') || {}).n || 0;
@@ -5458,6 +5458,10 @@
         <p class="tiny">문장을 누르면 그 문장만 들려줘요. 따라 읽고, 안 보고도 말해 봐요</p></section>
         <button class="tk j-tk-big ${n >= 3 ? 'on' : ''}" data-jpread type="button"><span>소리 내어 한 번 읽었어요 · ${Math.min(n, 3)}/3</span><i></i></button>`;
     }
+    // 11/8 «다 했다는 버튼» → 숙제로 연 글쓰기는 맨 밑에 「다 했어요」. 빈 문장이 있으면 그 문장으로 데려가요
+    const fh = (S.hw || []).find((x) => x.go && x.go.kind === 'jw' && x.go.id === w.id && x.due >= today()) || (S.hw || []).find((x) => x.go && x.go.kind === 'jw' && x.go.id === w.id);
+    if (fh && m !== 'read') { const miss = L.filter((x) => !x.opt && !jpDone(w, x)).length, fin = hwDone(fh);
+      h += `<section class="card jp-fin">${fin ? `<b>${ic('ok')} 다 했어요</b><span class="tiny">숙제 목록에 줄이 그어졌어요</span>` : miss ? `<span class="tiny">아직 안 만든 문장이 ${miss}개 있어요</span>` : ''}${fin ? `<button class="btn big block" data-go="hw" type="button">숙제 목록으로</button>` : `<button class="btn primary big block" data-jpfin="${esc(fh.id)}" type="button">${UI.jpFinAsk === fh.id ? '빈 문장 두고 끝낼까요? 한 번 더 누르면 끝나요' : '다 했어요'}</button>`}</section>`; }
     return `<div class="qwrap j-wrap">${h}</div>`;
   }
   function bindJp(w, r) {
@@ -5473,6 +5477,11 @@
     const all = $('[data-jpall]'); if (all) all.onclick = () => jSay(L.filter((x) => jpDone(w, x)).map((x) => jpLine(w, x)).join(' '));
     $$('[data-jpsayt]').forEach((b) => (b.onclick = () => jSay(b.dataset.jpsayt)));
     const kb = $('[data-jpko]'); if (kb) kb.onclick = () => { UI.jpHideKo = !UI.jpHideKo; jKeep(); };
+    $$('[data-jpfin]').forEach((b) => (b.onclick = () => {
+      const h = (S.hw || []).find((x) => x.id === b.dataset.jpfin); if (!h) return; const miss = L.filter((x) => !x.opt && !jpDone(w, x));
+      if (miss.length && UI.jpFinAsk !== h.id) { UI.jpFinAsk = h.id; toast(`아직 안 만든 문장이 ${miss.length}개 있어요`); if (r.m !== 'pick') { r.m = 'pick'; render(); } else render(); const el = $(`[data-jpk="${CSS.escape(miss[0].k)}"]`); if (el) { el.scrollIntoView({ block: 'center', behavior: RM() ? 'auto' : 'smooth' }); el.classList.add('jp-miss'); } clearTimeout(UI.jpFinT); UI.jpFinT = setTimeout(() => { if (UI.jpFinAsk) { UI.jpFinAsk = null; const bb = $('[data-jpfin]'); if (bb) bb.textContent = '다 했어요'; } }, 6000); return; }
+      UI.jpFinAsk = null; h.done = true; h.doneAt = Date.now(); save('hw'); jFx(true, b); toast('다 했어요! 숙제 목록에 줄 그었어요'); go('hw');
+    }));
     const db = $('[data-jpdone]'); if (db) db.onclick = () => { if ((jGet('jw', w.id + ':read') || {}).n) { UI.run = { kind: 'jw', id: w.id, m: 'pick' }; render(); window.scrollTo(0, 0); return; } jSet('jw', w.id + ':read', { n: 1 }); jFx(true, db); jKeep(); };
     $$('[data-jpcopy]').forEach((b) => (b.onclick = () => { const pi = +b.dataset.jpcopy, t = L.filter((x) => x.pi === pi && jpDone(w, x)).map((x) => jpLine(w, x)).join(' '); if (!t) return toast('아직 고른 문장이 없어요'); navigator.clipboard.writeText(t).then(() => toast('복사했어요. Highlights 칸에 붙여 넣어요'), () => toast('복사가 안 됐어요. 길게 눌러 복사해요')); }));
     const rd = $('[data-jpread]'); if (rd) rd.onclick = () => { const n = ((jGet('jw', w.id + ':say') || {}).n || 0) + 1; jSet('jw', w.id + ':say', { n }); jFx(true, rd); jKeep(); };
@@ -6855,7 +6864,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081705'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081709'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
