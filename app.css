@@ -4059,3 +4059,31 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .home-more > summary img { width: 18px; height: 18px; vertical-align: -3px; }
 .home-more > .grid { margin-top: 12px; }
 @media (max-width: 640px) { .home-more > summary .tiny { display: none; } }
+
+/* 11/8 «카드 아래에 맞춰져 있어야 하지 않을까»: 숙제 탭 오늘 할 것 카드가 옆 달력만큼 길어지면 「끝낸 숙제」 단추는 카드 맨 아래로 */
+.hw-today { display: flex; flex-direction: column; }
+.hw-today > .hw-tog { margin-top: auto; padding-top: 12px; }
+
+/* 11/8 윤건 외우기: 문단째 빈칸, 문장마다 바로 채점 */
+.nx-lrn { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
+.nx-lrn .st-sec { margin: 0; }
+.mp-list { display: flex; flex-direction: column; margin-top: 4px; }
+.mp-s { display: grid; grid-template-columns: auto 1fr 20px; gap: 10px; align-items: baseline; padding: 12px 8px; margin: 0 -8px; border-top: 1px solid var(--line); border-radius: 12px; }
+.mp-s:first-child { border-top: 0; }
+.mp-s.key { background: var(--blue-soft); }
+.mp-en { margin: 0; font-size: 17px; font-weight: 600; line-height: 2.2; color: var(--t1); word-break: keep-all; }
+.mp-s.h .mp-en { color: var(--t2); }
+.mp-ko { display: block; font-size: 14px; line-height: 1.55; color: var(--t3); }
+.mp-s .tag { margin: 6px 6px 0 0; }
+.mp-s em { display: inline-block; margin-top: 6px; padding: 3px 8px; font-size: 12px; font-style: normal; font-weight: 600; color: var(--blue-d); background: var(--fill2); border-radius: 8px; }
+.mp-mk { font-size: 18px; font-style: normal; font-weight: 700; text-align: center; }
+.mp-s.ok .mp-mk { color: var(--green); }
+.mp-s.no .mp-mk { color: var(--red); }
+.mp-s.ok.pop { animation: mpOk .6s ease; }
+.mp-s.no.pop { animation: mpNo .4s ease; }
+@keyframes mpOk { 0% { background: var(--green-soft); transform: scale(.99); } 100% { transform: none; } }
+@keyframes mpNo { 0%, 100% { transform: none; } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+@media (prefers-reduced-motion: reduce) { .mp-s.pop { animation: none; } }
+.mp-nw { white-space: nowrap; }
+.mp-s.key .nx-bl { background: var(--card); }
+.mp-s.key .nx-bl:focus { background: var(--blue-l); }
