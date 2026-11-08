@@ -1241,14 +1241,14 @@
   function chkCard() {
     if (TUTOR || DAY_OFF()) return ''; const L = myChecks(); if (!L.length) return '';
     const U = UI.chk || {};
-    return `<section class="card c12 chk-card"><div class="card-h"><h2>${ic('ok')} 푼 것 확인</h2><span class="tiny">틀린 번호를 아직 안 적었어요</span></div><div class="list">${L.map((c) => { const key = `${c.it.id}|${c.d || 'r'}`, o = U[key] || {}, wr = new Set(o.w || []);
+    return `<section class="card c12 chk-card"><div class="card-h"><h2>${ic('ok')} 푼 것 확인</h2><span class="tag">${L.length}개</span></div><p class="tiny" style="margin:-8px 0 4px">어제 푼 것 중 틀린 번호가 있으면 알려 줘요</p><div class="list">${L.map((c) => { const key = `${c.it.id}|${c.d || 'r'}`, o = U[key] || {}, wr = new Set(o.w || []);
       if (c.k === 'range') { const z = o.z != null ? o.z : c.z;
         return `<div class="li chk-it" data-chk="${esc(key)}"><div class="body"><div class="t">${esc(c.it.book)}${c.gone ? ' <span class="tag">지운 숙제</span>' : ''}</div>
           ${o.step === 'w' ? `<div class="d">${c.a}~${z}번 중 틀린 번호를 눌러요</div><div class="my-wc">${Array.from({ length: Math.min(80, z - c.a + 1) }, (_, i) => c.a + i).map((v) => `<button type="button" class="${wr.has(v) ? 'on' : ''}" data-chkw="${v}">${v}</button>`).join('')}</div><div class="chk-b"><button class="btn sm primary" type="button" data-chkdo="save">틀린 ${wr.size}개 저장</button></div></div>`
-          : `<div class="d chk-rg">${c.a}~${o.ed ? `<input class="inp sm num" type="number" inputmode="numeric" data-chkz value="${z}" min="${c.a}" max="${c.it.to}">` : `<button class="chk-zb" type="button" data-chked>${z}</button>`}번 풀었어요</div></div><div class="chk-b"><button class="btn sm" type="button" data-chkdo="wr">틀렸어요</button><button class="btn sm primary" type="button" data-chkdo="all">다 맞았어요</button><button class="btn sm x-ic" type="button" data-xmore="${esc(c.it.book)}" aria-label="더 보기">⋯</button><button hidden type="button" data-xm="안 풀었어요" data-chkdo="none"></button><button hidden type="button" data-xm="푼 번호 고치기" data-chked></button></div>`}</div>`; }
+          : `<div class="d chk-rg">${c.a}~${o.ed ? `<input class="inp sm num" type="number" inputmode="numeric" data-chkz value="${z}" min="${c.a}" max="${c.it.to}">` : `<button class="chk-zb" type="button" data-chked>${z}</button>`}번 풀었어요</div></div><div class="chk-b"><button class="chk-txt" type="button" data-chkdo="wr">틀렸어요</button><button class="btn sm soft" type="button" data-chkdo="all">다 맞았어요</button><button class="btn sm x-ic" type="button" data-xmore="${esc(c.it.book)}" aria-label="더 보기">⋯</button><button hidden type="button" data-xm="안 풀었어요" data-chkdo="none"></button><button hidden type="button" data-xm="푼 번호 고치기" data-chked></button></div>`}</div>`; }
       return `<div class="li chk-it" data-chk="${esc(key)}"><div class="body"><div class="t">${esc(c.it.book)}</div><div class="d">${md(c.d)}에 푼 ${c.a}~${c.z}번</div>
         ${o.step === 'w' ? `<div class="my-wc">${Array.from({ length: c.z - c.a + 1 }, (_, i) => c.a + i).map((v) => `<button type="button" class="${wr.has(v) ? 'on' : ''}" data-chkw="${v}">${v}</button>`).join('')}</div><div class="chk-b"><button class="btn sm primary" type="button" data-chkdo="save">틀린 ${wr.size}개 저장</button></div></div>`
-        : `</div><div class="chk-b"><button class="btn sm" type="button" data-chkdo="wr">틀렸어요</button><button class="btn sm primary" type="button" data-chkdo="all">다 맞았어요</button></div>`}</div>`; }).join('')}</div></section>`;
+        : `</div><div class="chk-b"><button class="chk-txt" type="button" data-chkdo="wr">틀렸어요</button><button class="btn sm soft" type="button" data-chkdo="all">다 맞았어요</button></div>`}</div>`; }).join('')}</div></section>`;
   }
   document.addEventListener('click', (e) => {
     const b = e.target.closest && e.target.closest('[data-chkw],[data-chkdo],[data-chked]'), row = b && b.closest('[data-chk]'); if (!row) return;
@@ -1406,11 +1406,11 @@
     const w = todayWins(), avg = myAvg(), x = avg && w.probs >= avg * 1.4 && w.probs >= 20 ? Math.round((w.probs / avg) * 10) / 10 : 0;
     if (!w.caught && !w.late.length && !x) return '';
     const tot = w.my.reduce((a, y) => a + y.n, 0), u = w.my.every((y) => y.u === '쪽') ? '쪽' : '문제', p = w.was ? Math.round((w.caught / w.was) * 100) : 100;
-    const big = w.caught ? `밀린 것 <b>${w.caught}${u}</b> 따라잡았어요` : w.my.length ? `오늘 <b>${tot}${u}</b> 풀었어요` : `밀린 것 <b>${w.late.length}개</b> 해치웠어요`;
+    const big = w.caught ? `<b class="num">${w.caught}</b><span>${u} 따라잡았어요</span>` : w.my.length ? `<b class="num">${tot}</b><span>${u} 풀었어요</span>` : `<b class="num">${w.late.length}</b><span>개 밀린 것 끝냈어요</span>`;
     const sub = [w.my.length && w.caught ? `오늘 ${tot}${u} 풀었어요` : '', x ? `보통 하루 ${avg}문제의 ${x}배` : '', w.late.length && (w.caught || w.my.length) ? `밀린 숙제 ${w.late.length}개도 끝` : ''].filter(Boolean).join(' · ');
     const bar = w.was ? `<div class="win-bar"><i style="width:${p}%"></i></div><p class="tiny win-cap">아침엔 ${w.was}${u} 밀려 있었는데 ${w.rest ? `이제 <b>${w.rest}${u}</b> 남았어요` : '<b>이제 밀린 거 없어요</b>'}</p>` : '';
-    const rows = [...w.my.map((y) => `<li><span><i>${esc(y.t)}</i>${y.caught ? `<em>밀린 것 ${y.caught}${y.u} 따라잡음</em>` : ''}</span><b>${y.n}${y.u}</b></li>`), ...w.late.slice(0, 4).map((s) => `<li><span><i>${esc(s)}</i><em>밀린 것 끝</em></span><b></b></li>`)].join('');  // 11/3 «이거를 왜 이렇게»: 초록 꼬리표가 숫자 옆에 붙어 숫자 줄이 어긋났어요 → 이름 옆으로
-    return `<section class="card c12 win-card"><div class="card-h"><h2>${ic('trophy')} 오늘 해낸 것</h2><span class="tag green">${w.rest || !w.was ? '오늘 열심히 했어요' : '밀린 것 0'}</span></div>
+    const rows = [...w.my.map((y) => `<li><i class="win-ic">${ic('ok')}</i><span class="win-t"><i>${esc(y.t)}</i>${y.caught ? `<small>밀린 것 ${y.caught}${y.u} 따라잡음</small>` : ''}</span><b>${y.n}${y.u}</b></li>`), ...w.late.slice(0, 4).map((s) => `<li><i class="win-ic">${ic('ok')}</i><span class="win-t"><i>${esc(s)}</i><small>밀렸던 숙제</small></span><b class="win-done">끝</b></li>`)].join('');  // 11/3 «이거를 왜 이렇게»: 초록 꼬리표가 숫자 옆에 붙어 숫자 줄이 어긋났어요 → 이름 옆으로
+    return `<section class="card c12 win-card"><div class="card-h"><h2>${ic('trophy')} 오늘 해낸 것</h2>${w.was && !w.rest ? '<span class="tag green">밀린 것 0</span>' : ''}</div>
       <p class="win-big">${big}</p>${sub ? `<p class="tiny win-sub">${sub}</p>` : ''}${bar}${rows ? `<ul class="win-list">${rows}</ul>` : ''}</section>`;
   }
   // 마감을 다음 할 요일로 하루 미뤄요
@@ -2349,7 +2349,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611082347', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611082353', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4259,7 +4259,7 @@
   const gdNext = () => (TUTOR || (ROLE_T && !PEEK)) ? null : Object.keys(GD).find((k) => !gdHas(k) && GD[k].on());
   function gdCard() {
     const k = gdNext(); if (!k) return ''; const g = GD[k];
-    return `<section class="card c12 gift-card app-card gd-card"><span class="gift-ic">${ic(g.ic)}</span><div class="body"><span class="eyebrow">이렇게 해요</span><b>${esc(g.b)}</b><span class="tiny">${esc(g.d)}</span></div><button class="btn primary" type="button" data-gdopen="${k}">방법 보기</button></section>`;
+    return `<button type="button" class="c12 ts-band gd-card" data-gdopen="${k}"><span class="ts-band-ic">${ic(g.ic)}</span><span class="ts-band-t"><b>${esc(g.b)}</b><span>${esc(g.d)}</span></span><span class="ts-band-go">방법 보기</span></button>`;  // 11/8 «이 부분이 너무 정신없어» → 토스 띠 배너
   }
   function gdOpen(e) {
     const k = (e && e.currentTarget && e.currentTarget.dataset.gdopen) || gdNext() || 'ink', g = GD[k];
@@ -4276,7 +4276,7 @@
   function appCard() {
     if (STANDALONE && !appHas()) appMark();
     const me = ROLE_T && !PEEK, ico = `<span class="gift-ic"><img class="app-ic" src="${aiSrc()}" alt=""></span>`;
-    const pushC = PUSH_OK && Notification.permission === 'default' && (STANDALONE || !IOS) ? `<section class="card c12 gift-card app-card">${ico}<div class="body"><span class="eyebrow">띵동!</span><b>알림을 켜 볼까요?</b><span class="tiny">${me ? '학생 쪽지, 밤마다 학생들 남은 할 일을 알려 줘요' : '선생님 쪽지, 새 숙제, 선물, 남은 할 일을 알려 줘요'}</span></div><button class="btn primary" type="button" data-pushon>알림 켜기</button></section>` : '';
+    const pushC = PUSH_OK && Notification.permission === 'default' && (STANDALONE || !IOS) ? `<button type="button" class="c12 ts-band" data-pushon><span class="ts-band-ic"><img class="app-ic" src="${aiSrc()}" alt=""></span><span class="ts-band-t"><b>알림을 켜 볼까요?</b><span>${me ? '학생 쪽지, 밤마다 학생들 남은 할 일을 알려 줘요' : '선생님 쪽지, 새 숙제, 선물, 남은 할 일을 알려 줘요'}</span></span><span class="ts-band-go">알림 켜기</span></button>` : '';
     const instC = !STANDALONE && !aiHidden() && !appHas() ? `<section class="card c12 gift-card app-card">${ico}<div class="body"><span class="eyebrow">띵동!</span><b>앱으로 깔 수 있어요!</b><span class="tiny">핸드폰·아이패드 홈 화면에 ${esc(BRAND)} 아이콘이 생기고 숙제 알림도 받아요</span></div>${bip ? '<button class="btn primary" type="button" data-appinst>설치하기</button>' : '<button class="btn primary" type="button" data-appopen>방법 보기</button>'}</section>` : '';
     return instC + pushC;
   }
@@ -7059,7 +7059,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611082347'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611082353'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8307,7 +8307,15 @@
     const ti = hw ? hw.title : R && R.kind === 'news' ? '소식 읽기' : R && R.kind === 'nx' && NXSETS[R.id] ? NXSETS[R.id].title : R && R.kind === 'unit' ? '천일문' : R && R.kind === 'retry' ? '오답 다시 풀기' : R && R.kind === 'words' ? '단어' : (($('main .h1') || {}).textContent || '공부').trim().slice(0, 30);
     tmStart(tk, ti); if (P.run && tkOf(P.run) === tk) { P.run.auto = 1; pSave(); }
   }
+  // 11/8 «오늘 만약 정윤이가 다 하면 정말정말정말 잘했다고 팡팡 같은 걸 주면 좋을 것 같아»: 오늘 할 일을 하나도 안 빼고 다 끝낸 순간 한 번, 큰 축하 (하루 한 번, 모든 학생)
+  function allDoneCheck() {
+    if (TEACHER && !PEEK) return; if (UI.run || DAY_OFF() || UI.tab !== 'home') return;
+    let real; try { real = todayTasks().tasks.filter((t) => t.icon !== 'party' && !t.memo); } catch (e) { return; }
+    if (real.length < 2 || real.some((t) => !t.done)) return;
+    badgePop([{ key: 'alldone:' + today(), i: 'trophy', mega: 1, w: 0, eb: '🎉 오늘 할 일 끝!', t: `${real.length}개를 하나도 안 빼고 다 했어요`, d: `${NMI()}, 정말 정말 정말 잘했어! 오늘 몫을 끝까지 다 해낸 거 진짜 멋있어` }]);
+  }
   function render() {
+    setTimeout(allDoneCheck, 700);
     finRe();  // 11/8 기말 예습 새 계획 먼저
     hwRunFin(); setTimeout(autoTm, 0);
     { const k = navAt(), was = render.nav; if (was && k !== was && !render.pop && (k === 'run' || was === 'home')) try { history.pushState({ mu: k }, ''); } catch (e) {} render.nav = k; render.pop = 0; }

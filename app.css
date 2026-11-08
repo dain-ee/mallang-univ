@@ -4200,3 +4200,36 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .miss-card .miss-it .d b { color: var(--t2); font-weight: 600; }
 .lag-card .card-h .tag, .card-h > .tag { flex: none; }
 .ygf-ex div span:not(.tag) { line-height: 1.5; }
+
+/* 11/8 홈 위쪽 정리: 안내는 얇은 띠, 줄 단추는 하나만 또렷하게 */
+.ts-band { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; border: 0; border-radius: 16px; background: var(--card); text-align: left; font: inherit; cursor: pointer; }
+.ts-band-ic { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 12px; background: var(--fill); }
+.ts-band-ic .ic, .ts-band-ic img, .ts-band-ic svg { width: 20px; height: 20px; }
+.ts-band-t { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.ts-band-t b { font-size: 15px; font-weight: 600; color: var(--t1); }
+.ts-band-t span { font-size: 13px; color: var(--t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ts-band-go { flex: none; font-size: 14px; font-weight: 600; color: var(--t3); }
+.ts-band-go::after { content: ' ›'; }
+.ts-band:hover .ts-band-go { color: var(--blue); }
+.chk-card .chk-b { align-items: center; gap: 4px; }
+.chk-txt { padding: 8px 10px; border: 0; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--t3); cursor: pointer; }
+.chk-txt:hover { color: var(--t1); }
+.chk-card .chk-b .x-ic { background: none; color: var(--t4); }
+
+/* 11/8 오늘 해낸 것: 큰 숫자 + 가지런한 줄 */
+.win-card .win-big { display: flex; align-items: baseline; gap: 4px; margin: 4px 0 0; }
+.win-card .win-big b { font-size: 40px; font-weight: 700; line-height: 1.1; color: var(--t1); letter-spacing: -.02em; }
+.win-card .win-big span { font-size: 17px; font-weight: 600; color: var(--t2); }
+.win-card .win-sub { margin: 4px 0 0; }
+.win-card .win-list { gap: 0; margin-top: 16px; border-top: 1px solid var(--line); }
+.win-card .win-list li { display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 12px; padding: 12px 0; font-size: 15px; border-bottom: 1px solid var(--line); }
+.win-card .win-list li:last-child { border-bottom: 0; }
+.win-card .win-ic { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--green-soft); }
+.win-card .win-ic .ic, .win-card .win-ic img, .win-card .win-ic svg { width: 14px; height: 14px; }
+.win-card .win-list li .win-t { display: flex; flex-direction: column; gap: 2px; min-width: 0; color: var(--t1); }
+.win-card .win-list li .win-t i { font-style: normal; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.win-card .win-list li .win-t small { font-size: 12px; color: var(--t3); }
+.win-card .win-list li b { font-size: 15px; font-weight: 700; color: var(--t1); }
+.win-card .win-list li b.win-done { font-size: 14px; font-weight: 600; color: var(--green); }
+.win-card .win-list li .win-t { align-items: flex-start; text-align: left; }
+.ts-band-ic .app-ic { width: 24px; height: 24px; border-radius: 6px; }
