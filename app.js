@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611081831', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611081834', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6864,7 +6864,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081831'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081834'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7869,7 +7869,7 @@
   function ygFront() {
     if (U.who !== '윤건' || typeof ygPlan !== 'function') return '';
     const jd = Object.keys(S.jwt || {}).filter((d) => d > today()).sort()[0], nx = jd ? { date: jd } : nextLesson(), P = nx ? ygPlan(nx.date) : null, dd = nx ? dday(nx.date) : null;  // 시험 범위를 넣어 둔 다음 수업부터
-    const ex = P ? [P.days && `단어 시험 · ${WM_BOOK} Day ${P.days.join('·')}`, P.units && `천일문 Unit ${P.units.length > 2 ? `${P.units[0]}~${P.units[P.units.length - 1]}` : P.units.join('·')}`].filter(Boolean) : [];
+    const ex = P ? [P.days && `단어 시험 · ${WM_BOOK} Day ${P.days.join('·')}`, P.tu && `천일문 시험 · Unit ${P.tu.join('·')} (${P.n}문제)`].filter(Boolean) : [];
     const T = todayTasks().tasks.filter((t) => t.icon !== 'party' && !t.memo), dn = T.filter((t) => t.done).length;
     if (!ex.length && !T.length) return '';
     return `<section class="card c12 yg-front"><div class="card-h"><h2>${ic('pin')} 오늘 할 일</h2><span class="tiny num">${T.length ? `${dn} / ${T.length} 했어요` : ''}</span></div>
