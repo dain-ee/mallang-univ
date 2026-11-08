@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611081709', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611081712', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5441,8 +5441,8 @@
     let h = jHead('✏️ Writing', w.title, '보기를 골라 문장을 만들어요', Object.entries(M).map(([k, nm]) => { const [a, b] = jwTally(w, k); return [k, nm, `${a}/${b}`]; }), m, 'data-jwm');
     if (m === 'read') {
       const ko = !UI.jpHideKo, rd = (jGet('jw', w.id + ':read') || {}).n;
-      h += `<section class="card"><div class="card-h"><h3>📕 ${esc(w.book || w.title)}</h3><button class="btn sm soft" data-jpko type="button">${ko ? '뜻 가리기' : '뜻 보기'}</button></div><p class="tiny" style="margin:0">문장을 누르면 읽어 줘요. 모르는 문장은 뜻을 보고, 한 번 더 들어요</p></section>`;
-      h += (w.cover ? `<section class="card jp-pg jp-cov"><img class="jp-pic" src="${esc(w.cover)}" alt="${esc(w.title)}" loading="lazy"></section>` : '') + w.story.map((pg) => `<section class="card jp-pg"><div class="card-h"><h3>${esc(pg.p)}쪽</h3></div>${pg.pic ? `<img class="jp-pic" src="${esc(pg.pic)}" alt="${esc(pg.p)}쪽 그림" loading="lazy">` : ''}${pg.s.map(([e, k]) => `<div class="jp-rs" data-jpsayt="${esc(e)}"><p class="jp-re">${esc(e)} <span class="jp-say">🔊</span></p>${ko ? `<p class="jp-rk">${esc(k)}</p>` : ''}</div>`).join('')}</section>`).join('');
+      h += `<section class="card"><div class="card-h"><h3>📕 ${esc(w.book || w.title)}</h3><button class="btn sm soft" data-jpko type="button">${ko ? '뜻 가리기' : '뜻 보기'}</button></div><p class="tiny" style="margin:0">먼저 혼자 소리 내어 읽어요. 모르는 문장만 🔊을 눌러 들어 봐요</p></section>`;
+      h += (w.cover ? `<section class="card jp-pg jp-cov"><img class="jp-pic" src="${esc(w.cover)}" alt="${esc(w.title)}" loading="lazy"></section>` : '') + w.story.map((pg) => `<section class="card jp-pg"><div class="card-h"><h3>${esc(pg.p)}쪽</h3></div>${pg.pic ? `<img class="jp-pic" src="${esc(pg.pic)}" alt="${esc(pg.p)}쪽 그림" loading="lazy">` : ''}${pg.s.map(([e, k]) => `<div class="jp-rs"><p class="jp-re">${esc(e)} <button type="button" class="jp-say" data-jpsayt="${esc(e)}" aria-label="듣기">🔊</button></p>${ko ? `<p class="jp-rk">${esc(k)}</p>` : ''}</div>`).join('')}</section>`).join('');
       h += `<section class="card"><div class="card-h"><h3>단어</h3><span class="tiny">책 맨 뒤 Vocabulary + 더</span></div><div class="jp-wl">${w.words.map(([e, k]) => `<button type="button" class="jp-w" data-jpsayt="${esc(e)}"><b>${esc(e)}</b><small>${esc(k)}</small></button>`).join('')}</div></section>`;
       h += `<button class="tk j-tk-big ${rd ? 'on' : ''}" data-jpdone type="button"><span>${rd ? '다 읽었어요 · 이제 리포트 쓰기' : '다 읽었어요'}</span><i></i></button>`;
       return `<div class="qwrap j-wrap">${h}</div>`;
@@ -5454,8 +5454,8 @@
       h += `<section class="card"><div class="card-h"><h3>지금까지 만든 ${esc(w.sayNm || '대본')}</h3><span class="tiny">${dn.length}/${L.length}문장</span></div><p class="jw-model">${dn.map((x) => esc(jpLine(w, x))).join(' ') || '<span class="tiny">문장을 고르면 여기 차곡차곡 쌓여요</span>'}</p>${dn.length === L.length ? '<button class="btn primary big block" data-jwm="say" type="button" style="margin-top:12px">다 만들었어요 · 소리 내어 읽기</button>' : ''}</section>`;
     } else {
       const n = (jGet('jw', w.id + ':say') || {}).n || 0;
-      h += `<section class="card"><div class="card-h"><h3>${esc(w.sayNm || '내 대본')}</h3><button class="btn sm soft" data-jpall type="button">🔊 전체 듣기</button></div>${w.parts.map((p, pi) => `<p class="jp-ph">${esc(p.h)}${w.copy ? ` <button class="btn sm soft" data-jpcopy="${pi}" type="button">복사</button>` : ''}</p><p class="jp-script">${L.filter((x) => x.pi === pi).map((x) => jpDone(w, x) ? `<span class="jp-line" data-jpsay="${esc(x.k)}">${esc(jpLine(w, x))}</span>` : '<span class="jp-line miss">(아직 안 고른 문장)</span>').join(' ')}</p>`).join('')}
-        <p class="tiny">문장을 누르면 그 문장만 들려줘요. 따라 읽고, 안 보고도 말해 봐요</p></section>
+      h += `<section class="card"><div class="card-h"><h3>${esc(w.sayNm || '내 대본')}</h3><button class="btn sm soft" data-jpall type="button">🔊 전체 듣기</button></div>${w.parts.map((p, pi) => `<p class="jp-ph">${esc(p.h)}${w.copy ? ` <button class="btn sm soft" data-jpcopy="${pi}" type="button">복사</button>` : ''}</p><p class="jp-script">${L.filter((x) => x.pi === pi).map((x) => jpDone(w, x) ? `<span class="jp-line">${esc(jpLine(w, x))} <button type="button" class="jp-say" data-jpsay="${esc(x.k)}" aria-label="듣기">🔊</button></span>` : x.opt ? '' : '<span class="jp-line miss">(아직 안 고른 문장)</span>').join(' ')}</p>`).join('')}
+        <p class="tiny">먼저 혼자 소리 내어 읽어요. 모르는 문장만 🔊을 눌러 들어 봐요</p></section>
         <button class="tk j-tk-big ${n >= 3 ? 'on' : ''}" data-jpread type="button"><span>소리 내어 한 번 읽었어요 · ${Math.min(n, 3)}/3</span><i></i></button>`;
     }
     // 11/8 «다 했다는 버튼» → 숙제로 연 글쓰기는 맨 밑에 「다 했어요」. 빈 문장이 있으면 그 문장으로 데려가요
@@ -5467,7 +5467,7 @@
   function bindJp(w, r) {
     const L = jpSents(w), byK = (k) => L.find((x) => x.k === k);
     $$('[data-jwm]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'jw', id: w.id, m: b.dataset.jwm }; render(); window.scrollTo(0, 0); }));
-    const put = (x, gi, val, b) => { const A = (x.ans || [])[gi]; if (A && val.trim().toLowerCase().replace(/[.!?]$/, '') !== A.toLowerCase()) { jFx(false, b); toast(((x.why || [])[gi] || '다시 골라 봐요') + ' 🤔'); return; } const v = [...jpVals(w, x)]; v[gi] = val; const was = jpDone(w, x); jSet('jw', x.k, { v }); if (!was && jpDone(w, x)) { jFx(true, b); if (SOUND) jSay(jpLine(w, x)); } jKeep(); };
+    const put = (x, gi, val, b) => { const A = (x.ans || [])[gi]; if (A && val.trim().toLowerCase().replace(/[.!?]$/, '') !== A.toLowerCase()) { jFx(false, b); toast(((x.why || [])[gi] || '다시 골라 봐요') + ' 🤔'); return; } const v = [...jpVals(w, x)]; v[gi] = val; const was = jpDone(w, x); jSet('jw', x.k, { v }); if (!was && jpDone(w, x)) jFx(true, b); /* 11/8 «자꾸 먼저 말해서 주아가 읽을 기회를 빼앗아» → 저절로 읽지 않아요 */ jKeep(); };
     $$('[data-jpk]').forEach((b) => (b.onclick = () => put(byK(b.dataset.jpk), +b.dataset.gi, b.dataset.v, b)));
     $$('[data-jpmine]').forEach((b) => (b.onclick = () => { const x = byK(b.dataset.jpmine), gi = +b.dataset.gi, cur = jpVals(w, x)[gi] || '';
       b.outerHTML = `<form class="jp-mine" data-jpf="${esc(x.k)}" data-gi="${gi}"><input class="inp" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="영어로 써요" value="${esc((x.opts[gi] || []).some(([e]) => e === cur) ? '' : cur)}"><button class="btn primary" type="submit">넣기</button></form>`;
@@ -6864,7 +6864,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081709'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081712'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
