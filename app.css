@@ -3962,3 +3962,11 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .hw-finbar .ic { width: 20px; height: 20px; }
 @keyframes hwfin { from { opacity: 0; transform: translateY(16px); } }
 @media (prefers-reduced-motion: reduce) { .hw-finbar { animation: none; } }
+
+/* 11/8 시험지에서 틀리면 그 개념 */
+.jgs-cc { margin-top: 8px; border-radius: 12px; background: var(--blue-soft); padding: 10px 12px; }
+.jgs-cc summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--blue); display: flex; align-items: center; gap: 6px; list-style: none; }
+.jgs-cc summary::-webkit-details-marker { display: none; }
+.jgs-cc summary .ic { width: 16px; height: 16px; }
+.jgs-cc-b { margin-top: 6px; font-size: 14px; line-height: 1.7; color: var(--t1); }
+.jgs-cc-b i { color: var(--t2); }

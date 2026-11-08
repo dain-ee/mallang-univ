@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611081819', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611081824', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5133,7 +5133,7 @@
       return `<section class="card jgs-part"><div class="jgs-sec">${esc(String(g.sec).replace(/^\S+\s·\s/, ''))}</div>${cp ? `<div class="jgs-dir">${cp.replace(/<br>$/, '')}</div>` : ''}${g.qs.map((q) => { no++; const a = jgRec(u, q), body = q.prompt.slice(cp.length);
         const box = q.choices ? `<div class="jg-ops">${q.choices.map((c, j) => `<button type="button" class="chip jg-op ${a && jgNorm(a.v) === jgNorm(c) ? (a.ok ? 'right' : 'wrong') : ''}" data-jsq="${q.id}" data-jo="${j}" ${a ? 'disabled' : ''}>${esc(c)}</button>`).join('')}</div>`
           : `<form class="row jgs-in" data-jsf="${q.id}" style="gap:8px"><input class="inp" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="답을 써요" value="${a ? esc(a.v) : ''}" ${a ? 'disabled' : ''}>${a ? '' : '<button class="btn primary" type="submit">확인</button>'}</form>`;
-        return `<div class="jgs-q ${a ? (a.ok ? 'ok' : 'no') : ''}" id="jgs-${q.id}"><div class="jgs-n">${a ? (a.ok ? '⭕' : '❌') : no}</div><div class="jgs-b"><div class="jg-q">${body}</div>${box}${a && !a.ok ? `<div class="jgs-ans"><b>정답</b> ${esc(q.answers[0])}</div>` : ''}${a && q.why ? `<div class="jgs-why">${esc(q.why)}</div>` : ''}</div></div>`; }).join('')}</section>`; }).join('');
+        return `<div class="jgs-q ${a ? (a.ok ? 'ok' : 'no') : ''}" id="jgs-${q.id}"><div class="jgs-n">${a ? (a.ok ? '⭕' : '❌') : no}</div><div class="jgs-b"><div class="jg-q">${body}</div>${box}${a && !a.ok ? `<div class="jgs-ans"><b>정답</b> ${esc(q.answers[0])}</div>` : ''}${a && q.why ? `<div class="jgs-why">${esc(q.why)}</div>` : ''}${a && !a.ok && u.concepts && (u.concepts[q.cc] || u.concepts[q.tag]) ? `<details class="jgs-cc" open><summary>${ic('books')} 개념 다시 보기</summary><div class="jgs-cc-b">${u.concepts[q.cc] || u.concepts[q.tag]}</div></details>` : ''}</div></div>`; }).join('')}</section>`; }).join('');  /* 11/8 «틀리면 각 개념을 보게» */
     return `<div class="qwrap jgs" style="max-width:820px;margin:0 auto">${head}
       <div class="card jgs-top"><div><b>Review Test</b><small>Grammar Stage Plus 2 · Unit ${esc(u.no)} ${esc(u.title)}</small></div><div class="jgs-score">${done ? `<b>${ok}</b> / ${qs.length}` : `${qs.length}문제`}</div></div>
       ${body}
@@ -6864,7 +6864,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081819'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081824'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
