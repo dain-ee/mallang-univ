@@ -2203,7 +2203,7 @@
     if (g.kind === 'jl') { const u = jlV({ ...g, only: 1 }), T = u && u.tracks[0]; if (!T) return false; const [a, b] = jlTally(u, 'words'), qs = (T.qs || []).map((q, i) => [q, i]).filter(([q]) => jlQOk(q)); return a >= b && qs.every(([, i]) => jGet('jl', jlK(u, T, 'q', i))); }
     return false;
   }
-  function hwGoStart(h) { const g = h.go; if (g && g.kind === 'url') { window.open(g.url, '_blank', 'noopener'); return true; } if (!g || !(g.kind === 'gram' ? jgU(g.unit) : g.kind === 'jw' ? jwU(g.id) : jlU(g.unit))) return false; UI.tab = 'hw'; UI.lib = null; UI.run = { ...g, only: g.kind === 'jl' ? (g.m === 'dict' ? 0 : 1) : g.only }; render(); window.scrollTo(0, 0); return true; }
+  function hwGoStart(h) { const g = h.go; if (g && g.kind === 'url') { window.open(g.url, '_blank', 'noopener'); return true; } if (!g || !(g.kind === 'gram' ? jgU(g.unit) : g.kind === 'jw' ? jwU(g.id) : jlU(g.unit))) return false; UI.hwRun = { id: h.id, from: UI.tab === 'exam' ? 'exam' : 'hw', was: hwDone(h) }; UI.tab = 'hw'; UI.lib = null; UI.run = { ...g, only: g.kind === 'jl' ? (g.m === 'dict' ? 0 : 1) : g.only }; render(); window.scrollTo(0, 0); return true; }
   function hwSheet(id) {
     const h = (S.hw || []).find((x) => x.id === id); if (!h) return;
     const key = Object.keys(SUBJ_NAMES).find((k) => SUBJ_NAMES[k] === h.subj || (h.subj === '한국사' && k === 'hist'));
@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611081712', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611081714', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5480,7 +5480,7 @@
     $$('[data-jpfin]').forEach((b) => (b.onclick = () => {
       const h = (S.hw || []).find((x) => x.id === b.dataset.jpfin); if (!h) return; const miss = L.filter((x) => !x.opt && !jpDone(w, x));
       if (miss.length && UI.jpFinAsk !== h.id) { UI.jpFinAsk = h.id; toast(`아직 안 만든 문장이 ${miss.length}개 있어요`); if (r.m !== 'pick') { r.m = 'pick'; render(); } else render(); const el = $(`[data-jpk="${CSS.escape(miss[0].k)}"]`); if (el) { el.scrollIntoView({ block: 'center', behavior: RM() ? 'auto' : 'smooth' }); el.classList.add('jp-miss'); } clearTimeout(UI.jpFinT); UI.jpFinT = setTimeout(() => { if (UI.jpFinAsk) { UI.jpFinAsk = null; const bb = $('[data-jpfin]'); if (bb) bb.textContent = '다 했어요'; } }, 6000); return; }
-      UI.jpFinAsk = null; h.done = true; h.doneAt = Date.now(); save('hw'); jFx(true, b); toast('다 했어요! 숙제 목록에 줄 그었어요'); go('hw');
+      UI.jpFinAsk = null; h.done = true; h.doneAt = Date.now(); save('hw'); jFx(true, b); const fr = (UI.hwRun && UI.hwRun.from) || 'hw'; UI.hwRun = null; toast('다 했어요! 줄 그었어요'); go(fr);
     }));
     const db = $('[data-jpdone]'); if (db) db.onclick = () => { if ((jGet('jw', w.id + ':read') || {}).n) { UI.run = { kind: 'jw', id: w.id, m: 'pick' }; render(); window.scrollTo(0, 0); return; } jSet('jw', w.id + ':read', { n: 1 }); jFx(true, db); jKeep(); };
     $$('[data-jpcopy]').forEach((b) => (b.onclick = () => { const pi = +b.dataset.jpcopy, t = L.filter((x) => x.pi === pi && jpDone(w, x)).map((x) => jpLine(w, x)).join(' '); if (!t) return toast('아직 고른 문장이 없어요'); navigator.clipboard.writeText(t).then(() => toast('복사했어요. Highlights 칸에 붙여 넣어요'), () => toast('복사가 안 됐어요. 길게 눌러 복사해요')); }));
@@ -6864,7 +6864,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081712'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081714'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7931,7 +7931,15 @@
   // 폰·브라우저 뒤로가기: 문제 화면에 들어가거나 홈에서 다른 탭으로 가면 기록을 하나 쌓고, 뒤로가기는 한 칸씩 빠져나와요 (10/27 주아가 폰에서 뒤로가기가 안 됐어요)
   const navAt = () => (UI.run ? 'run' : UI.tab);
   window.addEventListener('popstate', () => { render.pop = 1; if (UI.run) UI.run = null; else if (UI.tab !== 'home' && !TEACHER) UI.tab = 'home'; render(); window.scrollTo(0, 0); });
+  // 11/8 «뭔가 다 했으면 다 했어요 하고 목록으로» → 숙제·수업 칸으로 연 공부가 끝나는 순간 축하하고 열었던 목록으로 돌아가요
+  function hwRunFin() {
+    const R = UI.hwRun; if (!R || !UI.run) { if (R && !UI.run) UI.hwRun = null; return; }
+    const h = (S.hw || []).find((x) => x.id === R.id); if (!h || R.was || !hwDone(h)) return;
+    UI.hwRun = null; clearTimeout(hwRunFin.t);
+    hwRunFin.t = setTimeout(() => { boom(innerWidth / 2, innerHeight * 0.4, 4); ding(8); toast(`다 했어요! 🎉 ${String(h.title || '').replace(/^[^\p{L}\p{N}]+\s/u, '').slice(0, 24)}`); go(R.from); }, 900);
+  }
   function render() {
+    hwRunFin();
     { const k = navAt(), was = render.nav; if (was && k !== was && !render.pop && (k === 'run' || was === 'home')) try { history.pushState({ mu: k }, ''); } catch (e) {} render.nav = k; render.pop = 0; }
     nxReg(); pCloseOld(); leftMark(); appAuto(); if (ROLE_T && pulled && !save.snap) save.snap = pushIds(S);
     // 1학년 2학기는 아직 학기 최종 등급이 없어서, 먼저 넣은 등급은 중간고사 등급으로 옮겨요 (한 번만)
