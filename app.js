@@ -644,11 +644,12 @@
   // 11/8 «정윤이 곧 있으면 이거도 끝날 테니까 배지를 많이 만들어 놓고, 근데 배지가 너무 많으면 여기 너무 복잡해질 것 같으니 배지 모아 두는 건 따로 해야 할 것 같은데»: 배지 모음은 시트 하나에 (쌓아 온 것 · 토마토 · 공부 시간). 못 딴 건 회색, 바로 다음 것엔 남은 만큼
   function growSheet() {
     const g = growStats(), KS = [...new Set(GROW_MS.map((m) => m.k))], got = GROW_MS.filter((m) => g[m.k] >= m.n).length;
-    const chip = (on, i, t, sub, nx) => `<span class="grow-b ${on ? 'on' : nx ? 'nx' : ''}">${ic(i)}<em>${esc(t)}</em>${sub ? `<small>${esc(sub)}</small>` : ''}</span>`;
-    const grp = (h, n, N, body) => `<div class="bdg-grp"><div class="row between"><b>${esc(h)}</b><span class="tiny num">${n}/${N}</span></div><div class="grow-bd">${body}</div></div>`;
-    const G = KS.map((k) => { const M = GROW_MS.filter((m) => m.k === k), nx = M.find((m) => g[k] < m.n); return grp(GROW_K[k][0], M.filter((m) => g[k] >= m.n).length, M.length, M.map((m) => chip(g[k] >= m.n, m.i, m.t, m === nx ? growLeft(m, g) : '', m === nx)).join('')); }).join('');
+    const chip = (on, i, t, sub, nx, pc) => `<div class="bg-t ${on ? 'on' : nx ? 'nx' : ''}"><span class="bg-i">${ic(i)}</span><b>${esc(t)}</b>${nx && pc != null ? `<i class="bg-p"><i style="width:${pc}%"></i></i>` : ''}${sub && (nx || !on) ? `<small>${esc(sub)}</small>` : ''}</div>`;
+    const grp = (h, n, N, body) => `<section class="bg-sec"><div class="bg-h"><h3>${esc(h)}</h3><span class="num">${n}<small>/${N}</small></span></div><div class="bg-grid">${body}</div></section>`;
+    const G = KS.map((k) => { const M = GROW_MS.filter((m) => m.k === k), nx = M.find((m) => g[k] < m.n); return grp(GROW_K[k][0], M.filter((m) => g[k] >= m.n).length, M.length, M.map((m) => chip(g[k] >= m.n, m.i, m.t, m === nx ? growLeft(m, g) : '', m === nx, Math.round((g[k] / m.n) * 100))).join('')); }).join('');
     const tb = BADGES.filter(pHas).length, sb = SBADGES.filter((b) => b.ok()).length;
-    sheet(`<span class="eyebrow">배지 모음</span><h2 style="margin-top:6px">${esc(NMI())}가 모은 배지 <span class="num">${got + tb + sb}개</span></h2><p class="sub">공부한 기록이 쌓이면 저절로 생겨요. 회색은 아직 못 딴 배지, 바로 다음 배지엔 남은 만큼이 적혀 있어요</p>
+    const ALL = GROW_MS.length + BADGES.length + SBADGES.length, H = got + tb + sb;
+    sheet(`<div class="bg-top"><span class="tiny">배지 모음</span><h2>${esc(NMI())}가 모은 배지</h2><div class="bg-cnt"><b class="num">${H}</b><span class="num">/ ${ALL}개</span></div><div class="bg-bar"><i style="width:${Math.round((H / ALL) * 100)}%"></i></div><p class="tiny">공부한 기록이 쌓이면 저절로 생겨요</p></div>
       <div class="bdg-all">${G}${grp('토마토 배지', tb, BADGES.length, BADGES.map((b) => chip(pHas(b), b.i, b.t, pHas(b) ? '' : b.d)).join(''))}${grp('공부 시간 배지', sb, SBADGES.length, SBADGES.map((b) => chip(b.ok(), b.i, b.t, b.ok() ? '' : b.d)).join(''))}</div>
       <button class="btn big block" id="bdg-x" type="button" style="margin-top:16px">닫기</button>`, (el, close) => { $('#bdg-x', el).onclick = close; });
   }
@@ -2345,7 +2346,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611082334', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611082335', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7047,7 +7048,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611082334'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611082335'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
