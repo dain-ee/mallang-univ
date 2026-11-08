@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611081651', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611081705', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2504,7 +2504,7 @@
     return `<div class="done-card card" data-done="${all ? 2 : ok / (n || 1) >= 0.6 ? 1 : 0}"><div class="done-ic gh-wrap">${gh(ok / (n || 1) >= 0.6 ? 'yay' : 'oops', 'gh-done')}</div><h1 class="h1">${title}</h1><div class="done-score"><b class="num">${ok}</b><span>/ ${n} 맞힘</span></div><p class="sub">${sub}</p>${extra}<div class="done-btns">${btns}</div></div>`;
   }
   function verdict(ok, extra = '') { return `<div class="verdict ${ok ? 'ok' : 'no'}">${ic(ok ? 'hundred' : 'think')}<span>${ok ? '정답이에요' : '아쉬워요, 다시 볼게요'}</span>${extra}</div>`; }
-  function addWrong(id, w) { S.wrong = S.wrong || {}; const old = S.wrong[id]; S.wrong[id] = { ...(old || {}), ...w, first: (old && (old.first || old.at)) || Date.now(), at: Date.now(), times: ((old && old.times) || 0) + 1, cleared: false, gone: false }; save('wrong'); }  /* 지운 오답도 다시 틀리면 다시 보여요 (11/4) */
+  function addWrong(id, w) { S.wrong = S.wrong || {}; const old = S.wrong[id]; S.wrong[id] = { ...(old || {}), ...w, first: (old && (old.first || old.at)) || Date.now(), at: Date.now(), times: ((old && old.times) || 0) + 1, cleared: false, gone: false }; save('wrong'); buzz(); }  /* 지운 오답도 다시 틀리면 다시 보여요 (11/4) */
   function clearWrong(id) { if (S.wrong && S.wrong[id]) { if (!S.wrong[id].cleared) earn('wr:' + id, 100, '오답 다시 맞힘'); S.wrong[id].cleared = true; S.wrong[id].clearedAt = Date.now(); save('wrong'); mockAllCheck(id); } }
   // 모의고사 한 회차 오답을 전부 다시 맞히면 크게 축하해요 (회차마다 한 번)
   function mockAllCheck(id) {
@@ -4667,7 +4667,7 @@
   // ───────── 소리 (벨) · 집중 소리 · 공부 음악 ─────────
   // 독서실에서 공부해서 효과음은 처음엔 무음이에요 (진동은 그대로). 집중 소리·음악은 직접 눌러야만 나와서 벨과 따로예요
   const SKEY = 'mallang-univ:sound', AKEY = 'mallang-univ:amb';
-  let SOUND = false; try { SOUND = localStorage.getItem(SKEY) === '1'; } catch (e) {}
+  let SOUND = true; try { SOUND = localStorage.getItem(SKEY) !== '0'; } catch (e) {}  // 11/8 «고를 때 소리가 안 나» → 처음부터 켜짐, 종을 눌러 끈 기기만 무음
   const bellSVG = (on) => `<svg class="bell" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">${on ? '' : '<mask id="bell-m"><rect width="24" height="24" fill="#fff"/><path d="M3.5 2.5l17 19" stroke="#000" stroke-width="4.6" stroke-linecap="round"/></mask>'}<g ${on ? '' : 'mask="url(#bell-m)"'} fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 2.8c.8 0 1.4.6 1.4 1.4v.6a6 6 0 0 1 4.6 5.8v3.6l1.5 2.2c.4.6 0 1.4-.7 1.4H5.2c-.7 0-1.1-.8-.7-1.4L6 14.2v-3.6a6 6 0 0 1 4.6-5.8v-.6c0-.8.6-1.4 1.4-1.4z"/><path d="M9.6 19.6h4.8a2.4 2.4 0 0 1-4.8 0z"/></g>${on ? '' : '<path d="M3.5 2.5l17 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'}</svg>`;
   function toggleBell() {
     SOUND = !SOUND; try { localStorage.setItem(SKEY, SOUND ? '1' : '0'); } catch (e) {}
@@ -6855,7 +6855,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081651'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081705'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8266,10 +8266,21 @@
     if (navigator.vibrate) navigator.vibrate(c >= 3 ? [30, 40, 30] : 25);
     ding(c);
   }
+  // 틀렸을 때: 낮게 두 번 (작게)
+  function buzz() {
+    if (!SOUND) return;
+    try { const A = audio(); [330, 262].forEach((f, i) => { const o = A.createOscillator(), g = A.createGain(), t = A.currentTime + i * 0.11; o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.1, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2); o.connect(g).connect(A.destination); o.start(t); o.stop(t + 0.22); }); } catch (e) {}
+  }
+  // 보기를 누를 때마다 톡 (맞고 틀린 소리는 그 뒤에)
+  function tick() {
+    if (!SOUND) return;
+    try { const A = audio(), o = A.createOscillator(), g = A.createGain(), t = A.currentTime; o.type = 'sine'; o.frequency.setValueAtTime(880, t); o.frequency.exponentialRampToValueAtTime(600, t + 0.05); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.08, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07); o.connect(g).connect(A.destination); o.start(t); o.stop(t + 0.08); } catch (e) {}
+  }
+  document.addEventListener('pointerdown', (e) => { const b = e.target.closest && e.target.closest('button.choice, button.jg-op, [data-jo], [data-jsq], .omr button, button.st-k, [data-chstk], .m3w-i button, .gpick button'); if (b && !b.disabled) tick(); }, true);
   function ding(c) {
     if (!SOUND) return;
     try {
-      const A = ding.a || (ding.a = new (window.AudioContext || window.webkitAudioContext)());
+      const A = audio();
       [523, 659, 784, 1047].slice(0, Math.min(2 + Math.floor(c / 2), 4)).forEach((f, i) => {
         const o = A.createOscillator(), g = A.createGain(), t = A.currentTime + i * 0.07;
         o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
