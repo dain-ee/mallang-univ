@@ -2349,7 +2349,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611090030', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611090059', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2628,6 +2628,7 @@
     if (beh.length) { for (let d = addD(FIN_START, Math.min(...beh.map((c) => c.fday))); d < t; d = addD(d, 1)) if (finStudy(d)) lag++; for (let k = 0; k < lag; ) { e = addD(e, 1); if (finStudy(e)) k++; } }
     return { n: beh.length, end: e < t ? t : e };
   }
+  const ddTxt = (d) => { const n = dday(d); return n > 0 ? `D-${n}` : n === 0 ? 'D-day' : `D+${-n}`; };  // 11/9 «이거 디데이로 보여줘야지»
   const finGap = (e) => Math.round((new Date(EB_EXAM + 'T00:00:00') - new Date(e + 'T00:00:00')) / 864e5);
   const finEndTxt = (sj) => { const z = finLag(sj); if (!z) return '다 끝냈어요'; const g = finGap(z.end);
     if (z.n) return `지금 속도면 ${md(z.end)}에 한 바퀴 끝${g > 0 ? ` · 기말 ${g}일 전` : g === 0 ? ' · 기말 당일' : ' · 기말 전에 못 끝나요'}`;
@@ -2664,7 +2665,7 @@
     const T = finToday();
     return `<section class="card c12"><div class="card-h"><h2>${ic('books')} 매일 기말 예습</h2>${(() => { const x = typeof EB_EXAM === 'string' && EB_EXAM ? dday(EB_EXAM) : null; return x != null && x >= 0 ? `<span class="tag">기말 ${x ? 'D-' + x : '오늘'}</span>` : '<span class="tiny">선생님이 날마다 나눠서 내요</span>'; })()}</div><div class="list">${FIN.map((f) => {
       const L = FIN_ALL.filter((x) => x.subj === f.subj), k = L.filter(finDone).length, t = T.filter((x) => x.subj === f.subj), tl = t.filter((x) => !finDone(x)).length, nm = f.subj === 'eng' ? '올림포스 지문' : f.name;
-      return `<div class="li btnlike" data-task="fin:${f.subj}"><div class="ico">${ic(k >= L.length ? 'ok' : f.subj === 'hist' ? 'scroll' : 'books')}</div>${(() => { const z = finLag(f.subj), g = z ? finGap(z.end) : 1; return `<div class="body"><div class="t">${esc(nm)}${tsTg([z && z.n ? [`밀림 ${z.n}개`, 'red'] : null, g <= 0 ? [g < 0 ? '기말보다 늦어요' : '기말 당일 끝', 'red'] : null])}</div><div class="d">${t.length ? (tl ? `오늘 ${tl}개 남았어요` : '오늘 것 끝') : '오늘은 없어요'} · ${z ? `${md(z.end)}에 끝나요` : '다 끝냈어요'}</div></div>`; })()}${tsEnd(k, L.length)}</div>`;
+      return `<div class="li btnlike" data-task="fin:${f.subj}"><div class="ico">${ic(k >= L.length ? 'ok' : f.subj === 'hist' ? 'scroll' : 'books')}</div>${(() => { const z = finLag(f.subj), g = z ? finGap(z.end) : 1; return `<div class="body"><div class="t">${esc(nm)}${tsTg([z && z.n ? [`밀림 ${z.n}개`, 'red'] : null, g <= 0 ? [g < 0 ? '기말보다 늦어요' : '기말 당일 끝', 'red'] : null])}</div><div class="d">${t.length ? (tl ? `오늘 ${tl}개 남았어요` : '오늘 것 끝') : '오늘은 없어요'} · ${z ? `${md(z.end)} 끝 · <b class="num">${ddTxt(z.end)}</b>` : '다 끝냈어요'}</div></div>`; })()}${tsEnd(k, L.length)}</div>`;
     }).join('')}${wqFinRow()}</div></section>`;
   }
   function finToday() {
@@ -7060,7 +7061,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611090030'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611090059'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8198,9 +8199,9 @@
     if (!SJ.length) return '';
     const endOf = (L) => { const days = [...new Set(L.map((x) => x.day))].sort(), beh = L.filter((x) => x.day < t && !ypDone(x)).length, per = Math.max(1, L.length / Math.max(1, days.length)); let d = days[days.length - 1], k = Math.ceil(beh / per); while (k > 0) { d = addD(d, 1); if (!(YF.off || []).includes(new Date(d + 'T00:00:00').getDay())) k--; } return { d, beh }; };
     const row = (sj) => { const L = YP.filter((x) => x.subj === sj && !x.id.startsWith('pp:')), k = L.filter(ypDone).length, td = L.filter((x) => x.day === t && !ypDone(x)).length, e = endOf(L), left = Math.max(0, Math.round((new Date(e.d + 'T00:00:00') - new Date(t + 'T00:00:00')) / 864e5));
-      return `<div class="li btnlike" data-go="study"><div class="ico">${ic(k >= L.length ? 'ok' : sj === 'hist' ? 'scroll' : sj === 'sci' ? 'sci' : 'books')}</div><div class="body"><div class="t">${NM[sj]}${tsTg([e.beh ? [`밀림 ${e.beh}개`, 'red'] : null])}</div><div class="d">${td ? `오늘 ${td}개` : '오늘은 없어요'} · ${k >= L.length ? '다 끝냈어요' : `${md(e.d)}에 끝나요${left ? ` · ${left}일 뒤` : ''}`}</div></div>${tsEnd(k, L.length)}</div>`; };
+      return `<div class="li btnlike" data-go="study"><div class="ico">${ic(k >= L.length ? 'ok' : sj === 'hist' ? 'scroll' : sj === 'sci' ? 'sci' : 'books')}</div><div class="body"><div class="t">${NM[sj]}${tsTg([e.beh ? [`밀림 ${e.beh}개`, 'red'] : null])}</div><div class="d">${td ? `오늘 ${td}개` : '오늘은 없어요'} · ${k >= L.length ? '다 끝냈어요' : `${md(e.d)} 끝 · <b class="num">${ddTxt(e.d)}</b>`}</div></div>${tsEnd(k, L.length)}</div>`; };
     const A = YP.filter((x) => SJ.includes(x.subj) && !x.id.startsWith('pp:')), ak = A.filter(ypDone).length, ae = endOf(A);
-    return `<section class="card c12"><div class="card-h"><h2>${ic('books')} 학교 내신 공부</h2><span class="tiny">${A.length - ak ? `${md(ae.d)}에 끝나요` : '다 끝냈어요'}</span></div><div class="list">${SJ.map(row).join('')}</div></section>`;
+    return `<section class="card c12"><div class="card-h"><h2>${ic('books')} 학교 내신 공부</h2><span class="tiny">${A.length - ak ? `${md(ae.d)} 끝 · ${ddTxt(ae.d)}` : '다 끝냈어요'}</span></div><div class="list">${SJ.map(row).join('')}</div></section>`;
   }
   function ygFront() {
     if (U.who !== '윤건' || typeof ygPlan !== 'function') return '';
