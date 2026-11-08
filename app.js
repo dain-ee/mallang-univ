@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611081714', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611081750', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5460,7 +5460,7 @@
     }
     // 11/8 «다 했다는 버튼» → 숙제로 연 글쓰기는 맨 밑에 「다 했어요」. 빈 문장이 있으면 그 문장으로 데려가요
     const fh = (S.hw || []).find((x) => x.go && x.go.kind === 'jw' && x.go.id === w.id && x.due >= today()) || (S.hw || []).find((x) => x.go && x.go.kind === 'jw' && x.go.id === w.id);
-    if (fh && m !== 'read') { const miss = L.filter((x) => !x.opt && !jpDone(w, x)).length, fin = hwDone(fh);
+    if (fh && m !== 'read' && !hwDone(fh)) { const miss = L.filter((x) => !x.opt && !jpDone(w, x)).length, fin = hwDone(fh);
       h += `<section class="card jp-fin">${fin ? `<b>${ic('ok')} 다 했어요</b><span class="tiny">숙제 목록에 줄이 그어졌어요</span>` : miss ? `<span class="tiny">아직 안 만든 문장이 ${miss}개 있어요</span>` : ''}${fin ? `<button class="btn big block" data-go="hw" type="button">숙제 목록으로</button>` : `<button class="btn primary big block" data-jpfin="${esc(fh.id)}" type="button">${UI.jpFinAsk === fh.id ? '빈 문장 두고 끝낼까요? 한 번 더 누르면 끝나요' : '다 했어요'}</button>`}</section>`; }
     return `<div class="qwrap j-wrap">${h}</div>`;
   }
@@ -6864,7 +6864,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081714'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081750'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7934,10 +7934,12 @@
   // 11/8 «뭔가 다 했으면 다 했어요 하고 목록으로» → 숙제·수업 칸으로 연 공부가 끝나는 순간 축하하고 열었던 목록으로 돌아가요
   function hwRunFin() {
     const R = UI.hwRun; if (!R || !UI.run) { if (R && !UI.run) UI.hwRun = null; return; }
-    const h = (S.hw || []).find((x) => x.id === R.id); if (!h || R.was || !hwDone(h)) return;
-    UI.hwRun = null; clearTimeout(hwRunFin.t);
-    hwRunFin.t = setTimeout(() => { boom(innerWidth / 2, innerHeight * 0.4, 4); ding(8); toast(`다 했어요! 🎉 ${String(h.title || '').replace(/^[^\p{L}\p{N}]+\s/u, '').slice(0, 24)}`); go(R.from); }, 900);
+    const h = (S.hw || []).find((x) => x.id === R.id); if (!h || R.was || R.cheered || !hwDone(h)) return;
+    R.cheered = 1; setTimeout(() => { boom(innerWidth / 2, innerHeight * 0.4, 4); ding(8); toast('다 했어요! 🎉 밑의 「다 했어요」를 누르면 목록으로 가요'); }, 600);  // 11/8 «다 했다는 건 내가 누를게, 끝나자마자 나가 버리면 어떡해» → 저절로 나가지 않아요
   }
+  // 끝난 숙제는 화면 밑에 「다 했어요 · 목록으로」 단추가 붙어요 (누를 때만 나가요)
+  const hwFinBar = () => { const R = UI.hwRun; if (!R || !UI.run) return ''; const h = (S.hw || []).find((x) => x.id === R.id); return h && hwDone(h) ? `<div class="hw-finbar"><button class="btn primary big block" data-hwfin type="button">${ic('ok')} 다 했어요 · ${R.from === 'exam' ? '수업' : '숙제'} 목록으로</button></div>` : ''; };
+  document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-hwfin]'); if (!b) return; const R = UI.hwRun || {}, h = (S.hw || []).find((x) => x.id === R.id); if (h && !h.done) { h.done = true; h.doneAt = Date.now(); save('hw'); } UI.hwRun = null; go(R.from || 'hw'); });
   function render() {
     hwRunFin();
     { const k = navAt(), was = render.nav; if (was && k !== was && !render.pop && (k === 'run' || was === 'home')) try { history.pushState({ mu: k }, ''); } catch (e) {} render.nav = k; render.pop = 0; }
@@ -7949,7 +7951,7 @@
     let html = '';
     syncGoals();
     redoFix();
-    if (UI.run) html = UI.run.kind === 'news' ? newsRun() : UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'wqd' ? wqDays() : UI.run.kind === 'wq' ? wqPage() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'qa' ? qaRun() : UI.run.kind === 'nx' ? nxRail(nxRun()) : UI.run.kind === 'nxw' ? nxwRun() : UI.run.kind === 'print' ? printRun() : '';
+    if (UI.run) html = (UI.run.kind === 'news' ? newsRun() : UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'wqd' ? wqDays() : UI.run.kind === 'wq' ? wqPage() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'qa' ? qaRun() : UI.run.kind === 'nx' ? nxRail(nxRun()) : UI.run.kind === 'nxw' ? nxwRun() : UI.run.kind === 'print' ? printRun() : '') + hwFinBar();
     else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'tme' ? tmeView() : UI.tab === 'picks' ? picksView() : UI.tab === 'kmla' ? kmlaView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'report' ? reportTabView() : UI.tab === 'grade' ? gradeView() : UI.tab === 'study' ? studyView() : UI.tab === 'exam' ? examView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
     const wqv = UI.run && UI.run.kind === 'wq' ? (UI.run.stage === 'list' ? 1 : UI.run.k >= UI.run.Q.length ? 3 : 2) : 0;  // 11/4 «애니메이션 굉장히 중요»: 단어 Day 목록 → 표 → 시험 → 끝도 화면 넘기듯

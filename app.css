@@ -3955,3 +3955,10 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .jp-fin { display: grid; gap: 10px; text-align: center; }
 .jp-fin > b { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 17px; }
 .jp-s.jp-miss { border-radius: 12px; box-shadow: 0 0 0 2px var(--amber, #f5b400); }
+
+/* 11/8 끝난 숙제: 밑에 붙는 「다 했어요 · 목록으로」 */
+.hw-finbar { position: sticky; bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 50; max-width: 820px; margin: 16px auto 0; padding: 0 4px; animation: hwfin .4s cubic-bezier(.2, .8, .2, 1); }
+.hw-finbar .btn { display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 24px rgba(49, 130, 246, .35); }
+.hw-finbar .ic { width: 20px; height: 20px; }
+@keyframes hwfin { from { opacity: 0; transform: translateY(16px); } }
+@media (prefers-reduced-motion: reduce) { .hw-finbar { animation: none; } }
