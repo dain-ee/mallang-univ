@@ -757,7 +757,7 @@
   }
   function weekCheck(g) {
     const r = weekRec(g), k = 'wkrec:' + r.ws;
-    if (TEACHER || r.best < 10 || r.cur <= r.best || wHas(k) || weekCheck.ws === r.ws) return;
+    if (TEACHER || r.best < 10 || r.cur <= r.best || wHas(k) || (S.party || {})['bp:' + k] || weekCheck.ws === r.ws) return;
     weekCheck.ws = r.ws;
     setTimeout(() => badgePop([{ id: 'wk', key: k, w: 500, i: 'crown', eb: '이번 주 기록 경신', t: `${r.cur}문제, 최고 기록!`, d: `지금까지 제일 많이 한 주가 ${r.best}문제였어요` }]), 1600);
   }
@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611081855', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611081902', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4432,8 +4432,13 @@
     { id: 'h2', w: 1000, i: 'brain', t: '하루 2시간', d: '하루 집중 120분', ok: () => Object.values(pomo().days).some((x) => x.min >= 120) },
   ];
   // 배지 획득: 화면 가운데 큰 배지가 튀어나오고, 배지마다 용돈(하루 한도와 따로)
+  // 11/8 «같은 뱃지가 계속 뜨는 거 같은데, 모든 애들 다»: 용돈 없는 과외 학생은 「이번 주 기록 경신」을 봤다는 표시가 지갑에만 남아서 앱을 켤 때마다 또 떴어요
+  // → 배지는 한 번 뜨면 S.party['bp:<key>'] 에 적어 두고 다시 안 띄워요 (모든 학생, 모든 배지)
+  const bpKey = (b) => 'bp:' + (b.key || 'id:' + b.id), bpPeek = new Set();  // 학생 화면 보기(저장 안 함)에서는 이 창에서만 기억
   function badgePop(list) {
+    S.party = S.party || {}; list = (list || []).filter((x) => x && !S.party[bpKey(x)] && !bpPeek.has(U.who + bpKey(x)));
     const b = list[0]; if (!b) return;
+    if (PEEK || TEACHER) bpPeek.add(U.who + bpKey(b)); else { S.party[bpKey(b)] = Date.now(); save('party'); }
     const all = BADGES.every(pHas);
     const el = document.createElement('div'); el.className = 'bdg-pop' + (b.mega ? ' mega' : '');
     el.innerHTML = `<div class="bdg-card"><div class="bdg-rays"></div><div class="bdg-ic">${ic(b.i)}</div><p class="bdg-eb">${esc(b.eb || '배지 획득!')}</p><h3>${esc(b.t)}</h3><p class="bdg-d">${esc(b.d)}</p>${b.medals ? `<div class="bdg-medals">${b.medals.map((m) => `<span>🏅<b>${esc(m)}</b></span>`).join('')}</div>` : ''}${WALLET && b.w ? `<p class="bdg-won">+${b.w.toLocaleString()}원</p>` : ''}${all && list.length === 1 && !b.key ? `<p class="bdg-all">배지를 모두 모았어요!${WALLET ? ' 보너스 +5,000원' : ''}</p>` : ''}<button class="btn primary big block" type="button">${list.length > 1 ? '다음 배지 보기' : '좋아요'}</button></div>`;
@@ -6864,7 +6869,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081855'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081902'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7373,7 +7378,7 @@
     const stuC = `<section class="card tight"><div class="card-h"><h3>학생</h3><button class="more" data-tgo="tstu" type="button">전체</button></div><div class="list">${info.map((x) => `<div class="li btnlike" data-dl="${esc(x.r.name)}">${sAv(x.r)}<div class="body"><div class="t">${esc(x.r.name)}</div><div class="d">${loading(x) ? '불러오는 중' : agoTxt(x.last)}</div></div><b class="num" style="font-size:14px">${loading(x) ? '' : x.week + '문제'}</b></div>`).join('')}</div></section>`;
     const h = new Date().getHours();
     const main = `<h1 class="h1">${tBday() === 0 ? `${esc(TP.name)}, 생일 축하해요` : `${esc(TP.name)}, ${h < 12 ? '좋은 아침이에요' : h < 18 ? '오후도 힘내요' : '오늘도 수고했어요'}`}</h1><p class="sub">${up.some((u) => u.date === t) ? `오늘 ${up.filter((u) => u.date === t).map((u) => u.x.r.name).join(' · ')} 수업이 있어요` : '오늘은 수업이 없어요'}${asks.length ? ` · 확인할 것 ${asks.length}개` : ''}</p>
-      <div class="grid">${appCard()}${askC}${upC}${tKnowCard()}${moneyC}${dMsgCard(info)}${newsC}</div>`;
+      <div class="grid">${appCard()}${askC}${upC}${moneyC}${tKnowCard()}${dMsgCard(info)}${newsC}</div>`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${clockWidget()}${hotCard('')}${stuC}</aside></div>`;
   }
   // 선생님 홈에만: 수업하다 헷갈린 문법을 정리해 둔 노트 (11/8 «내 홈에다가만 띄워 줘, 알아야 둬야 할 거 선생님 지식으로»). 학생 화면·학생 보기에는 없어요
