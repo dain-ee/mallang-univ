@@ -3970,3 +3970,14 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .jgs-cc summary .ic { width: 16px; height: 16px; }
 .jgs-cc-b { margin-top: 6px; font-size: 14px; line-height: 1.7; color: var(--t1); }
 .jgs-cc-b i { color: var(--t2); }
+
+/* 선생님 문법 노트 (선생님 홈) */
+.tkn .card-h { margin-bottom: 4px; }
+.tkn-b { display: block; width: 100%; }
+.tkn-n { border-top: 1px solid var(--line, var(--fill)); padding: 4px 0; }
+.tkn-n summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 0; font-size: 15px; }
+.tkn-n summary::-webkit-details-marker { display: none; }
+.tkn-dl { display: grid; grid-template-columns: minmax(64px, max-content) 1fr; gap: 6px 12px; margin: 0 0 10px; font-size: 14px; line-height: 1.55; }
+.tkn-dl dt { color: var(--t2); font-weight: 600; }
+.tkn-dl dd { margin: 0; min-width: 0; }
+@media (max-width: 560px) { .tkn-dl { grid-template-columns: 1fr; gap: 2px; } .tkn-dl dd { margin-bottom: 6px; } }

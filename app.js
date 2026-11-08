@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611081834', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611081844', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6864,7 +6864,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081834'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081844'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7373,8 +7373,30 @@
     const stuC = `<section class="card tight"><div class="card-h"><h3>학생</h3><button class="more" data-tgo="tstu" type="button">전체</button></div><div class="list">${info.map((x) => `<div class="li btnlike" data-dl="${esc(x.r.name)}">${sAv(x.r)}<div class="body"><div class="t">${esc(x.r.name)}</div><div class="d">${loading(x) ? '불러오는 중' : agoTxt(x.last)}</div></div><b class="num" style="font-size:14px">${loading(x) ? '' : x.week + '문제'}</b></div>`).join('')}</div></section>`;
     const h = new Date().getHours();
     const main = `<h1 class="h1">${tBday() === 0 ? `${esc(TP.name)}, 생일 축하해요` : `${esc(TP.name)}, ${h < 12 ? '좋은 아침이에요' : h < 18 ? '오후도 힘내요' : '오늘도 수고했어요'}`}</h1><p class="sub">${up.some((u) => u.date === t) ? `오늘 ${up.filter((u) => u.date === t).map((u) => u.x.r.name).join(' · ')} 수업이 있어요` : '오늘은 수업이 없어요'}${asks.length ? ` · 확인할 것 ${asks.length}개` : ''}</p>
-      <div class="grid">${appCard()}${askC}${upC}${moneyC}${dMsgCard(info)}${newsC}</div>`;
+      <div class="grid">${appCard()}${askC}${upC}${tKnowCard()}${moneyC}${dMsgCard(info)}${newsC}</div>`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${clockWidget()}${hotCard('')}${stuC}</aside></div>`;
+  }
+  // 선생님 홈에만: 수업하다 헷갈린 문법을 정리해 둔 노트 (11/8 «내 홈에다가만 띄워 줘, 알아야 둬야 할 거 선생님 지식으로»). 학생 화면·학생 보기에는 없어요
+  const T_KNOW = [
+    { at: '2026-11-08', t: 'need + -ing 는 왜 능동 모양인데 수동 뜻?', b: [
+      ['기준', '사람·사물이 아니라 <b>주어가 직접 하나, 당하나</b>'],
+      ['직접 함', 'need <b>to V</b> · The patient needs <b>to rest</b>. (환자가 쉼)'],
+      ['당함', 'need <b>-ing</b> = need <b>to be p.p.</b> · The patient needs <b>examining</b>. = needs <b>to be examined</b>.'],
+      ['틀림', 'The shirt needs <b>being washed</b> ✕ · The shirt needs <b>to wash</b> ✕ (셔츠가 빤다는 뜻)'],
+      ['왜', 'washing 은 「빨래」라는 일의 이름. needs <b>a wash</b> 와 같은 자리라 수동 모양을 안 붙여요. 우리말 「빨래가 필요해」처럼 능동·수동이 없어요'],
+      ['같은 묶음', 'need · want · deserve + -ing = to be p.p. · He deserves <b>praising</b>. · This book is worth <b>reading</b>. (worth being read ✕)'],
+    ] },
+    { at: '2026-11-08', t: 'remember being taken, 왜 having been taken 이 아닌가', b: [
+      ['핵심', 'remember + -ing 가 이미 「<b>전에 한 일</b>을 기억」. 과거가 동사 안에 들어 있어 완료로 또 표시할 필요가 없어요'],
+      ['수동', '데려가진 쪽이라 <b>being taken</b> · I remember <b>being taken</b> to the zoo.'],
+      ['having been', '문법상 틀리진 않지만 겹쳐 말하는 꼴이라 거의 안 써요. 시험 정답은 being taken'],
+      ['같은 동사', 'regret · forget + -ing 도 같아요 · I regret <b>telling</b> her.'],
+      ['완료가 필요할 때', '동사가 스스로 과거를 안 가리킬 때 · He is proud of <b>having won</b>. (지금 자랑, 이긴 건 그 전)'],
+    ] },
+  ];
+  function tKnowCard() {
+    if (!TEACHER) return '';
+    return `<section class="card c12 tkn"><div class="card-h"><h2>${ic('books')} 선생님 문법 노트</h2><span class="tiny">학생은 이 칸이 안 보여요</span></div><div class="tkn-b">${T_KNOW.map((n, i) => `<details class="tkn-n"${i ? '' : ' open'}><summary><b>${esc(n.t)}</b><span class="tiny">${esc(md(n.at))}</span></summary><dl class="tkn-dl">${n.b.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${v}</dd>`).join('')}</dl></details>`).join('')}</div></section>`;
   }
   function drepView() {
     const info = dashInfo(), up = dashUp(info, 7);
