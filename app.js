@@ -970,7 +970,7 @@
     const tm = setInterval(() => { if (!p.isConnected) return clearInterval(tm); if (document.hidden) return; const f = Math.min(1, (Date.now() - t0) / T); bar.style.width = f * 100 + '%'; tx.textContent = f < 1 ? `천천히 읽어요 · ${Math.ceil((T - (Date.now() - t0)) / 1000)}초` : '';
       if (f < 1) return; clearInterval(tm); p.classList.add('done');
       if (PEEK) { tx.textContent = '미리 보기라 불꽃은 안 받아요'; return; }
-      S.nr = S.nr || {}; S.nr[n.id] = Date.now(); save('nr'); const c = Object.keys(S.nr).length, r = p.getBoundingClientRect(); boom(r.left + 20, r.top + r.height / 2, 3); ding(8); if (navigator.vibrate) navigator.vibrate([40, 30, 80]);
+      S.nr = S.nr || {}; S.nr[n.id] = Date.now(); save('nr'); const c = Object.keys(S.nr).length, r = p.getBoundingClientRect(); boom(r.left + 20, r.top + r.height / 2, 3); fanfare(); if (navigator.vibrate) navigator.vibrate([40, 30, 80]);
       tx.textContent = `불꽃 ${c}개째!`; const bd = NR_BADGE.find((x) => x[0] === c);
       if (bd) setTimeout(() => badgePop([{ id: 'nr' + c, key: 'nr:' + c, w: 0, i: bd[1], eb: `🔥 소식 ${c}개 읽기`, t: bd[2], d: bd[3], mega: c >= 10 ? 1 : 0 }]), 500); else toast(`🔥 불꽃 ${c}개! 다음 배지까지 ${((NR_BADGE.find((x) => x[0] > c) || [c])[0]) - c}개`); }, 200);
   }
@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611081914', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611081919', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2338,7 +2338,7 @@
         S.profile.skins = [...new Set([...(S.profile.skins || []), k])]; S.gifts = gAll().map((x) => (x.skin === k ? { ...x, open: Date.now() } : x)); S.gift = {}; save('profile', 'gifts', 'gift');
         inn.innerHTML = page(`${esc(SKINS[k].n)} 테마를<br>받았어요`, '내 정보에서 언제든 바꿀 수 있어요', `${petals()}<img class="gf-pet" src="${av(`assets/pets/${k}/yay.webp`)}" alt="" onerror="this.src='${skinPic(k)}'">`, '바로 써 볼게요', '나중에');
         inn.style.setProperty('--gk', SKINS[k].c); inn.classList.add('won');
-        const r = $('.gf-pet', inn).getBoundingClientRect(); boom(r.left + r.width / 2, r.top + r.height / 2, 4); ding(8); if (navigator.vibrate) navigator.vibrate([60, 40, 120]);
+        const r = $('.gf-pet', inn).getBoundingClientRect(); boom(r.left + r.width / 2, r.top + r.height / 2, 4); fanfare(); if (navigator.vibrate) navigator.vibrate([60, 40, 120]);
         $('#gf-a', inn).onclick = () => { S.profile.skin = k; save('profile'); close(); toast(`${SKINS[k].n} 테마로 바꿨어요`); };
         $('#gf-b', inn).onclick = close;
       };
@@ -2519,7 +2519,7 @@
       document.body.appendChild(el); requestAnimationFrame(() => el.classList.add('on'));
       const W0 = innerWidth, H0 = innerHeight;
       [[W0 / 2, H0 * 0.4, 6, 300], [W0 * 0.2, H0 * 0.3, 4, 900], [W0 * 0.8, H0 * 0.3, 4, 1300], [W0 / 2, H0 * 0.25, 6, 1900]].forEach(([x, y, p, t]) => setTimeout(() => boom(x, y, p), t));
-      ding(8); setTimeout(() => ding(8), 900); if (navigator.vibrate) navigator.vibrate([80, 60, 80, 60, 200]);
+      fanfare(); setTimeout(() => fanfare(), 900); if (navigator.vibrate) navigator.vibrate([80, 60, 80, 60, 200]);
       const close = () => { el.classList.remove('on'); setTimeout(() => el.remove(), 260); };
       $('button', el).onclick = close; el.onclick = (e) => { if (e.target === el) close(); };
     }, 900);
@@ -4444,7 +4444,7 @@
     el.innerHTML = `<div class="bdg-card"><div class="bdg-rays"></div><div class="bdg-ic">${ic(b.i)}</div><p class="bdg-eb">${esc(b.eb || '배지 획득!')}</p><h3>${esc(b.t)}</h3><p class="bdg-d">${esc(b.d)}</p>${b.medals ? `<div class="bdg-medals">${b.medals.map((m) => `<span>🏅<b>${esc(m)}</b></span>`).join('')}</div>` : ''}${WALLET && b.w ? `<p class="bdg-won">+${b.w.toLocaleString()}원</p>` : ''}${all && list.length === 1 && !b.key ? `<p class="bdg-all">배지를 모두 모았어요!${WALLET ? ' 보너스 +5,000원' : ''}</p>` : ''}<button class="btn primary big block" type="button">${list.length > 1 ? '다음 배지 보기' : '좋아요'}</button></div>`;
     document.body.appendChild(el);
     requestAnimationFrame(() => el.classList.add('on'));
-    setTimeout(() => { const r = $('.bdg-ic', el).getBoundingClientRect(); boom(r.left + r.width / 2, r.top + r.height / 2, 6); ding(8); if (navigator.vibrate) navigator.vibrate([60, 40, 120]); if (b.mega) [700, 1300, 1900, 2600].forEach((ms, i) => setTimeout(() => { if (!el.isConnected) return; boom(innerWidth * [0.2, 0.8, 0.35, 0.65][i], innerHeight * 0.3, 6); ding(8); }, ms)); }, 380);
+    setTimeout(() => { const r = $('.bdg-ic', el).getBoundingClientRect(); boom(r.left + r.width / 2, r.top + r.height / 2, 6); fanfare(); if (navigator.vibrate) navigator.vibrate([60, 40, 120]); if (b.mega) [700, 1300, 1900, 2600].forEach((ms, i) => setTimeout(() => { if (!el.isConnected) return; boom(innerWidth * [0.2, 0.8, 0.35, 0.65][i], innerHeight * 0.3, 6); }, ms)); }, 380);
     setTimeout(() => { if (WALLET && b.w) earn(b.key || 'badge:' + b.id, b.w, b.key ? b.t : `배지 · ${b.t}`, { bonus: true, from: $('.bdg-won', el) }); if (all && list.length === 1 && !b.key) earn('badge:all', 5000, '배지 모두 모음', { bonus: true, from: $('.bdg-won', el) }); }, 900);
     const close = () => { el.classList.remove('on'); setTimeout(() => { el.remove(); if (b.done) b.done(); badgePop(list.slice(1)); }, 260); };
     $('button', el).onclick = close; el.onclick = (e) => { if (e.target === el) close(); };
@@ -4539,7 +4539,7 @@
     save('pomo'); render();
     if (!m) return toast('기록을 지웠어요');
     const nb = SBADGES.filter((b) => b.ok() && !had.includes(b.id)), crossed = S_GOALS.filter((g) => allB < g * 60 && sAll() >= g * 60).pop();
-    const r = ($('.st-big') || document.body).getBoundingClientRect(); boom(r.left + r.width / 2, r.top + r.height / 2, m >= 300 ? 6 : 3); ding(m >= 300 ? 8 : 3); if (navigator.vibrate) navigator.vibrate([60, 40, 120]);
+    const r = ($('.st-big') || document.body).getBoundingClientRect(); boom(r.left + r.width / 2, r.top + r.height / 2, m >= 300 ? 6 : 3); (m >= 300 ? fanfare() : ding(3)); if (navigator.vibrate) navigator.vibrate([60, 40, 120]);
     toast(sMin(d) > bdM && bdM ? `새 최고 기록! ${hm(sMin(d))}` : `${hm(sMin(d))} 적었어요 · ${sCheer(sMin(d))}`);
     const pops = [...(crossed ? [{ i: 'party', t: `누적 ${crossed.toLocaleString()}시간 돌파!`, d: `지금까지 모두 ${hm(sAll())} 공부했어요`, eb: '목표 달성!', w: 0, key: 'study:goal' + crossed }] : []), ...nb.map((b) => ({ ...b, w: 0, eb: '공부 시간 배지!', key: 'study:' + b.id }))];
     if (pops.length) setTimeout(() => badgePop(pops), 1200);
@@ -4650,7 +4650,7 @@
     } else { P.offer = 'focus'; P.pick = P.lastFocus || 'f25'; }
     pSave(); pRedraw(); pPaint();
     if (r.mode === 'focus') {
-      boom(cx, cy, 5); ding(8); if (navigator.vibrate) navigator.vibrate([80, 60, 80, 60, 160]);
+      boom(cx, cy, 5); fanfare(); if (navigator.vibrate) navigator.vibrate([80, 60, 80, 60, 160]);
       toast(x.n === pGoal() ? `오늘 목표 ${x.n}개 달성!` : `토마토 ${x.n}개째예요! 5분 쉬어 가요`);
       const big = r.dur >= 45 * 60; setTimeout(() => earn('pomo:' + r.endAt, big ? 600 : 300, big ? '토마토 45분' : '토마토 25분', { from: $('.pm-tom') || $('.pm-h-ic') }), 600);
       const tm = $('.pm-tom'); if (tm && !RM()) bump(tm, 'pm-pop');
@@ -4954,7 +4954,7 @@
       if (wBal() < W_GOAL || TEACHER) return;
       sheet(`<div class="wl-sh-ic">${ic('cash')}</div><h2 style="text-align:center">5만원을 진짜 돈으로 바꿀까요?</h2><p class="sub" style="text-align:center">선생님께 알려 드려요. 선생님이 주시면 ${won(W_GOAL)}이 지갑에서 빠져요</p><div class="pm-btns"><button class="btn big" data-x type="button">다음에</button><button class="btn primary big" id="wx-ok" type="button">바꿔 주세요</button></div>`, (el, close) => {
         $('[data-x]', el).onclick = close;
-        $('#wx-ok', el).onclick = async () => { await freshWallet(); W().req = { at: Date.now(), amt: W_GOAL }; save('wallet'); close(); render(); boom(innerWidth / 2, innerHeight * 0.35, 4); ding(6); toast('선생님께 바꿔 달라고 했어요'); };
+        $('#wx-ok', el).onclick = async () => { await freshWallet(); W().req = { at: Date.now(), amt: W_GOAL }; save('wallet'); close(); render(); boom(innerWidth / 2, innerHeight * 0.35, 4); fanfare(); toast('선생님께 바꿔 달라고 했어요'); };
       });
     };
     const pay = $('#wl-pay'); if (pay) pay.onclick = () => {
@@ -5195,7 +5195,7 @@
       const left = [2, 3, 4].filter((k) => !all(k)).map((k) => JG_STEP[k]);
       return setTimeout(() => badgePop([{ id: `jgs${u.no}-${step}`, key: `jgs:${u.no}:${step}`, w: 0, i: step === 4 ? 'crown' : step === 3 ? 'medal' : 'star', eb: '🎉 배지 획득!', t: `Unit ${u.no} ${JG_STEP[step]} 완주!`, d: `${qs.length}문제 중 ${okN(qs)}개 맞혔어요. ${left.length ? `이제 ${left.join('·')}만 하면 「Unit ${u.no} 마스터」 배지예요!` : ''}` }]), 500);
     }
-    if (r.secs && r.secs.length) { const qs = jgQs(u, step, r.secs), k = `u${u.no}:${step}:${r.secs.join('')}`; if (qs.every((q) => jgRec(u, q)) && !B[k]) { B[k] = Date.now(); save('jgb'); setTimeout(() => { boom(innerWidth / 2, innerHeight * 0.4, 4); ding(8); toast(`숙제 하나 끝! ${okN(qs)}/${qs.length} 맞혔어요 🎉`); }, 300); } }
+    if (r.secs && r.secs.length) { const qs = jgQs(u, step, r.secs), k = `u${u.no}:${step}:${r.secs.join('')}`; if (qs.every((q) => jgRec(u, q)) && !B[k]) { B[k] = Date.now(); save('jgb'); setTimeout(() => { boom(innerWidth / 2, innerHeight * 0.4, 4); fanfare(); toast(`숙제 하나 끝! ${okN(qs)}/${qs.length} 맞혔어요 🎉`); }, 300); } }
   }
   function gramLib() {
     if (!JG.length) return '';
@@ -6888,7 +6888,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081914'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081919'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7981,7 +7981,7 @@
   function hwRunFin() {
     const R = UI.hwRun; if (!R || !UI.run) { if (R && !UI.run) UI.hwRun = null; return; }
     const h = (S.hw || []).find((x) => x.id === R.id); if (!h || R.was || R.cheered || !hwDone(h)) return;
-    R.cheered = 1; setTimeout(() => { boom(innerWidth / 2, innerHeight * 0.4, 4); ding(8); toast('다 했어요! 🎉 밑의 「다 했어요」를 누르면 목록으로 가요'); }, 600);  // 11/8 «다 했다는 건 내가 누를게, 끝나자마자 나가 버리면 어떡해» → 저절로 나가지 않아요
+    R.cheered = 1; setTimeout(() => { boom(innerWidth / 2, innerHeight * 0.4, 4); fanfare(); toast('다 했어요! 🎉 밑의 「다 했어요」를 누르면 목록으로 가요'); }, 600);  // 11/8 «다 했다는 건 내가 누를게, 끝나자마자 나가 버리면 어떡해» → 저절로 나가지 않아요
   }
   // 끝난 숙제는 화면 밑에 「다 했어요 · 목록으로」 단추가 붙어요 (누를 때만 나가요)
   const hwFinBar = () => { const R = UI.hwRun; if (!R || !UI.run) return ''; const h = (S.hw || []).find((x) => x.id === R.id); return h && hwDone(h) ? `<div class="hw-finbar"><button class="btn primary big block" data-hwfin type="button">${ic('ok')} 다 했어요 · ${R.from === 'exam' ? '수업' : '숙제'} 목록으로</button></div>` : ''; };
@@ -8319,7 +8319,7 @@
   const CHEER2 = ['좋아요!', '정확해요!', '센스 있어요!', '바로 그거예요!', '완벽해요!'];
   function cheerCheck() {
     const dc = $('main .done-card');
-    if (dc && !cheerCheck.done) { $$('.combo-pop').forEach((x) => x.remove()); dc.classList.add('in'); setTimeout(() => countUp(dc), 200); const lv = +dc.dataset.done, r = $('.done-ic', dc).getBoundingClientRect(); if (lv) { boom(r.left + r.width / 2, r.top + r.height / 2, lv === 2 ? 5 : 2); ding(lv === 2 ? 8 : 3); } }
+    if (dc && !cheerCheck.done) { $$('.combo-pop').forEach((x) => x.remove()); dc.classList.add('in'); setTimeout(() => countUp(dc), 200); const lv = +dc.dataset.done, r = $('.done-ic', dc).getBoundingClientRect(); if (lv) { boom(r.left + r.width / 2, r.top + r.height / 2, lv === 2 ? 5 : 2); (lv === 2 ? fanfare() : ding(3)); } }
     cheerCheck.done = !!dc;
     const v = $('main .verdict, main .nx-vd'); const was = cheerCheck.had; cheerCheck.had = !!v;
     if (!v || was) return;
@@ -8343,16 +8343,17 @@
     try { const A = audio(), o = A.createOscillator(), g = A.createGain(), t = A.currentTime; o.type = 'sine'; o.frequency.setValueAtTime(880, t); o.frequency.exponentialRampToValueAtTime(600, t + 0.05); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.08, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07); o.connect(g).connect(A.destination); o.start(t); o.stop(t + 0.08); } catch (e) {}
   }
   document.addEventListener('pointerdown', (e) => { const b = e.target.closest && e.target.closest('button.choice, button.jg-op, [data-jo], [data-jsq], .omr button, button.st-k, [data-chstk], .m3w-i button, .gpick button'); if (b && !b.disabled) tick(); }, true);
+  // 11/8 선생님 소리 시안에서 고름 («이걸로 전체 애들 바꿔 줘»): 톡·틀림은 그대로, 정답·연속은 실로폰 반짝(D), 배지·팡팡은 마림바(B)
+  const sndT = (A, f, t, vol, dec) => { const o = A.createOscillator(), g = A.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(f, t); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + dec); o.connect(g).connect(A.destination); o.start(t); o.stop(t + dec + 0.05); };
+  const sndBell = (A, f, t, v = 0.1, d = 0.9) => { sndT(A, f, t, v, d); sndT(A, f * 2.76, t, v * 0.35, d * 0.45); sndT(A, f * 5.4, t, v * 0.12, d * 0.2); };
+  const sndMar = (A, f, t, v = 0.14) => { sndT(A, f, t, v, 0.35); sndT(A, f * 4, t, v * 0.18, 0.06); };
   function ding(c) {
     if (!SOUND) return;
-    try {
-      const A = audio();
-      [523, 659, 784, 1047].slice(0, Math.min(2 + Math.floor(c / 2), 4)).forEach((f, i) => {
-        const o = A.createOscillator(), g = A.createGain(), t = A.currentTime + i * 0.07;
-        o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
-        o.connect(g).connect(A.destination); o.start(t); o.stop(t + 0.3);
-      });
-    } catch (e) {}
+    try { const A = audio(), t = A.currentTime + 0.01; if ((c || 1) >= 3) [1047, 1319, 1568, 2093].forEach((f, i) => sndBell(A, f, t + i * 0.09, 0.08)); else { sndBell(A, 1047, t); sndBell(A, 1568, t + 0.1); } } catch (e) {}
+  }
+  function fanfare() {
+    if (!SOUND) return;
+    try { const A = audio(), t = A.currentTime + 0.01; [784, 988, 1175, 1568, 1976].forEach((f, i) => sndMar(A, f, t + i * 0.06, 0.12)); sndMar(A, 1568, t + 0.5, 0.1); } catch (e) {}
   }
   // 컨페티는 캔버스 하나에 모아 그려요. 시간 기준으로 움직이고, 다 떨어지면 꼭 지워요(폰에서 남아 쌓이지 않게)
   function boom(x, y, power = 1) {
