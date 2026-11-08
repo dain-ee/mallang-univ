@@ -48,6 +48,8 @@
   // W: 그 학생의 오답 기록. 선생님 화면에서는 꼭 학생 것을 넘겨요 (선생님 자기 기록을 보면 늘 「안 했어요」로 떠요 10/26)
   const hwWr = (h, W = S.wrong) => (h.wr || []).filter((id) => W && W[id]);
   const wrTried = (h, id, W = S.wrong) => { const w = W[id]; return w.cleared || (w.at || 0) > (h.at || 0); };
+  const HWL = () => (S.hw || []).filter((h) => !h.ls);  // 11/8 수업에서 할 것(ls)은 숙제 목록에 안 나와요
+  const LSN = (d) => (S.hw || []).filter((h) => h.ls && h.due === d);
   const hwDone = (h, W = S.wrong) => !!h.done || (hwWr(h, W).length > 0 && hwWr(h, W).every((id) => wrTried(h, id, W))) || (W === S.wrong && hwGoDone(h));
   // 끝낸 때: 오답 숙제는 마지막으로 다시 푼 때
   // 11/7 선생님 «밀린 걸 하면 오늘 거에 밀린 걸 한 게 되어야지, 지난날에 한 걸로 되면 안 되지»: 끝낸 날 = doneAt 날짜 (마감 날이 아니라)
@@ -59,9 +61,9 @@
   const wrFirst = (w) => w.first || w.at || 0;
   // 더 못 푸는 오답: 교재가 바뀌어 문제가 없어진 것 (천일문 예전 문제 등). 목록·개수·오늘 풀 오답에서 다 빼요
   const wrGone = (w) => !!(w && (w.gone || (w.src === 'eng' && w.ref && w.ref.v !== 2 && CH_UNITS.some((u) => u.v2))));
-  const todayWr = () => { const out = [], t = today(); for (const h of (S.hw || []).filter((x) => !x.done && (!x.due || x.due <= t))) for (const id of hwWr(h)) if (!wrTried(h, id) && !out.includes(id)) out.push(id);
+  const todayWr = () => { const out = [], t = today(); for (const h of HWL().filter((x) => !x.done && (!x.due || x.due <= t))) for (const id of hwWr(h)) if (!wrTried(h, id) && !out.includes(id)) out.push(id);
     for (const [id, w] of Object.entries(S.wrong || {}).filter(([id, w]) => !w.cleared && !wrGone(w) && w.src !== 'mock' && !String(id).startsWith('mock:') && !out.includes(id)).sort((a, b) => wrFirst(a[1]) - wrFirst(b[1]))) out.push(id); return out; };
-  const hwNow = () => (S.hw || []).filter((h) => !hwDone(h) && (!h.due || h.due <= today()));
+  const hwNow = () => HWL().filter((h) => !hwDone(h) && (!h.due || h.due <= today()));
   const rich = (t) => esc(t).replace(/&lt;(\/?)(b|u|i|em|strong)&gt;/g, '<$1$2>').replace(/&lt;br\s*\/?&gt;/g, '<br>');
   const fmt1 = (x) => (x == null || isNaN(x) ? '-' : (Math.round(x * 10) / 10).toFixed(1));
 
@@ -802,7 +804,7 @@
     const wordsDone = Object.keys(ed.wans || {}).length >= Math.min(10, wordsFor(ed.words).length) && wordsFor(ed.words).length;
     const unitDone = uDone(ed);
     const tasks = [...wqTasks()];
-    if (TUTOR) { for (const t of tutorTasks()) tasks.push(t); for (const t of ypTasks()) tasks.push(t); for (const h of (S.hw || []).filter((x) => !hwDone(x) && !(x.grp && x.due > today()))) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due && h.due < today() ? `${md(h.due)} 몫 · 못 했어요` : `${h.subj && h.subj !== '영어' ? h.subj + ' · ' : ''}${h.due ? md(h.due) + '까지' : '선생님 숙제'}`, late: !!(h.due && h.due < today()), done: false }); for (const h of (S.hw || []).filter(hwDoneToday)) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due < today() ? `${md(h.due)} 몫 · 오늘 따라잡았어요` : '선생님 숙제 · 끝냈어요', done: true }); return { tasks, off: false }; }
+    if (TUTOR) { for (const t of tutorTasks()) tasks.push(t); for (const t of ypTasks()) tasks.push(t); for (const h of HWL().filter((x) => !hwDone(x) && !(x.grp && x.due > today()))) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due && h.due < today() ? `${md(h.due)} 몫 · 못 했어요` : `${h.subj && h.subj !== '영어' ? h.subj + ' · ' : ''}${h.due ? md(h.due) + '까지' : '선생님 숙제'}`, late: !!(h.due && h.due < today()), done: false }); for (const h of HWL().filter(hwDoneToday)) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due < today() ? `${md(h.due)} 몫 · 오늘 따라잡았어요` : '선생님 숙제 · 끝냈어요', done: true }); return { tasks, off: false }; }
     const off = !anyTask(new Date()) && !S.sci.days[today()] && !S.eng.days[today()];
     const has = (k) => !off && (onDay(k) || !!(k === 'sci' ? S.sci.days[today()] : S.eng.days[today()]));
     // 지난번에 다 못 한 건 그대로 이어서 나와요 · 어제와 같은 숙제처럼 보이지 않게 알려 줘요
@@ -826,7 +828,7 @@
       if (n) tasks.push({ k: 'news:' + n.id, icon: n.must ? 'fire' : 'news', t: `${n.must ? '꼭 읽기' : '오늘의 기사'}: ${n.title}`, d: rd ? '읽었어요' : `${n.must ? '요즘 대이슈 · ' : ''}${WALLET ? '읽으면 50원' : '읽으면 🔥 불꽃 +1'}`, done: !!rd }); }
     { const my = myTasks(); tasks.unshift(...my.filter((x) => !x.memo)); tasks.push(...inkTasks()); tasks.__plan = my.filter((x) => x.memo); }
     for (const h of hwNow()) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due && h.due < today() ? `${md(h.due)} 몫 · 못 했어요` : '오늘 선생님 숙제', late: !!(h.due && h.due < today()), done: false });
-    for (const h of (S.hw || []).filter(hwDoneToday)) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due < today() ? `${md(h.due)} 몫 · 오늘 따라잡았어요` : '선생님 숙제 · 끝냈어요', done: true });
+    for (const h of HWL().filter(hwDoneToday)) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due < today() ? `${md(h.due)} 몫 · 오늘 따라잡았어요` : '선생님 숙제 · 끝냈어요', done: true });
     tasks.unshift(...tasks.__plan);  // 일정은 맨 위(셈은 안 해요), 그 다음 학원·학교 숙제
     return { tasks, off, sd, st, ed, wordsDone, unitDone };
   }
@@ -1298,12 +1300,12 @@
       rows.push({ go: 'my:' + it.id, icon: 'write', t: it.book, cells, segs, behind: beh, unit: u, d: over ? `${md(it.due)} 마감이 지났어요 · ${it.total - dn}${u} 남았어요` : beh ? `원래 지금쯤 ${exp}${u} → ${dn}${u} 했어요 · ${md(it.due)} 마감까지 ${it.total - dn}${u}` : `${dn}/${it.total}${u} · 지금쯤 할 만큼 하고 있어요 · ${md(it.due)} 마감` });
     }
     // 선생님 숙제: 마감 지난 것
-    for (const h of (S.hw || []).filter((x) => !hwDone(x) && x.due && x.due < t)) {
+    for (const h of HWL().filter((x) => !hwDone(x) && x.due && x.due < t)) {
       const c0 = h.at ? dateOf(h.at) : addD(h.due, -3), late = Math.round((new Date(t) - new Date(h.due)) / 864e5);
       rows.push({ hw: h.id, icon: 'pin', t: h.title, cells: [], segs: lagSpan(days, c0, h.due), behind: late, unit: '일', d: `${md(h.due)}까지 숙제 · ${late}일 지났어요${h.subj ? ` · ${h.subj}` : ''}` });
     }
     { const di = (d) => Math.round((new Date(d) - new Date(days[0])) / 864e5), G = {};
-      for (const h of (S.hw || []).filter((x) => x.due && hwDone(x))) { const dd = dateOf(hwDoneAt(h) || 0); if (!(dd > h.due) || dd < days[0]) continue; const k = h.due + '|' + dd; (G[k] = G[k] || []).push(h); }
+      for (const h of HWL().filter((x) => x.due && hwDone(x))) { const dd = dateOf(hwDoneAt(h) || 0); if (!(dd > h.due) || dd < days[0]) continue; const k = h.due + '|' + dd; (G[k] = G[k] || []).push(h); }
       for (const [k, H] of Object.entries(G)) { const [due, dd] = k.split('|'), a = di(due), b = di(dd);
         rows.push({ hw: H[0].id, icon: 'pin', t: H.length > 1 ? `${+due.slice(5, 7)}/${+due.slice(8)} 숙제 ${H.length}개` : H[0].title, cells: [], segs: [{ a, b, st: 'late' }, { a: b, b: b + 1, st: 'done' }], behind: 0, lateDone: H.length, unit: '개', d: `${md(due)} 몫${H.length > 1 ? ` (${H.map((h) => h.title).join(' · ')})` : ''}을 ${md(dd)}에 했어요 · ${Math.round((new Date(dd) - new Date(due)) / 864e5)}일 늦었어요` }); } }
     // 인강: 그날 듣기로 한 강의
@@ -1584,7 +1586,7 @@
   function tmSheet(tk) {
     const r = tmOf(tk); if (!r) return; if (r.hw && tk.startsWith('my:')) return mySheet(r.hw);
     if (tk.startsWith('ink:')) { const [cid, no] = tk.slice(4).split(':'); if (inkC(cid)) return inkLec(cid, +no); }
-    if (tk.startsWith('hw:') && (S.hw || []).some((x) => x.id === tk.slice(3))) return hwSheet(tk.slice(3));
+    if (tk.startsWith('hw:') && HWL().some((x) => x.id === tk.slice(3))) return hwSheet(tk.slice(3));
     const isCur = r === P.run;
     sheet(`<h2>${esc(r.ti || r.subj)}</h2><p class="sub">${isCur && !r.paused ? '공부하는 중' : '잠깐 멈췄어요'} · <b class="num" ${isCur ? 'data-pmt' : ''}>${tmShow(r)}</b></p><div class="pm-btns"><button class="btn big" id="tm-p" type="button">${isCur && !r.paused ? '멈추기' : '이어 하기'}</button><button class="btn primary big" id="tm-e" type="button">끝</button></div>`, (el, close) => {
       $('#tm-p', el).onclick = () => { close(); if (isCur) { pPause(); } else tmGo(tk, r.ti); };
@@ -2075,7 +2077,7 @@
     const sd = sciToday(), st = dayStat(sd), ed = engToday();
     const un = CH_UNITS[ed.unit];
     const wl = wordsFor(ed.words), wdone = Object.keys(ed.wans || {}).length;
-    const hwList = S.hw || [];
+    const hwList = HWL();
     return `<div class="row between wrap" style="gap:8px"><h1 class="h1">${DAY_OFF() ? '이날의 숙제' : '오늘의 숙제'}</h1>${TEACHER ? '' : dayNav()}</div><div class="row between wrap" style="gap:8px;margin-bottom:16px"><p class="sub" style="margin:0">${TUTOR ? '지난 수업에서 배운 것을 다음 수업 전까지 풀어요' : '꼭 할 일부터 끝내요. 학원·학교 숙제는 마감까지 나눠서 매일 할 만큼만 나와요'}</p>${TUTOR ? '' : `<button class="btn sm" id="plan-open" type="button"><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg> 매일 과제 요일</button>`}</div>${perfLive().length ? `<div style="margin-bottom:16px">${perfCard()}</div>` : ''}
     <div class="grid">${TUTOR ? '' : missCard()}
       ${(() => {
@@ -2145,7 +2147,7 @@
   const ypAt = (it) => { const a = nxS().a; if (it.p === 'ch') return (a[it.id] || {}).at || 0; let m = 0; for (const q of it.qs || []) { const v = a[q.i]; if (v && v.at > m) m = v.at; } return m; };
   function calDone(d) { const out = dayItems(d).filter((x) => x.i !== 'clock' && x.i !== 'tomato'); /* 공부 시간·토마토는 숙제가 아니라 빼요 */ for (const it of YP) if (ypDone(it)) { const at = ypAt(it); if (at && atDay(at) === d) { const g = NXSETS[it.id] ? nxProg(NXSETS[it.id]) : null; out.push({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 끝냈어요${g && it.p !== 'ch' ? ` · ${g.ok}/${g.n} 맞힘` : ''}${it.day < d ? ` · ${md(it.day)} 몫` : ''}`, go: it.id }); } } return out; }
   // 그날 몫인데 못 한 것: 윤건 기말 계획·매일 영어(YP), 정윤 기말 예습·올림포스(FIN)
-  const calMiss = (d) => { if (d >= today()) return []; const out = (S.hw || []).filter((h) => h.due === d && !hwDone(h)).map((h) => ({ i: 'pin', t: h.title, d: '선생님 숙제 · 못 했어요', go: 'hwid:' + h.id })).concat(YP.filter((it) => it.day === d && !ypDone(it)).map((it) => ({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 못 했어요`, go: it.id }))); if (FIN_ON) for (const c of FIN_ORDER) if (addD(FIN_START, c.fday) === d && !finDone(c)) out.push({ i: c.subj === 'hist' ? 'scroll' : 'books', t: `${c.subj === 'eng' ? '올림포스 지문' : c.sname + ' 기말 예습'} · ${c.title}`, d: '기말 예습 · 못 했어요', go: 'fincid:' + c.id }); if (!TUTOR) for (const it of myS().items) { const m = myMissOn(it, d); if (m) out.push({ i: 'write', t: it.book, d: `${myCls(it.cls).name} · ${m.did ? `이날 몫 ${m.want}${m.u} 중 ${m.did}${m.u} 했어요 · ${m.miss}${m.u} 남음` : `이날 몫 ${m.want}${m.u} 못 했어요`}`, go: 'my:' + it.id }); } return out; };
+  const calMiss = (d) => { if (d >= today()) return []; const out = HWL().filter((h) => h.due === d && !hwDone(h)).map((h) => ({ i: 'pin', t: h.title, d: '선생님 숙제 · 못 했어요', go: 'hwid:' + h.id })).concat(YP.filter((it) => it.day === d && !ypDone(it)).map((it) => ({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 못 했어요`, go: it.id }))); if (FIN_ON) for (const c of FIN_ORDER) if (addD(FIN_START, c.fday) === d && !finDone(c)) out.push({ i: c.subj === 'hist' ? 'scroll' : 'books', t: `${c.subj === 'eng' ? '올림포스 지문' : c.sname + ' 기말 예습'} · ${c.title}`, d: '기말 예습 · 못 했어요', go: 'fincid:' + c.id }); if (!TUTOR) for (const it of myS().items) { const m = myMissOn(it, d); if (m) out.push({ i: 'write', t: it.book, d: `${myCls(it.cls).name} · ${m.did ? `이날 몫 ${m.want}${m.u} 중 ${m.did}${m.u} 했어요 · ${m.miss}${m.u} 남음` : `이날 몫 ${m.want}${m.u} 못 했어요`}`, go: 'my:' + it.id }); } return out; };
   const calLeft = () => { try { return todayTasks().tasks.filter((t) => t.icon !== 'party' && !t.memo && !t.done).length; } catch (e) { return 0; } };
   function hwCal() {
     const m = UI.calM || today().slice(0, 7), [Y, M] = m.split('-').map(Number), first = new Date(Y, M - 1, 1), n = new Date(Y, M, 0).getDate(), pad = first.getDay();
@@ -2304,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611080256', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611081145', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3012,7 +3014,7 @@
     return `<h1 class="h1">오답 노트</h1><p class="sub">하루에 두세 문제씩만 다시 풀어요. 다시 맞히면 파란색이 돼요</p>
       <div class="chips" style="margin-bottom:16px"><button class="chip ${f === 'all' ? 'on' : ''}" data-ws="all" type="button">전체</button>${subs.map(([k, n]) => `<button class="chip ${f === k ? 'on' : ''}" data-ws="${k}" type="button">${n}</button>`).join('')}</div>
       <div class="grid">${myWrongCard('c12')}
-        ${(() => { const td = todayWr().filter((id) => S.wrong[id]).map((id) => ({ ...S.wrong[id], id }));  /* id 를 꼭 붙여요 (없으면 「다시 풀기」가 안 눌렸어요 10/28) */ const nx = (S.hw || []).filter((h) => hwWr(h).length && !hwDone(h) && h.due > today()).sort((a, b) => a.due.localeCompare(b.due))[0];
+        ${(() => { const td = todayWr().filter((id) => S.wrong[id]).map((id) => ({ ...S.wrong[id], id }));  /* id 를 꼭 붙여요 (없으면 「다시 풀기」가 안 눌렸어요 10/28) */ const nx = HWL().filter((h) => hwWr(h).length && !hwDone(h) && h.due > today()).sort((a, b) => a.due.localeCompare(b.due))[0];
           return `<section class="card c7 col-card"><div class="card-h"><h2>오늘 풀 오답</h2></div>${td.length ? `<div class="list">${td.map(item).join('')}</div>` : `<div class="empty">${gh('yay', 'gh-empty')}<b>오늘 오답은 끝!</b>${nx ? `<span>다음 오답은 ${md(nx.due)}에 나와요</span>` : ''}</div>`}
           ${td.length || open.length ? `<div class="wr-acts">${td.length ? `<button class="btn primary big" id="wr-today" type="button">${td.length}문제 풀기</button>` : ''}${open.length ? `<button class="btn big soft" type="button" onclick="const l=this.closest('section').querySelector('.wr-all');l.hidden=!l.hidden;this.textContent=l.hidden?'모아 둔 오답 보기':'접기'">모아 둔 오답 보기</button>` : ''}</div>` : ''}
           ${open.length ? `<div class="list wr-all" hidden style="margin-top:12px">${open.slice(0, 60).map(item).join('')}</div>` : ''}</section>`; })()}
@@ -3167,7 +3169,7 @@
     for (let i = 0; i < 7; i++) { const d = addD(w0, i), x = P[d] || {}, m = (+x.man || 0) + (+x.min || 0); if (m) { man += m; manApp += (days[d] || {}).app || 0; } }
     let probs = 0, pages = 0;
     for (const it of myS().items) for (const [d, x] of Object.entries(it.log || {})) if (d >= w0 && d < w1 && x && x.n && x.at !== SR_MINE) { if (it.unit === '쪽') pages += x.n; else if (it.unit !== '건') probs += x.n; }
-    const hwDue = (S.hw || []).filter((h) => h.due && h.due >= w0 && h.due < w1), hwOk = hwDue.filter((h) => hwDone(h)).length;
+    const hwDue = HWL().filter((h) => h.due && h.due >= w0 && h.due < w1), hwOk = hwDue.filter((h) => hwDone(h)).length;
     const ok = E.filter((e) => e.ok).length;
     return { w0, n: E.length, acc: E.length ? ok / E.length : null, appMin: Math.round(appMin), days, kinds, gap, man, manApp: Math.round(manApp), probs, pages, hwDue: hwDue.length, hwOk, act: Object.keys(days).length };
   }
@@ -5957,11 +5959,11 @@
     let main;
     if (!sl) main = `<div class="card empty c12">${gh('sleepy', 'gh-empty')}<b>수업 날이 정해지면 시험이 열려요</b><span>선생님이 수업 요일을 넣으면 여기에 나와요</span></div>`;
     // 11/7 선생님 «시험이 아니라 수업으로, 잠가 놓지 말고 열어 놔. 시작 단추만 안 되게, 선생님이 들어갔을 땐 들어갈 수 있게. 다른 애들도 마찬가지»
-    // 11/7 «내 화면에서 실제 어떤 수업인지 본다니까»: 수업 날 숙제(학원 숙제 미리 같은 것)가 있으면 그게 수업 내용
-    else if (!sl.open && (S.hw || []).some((h) => h.due === sl.date && /수업/.test(h.grp || ''))) { const LH = S.hw.filter((h) => h.due === sl.date && /수업/.test(h.grp || '')), dn = LH.filter((h) => hwDone(h)).length, wh = `${sl.date === t ? '오늘' : `${md(sl.date)}(${WDK[new Date(sl.date + 'T00:00:00').getDay()]})`} ${esc(timeKo(sl.time) || '')}`;
-      main = `<section class="card c12 nx-open"><div class="card-h"><h2>${sl.date === t ? '오늘 수업' : '다음 수업'} <span class="tiny">${wh}</span></h2><span class="tag">${nxLeft(sl.left)} 남았어요</span></div>
-      <div class="list">${LH.map((h) => `<div class="li btnlike ${hwDone(h) ? 'is-done' : ''}" data-hwopen="${esc(h.id)}"><div class="ico">${ic(hwDone(h) ? 'ok' : 'pencil')}</div><div class="body"><div class="t">${esc(String(h.title || '').replace(/^[^\p{L}\p{N}]+\s/u, ''))}</div></div><span class="chev"></span></div>`).join('')}</div>
-      <p class="tiny nx-lock-p">${dn} / ${LH.length} 했어요</p></section>`; }
+    // 11/7 «내 화면에서 실제 어떤 수업인지 본다니까» · 11/8 «숙제가 아니라 수업, 애들한테는 잠겨 있고 나는 볼 수 있게»: ls 표시한 것은 숙제 탭이 아니라 여기에만
+    else if (LSN(sl.date).length) { const LH = LSN(sl.date), dn = LH.filter((h) => hwDone(h)).length, can = sl.open || TEACHER, wh = `${sl.date === t ? '오늘' : `${md(sl.date)}(${WDK[new Date(sl.date + 'T00:00:00').getDay()]})`} ${esc(timeKo(sl.time) || '')}`;
+      main = `<section class="card c12 nx-open"><div class="card-h"><h2>${sl.date === t ? '오늘 수업' : '다음 수업'} <span class="tiny">${wh}</span></h2><span class="tag ${sl.open ? 'blue' : ''}">${sl.open ? '열렸어요' : `${nxLeft(sl.left)} 남았어요`}</span></div>
+      <div class="list">${LH.map((h) => `<div class="li ${can ? 'btnlike' : ''} ${hwDone(h) ? 'is-done' : ''}" ${can ? `data-hwopen="${esc(h.id)}"` : ''}><div class="ico">${ic(hwDone(h) ? 'ok' : can ? 'pencil' : 'clock')}</div><div class="body"><div class="t">${esc(String(h.title || '').replace(/^[^\p{L}\p{N}]+\s/u, ''))}</div></div>${can ? '<span class="chev"></span>' : ''}</div>`).join('')}</div>
+      <p class="tiny nx-lock-p">${sl.open ? `${dn} / ${LH.length} 했어요` : TEACHER ? `선생님은 미리 열어 볼 수 있어요 · 학생은 ${wh}에 열려요` : `${wh}에 열려요`}</p></section>`; }
     else if (!sl.open) { const s = nxLesson(sl.date), wh = `${sl.date === t ? '오늘' : `${md(sl.date)}(${WDK[new Date(sl.date + 'T00:00:00').getDay()]})`} ${esc(timeKo(sl.time) || '')}`;
       main = `<section class="card c12 nx-open"><div class="card-h"><h2>${sl.date === t ? '오늘 수업' : '다음 수업'}</h2><span class="tag">${nxLeft(sl.left)} 남았어요</span></div>
       <div class="li"><div class="ico">${ic('books')}</div><div class="body"><div class="t">${s ? `${esc(s.title)} · ${s.qs.length}문제` : '수업 문제를 준비하고 있어요'}</div><div class="d">${s ? esc(nxMixTxt(s)) : ''}</div></div></div>
@@ -6820,7 +6822,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611080256'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081145'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7220,12 +7222,12 @@
       const items = [...[...H.cu].sort((a, b) => a - b).map((no) => ({ title: cuTitle(no) })), ...mmPlan(n, H)[0].map((o) => { const lb = `모의고사 고${H.mmG}${H.mmTy === '전체' ? '' : ' ' + H.mmTy}`; return H.mmAmt === 'o1' ? { title: `${lb} 1문제`, mmq: o.ids } : { title: `${lb} ${o.ids.length}문제 (${md(o.date)})`, mmq: o.ids, due: o.date, grp: `${lb} 하루 ${H.mmAmt === 'd2' ? 2 : 1}문제` }; }), ...[...H.nx].map((t) => ({ title: t, nx: nxIdOf(n, t) })), ...[...H.tx].map((t) => ({ title: t }))].map((o, k) => ({ id: 'h' + (at + k), subj: '영어', due, memo: '', done: false, at, ...o }));
       ok.disabled = true; ok.textContent = '내는 중…';
       try {
-        if (n === U.who) { S.hw = [...(S.hw || []), ...items.filter((i) => !(S.hw || []).some((h) => h.title === i.title && !hwDone(h)))]; save('hw'); }
+        if (n === U.who) { S.hw = [...(S.hw || []), ...items.filter((i) => !HWL().some((h) => h.title === i.title && !hwDone(h)))]; save('hw'); }
         else await dPut(n, 'hw', (D) => { D.hw = [...(D.hw || []), ...items.filter((i) => !(D.hw || []).some((h) => h.title === i.title && !hwDone(h, D.wrong || {})))]; });
       } catch (e) { ok.disabled = false; return toast('못 냈어요. 인터넷을 확인하고 다시 눌러 주세요'); }
       delete HWS[n]; toast(`${n}에게 숙제 ${items.length}개를 냈어요`); render();
     };
-    $$('[data-thdel]').forEach((b) => (b.onclick = async () => { b.disabled = true; try { if (n === U.who) { S.hw = (S.hw || []).filter((h) => h.id !== b.dataset.thdel); save('hw'); } else await dPut(n, 'hw', (D) => { D.hw = (D.hw || []).filter((h) => h.id !== b.dataset.thdel); }); toast('뺐어요'); } catch (e) { toast('못 뺐어요. 다시 눌러 주세요'); } render(); }));
+    $$('[data-thdel]').forEach((b) => (b.onclick = async () => { b.disabled = true; try { if (n === U.who) { S.hw = HWL().filter((h) => h.id !== b.dataset.thdel); save('hw'); } else await dPut(n, 'hw', (D) => { D.hw = (D.hw || []).filter((h) => h.id !== b.dataset.thdel); }); toast('뺐어요'); } catch (e) { toast('못 뺐어요. 다시 눌러 주세요'); } render(); }));
   }
   // 리포트 숙제 칸의 모의고사 고르기: 학년 → 회차마다 유형 칩 (누르면 숙제에 들어가요, 다시 누르면 빠져요)
   function dMmPick(D0) {
@@ -7833,7 +7835,7 @@
       ${T.length ? `<div class="list">${T.map((t) => `<div class="li btnlike ${t.done ? 'is-done' : ''}" data-task="${esc(t.k)}"${t.hw ? ` data-hw="${esc(t.hw)}"` : ''}><div class="ico">${ic(t.done ? 'ok' : t.icon || 'pencil')}</div><div class="body"><div class="t">${esc(t.t)}</div><div class="d">${esc(String(t.d || '').replace(/<[^>]+>/g, ''))}</div></div><span class="chev"></span></div>`).join('')}</div>` : '<p class="tiny" style="margin:0">오늘 숙제는 없어요</p>'}</section>`;
   }
   function lessonHero() {
-    const c = cls(), nx = nextLesson(), L = lastLesson(), tk = [...tutorTasks(), ...(S.hw || []).filter((h) => !(h.grp && h.due > today()) && (!hwDone(h) || h.due === today())).map((h) => ({ done: hwDone(h) }))], dn = tk.filter((x) => x.done).length, dd = nx ? dday(nx.date) : null, p = S.profile, ym = ymOf(today());
+    const c = cls(), nx = nextLesson(), L = lastLesson(), tk = [...tutorTasks(), ...HWL().filter((h) => !(h.grp && h.due > today()) && (!hwDone(h) || h.due === today())).map((h) => ({ done: hwDone(h) }))], dn = tk.filter((x) => x.done).length, dd = nx ? dday(nx.date) : null, p = S.profile, ym = ymOf(today());
     const third = p.school ? [esc(String(p.school).replace('중학교', '중').replace('고등학교', '고')), `${p.grade}학년`] : MONTHLY ? [`${+ym.slice(5)}월 수업`, `${lsnSorted().filter((l) => ymOf(l.date) === ym).length + (+((LS0.monthSeed || {})[ym]) || 0)}회`] : ['회차', L && L.nth ? `${esc(L.nth)}회차` : '-'];
     const u = uniOf(p.uni), tabUni = TABS.some((t) => t[0] === 'uni');
     // 목표 대학: 정윤 홈처럼 로고를 크게 (윤건·지원, 10/26)
