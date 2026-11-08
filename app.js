@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611081844', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611081855', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2911,7 +2911,7 @@
       ${(() => { const jb = cur >= 0 && qs.length ? `<button class="btn primary big block cl-jump" data-toq type="button">문제 ${ids.filter((k) => !store[k]).length}개 바로 풀기 ↓</button><p class="tiny" style="margin:-8px 0 16px;text-align:center">문제는 설명 아래 맨 끝에 있어요. 설명을 읽고 내려가도 되고, 바로 가도 돼요</p>` : '';
         if (!un.lesson) return `<div class="card"><div class="q-no">Unit ${esc(un.unit)}</div><h1 class="h1" style="margin-top:4px">${esc(un.title)}</h1><p style="line-height:1.8;color:var(--t2);margin:8px 0 0">${esc(un.concept || '')}</p></div>` + jb;
         const h = chLesson(un), e = h.indexOf('</p></div>', h.indexOf('cl-hook')) + 10; return h.slice(0, e) + jb + h.slice(e); })()}
-      <div class="card"><div class="card-h"><h3>문장으로 이해하기</h3><span class="tiny">스티커를 누르면 해석이 보여요</span></div><div class="list">${(un.sentences || []).map((s) => `<div class="li" style="align-items:flex-start"><div class="body"><div class="t" style="font-size:16px;line-height:1.6">${esc(s.en)}</div><button type="button" class="ch-stk" data-chstk aria-label="해석 보기"><span>${esc(s.ko)}</span></button>${s.point ? `<div class="tiny blue" style="margin-top:4px">${esc(s.point)}</div>` : ''}</div><span class="tag">${esc(s.src || '')}</span></div>`).join('')}</div></div>`;
+      <div class="card"><div class="card-h"><h3>문장으로 이해하기</h3><span class="tiny">스티커를 누르면 해석이 보여요</span></div><div class="list">${(un.sentences || []).map((s, si) => `<div class="li" style="align-items:flex-start"><div class="body"><div class="t" style="font-size:16px;line-height:1.6">${esc(s.en)}</div><button type="button" class="ch-stk ${(UI.sxPeel || {})[`cu:${un.unit}:${si}`] ? 'peel' : ''}" data-chstk data-sk="cu:${un.unit}:${si}" aria-label="해석 보기"><span>${esc(s.ko)}</span></button>${s.point ? `<div class="tiny blue" style="margin-top:4px">${esc(s.point)}</div>` : ''}</div><span class="tag">${esc(s.src || '')}</span></div>`).join('')}</div></div>`;
     if (cur < 0 || cur == null) {
       const ok = ids.filter((k) => store[k] && store[k].ok).length;
       if (ref == null && !uDone(ed) && qs.length) { const again = ed.udone; ed[un.v2 ? 'udone2' : 'udone'] = Date.now(); if (!again) S.eng.unit = Math.min((S.eng.unit || 0) + 1, CH_UNITS.length - 1); save('eng'); }  // 예전 문제로 이미 넘긴 날은 또 넘기지 않아요
@@ -6864,7 +6864,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081844'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081855'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8034,6 +8034,7 @@
       t.nodeValue = m[1] + (0).toFixed(dec) + m[3]; requestAnimationFrame(step); setTimeout(() => { if (t.isConnected) t.nodeValue = m[1] + m[2] + m[3]; }, D + 150); // 탭이 가려져 그리기가 멈춰도 끝값은 꼭
     });
   }
+  // 11/8 윤건 «눌러서 해석 보기 자꾸 돌아가»: 서버에서 기록을 받아 화면을 다시 그리면 뗀 스티커가 다시 붙었어요 → data-sk 로 UI.sxPeel 에 기억해요
   // 11/3 천일문 「문장으로 이해하기」 해석은 스티커로 가려 두고 누르면 떼져요 (다시 누르면 다시 붙어요) («스티커 떼듯이 누르면 볼 수 있게»)
   document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-chstk]'); if (b) { b.classList.toggle('peel'); if (b.dataset.sk) { UI.sxPeel = UI.sxPeel || {}; UI.sxPeel[b.dataset.sk] = b.classList.contains('peel'); } } });
   function go(tab) { UI.tab = tab; UI.run = null; UI.stOnly = null; UI.m3rv = null; UI.lib = null; UI.nxUnit = null; if (tab !== 'score') UI.mockId = null; render(); window.scrollTo(0, 0); }
