@@ -3928,3 +3928,8 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .li.is-lock{cursor:default}
 .li.is-lock .t{color:#b0b8c1}
 .li.is-lock .ico{background:#f2f4f6;filter:grayscale(1);opacity:.6}
+
+/* 11/8 매3영 문장: 처음엔 영어만 → 구조 보기 */
+.sx-open { display: block; width: 100%; margin-top: 8px; padding: 10px 12px; border: 1.5px dashed var(--blue-l); border-radius: 10px; background: var(--fill2); font: inherit; font-size: 14px; font-weight: 600; color: var(--blue); text-align: left; cursor: pointer; }
+.sx-open:active { transform: scale(.98); }
+.sx-ko button.st-k { display: inline; text-align: left; font-weight: 400; color: var(--t3); background: none; }
