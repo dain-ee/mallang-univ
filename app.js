@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611081827', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611081831', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6033,14 +6033,14 @@
   }
   // ───────── 윤건 수업 시험 (11/3) ─────────
   // 범위는 S.jwt[날짜] = { units: [천일문 유닛], days: [워드마스터 Day], m3: [매3영 Day], n, wn, mn } · 선생님 말 듣고 바로 바꿔요
-  const ygPlan = (date) => { const o = { ...(((LS0.tests || {})[date]) || {}), ...(((S.jwt || {})[date]) || {}) }; return { units: (o.units || []).length ? o.units.map(Number) : null, days: (o.days || []).length ? o.days.map(Number) : null, m3: (o.m3 || []).length ? o.m3.map(Number) : null, n: o.n || 15, wn: o.wn || 20, mn: o.mn || 10 }; };
+  const ygPlan = (date) => { const o = { ...(((LS0.tests || {})[date]) || {}), ...(((S.jwt || {})[date]) || {}) }; return { units: (o.units || []).length ? o.units.map(Number) : null, days: (o.days || []).length ? o.days.map(Number) : null, m3: (o.m3 || []).length ? o.m3.map(Number) : null, tu: (o.tu || []).length ? o.tu.map(Number) : null, n: o.n || 15, wn: o.wn || 20, mn: o.mn || 10 }; };
   const M3U = () => ((NXD.subjects || []).find((x) => x.key === 'm3') || {}).units || [];
   function ygTest(id) {
     const [k, date] = [id.slice(0, 2), id.slice(3)], P = ygPlan(date), [, m, d] = date.split('-').map(Number), saved = nxS().lq[id];
     const mk = (title, sub, qs, g) => (qs.length ? (NXSETS[id] = { id, title, sub, subj: 'eng', kind: 'lesson', date, qs, mix: { [g]: qs.length } }) : null);
     const fromSaved = () => saved.map(([i, perm, g]) => (NXQ[i] ? nxPerm(NXQ[i].q, perm, g) : null)).filter(Boolean);
     const rnd = nxRng(`${ST.name || ''}:${k}:${date}`), shuf = (pool, n, g) => nxShuf(pool, rnd).slice(0, n).map((q) => nxPerm(q, q.t === 'mc' && q.ch ? nxShuf(q.ch.map((_, j) => j), rnd) : null, g));
-    if (k === 'ls') { if (!P.units && !saved) return null; const U = P.units || []; return mk(`${m}/${d} 천일문 시험`, `천일문 Unit ${U.length > 2 ? `${U[0]}~${U[U.length - 1]}` : U.join('·')}`, saved ? fromSaved() : shuf(NX_CH.filter((q) => U.includes(+q.unit)), P.n, '천일문'), '천일문'); }
+    if (k === 'ls') { if (!(P.tu || P.units) && !saved) return null; const U = P.tu || P.units || [];  /* 11/8 tu: 시험 볼 유닛(지난 수업), units: 오늘 나갈 유닛 */ return mk(`${m}/${d} 천일문 시험`, `천일문 Unit ${U.length > 2 ? `${U[0]}~${U[U.length - 1]}` : U.join('·')}`, saved ? fromSaved() : shuf(NX_CH.filter((q) => U.includes(+q.unit)), P.n, '천일문'), '천일문'); }
     if (k === 'lw') { if (!P.days && !saved) return null; const D = P.days || []; return mk(`${m}/${d} 단어 시험`, `${WM_BOOK} Day ${D.join('·')}`, saved ? fromSaved() : shuf(NX_WM.filter((q) => D.includes(q.day)), P.wn, '단어'), '단어'); }
     if (k === 'lm') {
       if (!P.m3 && !saved) return null; const D = P.m3 || [];
@@ -6053,7 +6053,7 @@
   function ygClassCard(sl, t) {
     const P = ygPlan(sl.date), when = sl.date === t ? '오늘' : `${md(sl.date)}(${WDK[dowOf(sl.date)]})`;
     const row = (k, name, rng) => {
-      const id = `${k}:${sl.date}`, s = (P[{ ls: 'units', lw: 'days', lm: 'm3' }[k]] || nxS().lq[id]) ? ygTest(id) : null;
+      const id = `${k}:${sl.date}`, s = (P[{ ls: 'tu', lw: 'days', lm: 'm3' }[k]] || nxS().lq[id]) ? ygTest(id) : null;
       if (!s) return `<div class="li is-done"><div class="ico">${ic('clock')}</div><div class="body"><div class="t">${name}</div><div class="d">선생님이 범위를 넣으면 나와요</div></div></div>`;
       if (!sl.open) return `<div class="li ${ROLE_T ? 'btnlike' : ''}" ${ROLE_T ? `data-nx="${esc(s.id)}"` : ''}><div class="ico">${ic('books')}</div><div class="body"><div class="t">${esc(s.title)} · ${s.qs.length}문제</div><div class="d">${esc(s.sub)} · ${ROLE_T ? '선생님은 미리 들어가 볼 수 있어요' : `${esc(timeKo(sl.time) || '')}에 시작해요`}</div></div>${ROLE_T ? '<span class="chev"></span>' : `<span class="tag">${esc(timeKo(sl.time) || '')}</span>`}</div>`;
       const g = nxProg(s), L = nxLast(s.id), fin = L && g.d >= g.n;
@@ -6068,7 +6068,7 @@
     }).join('');
     const step = (k, h, sub, body) => `<div class="cl-st"><div class="cl-st-h"><i>${k}</i><b>${h}</b>${sub ? `<span class="tiny">${sub}</span>` : ''}</div>${body}</div>`;
     return `<section class="card c6 jw-cl yg-cl"><div class="card-h"><h2>${ic('cal')} ${when} 수업</h2><span class="tag ${sl.open ? 'blue' : ''}">${sl.open ? '수업 중' : `${esc(timeKo(sl.time) || '')} 시작`}</span></div>
-      ${step(1, '단어 시험', '점수는 리포트로 가요', `<div class="list">${row('lw', '단어 시험')}</div>`)}
+      ${step(1, P.tu ? '수업 전 시험' : '단어 시험', '점수는 리포트로 가요', `<div class="list">${P.tu || nxS().lq['ls:' + sl.date] ? row('ls', '천일문 시험') : ''}${row('lw', '단어 시험')}</div>`)}
       ${step(2, '오늘 수업', '누르면 그 단원이 열려요', chRows || m3Rows ? `<div class="list">${chRows}${m3Rows}</div>` : '<p class="tiny" style="margin:0">선생님이 오늘 나갈 단원을 넣으면 나와요</p>')}
     </section>`;
   }
@@ -6864,7 +6864,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081827'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081831'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
