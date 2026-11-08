@@ -4162,3 +4162,29 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .lb-sub .row { margin-bottom: 12px; gap: 8px; }
 .lb-ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.7; color: var(--t2); }
 .lb-ul li + li { margin-top: 4px; }
+
+/* 11/8 «이건 리포트인데… 디자인이 개 이상한 게 너무 많다고»: 리포트 쓰기를 배지 모음 시트(.bg-*) 결로
+   제목은 검정 굵게 하나 · 안내는 아래 작은 한 줄 · 숙제는 실제 리포트 줄 + 오른쪽 회색 마감 · 숫자 칸 셋은 같은 크기 · 한마디는 작은 칩 */
+.dform.rw .d-sec h3 { margin: 0 0 4px; font-size: 17px; font-weight: 700; color: var(--t1); }
+.dform.rw .d-sec h3 .tiny { flex-basis: 100%; font-size: 13px; font-weight: 500; color: var(--t3); }
+.rw-hint { margin: 0 0 8px; font-size: 13px; line-height: 1.4; color: var(--t3); }
+.rw-hl { display: flex; flex-direction: column; margin: 4px 0 12px; }
+.rw-hr { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.rw-hr:last-child { border-bottom: 0; }
+.rw-ht { min-width: 0; font-size: 15px; font-weight: 500; line-height: 1.4; color: var(--t1); word-break: keep-all; overflow-wrap: anywhere; }
+.rw-hd { flex: none; font-size: 13px; font-weight: 500; color: var(--t3); }
+.rw-hd.ok { color: var(--blue); font-weight: 600; }
+.rw-num { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.rw-f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.rw-l { font-size: 13px; font-weight: 600; color: var(--t2); }
+.rw-box { display: flex; align-items: center; gap: 4px; height: 48px; padding: 0 12px; border-radius: 12px; background: var(--fill); transition: box-shadow .15s; }
+.rw-box:focus-within { box-shadow: inset 0 0 0 2px var(--blue); }
+.dform .rw-box .inp.sm { flex: 1; width: 0; min-width: 0; height: 100%; padding: 0; border-radius: 0; background: none; outline: 0; font-size: 17px; font-weight: 600; color: var(--t1); text-align: center; }
+.rw-box em { flex: none; font-style: normal; font-size: 15px; font-weight: 500; color: var(--t3); }
+.rw-f small { overflow: hidden; font-size: 12px; line-height: 1.4; color: var(--t3); text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 640px) { .rw-box { padding: 0 8px; } }
+.dform .rw-c .tk-g { gap: 8px; }
+.dform .rw-c .tk { min-height: 32px; padding: 4px 12px; gap: 0; border-radius: 999px; background: var(--card); box-shadow: inset 0 0 0 1px var(--line); font-size: 14px; font-weight: 500; line-height: 1.4; color: var(--t2); }
+.dform .rw-c .tk i { display: none; }
+.dform .rw-c .tk:hover { filter: none; background: var(--fill2); }
+.dform .rw-c .tk.on, .dform .rw-c .tk.on:hover { background: var(--blue-soft); box-shadow: none; color: var(--blue); font-weight: 600; }
