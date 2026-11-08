@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611082247', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611082300', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6072,6 +6072,7 @@
     }).join('');
     const progC = prog ? `<section class="card c12"><div class="card-h"><h2>${ic('books')} 수업 진도</h2><span class="tiny">지금까지 수업에서 나간 것</span></div><div class="cl-pgs">${prog}</div></section>` : '';
     // 11/3 «달력이 오늘 수업 옆에 있으면» → 수업 카드가 있으면 둘이 나란히
+    if (!YG_CLS && !JW_CLS && TUTOR && sl && main.includes('card c12 nx-open')) { main = main.replace('card c12 nx-open', 'card c6 jw-cl yg-cl nx-open'); UI.clSide = true; return `<h1 class="h1">수업</h1><p class="sub">오늘 수업 · 수업마다 한 것</p><div class="grid">${main}${clCal()}${seeC}${past ? `<section class="card c12"><div class="card-h"><h2>지난 수업 시험</h2><span class="tiny">점수는 선생님 리포트에 가요</span></div><div class="list">${past}</div></section>` : ''}</div>`; }
     if (YG_CLS || JW_CLS) { UI.clSide = main.includes('yg-cl'); return `<h1 class="h1">수업</h1><p class="sub">오늘 수업 · 수업마다 한 것</p><div class="grid">${main}${clCal()}${seeC}</div>`; }
     return `<h1 class="h1">수업</h1><p class="sub">다음 수업 때 볼 것 · 수업 시험 · 지금까지 나간 진도</p><div class="grid">${seeC}${main}${progC}${past ? `<section class="card c12"><div class="card-h"><h2>지난 수업 시험</h2><span class="tiny">점수는 선생님 리포트에 가요</span></div><div class="list">${past}</div></section>` : ''}</div>`;
   }
@@ -6793,11 +6794,11 @@
     const G = {}; for (const [k, v] of Object.entries(d.jg || {})) if (on(v)) { const u = k.split(':')[0].replace(/^u/, ''); (G[u] = G[u] || { n: 0, ok: 0 }).n++; if (v.ok) G[u].ok++; }
     let sc = null; for (const [u, g] of Object.entries(G)) { const U = jgU(u); L.push(`Grammar Stage Plus 2 Unit ${u}${U && U.title ? ' ' + U.title : ''} · 문제 ${g.n}개 (${g.ok}개 맞힘)`); if (!sc || g.n > +sc.total) sc = { score: String(g.ok), total: String(g.n), title: `Grammar Unit ${u}` }; }
     const W = [...new Set(Object.entries(d.jw || {}).filter(([, v]) => on(v)).map(([k]) => k.split(':')[0]))]; { const T = W.map((id) => jwU(id)).filter((w) => w && w.title).map((w) => w.title); if (T.length === W.length) T.forEach((t) => L.push(`라이팅 ${t}`)); else if (W.length) L.push(`라이팅 ${W.length}개`); }
-    for (const h of d.hw || []) if (h.done && on({ at: h.doneAt })) L.push(String(h.title || '').replace(/^[^\p{L}\p{N}「(]+/u, '').trim() + ' 확인');
+    for (const h of d.hw || []) if (h.done && on({ at: h.doneAt })) L.push(String(h.title || '').replace(/^[^\p{L}\p{N}「(]+/u, '').replace(/\s*\(\d+\/\d+까지\)/g, '').trim() + ' 확인');
     return L.length ? { L, sc } : null;
   }
   function ygDid(n, date) {
-    const d = dRowD(n) || {}, J = (d.jwt || {})[date]; if (!J) return null;
+    const d = dRowD(n) || {}, J = (d.jwt || {})[date]; if (!J || (rOf(n).lesson || {}).tests) return null;  // 11/8 지원도 jwt 를 써서 윤건 것으로 잘못 잡히던 것
     const units = (J.units || []).map(Number).filter((k) => cuByNo(k)), L = [];
     if ((J.days || []).length) L.push(`단어 시험 · ${WM_BOOK} Day ${J.days.join('·')}`);
     if (units.length) L.push(`천일문 Unit ${units.join('·')} ${[...new Set(units.map((k) => cuByNo(k).title))].join(' / ')}`);
@@ -6947,7 +6948,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611082247'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611082300'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7263,9 +7264,11 @@
     const book = prev && prev.book ? prev.book.split(' · ') : lz.book ? [lz.book] : [];
     const ja = d !== undefined ? jwAuto(n, t) : null, yd = ygDid(n, t), jd = !ja && !yd && d !== undefined ? juaDid(n, t) : null;
     if (yd) units.splice(0, units.length, ...yd.units);
-    return (DR[n] = { id: '', date: t, nth: String(dNth(r, c, t)), book: new Set(book), units: new Set(units), ch: units.length ? cuByNo(units[0]).ch : prev && (prev.units || []).length ? cuByNo(prev.units[0]).ch : (CH_UNITS[0] || {}).ch, L: new Set(ja ? ja.L : yd ? yd.L : jd ? jd.L : []), Lx: new Set(), H: new Set([...(units.length && !yd ? ['@cu'] : []), ...(ja ? ja.H : [])]), C: new Set(), score: '', scoreTotal: (prev && prev.scoreTotal) || '', progress: '', mt: dTotal(r, c, t), loaded: d !== undefined, touched: false, hw: new Set(), hsj: {}, hwDue: 'next', hwSubj: (r.subjects || [r.tutor ? '영어' : '기타'])[0] });
+    { const Jc = (((d && d.jwt) || {})[t] || {}).cu || []; if (ja && Jc.length) units.splice(0, units.length, ...Jc.map(Number).filter((x) => cuByNo(x))); }  /* 11/8 지원 오늘 Ch.13 부사절 73~80 */
+    return (DR[n] = { id: '', date: t, nth: String(dNth(r, c, t)), book: new Set(book), units: new Set(units), ch: units.length ? cuByNo(units[0]).ch : prev && (prev.units || []).length ? cuByNo(prev.units[0]).ch : (CH_UNITS[0] || {}).ch, L: new Set(ja ? ja.L : yd ? yd.L : jd ? jd.L : []), Lx: new Set(), H: new Set([...(units.length && !yd && !ja ? ['@cu'] : []), ...(ja ? ja.H.filter((x) => !(/워드마스터/.test(x) && hwGiven(n, t).some((h) => /워드마스터/.test(h.title || '')))) : [])]), C: new Set(), score: '', scoreTotal: (prev && prev.scoreTotal) || '', progress: '', mt: dTotal(r, c, t), loaded: d !== undefined, touched: false, hw: new Set(), hsj: {}, hwDue: 'next', hwSubj: (r.subjects || [r.tutor ? '영어' : '기타'])[0] });
   }
   function drFrom(n, l) {
+    if (!l.lesson && !l.hw && !l.sent && !l.score) { const A = drOf(n, true); if (A.date === l.date) return (DR[n] = { ...A, id: l.id, nth: String(l.nth || A.nth) }); }  // 11/8 수업 했음 표시(held)만 있는 날은 빈 리포트 말고 자동으로 채운 것
     const r = rOf(n), c = dCls(r, dRowD(n)), u = l.units || [];
     const strip = (t) => lines(t).filter((x) => !/^천일문 기본 Ch\.|^말랑대학 천일문 Unit/.test(x));
     DR[n] = { ...drOf(n, true), id: l.id, date: l.date, nth: String(l.nth || ''), book: new Set(String(l.book || '').split(' · ').filter(Boolean)), units: new Set(u), ch: u.length ? cuByNo(u[0]).ch : drOf(n).ch, L: new Set(strip(l.lesson).filter((t) => r.tutor || !wkDone(dRowD(n), l.date).includes(t))), H: new Set([...(u.length && /말랑대학 천일문/.test(l.hw || '') ? ['@cu'] : []), ...strip(l.hw)]), C: new Set(lines(l.comment)), score: l.score || '', scoreTotal: l.scoreTotal || '', vocabScore: l.vocabScore || '', vocabTotal: l.vocabTotal || '', progress: l.progress || '', mt: dTotal(r, c, l.date), touched: true, loaded: true };
@@ -7536,10 +7539,11 @@
     const r = rOf(n), lz = r.lesson || {}; if (!r.tutor || !lz.tests || !CH_UNITS.length) return null;
     const d = dRowD(n) || {}, P = jwPlan(date, { lz, jwt: d.jwt || {}, list: lsnSorted(dCls(r, d)) }), rv = [...new Set([...P.rev.ch, ...P.ch])].sort((a, b) => a - b);
     const L = [], H = [], span = (a) => (a.length > 1 && a[a.length - 1] - a[0] === a.length - 1 ? `${a[0]}~${a[a.length - 1]}` : a.join('·'));
-    if (rv.length) L.push(`천일문 ${span(rv)}챕터 복습 · 테스트`);
+    const Jt = ((d.jwt || {})[date] || {}).units || [];
+    if (Jt.length) { const cs = [...new Set(Jt.map((x) => (cuByNo(+x) || {}).ch).filter(Boolean))]; L.push(`천일문 Ch.${cs.join('·')} ${cs.length === 1 ? (chUnits(cs[0])[0] || {}).chTitle || '' : ''} 시험 (Unit ${unitsText(Jt.map(Number))})`.replace(/  +/g, ' ')); } else if (rv.length) L.push(`천일문 ${span(rv)}챕터 복습 · 테스트`);
     const Jc = ((d.jwt || {})[date] || {}).cu || [], nc = Jc.length && cuByNo(+Jc[0]) ? +cuByNo(+Jc[0]).ch : P.nextCh, cu = nc ? chUnits(nc) : [],  /* 11/8 수업 범위가 Ch.13 인데 Ch.14 로 잡히던 것 */ recs = nxRecs(n, date), hdU = cu.filter((u) => recs.some((x) => x.id === 'hd:' + u.unit) || (d.cuMan || {})[u.unit] || (() => { const st = ((d.eng || {}).ua || {})[uKey(u)] || {}, ids = qIds(u); return ids.length > 0 && ids.every((k) => st[k]); })()).map((u) => +u.unit), hdMax = hdU.length ? Math.max(...hdU) : 0;
     const full = nc ? `Chapter${nc}. ${(cu[0] || {}).chTitle || ''}`.trim() : '', part = full && hdMax ? `${full} (Unit ${cu[0].unit}~${hdMax})` : '';
-    if (full) L.push(full);
+    if (full && !Jc.length) L.push(full);
     if (P.days.length) { L.push(`단어 테스트 Day ${P.days.join(',')}`); const m = Math.max(...P.days); if (WORDS.some((w) => w.day === m + 1)) H.push(`워드마스터 하이스트 Day ${[m + 1, m + 2].filter((k) => WORDS.some((w) => w.day === k)).join(',')} 암기하기`); }
     const top = Math.max(0, ...rv, all === false ? 0 : nc || 0), lastU = all === false && hdMax ? hdMax : (chUnits(top).slice(-1)[0] || {}).unit;
     return { L, H, full, part, hdMax, nc, progress: lastU ? String(Math.round((+lastU / CH_UNITS.length) * 100)) : '' };

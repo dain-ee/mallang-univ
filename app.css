@@ -4025,3 +4025,6 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .lrn-row i { font-style: normal; font-size: 13px; color: var(--t3); }
 .lrn-trap { margin-top: 12px; padding: 12px 16px; border-radius: 12px; background: var(--fill); }
 .lrn-trap ul { margin: 6px 0 0; padding-left: 18px; line-height: 1.6; }
+
+/* 11/8 «이 단추가 왜… 카드 아래에 맞춰져 있어야 하지 않을까»: 오늘 할 일 줄의 시작·진행 단추는 줄 아래쪽에 맞춰요 */
+.li > .my-go, .li > .my-runs, .li > .tag.blue { align-self: flex-end; margin-bottom: 2px; }
