@@ -3933,3 +3933,7 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .sx-open { display: block; width: 100%; margin-top: 8px; padding: 10px 12px; border: 1.5px dashed var(--blue-l); border-radius: 10px; background: var(--fill2); font: inherit; font-size: 14px; font-weight: 600; color: var(--blue); text-align: left; cursor: pointer; }
 .sx-open:active { transform: scale(.98); }
 .sx-ko button.st-k { display: inline; text-align: left; font-weight: 400; color: var(--t3); background: none; }
+
+/* 11/8 필기판 필기 칸: 여러 줄 불렛 */
+.m3b-i textarea.m3b-ko { display: block; height: auto; min-height: 40px; padding: 8px 12px; line-height: 1.6; resize: none; white-space: pre-wrap; overflow: hidden; }
+.mr .st-k, .mr .mr-a { white-space: pre-line; }

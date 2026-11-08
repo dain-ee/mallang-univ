@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611081359', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611081410', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6402,7 +6402,7 @@
   const m3Memos = (u, lt) => (S.memo || []).filter((m) => m.u === u.id && (!lt || m.lt === lt));
   const m3Key = (t) => String(t || '').toLowerCase().replace(/[^a-z' ]/g, ' ').replace(/\s+/g, ' ').trim();
   const m3Has = (u, t) => (S.memo || []).some((m) => m.u === u.id && m3Key(m.t) === m3Key(t));
-  const m3MemoList = (M) => `<div class="m3b-l">${M.map((m) => `<div class="m3b-i ${m.kind === 's' ? 's' : ''}"><div class="m3b-t"><span class="tag">${esc(m.lt || '')}</span><b>${esc(m.t)}</b><button type="button" class="m3b-x" data-mmx="${esc(m.id)}" aria-label="지우기">×</button></div><input class="inp m3b-ko" data-mmko="${esc(m.id)}" value="${esc(m.ko || '')}" placeholder="${m.kind === 's' ? '해석·필기를 적어요' : '뜻을 적어요'}"></div>`).join('')}</div>`;
+  const m3MemoList = (M) => `<div class="m3b-l">${M.map((m) => `<div class="m3b-i ${m.kind === 's' ? 's' : ''}"><div class="m3b-t"><span class="tag">${esc(m.lt || '')}</span><b>${esc(m.t)}</b><button type="button" class="m3b-x" data-mmx="${esc(m.id)}" aria-label="지우기">×</button></div><textarea class="inp m3b-ko" data-mmko="${esc(m.id)}" rows="${Math.max(1, String(m.ko || '').split('\n').length)}" placeholder="${m.kind === 's' ? '• 필기를 적어요 (Enter 치면 다음 줄)' : '뜻을 적어요'}">${esc(m.ko || '')}</textarea></div>`).join('')}</div>`;
   function m3Board(u) {
     const M = m3Memos(u), lts = [...new Set(M.map((m) => m.lt))];
     return `<section class="card st-sec m3b big"><div class="st-kick">필기판 · ${esc(u.code)}</div><h2>수업 때 담은 단어와 문장</h2><p class="sub">문장 구조 화면에서 단어나 문장을 끌어서(드래그) 고르면 「담기」 단추가 떠요. 문장 밑 「+ 문장 담기」도 돼요. 뜻과 필기는 여기서 적어요</p>
@@ -6412,15 +6412,17 @@
     t = String(t || '').replace(/\s+/g, ' ').trim().replace(/^[^A-Za-z]+|[^A-Za-z.!?'"]+$/g, ''); if (!t || t.length > 400) return;
     const u = NXU[uid]; if (!u) return; if (m3Has(u, t)) return toast('이미 필기판에 있어요');
     const ps = ((u.notes || {}).passages || []).find((p) => p.letter === lt) || {}, kind = t.split(' ').length <= 3 ? 'w' : 's';
+    if (kind === 's') ko = '-';  // 11/8 문장은 해석을 미리 채우지 않아요 · 필기 칸은 선생님이 불렛으로 적어요
     if (!ko) { const k = m3Key(t); if (kind === 's') { const sn = (ps.sents || []).find((x) => m3Key(x.en) === k); ko = sn ? sn.ko || '' : ''; } else { const V = [...(ps.words || []), ...((u.notes || {}).words || [])].find((w) => m3Key(w.en) === k) || (ps.sents || []).flatMap((x) => (x.star ? (x.star.words || []).map((w, j) => ({ en: w, ko: (x.star.wk || [])[j] })) : [])).find((w) => m3Key(w.en) === k); ko = V ? V.ko || '' : ''; } }
+    if (ko === '-') ko = '';
     S.memo = [...(S.memo || []), { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), t, ko: ko || '', kind, u: uid, lt, at: Date.now() }]; save('memo');
-    toast(ko ? '필기판에 담았어요' : '필기판에 담았어요 · 뜻을 적어 둬요');
+    toast(ko || kind === 's' ? '필기판에 담았어요' : '필기판에 담았어요 · 뜻을 적어 둬요');
     const y = scrollY; render(); scrollTo(0, y);
   }
   // 숙제 「필기 복기」: 담은 것(+ 그 지문 ★ 문장과 속 단어)을 한 장씩 → 떠올리고 뒤집기 → 몰랐던 건 한 번 더
   function memoReview(d) {
     const it = YP.find((x) => x.id === 'pp:memo:' + d); if (!it) return; const u = NXU[it.mu]; if (!u) return;
-    const M = m3Memos(u).filter((m) => (it.lt || []).includes(m.lt)).map((m) => ({ en: m.t, ko: m.ko, lt: m.lt, s: m.kind === 's' }));
+    const M = m3Memos(u).filter((m) => (it.lt || []).includes(m.lt)).map((m) => { let ko = m.ko; if (m.kind === 's') { const sn = ((u.notes.passages || []).find((p) => p.letter === m.lt) || { sents: [] }).sents.find((x) => m3Key(x.en) === m3Key(m.t)); if (sn && sn.ko) ko = ko && ko.trim() ? `${sn.ko}\n${ko}` : sn.ko; } return { en: m.t, ko, lt: m.lt, s: m.kind === 's' }; });  // 문장 복기 답은 해석 + 선생님 필기
     for (const ps of (u.notes.passages || []).filter((p) => (it.lt || []).includes(p.letter))) for (const sn of ps.sents || []) if (sn.star) { (sn.star.words || []).forEach((w, j) => { if (!M.some((x) => m3Key(x.en) === m3Key(w))) M.push({ en: w, ko: (sn.star.wk || [])[j] || '', lt: ps.letter, ex: sn.en }); }); if (!M.some((x) => m3Key(x.en) === m3Key(sn.en))) M.push({ en: sn.en, ko: sn.ko, lt: ps.letter, s: 1, g: sn.star.g }); }
     if (!M.length) return toast('담은 게 아직 없어요');
     const MK = M.filter((m) => m.ko).map((m) => ({ en: m.en, ko: m.ko, day: m.lt })); if (!MK.length) return toast('담은 것에 뜻이 아직 없어요');
@@ -6559,9 +6561,19 @@
       if (t.dataset.mmx) { S.memo = (S.memo || []).filter((m) => m.id !== t.dataset.mmx); save('memo'); const y = scrollY; render(); scrollTo(0, y); return; }
       if (t.dataset.m3rvdone) { nxS().a[t.dataset.m3rvdone] = nxS().a[t.dataset.m3rvdone] || { ok: true, at: Date.now() }; save('nx'); toast('복습 끝냈어요'); UI.m3rv = null; go('hw'); }
     });
+    // 필기 칸: 비어 있으면 「• 」로 시작, Enter 치면 다음 줄도 「• 」 (11/8 «불렛 형식으로 엔터 치면 알아서»)
+    document.addEventListener('focusin', (e) => { const t = e.target; if (t && t.dataset && t.dataset.mmko && !t.value.trim()) { t.value = '• '; t.setSelectionRange(2, 2); } });
+    document.addEventListener('focusout', (e) => { const t = e.target; if (t && t.dataset && t.dataset.mmko && /^[•\s]*$/.test(t.value) && t.value) { t.value = ''; t.dispatchEvent(new Event('input', { bubbles: true })); } });
+    document.addEventListener('keydown', (e) => {
+      const t = e.target; if (!t || !t.dataset || !t.dataset.mmko || e.key !== 'Enter' || e.shiftKey || e.isComposing || e.keyCode === 229) return;
+      e.preventDefault(); const a = t.selectionStart, b = t.selectionEnd, line = t.value.slice(0, a).split('\n').pop();
+      if (/^•\s*$/.test(line)) { t.value = t.value.slice(0, a - line.length) + t.value.slice(b); t.setSelectionRange(a - line.length, a - line.length); }  // 빈 불렛에서 Enter면 불렛 끝
+      else { t.value = t.value.slice(0, a) + '\n• ' + t.value.slice(b); t.setSelectionRange(a + 3, a + 3); }
+      t.dispatchEvent(new Event('input', { bubbles: true }));
+    });
     document.addEventListener('input', (e) => {
       const t = e.target; if (!t || !t.dataset) return;
-      if (t.dataset.mmko) { const m = (S.memo || []).find((x) => x.id === t.dataset.mmko); if (m) { m.ko = t.value; save('memo'); } }
+      if (t.dataset.mmko) { const m = (S.memo || []).find((x) => x.id === t.dataset.mmko); if (m) { m.ko = t.value; save('memo'); } t.rows = Math.max(1, t.value.split('\n').length); }
       if (t.dataset.m3t) { S.m3t = S.m3t || {}; S.m3t[t.dataset.m3t] = t.value; save('m3t'); const btn = $('[data-m3rvdone]'), sec = t.closest('[data-lt]'); if (btn && sec) { const u = NXU[sec.dataset.mu], ps = u.notes.passages.find((p) => p.letter === sec.dataset.lt), RS = ps.sents.map((x, i) => (x.star ? i : -1)).filter((i) => i >= 0), n = RS.filter((i) => (S.m3t[`${u.id}:${ps.letter}:${i}`] || '').trim().length >= 4).length; btn.disabled = n < RS.length; if (!nxS().a[btn.dataset.m3rvdone]) btn.textContent = n < RS.length ? `★ 문장 ${n}/${RS.length} 해석했어요` : '복습 끝냈어요'; } }
     });
   })();
@@ -6827,7 +6839,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081359'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081410'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
