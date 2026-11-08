@@ -4005,3 +4005,6 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .jrp-fix b { color: var(--green); }
 .jrp-plan { border-top: 1px solid var(--line); padding: 16px 0 8px; }
 @media (max-width: 560px) { .jrp-nums { grid-template-columns: 1fr 1fr; } .jrp-r { grid-template-columns: 1fr 1fr; } .jrp-r .q { grid-column: 1 / -1; } }
+
+/* 11/8 단어장 뜻 가리기 */
+.wm-l.wm-hide .li:not(.wm-see) .d { color: transparent; background: var(--fill, #f2f4f6); border-radius: 6px; }
