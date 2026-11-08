@@ -4087,3 +4087,6 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .mp-nw { white-space: nowrap; }
 .mp-s.key .nx-bl { background: var(--card); }
 .mp-s.key .nx-bl:focus { background: var(--blue-l); }
+.ql-subj { flex-wrap: nowrap; overflow-x: auto; margin-top: 8px; padding-bottom: 2px; scrollbar-width: none; }
+.ql-subj::-webkit-scrollbar { display: none; }
+.ql-subj .chip { flex: none; }
