@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611082233', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611082247', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5692,10 +5692,21 @@
   }
   function nxTop(s, k, n, sub, bar, extra = '') {
     const r = UI.run;
-    return `<div class="nx-top"><button class="nx-x" data-nxexit type="button" aria-label="나가기">‹</button><div class="nx-tt"><b>${esc(s.title)}</b><span>${esc(sub)}</span></div><span class="nx-cnt num"><b>${k}</b> / ${n}</span>${extra}</div><div class="nx-bar" role="progressbar" aria-valuenow="${Math.round(bar * 100)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${bar * 100}%"></i></div>`;
+    return `<div class="nx-top"><button class="nx-x" data-nxexit type="button" aria-label="나가기">‹</button><div class="nx-tt"><b>${esc(s.title)}</b><span>${esc(sub)}</span></div><span class="nx-cnt num"><b>${k}</b> / ${n}</span>${s.learn && s.learn.length && !(r || {}).inLearn ? '<button class="btn sm" data-nxlearn type="button">개념 다시 보기</button>' : ''}${extra}</div><div class="nx-bar" role="progressbar" aria-valuenow="${Math.round(bar * 100)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${bar * 100}%"></i></div>`;
+  }
+  // 11/8 «개념도 없이 하면 어떡해, 아예 배우지 않은 건데»: 외우기 숙제(learn 있는 세트)는 배우는 화면 먼저 → 「다 읽었어요」 뒤 문제
+  function nxLearn(s, r) {
+    const L = s.learn || [], nl = (t) => esc(t).replace(/\n/g, '<br>');
+    return `<div class="nx-wrap">${nxTop(s, 0, s.qs.length, '먼저 배워요 · 다 읽고 외우기 시작', 0)}
+      <div class="card" style="margin-top:16px"><p style="margin:0;font-weight:600">${L.some((x) => x.point) ? '공식과 설명을 읽고, 예문을 소리 내어 두 번씩 읽어요.' : '영어 문장을 우리말과 함께 읽고, 소리 내어 두 번씩 읽어요.'}</p><p class="tiny" style="margin:6px 0 0">다 읽으면 맨 아래 단추로 우리말 보고 영어로 쓰기를 시작해요</p></div>
+      ${L.map((x) => `<section class="card lrn-sec"><h2>${esc(x.h)}</h2>${x.form ? `<div class="lrn-form">${esc(x.form)}</div>` : ''}${x.point ? `<p class="lrn-pt">${nl(x.point)}</p>` : ''}
+        <div class="lrn-rows">${(x.rows || []).map((w) => `<div class="lrn-row"><b>${esc(w.en)}</b><span>${esc(w.ko)}</span>${w.note ? `<i>${nl(w.note)}</i>` : ''}</div>`).join('')}</div>
+        ${(x.traps || []).length ? `<div class="lrn-trap"><b>시험 함정</b><ul>${x.traps.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}</section>`).join('')}
+      <div class="cta-bar"><button class="btn primary big block" data-nxlearned type="button">다 읽었어요 · 외우기 시작</button></div></div>`;
   }
   function nxRun() {
     const r = UI.run, s = NXSETS[r.id]; if (!s) { UI.run = null; return examView(); }
+    r.inLearn = !!(s.learn && s.learn.length && (r.learn || !((nxS().st[s.id] || {}).learned))); if (r.inLearn) return nxLearn(s, r);
     const x = nxS(), store = nxStore(s, r), qs = r.only ? s.qs.filter((q) => r.only.includes(q.i)) : s.qs, n = qs.length;
     let cur = r.cur != null && r.cur < n ? r.cur : qs.findIndex((q) => !store[q.i]);
     const dn = qs.filter((q) => store[q.i]).length, sub = r.only ? '틀린 것만 다시' : s.sub || (s.subj ? NX_SN[s.subj] : '');
@@ -5736,6 +5747,7 @@
     $$('[data-nxexit]').forEach((b) => (b.onclick = () => { const bk = (UI.run && UI.run.back) || 'exam'; if (bk === 'study' && UI.stOnly && UI.stOnly.endsWith(':run')) return go('hw'); UI.run = null; UI.tab = bk; render(); window.scrollTo(0, 0); }));  // 숙제로 연 문제 묶음은 나가면 숙제 목록
     if (!r || (r.kind !== 'nx' && r.kind !== 'nxw')) return;
     const s = NXSETS[r.id]; if (!s) return;
+    { const b = $('[data-nxlearned]'); if (b) b.onclick = () => { const x = nxS(), st = (x.st[s.id] = x.st[s.id] || {}); st.learned = Date.now(); save('nx'); r.learn = false; render(); window.scrollTo(0, 0); }; const a = $('[data-nxlearn]'); if (a) a.onclick = () => { r.learn = true; render(); window.scrollTo(0, 0); }; if (r.inLearn) return; }
     if (r.kind === 'nxw') return nxwBind(s);
     const x = nxS(), store = nxStore(s, r), qs = r.only ? s.qs.filter((q) => r.only.includes(q.i)) : s.qs;
     const om = $('[data-nxomr]'); if (om) om.onclick = () => { r.omr = !r.omr; render(); };
@@ -6780,7 +6792,7 @@
     const t0 = new Date(date + 'T00:00:00').getTime(), on = (v) => v && v.at >= t0 && v.at < t0 + 864e5, L = [];
     const G = {}; for (const [k, v] of Object.entries(d.jg || {})) if (on(v)) { const u = k.split(':')[0].replace(/^u/, ''); (G[u] = G[u] || { n: 0, ok: 0 }).n++; if (v.ok) G[u].ok++; }
     let sc = null; for (const [u, g] of Object.entries(G)) { const U = jgU(u); L.push(`Grammar Stage Plus 2 Unit ${u}${U && U.title ? ' ' + U.title : ''} · 문제 ${g.n}개 (${g.ok}개 맞힘)`); if (!sc || g.n > +sc.total) sc = { score: String(g.ok), total: String(g.n), title: `Grammar Unit ${u}` }; }
-    const W = [...new Set(Object.entries(d.jw || {}).filter(([, v]) => on(v)).map(([k]) => k.split(':')[0]))]; for (const id of W) { const w = jwU(id); L.push(`라이팅 ${w && w.title ? w.title : id}`); }
+    const W = [...new Set(Object.entries(d.jw || {}).filter(([, v]) => on(v)).map(([k]) => k.split(':')[0]))]; { const T = W.map((id) => jwU(id)).filter((w) => w && w.title).map((w) => w.title); if (T.length === W.length) T.forEach((t) => L.push(`라이팅 ${t}`)); else if (W.length) L.push(`라이팅 ${W.length}개`); }
     for (const h of d.hw || []) if (h.done && on({ at: h.doneAt })) L.push(String(h.title || '').replace(/^[^\p{L}\p{N}「(]+/u, '').trim() + ' 확인');
     return L.length ? { L, sc } : null;
   }
@@ -6935,7 +6947,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611082233'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611082247'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7272,6 +7284,8 @@
   const hwDueOf = (n, k) => (k === '3' ? addD(today(), 3) : k === '7' ? addD(today(), 7) : hwNext(n));
   // 그 수업 리포트에 들어갈 숙제: 그날부터 다음 수업 전까지 낸 것
   const hwGiven = (n, date) => { const r = rOf(n), d = dRowD(n) || {}, c = dCls(r, d), nx = upcoming(c, addD(date, 1), 3).find((u) => !u.off), end = nx ? nx.date : addD(date, 7); return (d.hw || []).filter((h) => h.at && dateOf(h.at) >= date && dateOf(h.at) < end && (!(r.lesson || {}).tests || !h.due || h.due < end)); };
+  // 11/8 «주아 이 중에 안 한 거도 있는데 왜»: 주아 리포트 숙제는 그날 뒤 ~ 다음 수업까지 마감인 안 끝낸 숙제만 (그날 몫·끝낸 것 빼고)
+  const juaHwNext = (n, date) => { const r = rOf(n), d = dRowD(n) || {}, nx = upcoming(dCls(r, d), addD(date, 1), 3).find((u) => !u.off), end = nx ? nx.date : addD(date, 7); return (d.hw || []).filter((h) => !h.done && h.due && h.due > date && h.due <= end); };
   const MM_AMT = [['d1', '하루 1개'], ['d2', '하루 2개'], ['o1', '이번에 1개']];
   // 그 학생이 아직 안 푼 · 아직 안 나간 모의고사 문제 (MM 순서 = 최근 회차부터)
   const mmPool = (n, g, ty) => { const d = (dRowD(n) || {}), done = ((d.eng || {}).mmans) || {}, out = new Set((d.hw || []).filter((h) => !hwDone(h, d.wrong || {}) && h.mmq).flatMap((h) => h.mmq)); return MM.filter((q) => q.grade === g && (ty === '전체' || (MM_TY.find((t) => t[0] === ty) || [, []])[1].includes(q.type)) && !done[q.id] && !out.has(q.id)).map((q) => q.id); };
@@ -7523,11 +7537,11 @@
     const d = dRowD(n) || {}, P = jwPlan(date, { lz, jwt: d.jwt || {}, list: lsnSorted(dCls(r, d)) }), rv = [...new Set([...P.rev.ch, ...P.ch])].sort((a, b) => a - b);
     const L = [], H = [], span = (a) => (a.length > 1 && a[a.length - 1] - a[0] === a.length - 1 ? `${a[0]}~${a[a.length - 1]}` : a.join('·'));
     if (rv.length) L.push(`천일문 ${span(rv)}챕터 복습 · 테스트`);
-    const nc = P.nextCh, cu = nc ? chUnits(nc) : [], recs = nxRecs(n, date), hdU = cu.filter((u) => recs.some((x) => x.id === 'hd:' + u.unit) || (d.cuMan || {})[u.unit] || (() => { const st = ((d.eng || {}).ua || {})[uKey(u)] || {}, ids = qIds(u); return ids.length > 0 && ids.every((k) => st[k]); })()).map((u) => +u.unit), hdMax = hdU.length ? Math.max(...hdU) : 0;
+    const Jc = ((d.jwt || {})[date] || {}).cu || [], nc = Jc.length && cuByNo(+Jc[0]) ? +cuByNo(+Jc[0]).ch : P.nextCh, cu = nc ? chUnits(nc) : [],  /* 11/8 수업 범위가 Ch.13 인데 Ch.14 로 잡히던 것 */ recs = nxRecs(n, date), hdU = cu.filter((u) => recs.some((x) => x.id === 'hd:' + u.unit) || (d.cuMan || {})[u.unit] || (() => { const st = ((d.eng || {}).ua || {})[uKey(u)] || {}, ids = qIds(u); return ids.length > 0 && ids.every((k) => st[k]); })()).map((u) => +u.unit), hdMax = hdU.length ? Math.max(...hdU) : 0;
     const full = nc ? `Chapter${nc}. ${(cu[0] || {}).chTitle || ''}`.trim() : '', part = full && hdMax ? `${full} (Unit ${cu[0].unit}~${hdMax})` : '';
     if (full) L.push(full);
     if (P.days.length) { L.push(`단어 테스트 Day ${P.days.join(',')}`); const m = Math.max(...P.days); if (WORDS.some((w) => w.day === m + 1)) H.push(`워드마스터 하이스트 Day ${[m + 1, m + 2].filter((k) => WORDS.some((w) => w.day === k)).join(',')} 암기하기`); }
-    const top = Math.max(0, ...rv, all === false ? 0 : P.nextCh || 0), lastU = all === false && hdMax ? hdMax : (chUnits(top).slice(-1)[0] || {}).unit;
+    const top = Math.max(0, ...rv, all === false ? 0 : nc || 0), lastU = all === false && hdMax ? hdMax : (chUnits(top).slice(-1)[0] || {}).unit;
     return { L, H, full, part, hdMax, nc, progress: lastU ? String(Math.round((+lastU / CH_UNITS.length) * 100)) : '' };
   }
   // 지원 숙제는 날마다 묶음(「11/2(월) 숙제」)이 한 달 치라 리포트엔 다음 수업 전까지 것을 한 줄씩으로 줄여요
@@ -7543,7 +7557,7 @@
   }
   function drBuild(n) {
     const r = rOf(n), D0 = drOf(n), cuOn = [...D0.book].some((b) => /천일문/.test(b)), units = cuOn ? [...D0.units].sort((a, b) => a - b) : [];
-    const lesson = [...new Set([...(units.length ? cuLine(units) : []), ...(r.tutor ? [] : wkDone(dRowD(n), D0.date || today()).filter((t) => !D0.Lx.has(t))), ...D0.L])].join('\n'), hw = [...new Set([...(units.length && D0.H.has('@cu') ? [cuHw(units)] : []), ...((r.lesson || {}).tests ? jwHwSum(hwGiven(n, D0.date || today())) : hwGiven(n, D0.date || today()).map((h) => ((dRowD(n) || {}).jg ? String(h.title || '').replace(/^[^\p{L}\p{N}「(]+/u, '').trim() : h.subj && h.subj !== '영어' ? `${h.subj} ${h.grp || h.title}` : h.grp || h.title))), ...[...D0.H].filter((t) => t !== '@cu').map((t) => (D0.hsj[t] && D0.hsj[t] !== '영어' ? `${D0.hsj[t]} ${t}` : t))])].join('\n');
+    const lesson = [...new Set([...(units.length ? cuLine(units) : []), ...(r.tutor ? [] : wkDone(dRowD(n), D0.date || today()).filter((t) => !D0.Lx.has(t))), ...D0.L])].join('\n'), hw = [...new Set([...(units.length && D0.H.has('@cu') ? [cuHw(units)] : []), ...((r.lesson || {}).tests ? jwHwSum(hwGiven(n, D0.date || today())) : ((dRowD(n) || {}).jg ? juaHwNext(n, D0.date || today()).map((h) => String(h.title || '').replace(/^[^\p{L}\p{N}「(]+/u, '').trim()) : hwGiven(n, D0.date || today()).map((h) => (h.subj && h.subj !== '영어' ? `${h.subj} ${h.grp || h.title}` : h.grp || h.title)))), ...[...D0.H].filter((t) => t !== '@cu').map((t) => (D0.hsj[t] && D0.hsj[t] !== '영어' ? `${D0.hsj[t]} ${t}` : t))])].join('\n');
     const x = { date: D0.date || today(), nth: String(D0.nth || '').trim(), book: [...D0.book].join(' · '), units: D0.H.has('@cu') ? units : [], lesson, hw, score: String(D0.score || '').trim(), scoreTotal: String(D0.scoreTotal || '').trim(), vocabScore: String(D0.vocabScore || '').trim(), vocabTotal: String(D0.vocabTotal || '').trim(), progress: D0.progress || autoProg(n), comment: [...D0.C].join('\n') };
     if (!r.tutor) { const { finT, ...st } = wkStat(dRowD(n), x.date); x.stat = st; x.nth = ''; }
     if (r.tutor && !x.vocabScore) { const av = autoVocab(n); if (av) { x.vocabScore = av.score; x.vocabTotal = av.total; } }
