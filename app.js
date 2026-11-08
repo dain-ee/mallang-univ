@@ -638,8 +638,8 @@
       <div class="grow-top"><div class="grow-big"><span class="tiny">지금까지 푼 문제</span><b class="num">${g.all}</b><span class="grow-u">문제</span><p>${esc(line)}</p></div>
         <div class="grow-wk"><div class="grow-bars">${D7.map((d) => { const n = g.day[d] || 0; return `<div class="grow-bar ${d === today() ? 'on' : ''}"><i style="height:${Math.max(n ? 8 : 3, Math.round((n / mx) * 100))}%"></i><span>${DOW[dowOf(d)]}</span></div>`; }).join('')}</div>${g.w1 ? `<span class="tiny">이번 주 ${g.w0}문제 · 지난주 ${g.w1}문제</span>` : g.w0 && g.w0 !== g.all ? `<span class="tiny">이번 주 ${g.w0}문제</span>` : ''}</div></div>
       <div class="grow-ts">${T.filter((x) => x[2] > 0).map(([k, t, v, u]) => `<div class="grow-t"><span class="tiny">${t}</span><b class="num">${v}<small>${u}</small></b></div>`).join('')}</div>
-      ${next ? `<div class="grow-next"><div class="row between"><span>다음 배지 <b>${esc(next.t)}</b></span><span class="tiny">${growLeft(next, g)}</span></div><div class="ik-bar" style="height:8px;margin-top:8px"><i style="width:${Math.round((g[next.k] / next.n) * 100)}%"></i></div></div>` : ''}
-      ${(() => { /* 11/8 «정윤이 곧 있으면 이거도 끝날 테니까 배지를 많이 만들어 놓고, 근데 배지가 너무 많으면 여기 너무 복잡해질 것 같으니 배지 모아 두는 건 따로 해야 할 것 같은데» → 최근 딴 것 4개 + 모두 보기 */ const got = GROW_MS.filter((m) => g[m.k] >= m.n), ts = (m) => +((S.party || {})['ms:' + m.id]) || 0, rec = got.slice().sort((a, b) => ts(b) - ts(a) || b.n - a.n).slice(0, 4); return `<div class="grow-bd">${rec.map((m) => `<span class="grow-b on" title="${esc(m.t)}">${ic(m.i)}<em>${esc(m.t)}</em></span>`).join('')}<button class="grow-all" type="button" data-growall>배지 모두 보기 <b class="num">${got.length}/${GROW_MS.length}</b></button></div>`; })()}</section>`;
+      ${next ? `<div class="grow-next2"><div class="row between"><span>다음 배지 <b>${esc(next.t)}</b></span><span class="tiny">${growLeft(next, g)}</span></div><div class="grow-pb"><i style="width:${Math.round((g[next.k] / next.n) * 100)}%"></i></div></div>` : ''}
+      ${(() => { /* 11/8 «정윤이 곧 있으면 이거도 끝날 테니까 배지를 많이 만들어 놓고, 근데 배지가 너무 많으면 여기 너무 복잡해질 것 같으니 배지 모아 두는 건 따로 해야 할 것 같은데» → 최근 딴 것 4개 + 모두 보기 */ const got = GROW_MS.filter((m) => g[m.k] >= m.n), ts = (m) => +((S.party || {})['ms:' + m.id]) || 0, rec = got.slice().sort((a, b) => ts(b) - ts(a) || b.n - a.n).slice(0, 4); return `<button class="grow-bd2" type="button" data-growall><span class="grow-ics">${rec.map((m) => `<i title="${esc(m.t)}">${ic(m.i)}</i>`).join('')}</span><span class="grow-bdt">배지 <b class="num">${got.length}</b><span class="num">/${GROW_MS.length}</span></span><span class="ts-band-go">모두 보기</span></button>`; })()}</section>`;
   }
   // 11/8 «정윤이 곧 있으면 이거도 끝날 테니까 배지를 많이 만들어 놓고, 근데 배지가 너무 많으면 여기 너무 복잡해질 것 같으니 배지 모아 두는 건 따로 해야 할 것 같은데»: 배지 모음은 시트 하나에 (쌓아 온 것 · 토마토 · 공부 시간). 못 딴 건 회색, 바로 다음 것엔 남은 만큼
   function growSheet() {
@@ -1371,10 +1371,10 @@
     const tot = late.reduce((a, r) => a + (r.unit === '개' ? r.behind : 1), 0), pc = (x) => `${(Math.max(0, Math.min(N, x)) / N) * 100}%`;
     const we = days.map((d, i) => (dowOf(d) === 0 || dowOf(d) === 6) ? `<i class="g-we" style="left:${pc(i)};width:${pc(1)}"></i>` : '').join(''), now = `<i class="g-now" style="left:${pc(LAG_PAST + 0.5)}"></i>`;
     const bar = (g) => g.b > g.a ? `<i class="gb ${g.st}" style="left:${pc(g.a)};width:${(Math.max(0, Math.min(N, g.b) - Math.max(0, g.a)) / N) * 100}%"></i>` : '';
-    const row = (r, i) => `<div class="g-row ${r.behind ? '' : 'ok'}" data-lag="${i}" role="button" tabindex="0"><div class="g-lb">${esc(r.t)}</div><div class="g-tr">${we}${(r.segs || lagSegs(r.cells)).map(bar).join('')}${now}</div><div class="g-bd">${r.behind ? `<span class="lag-bd">${r.behind}${r.unit === '개' ? '' : r.unit}</span>` : r.re ? '<span class="lag-lt">새 계획</span>' : r.lateDone ? '<span class="lag-lt">늦게 함</span>' : '<span class="lag-ok">제때</span>'}</div></div>`;
-    return `<section class="card c12 lag-card"><div class="card-h"><h2>${ic('clock')} 밀린 것 한눈에</h2>${tot ? `<span class="tag red">${tot}개 밀렸어요</span>` : late.some((r) => r.re) ? '<span class="tag blue">새 계획으로 다시 시작</span>' : '<span class="tag green">다 따라잡았어요</span>'}</div>
+    const row = (r, i) => `<div class="g-row ${r.behind ? '' : 'ok'}" data-lag="${i}" role="button" tabindex="0"><div class="g-lb">${esc(r.t)}</div><div class="g-tr">${we}${(r.segs || lagSegs(r.cells)).map(bar).join('')}${now}</div><div class="g-bd">${r.behind ? `<span class="lag-bd">${r.behind}${r.unit === '일' ? '일' : r.unit}</span>` : r.re ? '<span class="lag-lt">새 계획</span>' : r.lateDone ? '<span class="lag-lt">늦게 함</span>' : '<span class="lag-ok">제때</span>'}</div></div>`;
+    return `<section class="card c12 lag-card"><div class="card-h"><h2>${ic('clock')} 밀린 것 한눈에</h2>${tot ? `<span class="lag-sum"><b class="num">${tot}</b>개 밀렸어요</span>` : late.some((r) => r.re) ? '<span class="lag-sum">새 계획으로 다시 시작</span>' : '<span class="lag-sum ok">다 따라잡았어요</span>'}</div>
       <div class="gantt"><div></div><div class="g-ax">${days.map((d) => `<span class="${d === t ? 'today' : dowOf(d) === 0 ? 'sun' : ''}">${+d.slice(8)}</span>`).join('')}</div><div></div>${rows.map(row).join('')}</div>
-      <p class="tiny lag-leg"><i class="lag-k done"></i>한 것 <i class="lag-k miss"></i>밀린 것 <i class="lag-k late"></i>늦게 한 것 ${rows.some((r) => r.re) ? '<i class="lag-k old"></i>지난 계획 ' : ''}<i class="lag-k plan"></i>앞으로 <i class="lag-k span"></i>기간 <i class="lag-k now"></i>오늘 · 줄을 누르면 자세히 봐요</p></section>`;
+      <p class="tiny lag-leg"><span><i class="lag-k done"></i>한 것</span><span><i class="lag-k miss"></i>밀린 것</span><span><i class="lag-k late"></i>늦게 한 것</span><span><i class="lag-k plan"></i>앞으로</span><span class="lag-tip">줄을 누르면 자세히 봐요</span></p></section>`;
   }
   function lagSheet(i) {
     const r = (lagCard.rows || [])[i]; if (!r) return;
@@ -2349,7 +2349,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611082353', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611090001', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7059,7 +7059,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611082353'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611090001'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
