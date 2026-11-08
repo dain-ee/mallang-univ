@@ -4188,3 +4188,15 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .dform .rw-c .tk i { display: none; }
 .dform .rw-c .tk:hover { filter: none; background: var(--fill2); }
 .dform .rw-c .tk.on, .dform .rw-c .tk.on:hover { background: var(--blue-soft); box-shadow: none; color: var(--blue); font-weight: 600; }
+
+/* 11/8 홈 카드 정리 (토스 결): 제목 옆 짧은 태그 · 오른쪽 숫자 하나와 얇은 막대 */
+.tag.ts-tg { height: 20px; margin-left: 8px; padding: 0 8px; font-size: 12px; vertical-align: 2px; white-space: nowrap; }
+.tag.ts-tg + .tag.ts-tg { margin-left: 4px; }
+.ts-end { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; width: 64px; }
+.ts-n { font-size: 17px; font-weight: 700; line-height: 1; color: var(--t1); }
+.ts-n small { margin-left: 2px; font-size: 13px; font-weight: 500; color: var(--t3); }
+.ts-bar { width: 100%; height: 4px; border-radius: 4px; background: var(--fill); overflow: hidden; }
+.ts-bar i { display: block; height: 100%; border-radius: 4px; background: var(--blue); }
+.miss-card .miss-it .d b { color: var(--t2); font-weight: 600; }
+.lag-card .card-h .tag, .card-h > .tag { flex: none; }
+.ygf-ex div span:not(.tag) { line-height: 1.5; }
