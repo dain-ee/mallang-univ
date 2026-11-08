@@ -3937,3 +3937,16 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 /* 11/8 필기판 필기 칸: 여러 줄 불렛 */
 .m3b-i textarea.m3b-ko { display: block; height: auto; min-height: 40px; padding: 8px 12px; line-height: 1.6; resize: none; white-space: pre-wrap; overflow: hidden; }
 .mr .st-k, .mr .mr-a { white-space: pre-line; }
+
+/* 11/8 문장 바로 밑 필기 칸 · ④ 필기 */
+.m3n { display: grid; gap: 8px; margin-top: 8px; }
+.m3n:empty { display: none; }
+.m3n-i { padding: 8px 10px 10px; border-radius: 12px; background: #fff8e1; box-shadow: inset 0 0 0 1px #f5e2a8; }
+.m3n-h { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; color: var(--t2); }
+.m3n-h b { flex: 1; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
+.m3n-h .ic { width: 16px; height: 16px; }
+.m3n-i textarea.m3b-ko { display: block; width: 100%; height: auto; min-height: 40px; padding: 8px 12px; font-size: 15px; line-height: 1.6; resize: none; white-space: pre-wrap; overflow: hidden; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+.m3np-s { padding: 14px 0; border-top: 1px solid var(--line); }
+.m3np-s:first-of-type { border-top: 0; }
+.m3np-en { display: flex; gap: 10px; margin: 0 0 8px; font-size: 16px; line-height: 1.6; color: var(--t1); }
+.m3np-s .m3n-i + .m3n-i { margin-top: 8px; }

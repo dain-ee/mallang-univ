@@ -551,7 +551,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${appCard()}${gdCard()}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${lessonHero()}${juaLinks()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${winCard()}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${TUTOR ? lessonHero() : ''}${appCard()}${gdCard()}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${juaLinks()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${winCard()}${perfCard()}${finCard()}${lagCard()}${growCard('c12')}${walletCard('c12')}${pomoCard('c12 rail-inline')}${hotCard('c12 rail-inline')}${qlogCard()}${insightCard('c7')}${schedCard('c5')}${picksCard('c5')}${admitCard('c7')}${gradeMapCard('c12')}${trend}${railCards(true)}${nscard}${sgbc}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 날마다 바뀌는 응원 한마디 (하루 동안은 같은 말)
@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611081410', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611081428', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6386,7 +6386,7 @@
         ${st.hint ? `<div class="m3s-r"><b>해석 열쇠</b><span>${esc(st.hint)}</span></div>` : ''}
         ${st.g ? `<div class="m3s-r"><b>문법</b><span>${esc(st.g)}</span></div>` : ''}
         ${(st.ch || []).length ? `<div class="m3s-ch">${st.ch.map((n) => { const cu = CH_UNITS.find((x) => +x.unit === +n); return cu ? `<button type="button" class="m3s-cb" data-chg="${esc(n)}"><small>천일문</small><b>Unit ${esc(n)} ${esc(cu.title || '')}</b><i>›</i></button>` : ''; }).join('')}</div>` : ''}</div>`;
-      return `<div class="sx-s ${st ? 'star' : ''}"><span class="st-ln num">${st ? '<i class="sx-star" aria-label="핵심 문장">★</i>' : i + 1}</span><div><p class="sx-en">${h}</p>${ko}${sxOn && W.length ? `<div class="sx-w">${W.map((w) => `<span><b>${esc(w.en)}</b> ${esc(w.ko)}</span>`).join('')}</div>` : ''}${sxOn ? star : ''}<button type="button" class="sx-put" data-m3put="${i}">${m3Has(u, sn.en) ? '✓ 필기판에 있어요' : '+ 문장 담기'}</button></div></div>`;
+      return `<div class="sx-s ${st ? 'star' : ''}" data-si="${i}"><span class="st-ln num">${st ? '<i class="sx-star" aria-label="핵심 문장">★</i>' : i + 1}</span><div><p class="sx-en">${h}</p>${ko}${sxOn && W.length ? `<div class="sx-w">${W.map((w) => `<span><b>${esc(w.en)}</b> ${esc(w.ko)}</span>`).join('')}</div>` : ''}${sxOn ? star : ''}${m3Inline(u, ps, sn, i)}</div></div>`;
     };
     const SN = ps.sents || [], M = m3Memos(u, ps.letter), myN = RS.filter((i) => ((S.m3t || {})[`${u.id}:${ps.letter}:${i}`] || '').trim().length >= 4).length, rvOk = myN >= RS.length;
     const guide = rv ? `<section class="card st-sec m3-rvg"><div class="st-kick">숙제 · ${esc(ps.letter)} 지문 복습</div><h2>★ 핵심 문장 ${RS.length}개를 내 말로 해석해요</h2><ol><li>★ 문장의 <b>속 단어</b>를 먼저 떠올리고, 모르던 건 눌러서 담아요</li><li><i class="sx-cut">/</i> 끊어 읽기와 S·V 표시를 보면서 <b>내 해석</b>을 써요</li><li>스티커를 떼서 내 해석과 비교해요</li><li>밑의 <b>천일문</b> 단추로 그 문법을 다시 봐요</li></ol></section>` : '';
@@ -6396,10 +6396,25 @@
       <div class="sx-key">${Object.entries(SX_L).map(([k, v]) => `<span class="sx-r sx-${k}"><sup class="sx-l">${k}</sup>${v}</span>`).join('')}<span><i class="sx-p">( )</i> 꾸며 주는 말</span><span><i class="sx-cut">/</i> 끊어 읽기</span></div>
       ${SN.length ? SN.map(sent).join('') : `<p class="st-pre st-psg">${esc(ps.passage || '')}</p>`}
       ${ps.vocabNote || notes.length ? `<div class="st-tipbox"><h3>${ic('memo')} 필기</h3><ul>${notes.map((w) => `<li><b>${esc(w.en)}</b> ${esc(w.ko)}</li>`).join('')}${ps.vocabNote ? `<li>${esc(ps.vocabNote.replace(/\[해설\]\s*해석 참조/, '').trim())}</li>` : ''}</ul></div>` : ''}
-      ${ps.translation ? `<details class="sx-all"><summary>전체 해석 보기</summary><p class="st-pre">${esc(ps.translation.replace(/^\[해석\]\s*/, ''))}</p></details>` : ''}${board}</section>${done}`;
+      ${ps.translation ? `<details class="sx-all"><summary>전체 해석 보기</summary><p class="st-pre">${esc(ps.translation.replace(/^\[해석\]\s*/, ''))}</p></details>` : ''}</section>${done}`;
   }
   // 11/3 매3영 필기판: 수업 중 단어·문장을 끌어서 「담기」 → S.memo = [{ id, t, ko, kind: w|s, u, lt, at }] → 숙제 「필기 복기」로 다시 떠올리기
   const m3Memos = (u, lt) => (S.memo || []).filter((m) => m.u === u.id && (!lt || m.lt === lt));
+  // 11/8 «필기가 왜 스크롤 아래에 있냐고 · 바로 생겨서 바로바로 적어야» → 문장 바로 밑에 필기 칸, 모아 보기는 ④ 필기
+  const m3OfSent = (u, ps, sn, i) => m3Memos(u, ps.letter).filter((m) => (m.kind === 's' && m3Key(m.t) === m3Key(sn.en)) || (m.si === i && m.kind !== 's'));
+  const m3Ord = (a, b) => (a.kind === 's' ? 0 : 1) - (b.kind === 's' ? 0 : 1);
+  const m3Row = (m) => `<div class="m3n-i ${m.kind === 's' ? 's' : ''}"><div class="m3n-h">${m.kind === 's' ? `<b>${ic('memo')} 필기</b>` : `<b>${esc(m.t)}</b>`}<button type="button" class="m3b-x" data-mmx="${esc(m.id)}" aria-label="지우기">×</button></div><textarea class="inp m3b-ko" data-mmko="${esc(m.id)}" rows="${Math.max(1, String(m.ko || '').split('\n').length)}" placeholder="${m.kind === 's' ? '• 필기를 적어요 (Enter 치면 다음 줄)' : '뜻을 적어요'}">${esc(m.ko || '')}</textarea></div>`;
+  function m3Inline(u, ps, sn, i) {
+    const N = m3OfSent(u, ps, sn, i).sort(m3Ord), hasS = N.some((m) => m.kind === 's');
+    return `<div class="m3n">${N.map(m3Row).join('')}${hasS ? '' : `<button type="button" class="sx-put" data-m3put="${i}">+ 이 문장 필기하기</button>`}</div>`;
+  }
+  function m3NotePage(u, ps) {
+    const M = m3Memos(u, ps.letter);
+    if (!M.length) return `<section class="card st-sec"><div class="empty">${gh('idle', 'gh-empty')}<b>아직 필기한 게 없어요</b><span>③ 문장 구조에서 문장 밑 「+ 이 문장 필기하기」를 누르거나, 단어를 끌어서 「담기」를 눌러요</span></div></section>`;
+    const SN = ps.sents || [], idx = (m) => { if (m.kind === 's') { const k = SN.findIndex((x) => m3Key(x.en) === m3Key(m.t)); return k < 0 ? 999 : k; } return m.si != null ? m.si : 999; };
+    const G = {}; M.forEach((m) => { const k = idx(m); (G[k] = G[k] || []).push(m); });
+    return `<section class="card st-sec m3np"><div class="st-kick">④ 필기 · ${esc(ps.letter)} 지문</div><h2>필기한 문장 ${Object.keys(G).length}개</h2>${Object.keys(G).sort((a, b) => a - b).map((k) => { const sn = SN[k]; return `<div class="m3np-s">${sn ? `<p class="m3np-en"><span class="st-ln num">${+k + 1}</span>${esc(sn.en)}</p>` : ''}${G[k].sort(m3Ord).map(m3Row).join('')}</div>`; }).join('')}</section>`;
+  }
   const m3Key = (t) => String(t || '').toLowerCase().replace(/[^a-z' ]/g, ' ').replace(/\s+/g, ' ').trim();
   const m3Has = (u, t) => (S.memo || []).some((m) => m.u === u.id && m3Key(m.t) === m3Key(t));
   const m3MemoList = (M) => `<div class="m3b-l">${M.map((m) => `<div class="m3b-i ${m.kind === 's' ? 's' : ''}"><div class="m3b-t"><span class="tag">${esc(m.lt || '')}</span><b>${esc(m.t)}</b><button type="button" class="m3b-x" data-mmx="${esc(m.id)}" aria-label="지우기">×</button></div><textarea class="inp m3b-ko" data-mmko="${esc(m.id)}" rows="${Math.max(1, String(m.ko || '').split('\n').length)}" placeholder="${m.kind === 's' ? '• 필기를 적어요 (Enter 치면 다음 줄)' : '뜻을 적어요'}">${esc(m.ko || '')}</textarea></div>`).join('')}</div>`;
@@ -6408,16 +6423,17 @@
     return `<section class="card st-sec m3b big"><div class="st-kick">필기판 · ${esc(u.code)}</div><h2>수업 때 담은 단어와 문장</h2><p class="sub">문장 구조 화면에서 단어나 문장을 끌어서(드래그) 고르면 「담기」 단추가 떠요. 문장 밑 「+ 문장 담기」도 돼요. 뜻과 필기는 여기서 적어요</p>
       ${M.length ? lts.map((lt) => `<div class="eyebrow">${esc(lt)} 지문</div>${m3MemoList(M.filter((m) => m.lt === lt))}`).join('') : `<div class="empty">${gh('idle', 'gh-empty')}<b>아직 담은 게 없어요</b><span>지문의 문장 구조 화면에서 모르는 단어를 끌어서 담아요</span></div>`}</section>`;
   }
-  function m3Add(uid, lt, t, ko) {
+  function m3Add(uid, lt, t, ko, si) {
     t = String(t || '').replace(/\s+/g, ' ').trim().replace(/^[^A-Za-z]+|[^A-Za-z.!?'"]+$/g, ''); if (!t || t.length > 400) return;
     const u = NXU[uid]; if (!u) return; if (m3Has(u, t)) return toast('이미 필기판에 있어요');
     const ps = ((u.notes || {}).passages || []).find((p) => p.letter === lt) || {}, kind = t.split(' ').length <= 3 ? 'w' : 's';
     if (kind === 's') ko = '-';  // 11/8 문장은 해석을 미리 채우지 않아요 · 필기 칸은 선생님이 불렛으로 적어요
     if (!ko) { const k = m3Key(t); if (kind === 's') { const sn = (ps.sents || []).find((x) => m3Key(x.en) === k); ko = sn ? sn.ko || '' : ''; } else { const V = [...(ps.words || []), ...((u.notes || {}).words || [])].find((w) => m3Key(w.en) === k) || (ps.sents || []).flatMap((x) => (x.star ? (x.star.words || []).map((w, j) => ({ en: w, ko: (x.star.wk || [])[j] })) : [])).find((w) => m3Key(w.en) === k); ko = V ? V.ko || '' : ''; } }
     if (ko === '-') ko = '';
-    S.memo = [...(S.memo || []), { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), t, ko: ko || '', kind, u: uid, lt, at: Date.now() }]; save('memo');
-    toast(ko || kind === 's' ? '필기판에 담았어요' : '필기판에 담았어요 · 뜻을 적어 둬요');
+    const mid = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+    S.memo = [...(S.memo || []), { id: mid, t, ko: ko || '', kind, u: uid, lt, at: Date.now(), ...(si != null && si !== '' && !isNaN(+si) ? { si: +si } : {}) }]; save('memo');
     const y = scrollY; render(); scrollTo(0, y);
+    const ta = $(`[data-mmko="${mid}"]`); if (ta) { ta.focus({ preventScroll: true }); const r = ta.getBoundingClientRect(); if (r.bottom > innerHeight - 80 || r.top < 80) ta.scrollIntoView({ block: 'center', behavior: RM() ? 'auto' : 'smooth' }); }  // 담자마자 그 자리에서 바로 적어요
   }
   // 숙제 「필기 복기」: 담은 것(+ 그 지문 ★ 문장과 속 단어)을 한 장씩 → 떠올리고 뒤집기 → 몰랐던 건 한 번 더
   function memoReview(d) {
@@ -6545,19 +6561,19 @@
       const sel = window.getSelection(), t = sel && String(sel).trim(); if (!t || !sel.rangeCount) return hide();
       const n = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement), sec = n && n.closest('.sx[data-lt]'); if (!sec || n.closest('textarea,input')) return hide();
       const fr = sel.getRangeAt(0).cloneContents(); fr.querySelectorAll('sup, .sx-cut, .sx-l, button').forEach((e) => e.remove()); const tt = fr.textContent.replace(/\s+/g, ' ').trim() || t;  // S·V 꼬리표·끊어 읽기 / 는 빼요
-      ctx = { u: sec.dataset.mu, lt: sec.dataset.lt, t: tt }; const r = sel.getRangeAt(0).getBoundingClientRect();
+      const ss = n.closest('[data-si]'); ctx = { u: sec.dataset.mu, lt: sec.dataset.lt, t: tt, si: ss ? ss.dataset.si : null }; const r = sel.getRangeAt(0).getBoundingClientRect();
       b.hidden = false; b.style.left = Math.max(8, Math.min(innerWidth - 96, r.left + r.width / 2 - 44)) + 'px'; b.style.top = Math.min(innerHeight - 56, r.bottom + 10) + 'px';
     }, 150); });
     b.addEventListener('pointerdown', (e) => e.preventDefault());
-    b.addEventListener('click', () => { if (!ctx) return; const c = ctx; hide(); window.getSelection().removeAllRanges(); m3Add(c.u, c.lt, c.t); });
+    b.addEventListener('click', () => { if (!ctx) return; const c = ctx; hide(); window.getSelection().removeAllRanges(); m3Add(c.u, c.lt, c.t, '', c.si); });
     document.addEventListener('click', (e) => {
       const t = e.target.closest && e.target.closest('[data-m3put],[data-m3w],[data-chg],[data-mmx],[data-m3rvdone],[data-sxopen],[data-sxall]'); if (!t) return;
       if (t.dataset.sxopen) { UI.sxOpen = UI.sxOpen || {}; UI.sxOpen[t.dataset.sxopen] = 1; const y = scrollY; render(); scrollTo(0, y); return; }
       if (t.dataset.sxall != null) { UI.sxAll = !UI.sxAll; if (!UI.sxAll) UI.sxOpen = {}; const y = scrollY; render(); scrollTo(0, y); return; }
       const sec = t.closest('[data-lt]');
       if (t.dataset.chg) return chGram(t.dataset.chg);
-      if (t.dataset.m3put != null && sec) { const u = NXU[sec.dataset.mu], sn = (((u.notes || {}).passages || []).find((p) => p.letter === sec.dataset.lt) || {}).sents[+t.dataset.m3put]; if (sn) m3Add(u.id, sec.dataset.lt, sn.en, sn.ko); return; }
-      if (t.dataset.m3w && sec) { if (t.classList.contains('on')) return; m3Add(sec.dataset.mu, sec.dataset.lt, t.dataset.m3w, t.dataset.ko); return; }
+      if (t.dataset.m3put != null && sec) { const u = NXU[sec.dataset.mu], sn = (((u.notes || {}).passages || []).find((p) => p.letter === sec.dataset.lt) || {}).sents[+t.dataset.m3put]; if (sn) m3Add(u.id, sec.dataset.lt, sn.en, '', t.dataset.m3put); return; }
+      if (t.dataset.m3w && sec) { if (t.classList.contains('on')) return; const ss = t.closest('[data-si]'); m3Add(sec.dataset.mu, sec.dataset.lt, t.dataset.m3w, t.dataset.ko, ss ? ss.dataset.si : null); return; }
       if (t.dataset.mmx) { S.memo = (S.memo || []).filter((m) => m.id !== t.dataset.mmx); save('memo'); const y = scrollY; render(); scrollTo(0, y); return; }
       if (t.dataset.m3rvdone) { nxS().a[t.dataset.m3rvdone] = nxS().a[t.dataset.m3rvdone] || { ok: true, at: Date.now() }; save('nx'); toast('복습 끝냈어요'); UI.m3rv = null; go('hw'); }
     });
@@ -6623,10 +6639,10 @@
     const stepBtn = (x, i) => { const g = x.k === 'set' ? nxProg(NXSETS[x.id]) : null, dn = x.L ? stLDone(u, x.L) : x.k === 'notes' ? !!nxS().a[stReadId(u)] : x.k === 'order' ? stOrdDone(u) : g ? g.d >= g.n : false;
       return `<button type="button" class="st-step ${x === cur ? 'on' : ''} ${dn ? 'done' : ''}" ${x.k === 'set' ? `data-nx="${esc(x.id)}"` : `data-stt="${x.k}"`}><span class="st-sn num">${dn ? '✓' : i + 1}</span><span class="st-sl">${esc(x.name)}</span>${g ? `<small class="num">${g.d ? `${g.d}/${g.n}` : `${g.n}문제`}</small>` : ''}</button>`; };
     const lsub = !CL ? '' : (() => { const pc = CL.c && nxProg(NXSETS[CL.c]), pq = CL.q && nxProg(NXSETS[CL.q]), rd = !!nxS().a[stLRead(u, CL)];
-      const segs = CL.m3 ? [...(pc ? [['c', `① 단어 ${pc.d}/${pc.n}`, `data-nx="${esc(CL.c)}"`]] : []), ...(pq ? [['q', `② 문제 ${pq.d}/${pq.n}`, `data-nx="${esc(CL.q)}"`]] : []), ['n', `③ 문장 구조${rd ? ' ✓' : ''}`, 'data-stp="n"']] : [['n', `개념${rd ? ' ✓' : ''}`, 'data-stp="n"'], ...(pc ? [['c', `빈칸 ${pc.d}/${pc.n}`, `data-nx="${esc(CL.c)}"`]] : []), ...(pq ? [['q', `문제 ${pq.d}/${pq.n}`, `data-nx="${esc(CL.q)}"`]] : [])];
+      const segs = CL.m3 ? [...(pc ? [['c', `① 단어 ${pc.d}/${pc.n}`, `data-nx="${esc(CL.c)}"`]] : []), ...(pq ? [['q', `② 문제 ${pq.d}/${pq.n}`, `data-nx="${esc(CL.q)}"`]] : []), ['n', `③ 문장 구조${rd ? ' ✓' : ''}`, 'data-stp="n"'], ['m', `④ 필기${(() => { const P = (u.notes.passages || [])[CL.k]; const n = P ? m3Memos(u, P.letter).length : 0; return n ? ` ${n}` : ''; })()}`, 'data-stp="m"']] : [['n', `개념${rd ? ' ✓' : ''}`, 'data-stp="n"'], ...(pc ? [['c', `빈칸 ${pc.d}/${pc.n}`, `data-nx="${esc(CL.c)}"`]] : []), ...(pq ? [['q', `문제 ${pq.d}/${pq.n}`, `data-nx="${esc(CL.q)}"`]] : [])];
       return `<div class="st-lsub"><div class="seg">${segs.map(([k, nm, at]) => `<button type="button" class="${sub === k ? 'on' : ''}" ${at}>${nm}</button>`).join('')}</div></div>`; })();
     // 매3영 지문 시작: 단어는 그 자리에서 바로 외우고 → 뜻 고르기, 문제는 유령이 「풀어 볼까요?」 (10/31 «이건 뭔지 모르잖아»)
-    const m3go = CL && CL.m3 && !inner && sub !== 'n' ? (() => { const id = sub === 'c' ? CL.c : CL.q, g = nxProg(NXSETS[id]), P = (u.notes.passages || [])[CL.k] || {}, W = P.words || [];
+    const m3go = CL && CL.m3 && !inner && sub === 'm' ? m3NotePage(u, (u.notes.passages || [])[CL.k] || {}) : CL && CL.m3 && !inner && sub !== 'n' ? (() => { const id = sub === 'c' ? CL.c : CL.q, g = nxProg(NXSETS[id]), P = (u.notes.passages || [])[CL.k] || {}, W = P.words || [];
       const say = sub === 'c' ? (g.d ? `단어 ${g.d}/${g.n} 했어요. 이어서 해 볼까요?` : `이 지문 단어 ${W.length || g.n}개, 먼저 외워 볼까요?!`) : (g.d ? '문제 이어서 풀어 볼까요?' : '해석 보기 전에 혼자 풀어 볼까요?!');
       const words = sub === 'c' && W.length ? `<div class="m3w-tools"><span class="tiny">${UI.stHide ? '회색 칸을 누르면 뜻이 보여요' : '뜻을 가리고 떠올려 봐도 좋아요'}</span><button type="button" class="btn sm ${UI.stHide ? 'primary' : ''}" data-sthide aria-pressed="${!!UI.stHide}">${UI.stHide ? '뜻 다 보기' : '뜻 가리기'}</button></div><div class="m3w">${W.map((w) => `<div class="m3w-i"><b>${esc(w.en)}</b>${UI.stHide ? `<button type="button" class="st-k hid" data-stk>${esc(w.ko)}</button>` : `<span>${esc(w.ko)}</span>`}</div>`).join('')}</div>` : '';
       return `<section class="card st-sec m3-go"><div class="m3-hi">${gh(sub === 'c' ? 'focus' : 'peek', 'm3-gh')}<div><div class="st-kick">${esc(CL.t)} · ${esc(P.source || '')}</div><h2>${esc(say)}</h2><p class="sub">${sub === 'c' ? '다 외웠으면 뜻 고르기로 확인해요' : '다 풀면 문장 하나씩 구조를 봐요'}</p></div></div>${words}<button class="btn primary big block" data-nx="${esc(id)}" type="button">${g.d ? `이어서 하기 · ${g.d}/${g.n}` : sub === 'c' ? `다 외웠어요 · 뜻 고르기 ${g.n}개` : `문제 풀기 · ${g.n}문제`} ›</button></section>`; })() : '';
@@ -6839,7 +6855,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081410'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081428'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7861,7 +7877,9 @@
     const goal = K ? `<button type="button" class="who ls-goal" id="km-goal">${emb({ logo: 'assets/uni/kmla.png', name: K.name }, 'xl')}<div style="min-width:0;flex:1"><div class="goal-t">${esc(p.name)}의 목표 고등학교</div><div class="goal-n">${esc(K.name)}</div><div class="goal-m">2027학년도 입학${ad != null && ad >= 0 ? ` · 원서 접수 ${ad === 0 ? '오늘' : 'D-' + ad}` : ''}</div></div><span class="tag" style="flex:none">입시 정보</span></button>` : tabUni ? `<button type="button" class="who ls-goal" data-go="uni">${emb(u, 'xl')}<div style="min-width:0;flex:1"><div class="goal-t">${esc(p.name)}의 목표</div><div class="goal-n">${u ? esc(u.name) : '목표 대학을 골라 주세요'}</div><div class="goal-m">${u ? esc(p.major || (p.field ? p.field + ' 계열' : '')) : '눌러서 고르기'}</div></div><span class="tag" style="flex:none">${u ? '바꾸기' : '고르기'}</span></button>` : '';
     return `<section class="card c12 hero ls-hero"><div class="hero-band" style="background:${K ? '#24406b' : u ? esc(u.color) : esc(ST.color || 'var(--blue)')}"></div>${goal}
       <div class="who ${goal ? 'ls-next' : ''}"><div style="min-width:0;flex:1"><div class="goal-t">다음 수업${nx && nx.moved ? ' · 미룬 수업' : nx && nx.extra ? ' · 보강' : ''}</div><div class="goal-n">${nx ? `${esc(md(nx.date))} ${esc(wdName(nx.date))}` : TEACHER ? '수업 요일을 정해 주세요' : '선생님이 곧 정해 줘요'}</div><div class="goal-m">${nx && nx.time ? esc(tRange(nx)) : ''}${nx && nx.moved ? ` · ${esc(md(nx.moved))} ${esc(wdName(nx.moved))} 수업을 미뤘어요` : ''}</div></div>${nx ? `<b class="dh-dd num">${dd === 0 ? '오늘' : 'D-' + dd}</b>` : ''}</div>
-      ${(() => { const ex = (ST.exams || []).filter((e) => e.date >= today() && dday(e.date) <= 30); return ex.length ? `<div class="ls-exams">${ex.map((e) => `<div class="ls-ex"><span class="ls-ex-t">시험</span><div class="ls-ex-b"><b>${esc(e.title)}</b><span>${esc(md(e.date))} ${esc(wdName(e.date))}</span></div><b class="ls-ex-d num">${dday(e.date) === 0 ? '오늘' : 'D-' + dday(e.date)}</b></div>`).join('')}</div>` : ''; })()}
+      ${(() => { const ex = (ST.exams || []).filter((e) => e.date >= today() && dday(e.date) <= 30), F = NXD && NXD.final;
+        if (F && F.from >= today() && !ex.some((e) => e.date === F.from)) ex.unshift({ title: F.title || '기말고사', date: F.from });  // 11/8 «윤건이 홈에 기말고사 D-day 몇인지»
+        return ex.length ? `<div class="ls-exams">${ex.map((e) => `<div class="ls-ex"><span class="ls-ex-t">시험</span><div class="ls-ex-b"><b>${esc(e.title)}</b><span>${esc(md(e.date))} ${esc(wdName(e.date))}</span></div><b class="ls-ex-d num">${dday(e.date) === 0 ? '오늘' : 'D-' + dday(e.date)}</b></div>`).join('')}</div>` : ''; })()}
       <div class="dday"><div><span>지난 수업</span><b class="num">${L ? esc(md(L.date)) : '-'}</b></div><div><span>숙제</span><b class="num ${tk.length && dn === tk.length ? 'blue' : ''}">${tk.length ? `${dn} / ${tk.length}` : '없어요'}</b></div><div><span>${third[0]}</span><b>${third[1]}</b></div></div>
       ${L && (lines(L.lesson).length || lines(L.hw).length) ? `<div class="ls-last"><div class="tiny">${esc(md(L.date))} 수업${L.book ? ' · ' + esc(L.book) : ''}</div>${lines(L.lesson).length ? `<ul class="ls-ul">${lines(L.lesson).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}${lines(L.hw).length ? `<div class="tiny" style="margin-top:8px">숙제</div><ul class="ls-ul">${lines(L.hw).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</div>` : ''}
       ${tk.length ? `<button class="btn primary big block" data-go="hw" type="button">${dn === tk.length ? '숙제 다 했어요 · 다시 보기' : `숙제하러 가기 · ${tk.length - dn}개 남았어요`}</button>` : ''}
