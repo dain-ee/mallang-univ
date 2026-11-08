@@ -1381,6 +1381,8 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 .gb.miss, .lag-k.miss { background: var(--red); z-index: 1; }
 .gb.plan, .lag-k.plan { background: var(--blue-l); }
 /* 11/7 그날 못 하고 나중에 한 날: 빨강 빗금 (원래 날이 초록이 되지 않게) */
+/* 11/8 «영원히 없어지지 않는 거잖아»: 다시 계획한 과목의 지난 계획 칸은 흐리게 (밀림 수에 안 셈) */
+.gb.old, .lag-k.old { background: repeating-linear-gradient(135deg, var(--t4) 0 3px, transparent 3px 6px); opacity: .45; }
 .gb.late, .lag-k.late { background: repeating-linear-gradient(135deg, var(--red) 0 3px, color-mix(in srgb, var(--red) 30%, transparent) 3px 6px); z-index: 1; }
 .lag-lt { display: inline-block; white-space: nowrap; font-size: 12px; font-weight: 600; color: var(--t2); }
 .g-bd { text-align: right; }
@@ -3981,6 +3983,18 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .tkn-dl dt { color: var(--t2); font-weight: 600; }
 .tkn-dl dd { margin: 0; min-width: 0; }
 @media (max-width: 560px) { .tkn-dl { grid-template-columns: 1fr; gap: 2px; } .tkn-dl dd { margin-bottom: 6px; } }
+/* 선생님 연습 탭 (11/8): 강의 보드 글줄 · 출처 링크 · 물어본 영어 */
+.tbd-pt { align-items: flex-start; }
+.tbd-t { font-size: 15px; line-height: 1.65; color: var(--t1); }
+.tbd-p { margin: 0 0 4px; font-size: 15px; line-height: 1.65; color: var(--t1); }
+.tbd-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px; }
+.tbd-src { font-size: 12px; font-weight: 600; color: var(--blue); text-decoration: none; }
+.tbd-src:hover { text-decoration: underline; }
+.tbd-srcs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.tbd-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.tbd-ul { margin: 4px 0 8px; padding-left: 18px; font-size: 14px; line-height: 1.65; color: var(--t1); }
+.tbd-ul li + li { margin-top: 4px; }
+.tbd-my, .tbd-asked { padding: 0 0 10px; }
 
 /* 주아 선생님 리포트 (시트) · 이름 라벨은 회색, 틀린 답만 빨강 */
 .jrp h2 { margin: 2px 0 6px; }
@@ -4028,3 +4042,20 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 
 /* 11/8 «이 단추가 왜… 카드 아래에 맞춰져 있어야 하지 않을까»: 오늘 할 일 줄의 시작·진행 단추는 줄 아래쪽에 맞춰요 */
 .li > .my-go, .li > .my-runs, .li > .tag.blue { align-self: flex-end; margin-bottom: 2px; }
+
+/* 11/8 «배지 모아 두는 건 따로»: 홈엔 최근 배지 + 모두 보기 단추, 전체는 시트 */
+.grow-all { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border: 0; border-radius: 99px; background: var(--blue-soft); color: var(--blue); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.grow-b small { font-size: 11px; font-weight: 500; color: var(--t3); margin-left: 2px; }
+.grow-b.nx { filter: none; opacity: 1; background: var(--blue-soft); color: var(--t2); }
+.bdg-grp { margin-top: 16px; }
+.bdg-all .grow-bd { flex-wrap: wrap; overflow: visible; margin: 8px 0 0; padding-right: 0; }
+/* 11/8 «정윤이 너무 홈이 너무 지저분해»: 날마다 안 보는 카드는 맨 아래 「더 보기」로 */
+.home-more { min-width: 0; }
+.home-more > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 16px 20px; border-radius: var(--r-card); background: var(--card); font-size: 15px; font-weight: 600; color: var(--t2); }
+.home-more > summary::-webkit-details-marker { display: none; }
+.home-more > summary .tiny { margin-left: auto; font-weight: 500; }
+.home-more > summary::after { content: '\203A'; display: inline-block; transform: rotate(90deg); color: var(--t4); font-size: 18px; transition: transform .2s; }
+.home-more[open] > summary::after { transform: rotate(-90deg); }
+.home-more > summary img { width: 18px; height: 18px; vertical-align: -3px; }
+.home-more > .grid { margin-top: 12px; }
+@media (max-width: 640px) { .home-more > summary .tiny { display: none; } }
