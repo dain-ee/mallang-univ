@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611081149', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611081201', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5639,7 +5639,7 @@
   const nxTime = (ms) => { if (!ms || ms > 3 * 3600e3) return ''; const m = Math.floor(ms / 60000), s = Math.round((ms % 60000) / 1000); return m ? `${m}분 ${s}초` : `${s}초`; };
   function nxStart(id, back, keep) { if (!NXSETS[id] && /^ls:/.test(id)) nxLesson(id.slice(3)); if (!NXSETS[id] && /^lw:/.test(id)) nxWord(id.slice(3)); if (/^l[smw]:/.test(id) && YG_CLS && !nxS().lq[id]) ygTest(id);  // 윤건: 열기 전엔 범위가 바뀌었을 수 있어요
     const s0 = NXSETS[id]; if (!s0) return toast('이 시험은 아직 준비 중이에요');
-    if (s0.kind === 'lesson') { const x = nxS(); if (!TEACHER && s0.date !== nxDay(nxNow()) && !nxLast(id)) return toast(s0.date > nxDay(nxNow()) ? '수업 시간에 열려요' : '이 수업은 닫혔어요'); if (!x.lq[id]) { x.lq[id] = s0.qs.map((q) => [q.i, q.perm, q.g]); const ks = Object.keys(x.lq).sort(); for (const k of ks.slice(0, -30)) { delete x.lq[k]; delete x.la[k]; } save('nx'); } }
+    if (s0.kind === 'lesson') { const x = nxS(); if (!ROLE_T && s0.date !== nxDay(nxNow()) && !nxLast(id)) return toast(s0.date > nxDay(nxNow()) ? '수업 시간에 열려요' : '이 수업은 닫혔어요'); if (!x.lq[id]) { x.lq[id] = s0.qs.map((q) => [q.i, q.perm, q.g]); const ks = Object.keys(x.lq).sort(); for (const k of ks.slice(0, -30)) { delete x.lq[k]; delete x.la[k]; } save('nx'); } }
     UI.tab = back || 'exam'; UI.run = { kind: NXSETS[id].kind === 'words' ? 'nxw' : 'nx', id, back: back || 'exam' }; render(); if (!keep) window.scrollTo(0, 0); }
   function nxFinish(s, ok, n) {
     const x = nxS(), st = (x.st[s.id] = x.st[s.id] || {}); if (st.fin) return; const at = Date.now(); st.fin = at;
@@ -5960,15 +5960,15 @@
     if (!sl) main = `<div class="card empty c12">${gh('sleepy', 'gh-empty')}<b>수업 날이 정해지면 시험이 열려요</b><span>선생님이 수업 요일을 넣으면 여기에 나와요</span></div>`;
     // 11/7 선생님 «시험이 아니라 수업으로, 잠가 놓지 말고 열어 놔. 시작 단추만 안 되게, 선생님이 들어갔을 땐 들어갈 수 있게. 다른 애들도 마찬가지»
     // 11/7 «내 화면에서 실제 어떤 수업인지 본다니까» · 11/8 «숙제가 아니라 수업, 애들한테는 잠겨 있고 나는 볼 수 있게»: ls 표시한 것은 숙제 탭이 아니라 여기에만
-    else if (LSN(sl.date).length) { const LH = LSN(sl.date), dn = LH.filter((h) => hwDone(h)).length, can = sl.open || TEACHER, wh = `${sl.date === t ? '오늘' : `${md(sl.date)}(${WDK[new Date(sl.date + 'T00:00:00').getDay()]})`} ${esc(timeKo(sl.time) || '')}`;
+    else if (LSN(sl.date).length) { const LH = LSN(sl.date), dn = LH.filter((h) => hwDone(h)).length, can = sl.open || ROLE_T, wh = `${sl.date === t ? '오늘' : `${md(sl.date)}(${WDK[new Date(sl.date + 'T00:00:00').getDay()]})`} ${esc(timeKo(sl.time) || '')}`;
       main = `<section class="card c12 nx-open"><div class="card-h"><h2>${sl.date === t ? '오늘 수업' : '다음 수업'} <span class="tiny">${wh}</span></h2><span class="tag ${sl.open ? 'blue' : ''}">${sl.open ? '열렸어요' : `${nxLeft(sl.left)} 남았어요`}</span></div>
-      <div class="list">${LH.map((h) => `<div class="li ${can ? 'btnlike' : ''} ${hwDone(h) ? 'is-done' : ''}" ${can ? `data-hwopen="${esc(h.id)}"` : ''}><div class="ico">${ic(hwDone(h) ? 'ok' : can ? 'pencil' : 'clock')}</div><div class="body"><div class="t">${esc(String(h.title || '').replace(/^[^\p{L}\p{N}]+\s/u, ''))}</div></div>${can ? '<span class="chev"></span>' : ''}</div>`).join('')}</div>
-      <p class="tiny nx-lock-p">${sl.open ? `${dn} / ${LH.length} 했어요` : TEACHER ? `선생님은 미리 열어 볼 수 있어요 · 학생은 ${wh}에 열려요` : `${wh}에 열려요`}</p></section>`; }
+      <div class="list">${LH.map((h) => `<div class="li ${can ? 'btnlike' : 'is-lock'} ${hwDone(h) ? 'is-done' : ''}" ${can ? `data-hwopen="${esc(h.id)}"` : 'aria-disabled="true"'}><div class="ico">${ic(hwDone(h) ? 'ok' : can ? 'pencil' : '1f512')}</div><div class="body"><div class="t">${esc(String(h.title || '').replace(/^[^\p{L}\p{N}]+\s/u, ''))}</div></div>${can ? '<span class="chev"></span>' : ''}</div>`).join('')}</div>
+      <p class="tiny nx-lock-p">${sl.open ? `${dn} / ${LH.length} 했어요` : ROLE_T ? `선생님은 미리 열어 볼 수 있어요 · 학생은 ${wh}에 열려요` : `${wh}에 열려요`}</p></section>`; }
     else if (!sl.open) { const s = nxLesson(sl.date), wh = `${sl.date === t ? '오늘' : `${md(sl.date)}(${WDK[new Date(sl.date + 'T00:00:00').getDay()]})`} ${esc(timeKo(sl.time) || '')}`;
       main = `<section class="card c12 nx-open"><div class="card-h"><h2>${sl.date === t ? '오늘 수업' : '다음 수업'}</h2><span class="tag">${nxLeft(sl.left)} 남았어요</span></div>
       <div class="li"><div class="ico">${ic('books')}</div><div class="body"><div class="t">${s ? `${esc(s.title)} · ${s.qs.length}문제` : '수업 문제를 준비하고 있어요'}</div><div class="d">${s ? esc(nxMixTxt(s)) : ''}</div></div></div>
       
-      ${s ? (TEACHER ? `<button class="btn primary big block" data-nx="${esc(s.id)}" type="button">선생님 · 미리 들어가 보기</button>` : `<button class="btn big block" type="button" disabled>${wh}에 시작해요</button>`) : ''}</section>`; }
+      ${s ? (ROLE_T ? `<button class="btn primary big block" data-nx="${esc(s.id)}" type="button">선생님 · 미리 들어가 보기</button>` : `<button class="btn big block" type="button" disabled>${wh}에 시작해요</button>`) : ''}</section>`; }
     else {
       const s = nxLesson(sl.date);
       if (!s) main = `<div class="card empty c12">${gh('sleepy', 'gh-empty')}<b>시험 문제를 준비하고 있어요</b><span>선생님이 곧 넣어 줄 거예요</span></div>`;
@@ -6046,7 +6046,7 @@
     const row = (k, name, rng) => {
       const id = `${k}:${sl.date}`, s = (P[{ ls: 'units', lw: 'days', lm: 'm3' }[k]] || nxS().lq[id]) ? ygTest(id) : null;
       if (!s) return `<div class="li is-done"><div class="ico">${ic('clock')}</div><div class="body"><div class="t">${name}</div><div class="d">선생님이 범위를 넣으면 나와요</div></div></div>`;
-      if (!sl.open) return `<div class="li ${TEACHER ? 'btnlike' : ''}" ${TEACHER ? `data-nx="${esc(s.id)}"` : ''}><div class="ico">${ic('books')}</div><div class="body"><div class="t">${esc(s.title)} · ${s.qs.length}문제</div><div class="d">${esc(s.sub)} · ${TEACHER ? '선생님은 미리 들어가 볼 수 있어요' : `${esc(timeKo(sl.time) || '')}에 시작해요`}</div></div>${TEACHER ? '<span class="chev"></span>' : `<span class="tag">${esc(timeKo(sl.time) || '')}</span>`}</div>`;
+      if (!sl.open) return `<div class="li ${ROLE_T ? 'btnlike' : ''}" ${ROLE_T ? `data-nx="${esc(s.id)}"` : ''}><div class="ico">${ic('books')}</div><div class="body"><div class="t">${esc(s.title)} · ${s.qs.length}문제</div><div class="d">${esc(s.sub)} · ${ROLE_T ? '선생님은 미리 들어가 볼 수 있어요' : `${esc(timeKo(sl.time) || '')}에 시작해요`}</div></div>${ROLE_T ? '<span class="chev"></span>' : `<span class="tag">${esc(timeKo(sl.time) || '')}</span>`}</div>`;
       const g = nxProg(s), L = nxLast(s.id), fin = L && g.d >= g.n;
       return `<div class="li btnlike" data-nx="${esc(s.id)}"><div class="ico">${ic(fin ? (L.ok === L.n ? 'trophy' : 'ok') : 'pencil')}</div><div class="body"><div class="t">${esc(s.title)} · ${g.n}문제</div><div class="d">${fin ? `${nxTime(L.ms) ? '걸린 시간 ' + nxTime(L.ms) + ' · ' : ''}점수는 선생님 리포트에 가요` : g.d ? `${g.d} / ${g.n} 풀었어요 · 이어서 풀기` : esc(s.sub)}</div></div>${fin ? `<b class="num">${L.ok} / ${L.n}</b>` : '<span class="chev"></span>'}</div>`;
     };
@@ -6093,7 +6093,7 @@
     const step = (k, h, sub, body) => `<div class="cl-st"><div class="cl-st-h"><i>${k}</i><b>${h}</b>${sub ? `<span class="tiny">${sub}</span>` : ''}</div>${body}</div>`;
     const test = (id, s, name) => {
       if (!sl.open && !s) return `<div class="li"><div class="ico">${ic('books')}</div><div class="body"><div class="t">${name}</div><div class="d">${esc(timeKo(sl.time) || '')}에 시작해요 · ${nxLeft(sl.left)} 남았어요</div></div></div>`;
-      if (!sl.open) return `<div class="li ${TEACHER ? 'btnlike' : ''}" ${TEACHER ? `data-nx="${esc(s.id)}"` : ''}><div class="ico">${ic('books')}</div><div class="body"><div class="t">${esc(s.title)} · ${s.qs.length}문제</div><div class="d">${TEACHER ? '선생님은 미리 들어가 볼 수 있어요' : `${esc(timeKo(sl.time) || '')}에 시작해요 · ${nxLeft(sl.left)} 남았어요`}</div></div>${TEACHER ? '<span class="chev"></span>' : ''}</div>`;
+      if (!sl.open) return `<div class="li ${ROLE_T ? 'btnlike' : ''}" ${ROLE_T ? `data-nx="${esc(s.id)}"` : ''}><div class="ico">${ic('books')}</div><div class="body"><div class="t">${esc(s.title)} · ${s.qs.length}문제</div><div class="d">${ROLE_T ? '선생님은 미리 들어가 볼 수 있어요' : `${esc(timeKo(sl.time) || '')}에 시작해요 · ${nxLeft(sl.left)} 남았어요`}</div></div>${ROLE_T ? '<span class="chev"></span>' : ''}</div>`;
       if (!s) return `<div class="li"><div class="ico">${ic('clock')}</div><div class="body"><div class="t">${name}</div><div class="d">문제를 준비하고 있어요</div></div></div>`;
       const g = nxProg(s), L = nxLast(s.id), fin = L && g.d >= g.n;
       return `<div class="li btnlike" data-nx="${esc(s.id)}"><div class="ico">${ic(fin ? (L.ok === L.n ? 'trophy' : 'ok') : 'pencil')}</div><div class="body"><div class="t">${esc(s.title)} · ${g.n}문제</div><div class="d">${fin ? `${nxTime(L.ms) ? '걸린 시간 ' + nxTime(L.ms) + ' · ' : ''}점수는 선생님 리포트에 가요` : g.d ? `${g.d} / ${g.n} 풀었어요 · 이어서 풀기` : esc(s.sub)}</div></div>${fin ? `<b class="num">${L.ok} / ${L.n}</b>` : '<span class="chev"></span>'}</div>`;
@@ -6822,7 +6822,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081149'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611081201'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
