@@ -2306,7 +2306,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611082059', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611082106', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2900,7 +2900,13 @@
   }
   // 다음 문제로 갈 때 맨 위(뒤로 단추·머리)까지 올라가지 않고 문제 칸이 화면 맨 위에 오게 (선생님 10/26 「자꾸 맨 위로 가서 귀찮아」)
   // 11/8 «문제 다 풀면 자꾸 맨 위로 올라가서 잘했다는 결과가 안 보여»: 답을 고르면 정답·해설 칸이 화면 가운데 오게 내려가요
-  function seeVerdict() { const v = $('main .verdict'); if (!v) return; const r = v.getBoundingClientRect(), bar = ($('.cta-bar') || {}).offsetHeight || 0; if (r.top < 80 || r.bottom > innerHeight - bar - 16) window.scrollBy({ top: r.top - innerHeight * 0.35, behavior: RM() ? 'auto' : 'smooth' }); }
+  function seeVerdict() {
+    // 11/8 «다 맞아도 아래로 스크롤이 안 내려와»: 정답 칸과 그 아래 해설이 아래쪽 「다음」 막대·탭바에 가리지 않게 내려가요 (정답 칸은 위로 안 넘어가게)
+    const v = $('main .verdict'); if (!v) return; const top = ($('.top') || {}).offsetHeight || 0, r = v.getBoundingClientRect();
+    let end = r.bottom; for (let e = v.nextElementSibling, k = 0; e && k < 2; e = e.nextElementSibling, k++) { if (e.matches('.cta-bar') || e.querySelector('#next, #nx-next')) break; end = Math.max(end, e.getBoundingClientRect().bottom); }
+    let low = innerHeight; for (const el of [$('main .cta-bar'), $('.tabbar'), $('nav.bottom'), $('.bnav')]) if (el && el.offsetParent !== null) { const p = getComputedStyle(el).position; if (p === 'fixed' || p === 'sticky') { const t = el.getBoundingClientRect().top; if (t > innerHeight * 0.5) low = Math.min(low, t); } }
+    const nb = $('main #next') || $('main #nx-next'); if (nb) { const b = nb.getBoundingClientRect(); if (b.top > r.top && b.top < low) end = Math.max(end, b.bottom); }
+    let d = Math.min(end - (low - 16), r.top - top - 16); if (d > 8) window.scrollBy({ top: d, behavior: RM() ? 'auto' : 'smooth' }); }
   function toQ() { const el = $('main .progress-dots') || $('main .qwrap'); if (!el) return window.scrollTo(0, 0); const top = ($('.top') || {}).offsetHeight || 0; window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + scrollY - top - 8), behavior: 'auto' }); }
   function unitRun() {
     const back = UI.run && UI.run.back, g3lib = UI.run && UI.run.g3lib;
@@ -6918,7 +6924,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611082059'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611082106'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
