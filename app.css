@@ -4649,3 +4649,7 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .card:has(> .btn.block:last-child) { display: flex; flex-direction: column; }
 .card > .btn.block:last-child { margin-top: auto; }
 .card:has(> .btn.block:last-child) > :nth-last-child(2) { margin-bottom: 16px; }
+/* 11/10 «아까 걸 어디다 잘 배치할지»: 다 끝냈을 때 캐릭터는 목록과 「끝낸 숙제」 사이 빈 곳 한가운데 */
+.hw-today { display: flex; flex-direction: column; }
+.hw-today > .td-all { flex: 1 1 auto; justify-content: center; min-height: 168px; margin: 16px 0; }
+.hw-today > .hw-tog { margin-top: auto; }
