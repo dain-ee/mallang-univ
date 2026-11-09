@@ -4298,3 +4298,7 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .li .d .nw { white-space: nowrap; }
 .d-pv .rp-img[hidden] { display: none; }
 .d-pv-w { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 200px; border-radius: 12px; background: var(--fill2); font-size: 14px; color: var(--t3); }
+/* 11/9 «이 선이 굳이 있어야 할까»: 수업 카드 칸 사이 선 없이 여백으로만 */
+.ls-sec + .ls-sec { padding-top: 0; margin-top: 24px; border-top: 0; }
+.ls-tools { padding-top: 0; margin-top: 24px; border-top: 0; }
+.ls-next { padding-top: 0; margin-top: 24px; border-top: 0; }
