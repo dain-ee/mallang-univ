@@ -554,7 +554,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${TUTOR ? lessonHero() : ''}${olpNew()}${appCard()}${gdCard()}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${juaRepCard()}${juaLinks()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${qlogCard()}${railCards(true)}${winCard()}${perfCard()}${finCard()}${lagCard()}${pomoCard('c12 rail-inline')}${growCard('c12')}${walletCard('c12')}${hotCard('c12 rail-inline')}${insightCard('c7')}${schedCard('c5')}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${TUTOR ? lessonHero() : ''}${appCard()}${gdCard()}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${juaRepCard()}${juaLinks()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${qlogCard()}${railCards(true)}${winCard()}${perfCard()}${finCard()}${lagCard()}${pomoCard('c12 rail-inline')}${growCard('c12')}${walletCard('c12')}${hotCard('c12 rail-inline')}${insightCard('c7')}${schedCard('c5')}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 11/8 «정윤이 너무 홈이 너무 지저분해»
@@ -2352,7 +2352,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611091011', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611091014', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2791,6 +2791,11 @@
       const nxBtn = a ? doneCard(a.ok ? 1 : 0, 1, `올림포스 지문 끝! 저장됐어요. 숙제 목록에서 ✓ 로 보여요${olp ? '' : ''}`, '<button class="btn primary big block" data-finback type="button">숙제 목록으로 ›</button>') : '';
       const ohd = `<div class="row between"><button class="btn sm" data-finback type="button">‹ 숙제</button><span class="tiny">올림포스 ${esc(c.pages)}쪽</span></div>
         <p class="eyebrow" style="margin:16px 0 4px">${ic('books')} 올림포스 · ${esc(c.type || '')}</p><h1 class="h1" style="margin:0 0 ${olp ? 8 : 16}px">${esc(c.title)}</h1>${olp ? `<div class="seg" style="margin:0 0 16px">${[['q', `① 단어·문제${a ? ' ✓' : ''}`], ['sx', '② 문장 분석']].map(([k, nm]) => `<button type="button" class="${ost === k ? 'on' : ''}" data-olst="${k}">${nm}</button>`).join('')}</div>` : ''}`;
+      // 11/9 «숙제하기에서 눌렀을 때 뭐가 새로워졌는지 보여 주는 화면» · 새 지문 처음 열 때 한 번
+      if (olp && !a && !(S.party || {}).olpIntro && !r.introSeen) {
+        const f = [['① 단어·문제', '지금처럼 단어 보고 지문 문제를 먼저 풀어요'], ['② 한 문장씩 분석', '문제를 다 풀면 지문을 한 문장씩 다시 봐요'], ['구조 보기', '주어·동사·목적어 표시는 가려 두었다가 눌러서 봐요'], ['해석 스티커', '혼자 해석해 보고 스티커를 떼서 맞춰 봐요'], ['중요 문법·천일문', '시험에 나올 문법은 표시돼 있고, 관련 천일문 유닛으로 바로 가요'], ['필기', '문장마다 바로 아래에 내 필기를 남겨요']];
+        return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd.replace(/<div class="seg"[\s\S]*$/, '')}<section class="card"><div class="card-h"><h2>올림포스가 이렇게 바뀌었어요</h2><span class="tiny">13강부터</span></div><div class="list">${f.map(([t, d], k) => `<div class="li"><div class="ico">${k < 2 ? `<b class="num">${k + 1}</b>` : ic('ok')}</div><div class="body"><div class="t">${t}</div><div class="d">${d}</div></div></div>`).join('')}</div></section><div class="cta-bar"><button class="btn primary big block" data-olintro type="button">① 단어·문제부터 시작하기</button></div></div>`;
+      }
       if (ost === 'sx') { const ou = olpU(c);
         return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd}<div class="row between st-tools" style="margin:0 0 12px"><span class="tiny">${UI.sxAll ? '구조와 해석이 다 보여요' : '문장마다 혼자 읽어 보고 구조 보기 → 해석 스티커 차례로 열어요'}</span><button type="button" class="btn sm ${UI.sxAll ? 'primary' : ''}" data-sxall aria-pressed="${!!UI.sxAll}">${UI.sxAll ? '다시 가리기' : '다 펼치기'}</button></div>${m3Struct(ou, ou.notes.passages[0])}${a ? `<div style="margin-top:16px">${nxBtn}</div>` : '<div class="cta-bar"><button class="btn primary big block" data-olst="q" type="button">① 단어·문제 먼저 풀기</button></div>'}</div>`; }
       return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd}
@@ -2828,6 +2833,7 @@
     $$('[data-fmap]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'fin', map: b.dataset.fmap }; top(); }));
     if (r.map) return bindMap();
     const c = r.cid && FIN_ALL.find((x) => x.id === r.cid); if (!c) return;
+    $$('[data-olintro]').forEach((b) => (b.onclick = () => { r.introSeen = 1; if (!PEEK) { S.party = S.party || {}; S.party.olpIntro = Date.now(); save('party'); } top(); }));
     const g = $('#fr-go'); if (g) g.onclick = () => { r.read = true; r.i = null; top(); };
     $$('[data-fst]').forEach((x) => (x.onclick = () => { const k = x.dataset.fst; if (k === 'q') { r.read = true; r.i = null; } else { r.read = false; r.step = k; } top(); }));
     $$('[data-olst]').forEach((b) => (b.onclick = () => { r.st = b.dataset.olst; top(); }));  // 올림포스 ① 단어·문제 / ② 문장 분석
@@ -7104,7 +7110,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091011'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091014'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
