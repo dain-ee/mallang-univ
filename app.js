@@ -24,6 +24,8 @@
   const IC = { home: '1f3e0', hw: '1f4dd', wrong: '1f4d2', score: '1f4ca', sgb: '1f4cb', target: '1f3af', sci: '1f9ea', eng: '1f4d6', fire: '1f525', x: '274c', ok: '2705', up: '1f4c8', down: '1f4c9', star: '2b50', trophy: '1f3c6', cal: '1f4c5', retry: '1f501', bulb: '1f4a1', school: '1f3eb', grad: '1f393', ghost: '1f47b', party: '1f389', pin: '1f4cc', compass: '1f9ed', muscle: '1f4aa', brain: '1f9e0', clock: '23f0', hundred: '1f4af', think: '1f914', spark: '2728', mic: '1f3a4', books: '1f4da', pencil: '270f', write: '270d', dna: '1f9ec', pill: '1f48a', news: '1f4f0', bell: '1f514', mega: '1f4e2', memo: '1f5d2', flag: '1f6a9', q: '2753', globe: '1f30f', math: '1f4d0', abacus: '1f9ee', bank: '1f3db', run: '1f3c3', heart: '1f499', medal: '1f3c5', eyes: '1f440', scroll: '1f4dc', tomato: '1f345', gold: '1f947', coffee: '2615', timer: '23f1', glow: '1f31f', herb: '1f33f', leaf: '1f343', headph: '1f3a7', piano: '1f3b9', violin: '1f3bb', sax: '1f3b7', rain: '1f327', wave: '1f30a', coin: '1f4b0', bag: '1f4b0', gift: '1f381', cash: '1f4b5', pumpkin: '1f383', tree: '1f384', choco: '1f36b', fireworks: '1f386', love: '1f48c', clover: '1f340', crown: '1f451', snow: '2744', cake: '1f382', new: '1f195' };
   const ic = (k, cls = 'ic') => `<img class="${cls}" src="icons/${IC[k] || k}.svg" alt="">`;
   // 보는 날: UI.dayOff 가 -1 이면 어제 숙제를 오늘처럼 보여 줘요 (자정이 지나도 하던 숙제를 이어서, 화살표로 왔다 갔다 · 정윤 10/29)
+  // 11/9 정윤 «하이라이트가 잘못 쳐져 있어»: 'is'가 disease 속 is에 칠해졌어요. 단어 경계에서만, 단어로 못 찾을 때만 글자 그대로
+  const markWord = (e, h, cls = '') => { if (!h) return e; const q = h.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), w = new RegExp(`(^|[^A-Za-z0-9'])(${q})(?![A-Za-z0-9])`); const m = w.exec(e); const tag = (x) => `<mark${cls ? ` class="${cls}"` : ''}>${x}</mark>`; if (m) { const i = m.index + m[1].length; return e.slice(0, i) + tag(m[2]) + e.slice(i + m[2].length); } return /^[A-Za-z]/.test(h) ? e : e.replace(h, tag(h)); };
   const DAY_OFF = () => (typeof UI === 'object' && UI && UI.dayOff) || 0;
   const fmtDay = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   // 하루는 새벽 5시에 바뀌어요. 밤 12시를 넘겨 이어서 해도 그날 공부예요 (11/5 선생님 «기준을 정해야» → 시간표·숙제·달력·밀림·연속 모두 같은 기준)
@@ -1880,7 +1882,7 @@
   }
   // 천일문 개념 정리: 한 줄 핵심 · 표 · 포인트(예문 강조) · 꼭 외울 것(가리고 외우기) · 시험 함정
   function chLesson(un) {
-    const L = un.lesson, hl = (ex, h) => { const e = esc(ex || ''); if (!h || !ex.includes(h)) return e; return e.replace(esc(h), `<mark>${esc(h)}</mark>`); };
+    const L = un.lesson, hl = (ex, h) => markWord(esc(ex || ''), h ? esc(h) : '');
     // 교재 설명 원문: 천일문 기본 책의 설명을 그대로 (10/28 선생님 «설명은 하나도 빠지면 안 돼, 원문 자체가 중요해»)
     const bookHtml = (B) => { let out = '', ul = false, tb = false; const endUl = () => { if (ul) { out += '</ul>'; ul = false; } if (tb) { out += '</tbody></table></div>'; tb = false; } }; for (const it of B) { if (it.k === 'b' && String(it.t).includes(' | ')) { if (ul) { out += '</ul>'; ul = false; } if (!tb) { out += '<div class="cl-tw"><table class="cl-t"><tbody>'; tb = true; } out += `<tr>${String(it.t).split(' | ').map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`; continue; } if (it.k === 'b' && /p\.p\.|[SV]′|\bS V\b|to-v|→/.test(it.t)) { endUl(); out += `<div class="cl-fm">${esc(it.t)}</div>`; continue; }  // 공식 줄은 상자로, 글은 원문 그대로 (10/31 «정윤이는 더 이쁘게 됐던 것 같은데»)
       if (it.k === 'b' && String(it.t).split(' / ').length >= 3) { endUl(); out += `<div class="cl-chips">${String(it.t).split(' / ').map((x) => `<span>${esc(x)}</span>`).join('')}</div>`; continue; }
@@ -2355,7 +2357,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611092359', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611100003', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5749,7 +5751,7 @@
       let k = 0; stem = `${q.h ? `<div class="tiny" style="margin-bottom:6px">${esc(q.h)}</div>` : ''}<p class="nx-q nx-blq">${esc(q.q).replace(/\{([^}]+)\}/g, (m, a) => { const i = k++; if (!rec) return `<input class="nx-bl" data-nxin="${i}" autocomplete="off" spellcheck="false" style="width:${Math.max(4, a.length * 1.6 + 1)}em" aria-label="빈칸 ${i + 1}">`; const ok = nxAlts(a).includes(nxKey(typed[i])); return `<span class="nx-bl-r ${ok ? 'ok' : 'no'}"><b>${esc(a)}</b>${!ok && String(typed[i] || '').trim() ? `<s>${esc(typed[i])}</s>` : ''}</span>`; })}</p>`;
       if (!rec) ans = `<div class="nx-acts"><button class="btn primary big" id="nx-go" type="button">채점하기</button><button class="nx-link" id="nx-give" type="button">모르겠어요</button></div>`;
     } else if (q.t === 'wko' || q.t === 'wen') {
-      stem = `<div class="nx-word">${esc(q.q)}</div>${q.t === 'wen' && q.w.ex ? `<p class="nx-wex">${esc(q.w.ex).replace(new RegExp(q.w.en.split(' ')[0].slice(0, Math.max(3, q.w.en.split(' ')[0].length - 2)).replace(/[^a-z]/gi, '') + '\\w*', 'i'), '<span class="nx-gap"></span>')}</p>` : ''}`;
+      stem = `<div class="nx-word">${esc(q.q)}</div>${q.t === 'wen' && q.w.ex ? `<p class="nx-wex">${esc(q.w.ex).replace(new RegExp('\\b' + q.w.en.split(' ')[0].slice(0, Math.max(3, q.w.en.split(' ')[0].length - 2)).replace(/[^a-z]/gi, '') + '\\w*', 'i'), '<span class="nx-gap"></span>')}</p>` : ''}`;
       ans = rec ? '' : `<div class="nx-in-row"><input class="inp" data-nxin="0" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${q.t === 'wko' ? '뜻을 한글로 써요' : '영어로 써요'}"><button class="btn primary" id="nx-go" type="button">확인</button></div>`;
     } else {
       stem = `<h2 class="nx-q">${nxRich(q.q)}</h2>${q.p && !long ? `<div class="nx-box">${nxRich(q.p)}</div>` : ''}`;
@@ -7116,7 +7118,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611092359'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611100003'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

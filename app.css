@@ -998,8 +998,9 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .done-ic img.gh-done { width: 220px; height: 220px; margin: -48px auto -8px; }  /* 아래 -32 는 캐릭터 발이 제목에 겹쳐서 (10/26) */
 .done-ic.gh-wrap { background: none !important; width: auto !important; height: auto !important; }
 .empty img.gh-empty { width: 160px; height: 160px; margin: -28px auto 0; }
-.td-all { flex-direction: row; gap: 10px; justify-content: flex-start; margin: 12px 0 0; padding: 10px 14px; border-radius: 16px; background: var(--fill); color: var(--t1); font-size: 15px; animation: waveIn .35s both; }
-.td-all img.gh-td { width: 44px; height: 44px; margin: 0; object-fit: contain; flex: none; }
+.td-all { flex-direction: column; gap: 10px; margin: 20px 0 4px; animation: waveIn .35s both; }
+.td-all img.gh-td { width: 104px; height: 104px; margin: 0; object-fit: contain; flex: none; }
+.td-all span { display: block; line-height: 1.4; }
 .pm-c img.pm-gh { width: 104px; height: 104px; margin: -32px 0 -18px; }
 .pm-card.running .pm-c img.pm-gh { animation: none; }
 .hero-goal { width: 100%; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 16px; padding: 14px 16px; border-radius: 16px; background: var(--fill); font-size: 14px; }
