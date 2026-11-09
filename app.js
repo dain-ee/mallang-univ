@@ -2357,7 +2357,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611100009', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611100011', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2501,6 +2501,10 @@
     });
   }
   const GH_NEXT = { hello: ['idle', 2000] }, GH_BLOB = {};
+  // 11/10 «전체 문제 비율로 30%까지 슬픈 표정 ㅠㅠ, 70%까지 애매한 표정, 100까지 잘했다 표정. 애들 거 전부, 기존 캐릭터로»
+  const resBand = (ok, n) => { const r = n ? ok / n : 1; return r <= 0.3 ? 0 : r <= 0.7 ? 1 : 2; };
+  const resFace = (ok, n, cls = 'gh-done') => gh(['oops', 'focus', 'yay'][resBand(ok, n)], cls + ' res-b' + resBand(ok, n));
+  const resTitle = (ok, n) => (n && ok === n ? '다 맞혔어요!' : ['아쉬워요 ㅠㅠ', '조금만 더 해 봐요', '잘했어요!'][resBand(ok, n)]);
   const gh = (n, cls = '') => `<img class="gh ${cls}" data-gh="${n}" src="${av(`${petBase()}/${n}.png`)}" onerror="if(this.dataset.f){this.onerror=null;this.style.display='none'}else{this.dataset.f=1;this.src='assets/ghost/${n}.png'}" alt="">`;
   function ghFill(root) {
     for (const img of (root || document).querySelectorAll('img[data-gh]:not([data-ghd])')) {
@@ -2550,9 +2554,8 @@
   const RV_BTN = '<div class="done-more"><button class="btn sm ghost" data-rv type="button">내가 푼 것 다시 보기</button></div>';
   function doneCard(ok, n, sub, btns, extra = '') {
     if (redoKey() && !TEACHER) { btns = btns.replace(/(<\/button>)/, '$1<button class="btn big block" data-redo-run type="button">다시 풀기</button>'); if (S.redo && S.redo[redoKey()]) { delete S.redo[redoKey()]; UI.redoKey = null; save('redo'); } }
-    const all = n && ok === n, icon = all ? 'trophy' : ok / (n || 1) >= 0.6 ? 'party' : 'muscle';
-    const title = all ? '다 맞혔어요!' : ok / (n || 1) >= 0.6 ? '잘했어요!' : '끝까지 풀었어요!';
-    return `<div class="done-card card" data-done="${all ? 2 : ok / (n || 1) >= 0.6 ? 1 : 0}"><div class="done-ic gh-wrap">${gh(ok / (n || 1) >= 0.6 ? 'yay' : 'oops', 'gh-done')}</div><h1 class="h1">${title}</h1><div class="done-score"><b class="num">${ok}</b><span>/ ${n} 맞힘</span></div><p class="sub">${sub}</p>${extra}<div class="done-btns">${btns}</div></div>`;
+    const all = n && ok === n, title = resTitle(ok, n);
+    return `<div class="done-card card" data-done="${resBand(ok, n)}"><div class="done-ic gh-wrap">${resFace(ok, n)}</div><h1 class="h1">${title}</h1><div class="done-score"><b class="num">${ok}</b><span>/ ${n} 맞힘</span></div><p class="sub">${sub}</p>${extra}<div class="done-btns">${btns}</div></div>`;
   }
   function verdict(ok, extra = '') { return `<div class="verdict ${ok ? 'ok' : 'no'}">${ic(ok ? 'hundred' : 'think')}<span>${ok ? '정답이에요' : '아쉬워요, 다시 볼게요'}</span>${extra}</div>`; }
   function addWrong(id, w) { S.wrong = S.wrong || {}; const old = S.wrong[id]; S.wrong[id] = { ...(old || {}), ...w, first: (old && (old.first || old.at)) || Date.now(), at: Date.now(), times: ((old && old.times) || 0) + 1, cleared: false, gone: false }; save('wrong'); buzz(); }  /* 지운 오답도 다시 틀리면 다시 보여요 (11/4) */
@@ -2658,7 +2661,7 @@
     if (tab.html) body = `<section class="card pf-body${tab.wide ? ' pf-wide' : ''}">${tab.html}</section>`;
     else if (tab.rows) body = `<section class="card"><div class="list">${tab.rows.map(([k, v]) => `<div class="sv-row pf-kv"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div></section>`;
     else if (tab.imgs) body = `<section class="card"><div class="card-h"><h2>${esc(tab.n)}</h2><span class="tiny">${esc(tab.cap || '')}</span></div>${tab.imgs.map((s) => `<img class="pf-img" src="${esc(s)}" alt="${esc(tab.cap || '교과서')}" loading="lazy">`).join('')}</section>`;
-    else if (tab.k === 'quiz') { const q = perfQ(x); body = `${finBlankHtml(x)}${q.k >= q.n ? `<div class="ls-box" style="margin-top:12px"><b>${q.ok}/${q.n} 맞혔어요</b><p>틀린 것은 「외울 것」에서 한 번 더 보고 다시 풀어요</p><button class="btn soft" id="pf-redo" type="button" style="margin-top:8px">빈칸 다시 풀기</button></div>` : ''}`; }
+    else if (tab.k === 'quiz') { const q = perfQ(x); body = `${finBlankHtml(x)}${q.k >= q.n ? `<div class="ls-box res-box" style="margin-top:12px">${resFace(q.ok, q.n, 'gh-res')}<b>${resTitle(q.ok, q.n)} ${q.ok}/${q.n} 맞혔어요</b><p>틀린 것은 「외울 것」에서 한 번 더 보고 다시 풀어요</p><button class="btn soft" id="pf-redo" type="button" style="margin-top:8px">빈칸 다시 풀기</button></div>` : ''}`; }
     return `<div class="qwrap" style="max-width:${tab.wide ? 1100 : 760}px;margin:0 auto"><div class="row between" style="margin-bottom:8px"><button class="btn sm ghost" data-pfback type="button">‹ 숙제</button>${TEACHER ? `<span class="tiny">${esc(x.d)}</span>` : (S.perfDone || {})[x.id] ? `<button class="btn sm" type="button" data-perfundo="${esc(x.id)}">목록에 다시 넣기</button>` : `<button class="btn sm primary" type="button" data-perfdone="${esc(x.id)}">다 했어요</button>`}</div><h1 class="h1" style="margin:8px 0">${esc(x.title)}</h1>${x.tabs.length > 1 ? `<div class="seg" style="margin:0 0 16px">${x.tabs.map((t) => `<button type="button" class="${t === tab ? 'on' : ''}" data-pft="${t.k}">${esc(t.n)}</button>`).join('')}</div>` : ''}${body}</div>`;
   }
   function bindPerf() {
@@ -2760,7 +2763,7 @@
       <div class="seg" style="margin:0 0 16px"><button type="button" class="${mode === 'fill' ? 'on' : ''}" data-msee="0">빈칸 채우기 ${N.k}/${N.n}</button><button type="button" class="${mode === 'see' ? 'on' : ''}" data-msee="1">답 보며 읽기</button></div>
       <section class="card mp">${mapHtml(m, mode, cur)}</section>
       ${mode === 'see' ? '' : N.k < N.n ? `<div class="mp-bank"><p class="tiny">빈칸 <b>${B.indexOf(cur) + 1}번</b>에 들어갈 말을 골라요 · 다른 빈칸을 눌러도 돼요</p><div class="jg-ops j-ops sm">${bank.map((t) => `<button type="button" class="chip jg-op" data-mpick="${esc(t)}">${esc(t)}</button>`).join('')}</div></div>`
-        : `<section class="card" style="margin-top:12px;text-align:center"><p style="font-size:20px;font-weight:700;margin:4px 0">${N.ok}/${N.n} 맞혔어요</p><p class="sub" style="margin:0 0 16px">${N.ok === N.n ? '이 소단원 흐름은 이제 내 거예요' : '빨간 말은 한 번 더 소리 내서 읽어요'}</p>
+        : `<section class="card" style="margin-top:12px;text-align:center">${resFace(N.ok, N.n, 'gh-res')}<p style="font-size:20px;font-weight:700;margin:4px 0">${resTitle(N.ok, N.n)} ${N.ok}/${N.n} 맞혔어요</p><p class="sub" style="margin:0 0 16px">${N.ok === N.n ? '이 소단원 흐름은 이제 내 거예요' : '빨간 말은 한 번 더 소리 내서 읽어요'}</p>
           ${N.ok < N.n ? '<button class="btn primary big block" id="mp-wrong" type="button">틀린 것만 다시</button>' : ''}<button class="btn big block" id="mp-all" type="button" style="margin-top:8px">처음부터 다시</button><button class="btn big block" data-finback type="button" style="margin-top:8px">숙제로</button></section>`}</div>`;
   }
   function bindMap() {
@@ -5245,7 +5248,7 @@
     return `<div class="qwrap jgs" style="max-width:820px;margin:0 auto">${head}
       <div class="card jgs-top"><div><b>Review Test</b><small>Grammar Stage Plus 2 · Unit ${esc(u.no)} ${esc(u.title)}</small></div><div class="jgs-score">${done ? `<b>${ok}</b> / ${qs.length}` : `${qs.length}문제`}</div></div>
       ${body}
-      ${done === qs.length ? `<div class="card" style="text-align:center"><b style="font-size:20px">${ok} / ${qs.length} 맞혔어요</b><p class="tiny">틀린 문제는 오답 노트에 쌓였어요</p><button class="btn big block" data-jgre type="button">처음부터 다시 풀기</button></div>` : ''}</div>`;
+      ${done === qs.length ? `<div class="card" style="text-align:center">${resFace(ok, qs.length, 'gh-res')}<b style="font-size:20px;display:block">${resTitle(ok, qs.length)} ${ok} / ${qs.length} 맞혔어요</b><p class="tiny">틀린 문제는 오답 노트에 쌓였어요</p><button class="btn big block" data-jgre type="button">처음부터 다시 풀기</button></div>` : ''}</div>`;
   }
   function bindJgSheet(u, r) {
     const qs = jgQs(u, r.step, r.secs), byId = (id) => qs.find((q) => q.id === +id);
@@ -7118,7 +7121,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611100009'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611100011'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

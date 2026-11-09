@@ -4653,3 +4653,11 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .hw-today { display: flex; flex-direction: column; }
 .hw-today > .td-all { flex: 1 1 auto; justify-content: center; min-height: 168px; margin: 16px 0; }
 .hw-today > .hw-tog { margin-top: auto; }
+/* 11/10 결과 표정 세 구간 */
+img.gh-res { display: block; width: 96px; height: 96px; object-fit: contain; margin: 0 auto 8px; animation: waveIn .4s both; }
+.res-box img.gh-res { margin: 0 0 8px; }
+img.res-b0 { animation: waveIn .4s both, resSad 2.4s ease-in-out .4s infinite; }
+img.res-b2 { animation: waveIn .4s both, resHop 1.6s ease-in-out .4s infinite; }
+@keyframes resSad { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-4deg) translateY(2px); } }
+@keyframes resHop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { img.res-b0, img.res-b2 { animation: none; } }
