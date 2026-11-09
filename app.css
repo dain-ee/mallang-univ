@@ -4277,3 +4277,4 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .grow .grow-bar i { background: color-mix(in srgb, var(--blue) 22%, var(--card)); }
 .grow .grow-bar.on i { background: var(--blue); }
 .li .d b.num { font-weight: 700; color: var(--t2); white-space: nowrap; }
+.li .d .nw { white-space: nowrap; }
