@@ -2352,7 +2352,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611090936', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611090949', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2786,12 +2786,18 @@
     }
     if (c.text) {  // 올림포스 지문: 앱 안에서 읽고 풀기 (단어 → 지문·문제 → 해설·해석) 10/26 «e-book 말고»
       const A = finS().ans[c.id] || {}, a = A.q, u = (t) => esc(t).replace(/&lt;u&gt;/g, '<u>').replace(/&lt;\/u&gt;/g, '</u>');
-      return `<div class="qwrap" style="max-width:760px;margin:0 auto"><div class="row between"><button class="btn sm" data-finback type="button">‹ 숙제</button><span class="tiny">올림포스 ${esc(c.pages)}쪽</span></div>
-        <p class="eyebrow" style="margin:16px 0 4px">${ic('books')} 올림포스 · ${esc(c.type || '')}</p><h1 class="h1" style="margin:0 0 16px">${esc(c.title)}</h1>
+      // 11/9 «매3영처럼 첫 스텝(단어+문제), 다음 스텝이 한 문장씩 분석» · 분석 데이터(c.sx)가 있는 지문만 ② 가 생겨요
+      const olp = !!((c.sx || {}).sents || []).length, ost = olp && r.st === 'sx' ? 'sx' : 'q';
+      const nxBtn = (() => { const nx = finToday().find((x) => !finDone(x) && x.id !== c.id); return nx ? `<button class="btn primary big block" data-fc="${nx.id}" type="button">다음: ${esc(nx.title)}</button>` : '<button class="btn primary big block" data-finback type="button">숙제로</button>'; })();
+      const ohd = `<div class="row between"><button class="btn sm" data-finback type="button">‹ 숙제</button><span class="tiny">올림포스 ${esc(c.pages)}쪽</span></div>
+        <p class="eyebrow" style="margin:16px 0 4px">${ic('books')} 올림포스 · ${esc(c.type || '')}</p><h1 class="h1" style="margin:0 0 ${olp ? 8 : 16}px">${esc(c.title)}</h1>${olp ? `<div class="seg" style="margin:0 0 16px">${[['q', `① 단어·문제${a ? ' ✓' : ''}`], ['sx', '② 문장 분석']].map(([k, nm]) => `<button type="button" class="${ost === k ? 'on' : ''}" data-olst="${k}">${nm}</button>`).join('')}</div>` : ''}`;
+      if (ost === 'sx') { const ou = olpU(c);
+        return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd}<div class="row between st-tools" style="margin:0 0 12px"><span class="tiny">${UI.sxAll ? '구조와 해석이 다 보여요' : '문장마다 혼자 읽어 보고 구조 보기 → 해석 스티커 차례로 열어요'}</span><button type="button" class="btn sm ${UI.sxAll ? 'primary' : ''}" data-sxall aria-pressed="${!!UI.sxAll}">${UI.sxAll ? '다시 가리기' : '다 펼치기'}</button></div>${m3Struct(ou, ou.notes.passages[0])}<div class="cta-bar">${a ? nxBtn : '<button class="btn primary big block" data-olst="q" type="button">① 단어·문제 먼저 풀기</button>'}</div></div>`; }
+      return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd}
         ${(c.words || []).length ? `<details class="hw-more card" ${a ? '' : 'open'}><summary><b>먼저 단어 ${c.words.length}개</b> <span class="tiny">눌러서 접기</span></summary><div class="oly-w">${c.words.map(([en, ko]) => `<div><b>${esc(en)}</b><span>${esc(ko)}</span></div>`).join('')}</div></details>` : ''}
         <section class="card oly-p" style="margin-top:12px"><p class="oly-q"><b>${esc(c.q)}</b></p>${c.given ? `<div class="oly-given">${u(c.given)}</div>` : ''}${c.text.map((t) => `<p>${u(t)}</p>`).join('')}${(c.notes || []).length ? `<p class="tiny">${c.notes.map((x) => '* ' + esc(x)).join('  ')}</p>` : ''}</section>
         <div class="choices" style="margin-top:12px">${c.choices.map((ch, k) => `<button class="choice ${!a ? '' : k === c.answer ? 'right' : k === a.p ? 'wrong' : ''}" data-olyp="${k}" type="button" ${a ? 'disabled' : ''}><span class="ct">${u(ch)}</span></button>`).join('')}</div>
-        ${a ? `${verdict(a.ok)}<div class="explain"><b>해설</b><br>${esc(c.exp || '')}</div>${(c.ko || []).length ? `<details class="hw-more card" style="margin-top:12px" open><summary><b>전체 해석</b></summary>${c.ko.map((t) => `<p style="line-height:1.8">${esc(t)}</p>`).join('')}</details>` : ''}<div class="cta-bar">${(() => { const nx = finToday().find((x) => !finDone(x) && x.id !== c.id); return nx ? `<button class="btn primary big block" data-fc="${nx.id}" type="button">다음: ${esc(nx.title)}</button>` : '<button class="btn primary big block" data-finback type="button">숙제로</button>'; })()}</div>` : ''}</div>`;
+        ${a ? `${verdict(a.ok)}<div class="explain"><b>해설</b><br>${esc(c.exp || '')}</div>${(c.ko || []).length ? `<details class="hw-more card" style="margin-top:12px" open><summary><b>전체 해석</b></summary>${c.ko.map((t) => `<p style="line-height:1.8">${esc(t)}</p>`).join('')}</details>` : ''}<div class="cta-bar">${olp ? '<button class="btn primary big block" data-olst="sx" type="button">다음: 한 문장씩 분석 ›</button>' : nxBtn}</div>` : ''}</div>`;
     }
     if (c.page) {  // 올림포스 지문: 책에서 풀고 체크
       const dn = finDone(c);
@@ -2824,6 +2830,7 @@
     const c = r.cid && FIN_ALL.find((x) => x.id === r.cid); if (!c) return;
     const g = $('#fr-go'); if (g) g.onclick = () => { r.read = true; r.i = null; top(); };
     $$('[data-fst]').forEach((x) => (x.onclick = () => { const k = x.dataset.fst; if (k === 'q') { r.read = true; r.i = null; } else { r.read = false; r.step = k; } top(); }));
+    $$('[data-olst]').forEach((b) => (b.onclick = () => { r.st = b.dataset.olst; top(); }));  // 올림포스 ① 단어·문제 / ② 문장 분석
     $$('[data-olyp]').forEach((b) => (b.onclick = () => { const A = finA(c.id); if (A.q) return; const k = +b.dataset.olyp; A.q = { p: k, ok: k === c.answer, at: Date.now() }; earn('fin:' + c.id, 100, '올림포스 지문'); save('fin'); render(); }));
     const fb = $('#fp-book'); if (fb) fb.onclick = () => bookOpen('eng2', null, c.page);
     const fd = $('#fp-done'); if (fd) fd.onclick = () => { const A = finA(c.id); if (finDone(c)) A.undone = { at: Date.now() }; else { A.done = { ok: 1, at: Date.now() }; earn('fin:' + c.id, 100, '올림포스 지문'); const nx = finToday().find((x) => !finDone(x)); toast('잘했어요'); if (nx) { UI.run = { kind: 'fin', cid: nx.id }; save('fin'); top(); return; } } save('fin'); UI.run = null; UI.tab = 'hw'; top(); };
@@ -6605,6 +6612,9 @@
   }
   // 11/3 매3영 필기판: 수업 중 단어·문장을 끌어서 「담기」 → S.memo = [{ id, t, ko, kind: w|s, u, lt, at }] → 숙제 「필기 복기」로 다시 떠올리기
   const m3Memos = (u, lt) => (S.memo || []).filter((m) => m.u === u.id && (!lt || m.lt === lt));
+  // 11/9 올림포스 지문도 같은 문장 분석: 가짜 유닛 'olp-<지문 id>' (필기·담기 키가 매3영과 안 겹쳐요)
+  const OLPU = {}, m3U = (id) => NXU[id] || OLPU[id];
+  const olpU = (c) => { const id = 'olp-' + c.id; if (!OLPU[id]) { const words = (c.words || []).map(([en, ko]) => ({ en, ko })); OLPU[id] = { id, subj: 'olp', code: '올림포스', title: c.title, notes: { words, passages: [{ letter: String(c.title || '').split(' · ').pop() || c.id, type: c.type || '', source: `올림포스 ${c.pages || ''}쪽`, sents: c.sx.sents, words, translation: (c.ko || []).join('\n') }] } }; } return OLPU[id]; };
   // 11/8 «필기가 왜 스크롤 아래에 있냐고 · 바로 생겨서 바로바로 적어야» → 문장 바로 밑에 필기 칸, 모아 보기는 ④ 필기
   const m3OfSent = (u, ps, sn, i) => m3Memos(u, ps.letter).filter((m) => (m.kind === 's' && m3Key(m.t) === m3Key(sn.en)) || (m.si === i && m.kind !== 's'));
   const m3Ord = (a, b) => (a.kind === 's' ? 0 : 1) - (b.kind === 's' ? 0 : 1);
@@ -6630,7 +6640,7 @@
   }
   function m3Add(uid, lt, t, ko, si) {
     t = String(t || '').replace(/\s+/g, ' ').trim().replace(/^[^A-Za-z]+|[^A-Za-z.!?'"]+$/g, ''); if (!t || t.length > 400) return;
-    const u = NXU[uid]; if (!u) return; if (m3Has(u, t)) return toast('이미 필기판에 있어요');
+    const u = m3U(uid); if (!u) return; if (m3Has(u, t)) return toast('이미 필기판에 있어요');
     const ps = ((u.notes || {}).passages || []).find((p) => p.letter === lt) || {}, kind = t.split(' ').length <= 3 ? 'w' : 's';
     if (kind === 's') ko = '-';  // 11/8 문장은 해석을 미리 채우지 않아요 · 필기 칸은 선생님이 불렛으로 적어요
     if (!ko) { const k = m3Key(t); if (kind === 's') { const sn = (ps.sents || []).find((x) => m3Key(x.en) === k); ko = sn ? sn.ko || '' : ''; } else { const V = [...(ps.words || []), ...((u.notes || {}).words || [])].find((w) => m3Key(w.en) === k) || (ps.sents || []).flatMap((x) => (x.star ? (x.star.words || []).map((w, j) => ({ en: w, ko: (x.star.wk || [])[j] })) : [])).find((w) => m3Key(w.en) === k); ko = V ? V.ko || '' : ''; } }
@@ -6780,7 +6790,7 @@
       if (t.dataset.sxall != null) { UI.sxAll = !UI.sxAll; if (!UI.sxAll) UI.sxOpen = {}; const y = scrollY; render(); scrollTo(0, y); return; }
       const sec = t.closest('[data-lt]');
       if (t.dataset.chg) return chGram(t.dataset.chg);
-      if (t.dataset.m3put != null && sec) { const u = NXU[sec.dataset.mu], sn = (((u.notes || {}).passages || []).find((p) => p.letter === sec.dataset.lt) || {}).sents[+t.dataset.m3put]; if (sn) m3Add(u.id, sec.dataset.lt, sn.en, '', t.dataset.m3put); return; }
+      if (t.dataset.m3put != null && sec) { const u = m3U(sec.dataset.mu); if (!u) return; const sn = (((u.notes || {}).passages || []).find((p) => p.letter === sec.dataset.lt) || {}).sents[+t.dataset.m3put]; if (sn) m3Add(u.id, sec.dataset.lt, sn.en, '', t.dataset.m3put); return; }
       if (t.dataset.m3w && sec) { if (t.classList.contains('on')) return; const ss = t.closest('[data-si]'); m3Add(sec.dataset.mu, sec.dataset.lt, t.dataset.m3w, t.dataset.ko, ss ? ss.dataset.si : null); return; }
       if (t.dataset.mmx) { S.memo = (S.memo || []).filter((m) => m.id !== t.dataset.mmx); save('memo'); const y = scrollY; render(); scrollTo(0, y); return; }
       if (t.dataset.m3rvdone) { nxS().a[t.dataset.m3rvdone] = nxS().a[t.dataset.m3rvdone] || { ok: true, at: Date.now() }; save('nx'); toast('복습 끝냈어요'); UI.m3rv = null; go('hw'); }
@@ -7088,7 +7098,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611090936'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611090949'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
