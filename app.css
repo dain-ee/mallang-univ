@@ -4627,3 +4627,14 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .iv-app-os > div { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 12px; background: var(--fill); }
 .iv-app-os b { font-size: 14px; }
 @media (max-width: 520px) { .iv-app { flex-wrap: wrap; } .iv-app-qr { display: none; } .iv-app-os { grid-template-columns: 1fr; } .iv-app .btn { width: 100%; } }
+.iv-app { align-items: stretch; }
+.iv-app-b { justify-content: center; }
+.iv-app-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.iv-app-h > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.iv-app-h b { font-size: 17px; }
+.iv-app-h .btn { flex: none; }
+@media (max-width: 520px) { .iv-app-h { flex-wrap: wrap; } .iv-app-h .btn { width: auto; } }
+.iv-one .iv-runp { margin: 0 0 12px; }
+.iv-rec { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; }
+.iv-rec video { width: 100%; max-width: 360px; border-radius: 12px; background: #000; flex-basis: 100%; animation: waveIn .35s both; }
+.iv-rec.on .btn { background: var(--red-soft); color: var(--red); }

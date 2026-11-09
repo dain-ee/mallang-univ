@@ -2353,7 +2353,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611091709', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611091719', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7114,7 +7114,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091709'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091719'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8434,8 +8434,8 @@
   function ivAppCard() {
     if (STANDALONE) return '';
     const al = IV.qr || ((ROSTER || []).find((r) => r.name === U.who) || {}).alias || '';
-    return `<section class="card c12 iv-app" data-qr="${esc(al ? location.origin + location.pathname + '?' + al : '')}"><div class="iv-app-qr" id="iv-qr" aria-label="승조 앱 QR"></div><div class="iv-app-b"><span class="eyebrow">띵동! 폰에 앱으로 깔아요</span><b>카메라로 QR을 찍으면 바로 열려요</b>
-      <div class="iv-app-os"><div><b>아이폰</b><span class="tiny">사파리에서 열고 공유 단추 → 「홈 화면에 추가」</span></div><div><b>갤럭시</b><span class="tiny">크롬에서 열고 ⋮ 메뉴 → 「홈 화면에 추가」</span></div></div></div><button class="btn primary" type="button" data-appopen>자세히 보기</button></section>`;
+    return `<section class="card c12 iv-app" data-qr="${esc(al ? location.origin + location.pathname + '?' + al : '')}"><div class="iv-app-qr" id="iv-qr" aria-label="승조 앱 QR"></div><div class="iv-app-b"><div class="iv-app-h"><div><span class="eyebrow">띵동! 폰에 앱으로 깔아요</span><b>카메라로 QR을 찍으면 바로 열려요</b></div><button class="btn sm" type="button" data-appopen>자세히 보기 ›</button></div>
+      <div class="iv-app-os"><div><b>아이폰</b><span class="tiny">사파리에서 열고 공유 단추 → 「홈 화면에 추가」</span></div><div><b>갤럭시</b><span class="tiny">삼성 인터넷: 아래 ≡ → 「현재 페이지 추가」 → 「홈 화면」<br>크롬: 위 ⋮ → 「홈 화면에 추가」</span></div></div></div></section>`;  // 11/9 «저 버튼 균형이 맞냐» → 단추를 제목 줄 오른쪽으로
   }
   function ivHome() {
     const nx = ivNext(), dd = nx ? dday(nx.date) : null;
@@ -8455,20 +8455,20 @@
         ? `<textarea class="inp iv-wta" rows="6" data-iva="${q.id}" placeholder="면접에서 할 말을 내 말로 적어요. 핵심 세 가지만">${esc(mine || q.mom || '')}</textarea>${q.mom && !mine ? '<p class="tiny" style="margin:4px 0 0">노션에 적은 답을 넣어 뒀어요. 고칠 점을 보고 다듬어요</p>' : ''}${ref}`
         : k === 'mem'
           ? `<div class="iv-memo ${!(UI.ivShow && UI.ivShow[q.id]) ? 'hide' : ''}" data-ivhide="${q.id}"><p>${esc(mine || q.better || q.mom || '아직 쓴 답이 없어요. 쓰기 단계부터 해요')}</p><span class="iv-memo-c">가렸어요. 떠올려 말해 보고 눌러서 확인해요</span></div><button type="button" class="btn sm ghost" data-ivhidebtn="${q.id}">${!(UI.ivShow && UI.ivShow[q.id]) ? '답 보기' : '다시 가리기'}</button>`
-          : `<div class="iv-timer" data-ivtm="${q.id}"><button type="button" class="btn" data-ivtime="${q.id}">${ic('timer')} 1분 말하기</button><div class="iv-bar"><i></i></div><span class="tiny num" data-ivsec="${q.id}">60초</span></div>${mine ? `<details class="iv-mom"><summary>내가 쓴 답 보기</summary><p>${esc(mine)}</p></details>` : ''}${ref}`;
+          : `<div class="iv-timer" data-ivtm="${q.id}"><button type="button" class="btn" data-ivtime="${q.id}">${ic('timer')} 1분 말하기</button><div class="iv-bar"><i></i></div><span class="tiny num" data-ivsec="${q.id}">60초</span></div><div class="iv-rec"><button type="button" class="btn" data-ivrec="${q.id}">🎥 영상으로 찍어 보기</button><span class="tiny">찍은 영상은 이 기기에서만 보고 어디에도 안 올라가요</span><video playsinline hidden></video></div>${mine ? `<details class="iv-mom"><summary>내가 쓴 답 보기</summary><p>${esc(mine)}</p></details>` : ''}${ref}`;
       const lab = { write: ['다 썼어요 ✓', '다시 고칠래요'], mem: ['외웠어요 ✓', '다시 외울래요'], say: ['말해 봤어요 ✓', '다시 연습할래요'] }[k];
       return `<section class="card c12 iv-q ${on ? 'on' : ''}" id="ivq-${q.id}" style="--k:${n}"><div class="iv-q-h">${u ? `<span class="tag">${esc(u.short)}</span>` : ''}${q.area ? `<span class="tag">${esc(q.area)}</span>` : ''}${q.ck ? `<span class="tag ${/높음|꼭/.test(q.ck) ? 'red' : ''}">${esc(q.ck)}</span>` : ''}${on ? `<span class="tag blue">${lab[0].replace(' ✓', '')}</span>` : ''}</div>
         <h3 class="iv-q-t">${n + 1}. ${esc(q.q)}</h3>${q.why ? `<p class="tiny" style="margin:4px 0 0">왜 물어보나요: ${esc(q.why)}</p>` : ''}
         ${body}
         <button type="button" class="btn ${on ? '' : 'primary'} block iv-did" data-ivdid="${q.id}">${on ? lab[1] : lab[0]}</button></section>`; };
     return `<div class="run-top"><button type="button" class="back" data-ivback>${ic('home')} 돌아가기</button></div>
-      <h1 class="h1" style="margin-bottom:4px">${esc(R.title)}</h1><p class="sub" style="margin:0 0 8px">${esc(IV_PH[k][2])}</p><div class="iv-runp"><div class="iv-runbar"><i style="width:${Q.length ? Math.round((dn / Q.length) * 100) : 0}%"></i></div><span class="tiny num">${dn}/${Q.length}개 했어요</span></div>
+      <h1 class="h1" style="margin-bottom:4px">${esc(R.title)}</h1><p class="sub" style="margin:0 0 16px">${esc(IV_PH[k][2])}</p>
       ${(() => { // 11/9 «너무 기니까 위에 번호 넘어가는 거» → 한 문제씩, 위에 번호
         const i = Math.max(0, Math.min(Q.length - 1, R.i || 0)), fin = all && !R.review;
         const nums = `<div class="iv-nums" role="tablist">${Q.map((q, j) => `<button type="button" class="${j === i && !fin ? 'on' : ''} ${ivDone(k, q.id) ? 'ok' : ''}" data-ivi="${j}" aria-label="${j + 1}번">${j + 1}</button>`).join('')}</div>`;
         const nav = `<div class="row iv-pg"><button type="button" class="btn" data-ivi="${i - 1}" ${i ? '' : 'disabled'}>‹ 이전</button><span class="tiny num">${i + 1} / ${Q.length}</span><button type="button" class="btn" data-ivi="${i + 1}" ${i < Q.length - 1 ? '' : 'disabled'}>다음 ›</button></div>`;
         const one = fin ? '' : card(Q[i], i).replace('class="card c12 iv-q', 'class="card c12 iv-q iv-one'), at = one.indexOf('>') + 1;
-        return `<div class="grid" key="${fin ? 'fin' : i}">${fin ? '' : one.slice(0, at) + nums + one.slice(at) + `<div class="c12">${nav}</div>`}`; })()}
+        return `<div class="grid" key="${fin ? 'fin' : i}">${fin ? '' : one.slice(0, at) + `<div class="iv-runp"><div class="iv-runbar"><i style="width:${Q.length ? Math.round((dn / Q.length) * 100) : 0}%"></i></div><span class="tiny num">${dn}/${Q.length}개 했어요</span></div>` + nums + one.slice(at) + `<div class="c12">${nav}</div>`}`; })()}
       ${all && !R.review ? `<section class="card c12 iv-fin"><div class="iv-fin-i">${ic('party', 'ic xl')}</div><h2>${esc(R.title)} 끝!</h2><p class="tiny">${Q.length}개 다 했어요. 내일은 다음 몫이에요</p><button type="button" class="btn primary big block" data-ivback>할 일 목록으로 ›</button><button type="button" class="btn block" style="margin-top:8px" data-ivreview>처음부터 다시 보기</button></section>` : ''}</div>`;
   }
   function ivView() {
@@ -8548,6 +8548,17 @@
     $$('[data-ivi]').forEach((b) => (b.onclick = () => { const R = UI.ivRun; if (!R) return; R.i = +b.dataset.ivi; R.review = true; render(); scrollTo(0, 0); }));
     $$('[data-ivreview]').forEach((b) => (b.onclick = () => { UI.ivRun.review = true; UI.ivRun.i = 0; render(); scrollTo(0, 0); }));
     { const on = $('.iv-nums button.on'), box = $('.iv-nums'); if (on && box) box.scrollLeft = on.offsetLeft - box.clientWidth / 2 + on.offsetWidth / 2; }
+    // 11/9 «영상 녹화 점검하기 숙제가 있길래» → 말하기에서 앞 카메라로 찍고 바로 돌려 봐요. 저장·업로드 없음
+    $$('[data-ivrec]').forEach((b) => (b.onclick = async () => {
+      const box = b.closest('.iv-rec'), v = $('video', box);
+      if (box._mr) { box._mr.stop(); return; }
+      if (!navigator.mediaDevices || !window.MediaRecorder) return toast('이 브라우저는 영상 찍기가 안 돼요. 폰 카메라로 찍어 봐요');
+      let st; try { st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true }); } catch (e) { return toast('카메라·마이크를 허용해야 찍을 수 있어요'); }
+      const ch = []; const mr = new MediaRecorder(st); box._mr = mr; v.hidden = false; v.controls = false; v.muted = true; v.srcObject = st; v.play().catch(() => {}); box.classList.add('on'); b.textContent = '⏹ 그만 찍기';
+      mr.ondataavailable = (e) => e.data.size && ch.push(e.data);
+      mr.onstop = () => { clearTimeout(box._tm); st.getTracks().forEach((x) => x.stop()); box._mr = null; box.classList.remove('on'); v.srcObject = null; if (box._url) URL.revokeObjectURL(box._url); box._url = URL.createObjectURL(new Blob(ch, { type: mr.mimeType || 'video/webm' })); v.src = box._url; v.muted = false; v.controls = true; b.textContent = '🎥 다시 찍기'; toast('돌려 보고 길었던 곳을 찾아봐요. 결론 먼저, 1분 안쪽'); };
+      mr.start(); box._tm = setTimeout(() => mr.state === 'recording' && mr.stop(), 90000);
+    }));
     $$('[data-ivdid]').forEach((b) => (b.onclick = () => {
       const R = UI.ivRun, mode = (R && R.mode) || 'say', id = b.dataset.ivdid, k = IV_CK[mode] + id, was = !!M.ck[k];
       if (!was && mode === 'write') { const ta = $(`[data-iva="${id}"]`); if (ta) { const v = ta.value.trim(); if (v.length < 10) { toast('답을 조금 더 써 봐요'); ta.focus(); return; } M[id] = { t: ta.value, at: Date.now() }; } }
