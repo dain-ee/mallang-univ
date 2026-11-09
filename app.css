@@ -4306,3 +4306,5 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .ls-two > .ls-sec { margin-top: 0; padding: 16px; border-radius: 16px; background: var(--fill2); }
 @media (max-width: 720px) { .ls-two { grid-template-columns: 1fr; } }
 .ls-two .td-prog { background: var(--card); }
+.ts-band.olp-new { background: var(--blue-soft); }
+.ts-band.olp-new .ts-band-go { color: var(--blue); }
