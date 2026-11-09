@@ -2352,7 +2352,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611091120', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611091303', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2794,7 +2794,7 @@
       // 11/9 «숙제하기에서 눌렀을 때 뭐가 새로워졌는지 보여 주는 화면» · 새 지문 처음 열 때 한 번
       if (olp && !a && !(S.party || {}).olpIntro && !r.introSeen) {
         const f = [['① 단어·문제', '지금처럼 단어 보고 지문 문제를 먼저 풀어요'], ['② 한 문장씩 분석', '문제를 다 풀면 지문을 한 문장씩 다시 봐요'], ['구조 보기', '주어·동사·목적어 표시는 가려 두었다가 눌러서 봐요'], ['해석 스티커', '혼자 해석해 보고 스티커를 떼서 맞춰 봐요'], ['중요 문법·천일문', '시험에 나올 문법은 표시돼 있고, 관련 천일문 유닛으로 바로 가요'], ['필기', '문장마다 바로 아래에 내 필기를 남겨요']];
-        return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd.replace(/<div class="seg"[\s\S]*$/, '')}<section class="card"><div class="card-h"><h2>올림포스가 이렇게 바뀌었어요</h2><span class="tiny">13강부터</span></div><div class="list">${f.map(([t, d], k) => `<div class="li"><div class="ico">${k < 2 ? `<b class="num">${k + 1}</b>` : ic('ok')}</div><div class="body"><div class="t">${t}</div><div class="d">${d}</div></div></div>`).join('')}</div></section><div class="cta-bar"><button class="btn primary big block" data-olintro type="button">① 단어·문제부터 시작하기</button></div></div>`;
+        return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd.replace(/<div class="seg"[\s\S]*$/, '')}<section class="card ol-new"><div class="ol-new-h"><span class="ol-new-ic">${ic('party')}</span><h2>올림포스가 새로워졌어요!</h2><p>13강부터 문제 다음에 한 문장씩 분석해요</p></div><div class="list">${f.map(([t, d], k) => `<div class="li"><div class="ico">${k < 2 ? `<b class="num">${k + 1}</b>` : ic('ok')}</div><div class="body"><div class="t">${t}</div><div class="d">${d}</div></div></div>`).join('')}</div></section><div class="cta-bar"><button class="btn primary big block" data-olintro type="button">① 단어·문제부터 시작하기</button></div></div>`;
       }
       if (ost === 'sx') { const ou = olpU(c);
         return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd}<div class="row between st-tools" style="margin:0 0 12px"><span class="tiny">${UI.sxAll ? '구조와 해석이 다 보여요' : '문장마다 혼자 읽어 보고 구조 보기 → 해석 스티커 차례로 열어요'}</span><button type="button" class="btn sm ${UI.sxAll ? 'primary' : ''}" data-sxall aria-pressed="${!!UI.sxAll}">${UI.sxAll ? '다시 가리기' : '다 펼치기'}</button></div>${m3Struct(ou, ou.notes.passages[0])}${a ? `<div class="cta-bar"><button class="btn primary big block" data-finback type="button">필기 저장됐어요 · 숙제 목록으로 ›</button></div>` : '<div class="cta-bar"><button class="btn primary big block" data-olst="q" type="button">① 단어·문제 먼저 풀기</button></div>'}</div>`; }
@@ -2833,11 +2833,12 @@
     $$('[data-fmap]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'fin', map: b.dataset.fmap }; top(); }));
     if (r.map) return bindMap();
     const c = r.cid && FIN_ALL.find((x) => x.id === r.cid); if (!c) return;
+    if ($('.ol-new') && !UI.olFan) { UI.olFan = 1; setTimeout(() => { const e = $('.ol-new-ic'); if (!e) return; const q = e.getBoundingClientRect(); boom(q.left + q.width / 2, q.top + q.height / 2, 6); fanfare(); if (navigator.vibrate) navigator.vibrate([60, 40, 120]); [600, 1200, 1900].forEach((ms, i) => setTimeout(() => { if ($('.ol-new')) boom(innerWidth * [0.2, 0.8, 0.5][i], innerHeight * 0.3, 6); }, ms)); }, 300); }
     $$('[data-olintro]').forEach((b) => (b.onclick = () => { r.introSeen = 1; if (!PEEK) { S.party = S.party || {}; S.party.olpIntro = Date.now(); save('party'); } top(); }));
     const g = $('#fr-go'); if (g) g.onclick = () => { r.read = true; r.i = null; top(); };
     $$('[data-fst]').forEach((x) => (x.onclick = () => { const k = x.dataset.fst; if (k === 'q') { r.read = true; r.i = null; } else { r.read = false; r.step = k; } top(); }));
     $$('[data-olst]').forEach((b) => (b.onclick = () => { r.st = b.dataset.olst; top(); }));  // 올림포스 ① 단어·문제 / ② 문장 분석
-    $$('[data-olyp]').forEach((b) => (b.onclick = () => { const A = finA(c.id); if (A.q) return; const k = +b.dataset.olyp; A.q = { p: k, ok: k === c.answer, at: Date.now() }; earn('fin:' + c.id, 100, '올림포스 지문'); save('fin'); render(); boom(innerWidth / 2, innerHeight * 0.4, 2); toast('지문 하나 끝! 저장했어요'); }));
+    $$('[data-olyp]').forEach((b) => (b.onclick = () => { const A = finA(c.id); if (A.q) return; const k = +b.dataset.olyp; A.q = { p: k, ok: k === c.answer, at: Date.now() }; earn('fin:' + c.id, 100, '올림포스 지문'); save('fin'); render(); boom(innerWidth / 2, innerHeight * 0.4, 4); fanfare(); [500, 1100].forEach((ms, i) => setTimeout(() => boom(innerWidth * [0.25, 0.75][i], innerHeight * 0.35, 4), ms)); toast('지문 하나 끝! 저장했어요'); }));
     const fb = $('#fp-book'); if (fb) fb.onclick = () => bookOpen('eng2', null, c.page);
     const fd = $('#fp-done'); if (fd) fd.onclick = () => { const A = finA(c.id); if (finDone(c)) A.undone = { at: Date.now() }; else { A.done = { ok: 1, at: Date.now() }; earn('fin:' + c.id, 100, '올림포스 지문'); const nx = finToday().find((x) => !finDone(x)); toast('잘했어요'); toast('지문 하나 끝! 저장했어요'); } save('fin'); UI.run = null; UI.tab = 'hw'; top(); };  // 다음 지문으로 끌고 가지 않고 목록으로 (11/9)
     $$('[data-fb]').forEach((b) => (b.onclick = () => { const bk = finBlanks(c).find((x) => x.k === b.dataset.fb), A = finA(c.id); if (!bk || A[bk.k]) return; const p = b.dataset.o, ok = p === bk.t; A[bk.k] = { p, ok, at: Date.now() }; save('fin'); const y = window.scrollY; render(); window.scrollTo(0, y); }));
@@ -7110,7 +7111,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091120'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091303'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8393,9 +8394,12 @@
     const depth = UI.run ? 2 + wqv : UI.lib || (UI.tab === 'score' && UI.mockId) || (UI.tab === 'hw' && UI.nxUnit) || (UI.tab === 'tprac' && UI.tbI) ? 1 : 0, ti = TABS.findIndex((t) => t[0] === UI.tab);
     const qm = html.match(/class="q-no">([\s\S]*?)<\/div>/), qk = UI.run ? (qm ? qm[1] : html.includes('done-card') ? 'done' : html.includes('class="lesson"') ? 'lesson' : '') : '';
     const sub = [UI.wrongSubj, UI.sgbArea, UI.semester, UI.chartSubj, UI.mockSubj, UI.ypDay, UI.hwDay].join('|');
+    // 11/9 «버튼 넘어갈 때 애니메이션이 없어»: 같은 문제 화면 안에서 단계(소개 → ① → ② · 개념 → 문제 · 지문 바꾸기)가 바뀌어도 넘기듯
+    const rsk = UI.run ? ['cid', 'map', 'st', 'step', 'stage', 'read', 'introSeen', 'unit', 'set', 'id'].map((k) => String(UI.run[k] == null ? '' : UI.run[k])).join('|') : '';
     let dir = '';
     if (view !== render.view) dir = render.view == null ? 'boot' : depth > render.depth ? 'push' : depth < render.depth ? 'pop' : ti !== render.ti ? ((ti < 0 ? 9 : ti) > (render.ti < 0 ? 9 : render.ti) ? 'tabR' : 'tabL') : 'side';
     else if (qk && render.qk && qk !== render.qk) dir = 'push';
+    else if (rsk && render.rsk != null && rsk !== render.rsk) dir = 'push';
     if (dir === 'push' || dir === 'pop') ghost(dir);
     main.classList.remove('enter', 'soft', 'boot', 'push', 'pop', 'tabL', 'tabR', 'side');
     const pBar = $$('main .nx-bar i').map((x) => x.style.width);  // 진행 막대는 옛 길이에서 새 길이로 쭉 (10/31)
@@ -8410,7 +8414,7 @@
     if (dir === 'side' || dir === 'tabL' || dir === 'tabR') { dir = ''; if (!RM()) { clearTimeout(render.sk); main.classList.remove('skel-out'); skelPaint(main); main.classList.add('skel'); render.sk = setTimeout(() => { main.classList.remove('skel'); $('.skel-ov', main)?.remove(); main.classList.add('skel-out'); setTimeout(() => main.classList.remove('skel-out'), 260); }, 280); } if (view !== render.view) cheerCheck.combo = 0; setTimeout(() => countUp(main), 300); }
     if (dir) { $$('main .card, main .h1, main .sub, main .seg, main .chips').forEach((c, i) => c.style.setProperty('--i', Math.min(i, 10))); void main.offsetWidth; main.classList.add('enter', dir); if (view !== render.view) cheerCheck.combo = 0; setTimeout(() => countUp(main), dir === 'boot' ? 260 : 120); }
     else if (sub !== render.sub) { void main.offsetWidth; main.classList.add('soft'); }
-    Object.assign(render, { view, depth, ti, qk, sub });
+    Object.assign(render, { view, depth, ti, qk, sub, rsk });
     bind();
     segSlide();
     petDock();

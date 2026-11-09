@@ -4321,3 +4321,12 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .sx-pts b { display: block; margin-bottom: 4px; font-size: 13px; color: var(--t2); }
 .sx-pts ul { margin: 0; padding-left: 16px; }
 .sx-pts li { font-size: 14px; line-height: 1.6; color: var(--t1); }
+
+/* 11/9 «더 팡 터지는 팡파레» · 올림포스 새 소개 머리 */
+.ol-new-h { padding: 8px 0 16px; text-align: center; }
+.ol-new-ic { display: inline-flex; animation: olPop .7s cubic-bezier(.2,1.6,.4,1) both; }
+.ol-new-ic .ic { width: 64px; height: 64px; }
+.ol-new-h h2 { margin: 12px 0 4px; font-size: 24px; font-weight: 800; color: var(--t1); }
+.ol-new-h p { margin: 0; font-size: 15px; color: var(--t3); }
+@keyframes olPop { 0% { transform: scale(.2) rotate(-20deg); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .ol-new-ic { animation: none; } }
