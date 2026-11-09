@@ -4644,3 +4644,7 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .iv-rec > .tiny { grid-column: 1 / -1; margin: 0; }
 .iv-rec video.iv-gone { transition: opacity .25s, transform .25s; opacity: 0; transform: scale(.96); }
 .iv-rec.on .btn { background: var(--red-soft); color: var(--red); }
+/* 11/9 «항상 버튼은 높이 아래에 있어야 해, 글 바로 밑이 아니라»: 카드 맨 끝 단추는 카드 바닥에 붙여요 */
+.card:has(> .btn.block:last-child) { display: flex; flex-direction: column; }
+.card > .btn.block:last-child { margin-top: auto; }
+.card:has(> .btn.block:last-child) > :nth-last-child(2) { margin-bottom: 16px; }
