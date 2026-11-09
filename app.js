@@ -2352,7 +2352,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611091111', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611091120', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2797,12 +2797,12 @@
         return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd.replace(/<div class="seg"[\s\S]*$/, '')}<section class="card"><div class="card-h"><h2>올림포스가 이렇게 바뀌었어요</h2><span class="tiny">13강부터</span></div><div class="list">${f.map(([t, d], k) => `<div class="li"><div class="ico">${k < 2 ? `<b class="num">${k + 1}</b>` : ic('ok')}</div><div class="body"><div class="t">${t}</div><div class="d">${d}</div></div></div>`).join('')}</div></section><div class="cta-bar"><button class="btn primary big block" data-olintro type="button">① 단어·문제부터 시작하기</button></div></div>`;
       }
       if (ost === 'sx') { const ou = olpU(c);
-        return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd}<div class="row between st-tools" style="margin:0 0 12px"><span class="tiny">${UI.sxAll ? '구조와 해석이 다 보여요' : '문장마다 혼자 읽어 보고 구조 보기 → 해석 스티커 차례로 열어요'}</span><button type="button" class="btn sm ${UI.sxAll ? 'primary' : ''}" data-sxall aria-pressed="${!!UI.sxAll}">${UI.sxAll ? '다시 가리기' : '다 펼치기'}</button></div>${m3Struct(ou, ou.notes.passages[0])}${a ? `<div style="margin-top:16px">${doneCard(a.ok ? 1 : 0, 1, '올림포스 지문 끝! 필기도 다 저장됐어요', '')}</div><div class="cta-bar"><button class="btn primary big block" data-finback type="button">필기 저장됐어요 · 숙제 목록으로 ›</button></div>` : '<div class="cta-bar"><button class="btn primary big block" data-olst="q" type="button">① 단어·문제 먼저 풀기</button></div>'}</div>`; }
+        return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd}<div class="row between st-tools" style="margin:0 0 12px"><span class="tiny">${UI.sxAll ? '구조와 해석이 다 보여요' : '문장마다 혼자 읽어 보고 구조 보기 → 해석 스티커 차례로 열어요'}</span><button type="button" class="btn sm ${UI.sxAll ? 'primary' : ''}" data-sxall aria-pressed="${!!UI.sxAll}">${UI.sxAll ? '다시 가리기' : '다 펼치기'}</button></div>${m3Struct(ou, ou.notes.passages[0])}${a ? `<div class="cta-bar"><button class="btn primary big block" data-finback type="button">필기 저장됐어요 · 숙제 목록으로 ›</button></div>` : '<div class="cta-bar"><button class="btn primary big block" data-olst="q" type="button">① 단어·문제 먼저 풀기</button></div>'}</div>`; }
       return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd}
         ${(c.words || []).length ? `<details class="hw-more card" ${a ? '' : 'open'}><summary><b>먼저 단어 ${c.words.length}개</b> <span class="tiny">눌러서 접기</span></summary><div class="oly-w">${c.words.map(([en, ko]) => `<div><b>${esc(en)}</b><span>${esc(ko)}</span></div>`).join('')}</div></details>` : ''}
         <section class="card oly-p" style="margin-top:12px"><p class="oly-q"><b>${esc(c.q)}</b></p>${c.given ? `<div class="oly-given">${u(c.given)}</div>` : ''}${c.text.map((t) => `<p>${u(t)}</p>`).join('')}${(c.notes || []).length ? `<p class="tiny">${c.notes.map((x) => '* ' + esc(x)).join('  ')}</p>` : ''}</section>
         <div class="choices" style="margin-top:12px">${c.choices.map((ch, k) => `<button class="choice ${!a ? '' : k === c.answer ? 'right' : k === a.p ? 'wrong' : ''}" data-olyp="${k}" type="button" ${a ? 'disabled' : ''}><span class="ct">${u(ch)}</span></button>`).join('')}</div>
-        ${a ? `${verdict(a.ok)}<div class="explain"><b>해설</b><br>${esc(c.exp || '')}</div>${(c.ko || []).length ? `<details class="hw-more card" style="margin-top:12px" open><summary><b>전체 해석</b></summary>${c.ko.map((t) => `<p style="line-height:1.8">${esc(t)}</p>`).join('')}</details>` : ''}<div class="cta-bar">${olp ? '<button class="btn primary big block" data-olst="sx" type="button">다음: ② 한 문장씩 분석 ›</button>' : ''}</div>${olp ? '' : `<div style="margin-top:16px">${nxBtn}</div>`}` : ''}</div>`;
+        ${a ? `${verdict(a.ok)}<div class="explain"><b>해설</b><br>${esc(c.exp || '')}</div>${(c.ko || []).length ? `<details class="hw-more card" style="margin-top:12px" open><summary><b>전체 해석</b></summary>${c.ko.map((t) => `<p style="line-height:1.8">${esc(t)}</p>`).join('')}</details>` : ''}<div style="margin-top:16px">${olp ? doneCard(a.ok ? 1 : 0, 1, '① 문제 끝! 저장됐어요. 이제 한 문장씩 분석하고 내 필기를 남겨요', '<button class="btn primary big block" data-olst="sx" type="button">② 분석 및 나만의 필기 하러 가기 ›</button><button class="btn big block" data-finback type="button">숙제 목록으로</button>') : nxBtn}</div>` : ''}</div>`;
     }
     if (c.page) {  // 올림포스 지문: 책에서 풀고 체크
       const dn = finDone(c);
@@ -6593,7 +6593,7 @@
       let h = '', open = null;
       T.forEach((t, j) => {
         const r = top.find((x) => x.from === j); if (r && !open) { open = r; h += `<span class="sx-r sx-${esc(r.label)}"><sup class="sx-l" title="${esc(SX_L[r.label] || r.label)}">${esc(r.label)}</sup>`; }
-        h += (j ? ' ' : '') + par.filter((x) => x.from === j).map(() => '<i class="sx-p">(</i>').join('') + esc(t) + par.filter((x) => x.to === j).map(() => '<i class="sx-p">)</i>').join('');
+        h += (j ? ' ' : '') + (sn.par || []).filter((x) => x.from === j).map((x) => `<b class="sx-n" title="병렬 ${x.n}">${x.n}</b>`).join('') + (sn.in || []).filter((x) => x.from === j).map((x) => `<sup class="sx-l2">${esc(x.label)}</sup>`).join('') + par.filter((x) => x.from === j).map(() => '<i class="sx-p">(</i>').join('') + esc(t) + par.filter((x) => x.to === j).map(() => '<i class="sx-p">)</i>').join('');
         if (open && open.to === j) { h += '</span>'; open = null; }
         if (cuts.has(j) && j < T.length - 1) h += ' <i class="sx-cut">/</i>';
       });
@@ -6610,7 +6610,7 @@
         ${st.hint ? `<div class="m3s-r"><b>해석 열쇠</b><span>${esc(st.hint)}</span></div>` : ''}
         ${st.g ? `<div class="m3s-r"><b>문법</b><span>${esc(st.g)}</span></div>` : ''}
         ${(st.ch || []).length ? `<div class="m3s-ch">${st.ch.map((n) => { const cu = CH_UNITS.find((x) => +x.unit === +n); return cu ? `<button type="button" class="m3s-cb" data-chg="${esc(n)}"><small>천일문</small><b>Unit ${esc(n)} ${esc(cu.title || '')}</b><i>›</i></button>` : ''; }).join('')}</div>` : ''}</div>`;
-      return `<div class="sx-s ${st ? 'star' : ''}" data-si="${i}"><span class="st-ln num">${st ? '<i class="sx-star" aria-label="핵심 문장">★</i>' : i + 1}</span><div><p class="sx-en">${h}</p>${ko}${sxOn && W.length ? `<div class="sx-w">${W.map((w) => `<span><b>${esc(w.en)}</b> ${esc(w.ko)}</span>`).join('')}</div>` : ''}${sxOn ? star : ''}${m3Inline(u, ps, sn, i)}</div></div>`;
+      return `<div class="sx-s ${st ? 'star' : ''}" data-si="${i}"><span class="st-ln num">${st ? '<i class="sx-star" aria-label="핵심 문장">★</i>' : i + 1}</span><div><p class="sx-en">${h}</p>${ko}${sxOn && (sn.pts || []).length ? `<div class="sx-pts"><b>구조 포인트</b><ul>${sn.pts.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}${sxOn && W.length ? `<div class="sx-w">${W.map((w) => `<span><b>${esc(w.en)}</b> ${esc(w.ko)}</span>`).join('')}</div>` : ''}${sxOn ? star : ''}${m3Inline(u, ps, sn, i)}</div></div>`;
     };
     const SN = ps.sents || [], M = m3Memos(u, ps.letter), myN = RS.filter((i) => ((S.m3t || {})[`${u.id}:${ps.letter}:${i}`] || '').trim().length >= 4).length, rvOk = myN >= RS.length;
     const guide = rv ? `<section class="card st-sec m3-rvg"><div class="st-kick">숙제 · ${esc(ps.letter)} 지문 복습</div><h2>★ 핵심 문장 ${RS.length}개를 내 말로 해석해요</h2><ol><li>★ 문장의 <b>속 단어</b>를 먼저 떠올리고, 모르던 건 눌러서 담아요</li><li><i class="sx-cut">/</i> 끊어 읽기와 S·V 표시를 보면서 <b>내 해석</b>을 써요</li><li>스티커를 떼서 내 해석과 비교해요</li><li>밑의 <b>천일문</b> 단추로 그 문법을 다시 봐요</li></ol></section>` : '';
@@ -7110,7 +7110,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091111'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091120'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
