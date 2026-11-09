@@ -137,7 +137,7 @@
     fin: (r, l) => { const ans = { ...(r.ans || {}) }; for (const [c, v] of Object.entries(l.ans || {})) ans[c] = jMerge(ans[c] || {}, v); return { ...r, ...l, ans }; },  // 기말 개념: 문제마다 나중에 푼 쪽
     jl: jMerge, jr: jMerge, jw: jMerge,
     // 기기 둘이 엇갈려도 서로 안 지우게 (11/1 정윤 저장 실패 뒤 «신문 글쓰기 저장됐다는데 하나도 없어»): 내 생각·담기는 칸마다 더 새것, 오답은 키마다, 용돈은 내역 id별로 합쳐요
-    notes: jMerge, keep: jMerge, kmi: jMerge, nread: jMerge, slog: jMerge, cuMan: jMerge,  // kmi: 지원 민사고 면접 연습 답 (질문마다 더 새것)
+    notes: jMerge, keep: jMerge, kmi: jMerge, ivp: jMerge, nread: jMerge, slog: jMerge, cuMan: jMerge,  // kmi: 지원 민사고 면접 연습 답 (질문마다 더 새것)
     wrong: (r, l, rNew) => { const [o, n] = rNew ? [l, r] : [r, l]; return { ...o, ...n }; },
     wallet: (r, l, rNew) => { const [o, n] = rNew ? [l, r] : [r, l], ids = new Set((n.log || []).map((x) => x.id)); return { ...o, ...n, log: [...(n.log || []), ...(o.log || []).filter((x) => !ids.has(x.id))].sort((a, b) => (a.at || 0) - (b.at || 0)), seen: { ...(o.seen || {}), ...(n.seen || {}) } }; },
     // 테마 선물: 두 기기 것을 테마마다 합쳐요. 연 기록이 있으면 그걸, 아니면 나중에 보내거나(at) 취소한(x) 쪽을 써요 (10/27 보낸 쿠로미가 정윤이 기기 옛 기록에 덮여 사라짐)
@@ -528,6 +528,7 @@
       return `<section class="card ${cls}"><div class="card-h"><h2>내신 등급</h2><button class="more" data-go="score" data-seg="naesin">입력하기</button></div>${body}</section>`;
   }
   function home() {
+    if (D.iv) return ivHome();  // 11/9 승조: 홈은 면접 준비만
     const p = S.profile, u = uniOf(p.uni);
     const lm = lastMock(), mAvg = lm ? avgOf(lm.g) : null, nAvg = nsTotal();
     const ev = (D.events || []).filter((e) => e.kind !== 'csat' && dday(e.date) >= 0).sort((a, b) => a.date.localeCompare(b.date));
@@ -554,7 +555,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${TUTOR ? lessonHero() : ''}${appCard()}${gdCard()}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${juaRepCard()}${juaLinks()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${qlogCard()}${railCards(true)}${winCard()}${perfCard()}${finCard()}${lagCard()}${pomoCard('c12 rail-inline')}${growCard('c12')}${walletCard('c12')}${hotCard('c12 rail-inline')}${insightCard('c7')}${schedCard('c5')}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${TUTOR ? lessonHero() : ''}${appCard()}${gdCard()}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${juaRepCard()}${juaLinks()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${qlogCard()}${railCards(true)}${winCard()}${perfCard()}${finCard()}${admitCard('c12')}${lagCard()}${pomoCard('c12 rail-inline')}${growCard('c12')}${walletCard('c12')}${hotCard('c12 rail-inline')}${insightCard('c7')}${schedCard('c5')}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 11/8 «정윤이 너무 홈이 너무 지저분해»
@@ -2352,7 +2353,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611091316', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611091614', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3231,7 +3232,7 @@
   if (SR_TEST) window.__hwTest = (h) => { S.hw = S.hw || []; if (!S.hw.some((x) => x.id === h.id)) S.hw.push(h); hwSheet(h.id); };
   if (SR_TEST) window.__tm = () => JSON.stringify({ run: P.run && { tk: tkOf(P.run), ti: P.run.ti, paused: P.run.paused }, held: (P.held || []).map((x) => ({ tk: tkOf(x), ti: x.ti, sec: Math.round(pWatchSec(x)) })) });
   if (SR_TEST) window.__myTest = (it) => { if (!myS().items.some((x) => x.id === it.id)) myS().items.push({ log: {}, wrong: [], days: [1, 2, 3, 4, 5], at: Date.now(), ...it }); mySheet(it.id); };  // 오프라인 시험 탭에서만
-  function srOn() { return SR_TEST || (!TUTOR && !(NXD.subjects || []).length); }  // 11/3 «정윤이는 왜 화면이 안 보이지» → 정윤 앱에도. ⛔ 선생님·학생 화면 보기에서만 보이는 기능을 만들지 않아요
+  function srOn() { return !D.iv && (SR_TEST || (!TUTOR && !(NXD.subjects || []).length)); }  // 11/3 «정윤이는 왜 화면이 안 보이지» → 정윤 앱에도. ⛔ 선생님·학생 화면 보기에서만 보이는 기능을 만들지 않아요
   var SR_MINE = 1793511014696;  // 11/1 선생님이 대신 넣어 준 기록은 빼요
   var SR_K = { olymp: ['올림포스 지문', 0], g3: ['고3 영어', 96], cheonil: ['천일문', 0], 'fin-q': ['기말 문제', 0], 'fin-b': ['기말 빈칸', 0], sci: ['과학', 0], word: ['단어', 0], nx: ['수업·따로 공부', 0] };  // 둘째 값: 수능 영어 독해 문항당 1분 36초. 올림포스는 기말(내신) 지문을 꼼꼼히 보는 거라 수능 시간과 안 견줘요 (11/1 선생님 «내신이니까 느릴 수 있지»)
   var srWk = (d) => addD(d, -((new Date(d + 'T00:00:00').getDay() + 6) % 7));  // 그 주 월요일
@@ -7113,7 +7114,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091316'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091614'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8306,7 +8307,155 @@
   }
 
   // ───────── 틀 · 메뉴 ─────────
-  const TABS = [['home', '홈', 'home'], ['kmla', '민사고', 'target'], ['hw', '숙제', 'hw'], ['study', '공부', 'books'], ['exam', '수업', 'pencil'], ['grade', '성적', 'score'], ['wrong', '오답', 'wrong'], ['book', '교재', 'books'], ['report', '리포트', 'up'], ['score', '성적', 'score'], ['uni', '대학', 'school'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']].filter((t) => (t[0] === 'report' ? srOn() : t[0] === 'kmla' ? !!D.kmla : t[0] === 'score' && SR_TEST ? true : !ST.tabs || ST.tabs.includes(t[0])) && (t[0] !== 'exam' || Object.keys(NXSETS).length || NX_CH.length || NX_JG.length) && (t[0] !== 'study' || (NXD.subjects || []).length) && (t[0] !== 'grade' || (ST.tabs || []).includes('grade')));  // 중학생 성적 탭은 켠 학생만 (10/31 정윤에게 성적 탭이 둘 뜸)  // 공부 탭은 단원 자료가 있는 학생만  // 시험 탭은 시험이 있는 학생만
+  // 11/9 승조 (고3) 수시 2차 면접 준비: content/iv/승조.json → D.iv
+  //   일정·형식은 대학 공식 요강·공지 그대로(작년 기준이면 꼬리표), 엄마가 쓴 답은 점검해서 고칠 점·다듬은 답, 남은 날에 맞춰 날마다 할 것
+  const IV = D.iv || null;
+  const ivs = () => { S.ivp = S.ivp || {}; if (!S.ivp.ck || typeof S.ivp.ck !== 'object') S.ivp.ck = { at: 0 }; return S.ivp; };
+  const ivU = (id) => ((IV && IV.unis) || []).find((u) => u.id === id);
+  const ivSteps = () => IV.unis.flatMap((u) => u.steps.map((s) => ({ ...s, u }))).sort((a, b) => a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || ''));
+  const ivNext = () => { const L = ivSteps(); return L.filter((s) => s.kind === 'iv').find((s) => (s.end || s.date) >= today()) || L.find((s) => (s.end || s.date) >= today()); };
+  const ivQ = (id) => (IV.qs || []).find((q) => q.id === id);
+  const ivQDone = (id) => !!ivs().ck['q:' + id];
+  const ivItDone = (d, i, it) => (it.qs && it.qs.length ? it.qs.every(ivQDone) : !!ivs().ck['t:' + d + ':' + i]);
+  const ivDayOf = (d = today()) => (IV.plan || []).find((p) => p.date === d);
+  const ivLogo = (u, sz = '') => emb(u ? { logo: u.logo, name: u.uni, color: u.color } : null, sz);
+  const ivTag = (s) => (s.official === false ? '<span class="tag">작년 기준</span>' : '<span class="tag blue">공식</span>');
+  function ivDayRows(p, big) {
+    return p.items.map((it, i) => { const on = ivItDone(p.date, i, it), u = it.uni && ivU(it.uni);
+      return `<div class="li btnlike iv-it ${on ? 'is-done' : ''}" data-ivit="${p.date}:${i}" style="--k:${i}"><div class="ico">${on ? ic('ok') : u ? `<img class="ic" src="${esc(u.logo)}" alt="">` : ic(it.i || 'pencil')}</div><div class="body"><div class="t">${esc(it.t)}</div>${it.d ? `<div class="d">${esc(it.d)}</div>` : ''}</div>${it.qs && it.qs.length ? `<span class="tiny num">${it.qs.filter(ivQDone).length}/${it.qs.length}</span><span class="chev"></span>` : `<span class="iv-ck ${on ? 'on' : ''}">${on ? LS_CK : ''}</span>`}</div>`; }).join('');
+  }
+  function ivHeadCard(cls = 'c12') {
+    const nx = ivNext(); if (!nx) return `<section class="card ${cls} iv-hero"><h2>면접이 다 끝났어요</h2><p class="tiny">최종 발표만 기다리면 돼요</p></section>`;
+    const dd = dday(nx.date), L = ivSteps().filter((s) => s.kind === 'iv' || s.kind === 'navy' || s.kind === 'res');
+    return `<section class="card ${cls} iv-hero"><div class="iv-hero-t">${ivLogo(nx.u, 'xl')}<div style="min-width:0;flex:1"><span class="tiny">다음 일정 · ${esc(nx.u.uni)} ${esc(nx.u.dept)}</span><b class="iv-hero-n">${esc(nx.title)}</b><span class="tiny">${md(nx.date)} ${esc(wdName(nx.date))}${nx.time ? ' ' + esc(nx.time) : ''}${nx.end ? ' ~ ' + md(nx.end) : ''}</span></div><strong class="iv-dd num">${dd > 0 ? 'D-' + dd : dd === 0 ? '오늘' : '진행 중'}</strong></div>
+      <div class="iv-tl">${L.map((s, k) => `<button type="button" class="iv-s ${(s.end || s.date) < today() ? 'past' : ''} ${s === nx || (s.date === nx.date && s.u === nx.u && s.title === nx.title) ? 'on' : ''}" data-ivgo="u-${s.u.id}" style="--k:${k}"><i></i><b>${md(s.date)}</b><span>${esc(s.u.short)} ${esc(s.short || s.title)}</span></button>`).join('')}</div></section>`;
+  }
+  function ivTodayCard(cls = 'c12') {
+    const p = ivDayOf(); const nxp = (IV.plan || []).find((x) => x.date > today());
+    if (!p) return `<section class="card ${cls}"><div class="card-h"><h2>${ic('pin')} 오늘 할 일</h2></div><p class="tiny" style="margin:0">오늘은 정해진 게 없어요${nxp ? ` · 다음은 ${md(nxp.date)} 「${esc(nxp.t)}」` : ''}</p></section>`;
+    const n = p.items.length, dn = p.items.filter((it, i) => ivItDone(p.date, i, it)).length;
+    return `<section class="card ${cls} iv-today"><div class="card-h"><h2>${ic('pin')} 오늘 할 일 · ${esc(p.t)}</h2><span class="tiny num">${dn}/${n} 했어요</span></div><div class="td-prog"><i style="width:${Math.round((dn / n) * 100)}%"></i></div>${p.why ? `<p class="tiny" style="margin:8px 0 0">${esc(p.why)}</p>` : ''}<div class="list" style="margin-top:8px">${ivDayRows(p)}</div></section>`;
+  }
+  function ivUniCards() {
+    return IV.unis.map((u) => { const iv = u.steps.find((s) => s.kind === 'iv'), dd = iv ? dday(iv.date) : null, qn = IV.qs.filter((q) => q.uni === u.id), qd = qn.filter((q) => ivQDone(q.id)).length;
+      return `<button type="button" class="card c6 iv-uni" data-ivgo="u-${u.id}">${ivLogo(u, 'lg')}<div style="min-width:0;flex:1"><b>${esc(u.uni)}</b><span class="tiny">${esc(u.dept)} · ${esc(u.track)}</span><span class="tiny">${iv ? `면접 ${md(iv.date)}${iv.official === false ? ' (작년 기준)' : ''}` : '면접 날짜 확인 중'}${qn.length ? ` · 연습 ${qd}/${qn.length}` : ''}</span></div>${dd != null && dd >= 0 ? `<b class="num iv-udd">${dd === 0 ? '오늘' : 'D-' + dd}</b>` : iv ? '<span class="tag">끝</span>' : ''}</button>`; }).join('');
+  }
+  function ivCheckCard(cls = 'c12') {
+    const V = IV.verdict || {}, F = IV.fixes || [];
+    return `<section class="card ${cls} iv-chk"><div class="card-h"><h2>${ic('eyes')} 준비한 답 점검</h2><button class="more" data-ivgo="fix" type="button">자세히</button></div>
+      <div class="iv-vd">${[['ok', '좋은 점', V.good], ['think', '고칠 점', V.bad], ['q', '빠진 것', V.missing]].map(([i, h, L]) => (L && L.length ? `<div class="iv-vc"><b>${ic(i)} ${h} <span class="num">${L.length}</span></b><ul>${L.slice(0, 3).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : '')).join('')}</div>
+      ${F.length ? `<button type="button" class="btn block iv-fixgo" data-ivgo="fix">고쳐야 할 답 ${F.length}개 보기 ›</button>` : ''}</section>`;
+  }
+
+  // 11/9 «처음에 준비한 질문·답이 어느 방향에서 맞았고 틀렸는지 객관적으로 아는 게 굉장히 중요» · «하나씩 할 필요 없어, 전반적으로»
+  //   승조가 노션에 처음 준비한 것 전체를 본 평가 몇 줄(IV.eval). 홈에서 눌러 창으로 보고, 「확인했어요」면 S.ivp['ev:'+id] 로 빠져요
+  const IV_EK = { good: ['잘한 점', 'blue'], bad: ['틀린 방향', 'red'], missing: ['빠진 것', ''] };
+  function ivEvalCard() {
+    const E = IV.eval || []; if (!E.length) return '';
+    const left = E.filter((e) => !ivs()['ev:' + e.id]), n = (k) => left.filter((e) => e.k === k).length;
+    return `<section class="card c12 iv-grade"><div class="card-h"><h2>${ic('eyes')} 처음 준비한 질문·답, 이렇게 봤어요</h2><span class="tiny num">${left.length ? `남은 것 ${left.length}개` : '다 확인했어요'}</span></div>
+      <p class="tiny" style="margin:0 0 8px">노션에 적은 질문과 처음 답 전체를 입학사정관 눈으로 봤어요. 잘한 점 ${n('good')} · 틀린 방향 ${n('bad')} · 빠진 것 ${n('missing')}</p>
+      <div class="list">${left.length ? left.map((e, k) => `<div role="button" tabindex="0" class="li btnlike iv-g" data-ivev="${e.id}" style="--k:${k}"><div class="ico">${ic(e.k === 'good' ? 'ok' : e.k === 'bad' ? 'think' : 'q')}</div><div class="body"><div class="t">${esc(e.t)}</div><div class="d"><span class="tag ${IV_EK[e.k][1]}">${IV_EK[e.k][0]}</span></div></div><span class="chev"></span></div>`).join('') : '<p class="tiny" style="margin:8px 0">다 확인했어요. 이제 면접 탭에서 고친 방향으로 말해 봐요</p>'}</div></section>`;
+  }
+  function ivEvalOpen(id) {
+    const e = (IV.eval || []).find((x) => x.id === id); if (!e) return;
+    sheet(`<div class="iv-gs"><span class="tag ${IV_EK[e.k][1]}">${IV_EK[e.k][0]}</span><h2 style="margin:8px 0 4px">${esc(e.t)}</h2>
+      <div class="iv-gs-b ${e.k === 'bad' ? 'bad' : e.k === 'good' ? 'good' : ''}"><p>${esc(e.d)}</p></div>
+      <div class="row" style="gap:8px;margin-top:16px"><button class="btn big" style="flex:1" data-x type="button">닫기</button><button class="btn primary big" style="flex:1" id="ivev-ok" type="button">확인했어요 · 지우기</button></div></div>`, (el, close) => {
+      $('#ivev-ok', el).onclick = () => { ivs()['ev:' + id] = { at: Date.now() }; save('ivp'); close();
+        const row = $(`[data-ivev="${id}"]`), done = () => { const y = scrollY; render(); scrollTo(0, y); if (!(IV.eval || []).some((x) => !ivs()['ev:' + x.id])) setTimeout(() => badgePop([{ key: 'ivev', i: 'trophy', mega: 1, w: 0, eb: '🎉 평가 다 확인!', t: '처음 준비한 답을 다 돌아봤어요', d: '어디가 맞고 어디가 틀렸는지 알았으니 이제 고친 방향으로 말해 봐요' }]), 300); };
+        if (row && !RM()) { row.style.height = row.offsetHeight + 'px'; void row.offsetWidth; row.classList.add('m3-out'); setTimeout(done, 320); } else done(); };
+    });
+  }
+  function ivHome() {
+    const nx = ivNext(), dd = nx ? dday(nx.date) : null;
+    return `<h1 class="h1"><mark class="hl-g">${esc(NM())}${jongOf(NM()) ? '아' : '야'}</mark>,<br class="br-m"> ${nx ? (dd > 0 ? `${esc(nx.u.short)} 면접까지 ${dd}일 남았어요` : '오늘 면접이에요, 잘하고 와요') : '면접 다 끝났어요'}</h1>
+      <p class="sub" style="margin:0 0 16px">${esc(IV.line || '1차는 다 붙었어요. 이제 2차 면접만 남았어요')}</p>
+      <div class="grid">${ivHeadCard()}${ivEvalCard()}${ivTodayCard()}${ivUniCards()}</div>`;
+  }
+  // 연습: 질문 카드 → 1분 말하기 → 답 방향 보기 → 「말해 봤어요」
+  function ivPractice() {
+    const R = UI.ivRun, Q = R.ids.map(ivQ).filter(Boolean), dn = Q.filter((q) => ivQDone(q.id)).length, all = Q.length && dn >= Q.length;
+    const card = (q, k) => { const u = ivU(q.uni), on = ivQDone(q.id), op = UI.ivOpen && UI.ivOpen[q.id], F = q.fix && (IV.fixes || []).find((f) => f.id === q.fix);
+      return `<section class="card c12 iv-q ${on ? 'on' : ''}" id="ivq-${q.id}" style="--k:${k}"><div class="iv-q-h">${u ? `<span class="tag">${esc(u.short)}</span>` : '<span class="tag">공통</span>'}${q.area ? `<span class="tag">${esc(q.area)}</span>` : ''}${q.ck ? `<span class="tag ${/높음|꼭/.test(q.ck) ? 'red' : ''}">${esc(q.ck)}</span>` : ''}${on ? '<span class="tag blue">말해 봤어요</span>' : ''}</div>
+        <h3 class="iv-q-t">${k + 1}. ${esc(q.q)}</h3>${q.why ? `<p class="tiny" style="margin:4px 0 0">왜 물어보나요: ${esc(q.why)}</p>` : ''}
+        <div class="iv-timer" data-ivtm="${q.id}"><button type="button" class="btn" data-ivtime="${q.id}">${ic('timer')} 1분 말하기</button><div class="iv-bar"><i></i></div><span class="tiny num" data-ivsec="${q.id}">60초</span></div>
+        <textarea class="inp" rows="3" data-iva="${q.id}" placeholder="말할 핵심만 짧게 적어 봐요 (외운 글처럼 말하지 않게)">${esc((ivs()[q.id] || {}).t || '')}</textarea>
+        <button type="button" class="iv-open ${op ? 'on' : ''}" data-ivop="${q.id}">${op ? '답 방향 접기' : '답 방향 보기'} <span class="chev"></span></button>
+        <div class="iv-ans ${op ? 'on' : ''}">${q.outline && q.outline.length ? `<b>이렇게 말해요</b><ol>${q.outline.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` : ''}${q.better ? `<div class="iv-better"><b>다듬은 답 예시</b><p>${esc(q.better)}</p></div>` : ''}${q.mom ? `<details class="iv-mom"><summary>노션에 정리한 답 보기</summary><p>${esc(q.mom)}</p></details>` : ''}${F ? `<div class="iv-warn"><b>${ic('think')} 원래 답에서 고칠 점</b><p>${esc(F.problem)}</p></div>` : ''}${q.src ? `<a class="tiny" href="${esc(q.src)}" target="_blank" rel="noopener">출처</a>` : ''}</div>
+        <button type="button" class="btn ${on ? '' : 'primary'} block iv-did" data-ivdid="${q.id}">${on ? '다시 연습할래요' : '말해 봤어요 ✓'}</button></section>`; };
+    return `<div class="run-top"><button type="button" class="back" data-ivback>${ic('home')} 돌아가기</button><span class="tiny num">${dn}/${Q.length}</span></div>
+      <h1 class="h1" style="margin-bottom:4px">${esc(R.title)}</h1><p class="sub" style="margin:0 0 16px">소리 내어 1분 안에 말해 보고, 답 방향과 비교해요. 다 외우지 말고 핵심 세 가지만</p>
+      <div class="grid">${Q.map(card).join('')}
+      ${all ? `<section class="card c12 iv-fin"><div class="iv-fin-i">${ic('party', 'ic xl')}</div><h2>${esc(R.title)} 끝!</h2><p class="tiny">${Q.length}개 다 말해 봤어요. 내일 한 번 더 보면 입에 붙어요</p><button type="button" class="btn primary big block" data-ivback>오늘 할 일로 ›</button></section>` : ''}</div>`;
+  }
+  // 11/9 «각 과의 실제 입결도 정윤이처럼»: 작년 학종 결과(공식 입시결과·어디가), 없는 숫자는 비워요
+  function ivAdmit(u) {
+    const A = u.admit; if (!A || !(A.years || []).length) return '';
+    const f = (v) => (v == null || v === '' ? '<span class="tiny">비공개</span>' : esc(v));
+    return `<div class="iv-adm"><b>${ic('target')} 작년 입결 · ${esc(A.track || u.track)}</b><div class="iv-adm-t"><div class="iv-adm-r h"><span>학년도</span><span>모집</span><span>경쟁률</span><span>충원</span><span>50%컷</span><span>70%컷</span></div>${A.years.map((y) => `<div class="iv-adm-r"><span>${esc(y.y)}${y.sub ? ' ' + esc(y.sub) : ''}</span><span>${f(y.n)}</span><span>${f(y.comp)}</span><span>${f(y.fill)}</span><span class="num">${f(y.g50 != null ? y.g50 : y.gAvg != null ? y.gAvg + ' (평균)' : null)}</span><span class="num">${f(y.g70)}</span></div>`).join('')}</div>${A.years.map((y) => [y.basis, y.note].filter(Boolean).join(' · ')).filter(Boolean).slice(0, 2).map((t) => `<p class="tiny" style="margin:4px 0 0">${esc(t)}</p>`).join('')}${A.years[0].src ? `<a class="tiny" href="${esc(A.years[0].src)}" target="_blank" rel="noopener">출처</a>` : ''}</div>`;
+  }
+  function ivView() {
+    if (UI.ivRun) return ivPractice();
+    const sec = (id, title, sub, body) => `<section class="card c12 iv-sec" id="iv-${id}"><div class="card-h"><h2>${title}</h2>${sub ? `<span class="tiny">${sub}</span>` : ''}</div>${body}</section>`;
+    const t = today();
+    const sched = `<div class="list">${ivSteps().map((s, k) => `<div class="li iv-row ${(s.end || s.date) < t ? 'is-done' : ''}" style="--k:${k}"><div class="ico"><img class="ic" src="${esc(s.u.logo)}" alt=""></div><div class="body"><div class="t">${md(s.date)} ${esc(wdName(s.date))}${s.time ? ' ' + esc(s.time) : ''}${s.end ? ' ~ ' + md(s.end) : ''} · ${esc(s.u.short)} ${esc(s.title)} ${ivTag(s)}</div>${s.d ? `<div class="d">${esc(s.d)}</div>` : ''}${s.src ? `<a class="tiny" href="${esc(s.src)}" target="_blank" rel="noopener">출처 보기</a>` : ''}</div>${(s.end || s.date) >= t ? `<b class="num">${ddTxt(s.date)}</b>` : ''}</div>`).join('')}</div>`;
+    const plan = `<div class="iv-days">${(IV.plan || []).map((p) => { const n = p.items.length, dn = p.items.filter((it, i) => ivItDone(p.date, i, it)).length, open = p.date === t || (UI.ivDays || {})[p.date];
+      return `<details class="iv-day ${p.date < t ? 'past' : ''} ${p.date === t ? 'now' : ''}" ${open ? 'open' : ''} data-ivday="${p.date}"><summary><b>${md(p.date)} ${esc(wdName(p.date))}</b><span>${esc(p.t)}</span><span class="tiny num">${dn}/${n}</span>${p.date === t ? '<span class="tag blue">오늘</span>' : ''}</summary><div class="list">${ivDayRows(p)}</div></details>`; }).join('')}</div>`;
+    const uni = (u) => { const qn = IV.qs.filter((q) => q.uni === u.id);
+      return `<section class="card c12 iv-sec iv-usec" id="iv-u-${u.id}"><div class="iv-uh">${ivLogo(u, 'xl')}<div><span class="tiny">${esc(u.track)}</span><h2>${esc(u.uni)} ${esc(u.dept)}</h2><span class="tiny">${esc(u.stage)}</span></div></div>
+        <div class="km-facts">${(u.facts || []).map((f) => `<div class="km-f"><b>${esc(f.h)}</b><p>${esc(f.t)}</p>${f.src ? `<a class="tiny" href="${esc(f.src)}" target="_blank" rel="noopener">출처</a>` : ''}</div>`).join('')}</div>
+        ${ivAdmit(u)}
+        ${(u.reviews || []).length ? `<div class="iv-rev"><b>${ic('mic')} 실제로 이런 걸 물어봤어요</b><ul>${u.reviews.map((r) => `<li>${esc(r.t)} <span class="tag">${esc(r.kind || '후기')}</span>${r.src ? ` <a class="tiny" href="${esc(r.src)}" target="_blank" rel="noopener">출처</a>` : ''}</li>`).join('')}</ul></div>` : ''}
+        ${qn.length ? `<button type="button" class="btn primary block" data-ivset="u:${u.id}">${esc(u.short)} 질문 ${qn.length}개 연습하기 ›</button>` : ''}</section>`; };
+    const F = IV.fixes || [];
+    const fix = `<p class="tiny" style="margin:0">${esc(IV.fixNote || '')}</p><div class="iv-fixes">${F.map((f, k) => `<details class="iv-fix" style="--k:${k}"><summary><span class="tag ${f.kind === 'fact' || f.kind === 'risk' ? 'red' : ''}">${esc({ fact: '내용 틀림', risk: '위험한 말', length: '너무 김', generic: '뻔한 답', name: '이름 섞임' }[f.kind] || '고칠 점')}</span><b>${esc(f.q)}</b></summary>${f.quote ? `<blockquote>${esc(f.quote)}</blockquote>` : ''}<p>${esc(f.problem)}</p>${f.better ? `<div class="iv-better"><b>이렇게 바꿔요</b><p>${esc(f.better)}</p></div>` : ''}</details>`).join('')}</div>`;
+    const sets = (IV.sets || []).map((s) => `<div role="button" tabindex="0" class="li btnlike" data-ivset="${esc(s.id)}"><div class="ico">${ic(s.i || 'mic')}</div><div class="body"><div class="t">${esc(s.t)}</div><div class="d">${s.ids.filter(ivQDone).length}/${s.ids.length}개 말해 봤어요</div></div><span class="chev"></span></div>`).join('');
+    return `<h1 class="h1">${ic('mic')} 2차 면접 준비</h1><p class="sub" style="margin:0 0 16px">${esc(IV.src || '')}</p>
+      <div class="grid">${ivHeadCard()}${sec('plan', `${ic('cal')} 날마다 할 것`, '', plan)}${sec('sched', `${ic('pin')} 전체 일정`, '대학 공지 그대로', sched)}
+      ${IV.unis.map(uni).join('')}
+      ${sec('fix', `${ic('eyes')} 준비한 답 점검`, `${F.length}개`, fix)}
+      ${sets ? sec('sets', `${ic('mic')} 질문 모아 연습`, '', `<div class="list">${sets}</div>`) : ''}</div>`;
+  }
+  function ivBind() {
+    if (!IV) return; const M = ivs();
+    const go = (to) => { UI.tab = 'iv'; UI.run = null; UI.ivRun = null; UI.ivTo = to; render(); };
+    $$('[data-ivgo]').forEach((b) => (b.onclick = () => go(b.dataset.ivgo)));
+    const open = (title, ids) => { UI.tab = 'iv'; UI.ivRun = { title, ids, from: UI.tab }; UI.ivOpen = {}; render(); scrollTo(0, 0); };
+    const setOf = (id) => id.startsWith('u:') ? { t: ivU(id.slice(2)).short + ' 면접 질문', ids: IV.qs.filter((q) => q.uni === id.slice(2)).map((q) => q.id) } : (() => { const s = (IV.sets || []).find((x) => x.id === id); return s && { t: s.t, ids: s.ids }; })();
+    $$('[data-ivset]').forEach((b) => (b.onclick = () => { const s = setOf(b.dataset.ivset); if (s) open(s.t, s.ids); }));
+    $$('[data-ivit]').forEach((b) => (b.onclick = () => {
+      const [d, i] = [b.dataset.ivit.slice(0, 10), +b.dataset.ivit.slice(11)], p = ivDayOf(d), it = p && p.items[i]; if (!it) return;
+      if (it.qs && it.qs.length) return open(it.t, it.qs);
+      const k = 't:' + d + ':' + i; if (M.ck[k]) delete M.ck[k]; else M.ck[k] = Date.now(); M.ck.at = Date.now(); save('ivp');
+      const on = !!M.ck[k]; b.classList.toggle('is-done', on); const c = $('.iv-ck', b); if (c) { c.classList.toggle('on', on); c.innerHTML = on ? LS_CK : ''; }
+      const ico = $('.ico', b); if (ico && on) { ico.innerHTML = ic('ok'); ico.classList.remove('pop'); void ico.offsetWidth; ico.classList.add('pop'); }
+      if (on) { const r = b.getBoundingClientRect(); if (!RM()) boom(r.right - 24, r.top + r.height / 2, 0.6); }
+      const all = p.items.every((x, j) => ivItDone(d, j, x)); if (on && all) setTimeout(() => badgePop([{ key: 'iv:' + d, i: 'party', w: 0, eb: '🎉 오늘 면접 준비 완주!', t: `${md(d)} 「${p.t}」 끝`, d: '오늘 할 것을 다 했어요. 내일도 이렇게만 하면 돼요' }]), 400);
+      else setTimeout(() => render(), 500);
+    }));
+    $$('[data-ivev]').forEach((b) => (b.onclick = () => ivEvalOpen(b.dataset.ivev)));
+    $$('details[data-ivday]').forEach((x) => (x.ontoggle = () => { UI.ivDays = UI.ivDays || {}; UI.ivDays[x.dataset.ivday] = x.open; }));
+    if (UI.tab !== 'iv') return;
+    $$('[data-ivback]').forEach((b) => (b.onclick = () => { UI.ivRun = null; UI.tab = 'home'; render(); scrollTo(0, 0); }));
+    if (UI.ivTo != null) { const el = UI.ivTo && $('#iv-' + UI.ivTo); UI.ivTo = null; if (el) setTimeout(() => { scrollTo({ top: el.getBoundingClientRect().top + scrollY - 88, behavior: RM() ? 'auto' : 'smooth' }); el.classList.add('iv-flash'); setTimeout(() => el.classList.remove('iv-flash'), 1200); }, 60); else scrollTo(0, 0); }
+    $$('[data-ivop]').forEach((b) => (b.onclick = () => { const id = b.dataset.ivop; UI.ivOpen = UI.ivOpen || {}; UI.ivOpen[id] = !UI.ivOpen[id]; const on = UI.ivOpen[id]; b.classList.toggle('on', on); b.firstChild.textContent = on ? '답 방향 접기 ' : '답 방향 보기 '; const a = b.nextElementSibling; a.classList.toggle('on', on); }));
+    let tm = null;
+    $$('[data-iva]').forEach((ta) => (ta.oninput = () => { M[ta.dataset.iva] = { t: ta.value, at: Date.now() }; clearTimeout(tm); tm = setTimeout(() => save('ivp'), 600); }));
+    $$('[data-ivtime]').forEach((b) => (b.onclick = () => {
+      const id = b.dataset.ivtime, box = b.closest('.iv-timer'), bar = $('.iv-bar i', box), sec = $(`[data-ivsec="${id}"]`);
+      if (box._t) { clearInterval(box._t); box._t = null; box.classList.remove('run'); b.innerHTML = `${ic('timer')} 1분 말하기`; return; }
+      const t0 = Date.now(); box.classList.add('run'); b.innerHTML = `${ic('timer')} 그만`;
+      box._t = setInterval(() => { const s = (Date.now() - t0) / 1000, left = Math.max(0, 60 - s); bar.style.width = Math.min(100, (s / 60) * 100) + '%'; sec.textContent = Math.ceil(left) + '초'; box.classList.toggle('late', left < 10);
+        if (!left) { clearInterval(box._t); box._t = null; box.classList.remove('run'); b.innerHTML = `${ic('timer')} 다시 1분`; sec.textContent = '1분 끝'; toast('1분이에요. 길었다면 핵심 세 가지만 남겨요'); } }, 200);
+    }));
+    $$('[data-ivdid]').forEach((b) => (b.onclick = () => {
+      const id = b.dataset.ivdid, k = 'q:' + id, was = !!M.ck[k]; if (was) delete M.ck[k]; else M.ck[k] = Date.now(); M.ck.at = Date.now(); save('ivp');
+      const card = b.closest('.iv-q'); if (!was && card && !RM()) { const r = b.getBoundingClientRect(); boom(r.left + r.width / 2, r.top, 0.8); card.classList.add('iv-pop'); }
+      setTimeout(() => { const y = scrollY; render(); scrollTo(0, y); const R = UI.ivRun; if (!was && R && R.ids.every(ivQDone)) { fanfare(); const f = $('.iv-fin'); if (f) f.scrollIntoView({ behavior: RM() ? 'auto' : 'smooth', block: 'center' }); } else if (!was) { const nx = R && R.ids.find((x) => !ivQDone(x)); const el = nx && $('#ivq-' + nx); if (el) el.scrollIntoView({ behavior: RM() ? 'auto' : 'smooth', block: 'start' }); } }, was ? 0 : 420);
+    }));
+  }
+  const TABS = [['home', '홈', 'home'], ['iv', '면접', 'mic'], ['kmla', '민사고', 'target'], ['hw', '숙제', 'hw'], ['study', '공부', 'books'], ['exam', '수업', 'pencil'], ['grade', '성적', 'score'], ['wrong', '오답', 'wrong'], ['book', '교재', 'books'], ['report', '리포트', 'up'], ['score', '성적', 'score'], ['uni', '대학', 'school'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']].filter((t) => (t[0] === 'report' ? srOn() : t[0] === 'kmla' ? !!D.kmla : t[0] === 'iv' ? !!D.iv : t[0] === 'score' && SR_TEST ? true : !ST.tabs || ST.tabs.includes(t[0])) && (t[0] !== 'exam' || Object.keys(NXSETS).length || NX_CH.length || NX_JG.length) && (t[0] !== 'study' || (NXD.subjects || []).length) && (t[0] !== 'grade' || (ST.tabs || []).includes('grade')));  // 중학생 성적 탭은 켠 학생만 (10/31 정윤에게 성적 탭이 둘 뜸)  // 공부 탭은 단원 자료가 있는 학생만  // 시험 탭은 시험이 있는 학생만
   const DASH_ONLY = TEACHER && !STU_TAB && ROSTER.length > 1;  // 선생님 첫 탭은 학생 관리만 (학생 화면은 새 탭으로)
   if (DASH_ONLY) TABS.splice(0, TABS.length, ['dash', '홈', 'home'], ['treport', '리포트', 'memo'], ['thw', '숙제', 'hw'], ['tgrade', '성적', 'score'], ['tsched', '수업 일정', 'cal'], ['tprac', '연습', 'pencil'], ['news', '소식', 'news'], ['tstu', '학생', 'trophy']);
   function nav() {
@@ -8400,7 +8549,7 @@
     syncGoals();
     redoFix();
     if (UI.run) html = (UI.run.kind === 'news' ? newsRun() : UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'wqd' ? wqDays() : UI.run.kind === 'wq' ? wqPage() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'qa' ? qaRun() : UI.run.kind === 'nx' ? nxRail(nxRun()) : UI.run.kind === 'nxw' ? nxwRun() : UI.run.kind === 'print' ? printRun() : '') + hwFinBar();
-    else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'tprac' ? tbdView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'tme' ? tmeView() : UI.tab === 'picks' ? picksView() : UI.tab === 'kmla' ? kmlaView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'report' ? reportTabView() : UI.tab === 'grade' ? gradeView() : UI.tab === 'study' ? studyView() : UI.tab === 'exam' ? examView() : sgbView();
+    else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'tprac' ? tbdView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'tme' ? tmeView() : UI.tab === 'picks' ? picksView() : UI.tab === 'kmla' ? kmlaView() : UI.tab === 'iv' ? ivView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'report' ? reportTabView() : UI.tab === 'grade' ? gradeView() : UI.tab === 'study' ? studyView() : UI.tab === 'exam' ? examView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
     const wqv = UI.run && UI.run.kind === 'wq' ? (UI.run.stage === 'list' ? 1 : UI.run.k >= UI.run.Q.length ? 3 : 2) : 0;  // 11/4 «애니메이션 굉장히 중요»: 단어 Day 목록 → 표 → 시험 → 끝도 화면 넘기듯
     const view = UI.run ? 'run:' + UI.run.kind + (wqv ? ':' + wqv + ':' + UI.run.key : '') : UI.tab + (UI.lib || '') + (UI.tab === 'hw' ? (UI.nxUnit || '') + (UI.nxSubj || '') : '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'study' ? `${UI.stV}${UI.stS}${UI.stU}${UI.stT}` : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '') + (UI.tab === 'tprac' ? (UI.tbSeg || 'q') + (UI.tbI || '') : '');
@@ -8552,7 +8701,7 @@
     $$('.hw-daycard [data-dgo]').forEach((b) => (b.onclick = () => dayGo(b.dataset.dgo)));
     if (UI.tab !== 'tsched') $$('[data-calm]').forEach((b) => (b.onclick = () => { UI.calM = b.dataset.calm; render(); }));  // 수업 일정 달력과 이름이 겹쳐 그쪽 월 넘기기가 안 됐어요 (10/31)
     $$('#w-sched').forEach((b) => (b.onclick = () => schedSheet()));
-    kmlaBind();
+    kmlaBind(); ivBind();
     if (UI.run && UI.run.kind === 'news') newsRunBind();
     $$('[data-kopen]').forEach((b) => (b.onclick = () => { const [k, r] = b.dataset.kopen.split('|'); openKept(k, r); }));
     $$('[data-nf]').forEach((b) => (b.onclick = () => { UI.newsF = b.dataset.nf; render(); }));
@@ -8820,7 +8969,7 @@
   // 새로 로그인한 기기는 이 기기에 기록이 비어 있어요. 서버에서 받아 온 뒤에도 목표 대학이 없을 때만 고르는 창을 띄워요
   if (STU_TAB) document.title = `${U.who} · ${BRAND}`;
   afterSwitch();
-  sync(true).finally(() => { if (!S.profile.uni && !TEACHER && !PEEK && !TUTOR) setTimeout(uniSheet, 600); });
+  sync(true).finally(() => { if (!S.profile.uni && !TEACHER && !PEEK && !TUTOR && !D.iv) setTimeout(uniSheet, 600); });
   setInterval(() => sync(true), 60000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(true); });
   // 선생님 보기에서 테마 확인용: ?theme=dark
