@@ -4608,7 +4608,7 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .iv-st.on { background: var(--green-soft); color: var(--green); }
 .iv-side { display: flex; flex-direction: column; gap: 16px; }
 @media (prefers-reduced-motion: reduce) { .iv-one, .iv-bk { animation: none; } }
-.iv-runp { display: flex; align-items: center; gap: 12px; margin: 0 0 16px; max-width: 480px; }
+.iv-runp { display: flex; align-items: center; gap: 12px; margin: 0 0 16px; }
 .iv-runp .td-prog { flex: 1; margin: 0; }
 .iv-runbar { flex: 1; height: 8px; border-radius: 4px; background: var(--fill2); overflow: hidden; }
 .iv-runbar i { display: block; height: 100%; background: var(--blue); border-radius: 4px; transition: width .5s cubic-bezier(.1,.76,.55,.9); }
@@ -4617,3 +4617,13 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 /* 11/9 «귀신이 왜 저기 있어, 공간을 넓히면서» → 폰에서 승조 홈은 카드 위 빈칸 없이 제목 오른쪽에 */
 @media (max-width: 520px) { .iv-home > .card.has-perch { margin-top: 0 !important; } .iv-home .pet-perch { display: none; } }  /* 폰은 제목이 꽉 차서 유령이 앉을 데가 없어요 */
 .iv-gotoday { margin-top: 12px; animation: waveIn .45s .2s both; }
+.iv-app { display: flex; align-items: center; gap: 20px; }
+.iv-app-qr { flex: none; width: 112px; height: 112px; border-radius: 12px; background: var(--fill); padding: 6px; opacity: 0; transform: scale(.94); transition: opacity .4s, transform .4s cubic-bezier(.2,1.2,.4,1); }
+.iv-app-qr.on { opacity: 1; transform: none; background: #fff; box-shadow: inset 0 0 0 1px var(--line); }
+.iv-app-qr svg { width: 100%; height: 100%; display: block; }
+.iv-app-b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.iv-app-b > b { font-size: 17px; }
+.iv-app-os { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.iv-app-os > div { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 12px; background: var(--fill); }
+.iv-app-os b { font-size: 14px; }
+@media (max-width: 520px) { .iv-app { flex-wrap: wrap; } .iv-app-qr { display: none; } .iv-app-os { grid-template-columns: 1fr; } .iv-app .btn { width: 100%; } }

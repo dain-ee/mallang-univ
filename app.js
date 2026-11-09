@@ -2353,7 +2353,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611091705', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611091709', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7114,7 +7114,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091705'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091709'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8430,11 +8430,18 @@
       <div class="yc-g iv-cal">${'일월화수목금토'.split('').map((w) => `<span class="yc-w">${w}</span>`).join('')}${cells.join('')}</div>
       </div>\x00<div class="iv-cday" key="${sel}"><div class="iv-cday-h"><b>${md(sel)} ${esc(wdName(sel))}</b>${p ? `<span class="tag blue">면접 ${ivDdLabel(p.dd)}</span>` : ''}${S2.map((s) => `<span class="tag ${s.kind === 'iv' ? 'red' : ''}">${esc(s.short || s.title)}</span>`).join('')}</div>${p ? `<div class="list">${ivDayRows(P, p)}</div>` : `<p class="tiny" style="margin:4px 0 0">${S2.length ? esc(S2.map((s) => s.title).join(' · ')) : '이날은 따로 정한 게 없어요'}</p>`}</div>`;
   }
+  // 11/9 «홈 설치 카드 어딨어? 갤럭시·아이폰 그거 앱» → 이 기기에 깐 기록이 있어도 늘 보여요(앱으로 연 때만 빠져요). QR 은 승조 전용 주소
+  function ivAppCard() {
+    if (STANDALONE) return '';
+    const al = IV.qr || ((ROSTER || []).find((r) => r.name === U.who) || {}).alias || '';
+    return `<section class="card c12 iv-app" data-qr="${esc(al ? location.origin + location.pathname + '?' + al : '')}"><div class="iv-app-qr" id="iv-qr" aria-label="승조 앱 QR"></div><div class="iv-app-b"><span class="eyebrow">띵동! 폰에 앱으로 깔아요</span><b>카메라로 QR을 찍으면 바로 열려요</b>
+      <div class="iv-app-os"><div><b>아이폰</b><span class="tiny">사파리에서 열고 공유 단추 → 「홈 화면에 추가」</span></div><div><b>갤럭시</b><span class="tiny">크롬에서 열고 ⋮ 메뉴 → 「홈 화면에 추가」</span></div></div></div><button class="btn primary" type="button" data-appopen>자세히 보기</button></section>`;
+  }
   function ivHome() {
     const nx = ivNext(), dd = nx ? dday(nx.date) : null;
     const main = `<h1 class="h1"><mark class="hl-g">${esc(NM())}${jongOf(NM()) ? '아' : '야'}</mark>,<br class="br-m"> ${nx ? (dd > 0 ? `${esc(nx.u.short)} 면접까지 ${dd}일 남았어요` : '오늘 면접이에요, 잘하고 와요') : '면접 다 끝났어요'}</h1>
       <p class="sub" style="margin:0 0 16px">${esc(IV.line || '1차는 다 붙었어요. 이제 2차 면접만 남았어요')}</p>
-      <div class="grid iv-home">${appCard()}${ivHeadCard('c6')}${ivTodayCard('c6')}${ivUniCards()}${pomoCard('c6')}${hotCard('c6')}${ivEvalCard()}</div>`;
+      <div class="grid iv-home">${ivAppCard()}${appCard().replace(/<section class="card c12 gift-card app-card">[\s\S]*?<\/section>/, '')}${ivHeadCard('c6')}${ivTodayCard('c6')}${ivUniCards()}${pomoCard('c6')}${hotCard('c6')}${ivEvalCard()}</div>`;
     return main;  // 11/9 오른쪽 줄(시계·토마토·뉴스)은 «다시 원래대로» → 홈 안 두 칸으로
   }
   // 연습 화면: 단계(mode)마다 다르게. 쓰기 = 노션 답을 고쳐 쓰기 · 외우기 = 가리고 떠올리기 · 말하기 = 1분 타이머
@@ -8503,6 +8510,7 @@
     if (!IV) return; const M = ivs();
     const keep = () => { const y = scrollY; render(); scrollTo(0, y); };
     const goUni = (id) => { UI.tab = 'iv'; UI.run = null; UI.ivRun = null; UI.ivUni = id; render(); scrollTo(0, 0); };
+    { const q = $('.iv-app[data-qr]'); if (q && q.dataset.qr && !$('#iv-qr svg')) qrSvg(q.dataset.qr, (svg) => { const bx = $('#iv-qr'); if (bx) { bx.innerHTML = svg; bx.classList.add('on'); } }); }
     $$('[data-ivuni]').forEach((b) => (b.onclick = () => goUni(b.dataset.ivuni)));
     $$('[data-ivarea]').forEach((b) => (b.onclick = () => { const [uid, a] = [b.dataset.ivarea.split(':')[0], b.dataset.ivarea.slice(b.dataset.ivarea.indexOf(':') + 1)]; UI.ivArea = { ...(UI.ivArea || {}), [uid]: a }; const y = scrollY; render(); scrollTo(0, y); }));
     $$('[data-ivbk]').forEach((b) => (b.onclick = () => { const [uid, j] = b.dataset.ivbk.split(':'), u = ivU(uid), P = ivPrep(u), q = ivQ(P.ids[+j]), my = ((ivs()[q.id] || {}).t || '').trim(); open(`${u.short} 답변 모음`, P.ids, my ? 'mem' : 'write', +j); }));
