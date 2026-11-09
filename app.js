@@ -48,7 +48,9 @@
   // W: 그 학생의 오답 기록. 선생님 화면에서는 꼭 학생 것을 넘겨요 (선생님 자기 기록을 보면 늘 「안 했어요」로 떠요 10/26)
   const hwWr = (h, W = S.wrong) => (h.wr || []).filter((id) => W && W[id]);
   const wrTried = (h, id, W = S.wrong) => { const w = W[id]; return w.cleared || (w.at || 0) > (h.at || 0); };
-  const HWL = () => (S.hw || []).filter((h) => !h.ls);  // 11/8 수업에서 할 것(ls)은 숙제 목록에 안 나와요
+  // 11/9 «숙제에서 그럼 없앨 거 없애»: 오답 숙제인데 내기 전에 이미 다 다시 맞힌 문제뿐이면 할 게 없어서 목록에서 빼요
+  const hwPre = (h) => !h.done && (h.wr || []).length > 0 && h.wr.every((id) => { const w = (S.wrong || {})[id]; return w && w.cleared && (w.clearedAt || 0) <= (h.at || 0); });
+  const HWL = () => (S.hw || []).filter((h) => !h.ls && !hwPre(h));  // 11/8 수업에서 할 것(ls)은 숙제 목록에 안 나와요
   const LSN = (d) => (S.hw || []).filter((h) => h.ls && h.due === d);
   const hwDone = (h, W = S.wrong) => !!h.done || (hwWr(h, W).length > 0 && hwWr(h, W).every((id) => wrTried(h, id, W))) || (W === S.wrong && hwGoDone(h));
   // 끝낸 때: 오답 숙제는 마지막으로 다시 푼 때
@@ -841,7 +843,7 @@
     const tasks = [...wqTasks()];
     if (TUTOR) { for (const t of tutorTasks()) tasks.push(t); for (const t of ypTasks()) tasks.push(t); for (const h of HWL().filter((x) => !hwDone(x) && !(x.grp && x.due > today()))) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due && h.due < today() ? `${md(h.due)} 몫 · 못 했어요` : `${h.subj && h.subj !== '영어' ? h.subj + ' · ' : ''}${h.due ? md(h.due) + '까지' : '선생님 숙제'}`, late: !!(h.due && h.due < today()), done: false }); for (const h of HWL().filter(hwDoneToday)) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due < today() ? `${md(h.due)} 몫 · 오늘 따라잡았어요` : '선생님 숙제 · 끝냈어요', done: true }); return { tasks, off: false }; }
     const off = !anyTask(new Date()) && !S.sci.days[today()] && !S.eng.days[today()];
-    const has = (k) => !off && (onDay(k) || !!(k === 'sci' ? S.sci.days[today()] : S.eng.days[today()]));
+    const has = (k) => !off && (onDay(k) || (!!(k === 'sci' ? S.sci.days[today()] : S.eng.days[today()]) && !(planEnd(k) && planEnd(k) < today())));  // 11/9 그만하기로 한 과제는 그날 기록이 있어도 안 내요
     // 지난번에 다 못 한 건 그대로 이어서 나와요 · 어제와 같은 숙제처럼 보이지 않게 알려 줘요
     const prevEng = Object.entries(S.eng.days).filter(([dk]) => dk < today()).sort().map(([, v]) => v);
     const carried = (k) => k === 'unit' ? !unitDone && prevEng.some((v) => v.unit === ed.unit) : k === 'words' ? !wordsDone && prevEng.some((v) => v.words === ed.words) : !g3Did(ed) && prevEng.some((v) => v.g3 === ed.g3);
@@ -1312,6 +1314,7 @@
       };
       const NM = { unit: ['천일문 유닛', 'eng'], words: ['워드마스터 단어', 'books'], g3: ['고3 영어 한 문제', 'write'], sci: ['오늘의 과학', 'sci'] };
       for (const k of Object.keys(DK)) {
+        if (planEnd(k) && planEnd(k) < t) continue;  // 11/9 «이거는 안 하기로 하지 않았어?»: 그만하기로 한 매일 과제(고3 영어·워드마스터)는 밀린 것에서 빼요
         if (!planOf(k).length && !Object.keys(k === 'sci' ? SDAYS : EDAYS).length) continue;
         if (k === 'unit' && !CH_UNITS.length || k === 'words' && !WORDS.length || k === 'g3' && !G3.length || k === 'sci' && !SCI.concepts.length) continue;
         const cells = days.map((d) => { const x = DK[k](d); return { d, st: x ? (x.late && d < t ? 'late' : st0(d, x.done, true)) : 'off', lb: x ? x.lb : '' }; });
@@ -2349,7 +2352,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611090904', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611090912', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5786,13 +5789,14 @@
   // 11/8 «개념도 없이 하면 어떡해, 아예 배우지 않은 건데»: 외우기 숙제(learn 있는 세트)는 배우는 화면 먼저 → 「다 읽었어요」 뒤 문제
   function nxLearn(s, r) {
     if (!Array.isArray(s.learn)) { const nk = s.learn.nk, para = (s.qs[0] || {}).t === 'para';
-      const msg = { grammar: '공식과 핵심을 읽고, 예문을 소리 내어 두 번씩 읽어요.', reading: '본문을 우리말과 같이 소리 내어 읽어요. 파란 칸은 시험에 잘 나오는 중요 문장이에요.', comm: '표현을 소리 내어 두 번씩 읽어요.', w: '단어와 뜻을 소리 내어 읽어요.' }[nk] || '';
-      return `<div class="nx-wrap">${nxTop(s, 0, s.qs.length, '먼저 읽어요', 0)}<div class="card" style="margin-top:16px"><p style="margin:0;font-weight:600">${msg}</p><p class="tiny" style="margin:6px 0 0">다 읽으면 맨 아래 단추로 ${para ? '빈칸 채우기' : nk === 'grammar' ? '문제 풀기' : '외우기'}를 시작해요</p></div>
-        <div class="nx-lrn">${stNotes({ subj: 'eng', notes: s.learn.notes || {} }, { nk })}</div>
+      const N = s.learn.notes || {}, sv = nk === 'reading' && [].concat(N.reading || []).some((r) => (r.paras || []).some((pa) => pa.some((x) => x.note && x.note !== '소제목'))), svOn = sv && !!UI.nxSv;
+      const hint = `${nk === 'reading' ? '파란 칸은 시험에 잘 나오는 문장이에요. ' : ''}다 읽으면 아래 단추로 ${para ? '빈칸 채우기' : nk === 'grammar' ? '문제 풀기' : '외우기'}를 시작해요`;
+      return `<div class="nx-wrap">${nxTop(s, 0, s.qs.length, '먼저 읽어요', 0)}<div class="nx-lrn-bar"><p class="tiny">${hint}</p>${sv ? `<button class="btn sm ${svOn ? 'soft' : ''}" data-nxsv type="button" aria-pressed="${svOn}">${svOn ? '문장 구조 숨기기' : '문장 구조 보기'}</button>` : ''}</div>
+        <div class="nx-lrn ${svOn ? '' : 'hide-sv'}">${stNotes({ subj: 'eng', notes: N }, { nk, lrn: 1 })}</div>
         <div class="cta-bar"><button class="btn primary big block" data-nxlearned type="button">다 읽었어요 · ${para ? '빈칸 채우기' : '시작'}</button></div></div>`; }
     const L = s.learn || [], nl = (t) => esc(t).replace(/\n/g, '<br>');
     return `<div class="nx-wrap">${nxTop(s, 0, s.qs.length, '먼저 배워요 · 다 읽고 외우기 시작', 0)}
-      <div class="card" style="margin-top:16px"><p style="margin:0;font-weight:600">${L.some((x) => x.point) ? '공식과 설명을 읽고, 예문을 소리 내어 두 번씩 읽어요.' : '영어 문장을 우리말과 함께 읽고, 소리 내어 두 번씩 읽어요.'}</p><p class="tiny" style="margin:6px 0 0">다 읽으면 맨 아래 단추로 우리말 보고 영어로 쓰기를 시작해요</p></div>
+      <div class="nx-lrn-bar"><p class="tiny">다 읽으면 아래 단추로 우리말 보고 영어로 쓰기를 시작해요</p></div>
       ${L.map((x) => `<section class="card lrn-sec"><h2>${esc(x.h)}</h2>${x.form ? `<div class="lrn-form">${esc(x.form)}</div>` : ''}${x.point ? `<p class="lrn-pt">${nl(x.point)}</p>` : ''}
         <div class="lrn-rows">${(x.rows || []).map((w) => `<div class="lrn-row"><b>${esc(w.en)}</b><span>${esc(w.ko)}</span>${w.note ? `<i>${nl(w.note)}</i>` : ''}</div>`).join('')}</div>
         ${(x.traps || []).length ? `<div class="lrn-trap"><b>시험 함정</b><ul>${x.traps.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}</section>`).join('')}
@@ -5841,7 +5845,7 @@
     $$('[data-nxexit]').forEach((b) => (b.onclick = () => { const bk = (UI.run && UI.run.back) || 'exam'; if (bk === 'study' && UI.stOnly && UI.stOnly.endsWith(':run')) return go('hw'); UI.run = null; UI.tab = bk; render(); window.scrollTo(0, 0); }));  // 숙제로 연 문제 묶음은 나가면 숙제 목록
     if (!r || (r.kind !== 'nx' && r.kind !== 'nxw')) return;
     const s = NXSETS[r.id]; if (!s) return;
-    { const b = $('[data-nxlearned]'); if (b) b.onclick = () => { const x = nxS(), st = (x.st[s.id] = x.st[s.id] || {}); st.learned = Date.now(); save('nx'); r.learn = false; render(); window.scrollTo(0, 0); }; const a = $('[data-nxlearn]'); if (a) a.onclick = () => { r.learn = true; render(); window.scrollTo(0, 0); }; if (r.inLearn) return; }
+    { const b = $('[data-nxlearned]'); if (b) b.onclick = () => { const x = nxS(), st = (x.st[s.id] = x.st[s.id] || {}); st.learned = Date.now(); save('nx'); r.learn = false; render(); window.scrollTo(0, 0); }; const a = $('[data-nxlearn]'); if (a) a.onclick = () => { r.learn = true; render(); window.scrollTo(0, 0); }; const sv = $('[data-nxsv]'); if (sv) sv.onclick = () => { UI.nxSv = !UI.nxSv; render(); }; if (r.inLearn) return; }
     if (r.kind === 'nxw') return nxwBind(s);
     const x = nxS(), store = nxStore(s, r), qs = r.only ? s.qs.filter((q) => r.only.includes(q.i)) : s.qs;
     const om = $('[data-nxomr]'); if (om) om.onclick = () => { r.omr = !r.omr; render(); };
@@ -6124,7 +6128,7 @@
     // 11/7 «내 화면에서 실제 어떤 수업인지 본다니까» · 11/8 «숙제가 아니라 수업, 애들한테는 잠겨 있고 나는 볼 수 있게»: ls 표시한 것은 숙제 탭이 아니라 여기에만
     else if (LSN(sl.date).length) { const LH = LSN(sl.date), dn = LH.filter((h) => hwDone(h)).length, can = sl.open || ROLE_T, wh = `${sl.date === t ? '오늘' : `${md(sl.date)}(${WDK[new Date(sl.date + 'T00:00:00').getDay()]})`} ${esc(timeKo(sl.time) || '')}`;
       main = `<section class="card c12 nx-open"><div class="card-h"><h2>${sl.date === t ? '오늘 수업' : '다음 수업'} <span class="tiny">${wh}</span></h2><span class="tag ${sl.open ? 'blue' : ''}">${sl.open ? '열렸어요' : `${nxLeft(sl.left)} 남았어요`}</span></div>
-      <div class="list">${LH.map((h) => `<div class="li ${can ? 'btnlike' : 'is-lock'} ${hwDone(h) ? 'is-done' : ''}" ${can ? `data-hwopen="${esc(h.id)}"` : 'aria-disabled="true"'}><div class="ico">${ic(hwDone(h) ? 'ok' : can ? 'pencil' : '1f512')}</div><div class="body"><div class="t">${esc(String(h.title || '').replace(/^[^\p{L}\p{N}]+\s/u, ''))}</div></div>${can ? '<span class="chev"></span>' : ''}</div>`).join('')}</div>
+      <div class="list">${LH.map((h) => lsnRow(h, can)).join('')}</div>
       <p class="tiny nx-lock-p">${sl.open ? `${dn} / ${LH.length} 했어요` : ROLE_T ? `선생님은 미리 열어 볼 수 있어요 · 학생은 ${wh}에 열려요` : `${wh}에 열려요`}</p></section>`; }
     else if (!sl.open) { const s = nxLesson(sl.date), wh = `${sl.date === t ? '오늘' : `${md(sl.date)}(${WDK[new Date(sl.date + 'T00:00:00').getDay()]})`} ${esc(timeKo(sl.time) || '')}`;
       main = `<section class="card c12 nx-open"><div class="card-h"><h2>${sl.date === t ? '오늘 수업' : '다음 수업'}</h2><span class="tag">${nxLeft(sl.left)} 남았어요</span></div>
@@ -6143,7 +6147,7 @@
       }
     }
     if (JW_CLS && sl) main = jwClassCard(sl, t);
-    if (YG_CLS && sl && (sl.open || Object.values(ygPlan(sl.date)).some((v) => Array.isArray(v)))) main = ygClassCard(sl, t);
+    if (YG_CLS && sl && ygHas(sl.date, sl.open)) main = ygClassCard(sl, t);
     const today0 = sl && sl.open ? 'ls:' + sl.date : '';
     const ids = [...new Set([...x.done.filter((d) => d.kind === 'lesson').map((d) => d.id), ...Object.keys(x.lq)])].filter((id) => id !== today0 && id !== 'lw:' + (sl && sl.open ? sl.date : '') && id.slice(3) < t).sort().reverse().slice(0, 12);
     const past = ids.map((id) => {
@@ -6166,8 +6170,8 @@
     }).join('');
     const progC = prog ? `<section class="card c12"><div class="card-h"><h2>${ic('books')} 수업 진도</h2><span class="tiny">지금까지 수업에서 나간 것</span></div><div class="cl-pgs">${prog}</div></section>` : '';
     // 11/3 «달력이 오늘 수업 옆에 있으면» → 수업 카드가 있으면 둘이 나란히
-    if (!YG_CLS && !JW_CLS && TUTOR && sl && main.includes('card c12 nx-open')) { main = main.replace('card c12 nx-open', 'card c6 jw-cl yg-cl nx-open'); UI.clSide = true; return `<h1 class="h1">수업</h1><p class="sub">오늘 수업 · 수업마다 한 것</p><div class="grid">${main}${clCal()}${seeC}${past ? `<section class="card c12"><div class="card-h"><h2>지난 수업 시험</h2><span class="tiny">점수는 선생님 리포트에 가요</span></div><div class="list">${past}</div></section>` : ''}</div>`; }
-    if (YG_CLS || JW_CLS) { UI.clSide = main.includes('yg-cl'); return `<h1 class="h1">수업</h1><p class="sub">오늘 수업 · 수업마다 한 것</p><div class="grid">${main}${clCal()}${seeC}</div>`; }
+    if (!YG_CLS && !JW_CLS && TUTOR && sl && main.includes('card c12 nx-open')) { main = main.replace('card c12 nx-open', 'card c6 jw-cl yg-cl nx-open'); UI.clSide = true; return `<h1 class="h1">수업</h1><p class="sub">오늘 수업 · 수업마다 한 것</p><div class="grid">${main}${clCal()}${past ? `<section class="card c12"><div class="card-h"><h2>지난 수업 시험</h2><span class="tiny">점수는 선생님 리포트에 가요</span></div><div class="list">${past}</div></section>` : ''}</div>`; }
+    if (YG_CLS || JW_CLS) { UI.clSide = main.includes('yg-cl'); return `<h1 class="h1">수업</h1><p class="sub">오늘 수업 · 수업마다 한 것</p><div class="grid">${main}${clCal()}</div>`; }
     return `<h1 class="h1">수업</h1><p class="sub">다음 수업 때 볼 것 · 수업 시험 · 지금까지 나간 진도</p><div class="grid">${seeC}${main}${progC}${past ? `<section class="card c12"><div class="card-h"><h2>지난 수업 시험</h2><span class="tiny">점수는 선생님 리포트에 가요</span></div><div class="list">${past}</div></section>` : ''}</div>`;
   }
   // 지원 수업 카드 (11/1): 수업 시작에 지난 리포트 범위 · 오늘 나갈 챕터 · 시험 두 개(점수는 리포트로) · 선생님이 골라서 보는 단원 · 모의고사
@@ -6185,6 +6189,12 @@
     const id = `mq:${mk.id}:${k}`; if (NXSETS[id]) return NXSETS[id]; const q = mk.qs[k]; if (!q) return null;
     return (NXSETS[id] = { id, title: `${mk.title.replace(/ 빈칸추론$/, '')} ${q.n ? q.n + '번' : k + 1 + '번째'}`, sub: mk.sub || '', subj: 'eng', kind: 'mq', qs: [q] });
   }
+  // 11/9 «11/10을 눌렀는데 아래도 옆에도 맞는 게 하나도 없어»: 수업 카드와 수업 달력은 같은 줄을 같은 함수에서 받아요
+  const clStep = (k, h, sub, body) => `<div class="cl-st"><div class="cl-st-h"><i>${k}</i><b>${h}</b>${sub ? `<span class="tiny">${sub}</span>` : ''}</div>${body}</div>`;
+  const clDoH = (d, t) => (d === t ? '오늘 수업' : '수업에서 할 것');
+  const clEmpty = (d, t) => `<p class="tiny" style="margin:0">선생님이 ${d === t ? '오늘' : '이날'} 나갈 단원을 넣으면 나와요</p>`;
+  const ygHas = (d, open) => open || Object.values(ygPlan(d)).some((v) => Array.isArray(v));  // 윤건 수업 카드를 쓰는 날 (범위가 있거나 수업 중)
+  const lsnRow = (h, can) => `<div class="li ${can ? 'btnlike' : 'is-lock'} ${hwDone(h) ? 'is-done' : ''}" ${can ? `data-hwopen="${esc(h.id)}"` : 'aria-disabled="true"'}><div class="ico">${ic(hwDone(h) ? 'ok' : can ? 'pencil' : '1f512')}</div><div class="body"><div class="t">${esc(String(h.title || '').replace(/^[^\p{L}\p{N}]+\s/u, ''))}</div></div>${can ? '<span class="chev"></span>' : ''}</div>`;
   // ───────── 윤건 수업 시험 (11/3) ─────────
   // 범위는 S.jwt[날짜] = { units: [천일문 유닛], days: [워드마스터 Day], m3: [매3영 Day], n, wn, mn } · 선생님 말 듣고 바로 바꿔요
   const ygPlan = (date) => { const o = { ...(((LS0.tests || {})[date]) || {}), ...(((S.jwt || {})[date]) || {}) }; return { units: (o.units || []).length ? o.units.map(Number) : null, days: (o.days || []).length ? o.days.map(Number) : null, m3: (o.m3 || []).length ? o.m3.map(Number) : null, tu: (o.tu || []).length ? o.tu.map(Number) : null, n: o.n || 15, wn: o.wn || 20, mn: o.mn || 10 }; };
@@ -6204,7 +6214,7 @@
     }
     return null;
   }
-  function ygClassCard(sl, t) {
+  function ygClassCard(sl, t, bare) {
     const P = ygPlan(sl.date), when = sl.date === t ? '오늘' : `${md(sl.date)}(${WDK[dowOf(sl.date)]})`;
     const row = (k, name, rng) => {
       const id = `${k}:${sl.date}`, s = (P[{ ls: 'tu', lw: 'days', lm: 'm3' }[k]] || nxS().lq[id]) ? ygTest(id) : null;
@@ -6221,9 +6231,11 @@
       return `<div class="li btnlike ${done ? 'is-done' : ''}" data-task="cl:m3:${esc(u.id)}"><div class="ico">${ic(done ? 'ok' : 'eng')}</div><div class="body"><div class="t">매3영 ${esc(u.code || 'Day ' + u.no)} ${esc(u.title || '')}</div><div class="d">${fin.length ? `${fin.map((L) => L.m3).join('·')} 지문 끝냈어요` : '지문마다 단어 → 문제 → 문장 구조'}</div></div><span class="chev"></span></div>`;
     }).join('');
     const step = (k, h, sub, body) => `<div class="cl-st"><div class="cl-st-h"><i>${k}</i><b>${h}</b>${sub ? `<span class="tiny">${sub}</span>` : ''}</div>${body}</div>`;
+    const B = { h1: P.tu ? '수업 전 시험' : '단어 시험', tests: `<div class="list">${P.tu || nxS().lq['ls:' + sl.date] ? row('ls', '천일문 시험') : ''}${row('lw', '단어 시험')}</div>`, items: chRows || m3Rows ? `<div class="list">${chRows}${m3Rows}</div>` : '', sub2: '누르면 그 단원이 열려요' };
+    if (bare) return B;
     return `<section class="card c6 jw-cl yg-cl"><div class="card-h"><h2>${ic('cal')} ${when} 수업</h2><span class="tag ${sl.open ? 'blue' : ''}">${sl.open ? '수업 중' : `${esc(timeKo(sl.time) || '')} 시작`}</span></div>
-      ${step(1, P.tu ? '수업 전 시험' : '단어 시험', '점수는 리포트로 가요', `<div class="list">${P.tu || nxS().lq['ls:' + sl.date] ? row('ls', '천일문 시험') : ''}${row('lw', '단어 시험')}</div>`)}
-      ${step(2, '오늘 수업', '누르면 그 단원이 열려요', chRows || m3Rows ? `<div class="list">${chRows}${m3Rows}</div>` : '<p class="tiny" style="margin:0">선생님이 오늘 나갈 단원을 넣으면 나와요</p>')}
+      ${step(1, B.h1, '점수는 리포트로 가요', B.tests)}
+      ${step(2, clDoH(sl.date, t), B.sub2, B.items || clEmpty(sl.date, t))}
     </section>`;
   }
   // 수업 달력 (11/3 «수업도 옆에 달력 있어서 그날 수업에 뭘 했는지 볼 수 있게»): 왼쪽 달, 오른쪽 고른 날 수업
@@ -6237,12 +6249,25 @@
     const pm = addD(ym + '-01', -1).slice(0, 7), nm = addD(ym + '-28', 7).slice(0, 7);
     const l = L.find((x) => x.date === sel && lsnDone(x)), ls = l ? lines(l.lesson) : [], un = l ? (l.units || []).map((no) => { const u = cuByNo(no); return u ? `천일문 Unit ${u.unit} ${u.title || ''}`.trim() : ''; }).filter(Boolean) : [];
     const tests = nxS().done.filter((x) => x.kind === 'lesson' && x.id.slice(3) === sel).filter((x, i, A) => A.map((z) => z.id).lastIndexOf(x.id) === i);
-    const P = YG_CLS ? ygPlan(sel) : null, rng = P ? [P.units && ['천일문', `Unit ${P.units.join('·')}`], P.m3 && ['매3영', `Day ${P.m3.join('·')}`], P.days && ['단어 시험', `${WM_BOOK} Day ${P.days.join('·')}`]].filter(Boolean) : [];
-    const isUp = up.some((x) => x.date === sel) && !l;
-    const body = `${l ? `<div class="cl-pg-d"><b>${md(sel)} ${WDK[dowOf(sel)]}요일</b><span>${l.nth ? `${esc(l.nth)}회차` : ''}${l.book ? ` · ${esc(l.book)}` : ''}</span></div>` : `<div class="cl-pg-d"><b>${md(sel)} ${WDK[dowOf(sel)]}요일</b><span>${isUp ? '수업 예정' : '수업 기록이 없어요'}</span></div>`}
-      ${[...ls, ...un.filter((x) => !ls.some((y) => y.includes(x.split(' ').slice(0, 3).join(' '))))].length ? `<ul class="cl-cal-ul">${[...ls, ...un.filter((x) => !ls.some((y) => y.includes(x.split(' ').slice(0, 3).join(' '))))].map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
-      ${rng.length ? `<div class="cl-rng">${rng.map(([a, b]) => `<div><span>${a}</span><b>${esc(b)}</b></div>`).join('')}</div>` : ''}
-      ${tests.length ? `<div class="list">${tests.map((x) => `<div class="li btnlike" data-nx="${esc(x.id)}"><div class="ico">${ic(x.ok === x.n ? 'trophy' : 'ok')}</div><div class="body"><div class="t">${esc(x.title)}</div><div class="d">${nxTime(x.ms) ? '걸린 시간 ' + nxTime(x.ms) : '결과 다시 보기'}</div></div><b class="num">${x.ok} / ${x.n}</b><span class="chev"></span></div>`).join('')}</div>` : ''}
+    // 11/9 지난 수업은 수업 기록 한 곳에서만 (계획 표는 빼요) · 시험은 실제로 본 결과 줄, 범위는 그 시험에서 · 기록 속 같은 시험 줄은 결과가 있으면 빼요
+    //      예정 수업은 왼쪽 수업 카드와 같은 함수에서 같은 줄 (수업 전 시험 + 수업에서 할 것)
+    const isUp = up.some((x) => x.date === sel) && !l, upX = up.find((x) => x.date === sel), sl0 = nxSlot();
+    const setOf = (id) => { if (NXSETS[id]) return NXSETS[id]; try { return YG_CLS ? ygTest(id) : /^lw:/.test(id) ? nxWord(id.slice(3)) : nxLesson(id.slice(3)); } catch (e) { return null; } };
+    const tRow = (x) => { const s = setOf(x.id); return `<div class="li btnlike" data-nx="${esc(x.id)}"><div class="ico">${ic(x.ok === x.n ? 'trophy' : 'ok')}</div><div class="body"><div class="t">${esc(x.title)}</div><div class="d">${s && s.sub ? esc(s.sub) + ' · ' : ''}${nxTime(x.ms) ? '걸린 시간 ' + nxTime(x.ms) : '결과 다시 보기'}</div></div><b class="num">${x.ok} / ${x.n}</b><span class="chev"></span></div>`; };
+    const tk = (x) => (/단어/.test(x) ? 'lw' : /매3영/.test(x) ? 'lm' : /천일문/.test(x) ? 'ls' : '');
+    const recL = [...ls, ...un.filter((x) => !ls.some((y) => y.includes(x.split(' ').slice(0, 3).join(' '))))].filter((x) => !(/시험/.test(x) && tk(x) && tests.some((z) => z.id.slice(0, 2) === tk(x))));
+    let h1 = '수업 전 시험', s1 = tests.length ? `<div class="list">${tests.map(tRow).join('')}</div>` : '', h2 = '수업에서 한 것', sub2 = '', s2 = recL.length ? `<ul class="cl-cal-ul">${recL.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+    if (isUp && upX) {
+      const s = { date: sel, time: upX.time, open: !!(sl0 && sl0.open && sl0.date === sel), left: new Date(`${sel}T${upX.time || '00:00'}:00`).getTime() - nxNow() };
+      const B = YG_CLS && ygHas(sel, s.open) ? ygClassCard(s, t, true) : JW_CLS ? jwClassCard(s, t, true) : null;
+      if (B) { h1 = B.h1; s1 = B.tests; s2 = B.items; sub2 = B.sub2; }
+      else { const LH = LSN(sel), can = s.open || ROLE_T, q = !LH.length && sl0 && sl0.date === sel ? nxLesson(sel) : null; h1 = '수업 문제'; s1 = q ? `<div class="list"><div class="li"><div class="ico">${ic('books')}</div><div class="body"><div class="t">${esc(q.title)} · ${q.qs.length}문제</div><div class="d">${esc(nxMixTxt(q))}</div></div></div></div>` : ''; s2 = LH.length ? `<div class="list">${LH.map((h) => lsnRow(h, can)).join('')}</div>` : ''; }
+      h2 = clDoH(sel, t); if (!s2 && (B || !s1)) s2 = clEmpty(sel, t);
+    } else if (!s2 && s1) s2 = '<p class="tiny" style="margin:0">수업 기록이 없어요</p>';
+    const hd = l ? [l.nth ? `${esc(l.nth)}회차` : '', l.book ? esc(l.book) : ''].filter(Boolean).join(' · ') : isUp ? `${upX && upX.time ? esc(timeKo(upX.time)) + ' ' : ''}수업 예정` : s1 ? '' : '수업 기록이 없어요';
+    const body = `<div class="cl-pg-d"><b>${md(sel)} ${WDK[dowOf(sel)]}요일</b><span>${hd}</span></div>
+      ${s1 ? clStep(1, h1, isUp ? '점수는 리포트로 가요' : '', s1) : ''}
+      ${s2 ? clStep(s1 ? 2 : 1, h2, sub2, s2) : ''}
       ${l && l.hw ? `<p class="cl-pg-hw"><b>숙제</b> ${esc(l.hw)}</p>` : ''}`;
     return `<section class="card ${UI.clSide ? 'c6' : 'c12'} cl-cal"><div class="card-h"><h2>${ic('cal')} 수업 달력</h2><span class="tiny">날짜를 누르면 그날 수업에 한 것</span></div>
       <div class="cl-cal-w"><div class="cl-cal-m"><div class="row between cl-cal-h"><button type="button" class="sr-wk-b" data-clym="${pm}" aria-label="지난달">‹</button><b>${y}년 ${mo}월</b><button type="button" class="sr-wk-b" data-clym="${nm}" aria-label="다음 달">›</button></div><div class="yc-g">${WDK.map((w) => `<span class="yc-w">${w}</span>`).join('')}${cells.join('')}</div></div><div class="cl-cal-b">${body}</div></div></section>`;
@@ -6260,7 +6285,7 @@
     }
     return { cu, mq };
   }
-  function jwClassCard(sl, t) {
+  function jwClassCard(sl, t, bare) {
     const when = sl.date === t ? '오늘' : `${md(sl.date)}(${WDK[dowOf(sl.date)]})`, C = jwCls(sl.date);
     const test = (id, s, name) => {
       if (!sl.open && !s) return `<div class="li"><div class="ico">${ic('books')}</div><div class="body"><div class="t">${name}</div><div class="d">${esc(timeKo(sl.time) || '')}에 시작해요 · ${nxLeft(sl.left)} 남았어요</div></div></div>`;
@@ -6276,9 +6301,11 @@
       return `<div class="li btnlike ${L ? 'is-done' : ''}" data-task="cl:mq:${esc(m.mk.id)}:${m.k}"><div class="ico">${ic(L ? 'ok' : 'pencil')}</div><div class="body"><div class="t">${esc(m.s.title)}</div><div class="d">${fromTx(from)}모의고사 빈칸추론${L ? ` · ${L.ok === L.n ? '맞혔어요' : '틀렸어요'}` : ''}</div></div><span class="chev"></span></div>`; }).join('');
     const all = C.cu.length + C.mq.length, fin = C.cu.filter(({ no }) => jwUDone(no)).length + C.mq.filter(({ m }) => nxLast(m.s.id)).length;
     const step = (k, h, sub, body) => `<div class="cl-st"><div class="cl-st-h"><i>${k}</i><b>${h}</b>${sub ? `<span class="tiny">${sub}</span>` : ''}</div>${body}</div>`;
+    const B = { h1: '수업 전 시험', tests: `<div class="list">${test('ls', nxLesson(sl.date), '천일문 시험')}${test('lw', nxWord(sl.date), '단어 시험')}</div>`, items: all ? `<div class="list">${chRows}${mqRows}</div>` : '', sub2: all ? `${fin} / ${all} 끝 · 못 끝낸 건 다음 수업에 이어져요` : '' };
+    if (bare) return B;
     return `<section class="card c6 jw-cl yg-cl"><div class="card-h"><h2>${ic('cal')} ${when} 수업</h2><span class="tag ${sl.open ? 'blue' : ''}">${sl.open ? '수업 중' : `${esc(timeKo(sl.time) || '')} 시작`}</span></div>
-      ${step(1, '수업 전 시험', '점수는 리포트로 가요', `<div class="list">${test('ls', nxLesson(sl.date), '천일문 시험')}${test('lw', nxWord(sl.date), '단어 시험')}</div>`)}
-      ${step(2, '오늘 수업', all ? `${fin} / ${all} 끝 · 못 끝낸 건 다음 수업에 이어져요` : '', all ? `<div class="list">${chRows}${mqRows}</div>` : '<p class="tiny" style="margin:0">선생님이 오늘 나갈 단원을 넣으면 나와요</p>')}
+      ${step(1, B.h1, '점수는 리포트로 가요', B.tests)}
+      ${step(2, clDoH(sl.date, t), B.sub2, B.items || clEmpty(sl.date, t))}
     </section>`;
   }
   function wmDaySheet(d) {
@@ -6522,7 +6549,7 @@
         ${q.length || a.length ? `<div class="st-qa">${q.length ? `<div><h3><i class="st-qa-t q">Q</i>이렇게도 물어요</h3>${q.map((e) => line(e)).join('')}</div>` : ''}${a.length ? `<div><h3><i class="st-qa-t a">A</i>이렇게도 답해요</h3>${a.map((e) => line(e)).join('')}</div>` : ''}</div>` : ''}
         ${f.tip ? `<div class="st-tipbox"><h3>${ic('bulb')} 시험 포인트</h3><ul>${pts(f.tip).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}</section>`; }).join('');
       let rn = 0;
-      const R = [].concat(N.reading || []).map((r) => `<section class="card st-sec st-read"><div class="st-kick">본문</div><h2>${esc(r.title || '')}</h2>${(r.paras || []).map((pa) => `<div class="st-para">${pa.map((x) => `<div class="st-rs ${x.key ? 'key' : ''}"><span class="st-ln num">${++rn}</span><div><b>${esc(x.en)}</b>${x.key ? '<span class="tag blue">중요</span>' : ''}<span class="st-ko">${hk(x.ko)}</span>${x.note ? `<em>${esc(x.note)}</em>` : ''}</div></div>`).join('')}</div>`).join('')}</section>`).join('');
+      const R = [].concat(N.reading || []).map((r) => `<section class="card st-sec st-read"><div class="st-kick">본문</div><h2>${esc(r.title || '')}</h2>${(r.paras || []).map((pa) => `<div class="st-para">${pa.map((x) => L && L.lrn && x.note === '소제목' ? `<h3 class="st-rh">${esc(x.en)}<span>${hk(x.ko)}</span></h3>` : `<div class="st-rs ${x.key ? 'key' : ''}"><span class="st-ln num">${++rn}</span><div><b>${esc(x.en)}</b>${x.key ? '<span class="tag blue">중요</span>' : ''}<span class="st-ko">${hk(x.ko)}</span>${x.note ? `<em>${esc(x.note)}</em>` : ''}</div></div>`).join('')}</div>`).join('')}</section>`).join('');
       if (L) return L.nk === 'w' ? stTerms(u) : L.nk === 'comm' ? C : L.nk === 'grammar' ? G : R;
       return `${G}${C}${R}`;
     }
@@ -7061,7 +7088,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611090904'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611090912'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -7498,7 +7525,7 @@
       <div class="d-sec rw-sc"><h3>${tu ? '진도율 · 시험' : '시험 점수'}</h3><div class="rw-num">${tu ? `<label class="rw-f"><span class="rw-l">진도율</span><span class="rw-box"><input class="inp sm num" data-df="progress" inputmode="numeric" value="${esc(D0.progress || autoProg(n))}"><em>%</em></span>${!D0.progress && autoProg(n) ? '<small>천일문 유닛에서 자동</small>' : ''}</label>` : ''}<label class="rw-f"><span class="rw-l">점수</span><span class="rw-box"><input class="inp sm num" data-df="score" inputmode="numeric" value="${esc(useA ? as.score : D0.score)}"><em>/</em><input class="inp sm num" data-df="scoreTotal" inputmode="numeric" value="${esc(useA ? as.total : D0.scoreTotal)}"></span>${useA ? `<small title="${esc(as.title)}">${esc(as.title)}에서 자동</small>` : ''}</label>${tu ? `<label class="rw-f"><span class="rw-l">단어</span><span class="rw-box"><input class="inp sm num" data-df="vocabScore" inputmode="numeric" value="${esc(useV ? av.score : D0.vocabScore || '')}"><em>/</em><input class="inp sm num" data-df="vocabTotal" inputmode="numeric" value="${esc(useV ? av.total : D0.vocabTotal || '')}"></span><small${useV ? ` title="${esc(av.title)}"` : ''}>${useV ? `${esc(av.title)}에서 자동` : '안 봤으면 비워 둬요'}</small></label>` : ''}</div></div>
       <div class="d-sec rw-c"><h3>${esc(who)}께 한마디</h3><div class="tk-g">${[...new Set([...(tu ? P_C : P_CS), ...D0.C])].map((t) => ck('C', t, D0.C.has(t))).join('')}</div>${addBox('C', '직접 적고 더하기')}</div>
       <div class="d-go"><button class="btn primary big" data-dsave="send" type="button">저장하고 ${esc(who)}께 보내기</button><button class="btn big" data-dsave="" type="button">저장만</button></div>
-      </section><aside class="card d-pv">${rep ? `<div class="card-h"><h2>${esc(who)}께 보내요</h2></div><img class="rp-img" src="${rep.url}" alt="리포트"><div class="d-go">${rep.canShare ? '<button class="btn primary" data-rp="share" type="button">카톡으로 보내기</button>' : ''}<button class="btn ${rep.canShare ? '' : 'primary'}" data-rp="copy" type="button">그림 복사</button><a class="btn" data-rp="save" href="${rep.url}" download="${esc(rep.file.name)}" style="text-decoration:none">그림 저장</a></div><p class="tiny">${rep.canShare ? `카톡에서 ${esc(who)}를 고르면 돼요` : `복사한 뒤 카톡 ${esc(who)} 방에 붙여 넣어요(⌘V)`}</p>` : `<div class="card-h"><h2>${esc(who)}께 갈 그림</h2><span class="tiny">고르는 대로 바뀌어요</span></div><img class="rp-img" id="d-pv" alt="리포트 미리보기">`}</aside></div>`;
+      </section><aside class="card d-pv">${rep ? `<div class="card-h"><h2>${esc(who)}께 보내요</h2></div><img class="rp-img" src="${rep.url}" alt="리포트"><div class="d-go">${rep.canShare ? '<button class="btn primary" data-rp="share" type="button">카톡으로 보내기</button>' : ''}<button class="btn ${rep.canShare ? '' : 'primary'}" data-rp="copy" type="button">그림 복사</button><a class="btn" data-rp="save" href="${rep.url}" download="${esc(rep.file.name)}" style="text-decoration:none">그림 저장</a></div><p class="tiny">${rep.canShare ? `카톡에서 ${esc(who)}를 고르면 돼요` : `복사한 뒤 카톡 ${esc(who)} 방에 붙여 넣어요(⌘V)`}</p>` : `<div class="card-h"><h2>${esc(who)}께 갈 그림</h2><span class="tiny">고르는 대로 바뀌어요</span></div><img class="rp-img" id="d-pv" alt="리포트 미리보기" hidden><div class="d-pv-w" id="d-pv-w"><span>그림을 그리는 중이에요</span></div>`}</aside></div>`;
   }
   function dHwCard(n, x) {
     const D0 = drOf(n), d = x.d || {}, open = (d.hw || []).filter((h) => !hwDone(h, d.wrong || {})), subs = x.r.subjects || [], sj = D0.hwSubj || subs[0] || '영어';
@@ -7827,6 +7854,8 @@
   // 11/8 «핸드폰에서 미리 보기가 안 돼»: 폰에선 그림이 긴 칸 맨 아래라 안 보여요 → 위 「미리 보기」로 그림을 바로 띄워요
   document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-pvjump]'); if (!b) return; const show = (src) => sheet(`<img src="${src}" alt="리포트 미리보기" style="display:block;width:100%;border-radius:12px"><button class="btn big block" style="margin-top:16px" data-close type="button">닫기</button>`, (el) => { $('[data-close]', el).onclick = closeSheet; });
     const img = $('#d-pv') || $('.d-pv .rp-img'); if (img && img.src && img.naturalWidth) return show(img.src); toast('그림을 그리는 중이에요'); if (UI.dStu) dPv(UI.dStu); let k = 0; const t = setInterval(() => { const i = $('#d-pv'); if (i && i.src && i.naturalWidth) { clearInterval(t); show(i.src); } else if (++k > 20) { clearInterval(t); toast('그림을 못 그렸어요. 새로고침 뒤 다시 눌러 주세요'); } }, 250); });
+  // 11/9 «이거 왜 날짜 클릭이 안 되냐»: 날짜 칸은 달력 그림만 눌러야 열렸어요 → 칸 어디를 눌러도 달력이 열려요 (모든 날짜 칸)
+  document.addEventListener('click', (e) => { const el = e.target; if (el && el.tagName === 'INPUT' && (el.type === 'date' || el.type === 'time' || el.type === 'month') && !el.disabled && el.showPicker) { try { el.showPicker(); } catch (er) {} } });
   function dPv(n) {
     const img = $('#d-pv'); if (!img) return;
     Promise.all([loadReport(), prLoad()]).then(() => {
@@ -7835,8 +7864,13 @@
       if (r.tutor) Report.drawReport(cv, { name: (d && d.profile && d.profile.name) || n, date: L.date, nth: L.nth, total: drOf(n).mt || dTotal(r, dCls(r, d), L.date), book: L.book || lz.book || '', progress: L.progress, score: L.score, scoreTotal: L.scoreTotal, vocabScore: L.vocabScore, vocabTotal: L.vocabTotal, lesson: lines(L.lesson), homework: lines(L.hw), comment: lines(L.comment), ...rpExtra(r, L) });
       // 아이패드·폰 앱은 그림판(canvas)을 많이 만들면 메모리 한도에 걸려 빈 그림이 나왔어요 (11/4 듀오 「리포트 미리보기」 글자만) → 그린 뒤 바로 비우고, 빈 그림이면 한 번 더
       const u = cv.toDataURL('image/png'); cv.width = cv.height = 0;
-      if (u.length > 100) img.src = u; else if (!dPv.re) { dPv.re = 1; setTimeout(() => { dPv(n); dPv.re = 0; }, 400); }
-    }).catch(() => {});
+      if (u.length > 100) { img.onload = () => { img.hidden = false; const w = $('#d-pv-w'); if (w) w.remove(); dPv.k = 0; }; img.onerror = () => dPvFail(n); img.src = u; } else dPvFail(n);
+    }).catch(() => dPvFail(n));
+  }
+  function dPvFail(n) {  // 폰은 메모리가 모자라 한두 번 실패할 때가 있어서 조금 쉬었다가 세 번까지 다시 그려요
+    dPv.k = (dPv.k || 0) + 1; const w = $('#d-pv-w');
+    if (dPv.k <= 3) return setTimeout(() => dPv(n), 500 * dPv.k);
+    dPv.k = 0; if (w) { w.innerHTML = '<span>그림을 못 그렸어요</span><button class="btn sm" type="button">다시 그리기</button>'; $('button', w).onclick = () => { w.innerHTML = '<span>그림을 그리는 중이에요</span>'; dPv(n); }; }
   }
   async function dHwSave(n, btn) {
     const D0 = drOf(n), x = dashInfo().find((y) => y.r.name === n) || {};

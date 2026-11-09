@@ -3196,10 +3196,10 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 .save-bar button { flex: none; padding: 8px 12px; border: 0; border-radius: 10px; background: #3182f6; color: #fff; font: inherit; font-size: 13px; cursor: pointer; }
 .save-bar.ok { background: #e8f3ff; color: #1b64da; padding: 10px 16px; }
 /* 지원 수업 카드 (11/1, 정리 «너무 더럽지 않아»): 단계마다 옅은 칸, 챕터는 한 줄 */
-.jw-cl .cl-st { margin-top: 12px; padding: 16px; border-radius: 20px; background: var(--fill); }
-.jw-cl .cl-st-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
-.jw-cl .cl-st-h i { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 99px; background: var(--t1); color: var(--card, #fff); font-style: normal; font-size: 12px; font-weight: 700; }
-.jw-cl .cl-st-h b { font-size: 16px; font-weight: 700; color: var(--t1); }
+.jw-cl .cl-st, .cl-cal .cl-st { margin-top: 12px; padding: 16px; border-radius: 20px; background: var(--fill); }
+.jw-cl .cl-st-h, .cl-cal .cl-st-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.jw-cl .cl-st-h i, .cl-cal .cl-st-h i { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 99px; background: var(--t1); color: var(--card, #fff); font-style: normal; font-size: 12px; font-weight: 700; }
+.jw-cl .cl-st-h b, .cl-cal .cl-st-h b { font-size: 16px; font-weight: 700; color: var(--t1); }
 .jw-cl .cl-ch { display: grid; grid-template-columns: 168px 1fr; align-items: center; gap: 12px; padding: 6px 0; }
 .jw-cl .cl-ch-t { display: flex; align-items: center; gap: 6px; }
 .jw-cl .cl-ch-t b { font-size: 14px; font-weight: 600; color: var(--t2); }
@@ -3207,11 +3207,11 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 .jw-cl .cl-ch .nb-g { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
 .jw-cl .cl-ch .nb { height: 36px; min-width: 44px; padding: 0 10px; font-size: 14px; font-weight: 600; background: var(--card, #fff); }
 .jw-cl .cl-ch .nb.ok { background: var(--blue-soft); color: var(--blue-d); }
-.jw-cl .cl-st .list .li { background: var(--card); border-radius: 16px; margin-top: 8px; padding: 12px; }
-.jw-cl .cl-st .list .li .ico { background: var(--fill); }
-.jw-cl .cl-st .list .li:first-child { margin-top: 0; }
+.jw-cl .cl-st .list .li, .cl-cal .cl-st .list .li { background: var(--card); border-radius: 16px; margin-top: 8px; padding: 12px; }
+.jw-cl .cl-st .list .li .ico, .cl-cal .cl-st .list .li .ico { background: var(--fill); }
+.jw-cl .cl-st .list .li:first-child, .cl-cal .cl-st .list .li:first-child { margin-top: 0; }
 .jw-cl .cl-pick { display: flex; gap: 6px; overflow-x: auto; padding: 0 0 8px; scrollbar-width: none; }
-@media (max-width: 640px) { .jw-cl .cl-ch { grid-template-columns: 1fr; gap: 6px; padding: 8px 0; } .jw-cl .cl-st { padding: 12px; } }
+@media (max-width: 640px) { .jw-cl .cl-ch { grid-template-columns: 1fr; gap: 6px; padding: 8px 0; } .jw-cl .cl-st, .cl-cal .cl-st { padding: 12px; } }
 .wm-l .li .ico.num { font-size: 13px; color: var(--t3); }
 /* 토끼 소녀: 한마디 카드 그림을 카드 아래 끝에 딱 붙게 (11/1 «살짝 더 내려와야») · 그림 아래 21% 는 빈 칸이에요 */
 :root[data-skin="bunny"] .nt-from .gh-nt { width: 100px; height: 100px; align-self: flex-end; margin: -20px -4px -41px -8px; }
@@ -3598,6 +3598,7 @@ button.my-run { border: 0; font-family: inherit; cursor: pointer; }
 .cl-cal-b { display: flex; flex-direction: column; gap: 12px; }
 .cl-cal-w { margin-bottom: 0; }
 .c6 .cl-cal-b { border-top: 1px solid var(--line); padding-top: 16px; }
+.cl-cal-b .cl-st { margin-top: 0; }
 .cl-rng { display: grid; gap: 8px; }
 .cl-rng > div { display: flex; align-items: baseline; gap: 12px; font-size: 15px; }
 .cl-rng span { flex: none; width: 64px; font-size: 13px; font-weight: 600; color: var(--t3); }
@@ -4086,8 +4087,25 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .hw-today > .hw-tog { margin-top: auto; padding-top: 12px; }
 
 /* 11/8 윤건 외우기: 문단째 빈칸, 문장마다 바로 채점 */
-.nx-lrn { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
+.nx-lrn { display: flex; flex-direction: column; gap: 16px; margin-top: 12px; }
 .nx-lrn .st-sec { margin: 0; }
+/* 11/9 외우기 읽기 화면 정리: 안내 카드 대신 회색 한 줄 + 문장 구조 토글, 본문은 흰 카드 하나에 차분하게 */
+.nx-lrn-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 32px; margin-top: 16px; }
+.nx-lrn-bar .tiny { flex: 1; min-width: 0; margin: 0; line-height: 1.5; }
+.nx-lrn-bar .btn { flex: none; }
+.nx-lrn .st-read .st-kick { color: var(--t3); }
+.nx-lrn .st-read h2 { margin-bottom: 8px; font-size: 20px; font-weight: 700; color: var(--t1); }
+.nx-lrn .st-read .st-para { padding: 0; }
+.nx-lrn .st-para + .st-para { margin-top: 12px; padding-top: 12px; }
+.nx-lrn .st-rh { display: block; margin: 8px 0 4px; font-size: 15px; font-weight: 700; line-height: 1.5; color: var(--t1); }
+.nx-lrn .st-rh span { display: block; margin-top: 2px; font-size: 13px; font-weight: 500; color: var(--t3); }
+.nx-lrn .st-rs { gap: 12px; padding: 12px; margin: 0 -12px; }
+.nx-lrn .st-rs .tag { display: none; }
+.nx-lrn .st-rs.key .st-ln { color: var(--blue); background: var(--card); }
+.nx-lrn .st-rs .st-ko { margin-top: 4px; }
+.nx-lrn .st-rs em { display: block; margin-top: 8px; padding: 8px 12px; font-size: 13px; font-weight: 500; line-height: 1.5; color: var(--t2); background: var(--fill); border-radius: 8px; }
+.nx-lrn .st-rs.key em { background: var(--card); }
+.nx-lrn.hide-sv .st-rs em { display: none; }
 .mp-list { display: flex; flex-direction: column; margin-top: 4px; }
 .mp-s { display: grid; grid-template-columns: auto 1fr 20px; gap: 10px; align-items: baseline; padding: 12px 8px; margin: 0 -8px; border-top: 1px solid var(--line); border-radius: 12px; }
 .mp-s:first-child { border-top: 0; }
@@ -4278,3 +4296,5 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .grow .grow-bar.on i { background: var(--blue); }
 .li .d b.num { font-weight: 700; color: var(--t2); white-space: nowrap; }
 .li .d .nw { white-space: nowrap; }
+.d-pv .rp-img[hidden] { display: none; }
+.d-pv-w { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 200px; border-radius: 12px; background: var(--fill2); font-size: 14px; color: var(--t3); }
