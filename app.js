@@ -2352,7 +2352,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611091311', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611091316', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6662,7 +6662,8 @@
     const mid = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
     S.memo = [...(S.memo || []), { id: mid, t, ko: ko || '', kind, u: uid, lt, at: Date.now(), ...(si != null && si !== '' && !isNaN(+si) ? { si: +si } : {}) }]; save('memo');
     const y = scrollY; render(); scrollTo(0, y);
-    const ta = $(`[data-mmko="${mid}"]`); if (ta) { ta.focus({ preventScroll: true }); const r = ta.getBoundingClientRect(); if (r.bottom > innerHeight - 80 || r.top < 80) ta.scrollIntoView({ block: 'center', behavior: RM() ? 'auto' : 'smooth' }); }  // 담자마자 그 자리에서 바로 적어요
+    const ta = $(`[data-mmko="${mid}"]`); if (ta && !RM()) { const bx = ta.closest('.m3n-i, .m3b-i'); if (bx) { bx.classList.add('m3-new'); setTimeout(() => bx.classList.remove('m3-new'), 900); } }
+    if (ta) { ta.focus({ preventScroll: true }); const r = ta.getBoundingClientRect(); if (r.bottom > innerHeight - 80 || r.top < 80) ta.scrollIntoView({ block: 'center', behavior: RM() ? 'auto' : 'smooth' }); }  // 담자마자 그 자리에서 바로 적어요
   }
   // 숙제 「필기 복기」: 담은 것(+ 그 지문 ★ 문장과 속 단어)을 한 장씩 → 떠올리고 뒤집기 → 몰랐던 건 한 번 더
   function memoReview(d) {
@@ -6800,13 +6801,13 @@
     b.addEventListener('click', () => { if (!ctx) return; const c = ctx; hide(); window.getSelection().removeAllRanges(); m3Add(c.u, c.lt, c.t, '', c.si); });
     document.addEventListener('click', (e) => {
       const t = e.target.closest && e.target.closest('[data-m3put],[data-m3w],[data-chg],[data-mmx],[data-m3rvdone],[data-sxopen],[data-sxall]'); if (!t) return;
-      if (t.dataset.sxopen) { UI.sxOpen = UI.sxOpen || {}; UI.sxOpen[t.dataset.sxopen] = 1; const y = scrollY; render(); scrollTo(0, y); return; }
-      if (t.dataset.sxall != null) { UI.sxAll = !UI.sxAll; if (!UI.sxAll) UI.sxOpen = {}; const y = scrollY; render(); scrollTo(0, y); return; }
+      if (t.dataset.sxopen) { UI.sxOpen = UI.sxOpen || {}; UI.sxOpen[t.dataset.sxopen] = 1; const si = t.closest('[data-si]'), sec = t.closest('[data-lt]'), idx = si ? si.dataset.si : null; const y = scrollY; render(); scrollTo(0, y); if (!RM() && idx != null) { const box = $$(`main [data-si="${idx}"]`).find((x) => !sec || x.closest('[data-lt]')?.dataset.lt === sec.dataset.lt); if (box) { box.classList.add('sx-just'); $$('.sx-l, .sx-n, .sx-l2, .sx-cut, .sx-p', box).forEach((x, k) => x.style.setProperty('--k', k)); $$('.sx-r', box).forEach((x, k) => x.style.setProperty('--k', k)); setTimeout(() => box.classList.remove('sx-just'), 2200); } } return; }
+      if (t.dataset.sxall != null) { UI.sxAll = !UI.sxAll; if (!UI.sxAll) UI.sxOpen = {}; const y = scrollY; render(); scrollTo(0, y); if (!RM()) { const vis = $$('main [data-si]').filter((x) => { const r = x.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; }); vis.forEach((box, n) => setTimeout(() => { if (UI.sxAll) { box.classList.add('sx-just'); $$('.sx-l, .sx-n, .sx-l2, .sx-cut, .sx-p, .sx-r', box).forEach((x, k) => x.style.setProperty('--k', k)); setTimeout(() => box.classList.remove('sx-just'), 2200); } else { box.classList.add('sx-hide'); setTimeout(() => box.classList.remove('sx-hide'), 500); } }, n * 120)); } return; }
       const sec = t.closest('[data-lt]');
       if (t.dataset.chg) return chGram(t.dataset.chg);
       if (t.dataset.m3put != null && sec) { const u = m3U(sec.dataset.mu); if (!u) return; const sn = (((u.notes || {}).passages || []).find((p) => p.letter === sec.dataset.lt) || {}).sents[+t.dataset.m3put]; if (sn) m3Add(u.id, sec.dataset.lt, sn.en, '', t.dataset.m3put); return; }
       if (t.dataset.m3w && sec) { if (t.classList.contains('on')) return; const ss = t.closest('[data-si]'); m3Add(sec.dataset.mu, sec.dataset.lt, t.dataset.m3w, t.dataset.ko, ss ? ss.dataset.si : null); return; }
-      if (t.dataset.mmx) { S.memo = (S.memo || []).filter((m) => m.id !== t.dataset.mmx); save('memo'); const y = scrollY; render(); scrollTo(0, y); return; }
+      if (t.dataset.mmx) { const id = t.dataset.mmx, bx = t.closest('.m3n-i, .m3b-i'), go = () => { S.memo = (S.memo || []).filter((m) => m.id !== id); save('memo'); const y = scrollY; render(); scrollTo(0, y); }; if (bx && !RM()) { bx.style.height = bx.offsetHeight + 'px'; void bx.offsetWidth; bx.classList.add('m3-out'); setTimeout(go, 320); } else go(); return; }
       if (t.dataset.m3rvdone) { nxS().a[t.dataset.m3rvdone] = nxS().a[t.dataset.m3rvdone] || { ok: true, at: Date.now() }; save('nx'); toast('복습 끝냈어요'); UI.m3rv = null; go('hw'); }
     });
     // 필기 칸: 비어 있으면 「• 」로 시작, Enter 치면 다음 줄도 「• 」 (11/8 «불렛 형식으로 엔터 치면 알아서»)
@@ -7112,7 +7113,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091311'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091316'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
