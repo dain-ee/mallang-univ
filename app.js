@@ -2352,7 +2352,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611090912', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611090914', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7088,7 +7088,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611090912'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611090914'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8256,10 +8256,10 @@
     const did = L ? lines(L.lesson) : [], hwT = L ? lines(L.hw) : [], dn = tk.filter((t) => t.done).length, left = tk.length - dn;
     const cnt = MONTHLY ? `${+ym.slice(5)}월 ${lsnMonthN(lsnSorted(), ym) + (+((LS0.monthSeed || {})[ym]) || 0)}회` : L && L.nth ? `${esc(L.nth)}회차` : '';
     const row = (x, k) => `<div class="ls-row"><span class="ico">${ic(k || lsIc(lsCut(x)))}</span><span class="ls-tx">${esc(lsCut(x))}</span></div>`;
-    const a = L ? `<div class="ls-sec"><div class="ls-sec-h"><b>지난 수업</b><span class="tiny">${esc(md(L.date))} ${esc(wdName(L.date))}${L.book ? ' · ' + esc(L.book) : ''}</span>${cnt ? `<span class="tag">${cnt}</span>` : ''}</div>${did.length ? `<div class="ls-rows">${did.slice(0, 3).map((x) => row(x)).join('')}${did.length > 3 ? `<span class="ls-more">외 ${did.length - 3}개 더 했어요</span>` : ''}</div>` : ''}</div>` : '';
+    const a = L ? `<div class="ls-sec"><div class="ls-sec-h"><b>지난 수업</b><span class="tiny">${esc(md(L.date))} ${esc(wdName(L.date))}${L.book ? ' · ' + esc(L.book) : ''}</span>${cnt ? `<span class="tag">${cnt}</span>` : ''}</div>${did.length ? `<div class="ls-rows">${did.map((x) => row(x)).join('')}</div>` : ''}</div>` : '';
     const T = [...tk.filter((t) => !t.done), ...tk.filter((t) => t.done)];
     const hrow = (t) => `<div class="ls-row ${t.done ? 'on' : ''}"><span class="ls-ck">${t.done ? LS_CK : ''}</span><span class="ls-tx">${esc(lsCut(t.t))}</span>${t.late && !t.done ? '<span class="tag red">밀림</span>' : ''}</div>`;
-    const b = tk.length ? `<div class="ls-sec ls-go" data-go="hw"><div class="ls-sec-h"><b>숙제</b><span class="tiny num">오늘 ${tk.length}개 · ${left ? `${left}개 남음` : '다 끝'}</span><span class="chev"></span></div><div class="td-prog"><i style="width:${Math.round((dn / tk.length) * 100)}%"></i></div><div class="ls-rows">${T.slice(0, 4).map(hrow).join('')}${T.length > 4 ? `<span class="ls-more">외 ${T.length - 4}개는 숙제 탭에서 봐요</span>` : ''}</div></div>`
+    const b = tk.length ? `<div class="ls-sec ls-go" data-go="hw"><div class="ls-sec-h"><b>숙제</b><span class="tiny num">오늘 ${tk.length}개 · ${left ? `${left}개 남음` : '다 끝'}</span><span class="chev"></span></div><div class="td-prog"><i style="width:${Math.round((dn / tk.length) * 100)}%"></i></div><div class="ls-rows">${T.map(hrow).join('')}</div></div>`
       : hwT.length ? `<div class="ls-sec"><div class="ls-sec-h"><b>숙제</b><span class="tiny">오늘 앱에서 할 것은 없어요</span></div><div class="ls-rows">${hwT.slice(0, 3).map((x) => row(x, 'pin')).join('')}</div></div>` : '';
     return a + b;
   }
