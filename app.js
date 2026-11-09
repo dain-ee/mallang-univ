@@ -2352,7 +2352,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611091014', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611091111', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2797,7 +2797,7 @@
         return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd.replace(/<div class="seg"[\s\S]*$/, '')}<section class="card"><div class="card-h"><h2>올림포스가 이렇게 바뀌었어요</h2><span class="tiny">13강부터</span></div><div class="list">${f.map(([t, d], k) => `<div class="li"><div class="ico">${k < 2 ? `<b class="num">${k + 1}</b>` : ic('ok')}</div><div class="body"><div class="t">${t}</div><div class="d">${d}</div></div></div>`).join('')}</div></section><div class="cta-bar"><button class="btn primary big block" data-olintro type="button">① 단어·문제부터 시작하기</button></div></div>`;
       }
       if (ost === 'sx') { const ou = olpU(c);
-        return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd}<div class="row between st-tools" style="margin:0 0 12px"><span class="tiny">${UI.sxAll ? '구조와 해석이 다 보여요' : '문장마다 혼자 읽어 보고 구조 보기 → 해석 스티커 차례로 열어요'}</span><button type="button" class="btn sm ${UI.sxAll ? 'primary' : ''}" data-sxall aria-pressed="${!!UI.sxAll}">${UI.sxAll ? '다시 가리기' : '다 펼치기'}</button></div>${m3Struct(ou, ou.notes.passages[0])}${a ? `<div style="margin-top:16px">${nxBtn}</div>` : '<div class="cta-bar"><button class="btn primary big block" data-olst="q" type="button">① 단어·문제 먼저 풀기</button></div>'}</div>`; }
+        return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd}<div class="row between st-tools" style="margin:0 0 12px"><span class="tiny">${UI.sxAll ? '구조와 해석이 다 보여요' : '문장마다 혼자 읽어 보고 구조 보기 → 해석 스티커 차례로 열어요'}</span><button type="button" class="btn sm ${UI.sxAll ? 'primary' : ''}" data-sxall aria-pressed="${!!UI.sxAll}">${UI.sxAll ? '다시 가리기' : '다 펼치기'}</button></div>${m3Struct(ou, ou.notes.passages[0])}${a ? `<div style="margin-top:16px">${doneCard(a.ok ? 1 : 0, 1, '올림포스 지문 끝! 필기도 다 저장됐어요', '')}</div><div class="cta-bar"><button class="btn primary big block" data-finback type="button">필기 저장됐어요 · 숙제 목록으로 ›</button></div>` : '<div class="cta-bar"><button class="btn primary big block" data-olst="q" type="button">① 단어·문제 먼저 풀기</button></div>'}</div>`; }
       return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd}
         ${(c.words || []).length ? `<details class="hw-more card" ${a ? '' : 'open'}><summary><b>먼저 단어 ${c.words.length}개</b> <span class="tiny">눌러서 접기</span></summary><div class="oly-w">${c.words.map(([en, ko]) => `<div><b>${esc(en)}</b><span>${esc(ko)}</span></div>`).join('')}</div></details>` : ''}
         <section class="card oly-p" style="margin-top:12px"><p class="oly-q"><b>${esc(c.q)}</b></p>${c.given ? `<div class="oly-given">${u(c.given)}</div>` : ''}${c.text.map((t) => `<p>${u(t)}</p>`).join('')}${(c.notes || []).length ? `<p class="tiny">${c.notes.map((x) => '* ' + esc(x)).join('  ')}</p>` : ''}</section>
@@ -6630,7 +6630,7 @@
   // 11/8 «필기가 왜 스크롤 아래에 있냐고 · 바로 생겨서 바로바로 적어야» → 문장 바로 밑에 필기 칸, 모아 보기는 ④ 필기
   const m3OfSent = (u, ps, sn, i) => m3Memos(u, ps.letter).filter((m) => (m.kind === 's' && m3Key(m.t) === m3Key(sn.en)) || (m.si === i && m.kind !== 's'));
   const m3Ord = (a, b) => (a.kind === 's' ? 0 : 1) - (b.kind === 's' ? 0 : 1);
-  const m3Row = (m) => `<div class="m3n-i ${m.kind === 's' ? 's' : ''}"><div class="m3n-h">${m.kind === 's' ? `<b>${ic('memo')} 필기</b>` : `<b>${esc(m.t)}</b>`}<button type="button" class="m3b-x" data-mmx="${esc(m.id)}" aria-label="지우기">×</button></div><textarea class="inp m3b-ko" data-mmko="${esc(m.id)}" rows="${Math.max(1, String(m.ko || '').split('\n').length)}" placeholder="${m.kind === 's' ? '• 필기를 적어요 (Enter 치면 다음 줄)' : '뜻을 적어요'}">${esc(m.ko || '')}</textarea></div>`;
+  const m3Row = (m) => `<div class="m3n-i ${m.kind === 's' ? 's' : ''}"><div class="m3n-h">${m.kind === 's' ? `<b>${ic('memo')} 필기</b>` : `<b>${esc(m.t)}</b>`}<span class="m3n-sv">${String(m.ko || '').replace(/[•\s-]/g, '') ? '저장됐어요 ✓' : '쓰는 대로 저장돼요'}</span><button type="button" class="m3b-x" data-mmx="${esc(m.id)}" aria-label="지우기">×</button></div><textarea class="inp m3b-ko" data-mmko="${esc(m.id)}" rows="${Math.max(1, String(m.ko || '').split('\n').length)}" placeholder="${m.kind === 's' ? '• 필기를 적어요 (Enter 치면 다음 줄)' : '뜻을 적어요'}">${esc(m.ko || '')}</textarea></div>`;
   function m3Inline(u, ps, sn, i) {
     const N = m3OfSent(u, ps, sn, i).sort(m3Ord), hasS = N.some((m) => m.kind === 's');
     return `<div class="m3n">${N.map(m3Row).join('')}${hasS ? '' : `<button type="button" class="sx-put" data-m3put="${i}">+ 이 문장 필기하기</button>`}</div>`;
@@ -6819,7 +6819,7 @@
     });
     document.addEventListener('input', (e) => {
       const t = e.target; if (!t || !t.dataset) return;
-      if (t.dataset.mmko) { const m = (S.memo || []).find((x) => x.id === t.dataset.mmko); if (m) { m.ko = t.value; save('memo'); } t.rows = Math.max(1, t.value.split('\n').length); }
+      if (t.dataset.mmko) { const m = (S.memo || []).find((x) => x.id === t.dataset.mmko); if (m) { m.ko = t.value; save('memo'); const sv = t.closest('.m3n-i') && t.closest('.m3n-i').querySelector('.m3n-sv'); if (sv) { sv.textContent = '저장됐어요 ✓'; sv.classList.remove('pop'); void sv.offsetWidth; sv.classList.add('pop'); } } t.rows = Math.max(1, t.value.split('\n').length); }
       if (t.dataset.m3t) { S.m3t = S.m3t || {}; S.m3t[t.dataset.m3t] = t.value; save('m3t'); const btn = $('[data-m3rvdone]'), sec = t.closest('[data-lt]'); if (btn && sec) { const u = NXU[sec.dataset.mu], ps = u.notes.passages.find((p) => p.letter === sec.dataset.lt), RS = ps.sents.map((x, i) => (x.star ? i : -1)).filter((i) => i >= 0), n = RS.filter((i) => (S.m3t[`${u.id}:${ps.letter}:${i}`] || '').trim().length >= 4).length; btn.disabled = n < RS.length; if (!nxS().a[btn.dataset.m3rvdone]) btn.textContent = n < RS.length ? `★ 문장 ${n}/${RS.length} 해석했어요` : '복습 끝냈어요'; } }
     });
   })();
@@ -7110,7 +7110,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091014'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091111'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

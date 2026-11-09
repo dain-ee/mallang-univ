@@ -4309,3 +4309,7 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .ts-band.olp-new { background: var(--blue-soft); }
 .ts-band.olp-new .ts-band-go { color: var(--blue); }
 .ls-two { align-items: stretch; }
+
+/* 11/9 «이 필기가 저장되는 거야» · 필기 칸 머리에 저장 표시 */
+.m3n-sv { font-size: 12px; font-weight: 600; color: var(--t3); }
+.m3n-sv.pop { color: var(--green); }
