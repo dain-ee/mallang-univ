@@ -2352,7 +2352,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611090932', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611090936', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7088,7 +7088,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611090932'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611090936'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8261,7 +8261,7 @@
     const hrow = (t) => `<div class="ls-row ${t.done ? 'on' : ''}"><span class="ls-ck">${t.done ? LS_CK : ''}</span><span class="ls-tx">${esc(lsCut(t.t))}</span>${t.late && !t.done ? '<span class="tag red">밀림</span>' : ''}</div>`;
     const b = tk.length ? `<div class="ls-sec ls-go" data-go="hw"><div class="ls-sec-h"><b>숙제</b><span class="tiny num">오늘 ${tk.length}개 · ${left ? `${left}개 남음` : '다 끝'}</span><span class="chev"></span></div><div class="td-prog"><i style="width:${Math.round((dn / tk.length) * 100)}%"></i></div><div class="ls-rows">${T.map(hrow).join('')}</div></div>`
       : hwT.length ? `<div class="ls-sec"><div class="ls-sec-h"><b>숙제</b><span class="tiny">오늘 앱에서 할 것은 없어요</span></div><div class="ls-rows">${hwT.slice(0, 3).map((x) => row(x, 'pin')).join('')}</div></div>` : '';
-    return a + b;
+    return a && b ? `<div class="ls-two">${a}${b}</div>` : a + b;  // 11/9 «이 안에서 두 개의 카드 2열로»
   }
   function lessonHero() {
     const c = cls(), nx = nextLesson(), L = lastLesson(), tk = todayTasks().tasks.filter((t) => t.icon !== 'party' && !t.memo), dn = tk.filter((x) => x.done).length, left = tk.length - dn, dd = nx ? dday(nx.date) : null, p = S.profile, ym = ymOf(today());

@@ -4302,3 +4302,7 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .ls-sec + .ls-sec { padding-top: 0; margin-top: 24px; border-top: 0; }
 .ls-tools { padding-top: 0; margin-top: 24px; border-top: 0; }
 .ls-next { padding-top: 0; margin-top: 24px; border-top: 0; }
+.ls-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.ls-two > .ls-sec { margin-top: 0; padding: 16px; border-radius: 16px; background: var(--fill2); }
+@media (max-width: 720px) { .ls-two { grid-template-columns: 1fr; } }
+.ls-two .td-prog { background: var(--card); }
