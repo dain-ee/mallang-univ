@@ -4484,3 +4484,79 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 
 .run-top [data-ivback] { border: 0; background: var(--card); border-radius: 12px; padding: 8px 12px; font: inherit; font-weight: 600; display: inline-flex; gap: 4px; align-items: center; color: var(--t2); }
 .run-top { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+
+.iv-tl { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); overflow: visible; margin: 16px 0 0; padding: 0; }
+.iv-s { min-width: 0; }
+/* 11/9 «일정은 수직선이나 선으로 이어지게» · «달력으로» */
+.iv-vt { position: relative; margin-top: 16px; display: flex; flex-direction: column; }
+.iv-vt::before { content: ''; position: absolute; left: 7px; top: 18px; bottom: 18px; width: 2px; background: var(--line); border-radius: 1px; }
+.iv-vi { position: relative; display: grid; grid-template-columns: 16px 88px 1fr auto; align-items: center; gap: 12px; padding: 10px 0; border: 0; background: none; font: inherit; color: var(--t1); text-align: left; cursor: pointer; animation: waveIn .45s cubic-bezier(.1,.76,.55,.9) both; animation-delay: calc(var(--k, 0) * 60ms); }
+.iv-vi i { width: 12px; height: 12px; margin-left: 2px; border-radius: 50%; background: var(--card); box-shadow: inset 0 0 0 2px var(--t4); z-index: 1; }
+.iv-vi.on i { background: var(--blue); box-shadow: 0 0 0 4px var(--blue-l); }
+.iv-vi b { font-size: 14px; }
+.iv-vi span { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--t2); min-width: 0; }
+.iv-vi span img { width: 20px; height: 20px; flex: none; }
+.iv-vi em { font-style: normal; font-size: 13px; font-weight: 700; color: var(--t3); }
+.iv-vi.on b, .iv-vi.on em { color: var(--blue); }
+.iv-vi.on span { color: var(--t1); font-weight: 600; }
+.iv-cal .yc-d.exam small { color: #fff; }
+.iv-cday { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); animation: waveInS .3s both; }
+.iv-cday-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.iv-cday-h b { font-size: 16px; }
+.iv-cday-h span:not(.tag) { color: var(--t2); font-size: 14px; }
+/* 11/9 대학별 3단계(쓰기·외우기·말하기) · 준비 달력 · 세로 일정선 */
+.iv-vi { cursor: default; }
+.iv-vi.past { opacity: 1; color: var(--t4); }
+.iv-vi.past b, .iv-vi.past span, .iv-vi.past em { color: var(--t4); }
+.iv-vi.past i { background: var(--fill2); box-shadow: none; }
+.iv-vi.iv:not(.past) i { background: var(--t1); box-shadow: none; }
+.iv-vi.on i { background: var(--blue); box-shadow: 0 0 0 4px var(--blue-soft); }
+.iv-vi span small { display: block; font-size: 12px; color: var(--t3); font-weight: 400; margin-top: 2px; }
+.iv-vi span:has(small) { flex-direction: column; align-items: flex-start; gap: 0; }
+.iv-seg { margin-bottom: 16px; }
+.iv-seg button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; }
+.iv-seg button img { width: 20px; height: 20px; }
+.iv-seg button .num { font-size: 12px; color: var(--t3); }
+.iv-seg button.on .num { color: var(--blue); }
+.iv-ugrid > * { animation: waveIn .45s cubic-bezier(.1,.76,.55,.9) both; }
+.iv-ugrid > :nth-child(2) { animation-delay: 60ms; } .iv-ugrid > :nth-child(3) { animation-delay: 120ms; } .iv-ugrid > :nth-child(4) { animation-delay: 180ms; } .iv-ugrid > :nth-child(n+5) { animation-delay: 240ms; }
+.iv-ph { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+.iv-ph-i { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: 12px; background: var(--fill); animation: waveIn .45s cubic-bezier(.1,.76,.55,.9) both; animation-delay: calc(var(--k, 0) * 80ms); }
+.iv-ph-i b { font-size: 15px; }
+.iv-ph-i .td-prog { margin: 4px 0 0; }
+.iv-ph-n { width: 20px; height: 20px; border-radius: 50%; background: var(--t4); color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+.iv-ph-i.on { background: var(--blue-soft); }
+.iv-ph-i.on .iv-ph-n { background: var(--blue); }
+.iv-ph-i.ok .iv-ph-n { background: var(--green); }
+.iv-ph-i.late .iv-ph-n { background: var(--red); }
+.iv-ph-i:not(:last-child)::after { content: ''; position: absolute; right: -8px; top: 22px; width: 8px; height: 2px; background: var(--line); }
+@media (max-width: 520px) { .iv-ph { gap: 6px; } .iv-ph-i { padding: 10px 8px; } .iv-ph-i b { font-size: 14px; } .iv-ph-i:not(:last-child)::after { right: -6px; width: 6px; } }
+.iv-cal .yc-d { animation: waveInS .3s both; animation-delay: calc(var(--k, 0) * 10ms); }
+.iv-cal .yc-d small { font-size: 11px; }
+.iv-cal .yc-d.iv-k-write:not(.done):not(.miss):not(.exam) { box-shadow: inset 0 -3px 0 var(--blue-l); }
+.iv-cal .yc-d.iv-k-mem:not(.done):not(.miss):not(.exam) { box-shadow: inset 0 -3px 0 var(--amber); }
+.iv-cal .yc-d.iv-k-say:not(.done):not(.miss):not(.exam) { box-shadow: inset 0 -3px 0 var(--green); }
+.iv-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; color: var(--t3); }
+.iv-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.iv-legend i { width: 12px; height: 4px; border-radius: 2px; }
+.iv-legend .iv-k-write { background: var(--blue-l); } .iv-legend .iv-k-mem { background: var(--amber); } .iv-legend .iv-k-say { background: var(--green); } .iv-legend .iv-k-iv { background: var(--t1); }
+.iv-tg + .iv-tg { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.iv-tg-h { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.iv-tg-h b { font-size: 15px; }
+.iv-wta { margin-top: 12px; min-height: 140px; line-height: 1.6; }
+.iv-memo { position: relative; margin: 12px 0 8px; padding: 12px 16px; border-radius: 12px; background: var(--fill); cursor: pointer; }
+.iv-memo p { margin: 0; line-height: 1.7; transition: opacity .25s; }
+.iv-memo-c { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; text-align: center; font-size: 14px; font-weight: 600; color: var(--t3); background: var(--fill2); border-radius: 12px; opacity: 0; pointer-events: none; transition: opacity .25s; }
+.iv-memo.hide p { opacity: 0; }
+.iv-memo.hide .iv-memo-c { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .iv-ugrid > *, .iv-ph-i, .iv-cal .yc-d { animation: none; } }
+.iv-vi { grid-template-columns: 16px 1fr auto; align-items: start; }
+.iv-vi > i { margin-top: 4px; }
+.iv-vi > span { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.iv-vi > span > b { font-size: 13px; color: var(--t3); font-weight: 600; }
+.iv-vi.on > span > b { color: var(--blue); }
+.iv-vi .iv-vt-t { display: flex; align-items: center; gap: 6px; font-size: 15px; color: var(--t1); font-weight: 600; }
+.iv-vi .iv-vt-t img { width: 20px; height: 20px; }
+.iv-vi.past .iv-vt-t, .iv-vi.past > span > b { color: var(--t4); }
+.iv-vi > em { margin-top: 2px; }
+.iv-vt::before { top: 16px; }
