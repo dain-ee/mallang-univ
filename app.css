@@ -4560,3 +4560,29 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .iv-vi.past .iv-vt-t, .iv-vi.past > span > b { color: var(--t4); }
 .iv-vi > em { margin-top: 2px; }
 .iv-vt::before { top: 16px; }
+/* 11/9 «이 밑에 줄 뭐야» → 달력 칸 밑줄 없앰. 단계는 글자로만 */
+.iv-cal .yc-d.iv-k-write, .iv-cal .yc-d.iv-k-mem, .iv-cal .yc-d.iv-k-say { box-shadow: none !important; }
+.iv-legend { display: none; }
+/* 단계 흐름: 점과 선으로 이은 한 줄 (눌러지는 칸처럼 안 보이게) */
+.iv-stp { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 16px; }
+.iv-stp-i { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; animation: waveIn .45s cubic-bezier(.1,.76,.55,.9) both; animation-delay: calc(var(--k, 0) * 80ms); }
+.iv-stp-i:not(:last-child)::after { content: ''; position: absolute; top: 12px; left: calc(50% + 18px); right: calc(-50% + 18px); height: 2px; background: var(--line); }
+.iv-stp-i > i { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 12px; font-weight: 700; color: #fff; background: var(--t4); margin-bottom: 4px; }
+.iv-stp-i b { font-size: 14px; color: var(--t3); }
+.iv-stp-i span { font-size: 12px; color: var(--t4); }
+.iv-stp-i.on > i { background: var(--blue); box-shadow: 0 0 0 4px var(--blue-soft); }
+.iv-stp-i.on b { color: var(--t1); } .iv-stp-i.on span { color: var(--blue); font-weight: 600; }
+.iv-stp-i.ok > i { background: var(--green); } .iv-stp-i.late > i { background: var(--red); }
+@media (prefers-reduced-motion: reduce) { .iv-stp-i { animation: none; } }
+/* 11/9 «밑줄 얇은 선은 최악» · «유령이 왜 여기 있어» · «새로로 한 카드씩이라 보기 어렵다» */
+.iv-cal .yc-d.is-t b { text-decoration: none; }
+.iv-uhero .iv-seg { margin: 0 0 16px; }
+.iv-uhero .iv-sub { margin-top: 16px; }
+.iv-sub button { height: 40px; }
+#iv-day .iv-cday { margin-top: 0; padding-top: 0; border-top: 0; }
+.iv-route .iv-rh { display: flex; align-items: center; gap: 12px; }
+.iv-route .iv-rh b { display: block; font-size: 16px; }
+.iv-route .iv-rh strong { font-size: 20px; color: var(--blue); }
+.iv-route .iv-vt { margin-top: 12px; }
+.iv-seg button { flex: 1 1 0; min-width: 0; padding: 0 6px; }
+@media (max-width: 520px) { .iv-seg button { font-size: 13px; gap: 4px; } .iv-seg button img { width: 16px; height: 16px; } .iv-seg button .num { font-size: 11px; } }
