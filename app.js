@@ -2352,7 +2352,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611091303', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611091311', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2797,12 +2797,12 @@
         return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd.replace(/<div class="seg"[\s\S]*$/, '')}<section class="card ol-new"><div class="ol-new-h"><span class="ol-new-ic">${ic('party')}</span><h2>올림포스가 새로워졌어요!</h2><p>13강부터 문제 다음에 한 문장씩 분석해요</p></div><div class="list">${f.map(([t, d], k) => `<div class="li"><div class="ico">${k < 2 ? `<b class="num">${k + 1}</b>` : ic('ok')}</div><div class="body"><div class="t">${t}</div><div class="d">${d}</div></div></div>`).join('')}</div></section><div class="cta-bar"><button class="btn primary big block" data-olintro type="button">① 단어·문제부터 시작하기</button></div></div>`;
       }
       if (ost === 'sx') { const ou = olpU(c);
-        return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd}<div class="row between st-tools" style="margin:0 0 12px"><span class="tiny">${UI.sxAll ? '구조와 해석이 다 보여요' : '문장마다 혼자 읽어 보고 구조 보기 → 해석 스티커 차례로 열어요'}</span><button type="button" class="btn sm ${UI.sxAll ? 'primary' : ''}" data-sxall aria-pressed="${!!UI.sxAll}">${UI.sxAll ? '다시 가리기' : '다 펼치기'}</button></div>${m3Struct(ou, ou.notes.passages[0])}${a ? `<div class="cta-bar"><button class="btn primary big block" data-finback type="button">필기 저장됐어요 · 숙제 목록으로 ›</button></div>` : '<div class="cta-bar"><button class="btn primary big block" data-olst="q" type="button">① 단어·문제 먼저 풀기</button></div>'}</div>`; }
+        return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd}<div class="row between st-tools" style="margin:0 0 12px"><span class="tiny">${UI.sxAll ? '구조와 해석이 다 보여요' : '문장마다 혼자 읽어 보고 구조 보기 → 해석 스티커 차례로 열어요'}</span><button type="button" class="btn sm ${UI.sxAll ? 'primary' : ''}" data-sxall aria-pressed="${!!UI.sxAll}">${UI.sxAll ? '다시 가리기' : '다 펼치기'}</button></div>${m3Struct(ou, ou.notes.passages[0])}${a ? `<div class="cta-bar"><button class="btn primary big block" data-olfin type="button">다 했어요 · 숙제 목록으로 ›</button></div>` : '<div class="cta-bar"><button class="btn primary big block" data-olst="q" type="button">① 단어·문제 먼저 풀기</button></div>'}</div>`; }
       return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd}
         ${(c.words || []).length ? `<details class="hw-more card" ${a ? '' : 'open'}><summary><b>먼저 단어 ${c.words.length}개</b> <span class="tiny">눌러서 접기</span></summary><div class="oly-w">${c.words.map(([en, ko]) => `<div><b>${esc(en)}</b><span>${esc(ko)}</span></div>`).join('')}</div></details>` : ''}
         <section class="card oly-p" style="margin-top:12px"><p class="oly-q"><b>${esc(c.q)}</b></p>${c.given ? `<div class="oly-given">${u(c.given)}</div>` : ''}${c.text.map((t) => `<p>${u(t)}</p>`).join('')}${(c.notes || []).length ? `<p class="tiny">${c.notes.map((x) => '* ' + esc(x)).join('  ')}</p>` : ''}</section>
         <div class="choices" style="margin-top:12px">${c.choices.map((ch, k) => `<button class="choice ${!a ? '' : k === c.answer ? 'right' : k === a.p ? 'wrong' : ''}" data-olyp="${k}" type="button" ${a ? 'disabled' : ''}><span class="ct">${u(ch)}</span></button>`).join('')}</div>
-        ${a ? `${verdict(a.ok)}<div class="explain"><b>해설</b><br>${esc(c.exp || '')}</div>${(c.ko || []).length ? `<details class="hw-more card" style="margin-top:12px" open><summary><b>전체 해석</b></summary>${c.ko.map((t) => `<p style="line-height:1.8">${esc(t)}</p>`).join('')}</details>` : ''}<div style="margin-top:16px">${olp ? doneCard(a.ok ? 1 : 0, 1, '① 문제 끝! 저장됐어요. 이제 한 문장씩 분석하고 내 필기를 남겨요', '<button class="btn primary big block" data-olst="sx" type="button">② 분석 및 나만의 필기 하러 가기 ›</button><button class="btn big block" data-finback type="button">숙제 목록으로</button>') : nxBtn}</div>` : ''}</div>`;
+        ${a ? `<section class="card ol-res" id="ol-res"><div class="ol-res-h ${a.ok ? 'ok' : 'no'}">${ic(a.ok ? 'hundred' : 'think')}<div><b>${a.ok ? '정답이에요!' : `아쉬워요, 정답은 ${'①②③④⑤'[c.answer]}번`}</b><span>① 문제 끝 · 저장됐어요${olp ? '. 이제 한 문장씩 분석해요' : ''}</span></div></div><div class="ol-res-b"><b>해설</b><p>${esc(c.exp || '')}</p></div>${(c.ko || []).length ? `<details class="hw-more"><summary><b>전체 해석 보기</b></summary>${c.ko.map((t) => `<p style="line-height:1.8">${esc(t)}</p>`).join('')}</details>` : ''}</section><div class="cta-bar ol-cta">${olp ? '<button class="btn primary big block" data-olst="sx" type="button">② 분석 및 나만의 필기 하러 가기 ›</button>' : ''}<button class="btn big block ${olp ? '' : 'primary'}" data-finback type="button">숙제 목록으로</button></div>` : ''}</div>`;
     }
     if (c.page) {  // 올림포스 지문: 책에서 풀고 체크
       const dn = finDone(c);
@@ -2834,11 +2834,12 @@
     if (r.map) return bindMap();
     const c = r.cid && FIN_ALL.find((x) => x.id === r.cid); if (!c) return;
     if ($('.ol-new') && !UI.olFan) { UI.olFan = 1; setTimeout(() => { const e = $('.ol-new-ic'); if (!e) return; const q = e.getBoundingClientRect(); boom(q.left + q.width / 2, q.top + q.height / 2, 6); fanfare(); if (navigator.vibrate) navigator.vibrate([60, 40, 120]); [600, 1200, 1900].forEach((ms, i) => setTimeout(() => { if ($('.ol-new')) boom(innerWidth * [0.2, 0.8, 0.5][i], innerHeight * 0.3, 6); }, ms)); }, 300); }
+    $$('[data-olfin]').forEach((b) => (b.onclick = () => { const nm = c.title; UI.run = null; UI.tab = 'hw'; UI.tdSkip = 1; top(); setTimeout(() => badgePop([{ key: 'olpfin:' + c.id, i: 'trophy', mega: 1, w: 0, eb: '🎉 올림포스 지문 완주!', t: `「${nm}」 끝!`, d: '① 문제와 ② 문장 분석·필기까지 다 했어요. 필기는 저장됐고 숙제 목록에 줄이 그어졌어요' }]), 350); }));
     $$('[data-olintro]').forEach((b) => (b.onclick = () => { r.introSeen = 1; if (!PEEK) { S.party = S.party || {}; S.party.olpIntro = Date.now(); save('party'); } top(); }));
     const g = $('#fr-go'); if (g) g.onclick = () => { r.read = true; r.i = null; top(); };
     $$('[data-fst]').forEach((x) => (x.onclick = () => { const k = x.dataset.fst; if (k === 'q') { r.read = true; r.i = null; } else { r.read = false; r.step = k; } top(); }));
     $$('[data-olst]').forEach((b) => (b.onclick = () => { r.st = b.dataset.olst; top(); }));  // 올림포스 ① 단어·문제 / ② 문장 분석
-    $$('[data-olyp]').forEach((b) => (b.onclick = () => { const A = finA(c.id); if (A.q) return; const k = +b.dataset.olyp; A.q = { p: k, ok: k === c.answer, at: Date.now() }; earn('fin:' + c.id, 100, '올림포스 지문'); save('fin'); render(); boom(innerWidth / 2, innerHeight * 0.4, 4); fanfare(); [500, 1100].forEach((ms, i) => setTimeout(() => boom(innerWidth * [0.25, 0.75][i], innerHeight * 0.35, 4), ms)); toast('지문 하나 끝! 저장했어요'); }));
+    $$('[data-olyp]').forEach((b) => (b.onclick = () => { const A = finA(c.id); if (A.q) return; const k = +b.dataset.olyp; A.q = { p: k, ok: k === c.answer, at: Date.now() }; earn('fin:' + c.id, 100, '올림포스 지문'); save('fin'); render(); boom(innerWidth / 2, innerHeight * 0.4, 4); fanfare(); [500, 1100].forEach((ms, i) => setTimeout(() => boom(innerWidth * [0.25, 0.75][i], innerHeight * 0.35, 4), ms)); toast('지문 하나 끝! 저장했어요'); setTimeout(() => { const el = $('#ol-res'); if (el) el.scrollIntoView({ block: 'center', behavior: RM() ? 'auto' : 'smooth' }); }, 250); }));
     const fb = $('#fp-book'); if (fb) fb.onclick = () => bookOpen('eng2', null, c.page);
     const fd = $('#fp-done'); if (fd) fd.onclick = () => { const A = finA(c.id); if (finDone(c)) A.undone = { at: Date.now() }; else { A.done = { ok: 1, at: Date.now() }; earn('fin:' + c.id, 100, '올림포스 지문'); const nx = finToday().find((x) => !finDone(x)); toast('잘했어요'); toast('지문 하나 끝! 저장했어요'); } save('fin'); UI.run = null; UI.tab = 'hw'; top(); };  // 다음 지문으로 끌고 가지 않고 목록으로 (11/9)
     $$('[data-fb]').forEach((b) => (b.onclick = () => { const bk = finBlanks(c).find((x) => x.k === b.dataset.fb), A = finA(c.id); if (!bk || A[bk.k]) return; const p = b.dataset.o, ok = p === bk.t; A[bk.k] = { p, ok, at: Date.now() }; save('fin'); const y = window.scrollY; render(); window.scrollTo(0, y); }));
@@ -6634,7 +6635,7 @@
   const m3Row = (m) => `<div class="m3n-i ${m.kind === 's' ? 's' : ''}"><div class="m3n-h">${m.kind === 's' ? `<b>${ic('memo')} 필기</b>` : `<b>${esc(m.t)}</b>`}<span class="m3n-sv">${String(m.ko || '').replace(/[•\s-]/g, '') ? '저장됐어요 ✓' : '쓰는 대로 저장돼요'}</span><button type="button" class="m3b-x" data-mmx="${esc(m.id)}" aria-label="지우기">×</button></div><textarea class="inp m3b-ko" data-mmko="${esc(m.id)}" rows="${Math.max(1, String(m.ko || '').split('\n').length)}" placeholder="${m.kind === 's' ? '• 필기를 적어요 (Enter 치면 다음 줄)' : '뜻을 적어요'}">${esc(m.ko || '')}</textarea></div>`;
   function m3Inline(u, ps, sn, i) {
     const N = m3OfSent(u, ps, sn, i).sort(m3Ord), hasS = N.some((m) => m.kind === 's');
-    return `<div class="m3n">${N.map(m3Row).join('')}${hasS ? '' : `<button type="button" class="sx-put" data-m3put="${i}">+ 이 문장 필기하기</button>`}</div>`;
+    return `<div class="m3n">${N.map(m3Row).join('')}${hasS ? '' : `<button type="button" class="sx-put" data-m3put="${i}">이 문장 아래에 내 필기 쓰기</button>`}</div>`;
   }
   function m3NotePage(u, ps) {
     const M = m3Memos(u, ps.letter);
@@ -7111,7 +7112,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091303'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611091311'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8373,8 +8374,19 @@
     if (real.length < 2 || real.some((t) => !t.done)) return;
     badgePop([{ key: 'alldone:' + today(), i: 'trophy', mega: 1, w: 0, eb: '🎉 오늘 할 일 끝!', t: `${real.length}개를 하나도 안 빼고 다 했어요`, d: `${NMI()}, 정말 정말 정말 잘했어! 오늘 몫을 끝까지 다 해낸 거 진짜 멋있어` }]);
   }
+  // 11/9 «해당 할 일 이 모든 걸 끝나면 ○○ 항목을 완료했다는 완주가 나와야» · 문제 화면에서 돌아왔을 때 새로 끝난 할 일마다 한 번
+  function taskDoneCheck() {
+    if (TEACHER && !PEEK) return; if (UI.run || DAY_OFF() || !['home', 'hw'].includes(UI.tab)) return;
+    let T; try { T = todayTasks().tasks.filter((t) => t.icon !== 'party' && !t.memo); } catch (e) { return; }
+    const key = (t) => String(t.task || t.hw || t.id || t.k + ':' + t.t), done = new Set(T.filter((t) => t.done).map(key));
+    const prev = UI.tdPrev; UI.tdPrev = done; if (!prev) return; if (UI.tdSkip) { UI.tdSkip = 0; return; }
+    if (UI.tab === 'home' && T.length >= 2 && T.every((t) => t.done)) return;  // 다 끝났으면 「오늘 할 일 끝」 큰 축하가 떠요
+    const t = T.find((x) => x.done && !prev.has(key(x))); if (!t) return;
+    const left = T.filter((x) => !x.done).length;
+    badgePop([{ key: `td:${today()}:${key(t)}`, i: 'party', w: 0, eb: '🎉 완주!', t: `「${String(t.t || '').replace(/<[^>]+>/g, '')}」 끝!`, d: left ? `저장됐어요. 오늘 할 일에 줄이 그어졌어요 · ${left}개 남았어요` : '저장됐어요. 오늘 할 일을 다 끝냈어요' }]);
+  }
   function render() {
-    setTimeout(allDoneCheck, 700);
+    setTimeout(allDoneCheck, 700); setTimeout(taskDoneCheck, 450);
     finRe();  // 11/8 기말 예습 새 계획 먼저
     hwRunFin(); setTimeout(autoTm, 0);
     { const k = navAt(), was = render.nav; if (was && k !== was && !render.pop && (k === 'run' || was === 'home')) try { history.pushState({ mu: k }, ''); } catch (e) {} render.nav = k; render.pop = 0; }
