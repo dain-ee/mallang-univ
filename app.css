@@ -998,8 +998,8 @@ main.skel-out .card > * { animation: fade .26s ease both; }
 .done-ic img.gh-done { width: 220px; height: 220px; margin: -48px auto -8px; }  /* 아래 -32 는 캐릭터 발이 제목에 겹쳐서 (10/26) */
 .done-ic.gh-wrap { background: none !important; width: auto !important; height: auto !important; }
 .empty img.gh-empty { width: 160px; height: 160px; margin: -28px auto 0; }
-.td-all img.gh-td { width: 112px; height: 112px; margin: -20px 0 -16px; }
-.td-all { flex-direction: column; gap: 0; }
+.td-all { flex-direction: row; gap: 10px; justify-content: flex-start; margin: 12px 0 0; padding: 10px 14px; border-radius: 16px; background: var(--fill); color: var(--t1); font-size: 15px; animation: waveIn .35s both; }
+.td-all img.gh-td { width: 44px; height: 44px; margin: 0; object-fit: contain; flex: none; }
 .pm-c img.pm-gh { width: 104px; height: 104px; margin: -32px 0 -18px; }
 .pm-card.running .pm-c img.pm-gh { animation: none; }
 .hero-goal { width: 100%; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 16px; padding: 14px 16px; border-radius: 16px; background: var(--fill); font-size: 14px; }
@@ -4635,6 +4635,12 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .iv-app-h .btn { flex: none; }
 @media (max-width: 520px) { .iv-app-h { flex-wrap: wrap; } .iv-app-h .btn { width: auto; } }
 .iv-one .iv-runp { margin: 0 0 12px; }
-.iv-rec { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; }
-.iv-rec video { width: 100%; max-width: 360px; border-radius: 12px; background: #000; flex-basis: 100%; animation: waveIn .35s both; }
+.iv-rec { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px 12px; margin-top: 12px; }
+.iv-rec video { grid-column: 1 / -1; display: block; width: 100%; max-width: 420px; max-height: 320px; object-fit: cover; border-radius: 16px; background: #000; animation: waveIn .35s both; }
+.iv-rec video[hidden] { display: none; }
+.iv-rec.on video { transform: scaleX(-1); }
+.iv-rec-b { display: flex; flex-wrap: wrap; gap: 8px; grid-column: 1 / -1; }
+.iv-rec-b [hidden] { display: none; }
+.iv-rec > .tiny { grid-column: 1 / -1; margin: 0; }
+.iv-rec video.iv-gone { transition: opacity .25s, transform .25s; opacity: 0; transform: scale(.96); }
 .iv-rec.on .btn { background: var(--red-soft); color: var(--red); }
