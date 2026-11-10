@@ -4874,3 +4874,22 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 .lv-card.lv-nudge{animation:lvNudge .5s ease}
 @keyframes lvNudge{0%,100%{transform:none}20%{transform:translateX(-6px) rotate(-2deg)}40%{transform:translateX(6px) rotate(2deg)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
 @media (prefers-reduced-motion:reduce){.lv-card.lv-nudge{animation:none}}
+
+/* 11/10 게임 위 번호 줄 · 카드 다시 보기 */
+.lv-back{margin-left:8px}
+.lv-nums{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;margin:4px 0 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.lv-nums::-webkit-scrollbar{display:none}
+.lv-nums button{flex:none;width:34px;height:34px;border-radius:12px;border:0;font:inherit;font-size:13px;font-weight:700;color:var(--t3,#8b95a1);cursor:pointer;
+  background:linear-gradient(to top,var(--blue-l,#e8f3ff) calc((var(--lv,1) - 1) / 6 * 100%),var(--fill,#f2f4f6) 0);transition:transform .15s,background .3s,box-shadow .2s}
+.lv-nums button.ok{background:var(--blue,#3182f6);color:#fff}
+.lv-nums button.on{box-shadow:0 0 0 2px var(--blue,#3182f6);color:var(--t1,#191f28);transform:scale(1.08)}
+.lv-nums button:active{transform:scale(.92)}
+.lv-peek{text-align:center}.lv-peek .lv-pr{justify-content:center}.lv-peek-k{font-size:20px}
+
+/* 11/10 영어 쓰기 힌트: 앞글자 + 글자 칸 */
+.lv-hint6{display:flex;justify-content:center;gap:5px;margin:14px 0 2px;flex-wrap:wrap;animation:ivRecIn .3s ease both}
+.lv-hint6 span{width:22px;height:30px;border-bottom:2.5px solid var(--line,#d1d6db);font-size:22px;font-weight:700;line-height:30px;text-align:center;color:var(--t1,#191f28)}
+.lv-hint6 span.on{color:var(--blue,#3182f6);border-color:var(--blue,#3182f6)}
+.lv-hint6 span.sp{border:0;width:10px}
+.lv-hint6.one em{font-style:normal;font-size:22px;color:var(--t3,#8b95a1);align-self:flex-end}
+.lv-hl{text-align:center;margin:6px 0 0}
