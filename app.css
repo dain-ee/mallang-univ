@@ -4770,7 +4770,7 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 .lv-wd { display: inline-flex; gap: 1px; }
 .lv-c { padding: 0 3px; border-radius: 6px; background: var(--fill); }
 .lv-c.c1 { background: var(--blue-soft); }
-.lv-w b, .lv-tile b, .lv-slot b { color: var(--blue); font-weight: 800; }
+.lv-w b, .lv-tile b, .lv-slot b { color: inherit; font-weight: inherit; }
 .lv-w.big { font-size: 30px; gap: 8px 16px; }
 .lv-w.big .lv-c { padding: 0 5px; border-radius: 8px; }
 .lv-say { flex: none; width: 36px; height: 36px; display: inline-grid; place-items: center; font-size: 17px; border: 0; border-radius: 50%; background: var(--fill); transition: transform .2s var(--spring); }
