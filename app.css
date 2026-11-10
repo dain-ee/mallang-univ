@@ -4880,7 +4880,11 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 .lv-nums{display:flex;gap:6px;overflow-x:auto;padding:6px 6px 10px;scroll-padding:0 12px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent);mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent);padding-left:14px;padding-right:14px;margin:4px 0 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .lv-nums::-webkit-scrollbar{display:none}
 .lv-nums button{flex:none;width:34px;height:34px;border-radius:12px;border:0;font:inherit;font-size:13px;font-weight:700;color:var(--t3,#8b95a1);cursor:pointer;
-  background:linear-gradient(to top,var(--blue-l,#e8f3ff) calc((var(--lv,1) - 1) / 6 * 100%),var(--fill,#f2f4f6) 0);transition:transform .15s,background .3s,box-shadow .2s}
+  position:relative;overflow:hidden;background:var(--fill,#f2f4f6);transition:transform .15s,background .3s,box-shadow .2s}
+/* 11/10 «이건 뭐니» → 물 차오르는 칠 대신 번호 밑 얇은 막대 (그 단어 몇 단계 했는지) */
+.lv-nums button::after{content:'';position:absolute;left:6px;bottom:5px;height:3px;border-radius:2px;width:calc((100% - 12px) * (var(--lv,1) - 1) / 6);background:var(--blue,#3182f6);opacity:.55;transition:width .4s ease}
+.lv-nums button.ok::after{display:none}
+.lv-nums-l{margin:-2px 0 8px;text-align:left}
 .lv-nums button.ok{background:var(--blue,#3182f6);color:#fff}
 .lv-nums button.on{box-shadow:0 0 0 2px var(--blue,#3182f6);color:var(--t1,#191f28);transform:scale(1.08)}
 .lv-nums button:active{transform:scale(.92)}
