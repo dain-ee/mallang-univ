@@ -4916,7 +4916,7 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 .lv-mine b{color:var(--green,#03b26c)}
 
 /* 11/11 둘째 날: 미리 준 철자 */
-.lv-slot.giv{color:var(--t3,#8b95a1);border-style:dashed;cursor:default}
+.lv-slot.giv,.lv-slot.fill.giv{color:var(--t1,#191f28);background:transparent;border:2px solid transparent;min-width:22px;padding:0;cursor:default}
 
 /* 11/11 «어항에 물 채우듯이, 2번째면 50프로만 출렁출렁» 번호 칸에 물이 차올라요 */
 .lv-nums button{position:relative;overflow:hidden;isolation:isolate}
