@@ -2363,7 +2363,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611101958', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611102035', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5636,7 +5636,7 @@
     $$('[data-lvnum]').forEach((b) => (b.onclick = () => { const w = r.words[+b.dataset.lvnum], W = r.W[w.en], st = !W || W.s >= 8 || (!r.q.includes(w.en) && !r.lap.includes(w.en)) ? '오늘 끝냈어요' : W.s >= 7 ? '마지막 한 바퀴 남았어요' : `${W.s}단계 하는 중이에요`;
       sheet(`<div class="app-sh lv-peek"><span class="tiny">${+b.dataset.lvnum + 1}번 · ${esc(st)}</span><div class="lv-pr" style="margin:12px 0 4px">${lvChunks(w, 'big')}${lvSay(w)}</div><b class="lv-peek-k">${esc(w.k)}</b><p class="tiny" style="margin:4px 0 0">${esc(w.ko)}</p><button class="btn primary big block" type="button" id="lvpk-ok" style="margin-top:20px">닫기</button></div>`, (el, close) => { $('#lvpk-ok', el).onclick = close; });
     }));
-    { const on = $('.lv-nums button.on'), box = $('.lv-nums'); if (on && box) box.scrollLeft = on.offsetLeft - box.clientWidth / 2 + on.offsetWidth / 2; }
+    { const on = $('.lv-nums button.on'), box = $('.lv-nums'); if (on && box) { const d = on.getBoundingClientRect().left - box.getBoundingClientRect().left - (box.clientWidth - on.offsetWidth) / 2; box.scrollLeft = Math.max(0, box.scrollLeft + d); } }
     $$('[data-lvch]').forEach((b) => (b.onclick = () => { const c = r.cur, w = r.words.find((x) => x.en === c.en), o = c.ch[+b.dataset.lvch]; lvAnswer(r, c.s === 1 ? o === w.k : o === lvSp(w)[0], o); }));
     // 조각·글자 타일: 다시 그리지 않고 그 자리에서 채워요
     const slots = $$('[data-lvslot]');
@@ -7454,7 +7454,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611101958'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611102035'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
