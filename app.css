@@ -4893,3 +4893,13 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 .lv-hint6 span.sp{border:0;width:10px}
 .lv-hint6.one em{font-style:normal;font-size:22px;color:var(--t3,#8b95a1);align-self:flex-end}
 .lv-hl{text-align:center;margin:6px 0 0}
+
+/* 11/10 오늘 넣은 질문 나눌까요 */
+.iv-sp{animation:ivRecIn .35s ease both;margin-bottom:12px}
+.grid > .iv-sp{min-width:0;margin-bottom:0}
+.iv-sp-t{display:flex;gap:12px;align-items:flex-start}
+.iv-sp-t > span:last-child{display:flex;flex-direction:column;gap:3px;min-width:0}
+.iv-sp-t b{font-size:15px}
+.iv-sp-t > span:last-child > span{font-size:13px;color:var(--t3,#8b95a1)}
+.iv-sp-b{display:flex;gap:8px;margin-top:14px}
+.iv-sp-b .btn{flex:1}

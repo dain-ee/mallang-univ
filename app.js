@@ -2363,7 +2363,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611102035', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611102043', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6785,6 +6785,22 @@
         if (!sj) break; const it = Q[sj].shift(); it.day = d; const w = wt(it); W[sj] -= w; got += w; used[sj] = (used[sj] || 0) + w; out.push(it);
       }
     });
+    // 11/10 선생님 «윤건이 역사가 너무 많아, 오늘 밀린 걸로 정확히 절반을 나눠서 안 한 거까지만 … 하루에 하는 양이 저거의 반»
+    //   역사 소단원 묶음은 문제 수로 앞·뒤 절반(뒤 절반은 다음 공부하는 날). 하던 묶음은 YP_HCUT 로 조각 시작 문항을 고정해요
+    //   (프랑스 혁명: 푼 35문제는 11/7·11/9 몫으로 끝, 안 푼 27문제는 11/10 14 + 11/11 13). 문항 id 는 그대로라 푼 기록은 그대로예요
+    const YP_HCUT = { 'yp:h7:L1': [['2026-11-07', 'h7:n1', '앞 절반'], ['2026-11-09', 'h7:q:12', '뒤 절반 · 푼 것'], ['2026-11-10', 'h7:q:30', '남은 것 앞 절반'], ['2026-11-11', 'h7:q:20', '남은 것 뒤 절반']] };
+    for (const it of out.filter((x) => x.subj === 'hist' && x.p === 'L' && x.qs.length > 1)) {
+      const ix = (i) => it.qs.findIndex((q) => q.i === i), C = YP_HCUT[it.id], at = C ? C.map((c) => ix(c[1])) : [];
+      const ok = C && at[0] === 0 && at.every((v, k) => v >= 0 && (!k || v > at[k - 1]));
+      const h = Math.ceil(it.qs.length / 2), nd = days.find((d) => d > it.day) || addD(it.day, 1);
+      const cut = ok ? C.map((c, k) => [c[0], at[k], at[k + 1] == null ? it.qs.length : at[k + 1], c[2]]) : [[it.day, 0, h, '앞 절반'], [nd, h, it.qs.length, '뒤 절반']];
+      const mk = ([day, a, b, nm], k) => {
+        const id = `${it.id}:${k}`, qs = it.qs.slice(a, b), title = `${it.title} (${nm})`, solo = qs.every((q) => /:q:/.test(q.i));  // 문제만 든 조각은 그 문항만 푸는 세트로
+        NXSETS[id] = { ...NXSETS[it.id], id, title, qs, ...(solo ? { kind: 'q', nav: undefined } : {}) };
+        return { ...it, id, p: 'Lh', qs, title, day, nav: solo ? undefined : it.nav };
+      };
+      out.splice(out.indexOf(it), 1, ...cut.map(mk));
+    }
     // 심화는 다 끝낸 뒤(계획 끝 다음 날 ~ 시험 이틀 전) 과목을 섞어 하루 3개쯤씩 한 번 더
     const hd = []; for (let d = addD(YF.end, 1); d <= addD(YF.from, -2); d = addD(d, 1)) if (!(YF.off || []).includes(new Date(d + 'T00:00:00').getDay())) hd.push(d);
     const HS = [...new Set(HD.map((x) => x.subj))], HM = []; for (let k = 0; HM.length < HD.length; k++) for (const sj of HS) { const it = HD.filter((x) => x.subj === sj)[k]; if (it) HM.push(it); }
@@ -7454,7 +7470,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611102035'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611102043'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8692,7 +8708,7 @@
     const my = ivMy().filter((q) => q.uni === u.id);
     for (const q of my) {
       const a = mx(q.d || st, st); if (a > end) continue;
-      const w = a, m = mn(end, mx(addD(w, 1), fst('mem') || w)), sy = mn(end, mx(addD(m, 1), fst('say') || m));
+      const w = q.pw ? mn(end, mx(q.pw, st)) : a, m = q.pm ? mn(end, mx(q.pm, w)) : mn(end, mx(addD(w, 1), fst('mem') || w)), sy = q.ps ? mn(end, mx(q.ps, m)) : mn(end, mx(addD(m, 1), fst('say') || m));
       for (const [k, d] of [['write', w], ['mem', m], ['say', sy]]) { const p = plan.find((x) => x.date === d); if (!p) continue;
         if (p.k === k) p.ids = [...p.ids, q.id]; else { let g = p.more.find((x) => x.k === k); if (!g) p.more.push((g = { k, ids: [] })); g.ids.push(q.id); } }
     }
@@ -8801,7 +8817,7 @@
     const nx = ivNext(), dd = nx ? dday(nx.date) : null;
     const main = `<h1 class="h1"><mark class="hl-g">${esc(NM())}${jongOf(NM()) ? '아' : '야'}</mark>,<br class="br-m"> ${nx ? (dd > 0 ? `${esc(nx.u.short)} 면접까지 ${dd}일 남았어요` : '오늘 면접이에요, 잘하고 와요') : '면접 다 끝났어요'}</h1>
       <p class="sub" style="margin:0 0 16px">${esc(IV.line || '1차는 다 붙었어요. 이제 2차 면접만 남았어요')}</p>
-      <div class="grid iv-home">${ivAddBand()}${ivAppCard()}${appCard().replace(/<section class="card c12 gift-card app-card">[\s\S]*?<\/section>/, '')}${ivHeadCard('c6')}${ivTodayCard('c6')}${ivUniCards()}${pomoCard('c6')}${hotCard('c6')}${ivEvalCard()}</div>`;
+      <div class="grid iv-home">${ivSpreadBand()}${ivAddBand()}${ivAppCard()}${appCard().replace(/<section class="card c12 gift-card app-card">[\s\S]*?<\/section>/, '')}${ivHeadCard('c6')}${ivTodayCard('c6')}${ivUniCards()}${pomoCard('c6')}${hotCard('c6')}${ivEvalCard()}</div>`;
     return main;  // 11/9 오른쪽 줄(시계·토마토·뉴스)은 «다시 원래대로» → 홈 안 두 칸으로
   }
   // 연습 화면: 단계(mode)마다 다르게. 쓰기 = 노션 답을 고쳐 쓰기 · 외우기 = 가리고 떠올리기 · 말하기 = 1분 타이머
@@ -8847,12 +8863,33 @@
     return p ? `${p.date === today() ? '오늘' : `${+p.date.slice(5, 7)}/${+p.date.slice(8)}`} 답변 쓰기에 넣었어요` : '답변 모음에 넣었어요'; };
   function ivRecSec(u, P, sec) {
     const L = ivRecLeft(u), M = ivMy().filter((q) => q.uni === u.id);
-    return sec('rec', `${ic('star')} 질문 넣기`, L.length ? `추천 ${L.length}개` : '', `<p class="tiny" style="margin:0 0 12px">자주 나오는데 아직 없는 질문이에요. 오른쪽 + 를 누르면 쓰기·외우기·말하기 날짜에 알아서 들어가요</p>
+    return sec('rec', `${ic('star')} 질문 넣기`, L.length ? `추천 ${L.length}개` : '', `<div id="iv-spw">${ivSpreadBand()}</div><p class="tiny" style="margin:0 0 12px">자주 나오는데 아직 없는 질문이에요. 오른쪽 + 를 누르면 쓰기·외우기·말하기 날짜에 알아서 들어가요</p>
       <div class="iv-add"><input class="inp" id="iv-addq" placeholder="넣고 싶은 질문을 직접 써요" maxlength="140" enterkeyhint="done"><button type="button" class="iv-plus" data-ivaddown="${u.id}" aria-label="이 질문 넣기">+</button></div>
       <div class="list iv-recs">${L.map((r, n) => `<div class="li iv-rec" style="--k:${n}"><div class="body"><div class="t">${esc(r.q)}</div>${r.why ? `<div class="d">${esc(r.why)}</div>` : ''}</div><button type="button" class="iv-plus" data-ivpick="${r.id}" aria-label="넣기">+</button></div>`).join('') || '<p class="tiny" style="margin:4px 0 0">추천 질문을 다 넣었어요</p>'}</div>
       <b class="iv-mine-h" ${M.length ? '' : 'hidden'}>내가 넣은 질문 <span class="num">${M.length}</span>개</b><div class="list iv-recs iv-mine">${M.map((q, n) => ivMineRow(P, q, n)).join('')}</div>`, 'c4');
   }
   // 11/10 «홈에서 알림을 띄워 줘야 해 · 어떻게 하는지, 어떤 걸 추천했는지, 추천한 건 리스트로 + 로» → 홈 띠 배너 → 안내 창
+  // 11/10 «오늘 추가한 게 다 오늘로 들어가면 "적절히 나눌까요, 오늘 다 할래요" 물어봐 · 외우기·말하기도 나눠»
+  const ivTodayAdds = () => { const t = today(); return ivMy().filter((q) => q.d === t && !q.pw && !ivDone('write', q.id)); };
+  function ivSpreadBand() {
+    const t = today(), L = ivTodayAdds(); if (L.length < 2 || ivs()['sp:' + t]) return '';
+    return `<section class="c12 card iv-sp"><div class="iv-sp-t"><span class="ts-band-ic">${ic('star')}</span><span><b>오늘 넣은 질문 ${L.length}개가 전부 오늘 쓰기에 들어가 있어요</b><span>면접 날까지 쓰기 · 외우기 · 말하기를 알맞게 나눌까요?</span></span></div><div class="iv-sp-b"><button type="button" class="btn primary" data-ivsp="spread">나눠서 할래요</button><button type="button" class="btn" data-ivsp="today">오늘 다 할래요</button></div></section>`;
+  }
+  function ivSpread() {
+    const t = today(), L = ivTodayAdds(), by = {}, M = ivs(), out = []; for (const q of L) (by[q.uni] = by[q.uni] || []).push(q);
+    for (const [uid, qs] of Object.entries(by)) { const u = ivU(uid), P = u && ivPrep(u); if (!P) continue;
+      const D = []; for (let d = t; d <= P.end; d = addD(d, 1)) D.push(d); if (D.length < 3) continue;
+      const nw = Math.max(1, Math.round(D.length * 0.4)), nm = Math.max(1, Math.round(D.length * 0.3)), Dw = D.slice(0, nw), Dm = D.slice(nw, nw + nm), Ds = D.slice(nw + nm).length ? D.slice(nw + nm) : D.slice(-1);
+      const at = (A, i) => A[Math.floor((i * A.length) / qs.length)];
+      qs.forEach((q, i) => { const k = 'my:' + q.id; M[k] = { ...M[k], pw: at(Dw, i), pm: at(Dm, i), ps: at(Ds, i), at: Date.now() + i }; out.push(at(Dw, i)); }); }
+    M['sp:' + t] = { c: 'spread', at: Date.now() }; save('ivp'); ivPrepClear();
+    const f = (d) => `${+d.slice(5, 7)}/${+d.slice(8)}`, ds = [...new Set(out)].sort();
+    toast(ds.length ? `쓰기를 ${f(ds[0])}${ds.length > 1 ? '~' + f(ds[ds.length - 1]) : ''}에 나눠 넣었어요` : '나눌 날이 모자라서 그대로 두었어요'); render();
+  }
+  function ivSpBind() {
+    $$('[data-ivsp]').forEach((b) => (b.onclick = () => { if (b.dataset.ivsp === 'spread') return ivSpread(); const M = ivs(); M['sp:' + today()] = { c: 'today', at: Date.now() }; save('ivp'); toast('좋아요, 오늘 다 해요!');
+      const box = b.closest('.iv-sp'); if (box) ivRowOut(box, () => {}); }));
+  }
   function ivAddBand() {
     if (ivs()['gd:add']) return '';
     const n = ivActive().reduce((a, u) => a + ivRecLeft(u).length, 0);
@@ -8931,7 +8968,7 @@
     const ivDelBind = (b) => (b.onclick = () => { const k = 'my:' + b.dataset.ivdel, o = M[k]; if (!o) return; M[k] = { ...o, del: 1, at: Date.now() }; save('ivp'); toast('뺐어요. 쓴 답은 남아 있어요');
       ivRowOut(b.closest('.iv-rec'), () => ivMineCount(-1)); });
     const ivPut = (id, v, row) => { M['my:' + id] = { ...v, d: today(), at: Date.now() }; save('ivp'); const u = ivU(v.uni), P = ivPrep(u);
-      toast(ivPutMsg(P, id));
+      toast(ivPutMsg(P, id)); { const w = $('#iv-spw'); if (w && !$('.iv-sp', w)) { const h = ivSpreadBand(); if (h) { w.innerHTML = h; ivSpBind(); } } }
       ivRowOut(row, () => { ivRecCount(); const box = $('#iv-rec .iv-mine'); if (!box) return; const q = ivQ(id); box.insertAdjacentHTML('beforeend', ivMineRow(P, q)); const nr = box.lastElementChild; ivDelBind($('[data-ivdel]', nr)); ivMineCount(1); }); };
     $$('[data-ivpick]').forEach((b) => (b.onclick = () => { const r = ((IV && IV.rec) || []).find((x) => x.id === b.dataset.ivpick); if (!r) return; const { id, ...v } = r; ivPut(id, { ...v, src: 'rec' }, b.closest('.iv-rec')); }));
     { const inp = $('#iv-addq'), go = (uid) => { const t = (inp.value || '').trim(); if (t.length < 5) { toast('질문을 조금 더 써 봐요'); inp.focus(); return; } inp.value = ''; ivPut('u' + Date.now().toString(36), { uni: uid, q: t, area: '내가 쓴 질문', src: 'own' }, null); };
@@ -8948,7 +8985,7 @@
       setTimeout(keep, 500);
     }));
     $$('[data-ivev]').forEach((b) => (b.onclick = () => ivEvalOpen(b.dataset.ivev)));
-    $$('[data-ivaddgd]').forEach((b) => (b.onclick = ivAddGuide));
+    $$('[data-ivaddgd]').forEach((b) => (b.onclick = ivAddGuide)); ivSpBind();
     $$('[data-ivcd]').forEach((b) => (b.onclick = () => { const [uid, d] = b.dataset.ivcd.split(':'); UI.ivSel = { ...(UI.ivSel || {}), [uid]: d }; keep(); }));
     $$('[data-ivym]').forEach((b) => (b.onclick = () => { const [uid, m] = b.dataset.ivym.split(':'); if (!m) return; UI.ivYm = { ...(UI.ivYm || {}), [uid]: m }; keep(); }));
     if (UI.tab !== 'iv') return;
