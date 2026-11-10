@@ -1485,7 +1485,9 @@
   const myLast = (cid, name) => myS().items.filter((it) => it.cls === cid && it.book.startsWith(name) && it.unit !== '건').sort((a, b) => b.at - a.at)[0];
   // 숙제 넣기: 고른 수업의 교재가 줄로 다 펼쳐져요. 줄마다 적어 두면(수업을 바꿔도) 남아 있고, 한 번에 넣어요
   function myAdd() {
-    const M = myS(); let cid = (M.last && M.cls.find((c) => c.id === M.last) ? M.last : M.cls[0].id), addCls = false, showDue = false;
+    const M = myS();
+    // 11/10 정윤 «안 되어 있다»: 「+ 숙제 넣기」로 바로 열어도 「내가 더 할 것」 칸이 늘 있어요 (안내의 「지금 넣기」로만 생기던 것)
+    if (!TEACHER && !M.cls.some((c) => c.id === 'self')) { M.cls.push({ id: 'self', name: '내가 더 할 것', day: null }); save('my'); } let cid = (M.last && M.cls.find((c) => c.id === M.last) ? M.last : M.cls[0].id), addCls = false, showDue = false;
     const D0 = {}, dueOf = {};  // D0[cid][name] = {mode,a,b,c,memo}
     const base = (n) => n.replace(/ #\d+$/, '');
     const dr = (c, n) => { D0[c] = D0[c] || {}; if (!D0[c][n]) { const lt0 = myLast(c, base(n)), lt = n === base(n) ? lt0 : lt0 && { ...lt0, to: null }, m = lt ? lt.unit : (myCls(c).day == null ? '건' : '번'); D0[c][n] = { mode: m, a: lt && lt.to != null ? lt.to + 1 : '', b: '', c: '', memo: '', lt }; } return D0[c][n]; };
@@ -2360,7 +2362,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611101042', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611101332', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4299,7 +4301,7 @@
   const GD = {
     wh: { on: () => U.who === '정윤' && today() <= '2026-11-24', ic: 'think', b: 'whoever · whomever 정리했어요', d: '어제 톡에서 헷갈린 것, 두 가지만 보면 돼요', go0: '보기', h: 'whoever · whomever 정리', sub: '어제 헷갈린 건 서로 다른 두 질문을 섞어서 생겼어요', html: GD_WH },
     add: { on: () => U.who === '정윤' && !TEACHER, ic: 'write', b: '오늘 숙제에 더 넣고 싶나요?', d: '인강이나 문제집을 오늘 할 일에 직접 넣을 수 있어요', h: '오늘 할 일에 직접 넣는 법', sub: '선생님 숙제 말고 내가 더 하고 싶은 것도 오늘 할 일에 넣고 지울 수 있어요', go: '지금 넣기', act: () => myAddSelf(),
-      steps: [['「숙제」 탭 「내 숙제」 칸에서 「+ 숙제 넣기」를 눌러요', '', '+ 숙제 넣기'], ['맨 위에서 「내가 더 할 것」을 골라요', '처음이면 아래 「지금 넣기」를 누르면 바로 생겨요', '내가 더 할 것'], ['「무엇을 해요?」에 적어요', '예: 사회 인강 3강, 수학 개념 영상 2개'], ['「언제까지?」는 오늘 그대로 두고 「넣기」', '오늘 할 일에 생겨요. 다 하면 눌러서 끝내요', '넣기'], ['이미 들은 인강은 「인강」 칸 「들은 강의 적기」로 적어도 돼요', '오늘 한 것과 공부 기록에 들어가요']] },
+      steps: [['「숙제」 탭 「내 숙제」 칸에서 「+ 숙제 넣기」를 눌러요', '', '+ 숙제 넣기'], ['맨 위에서 「내가 더 할 것」을 골라요', '수업 이름들 맨 끝에 있어요', '내가 더 할 것'], ['「무엇을 해요?」에 적어요', '예: 사회 인강 3강, 수학 개념 영상 2개'], ['「언제까지?」는 오늘 그대로 두고 「넣기」', '오늘 할 일에 생겨요. 다 하면 눌러서 끝내요', '넣기'], ['이미 들은 인강은 「인강」 칸 「들은 강의 적기」로 적어도 돼요', '오늘 한 것과 공부 기록에 들어가요']] },
     ink: { on: () => INK.some((c) => inkCfg(c).on), ic: '1f3a7', b: '계획에 없던 인강을 들었나요?', d: '들은 강의를 골라 적으면 오늘 한 것에 들어가요', h: '들은 인강 적는 법', sub: '오늘 할 일에 없던 강의를 들어도 이렇게 적으면 기록돼요', go: '지금 적기', act: () => inkPast(),
       steps: [['아래 「숙제」 탭을 눌러요'], ['「인강」 칸의 「들은 강의 적기」를 눌러요', '', '들은 강의 적기'], ['과목을 고르고 들은 강의를 눌러 체크해요', '여러 강을 한꺼번에 골라도 돼요'], ['「○강 들었어요」를 누르면 끝', '오늘 한 것과 공부 기록에 들어가요']] },
     st: { on: () => !TEACHER, ic: 'clock', b: '타이머 없이 공부했나요?', d: '오늘 몇 시간 했는지 직접 적을 수 있어요', h: '공부 시간 직접 적는 법', sub: '타이머로 못 쟀어도 하루 전체 시간을 숫자로 넣으면 공부 시간에 들어가요', go: '지금 적기',
@@ -7140,7 +7142,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611101042'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611101332'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
