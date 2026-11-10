@@ -2363,7 +2363,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611101946', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611101958', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5378,8 +5378,8 @@
   const lvPut = (k, v) => { const o = lvS(); o[k] = { ...(o[k] || {}), ...v, at: Date.now() }; save('lv'); };
   const lvTest = (t) => ((LVJ && LVJ.tests) || []).find((x) => x.date === t) || null;
   const lvTestOf = (date) => { const L = ((LVJ && LVJ.tests) || []).filter((t) => t.plan.some((p) => p.date === date)); return L.find((t) => !t.tentative) || L[0] || null; };
-  const lvKeyG = (g) => `${g.test || (lvTestOf(g.date) || {}).date}:${g.date}`;
-  const lvPlan = (T, date) => (T ? T.plan.find((p) => p.date === date) : null);
+  const lvKeyG = (g) => `${g.test || (lvTestOf(g.date) || {}).date}:${g.date}${g.part ? '#' + g.part : ''}`;
+  const lvPlan = (T, date, part) => (T ? T.plan.find((p) => p.date === date && (p.part || '') === (part || '')) : null);
   const lvDayW = (d) => ((LVJ && LVJ.days[String(d)]) || []).map((w, i) => ({ ...w, day: +d, i }));
   const lvAll = (days) => days.flatMap(lvDayW);
   const lvByEn = (() => { let M = null; return (en) => { if (!M) { M = {}; for (const d of Object.keys((LVJ && LVJ.days) || {})) for (const w of lvDayW(d)) M[w.en] = w; } return M[en]; }; })();
@@ -5433,10 +5433,10 @@
   }
   // ── 화면 열기 · 그날 몫 만들기
   function lvOpen(g, o = {}) {
-    const T = lvTest(g.test) || lvTestOf(g.date); if (!T || !lvPlan(T, g.date)) return false;
-    UI.tab = 'hw'; UI.lib = null; UI.run = { kind: 'lv', test: T.date, date: g.date, stage: 'list', step: 0, seen: {}, ...o }; render(); window.scrollTo(0, 0); return true;
+    const T = lvTest(g.test) || lvTestOf(g.date); if (!T || !lvPlan(T, g.date, g.part)) return false;
+    UI.tab = 'hw'; UI.lib = null; UI.run = { kind: 'lv', test: T.date, date: g.date, part: g.part || '', stage: 'list', step: 0, seen: {}, ...o }; render(); window.scrollTo(0, 0); return true;
   }
-  const lvKey = (r) => `${r.test}:${r.date}`;
+  const lvKey = (r) => `${r.test}:${r.date}${r.part ? '#' + r.part : ''}`;
   const lvDay = (r) => lvS()['d:' + lvKey(r)] || {};
   function lvBuild(r, words, mode) {
     const td = today(), tag = `${r.date}@${td}${mode === 'drill' ? ':d' + (r.drillN || 1) : ''}`, W = {};
@@ -5496,7 +5496,7 @@
   // 「다 봤어요」 뒤: 보통 날은 게임, 시험 날은 덜 단단한 단어 데우기 → 모의시험 → 틀린 것 다시 → 다시 시험
   function lvGo(r) {
     if (r.paused && r.W && r.cur) { r.paused = 0; r.stage = 'play'; r.fb = null; render(); window.scrollTo(0, 0); return lvFocus(); }  // 카드 다시 보고 돌아오면 하던 문제 그대로
-    const T = lvTest(r.test), P = lvPlan(T, r.date), all = lvAll(P.days);
+    const T = lvTest(r.test), P = lvPlan(T, r.date, r.part), all = lvAll(P.days);
     lvPut('d:' + lvKey(r), { seen: 1 });
     if (!P.mock && lvDay(r).done) { r.stage = 'done'; return render(); }
     if (!P.mock && lvS()['mk:' + lvKey(r)]) { r.stage = 'mres'; render(); return window.scrollTo(0, 0); }
@@ -5509,7 +5509,7 @@
   function lvDrill(r) { const mk = lvS()['mk:' + lvKey(r)] || {}, wr = (mk.re ? mk.re.wr : mk.wr) || []; r.drillN = ((mk.re && mk.re.k) || 0) + 1; lvBuild(r, wr.map(lvByEn).filter(Boolean), 'drill'); render(); window.scrollTo(0, 0); lvFocus(); }
   function lvFocus() { setTimeout(() => { const i = $('main .lv-in'); if (i && !i.disabled) i.focus({ preventScroll: true }); }, 60); }
   // DYB 시험지 모양: Day 하나에 20문제, 홀수는 뜻 → 영어, 짝수는 영어 → 뜻
-  const lvSheetItems = (r) => { const T = lvTest(r.test), P = lvPlan(T, r.date); return lvAll(P.days).map((w, i) => ({ w, no: i + 1, en: i % 2 === 0 })); };
+  const lvSheetItems = (r) => { const T = lvTest(r.test), P = lvPlan(T, r.date, r.part); return lvAll(P.days).map((w, i) => ({ w, no: i + 1, en: i % 2 === 0 })); };
   function lvGrade(r, only) {
     const L = lvSheetItems(r).filter((x) => !only || only.includes(x.w.en)), a = {}, wr = [];
     for (const x of L) { const t = (r.ma || {})[x.w.en] || ''; a[x.w.en] = t; if (!(x.en ? lvEnOk(x.w, t) : lvKoOk(x.w, t))) wr.push(x.w.en); }
@@ -5519,12 +5519,12 @@
   function lvPlanLabel(T, p) {
     if (p.mock) return '복습 + 모의시험';
     const before = new Set(T.plan.filter((x) => x.date < p.date).flatMap((x) => x.days)), nw = p.days.filter((d) => !before.has(d)), old = p.days.filter((d) => before.has(d));
-    if (!nw.length) return `${lvAll(p.days).length}개 전부`;
+    if (!nw.length) return `Day ${old.join('·')} 복습 · ${lvAll(p.days).length}개`;
     return [old.length ? `Day ${old.join('·')} 복습` : '', `Day ${nw.join('·')} 새 단어`].filter(Boolean).join(' + ');
   }
   function lvTop(r) {
     const T = lvTest(r.test), all = lvAll(T.days), m = all.filter((w) => lvMastered(w.en)).length, dd = dday(T.date), t = today();
-    const cell = (p, i) => { const k = `${T.date}:${p.date}`, dn = (lvS()['d:' + k] || {}).done, st = dn ? 'ok' : p.date === r.date ? 'now' : p.date < t ? 'late' : '';
+    const cell = (p, i) => { const k = `${T.date}:${p.date}${p.part ? '#' + p.part : ''}`, dn = (lvS()['d:' + k] || {}).done, st = dn ? 'ok' : p.date === r.date && (p.part || '') === (r.part || '') ? 'now' : p.date < t ? 'late' : '';
       return `<div class="lv-pd ${st}" style="--i:${i}"><span class="tiny">${esc(wdName(p.date))} ${+p.date.slice(8)}일</span><i></i><b>${esc(lvPlanLabel(T, p))}</b></div>`; };
     return `<section class="card lv-top"><div class="row between"><span class="eyebrow">${esc(LVJ.academy || 'DYB')} 단어 시험 · ${md(T.date)} ${esc(wdName(T.date))} ${esc(T.time || '')}</span><span class="tag ${dd <= 1 ? 'blue' : ''}">${esc(ddTxt(T.date))}</span></div>
       <div class="lv-big"><b class="num" data-countup>${m}</b><span>/ ${all.length} 외웠어요</span></div><div class="nx-bar lv-bar"><i style="width:${Math.round((m / Math.max(1, all.length)) * 100)}%"></i></div>
@@ -5533,7 +5533,7 @@
   }
   function lvHead(r, right = '') { return `<div class="row between"><button class="btn sm" data-go="hw" type="button">‹ 숙제</button><span class="tiny">${right || esc(LVJ.book)}</span></div>`; }
   function lvList(r) {
-    const T = lvTest(r.test), P = lvPlan(T, r.date), before = new Set(T.plan.filter((x) => x.date < P.date).flatMap((x) => x.days)), all = lvAll(P.days), d = lvDay(r);
+    const T = lvTest(r.test), P = lvPlan(T, r.date, r.part), before = new Set(T.plan.filter((x) => x.date < P.date).flatMap((x) => x.days)), all = lvAll(P.days), d = lvDay(r);
     const seenAll = d.seen || all.every((w) => r.seen[w.en]), n = all.filter((w) => r.seen[w.en]).length;
     const goal = P.mock ? '카드로 한 번 보고 → 덜 외운 단어 데우기 → 시험지 그대로 모의시험 40문제 → 틀린 것 다시 외우고 다시 시험' : '카드 보기 → 네 단어씩: 뜻 고르기 한 번 → 소리 조각 → 뜻 쓰기 2번 → 영어 쓰기 3번(앞글자 힌트 → 힌트 없이) → 마지막에 학원 시험지 그대로';
     const sec = (dy) => { const L = all.filter((w) => w.day === dy), nw = !before.has(dy); return `<div class="lv-sec"><div class="row between"><b>Day ${dy} · ${nw ? '새 단어' : '배운 단어'}</b><span class="tiny">${L.length}개</span></div><div class="lv-cards">${L.map((w, k) => `<div class="lv-card ${r.seen[w.en] ? 'seen' : ''}" data-lvflip="${esc(w.en)}" role="button" tabindex="0" style="--i:${Math.min(k, 20)}"><div class="lv-in3"><div class="lv-f lv-front">${lvChunks(w)}<span class="tiny lv-hint">눌러서 뜻 보기</span></div><div class="lv-f lv-back"><b>${esc(w.k)}</b><span class="tiny">${esc(w.ko)}</span></div></div>${lvSay(w)}<i class="lv-ck"></i></div>`).join('')}</div></div>`; };
@@ -5585,7 +5585,7 @@
     return `<div class="qwrap lv" style="max-width:640px;margin:0 auto">${lvHead(r, esc(ttl)).replace('</span></div>', '</span>' + back + '</span></div>').replace('<span class="tiny">', '<span class="lv-hd-r"><span class="tiny">')}${hud}${nums}${lab}<section class="card lv-q">${prompt}${lvHint(r, w, c)}</section>${body}${fbh}</div>`;
   }
   function lvSheet(r, retest) {
-    const mk = lvS()['mk:' + lvKey(r)] || {}, wr = retest ? ((mk.re ? mk.re.wr : mk.wr) || []) : null, L = lvSheetItems(r).filter((x) => !wr || wr.includes(x.w.en)), T = lvTest(r.test), P = lvPlan(T, r.date);
+    const mk = lvS()['mk:' + lvKey(r)] || {}, wr = retest ? ((mk.re ? mk.re.wr : mk.wr) || []) : null, L = lvSheetItems(r).filter((x) => !wr || wr.includes(x.w.en)), T = lvTest(r.test), P = lvPlan(T, r.date, r.part);
     const blank = L.filter((x) => !String((r.ma || {})[x.w.en] || '').trim()).length;
     return `<div class="qwrap lv" style="max-width:760px;margin:0 auto">${lvHead(r, retest ? '틀린 단어 다시 시험' : '모의시험')}<h1 class="h1">${retest ? `틀린 ${L.length}개 다시 시험` : `DYB 단어 모의시험 · Day ${P.days.join('~')}`}</h1>
       <p class="sub" style="margin:0">${retest ? '다 맞히면 오늘 숙제 끝이에요' : `${r.noWarm ? '다 외운 단어라 데우기 없이 바로 시험이에요 · ' : ''}학원 시험지랑 똑같아요 · ${L.length}문제 중 ${Math.round((T.pass / T.n) * L.length)}개 맞히면 통과 · 틀린 건 다시 외우고 다시 봐요`}</p>
@@ -5605,7 +5605,7 @@
       <div class="cta-bar"><button class="btn primary big block" data-lvdrill type="button">틀린 ${wr.length}개 다시 외우고 다시 시험</button></div>` : ''}</div>`;
   }
   function lvDone(r) {
-    const T = lvTest(r.test), P = lvPlan(T, r.date), d = lvDay(r), all = lvAll(T.days), m = all.filter((w) => lvMastered(w.en)).length, mk = lvS()['mk:' + lvKey(r)];
+    const T = lvTest(r.test), P = lvPlan(T, r.date, r.part), d = lvDay(r), all = lvAll(T.days), m = all.filter((w) => lvMastered(w.en)).length, mk = lvS()['mk:' + lvKey(r)];
     const nx = T.plan.find((p) => p.date > r.date), btn = UI.hwRun ? `<button class="btn primary big block" data-hwfin type="button">숙제 목록으로</button>` : `<button class="btn primary big block" data-go="hw" type="button">숙제 목록으로</button>`;
     const stat = `<div class="lv-dstat"><div><span class="tiny">푼 문제</span><b class="num">${d.n || 0}</b></div><div><span class="tiny">별</span><b class="num">⭐ ${d.star || 0}</b></div><div><span class="tiny">최고 콤보</span><b class="num">🔥 ${d.cb || 0}</b></div></div>
       <div class="lv-dm"><div class="row between"><b>시험 범위 ${all.length}개 중 외운 단어</b><span class="num"><b>${m}</b> / ${all.length}</span></div><div class="nx-bar"><i style="width:${Math.round((m / all.length) * 100)}%"></i></div>${m < all.length && !P.mock ? `<p class="tiny" style="margin:4px 0 0">오늘 끝낸 단어도 다른 날 한 번 더 맞히면 외운 단어로 세요</p>` : ''}${nx && !P.mock ? `<p class="tiny" style="margin:0">${md(nx.date)} ${esc(wdName(nx.date))}: ${esc(lvPlanLabel(T, nx))}</p>` : ''}</div>`;
@@ -5621,9 +5621,9 @@
     $$('[data-lvsay]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); jSay(b.dataset.lvsay); bump(b, 'tap-pop'); }));
     // 카드 뒤집기: 다 뒤집어 봐야 게임이 열려요
     const lvSeen = (cd, quiet) => { const en = cd.dataset.lvflip; if (r.seen[en]) return; r.seen[en] = 1; cd.classList.add('seen'); if (!quiet) tick();
-      const T = lvTest(r.test), all = lvAll(lvPlan(T, r.date).days), n = all.filter((w) => r.seen[w.en]).length, c = $('.lv-cnt b'), g = $('[data-lvgo]');
+      const T = lvTest(r.test), all = lvAll(lvPlan(T, r.date, r.part).days), n = all.filter((w) => r.seen[w.en]).length, c = $('.lv-cnt b'), g = $('[data-lvgo]');
       if (c) { c.textContent = n; if (!quiet) bump(c, 'tap-pop'); }
-      if (g && n >= all.length) { g.removeAttribute('aria-disabled'); g.classList.add('ready'); g.textContent = '다 봤어요 · ' + (lvPlan(T, r.date).mock ? '시험 준비 시작' : '게임 시작'); bump(g, 'tap-pop'); ding(1); } else if (g) g.textContent = `카드 ${all.length - n}장 더 넘겨 봐요`; };
+      if (g && n >= all.length) { g.removeAttribute('aria-disabled'); g.classList.add('ready'); g.textContent = '다 봤어요 · ' + (lvPlan(T, r.date, r.part).mock ? '시험 준비 시작' : '게임 시작'); bump(g, 'tap-pop'); ding(1); } else if (g) g.textContent = `카드 ${all.length - n}장 더 넘겨 봐요`; };
     $$('[data-lvflip]').forEach((cd) => (cd.onclick = () => { cd.classList.toggle('flip'); lvSeen(cd); }));
     // 전체 뒤집기: 한 장씩 차르르 넘어가요. 다 뒷면이면 다시 앞면으로
     $$('[data-lvflipall]').forEach((b) => (b.onclick = () => { const C = $$('[data-lvflip]'), back = C.every((cd) => cd.classList.contains('flip'));
@@ -7454,7 +7454,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611101946'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611101958'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

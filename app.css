@@ -3514,7 +3514,7 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 /* 숙제 재는 중 떠 있는 시간 (11/2): 위 가운데 작게, 나머지 화면은 그대로 누를 수 있어요 */
 .hw-float { position: fixed; left: 50%; top: calc(env(safe-area-inset-top) + 76px); transform: translateX(-50%); z-index: 70; display: inline-flex; align-items: center; gap: 8px; height: 36px; max-width: calc(100vw - 32px); padding: 0 14px 0 12px; border: 0; border-radius: 99px; background: #191f28; color: #fff; font: inherit; font-size: 13px; font-weight: 600; box-shadow: 0 4px 16px rgba(0, 0, 0, .14); cursor: pointer; animation: pm-in .35s cubic-bezier(.3,1.5,.5,1); }
 .hw-float span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: rgba(255, 255, 255, .75); }
-.hw-float b { font-size: 15px; font-weight: 800; }
+.hw-float b { font-size: 15px; font-weight: 800; flex: none; white-space: nowrap; }
 .hw-float i { flex: none; width: 7px; height: 7px; border-radius: 50%; background: #4dabf7; animation: myTmP 1.2s ease-in-out infinite; }
 .hw-float.paused i { background: #8b95a1; animation: none; }
 @media (max-width: 899px) { .hw-float { top: auto; bottom: calc(var(--tab-h) + 12px + env(safe-area-inset-bottom)); } }
