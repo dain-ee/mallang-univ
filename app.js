@@ -2363,7 +2363,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611102255', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611102311', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6514,7 +6514,7 @@
     if (JW_CLS && sl) main = jwClassCard(sl, t);
     if (YG_CLS && sl && ygHas(sl.date, sl.open)) main = ygClassCard(sl, t);
     const today0 = sl && sl.open ? 'ls:' + sl.date : '';
-    const ids = [...new Set([...x.done.filter((d) => d.kind === 'lesson').map((d) => d.id), ...Object.keys(x.lq)])].filter((id) => id !== today0 && id !== 'lw:' + (sl && sl.open ? sl.date : '') && id.slice(3) < t).sort().reverse().slice(0, 12);
+    const ids = [...new Set([...x.done.filter((d) => d.kind === 'lesson').map((d) => d.id), ...Object.keys(x.lq)])].filter((id) => id !== today0 && id !== 'lw:' + (sl && sl.open ? sl.date : '') && id.slice(3) < t && !(YG_CLS && /^l[sw]:/.test(id) && ygPlan(id.slice(3)).off.includes(id.slice(0, 2)))).sort().reverse().slice(0, 12);
     const past = ids.map((id) => {
       const L = nxLast(id), s = /^lw:/.test(id) ? nxWord(id.slice(3)) : nxLesson(id.slice(3)), [, m, d] = id.slice(3).split('-').map(Number);
       if (L) return `<div class="li btnlike" data-nx="${esc(id)}"><div class="ico">${ic(L.ok === L.n ? 'trophy' : 'ok')}</div><div class="body"><div class="t">${esc(s ? s.title : `${m}/${d} 수업 시험`)}</div><div class="d">${esc(s ? nxMixTxt(s) : '')}${nxTime(L.ms) ? ' · ' + nxTime(L.ms) : ''}</div></div><b class="num">${L.ok} / ${L.n}</b><span class="chev"></span></div>`;
@@ -7507,7 +7507,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611102255'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611102311'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
