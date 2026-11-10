@@ -4867,3 +4867,10 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
   .lv-tile { min-width: 42px; height: 48px; padding: 0 10px; font-size: 20px; }
 }
 @media (prefers-reduced-motion: reduce) { .lv *, .lv .card { animation: none !important; transition: none !important; } }
+
+/* 11/10 전체 뒤집기 · 아직 안 본 카드 살짝 흔들기 · 못 누르는 듯 옅게 */
+.lv-hr{display:flex;align-items:center;gap:10px}
+.lv-golist[aria-disabled]{opacity:.45}
+.lv-card.lv-nudge{animation:lvNudge .5s ease}
+@keyframes lvNudge{0%,100%{transform:none}20%{transform:translateX(-6px) rotate(-2deg)}40%{transform:translateX(6px) rotate(2deg)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+@media (prefers-reduced-motion:reduce){.lv-card.lv-nudge{animation:none}}
