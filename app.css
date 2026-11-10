@@ -4914,3 +4914,15 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 /* 11/10 번호 눌러 내가 풀었던 화면 보기 */
 .lv-viewb{margin:4px 0 10px;padding:8px 12px;border-radius:12px;background:var(--fill,#f2f4f6);font-size:13px;font-weight:700;color:var(--t2,#4e5968);animation:ivRecIn .25s ease both}
 .lv-mine b{color:var(--green,#03b26c)}
+
+/* 11/11 둘째 날: 미리 준 철자 */
+.lv-slot.giv{color:var(--t3,#8b95a1);border-style:dashed;cursor:default}
+
+/* 11/11 «어항에 물 채우듯이, 2번째면 50프로만 출렁출렁» 번호 칸에 물이 차올라요 */
+.lv-nums button{position:relative;overflow:hidden;isolation:isolate}
+.lv-nums button>span{position:relative;z-index:2}
+.lv-nums button.ok{background:var(--fill,#f2f4f6);color:#fff}
+.lv-wat{position:absolute;left:-30%;right:-30%;bottom:0;height:var(--p,0%);background:var(--blue,#3182f6);opacity:.38;z-index:1;transition:height .7s cubic-bezier(.3,1.4,.5,1);border-radius:42% 46% 0 0/7px 9px 0 0;animation:lvSlosh 2.6s ease-in-out infinite alternate}
+.lv-nums button.ok .lv-wat{opacity:1;border-radius:0;animation:none;height:100%}
+@keyframes lvSlosh{0%{transform:translateX(-9%) rotate(-3deg)}100%{transform:translateX(9%) rotate(3deg)}}
+@media (prefers-reduced-motion:reduce){.lv-wat{animation:none}}

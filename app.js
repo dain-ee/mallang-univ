@@ -2264,7 +2264,7 @@
   function hwSheet(id) {
     const h = (S.hw || []).find((x) => x.id === id); if (!h) return;
     const key = Object.keys(SUBJ_NAMES).find((k) => SUBJ_NAMES[k] === h.subj || (h.subj === '한국사' && k === 'hist'));
-    const mock = /모의/.test(h.title) && key;
+    const mock = /모의/.test(h.title) && key && !h.go;
     const ids = hwWr(h), left = ids.filter((id) => !wrTried(h, id)), fin = hwDone(h);
     const late = !fin && h.due && h.due < today();
     sheet(`<div class="row" style="gap:6px;margin-bottom:8px"><span class="tag">${esc(h.subj || '숙제')}</span>${h.due ? `<span class="tag ${late ? 'red' : ''}">${md(h.due)}${late ? ' · 밀림' : ''}</span>` : ''}${fin ? '<span class="tag blue">다 했어요</span>' : ''}</div>
@@ -2363,7 +2363,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611110007', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611110018', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5425,8 +5425,9 @@
     return lvRnd([...real.map((t, i) => ({ t, id: 'r' + i })), ...fake.map((t, i) => ({ t, id: 'f' + i }))]);
   }
   const LV_VSW = { a: 'e', e: 'a', i: 'e', o: 'u', u: 'o', y: 'i' };
-  function lvLetterBank(w) {
-    const L = lvParts(w).flat().join('').replace(/'/g, '').split(''), extra = [];
+  const lvGiv = (w) => { const n = lvParts(w).flat().join('').replace(/'/g, '').length; return Array.from({ length: n }, (_, i) => i).filter((i) => (n <= 3 ? i === 0 : i % 3 === 0)); };
+  function lvLetterBank(w, giv) {
+    const L0 = lvParts(w).flat().join('').replace(/'/g, '').split(''), L = L0.filter((_, i) => !(giv || []).includes(i)), extra = [];
     for (const c of lvRnd(L)) { if (LV_VSW[c] && !extra.includes(LV_VSW[c])) extra.push(LV_VSW[c]); if (extra.length >= 2) break; }
     while (extra.length < 2) extra.push('aeiou'[Math.floor(Math.random() * 5)]);
     return lvRnd([...L.map((t, i) => ({ t, id: 'r' + i })), ...extra.map((t, i) => ({ t, id: 'f' + i }))]);
@@ -5461,7 +5462,7 @@
     if (!en) { r.cur = null; r.fb = null; return lvFinish(r); }
     const w = r.words.find((x) => x.en === en), x = r.W[en];
     let s = x.s; if (s >= 7) s = (w.i + +r.date.slice(8) + (r.n || 0)) % 2 ? 6 : 5;  // 마지막 한 바퀴: 뜻 쓰기 · 영어 쓰기 번갈아 (시험지처럼)
-    r.cur = { en, s, lap: x.s >= 7, ch: s === 1 ? lvKoCh(w) : s === 2 ? lvEnCh(w) : null, bank: s === 3 ? lvChunkBank(w) : s === 4 ? lvLetterBank(w) : null, put: [] };
+    r.cur = { en, s, lap: x.s >= 7, ch: s === 1 ? lvKoCh(w) : s === 2 ? lvEnCh(w) : null, giv: s === 4 && r.seq ? lvGiv(w) : null, bank: s === 3 ? lvChunkBank(w) : s === 4 ? lvLetterBank(w, r.seq ? lvGiv(w) : null) : null, put: [] };
     r.fb = null; r.step++;
   }
   function lvAnswer(r, ok, typed) {
@@ -5575,8 +5576,8 @@
       body = `<div class="choices lv-chs">${c.ch.map((o, k) => `<button class="choice ${fb ? (o === right ? 'right' : o === fb.typed ? 'wrong' : '') : ''}" style="--i:${k}" data-lvch="${k}" type="button" ${fb ? 'disabled' : ''}><span class="n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div>`; }
     else if (s === 3 || s === 4) {
       const parts = lvParts(w);
-      let n = 0; const sl = s === 3 ? parts.map((p) => `<span class="lv-sw">${p.map(() => `<span class="lv-slot ch" data-lvslot="${n++}"></span>`).join('')}</span>`).join('')
-        : parts.map((p) => `<span class="lv-sw">${p.map((ch) => `<span class="lv-sg">${ch.split('').map((l) => (l === "'" ? '<span class="lv-ap">\'</span>' : `<span class="lv-slot" data-lvslot="${n++}"></span>`)).join('')}</span>`).join('')}</span>`).join('');
+      let n = 0, li = 0; const sl = s === 3 ? parts.map((p) => `<span class="lv-sw">${p.map(() => `<span class="lv-slot ch" data-lvslot="${n++}"></span>`).join('')}</span>`).join('')
+        : parts.map((p) => `<span class="lv-sw">${p.map((ch) => `<span class="lv-sg">${ch.split('').map((l) => (l === "'" ? '<span class="lv-ap">\'</span>' : (c.giv || []).includes(li++) ? `<span class="lv-slot fill giv">${esc(l)}</span>` : `<span class="lv-slot" data-lvslot="${n++}"></span>`)).join('')}</span>`).join('')}</span>`).join('');
       body = fb ? '' : `<div class="lv-slots ${s === 3 ? 'chs' : 'lts'}" data-lvn="${n}">${sl}</div><div class="lv-bank">${c.bank.map((b, k) => `<button class="lv-tile ${s === 3 ? 'ch' : ''}" style="--i:${k}" data-lvtile="${esc(b.id)}" type="button">${s === 3 ? lvVt(b.t) : esc(b.t)}</button>`).join('')}</div><div class="row lv-tbtn"><button class="btn sm" data-lvundo type="button">하나 지우기</button></div>`;
     } else {
       body = fb ? '' : `<div class="lv-type"><input class="inp lv-in" ${s === 6 ? 'lang="en" autocapitalize="off" spellcheck="false" placeholder="영어로 써요"' : 'placeholder="뜻을 써요 (하나만 써도 돼요)"'} autocomplete="off" autocorrect="off" enterkeyhint="done"><button class="btn primary big" data-lvok type="button">확인</button></div>`;
@@ -5589,7 +5590,7 @@
     }
     const done = (en) => !r.q.includes(en) && !r.lap.includes(en);
     const nums = `<div class="lv-nums" role="list">${r.words.map((x, k) => { const W = r.W[x.en], lv = W ? Math.min(7, W.s) : 7;
-      return `<button type="button" class="${x.en === c.en ? 'on' : ''} ${done(x.en) ? 'ok' : ''}" style="--lv:${lv}" data-lvnum="${k}" aria-label="${k + 1}번 ${esc(x.en)}">${k + 1}</button>`; }).join('')}</div><p class="tiny lv-nums-l">끝낸 단어는 색이 칠해져요 · 번호를 누르면 그 단어를 풀었던 화면을 봐요</p>`;
+      return `<button type="button" class="${x.en === c.en ? 'on' : ''} ${done(x.en) ? 'ok' : ''}" style="--lv:${lv};--p:${done(x.en) ? 100 : !W ? 100 : r.seq ? Math.round((Math.max(0, r.seq.indexOf(W.s)) / r.seq.length) * 100) : Math.round(((Math.min(7, W.s) - 1) / 6) * 100)}%" data-lvnum="${k}" aria-label="${k + 1}번 ${esc(x.en)}"><i class="lv-wat" aria-hidden="true"></i><span>${k + 1}</span></button>`; }).join('')}</div><p class="tiny lv-nums-l">맞힐 때마다 물이 차올라요 · 가득 차면 그 단어는 끝 · 번호를 누르면 풀었던 화면을 봐요</p>`;
     const back = `<button type="button" class="btn sm lv-relist" data-lvtolist>‹ 카드 다시 보기</button>`;
     return `<div class="qwrap lv" style="max-width:640px;margin:0 auto">${lvHead(r, esc(ttl)).replace('</span></div>', '</span>' + back + '</span></div>').replace('<span class="tiny">', '<span class="lv-hd-r"><span class="tiny">')}${hud}${nums}${V ? `<div class="lv-viewb">${r.words.findIndex((x) => x.en === c.en) + 1}번 · 내가 풀었던 화면이에요</div>` : lab}<section class="card lv-q">${prompt}${V ? '' : lvHint(r, w, c)}</section>${body}${fbh}</div>`;
   }
@@ -5655,8 +5656,8 @@
     const slots = $$('[data-lvslot]');
     const fill = () => { const c = r.cur; slots.forEach((sl, i) => { const p = c.put[i], b = p && c.bank.find((x) => x.id === p); sl.innerHTML = b ? (c.s === 3 ? lvVt(b.t) : esc(b.t)) : ''; sl.classList.toggle('fill', !!b); }); $$('[data-lvtile]').forEach((t) => t.classList.toggle('used', c.put.includes(t.dataset.lvtile))); };
     const check = () => { const c = r.cur, w = r.words.find((x) => x.en === c.en); if (c.put.length < slots.length) return; const got = c.put.map((id) => c.bank.find((x) => x.id === id).t);
-      const want = c.s === 3 ? lvParts(w).flat() : lvParts(w).flat().join('').replace(/'/g, '').split(''); const ok = got.join('|') === want.join('|') || (c.s === 4 && got.join('') === want.join(''));
-      const typed = c.s === 3 ? got.join('') : got.join(''); setTimeout(() => lvAnswer(r, ok, typed), 260); };
+      const want = c.s === 3 ? lvParts(w).flat() : lvParts(w).flat().join('').replace(/'/g, '').split('').filter((_, i) => !(c.giv || []).includes(i)); const ok = got.join('|') === want.join('|') || (c.s === 4 && got.join('') === want.join(''));
+      const typed = c.giv ? (() => { let k = 0; return lvParts(w).flat().join('').replace(/'/g, '').split('').map((l, i) => (c.giv.includes(i) ? l : got[k++] || '')).join(''); })() : got.join(''); setTimeout(() => lvAnswer(r, ok, typed), 260); };
     $$('[data-lvtile]').forEach((t) => (t.onclick = () => { const c = r.cur; if (r.fb || c.put.includes(t.dataset.lvtile) || c.put.length >= slots.length) return; tick(); c.put.push(t.dataset.lvtile); fill(); const sl = slots[c.put.length - 1]; if (sl) bump(sl, 'tap-pop'); check(); }));
     slots.forEach((sl, i) => (sl.onclick = () => { const c = r.cur; if (r.fb || i >= c.put.length) return; c.put.splice(i, 1); fill(); }));
     const u = $('[data-lvundo]'); if (u) u.onclick = () => { const c = r.cur; if (r.fb || !c.put.length) return; c.put.pop(); fill(); };
@@ -6766,7 +6767,7 @@
     if (F.m3off) L = L.filter((it) => !(it.subj === 'm3' && it.day >= F.m3off));
     const w = (it) => it.p === 'wm' ? Math.ceil((it.words || []).length / 2) : it.qs.reduce((a, q) => a + (q.t === 'para' ? (q.ps || []).filter((p) => !p.h).length : 1), 0);
     const st = (it) => it.p === 'wm' ? 'wm' : /^pp:mr/.test(it.id) ? 'read' : /^pp:mg/.test(it.id) ? 'gram' : /^pp:mc/.test(it.id) ? 'comm' : /^pp:mw/.test(it.id) ? 'word' : it.id.startsWith('pp:') ? it.id : it.subj;
-    const fixed = (it) => it.day < F.base || it.day > YF.end || it.p === 'wm' || /^pp:(mr|rv)/.test(it.id) || (F.keep || []).includes(it.id) || !it.qs.length;
+    const fixed = (it) => !it._new && (it.day < F.base || it.day > YF.end || it.p === 'wm' || /^pp:(mr|rv)/.test(it.id) || (F.keep || []).includes(it.id) || !it.qs.length);
     const half = (it) => {  // split 넘으면 고르게 나눠요(둘이면 앞·뒤 절반). 문제만 든 조각은 그 문항만 푸는 세트로
       const n = Math.min(it.qs.length, Math.ceil(w(it) / (((F.splits || {})[st(it)]) || F.split || 30))); if (n < 2) return [it];
       return Array.from({ length: n }, (_, k) => {
@@ -6784,19 +6785,21 @@
     const ord = [...(F.order || []).filter((s) => Q[s]), ...Object.keys(Q).filter((s) => !(F.order || []).includes(s))];
     for (let d = F.from, k = 0; k < 400 && ord.some((s) => Q[s].length); d = addD(d, 1), k++) {
       if (off(d)) continue; let n = 0;
-      for (const s of ord) { const it = Q[s][0]; if (!it) continue; const x = w(it); if ((load[d] || 0) + x <= F.cap || (!n && (load[d] || 0) + x <= F.cap + 10)) { Q[s].shift(); it.day = d; load[d] = (load[d] || 0) + x; n++; } }
+      for (let pass = 0; pass < 2; pass++) for (const s of ord) { const it = Q[s][0]; if (!it) continue; const x = w(it); if ((load[d] || 0) + x <= F.cap || (!n && (load[d] || 0) + x <= F.cap + 10)) { Q[s].shift(); it.day = d; load[d] = (load[d] || 0) + x; n++; } }  // 자리가 남으면 한 줄기에서 하나 더 (기말 전에 끝나게)
     }
     return keep.concat(pool);
   }
-  const YP = ypFit((() => {
+  // 11/11 범위가 늘 때(NXD.fit.add: 영어 8과·역사 뒤 소단원) 이미 짠 날짜가 흔들리지 않게: 예전 범위로 먼저 짜고, 새로 는 것만 뒤에 이어 붙여요
+  const ypRaw = (OLD) => {
     if (!YF || !(NXD.subjects || []).length) return [];
+    const FA = OLD ? (NXD.fit || {}).add : null;
     const Q = {}, out = [], HD = [];
     for (const sb of NXD.subjects) {
       const L = (Q[sb.key] = []), L0 = L, head = (u) => `${NX_SN[sb.key]} ${u.code}`;
-      for (const u of sb.units.filter(ypFin)) for (const st of stSteps(u)) {
+      for (const u of sb.units.filter((u) => ypFin(u) && !(FA && (FA.units || []).includes(u.id)))) for (const st of stSteps(u)) {
         if (st.k === 'terms' || st.k === 'notes') continue;
         // 11/7 범위가 소단원 몇 개뿐이면(YF.lessons) 그 소단원과 바로 뒤 선생님 스타일 세트만. 단원 전체 실전·기출·심화·순서 맞추기는 빼요
-        const LO = (YF.lessons || {})[u.id];
+        const LO = (FA && (FA.lessons || {})[u.id]) || (YF.lessons || {})[u.id];
         if (LO && !(st.L ? LO.includes(st.L.k) : st.k === 'set' && LO.includes((u.tsec || {})[st.id.slice(u.id.length + 1)]))) continue;
         if (st.L) {
           const L = st.L, id = `yp:${u.id}:L${L.k}`, qs = [{ i: stLRead(u, L) }, ...[L.c, L.q].filter(Boolean).flatMap((x) => NXSETS[x].qs)], title = `${head(u)} ${L.k + 1}. ${L.t}`;
@@ -6851,7 +6854,8 @@
     const HS = [...new Set(HD.map((x) => x.subj))], HM = []; for (let k = 0; HM.length < HD.length; k++) for (const sj of HS) { const it = HD.filter((x) => x.subj === sj)[k]; if (it) HM.push(it); }
     HM.forEach((it, i) => { it.day = hd.length ? hd[Math.floor((i * hd.length) / HM.length)] : YF.end; out.push(it); });
     return out;
-  })().concat(ppBuild()));
+  };
+  const YP = ypFit((() => { const A = (NXD.fit || {}).add; if (!A) return ypRaw(false); const old = ypRaw(true), ids = new Set(old.map((x) => x.id)), all = ypRaw(false); return old.concat(all.filter((x) => !ids.has(x.id) && !/^yp:[^:]+:L\d+:\d+$/.test(x.id) || (!ids.has(x.id) && !old.some((o) => x.id.startsWith(o.id.replace(/:\d+$/, '') + ':')))).map((x) => (x.day > YF.end ? x : { ...x, day: '9999-12-31', _new: 1 }))); })().concat(ppBuild()));
   // 천일문·매3영 매일 (11/1~11/15, 수업 날 토요일도 숙제): 하루에 천일문 한 유닛 + 매3영 지문 3개(지문마다 단어 → 문제 → 문장 구조)
   //   (10/31 «천일문 매 unit 하고 문제 풀기, 매3영도 하루에 3-4개, 단어 먼저·문제 먼저·문장 하나씩 구조 분석»)
   function ppBuild() {
@@ -7516,7 +7520,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611110007'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611110018'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
