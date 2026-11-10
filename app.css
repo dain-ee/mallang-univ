@@ -4727,3 +4727,15 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 .par-f p { margin: 0; font-size: 14px; color: var(--t1); white-space: pre-line; line-height: 1.55; }
 @media (max-width: 420px) { .par-d b { font-size: 15px; } .par-m { display: none; } }
 @media (prefers-reduced-motion: reduce) { .grid.par > .card, .par-d, .par-sel, .par-sel .li, .par-r { animation: none; } .par-d.now .par-dot { animation: none; } }
+
+/* 11/10 면접 질문 넣기: 오른쪽 + 단추 */
+.iv-add{display:flex;gap:8px;align-items:center;margin:0 0 12px}.iv-add .inp{flex:1;min-width:0}
+.iv-plus{flex:none;width:36px;height:36px;border-radius:99px;border:0;background:var(--blue-l,#e8f3ff);color:var(--blue,#3182f6);font:inherit;font-size:22px;font-weight:700;line-height:1;cursor:pointer;display:grid;place-items:center;transition:transform .15s,background .15s}
+.iv-plus:active{transform:scale(.9)}.iv-plus.minus{background:#f2f4f6;color:#6b7684}
+.iv-rec{align-items:center;gap:12px;animation:ivRecIn .35s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--k,0) * 30ms)}
+.iv-rec .t{font-weight:600}.iv-rec .d{margin-top:2px}
+.iv-rec.iv-bye{animation:ivRecOut .3s ease forwards}
+.iv-mine-h{display:block;margin:16px 0 4px;font-size:14px;color:var(--t2,#4e5968)}
+@keyframes ivRecIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes ivRecOut{to{opacity:0;transform:translateX(24px);height:0;padding-top:0;padding-bottom:0;margin:0}}
+@media (prefers-reduced-motion:reduce){.iv-rec{animation:none}}
