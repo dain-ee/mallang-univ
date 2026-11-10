@@ -4882,7 +4882,7 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 .lv-nums button{flex:none;width:34px;height:34px;border-radius:12px;border:0;font:inherit;font-size:13px;font-weight:700;color:var(--t3,#8b95a1);cursor:pointer;
   position:relative;overflow:hidden;background:var(--fill,#f2f4f6);transition:transform .15s,background .3s,box-shadow .2s}
 /* 11/10 «이건 뭐니» → 물 차오르는 칠 대신 번호 밑 얇은 막대 (그 단어 몇 단계 했는지) */
-.lv-nums button::after{content:'';position:absolute;left:6px;bottom:5px;height:3px;border-radius:2px;width:calc((100% - 12px) * (var(--lv,1) - 1) / 6);background:var(--blue,#3182f6);opacity:.55;transition:width .4s ease}
+.lv-nums button::after{display:none;content:'';position:absolute;left:6px;bottom:5px;height:3px;border-radius:2px;width:calc((100% - 12px) * (var(--lv,1) - 1) / 6);background:var(--blue,#3182f6);opacity:.55;transition:width .4s ease}
 .lv-nums button.ok::after{display:none}
 .lv-nums-l{margin:-2px 0 8px;text-align:left}
 .lv-nums button.ok{background:var(--blue,#3182f6);color:#fff}

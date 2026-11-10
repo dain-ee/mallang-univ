@@ -2363,7 +2363,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611102140', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611102145', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5580,7 +5580,7 @@
     }
     const done = (en) => !r.q.includes(en) && !r.lap.includes(en);
     const nums = `<div class="lv-nums" role="list">${r.words.map((x, k) => { const W = r.W[x.en], lv = W ? Math.min(7, W.s) : 7;
-      return `<button type="button" class="${x.en === c.en ? 'on' : ''} ${done(x.en) ? 'ok' : ''}" style="--lv:${lv}" data-lvnum="${k}" aria-label="${k + 1}번 ${esc(x.en)}">${k + 1}</button>`; }).join('')}</div><p class="tiny lv-nums-l">번호 밑 막대가 찰수록 그 단어를 많이 한 거예요 · 다 하면 색이 칠해져요 · 누르면 카드를 봐요</p>`;
+      return `<button type="button" class="${x.en === c.en ? 'on' : ''} ${done(x.en) ? 'ok' : ''}" style="--lv:${lv}" data-lvnum="${k}" aria-label="${k + 1}번 ${esc(x.en)}">${k + 1}</button>`; }).join('')}</div><p class="tiny lv-nums-l">끝낸 단어는 색이 칠해져요 · 번호를 누르면 그 단어 카드를 봐요</p>`;
     const back = `<button type="button" class="btn sm lv-relist" data-lvtolist>‹ 카드 다시 보기</button>`;
     return `<div class="qwrap lv" style="max-width:640px;margin:0 auto">${lvHead(r, esc(ttl)).replace('</span></div>', '</span>' + back + '</span></div>').replace('<span class="tiny">', '<span class="lv-hd-r"><span class="tiny">')}${hud}${nums}${lab}<section class="card lv-q">${prompt}${lvHint(r, w, c)}</section>${body}${fbh}</div>`;
   }
@@ -7472,7 +7472,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611102140'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611102145'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
