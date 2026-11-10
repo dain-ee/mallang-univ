@@ -4747,3 +4747,123 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 
 /* 11/10 띠 배너 긴 글이 칸을 밀어 화면이 옆으로 넘쳤어요 */
 .grid > .ts-band{min-width:0}
+
+/* ───────── 📒 주아 DYB 단어 외우기 (11/10) · 토스 결 그대로: 흰 카드 · 큰 숫자 + 얇은 막대 · 파랑 하나 ───────── */
+.lv-top, .lv-sheet, .lv-score, .lv > .card:not(.lv-q) { animation: waveIn .42s var(--ease) both; }
+.lv-top { display: grid; gap: 10px; }
+.lv-big { display: flex; align-items: baseline; gap: 6px; }
+.lv-big b { font-size: 34px; font-weight: 800; letter-spacing: -0.03em; }
+.lv-big > span { color: var(--t3); font-weight: 600; }
+.lv-top .nx-bar, .lv-dm .nx-bar { height: 6px; border-radius: 3px; margin: 0; }
+.lv-plan { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px; }
+.lv-pd { display: grid; gap: 4px; align-content: start; padding: 10px; border-radius: 12px; background: var(--fill2); animation: waveIn .4s var(--ease) both; animation-delay: calc(var(--i) * 50ms); }
+.lv-pd b { font-size: 13px; font-weight: 600; line-height: 1.35; color: var(--t2); }
+.lv-pd i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.lv-pd.ok i { background: var(--blue); }
+.lv-pd.now { background: var(--blue-soft); }
+.lv-pd.now b { color: var(--t1); }
+.lv-pd.now i { background: var(--blue); box-shadow: 0 0 0 4px var(--blue-l); animation: lvBeat 1.6s ease-in-out infinite; }
+.lv-pd.late i { background: var(--amber); }
+@keyframes lvBeat { 50% { box-shadow: 0 0 0 7px transparent; } }
+/* 소리 조각: 조각마다 옅은 칸, 모음 덩어리는 파랑 */
+.lv-w { display: inline-flex; flex-wrap: wrap; gap: 6px 12px; font-weight: 700; font-size: 20px; letter-spacing: 0; }
+.lv-wd { display: inline-flex; gap: 1px; }
+.lv-c { padding: 0 3px; border-radius: 6px; background: var(--fill); }
+.lv-c.c1 { background: var(--blue-soft); }
+.lv-w b, .lv-tile b, .lv-slot b { color: var(--blue); font-weight: 800; }
+.lv-w.big { font-size: 30px; gap: 8px 16px; }
+.lv-w.big .lv-c { padding: 0 5px; border-radius: 8px; }
+.lv-say { flex: none; width: 36px; height: 36px; display: inline-grid; place-items: center; font-size: 17px; border: 0; border-radius: 50%; background: var(--fill); transition: transform .2s var(--spring); }
+.lv-say:active { transform: scale(.9); }
+/* 카드 넘기기 */
+.lv-sec { margin-top: 18px; }
+.lv-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 10px; }
+.lv-card { position: relative; height: 128px; perspective: 800px; cursor: pointer; border-radius: 16px; animation: waveIn .4s var(--ease) both; animation-delay: calc(var(--i) * 25ms); }
+.lv-in3 { position: absolute; inset: 0; transition: transform .5s var(--spring); transform-style: preserve-3d; }
+.lv-card.flip .lv-in3 { transform: rotateY(180deg); }
+.lv-f { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 6px; padding: 30px 10px 12px; text-align: center; border-radius: 16px; border: 1px solid var(--line); background: var(--card); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.lv-back { transform: rotateY(180deg); background: var(--blue-soft); border-color: var(--blue-l); }
+.lv-back b { font-size: 16px; line-height: 1.35; }
+.lv-back .tiny { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.lv-card .lv-w { font-size: 18px; justify-content: center; gap: 4px 8px; }
+.lv-card .lv-say { position: absolute; top: 6px; right: 6px; width: 30px; height: 30px; font-size: 14px; z-index: 2; }
+.lv-ck { position: absolute; top: 9px; left: 9px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line); z-index: 2; transition: background .2s, border-color .2s, transform .3s var(--spring); }
+.lv-card.seen .lv-ck { background: var(--blue) center / 10px 10px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 7.2l2.7 2.7L11 4.6' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); border-color: var(--blue); transform: scale(1.1); }
+.lv-card.seen .lv-hint { visibility: hidden; }
+.lv-golist[disabled] { opacity: 1; color: var(--t3); background: var(--fill); }
+.lv-golist.ready { animation: tapPop .42s var(--spring); }
+/* 게임 */
+.lv-hud { display: grid; gap: 8px; }
+.lv-hud .nx-bar { height: 8px; border-radius: 4px; margin: 0; }
+.lv-stat { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+.lv-star { display: inline-flex; gap: 4px; align-items: center; }
+.lv-star.bump { animation: tapPop .42s var(--spring); }
+.lv-combo { padding: 2px 10px; border-radius: 99px; font-size: 13px; color: #fff; background: linear-gradient(135deg, #ff8a3d, #ff4d6d); animation: okPop .4s var(--spring); }
+.lv-lab { align-items: center; }
+.lv-stg { font-size: 14px; font-weight: 700; color: var(--blue); }
+.lv-stg.lap { color: #c76a00; }
+.lv-lad { display: inline-flex; gap: 4px; }
+.lv-lad i { width: 18px; height: 6px; border-radius: 3px; background: var(--line); transition: background .3s; }
+.lv-lad i.on { background: var(--blue); }
+.lv-lad i.cur { background: var(--blue-l); animation: lvBeat2 1.2s ease-in-out infinite; }
+@keyframes lvBeat2 { 50% { opacity: .5; } }
+.lv-q { display: grid; justify-items: center; gap: 10px; padding: 32px 20px; text-align: center; }
+.lv-pr { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; }
+.lv-ko { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.35; }
+.lv-ask { margin: 0; }
+.lv-chs .choice { animation: waveIn .36s var(--ease) both; animation-delay: calc(var(--i) * 45ms); font-size: 16px; }
+.lv-slots { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 18px; }
+.lv-sw { display: inline-flex; gap: 6px; }
+.lv-sg { display: inline-flex; gap: 3px; }
+.lv-sg + .lv-sg { margin-left: 8px; }
+.lv-slot { min-width: 34px; height: 46px; display: inline-grid; place-items: center; padding: 0 4px; font-size: 22px; font-weight: 700; border-radius: 10px; background: var(--fill); border: 2px dashed var(--line); cursor: pointer; }
+.lv-slot.ch { min-width: 64px; padding: 0 10px; }
+.lv-slot.fill { background: var(--card); border: 2px solid var(--blue-l); }
+.lv-ap { align-self: center; font-size: 22px; font-weight: 700; }
+.lv-bank { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.lv-tile { min-width: 48px; height: 52px; padding: 0 14px; font-size: 22px; font-weight: 700; color: var(--t1); background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 2px 0 var(--line); animation: waveIn .34s var(--spring) both; animation-delay: calc(var(--i) * 30ms); transition: transform .25s var(--spring), opacity .2s; }
+.lv-tile:active { transform: translateY(2px); box-shadow: none; }
+.lv-tile.used { opacity: 0; transform: scale(.6); pointer-events: none; }
+.lv-tbtn { justify-content: center; }
+.lv-type { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.lv-type .inp { height: 56px; font-size: 20px; }
+.lv-type .btn { padding: 0 22px; }
+.lv-fb { display: grid; gap: 12px; }
+.lv-rev { display: grid; justify-items: center; gap: 8px; padding: 20px; text-align: center; animation: okPop .45s var(--spring) both; }
+.lv-ko2 { font-size: 18px; }
+.lv-mine { margin: 0; color: var(--t3); }
+.lv-upt { margin-top: 4px; padding: 6px 12px; border-radius: 99px; font-size: 13px; font-weight: 700; color: var(--blue); background: var(--blue-soft); animation: okPop .5s .15s var(--spring) both; }
+.lv-upt.no { color: var(--t2); background: var(--fill); }
+/* 모의시험지 */
+.lv-rule { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 12px 14px; border-radius: 12px; background: var(--fill2); font-size: 14px; color: var(--t2); }
+.lv-rule b { color: var(--t1); margin-right: 4px; }
+.lv-rows { list-style: none; margin: 8px 0 0; padding: 0; display: grid; }
+.lv-row { display: grid; grid-template-columns: 32px 1fr minmax(120px, 44%); align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); animation: waveIn .34s var(--ease) both; animation-delay: calc(var(--i) * 18ms); }
+.lv-row:last-child { border-bottom: 0; }
+.lv-no { display: inline-grid; place-items: center; min-width: 28px; height: 24px; padding: 0 6px; font-size: 13px; font-weight: 700; color: var(--t2); background: var(--fill); border-radius: 99px; }
+.lv-pq { font-size: 16px; font-weight: 600; line-height: 1.4; }
+.lv-pq.en { font-size: 17px; font-weight: 700; }
+.lv-row .inp.sm { width: 100%; height: 44px; font-size: 16px; text-align: left; }
+.lv-score { display: grid; gap: 12px; }
+.lv-score .lv-big b { font-size: 48px; }
+.lv-pass { position: relative; padding-bottom: 22px; }
+.lv-pass .nx-bar { height: 10px; border-radius: 5px; margin: 0; }
+.lv-line { position: absolute; top: -4px; width: 2px; height: 18px; background: var(--t1); border-radius: 1px; }
+.lv-line em { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 12px; font-weight: 600; color: var(--t2); white-space: nowrap; }
+.lv-wr { align-items: center; animation: waveIn .34s var(--ease) both; animation-delay: calc(var(--k) * 30ms); }
+.lv-wr .lv-w { font-size: 16px; gap: 4px 8px; }
+/* 끝 카드 */
+.lv-dstat { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; margin-top: 20px; }
+.lv-dstat > div { display: grid; gap: 2px; padding: 12px 8px; border-radius: 14px; background: var(--fill2); }
+.lv-dstat b { font-size: 20px; }
+.lv-dm { width: 100%; margin-top: 12px; padding: 14px 16px; border-radius: 14px; background: var(--fill2); text-align: left; display: grid; gap: 8px; }
+@media (max-width: 520px) {
+  .lv-plan { grid-template-columns: repeat(2, 1fr); }
+  .lv-cards { grid-template-columns: repeat(2, 1fr); }
+  .lv-w.big { font-size: 26px; }
+  .lv-row { grid-template-columns: 30px 1fr; }
+  .lv-row .inp.sm { grid-column: 2; }
+  .lv-slot { min-width: 28px; height: 42px; font-size: 20px; }
+  .lv-tile { min-width: 42px; height: 48px; padding: 0 10px; font-size: 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .lv *, .lv .card { animation: none !important; transition: none !important; } }
