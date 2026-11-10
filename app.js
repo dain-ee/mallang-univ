@@ -2363,7 +2363,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611102200', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611102248', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7477,7 +7477,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611102200'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611102248'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8443,6 +8443,7 @@
   async function dAskDo(a, v, btn) {
     if (a.k === 'send' && v === 's') { const l = dCls(rOf(a.n), dRowD(a.n)).list.find((y) => y.id === a.id); if (l) { drFrom(a.n, l); dRepShow(a.n, l); } return; }
     const r = rOf(a.n); btn.disabled = true;
+    if (a.k === 'did' && v === 'n') return dMoveSheet(a.n, a.date);
     if (a.k === 'did' && v === 'y') { UI.dStu = a.n; delete DR[a.n]; const D0 = drOf(a.n, true); D0.date = a.date; D0.nth = String(dNth(r, dCls(r, dRowD(a.n)), a.date)); D0.touched = true; UI.drep = null; render(); return; }
     try {
       await dPut(a.n, 'cls', (D) => {
@@ -8463,13 +8464,14 @@
   function dMoveSheet(n, date) {
     const r = rOf(n); if (!r) return; const c0 = dCls(r, dRowD(n)), t0 = c0.time || '18:00', [h0, m0] = t0.split(':').map(Number), e0 = `${String(Math.min(23, h0 + 1 + (m0 + 30 >= 60 ? 1 : 0))).padStart(2, '0')}:${String((m0 + 30) % 60).padStart(2, '0')}`;
     const d0 = addD(today() > date ? today() : date, 1);
-    sheet(`<span class="eyebrow">${esc(n)} ${esc(wdShort(date))} 수업을 안 한 날로 뺐어요</span><h2 style="margin-top:6px">언제로 미뤘나요?</h2><p class="sub">넣으면 ${esc(n)} 홈 「다음 수업」에 미룬 수업으로 떠요</p>
+    sheet(`<span class="eyebrow">${esc(n)} ${esc(wdShort(date))} 수업을 안 했어요</span><h2 style="margin-top:6px">언제로 미뤘나요?</h2><p class="sub">넣으면 ${esc(n)} 홈 「다음 수업」에 미룬 수업으로 떠요</p>
       <div class="field"><label>날짜</label><input class="inp" type="date" id="mv-d" value="${d0}"></div>
       <div class="row" style="gap:12px"><div class="field" style="flex:1"><label>시작</label><input class="inp" type="time" id="mv-s" value="${t0}"></div><div class="field" style="flex:1"><label>끝</label><input class="inp" type="time" id="mv-e" value="${e0}"></div></div>
-      <button class="btn primary big block" id="mv-ok" type="button">이 날로 미루기</button><button class="btn big block" id="mv-no" type="button" style="margin-top:8px">안 미뤘어요 · 그냥 쉬어요</button>`, (el, close) => {
-      $('#mv-no', el).onclick = () => { close(); toast('안 한 날로 뺐어요'); };
+      <button class="btn primary big block" id="mv-ok" type="button">이 날로 미루기</button><button class="btn big block" id="mv-no" type="button" style="margin-top:8px">안 미뤘어요 · 그냥 쉬어요</button><p class="tiny" style="text-align:center;margin:12px 0 0">잘못 눌렀으면 그냥 닫아요 · 아무것도 바뀌지 않아요</p>`, (el, close) => {
+      const offIt = (D) => { if (!D.cls) D.cls = { ...dCls(r, null), level: (r.lesson || {}).level || 'std' }; const C = D.cls; C.off = [...new Set([...(C.off || []), date])]; return C; };
+      $('#mv-no', el).onclick = async (e) => { e.target.disabled = true; try { await dPut(n, 'cls', offIt); } catch (x) { e.target.disabled = false; return toast('저장이 안 됐어요. 인터넷을 봐 주세요'); } close(); toast('안 한 날로 뺐어요'); render(); };
       $('#mv-ok', el).onclick = async (e) => { const d = $('#mv-d', el).value, st = $('#mv-s', el).value, en = $('#mv-e', el).value; if (!d || !st) return toast('날짜와 시작 시각을 골라 주세요'); e.target.disabled = true;
-        try { await dPut(n, 'cls', (D) => { if (!D.cls) D.cls = { ...dCls(r, null), level: (r.lesson || {}).level || 'std' }; const C = D.cls; C.list = (C.list || []).filter((l) => !(l.plan && l.moved === date)); C.list.push({ id: 'p' + Date.now(), date: d, plan: true, time: st, ...(en ? { end: en } : {}), moved: date }); }); }
+        try { await dPut(n, 'cls', (D) => { const C = offIt(D); C.list = (C.list || []).filter((l) => !(l.plan && l.moved === date)); C.list.push({ id: 'p' + Date.now(), date: d, plan: true, time: st, ...(en ? { end: en } : {}), moved: date }); }); }
         catch (x) { e.target.disabled = false; return toast('저장이 안 됐어요. 인터넷을 봐 주세요'); }
         close(); toast(`${n} 수업을 ${md(d)} ${wdName(d)} ${tRange({ time: st, end: en })}로 미뤘어요`); render(); };
     });
