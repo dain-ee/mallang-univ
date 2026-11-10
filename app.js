@@ -2362,7 +2362,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611101332', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611101340', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4479,16 +4479,17 @@
   }
   if (HAP_IOS) new MutationObserver(() => { cancelAnimationFrame(hapWire.r); hapWire.r = requestAnimationFrame(hapWire); }).observe(document.body, { childList: true, subtree: true });
   const drSeen = () => { try { return PST.getItem(DR_KEY); } catch (e) { return null; } };
+  // 11/10 리포트를 다시 쓰면(v) 이미 열어 본 학생에게도 다시 「띵동!」이 떠요
+  const drMark = (d) => { const c = (S.dr || {})[d]; return c && c.v ? `${d}#${c.v}` : d; };
   // 연 뒤에도 그날 하루는 홈에 남아요. 처음엔 「띵동!」으로 흔들리고, 열어 본 뒤엔 조용히 「다시 보기」 (11/4 «하루 종일 다시 볼 수 있게»)
   function drHome() {
-    if (TUTOR) return ''; const d = drDay(), seen = drSeen() === d;
+    if (TUTOR) return ''; const d = drDay(), cw = (S.dr || {})[d], seen = drSeen() === drMark(d);
     const st = drStat(d); if (st.tot < 10 && !st.n) return '';
-    const cw = (S.dr || {})[d];
     // 11/10 «배너 알림 크기가 다른 게 2개, 하나로» → 다른 알림처럼 토스 띠 배너
-    return `<button type="button" class="c12 ts-band dr-card ${seen ? 'seen' : ''}" data-dropen><span class="ts-band-ic">${ic('love')}</span><span class="ts-band-t"><b>${seen ? esc(cw && cw.head ? cw.head : `${md(d)} ${wdOf(d)}요일 리포트`) : '띵동! 어제 공부 리포트가 도착했어요'}</b><span>${md(d)} ${wdOf(d)}요일 · ${hm(st.tot)} 공부${st.n ? ` · ${st.n}문제` : ''}</span></span><span class="ts-band-go">${seen ? '다시 보기' : '열어 보기'}</span></button>`;
+    return `<button type="button" class="c12 ts-band dr-card ${seen ? 'seen' : ''}" data-dropen><span class="ts-band-ic">${ic('love')}</span><span class="ts-band-t"><b>${seen ? esc(cw && cw.head ? cw.head : `${md(d)} ${wdOf(d)}요일 리포트`) : (cw && cw.v && drSeen() === d ? '띵동! 선생님이 리포트를 새로 써 줬어요' : '띵동! 어제 공부 리포트가 도착했어요')}</b><span>${md(d)} ${wdOf(d)}요일 · ${hm(st.tot)} 공부${st.n ? ` · ${st.n}문제` : ''}</span></span><span class="ts-band-go">${seen ? '다시 보기' : '열어 보기'}</span></button>`;
   }
   function drOpen(d = drDay()) {
-    try { PST.setItem(DR_KEY, d); } catch (e) {}
+    try { PST.setItem(DR_KEY, drMark(d)); } catch (e) {}
     const st = drStat(d), mx = Math.max(1, ...st.list.map((r) => r.min));
     const t0 = st.segs.length ? Math.floor(new Date(st.segs[0][0]).setMinutes(0, 0, 0)) : 0, t1 = st.segs.length ? Math.max(...st.segs.map((x) => x[1])) : 0, span = Math.max(36e5, Math.ceil((t1 - t0) / 36e5) * 36e5);
     const hrs = []; for (let t = t0; t <= t0 + span; t += 36e5 * (span > 8 * 36e5 ? 3 : 2)) hrs.push(t);
@@ -7142,7 +7143,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611101332'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611101340'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
