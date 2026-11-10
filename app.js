@@ -5,7 +5,9 @@
   const U = window.UNIV, D = U.data || {};
   const ROLE_T = U.role === 'teacher' || U.role === 'admin';
   // 선생님이 「정윤이 화면으로 보기」를 누르면 학생 화면을 그대로 보여 줌. 보기만 하고 아무것도 저장하지 않아요
-  const PEEK = ROLE_T && (() => { try { return sessionStorage.getItem('mu:peek') === '1'; } catch (e) { return false; } })();
+  // 11/10 어머니 화면(role parent): 학생 기록을 받아 보기만 하고 아무것도 저장하지 않아요 (PEEK 와 같은 규칙)
+  const PAR = U.role === 'parent';
+  const PEEK = PAR || ROLE_T && (() => { try { return sessionStorage.getItem('mu:peek') === '1'; } catch (e) { return false; } })();
   const TEACHER = ROLE_T && !PEEK;
   const KEY = 'mallang-univ:state:' + U.who;
   // 학생마다 다른 설정 (content/students.json): 용돈은 정윤만(가족), 보이는 탭, 말랑영어(초등)
@@ -2358,7 +2360,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611101011', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611101036', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7138,7 +7140,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611101011'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611101036'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8679,7 +8681,50 @@
     const left = T.filter((x) => !x.done).length;
     badgePop([{ key: `td:${today()}:${key(t)}`, i: 'party', w: 0, eb: '🎉 완주!', t: `「${String(t.t || '').replace(/<[^>]+>/g, '')}」 끝!`, d: left ? `저장됐어요. 오늘 할 일에 줄이 그어졌어요 · ${left}개 남았어요` : '저장됐어요. 오늘 할 일을 다 끝냈어요' }]);
   }
+  // ───────── 어머니 화면 (11/10 «어머니들이 볼 수 있는 거 따로, QR로 갤럭시·아이폰 · 수업 시수·리포트뿐 아니라 가장 중요한 건 숙제 했냐 안 했냐») ─────────
+  //   보기만 해요. 숙제(오늘 + 지난 날마다 했나·안 했나·늦게 했나) → 수업 횟수 → 리포트
+  function parDay(d) {
+    const R = dayRows(d).filter((x) => x.i !== 'news'), own = R.filter((x) => (x.st === 'done' && !x.late) || x.st === 'moved' || x.st === 'miss');
+    const ok = own.filter((x) => x.st === 'done').length, mv = own.filter((x) => x.st === 'moved').length, ms = own.filter((x) => x.st === 'miss').length;
+    return { R, n: own.length, ok, mv, ms, st: !own.length ? (R.length ? 'ok' : 'none') : ms ? (ok + mv ? 'part' : 'no') : mv ? 'late' : 'ok' };
+  }
+  const PAR_ST = { ok: '다 했어요', part: '일부 못 했어요', no: '안 했어요', late: '늦게 했어요', none: '숙제 없는 날' };
+  function parView() {
+    const t = today(), days = Array.from({ length: 7 }, (_, i) => addD(t, i - 6)), sel = UI.parDay || t;
+    const T = todayTasks().tasks.filter((x) => x.icon !== 'party' && !x.memo), tdn = T.filter((x) => x.done).length;
+    const past = days.slice(0, 6).map(parDay), own = past.reduce((a, x) => a + x.n, 0), did = past.reduce((a, x) => a + x.ok + x.mv, 0), miss = past.reduce((a, x) => a + x.ms, 0);
+    const pc = own ? Math.round((did / own) * 100) : null;
+    const cell = (d, i) => { const isT = d === t, P = isT ? null : past[i], st = isT ? (T.length ? (tdn >= T.length ? 'ok' : 'now') : 'none') : P.st, m = sMin(d);
+      return `<button type="button" class="par-d ${st} ${d === sel ? 'sel' : ''}" data-pday="${d}" style="--i:${i}"><span class="par-w">${isT ? '오늘' : '일월화수목금토'[dowOf(d)]}</span><b class="num">${+d.slice(8)}</b><i class="par-dot"></i><span class="par-c num">${isT ? (T.length ? `${tdn}/${T.length}` : '') : P.n ? `${P.ok + P.mv}/${P.n}` : ''}</span>${m ? `<span class="par-m num">${hm(m)}</span>` : ''}</button>`; };
+    let body;
+    if (sel === t) body = T.length ? `<div class="list">${T.map((x, k) => `<div class="li ${x.done ? 'is-done' : ''}" style="--k:${k}"><div class="ico">${ic(x.done ? 'ok' : x.icon || 'pin')}</div><div class="body"><div class="t">${esc(x.t)}</div>${x.d ? `<div class="d">${esc(x.d)}</div>` : ''}</div>${x.late ? '<span class="tag red" style="flex:none">밀림</span>' : ''}<span class="tag ${x.done ? 'par-ok' : ''}" style="flex:none">${x.done ? '했어요' : '아직'}</span></div>`).join('')}</div>` : '<p class="tiny" style="margin:0">오늘은 숙제가 없어요</p>';
+    else { const P = parDay(sel); body = P.R.length ? `<div class="list">${P.R.map((x) => dayRowHtml({ ...x, go: null })).join('')}</div>` : '<p class="tiny" style="margin:0">이날은 숙제도 기록도 없어요</p>'; }
+    const selSub = sel === t ? (T.length ? `오늘 ${T.length}개 중 ${tdn}개 했어요${tdn < T.length ? ' · 밤까지 할 수 있어요' : ''}` : '') : (() => { const P = parDay(sel); return P.n ? `그날 숙제 ${P.n}개 중 ${P.ok}개 그날 했어요${P.mv ? ` · ${P.mv}개는 늦게 했어요` : ''}${P.ms ? ` · ${P.ms}개는 아직 안 했어요` : ''}` : PAR_ST[P.st]; })();
+    const hwCard = `<section class="card c12 par-hw"><div class="card-h"><h2>${ic('pin')} 숙제 했나요?</h2>${pc != null ? `<span class="tag ${pc >= 90 ? 'par-ok' : pc >= 60 ? '' : 'red'}">지난 6일 ${pc}%</span>` : ''}</div>
+      <p class="tiny" style="margin:-4px 0 14px">${own ? `지난 6일 숙제 ${own}개 중 ${did}개 했어요${miss ? ` · ${miss}개는 아직 안 했어요` : ''}` : '지난 6일은 정해진 숙제가 없었어요'}</p>
+      <div class="par-wk">${days.map(cell).join('')}</div>
+      <div class="par-leg tiny"><span><i class="ok"></i>다 했어요</span><span><i class="late"></i>늦게 했어요</span><span><i class="part"></i>일부 못 함</span><span><i class="no"></i>안 했어요</span></div>
+      <div class="par-sel" key="${sel}"><div class="par-sel-h"><b>${sel === t ? '오늘' : `${md(sel)} ${wdName(sel)}`}</b><span class="tiny">${esc(selSub)}</span></div>${body}</div></section>`;
+    let lsCard = '', rpCard = '';
+    { const c = cls(), ym = ymOf(t), L = lsnSorted(c).filter((l, i, A) => A.findIndex((x) => x.date === l.date) === i);  // 같은 날 기록이 둘이면(출석 + 내용) 하나만
+      if (TUTOR) { const n = lsnMonthN(L, ym) + (+((LS0.monthSeed || {})[ym]) || 0), mt = c.mtot[ym], nx = upcoming(c, t, 1).find((o) => !o.off), last = L[0], tot = last && nthTotal(last.date);
+        lsCard = `<section class="card c12 par-ls"><div class="card-h"><h2>${ic('cal')} 수업</h2></div>
+          <div class="par-nums"><div><span class="tiny">${+ym.slice(5)}월 수업</span><b class="num">${n}<small>${mt ? ` / ${esc(mt)}번` : '번'}</small></b></div>${last ? `<div><span class="tiny">지난 수업</span><b class="num">${md(last.date)}</b><em>${esc(WDK[dowOf(last.date)])}요일${last.nth ? ` · ${esc(last.nth)}${tot ? '/' + esc(tot) : ''}회차` : ''}</em></div>` : ''}${nx ? `<div><span class="tiny">다음 수업</span><b class="num">${md(nx.date)}</b><em>${esc(WDK[dowOf(nx.date)])}요일${nx.time ? ' ' + esc(timeKo(nx.time)) : ''}</em></div>` : ''}</div>
+          ${L.length ? `<div class="list">${L.slice(0, 6).map((l, k) => `<div class="li" style="--k:${k}"><div class="ico">${ic('books')}</div><div class="body"><div class="t">${md(l.date)}(${WDK[dowOf(l.date)]})${l.nth ? ` · ${esc(l.nth)}회차` : ''}${l.book ? ` · ${esc(l.book)}` : ''}</div><div class="d">${esc(((l.lesson || '').split('\n')[0]) || (l.held ? '수업했어요' : ''))}</div></div></div>`).join('')}</div>` : ''}</section>`; }
+      const RP = c.list.filter((l) => l.sent && !l.plan).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 12);
+      if (RP.length) rpCard = `<section class="card c12 par-rp"><div class="card-h"><h2>${ic('love')} 선생님 리포트</h2><span class="tiny">${RP.length}개</span></div><div class="par-rps">${RP.map((l, k) => `<details class="par-r" style="--k:${k}" ${k === 0 ? 'open' : ''}><summary><b>${md(l.date)} ${esc(wdName(l.date))}${l.nth ? ` · ${esc(l.nth)}회차` : ''}</b>${l.score ? `<span class="tag">${esc(l.score)}${l.scoreTotal ? '/' + esc(l.scoreTotal) : ''}점</span>` : ''}<span class="chev"></span></summary>
+          ${l.lesson ? `<div class="par-f"><span>${TUTOR ? '수업 내용' : '이번 주'}</span><p>${esc(l.lesson)}</p></div>` : ''}${l.hw ? `<div class="par-f"><span>숙제</span><p>${esc(l.hw)}</p></div>` : ''}${l.progress ? `<div class="par-f"><span>진도</span><p>${esc(l.progress)}%</p></div>` : ''}${l.comment ? `<div class="par-f"><span>선생님 한마디</span><p>${esc(l.comment)}</p></div>` : ''}</details>`).join('')}</div></section>`; }
+    return `<h1 class="h1">${esc(NMI())} 공부 현황</h1><p class="sub" style="margin:0 0 16px">${md(t)} ${esc(wdName(t))} · 숙제를 하면 이 화면도 바로 바뀌어요</p><div class="grid par">${hwCard}${lsCard}${rpCard}</div>`;
+  }
+  function parRender() {
+    document.body.classList.add('par-mode'); document.title = `${NMI()} 공부 현황`;
+    const main = $('#main'), first = !parRender.on; parRender.on = 1;
+    main.innerHTML = parView(); if (first) main.classList.add('enter');
+    const sp = document.getElementById('splash'); if (sp) sp.remove();
+    $$('[data-pday]').forEach((b) => (b.onclick = () => { UI.parDay = b.dataset.pday; const y = scrollY; parRender(); scrollTo(0, y); }));
+  }
   function render() {
+    if (PAR) return parRender();
     setTimeout(allDoneCheck, 700); setTimeout(taskDoneCheck, 450);
     finRe();  // 11/8 기말 예습 새 계획 먼저
     hwRunFin(); setTimeout(autoTm, 0);
@@ -8951,7 +8996,7 @@
     const fix = () => { const d = vv ? Math.max(0, Math.round(vv.offsetTop + vv.height - root.clientHeight)) : 0, v = d > 2 ? d : 0; if (v !== last) { last = v; root.style.setProperty('--vvfix', v + 'px'); } };
     if (vv) { vv.addEventListener('resize', fix); vv.addEventListener('scroll', fix); }
     window.addEventListener('resize', fix); window.addEventListener('orientationchange', () => setTimeout(fix, 300)); window.addEventListener('scroll', fix, { passive: true }); document.addEventListener('visibilitychange', fix); setInterval(fix, 1000); fix(); }
-  if (PEEK) { const bar = document.createElement('div'); bar.className = 'peek-bar'; bar.innerHTML = '<span>' + esc(NMI()) + '가 보는 화면 · 눌러도 저장되지 않아요</span><button type="button">선생님 화면으로</button>'; document.body.appendChild(bar);
+  if (PEEK && !PAR) { const bar = document.createElement('div'); bar.className = 'peek-bar'; bar.innerHTML = '<span>' + esc(NMI()) + '가 보는 화면 · 눌러도 저장되지 않아요</span><button type="button">선생님 화면으로</button>'; document.body.appendChild(bar);
     // 새 탭이 막혀 같은 탭에서 열렸으면 window.close() 가 안 돼요. 이 탭의 학생·미리 보기 기억을 지우고 선생님 화면으로 돌아가요
     $('button', bar).onclick = () => { try { ['mu:peek', 'mu:who', 'mu:after'].forEach((k) => sessionStorage.removeItem(k)); } catch (e) {} if (window.opener) { try { window.close(); } catch (e) {} } setTimeout(() => location.reload(), 150); }; }
   $('#pomo-top').onclick = openPomo;

@@ -92,6 +92,6 @@ window.__boot = [];
     }
     window.UNIV = { data, sync: C, who, key: st.syncKey, role: st.role || 'student', tabStu: !!tabWho };
     const s = document.createElement('script'); s.src = 'app.js?v=' + (data.version || '') ; document.body.appendChild(s);
-    s.onload = () => { const c = document.createElement('script'); c.src = 'chat.js?v=' + (data.version || ''); document.body.appendChild(c); };  // 「선생님께 말하기」 · 선생님 쪽지함
+    s.onload = () => { if (st.role === 'parent') return; const c = document.createElement('script'); c.src = 'chat.js?v=' + (data.version || ''); document.body.appendChild(c); };  // 「선생님께 말하기」 · 선생님 쪽지함
   })();
 })();

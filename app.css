@@ -4680,3 +4680,50 @@ img.res-b2 { animation: waveIn .4s both, resHop 1.6s ease-in-out .4s infinite; }
 .wh-a b { font-size: 14px; color: var(--t1); }
 .wh-a span { font-size: 14px; color: var(--t2); line-height: 1.55; }
 @media (prefers-reduced-motion: reduce) { .wh-sh > * { animation: none; } }
+
+/* 11/10 어머니 화면: 탭·용돈·타이머 없이 숙제 → 수업 → 리포트만 */
+body.par-mode .top-in > :not(.brand), body.par-mode .tabbar, body.par-mode .rail-tint, body.par-mode .chat-fab { display: none !important; }
+body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
+.grid.par > .card { animation: parIn .5s cubic-bezier(.2, .8, .3, 1) both; }
+.grid.par > .card:nth-child(2) { animation-delay: .08s; }
+.grid.par > .card:nth-child(3) { animation-delay: .16s; }
+@keyframes parIn { from { opacity: 0; transform: translateY(14px); } }
+.par-wk { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.par-d { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 2px 8px; border: 0; border-radius: 14px; background: var(--fill); font: inherit; cursor: pointer; min-width: 0; transition: transform .15s, box-shadow .2s; animation: parIn .4s cubic-bezier(.2, .8, .3, 1) both; animation-delay: calc(var(--i) * 40ms); }
+.par-d:active { transform: scale(.96); }
+.par-d.sel { box-shadow: inset 0 0 0 2px var(--t1); background: var(--card); }
+.par-w { font-size: 12px; color: var(--t3); }
+.par-d b { font-size: 17px; color: var(--t1); }
+.par-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--line, #e5e8eb); }
+.par-c { font-size: 12px; font-weight: 600; color: var(--t2); min-height: 16px; }
+.par-m { font-size: 10px; color: var(--t3); white-space: nowrap; }
+.par-d.ok .par-dot, .par-leg .ok { background: #22c55e; }
+.par-d.late .par-dot, .par-leg .late { background: #f5a524; }
+.par-d.part .par-dot, .par-leg .part { background: #fb7185; }
+.par-d.no .par-dot, .par-leg .no { background: #ef4444; }
+.par-d.now .par-dot { background: var(--blue); animation: parPulse 1.6s ease-in-out infinite; }
+@keyframes parPulse { 50% { transform: scale(1.35); opacity: .6; } }
+.par-leg { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0 0; }
+.par-leg span { display: inline-flex; align-items: center; gap: 5px; }
+.par-leg i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.par-sel { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line, #f2f4f6); animation: parIn .35s cubic-bezier(.2, .8, .3, 1) both; }
+.par-sel-h { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+.par-sel-h b { font-size: 17px; }
+.par-sel .li { animation: parIn .35s cubic-bezier(.2, .8, .3, 1) both; animation-delay: calc(var(--k, 0) * 40ms); }
+.tag.par-ok { background: rgba(34, 197, 94, .12); color: #15803d; }
+.par-nums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.par-nums em { font-style: normal; font-size: 12px; color: var(--t3); }
+.par-nums > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 12px; border-radius: 14px; background: var(--fill); }
+.par-nums b { font-size: 18px; color: var(--t1); white-space: nowrap; }
+.par-nums small { font-size: 13px; font-weight: 600; color: var(--t3); }
+.par-rps { display: flex; flex-direction: column; gap: 8px; }
+.par-r { border-radius: 14px; background: var(--fill); padding: 0 14px; animation: parIn .4s cubic-bezier(.2, .8, .3, 1) both; animation-delay: calc(var(--k) * 40ms); }
+.par-r summary { display: flex; align-items: center; gap: 8px; padding: 14px 0; cursor: pointer; list-style: none; }
+.par-r summary::-webkit-details-marker { display: none; }
+.par-r summary b { flex: 1; font-size: 15px; }
+.par-r[open] summary .chev { transform: rotate(90deg); }
+.par-f { display: flex; flex-direction: column; gap: 2px; padding: 0 0 12px; }
+.par-f span { font-size: 12px; color: var(--t3); }
+.par-f p { margin: 0; font-size: 14px; color: var(--t1); white-space: pre-line; line-height: 1.55; }
+@media (max-width: 420px) { .par-d b { font-size: 15px; } .par-m { display: none; } }
+@media (prefers-reduced-motion: reduce) { .grid.par > .card, .par-d, .par-sel, .par-sel .li, .par-r { animation: none; } .par-d.now .par-dot { animation: none; } }
