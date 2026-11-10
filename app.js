@@ -2363,7 +2363,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611110039', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611110046', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5446,7 +5446,7 @@
     r.nth = mode === 'study' ? lvNth(r) : 0; r.seq = r.nth ? LV_SEQ[r.nth] || [1, 6] : null;
     const td = today(), tag = `${r.date}@${td}${mode === 'drill' ? ':d' + (r.drillN || 1) : ''}`, W = {};
     for (const w of words) { const rec = lvW(w.en); if (rec.dn === tag) continue; let s;
-      if (r.seq) s = rec.sd === td && r.seq.includes(rec.st) ? rec.st : r.seq[0];  // 그날 단계만 (하던 데서 이어서)
+      if (r.seq) s = rec.sd === td && rec.tg === tag && r.seq.includes(rec.st) ? rec.st : r.seq[0];  // 그날 단계만 (하던 데서 이어서)
       else if (mode === 'drill') s = 4;  // 모의시험에서 틀린 단어는 글자 맞추기부터 다시
       else if (!rec.st) s = 1;
       else if (rec.sd === td) s = rec.st;  // 오늘 하던 데서 이어서
@@ -5478,7 +5478,7 @@
       r.ok++; r.combo++; r.best = Math.max(r.best, r.combo); r.star += 1 + (r.combo >= 5 ? 1 : 0);
       if (x.s >= 7) { r.lap = r.lap.filter((e) => e !== c.en); x.s = 8; const ds = [...new Set([...(rec.ds || []), td])].slice(-6); lvPut('w:' + c.en, { st: 7, sd: td, dn: r.tag, ds, lst: 1, c: (rec.c || 0) + 1, ...(rec.lm && rec.lm[0] !== td ? { lm: null } : {}) }); }  // 지난날 틀린 표시는 오늘 다 맞히면 지워요
       else if (r.seq) { const nx = r.seq[r.seq.indexOf(x.s) + 1];  // 그날 단계만 하고 끝. 마지막 한 바퀴 없음
-        if (nx) { x.s = nx; x.k = nx === 6 ? 2 : 0; x.nx = r.step + 3; lvPut('w:' + c.en, { st: x.s, sd: td, c: (rec.c || 0) + 1 }); r.up = c.en; }
+        if (nx) { x.s = nx; x.k = nx === 6 ? 2 : 0; x.nx = r.step + 3; lvPut('w:' + c.en, { st: x.s, sd: td, tg: r.tag, c: (rec.c || 0) + 1 }); r.up = c.en; }
         else { r.q = r.q.filter((e) => e !== c.en); const ds = [...new Set([...(rec.ds || []), td])].slice(-6); x.s = 8; lvPut('w:' + c.en, { st: Math.max(rec.st || 0, r.seq[r.seq.length - 1]), sd: td, dn: r.tag, ds, c: (rec.c || 0) + 1, ...(rec.lm && rec.lm[0] !== td ? { lm: null } : {}) }); r.up = null; } }
       else { x.k++; const up = x.k >= (x.s === 6 ? Math.max(3, x.need) : x.s === 5 ? Math.max(2, x.need) : x.need); if (up) { x.s++; if (x.s === 2 || x.s === 4) x.s++; x.k = 0; x.need = 1; } x.nx = r.step + 3;  // 11/10 «다 고르기만 해 놨어, 시험지처럼 쓰는 게 포인트» → 고르기는 ① 한 번, 소리 조각 ③ 뒤 바로 쓰기
         if (x.s >= 7) { r.q = r.q.filter((e) => e !== c.en); r.lap.push(c.en); x.nx = r.step + 2; }
@@ -5486,7 +5486,7 @@
     } else {
       r.miss++; r.combo = 0; buzz();
       if (r.seq) { const nx = r.seq[r.seq.indexOf(x.s) + 1], lm = rec.lm && rec.lm[0] === td ? rec.lm[1] + 1 : 1;
-        if (nx) { x.s = nx; x.k = nx === 6 ? 2 : 0; x.nx = r.step + 3; lvPut('w:' + c.en, { st: x.s, sd: td, m: (rec.m || 0) + 1, lm: [td, lm] }); }
+        if (nx) { x.s = nx; x.k = nx === 6 ? 2 : 0; x.nx = r.step + 3; lvPut('w:' + c.en, { st: x.s, sd: td, tg: r.tag, m: (rec.m || 0) + 1, lm: [td, lm] }); }
         else { r.q = r.q.filter((e) => e !== c.en); x.s = 8; lvPut('w:' + c.en, { st: Math.max(rec.st || 0, r.seq[r.seq.length - 1]), sd: td, dn: r.tag, m: (rec.m || 0) + 1, lm: [td, lm] }); } }
       else if (x.s >= 7) { r.lap = r.lap.filter((e) => e !== c.en); x.s = 6; x.k = 2; x.need = 1; }  // 마지막 한 바퀴에서 틀리면 힌트 없이 한 번만 더 써요
       if (!r.seq) x.nx = r.step + 3;  // 11/10 밤 «틀릴 때마다 다시 해야 한대, 애가 중간에 포기했잖아» → 단계도 쌓은 횟수도 그대로, 그 단어만 조금 뒤에 다시 if (!r.seq && !r.q.includes(c.en)) r.q.splice(Math.min(1, r.q.length), 0, c.en);
@@ -5657,7 +5657,7 @@
     $$('[data-lvch]').forEach((b) => (b.onclick = () => { const c = r.cur, w = r.words.find((x) => x.en === c.en), o = c.ch[+b.dataset.lvch]; lvAnswer(r, c.s === 1 ? o === w.k : o === lvSp(w)[0], o); }));
     // 조각·글자 타일: 다시 그리지 않고 그 자리에서 채워요
     const slots = $$('[data-lvslot]');
-    const fill = () => { const c = r.cur; slots.forEach((sl, i) => { const p = c.put[i], b = p && c.bank.find((x) => x.id === p); sl.innerHTML = b ? (c.s === 3 ? lvVt(b.t) : esc(b.t)) : ''; sl.classList.toggle('fill', !!b); }); $$('[data-lvtile]').forEach((t) => t.classList.toggle('used', c.put.includes(t.dataset.lvtile))); };
+    const fill = () => { const c = r.cur; slots.forEach((sl, i) => { const p = c.put[i], b = p && c.bank.find((x) => x.id === p); sl.innerHTML = b ? `<span class="lv-sl-t">${c.s === 3 ? lvVt(b.t) : esc(b.t)}</span>` : ''; sl.classList.toggle('fill', !!b); }); $$('[data-lvtile]').forEach((t) => t.classList.toggle('used', c.put.includes(t.dataset.lvtile))); };
     const check = () => { const c = r.cur, w = r.words.find((x) => x.en === c.en); if (c.put.length < slots.length) return; const got = c.put.map((id) => c.bank.find((x) => x.id === id).t);
       const want = c.s === 3 ? lvParts(w).flat() : lvParts(w).flat().join('').replace(/'/g, '').split('').filter((_, i) => !(c.giv || []).includes(i)); const ok = got.join('|') === want.join('|') || (c.s === 4 && got.join('') === want.join(''));
       const typed = c.giv ? (() => { let k = 0; return lvParts(w).flat().join('').replace(/'/g, '').split('').map((l, i) => (c.giv.includes(i) ? l : got[k++] || '')).join(''); })() : got.join(''); setTimeout(() => lvAnswer(r, ok, typed), 260); };
@@ -7528,7 +7528,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611110039'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611110046'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

@@ -4926,3 +4926,6 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 .lv-nums button.ok .lv-wat{opacity:1;border-radius:0;animation:none;height:100%}
 @keyframes lvSlosh{0%{transform:translateX(-9%) rotate(-3deg)}100%{transform:translateX(9%) rotate(3deg)}}
 @media (prefers-reduced-motion:reduce){.lv-wat{animation:none}}
+
+/* 11/11 조각 칸 글자는 한 줄로 */
+.lv-slot{white-space:nowrap}.lv-sl-t{display:inline-block;white-space:nowrap}
