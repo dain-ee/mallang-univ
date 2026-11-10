@@ -2363,7 +2363,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611110018', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611110026', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5485,8 +5485,11 @@
         lvPut('w:' + c.en, { st: Math.min(x.s, 7), sd: td, c: (rec.c || 0) + 1 }); r.up = up ? c.en : null; }
     } else {
       r.miss++; r.combo = 0; buzz();
-      if (x.s >= 7) { r.lap = r.lap.filter((e) => e !== c.en); x.s = 6; x.k = 2; x.need = 1; }  // 마지막 한 바퀴에서 틀리면 힌트 없이 한 번만 더 써요
-      x.nx = r.step + 3;  // 11/10 밤 «틀릴 때마다 다시 해야 한대, 애가 중간에 포기했잖아» → 단계도 쌓은 횟수도 그대로, 그 단어만 조금 뒤에 다시 if (!r.q.includes(c.en)) r.q.splice(Math.min(1, r.q.length), 0, c.en);
+      if (r.seq) { const nx = r.seq[r.seq.indexOf(x.s) + 1], lm = rec.lm && rec.lm[0] === td ? rec.lm[1] + 1 : 1;
+        if (nx) { x.s = nx; x.k = nx === 6 ? 2 : 0; x.nx = r.step + 3; lvPut('w:' + c.en, { st: x.s, sd: td, m: (rec.m || 0) + 1, lm: [td, lm] }); }
+        else { r.q = r.q.filter((e) => e !== c.en); x.s = 8; lvPut('w:' + c.en, { st: Math.max(rec.st || 0, r.seq[r.seq.length - 1]), sd: td, dn: r.tag, m: (rec.m || 0) + 1, lm: [td, lm] }); } }
+      else if (x.s >= 7) { r.lap = r.lap.filter((e) => e !== c.en); x.s = 6; x.k = 2; x.need = 1; }  // 마지막 한 바퀴에서 틀리면 힌트 없이 한 번만 더 써요
+      if (!r.seq) x.nx = r.step + 3;  // 11/10 밤 «틀릴 때마다 다시 해야 한대, 애가 중간에 포기했잖아» → 단계도 쌓은 횟수도 그대로, 그 단어만 조금 뒤에 다시 if (!r.seq && !r.q.includes(c.en)) r.q.splice(Math.min(1, r.q.length), 0, c.en);
       const lm = rec.lm && rec.lm[0] === td ? rec.lm[1] + 1 : 1;
       lvPut('w:' + c.en, { st: x.s, sd: td, m: (rec.m || 0) + 1, lm: [td, lm], ...(c.lap ? { lst: 0 } : {}) });
     }
@@ -5498,7 +5501,7 @@
   function lvFinish(r) {
     if (r.mode === 'warm') { r.stage = 'mock'; r.ma = {}; render(); window.scrollTo(0, 0); return; }
     if (r.mode === 'drill') { r.stage = 'retest'; r.ma = {}; render(); window.scrollTo(0, 0); return; }
-    if (r.mode === 'study' && !(r.nth && r.nth < 3) && !lvS()['mk:' + lvKey(r)]) { lvPut('d:' + lvKey(r), { min: Math.round((Date.now() - r.t0) / 60000) }); r.stage = 'mock'; r.ma = {}; toast('게임 끝! 이제 학원 시험지처럼 한 번 써 봐요'); render(); window.scrollTo(0, 0); return; }
+    if (r.mode === 'study' && !r.nth && !lvS()['mk:' + lvKey(r)]) { lvPut('d:' + lvKey(r), { min: Math.round((Date.now() - r.t0) / 60000) }); r.stage = 'mock'; r.ma = {}; toast('게임 끝! 이제 학원 시험지처럼 한 번 써 봐요'); render(); window.scrollTo(0, 0); return; }
     lvPut('d:' + lvKey(r), { done: 1, fa: Date.now(), min: Math.round((Date.now() - r.t0) / 60000) });
     r.stage = 'done'; render(); window.scrollTo(0, 0);
   }
@@ -5511,8 +5514,8 @@
     if (!P.mock && lvS()['mk:' + lvKey(r)]) { r.stage = 'mres'; render(); return window.scrollTo(0, 0); }
     if (!P.mock) { lvBuild(r, all, 'study'); if (r.stage === 'play') render(); window.scrollTo(0, 0); return lvFocus(); }
     const mk = lvS()['mk:' + lvKey(r)];
-    if (lvDay(r).done) { r.stage = 'done'; return render(); }
-    if (!mk) { const weak = all.filter(lvWeak); if (!weak.length) { r.stage = 'mock'; r.ma = {}; r.noWarm = 1; render(); return window.scrollTo(0, 0); } lvBuild(r, weak, 'warm'); render(); window.scrollTo(0, 0); return lvFocus(); }
+    if (lvDay(r).done && !(mk && ((mk.re ? mk.re.wr : mk.wr) || []).length)) { r.stage = 'done'; return render(); }
+    if (!mk) { r.stage = 'mock'; r.ma = {}; r.noWarm = 0; render(); return window.scrollTo(0, 0); }
     r.stage = 'mres'; render(); window.scrollTo(0, 0);
   }
   function lvDrill(r) { const mk = lvS()['mk:' + lvKey(r)] || {}, wr = (mk.re ? mk.re.wr : mk.wr) || []; r.drillN = ((mk.re && mk.re.k) || 0) + 1; lvBuild(r, wr.map(lvByEn).filter(Boolean), 'drill'); render(); window.scrollTo(0, 0); lvFocus(); }
@@ -5598,7 +5601,7 @@
     const mk = lvS()['mk:' + lvKey(r)] || {}, wr = retest ? ((mk.re ? mk.re.wr : mk.wr) || []) : null, L = lvSheetItems(r).filter((x) => !wr || wr.includes(x.w.en)), T = lvTest(r.test), P = lvPlan(T, r.date, r.part);
     const blank = L.filter((x) => !String((r.ma || {})[x.w.en] || '').trim()).length;
     return `<div class="qwrap lv" style="max-width:760px;margin:0 auto">${lvHead(r, retest ? '틀린 단어 다시 시험' : '모의시험')}<h1 class="h1">${retest ? `틀린 ${L.length}개 다시 시험` : `DYB 단어 모의시험 · Day ${P.days.join('~')}`}</h1>
-      <p class="sub" style="margin:0">${retest ? '이것만 보면 오늘 숙제 끝이에요' : `${r.noWarm ? '다 외운 단어라 데우기 없이 바로 시험이에요 · ' : ''}학원 시험지랑 똑같아요 · ${L.length}문제 중 ${Math.round((T.pass / T.n) * L.length)}개 맞히면 통과 · 틀린 건 다시 외우고 다시 봐요`}</p>
+      <p class="sub" style="margin:0">${retest ? '이것만 보면 오늘 숙제 끝이에요' : `${r.noWarm ? '다 외운 단어라 데우기 없이 바로 시험이에요 · ' : ''}학원 시험지랑 똑같아요 · ${L.length}문제 중 ${Math.round((T.pass / T.n) * L.length)}개 맞히면 통과`}</p>
       <section class="card lv-sheet"><div class="lv-rule"><span><b>홀수</b> 뜻 보고 영어 쓰기</span><span><b>짝수</b> 영어 보고 뜻 쓰기</span></div>
       <ol class="lv-rows">${L.map((x, k) => `<li class="lv-row" style="--i:${Math.min(k, 24)}"><span class="lv-no num">${x.no}</span><span class="lv-pq ${x.en ? 'ko' : 'en'}">${esc(x.en ? x.w.k : lvSp(x.w)[0].replace(/^dialog$/, 'dialog(ue)'))}</span><input class="inp sm lv-min" data-lvm="${esc(x.w.en)}" value="${esc((r.ma || {})[x.w.en] || '')}" ${x.en ? 'lang="en" autocapitalize="off" spellcheck="false" placeholder="영어"' : 'placeholder="뜻"'} autocomplete="off" autocorrect="off" enterkeyhint="next"></li>`).join('')}</ol></section>
       <div class="cta-bar"><button class="btn primary big block" data-lvmark="${retest ? 1 : 0}" type="button">채점하기${blank ? ` · 빈칸 <span class="lv-blank num">${blank}</span>개` : ''}</button></div></div>`;
@@ -5612,7 +5615,7 @@
         <div class="lv-pass"><div class="nx-bar"><i style="width:${pct}%"></i></div><span class="lv-line" style="left:${line}%"><em>${T.pass}개 통과</em></span></div>
         ${re ? `<p class="tiny" style="margin:12px 0 0">다시 시험 ${re.k || 1}번째 · ${re.sc} / ${re.n} 맞힘</p>` : ''}</section>
       ${wr.length ? `<section class="card"><div class="row between"><h3 style="margin:0">${re ? '아직 틀린 단어' : '틀린 단어'}</h3><span class="tiny">${wr.length}개</span></div><div class="list">${rows}</div></section>
-      <div class="cta-bar"><button class="btn primary big block" data-lvdrill type="button">틀린 ${wr.length}개 다시 외우고 다시 시험</button></div>` : ''}</div>`;
+      <div class="cta-bar"><button class="btn primary big block" data-lvdrill type="button">틀린 ${wr.length}개만 한 번 더 볼래요</button></div><p class="tiny" style="text-align:center;margin:8px 0 0">오늘 숙제는 끝났어요 · 안 해도 돼요</p>` : ''}</div>`;
   }
   function lvDone(r) {
     const T = lvTest(r.test), P = lvPlan(T, r.date, r.part), d = lvDay(r), all = lvAll(T.days), m = all.filter((w) => lvMastered(w.en)).length, mk = lvS()['mk:' + lvKey(r)];
@@ -5676,7 +5679,7 @@
       if (!retest) lvPut('mk:' + lvKey(r), { sc: G.sc, n: G.n, wr: G.wr, a: G.a });
       else lvPut('mk:' + lvKey(r), { re: { sc: G.sc, n: G.n, wr: G.wr, a: G.a, k: ((mk.re && mk.re.k) || 0) + 1 } });
       for (const en of G.wr) { const rec = lvW(en), td = today(); lvPut('w:' + en, { lst: 0, st: Math.min(rec.st || 4, 4), sd: td, m: (rec.m || 0) + 1, lm: [td, rec.lm && rec.lm[0] === td ? rec.lm[1] + 1 : 1] }); }
-      if (!G.wr.length || retest) { lvPut('d:' + lvKey(r), { done: 1, fa: Date.now() }); r.stage = 'done'; } else r.stage = 'mres';  // 다시 시험은 한 번만. 또 틀려도 오늘은 끝
+      lvPut('d:' + lvKey(r), { done: 1, fa: Date.now() }); r.stage = !G.wr.length || retest ? 'done' : 'mres';  // 다시 시험은 한 번만. 또 틀려도 오늘은 끝
       render(); window.scrollTo(0, 0);
     }));
     const dr = $('[data-lvdrill]'); if (dr) dr.onclick = () => lvDrill(r);
@@ -7520,7 +7523,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611110018'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611110026'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
