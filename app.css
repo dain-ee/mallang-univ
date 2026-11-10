@@ -4903,3 +4903,6 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 .iv-sp-t > span:last-child > span{font-size:13px;color:var(--t3,#8b95a1)}
 .iv-sp-b{display:flex;gap:8px;margin-top:14px}
 .iv-sp-b .btn{flex:1}
+
+/* 11/10 수업에서 연 공부 화면 → 수업 목록 */
+.cl-back{margin-bottom:12px;animation:ivRecIn .3s ease both}
