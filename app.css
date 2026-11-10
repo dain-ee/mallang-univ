@@ -4661,3 +4661,22 @@ img.res-b2 { animation: waveIn .4s both, resHop 1.6s ease-in-out .4s infinite; }
 @keyframes resSad { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-4deg) translateY(2px); } }
 @keyframes resHop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @media (prefers-reduced-motion: reduce) { img.res-b0, img.res-b2 { animation: none; } }
+/* 11/10 whoever·whomever 정리 시트 */
+.wh-sh { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; text-align: left; }
+.wh-sh > * { animation: whIn .45s cubic-bezier(.2, .8, .3, 1) both; animation-delay: calc(var(--i, 0) * 70ms); }
+@keyframes whIn { from { opacity: 0; transform: translateY(10px); } }
+.wh-q { display: flex; gap: 12px; align-items: flex-start; }
+.wh-q > div { display: flex; flex-direction: column; gap: 4px; }
+.wh-q b { font-size: 16px; color: var(--t1); }
+.wh-q span { font-size: 14px; color: var(--t2); line-height: 1.55; }
+.wh-n { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--fill); font-size: 13px; font-weight: 700; color: var(--t2); }
+.wh-k { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--fill); font-size: 14px; font-weight: 600; color: var(--t1); }
+.wh-t { display: grid; grid-template-columns: 52px 1fr 1fr; gap: 6px; font-size: 13px; }
+.wh-t > b { align-self: center; color: var(--t3); font-size: 12px; font-weight: 600; }
+.wh-t > p { margin: 0; padding: 10px; border-radius: 10px; background: var(--fill); color: var(--t1); line-height: 1.45; }
+.wh-t i { font-style: normal; font-weight: 700; color: var(--blue); }
+.wh-t em { display: block; margin-top: 4px; font-style: normal; color: var(--t3); font-size: 12px; }
+.wh-a { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line, rgba(0,0,0,.06)); }
+.wh-a b { font-size: 14px; color: var(--t1); }
+.wh-a span { font-size: 14px; color: var(--t2); line-height: 1.55; }
+@media (prefers-reduced-motion: reduce) { .wh-sh > * { animation: none; } }
