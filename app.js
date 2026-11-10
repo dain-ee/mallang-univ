@@ -2363,7 +2363,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611102250', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611102255', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6750,7 +6750,37 @@
   }
   const stReadId = (u) => `${u.id}:n`, stOrdId = (u, k) => `${u.id}:o:${k}`;
   // 계획: 기말 범위 단원마다 위 단계 차례로(용어는 정리와 같이 봐서 빼요) 25문제쯤씩 끊고, 공부하는 날(수업 날 토요일 빼고)에 과목을 섞어 고르게 나눠요
-  const YP = (() => {
+  // 11/10 밤 선생님 «윤건이 오늘 숙제 내 줘, 분배해서 … 매3영 거 다 빼, 그 자리를 문법 내신으로 … 하루에 할 수 있는 양으로 다 해 줘야 해. 과학 역사 다 마찬가지야»
+  //   NXD.fit (build.py): m3off 부터 매3영 빼고, base 이후 몫을 from 부터 다시 나눠요. 줄기(과목·문법·외우기)마다 하루 한 덩어리, 하루 총량 cap,
+  //   split 넘는 덩어리는 앞·뒤 절반. 단어 외우기·본문 하루 하나·천일문 복습·keep(이미 끝낸 것)·심화(계획 끝 뒤)는 날짜 그대로. 문항 id 는 그대로라 푼 기록도 그대로예요
+  function ypFit(L) {
+    const F = NXD.fit; if (!F || !YF) return L;
+    if (F.m3off) L = L.filter((it) => !(it.subj === 'm3' && it.day >= F.m3off));
+    const w = (it) => it.p === 'wm' ? Math.ceil((it.words || []).length / 2) : it.qs.reduce((a, q) => a + (q.t === 'para' ? (q.ps || []).filter((p) => !p.h).length : 1), 0);
+    const st = (it) => it.p === 'wm' ? 'wm' : /^pp:mr/.test(it.id) ? 'read' : /^pp:mg/.test(it.id) ? 'gram' : /^pp:mc/.test(it.id) ? 'comm' : /^pp:mw/.test(it.id) ? 'word' : it.id.startsWith('pp:') ? it.id : it.subj;
+    const fixed = (it) => it.day < F.base || it.day > YF.end || it.p === 'wm' || /^pp:(mr|rv)/.test(it.id) || (F.keep || []).includes(it.id) || !it.qs.length;
+    const half = (it) => {  // split 넘으면 고르게 나눠요(둘이면 앞·뒤 절반). 문제만 든 조각은 그 문항만 푸는 세트로
+      const n = Math.min(it.qs.length, Math.ceil(w(it) / (((F.splits || {})[st(it)]) || F.split || 30))); if (n < 2) return [it];
+      return Array.from({ length: n }, (_, k) => {
+        const a = Math.floor((k * it.qs.length) / n), b = Math.floor(((k + 1) * it.qs.length) / n), nm = n === 2 ? (k ? '뒤 절반' : '앞 절반') : `${k + 1}/${n}`;
+        const id = `${it.id}:h${k}`, qs = it.qs.slice(a, b), title = `${it.title} (${nm})`, solo = !!it.nav && qs.every((q) => /:q:/.test(q.i));
+        NXSETS[id] = { ...NXSETS[it.id], id, title, qs, ...(solo ? { kind: 'q', nav: undefined } : {}) };
+        return { ...it, id, qs, title, nav: solo ? undefined : it.nav, ...(it.p === 'L' ? { p: 'Lh' } : {}) };
+      });
+    };
+    const keep = L.filter(fixed), pool = L.filter((it) => !fixed(it)).map((it, i) => ({ it, i })).sort((a, b) => (a.it.day < b.it.day ? -1 : a.it.day > b.it.day ? 1 : a.i - b.i)).flatMap((x) => half(x.it));
+    const load = {}; for (const it of keep) load[it.day] = (load[it.day] || 0) + w(it);
+    const off = (d) => (YF.off || []).includes(new Date(d + 'T00:00:00').getDay());
+    // 날마다 줄기 차례(F.order: 문법 먼저 = 매3영 자리)로 줄기마다 다음 덩어리 하나씩. 그날 총량이 cap 을 넘으면 다음 날로 (그날 첫 덩어리는 cap+10 까지)
+    const Q = {}; for (const it of pool) (Q[st(it)] = Q[st(it)] || []).push(it);
+    const ord = [...(F.order || []).filter((s) => Q[s]), ...Object.keys(Q).filter((s) => !(F.order || []).includes(s))];
+    for (let d = F.from, k = 0; k < 400 && ord.some((s) => Q[s].length); d = addD(d, 1), k++) {
+      if (off(d)) continue; let n = 0;
+      for (const s of ord) { const it = Q[s][0]; if (!it) continue; const x = w(it); if ((load[d] || 0) + x <= F.cap || (!n && (load[d] || 0) + x <= F.cap + 10)) { Q[s].shift(); it.day = d; load[d] = (load[d] || 0) + x; n++; } }
+    }
+    return keep.concat(pool);
+  }
+  const YP = ypFit((() => {
     if (!YF || !(NXD.subjects || []).length) return [];
     const Q = {}, out = [], HD = [];
     for (const sb of NXD.subjects) {
@@ -6813,7 +6843,7 @@
     const HS = [...new Set(HD.map((x) => x.subj))], HM = []; for (let k = 0; HM.length < HD.length; k++) for (const sj of HS) { const it = HD.filter((x) => x.subj === sj)[k]; if (it) HM.push(it); }
     HM.forEach((it, i) => { it.day = hd.length ? hd[Math.floor((i * hd.length) / HM.length)] : YF.end; out.push(it); });
     return out;
-  })().concat(ppBuild());
+  })().concat(ppBuild()));
   // 천일문·매3영 매일 (11/1~11/15, 수업 날 토요일도 숙제): 하루에 천일문 한 유닛 + 매3영 지문 3개(지문마다 단어 → 문제 → 문장 구조)
   //   (10/31 «천일문 매 unit 하고 문제 풀기, 매3영도 하루에 3-4개, 단어 먼저·문제 먼저·문장 하나씩 구조 분석»)
   function ppBuild() {
@@ -7477,7 +7507,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611102250'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611102255'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
