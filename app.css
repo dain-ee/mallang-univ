@@ -4739,3 +4739,11 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 @keyframes ivRecIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @keyframes ivRecOut{to{opacity:0;transform:translateX(24px);height:0;padding-top:0;padding-bottom:0;margin:0}}
 @media (prefers-reduced-motion:reduce){.iv-rec{animation:none}}
+
+/* + 단추는 늘 오른쪽 끝 한 줄 (11/10 스샷: 글 길이에 따라 들쭉날쭉) */
+.li.iv-rec{display:flex}.iv-rec .body{flex:1;min-width:0}.iv-rec .iv-plus{margin-left:auto}
+.iv-gd-h{display:flex;align-items:center;gap:6px;margin:24px 0 4px;font-size:17px}
+.iv-gd-u{display:flex;align-items:center;gap:8px;margin:14px 0 4px}.iv-gd-u .tiny{margin-left:auto}
+
+/* 11/10 띠 배너 긴 글이 칸을 밀어 화면이 옆으로 넘쳤어요 */
+.grid > .ts-band{min-width:0}

@@ -2362,7 +2362,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611101824', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611101832', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7143,7 +7143,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611101824'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611101832'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8490,7 +8490,7 @@
     const nx = ivNext(), dd = nx ? dday(nx.date) : null;
     const main = `<h1 class="h1"><mark class="hl-g">${esc(NM())}${jongOf(NM()) ? '아' : '야'}</mark>,<br class="br-m"> ${nx ? (dd > 0 ? `${esc(nx.u.short)} 면접까지 ${dd}일 남았어요` : '오늘 면접이에요, 잘하고 와요') : '면접 다 끝났어요'}</h1>
       <p class="sub" style="margin:0 0 16px">${esc(IV.line || '1차는 다 붙었어요. 이제 2차 면접만 남았어요')}</p>
-      <div class="grid iv-home">${ivAppCard()}${appCard().replace(/<section class="card c12 gift-card app-card">[\s\S]*?<\/section>/, '')}${ivHeadCard('c6')}${ivTodayCard('c6')}${ivUniCards()}${pomoCard('c6')}${hotCard('c6')}${ivEvalCard()}</div>`;
+      <div class="grid iv-home">${ivAddBand()}${ivAppCard()}${appCard().replace(/<section class="card c12 gift-card app-card">[\s\S]*?<\/section>/, '')}${ivHeadCard('c6')}${ivTodayCard('c6')}${ivUniCards()}${pomoCard('c6')}${hotCard('c6')}${ivEvalCard()}</div>`;
     return main;  // 11/9 오른쪽 줄(시계·토마토·뉴스)은 «다시 원래대로» → 홈 안 두 칸으로
   }
   // 연습 화면: 단계(mode)마다 다르게. 쓰기 = 노션 답을 고쳐 쓰기 · 외우기 = 가리고 떠올리기 · 말하기 = 1분 타이머
@@ -8527,6 +8527,29 @@
       <div class="iv-add"><input class="inp" id="iv-addq" placeholder="넣고 싶은 질문을 직접 써요" maxlength="140" enterkeyhint="done"><button type="button" class="iv-plus" data-ivaddown="${u.id}" aria-label="이 질문 넣기">+</button></div>
       <div class="list iv-recs">${L.map((r, n) => `<div class="li iv-rec" style="--k:${n}"><div class="body"><div class="t">${esc(r.q)}</div>${r.why ? `<div class="d">${esc(r.why)}</div>` : ''}</div><button type="button" class="iv-plus" data-ivpick="${r.id}" aria-label="넣기">+</button></div>`).join('') || '<p class="tiny" style="margin:4px 0 0">추천 질문을 다 넣었어요</p>'}</div>
       ${M.length ? `<b class="iv-mine-h">내가 넣은 질문 ${M.length}개</b><div class="list iv-recs">${M.map((q, n) => `<div class="li iv-rec on" style="--k:${n}"><div class="body"><div class="t">${esc(q.q)}</div><div class="d">${esc(ivWhen(P, q.id) || '면접 준비 기간이 지나서 날짜 없이 모음에만 있어요')}</div></div><button type="button" class="iv-plus minus" data-ivdel="${q.id}" aria-label="빼기">−</button></div>`).join('')}</div>` : ''}`, 'c4');
+  }
+  // 11/10 «홈에서 알림을 띄워 줘야 해 · 어떻게 하는지, 어떤 걸 추천했는지, 추천한 건 리스트로 + 로» → 홈 띠 배너 → 안내 창
+  function ivAddBand() {
+    if (ivs()['gd:add']) return '';
+    const n = ivActive().reduce((a, u) => a + ivRecLeft(u).length, 0);
+    return `<button type="button" class="c12 ts-band" data-ivaddgd><span class="ts-band-ic">${ic('star')}</span><span class="ts-band-t"><b>면접 질문을 직접 넣을 수 있어요</b><span>${n ? `추천 질문 ${n}개 · + 만 누르면 날짜에 알아서 들어가요` : '넣고 싶은 질문을 써서 + 를 누르면 날짜에 알아서 들어가요'}</span></span><span class="ts-band-go">보기</span></button>`;
+  }
+  function ivAddGuide() {
+    const A = ivActive(), row = (r, n) => `<div class="li iv-rec" style="--k:${n}"><div class="body"><div class="t">${esc(r.q)}</div>${r.why ? `<div class="d">${esc(r.why)}</div>` : ''}</div><button type="button" class="iv-plus" data-gdpick="${r.id}" aria-label="넣기">+</button></div>`;
+    const recs = A.map((u) => { const L = ivRecLeft(u); return L.length ? `<div class="iv-gd-u">${ivLogo(u, 'sm')}<b>${esc(u.short)}</b><span class="tiny">추천 ${L.length}개</span></div><div class="list iv-recs">${L.map(row).join('')}</div>` : ''; }).join('');
+    sheet(`<div class="app-sh">
+      <h2 class="app-tt" style="margin-top:8px">면접 질문 넣는 법</h2><p class="app-sub">넣은 질문은 넣은 날 쓰기부터 시작해서 외우기·말하기 날짜에 알아서 들어가요</p>
+      <ol class="app-steps" style="margin-top:20px">${[['아래 「면접」 탭에서 대학을 골라요'], ['「질문」 칸을 눌러요', '', '질문'], ['「질문 넣기」에서 추천 질문 오른쪽 + 를 눌러요', '내 질문은 맨 위 칸에 써서 + 를 눌러요', '+'], ['오늘 할 일에 바로 생겨요', '잘못 넣었으면 「내가 넣은 질문」에서 − 로 빼요']].map(([t, d, chip], i) => `<li style="--i:${i}"><span class="app-n">${i + 1}</span><div><b>${esc(t)}</b>${d ? `<span class="tiny">${esc(d)}</span>` : ''}${chip ? `<span class="app-chip">${esc(chip)}</span>` : ''}</div></li>`).join('')}</ol>
+      ${recs ? `<h3 class="iv-gd-h">${ic('star')} 선생님이 추천한 질문</h3><p class="tiny" style="margin:0 0 8px">자주 나오는데 아직 없는 질문이에요. 필요한 것만 + 로 넣어요</p>${recs}` : ''}
+      <button class="btn primary big block" type="button" id="ivgd-go" style="margin-top:20px">질문 탭으로 가기</button><button class="gf-link app-later" type="button" id="ivgd-ok">알겠어요</button></div>`, (el, close) => {
+      let put = 0;
+      $$('[data-gdpick]', el).forEach((b) => (b.onclick = () => { const r = ((IV && IV.rec) || []).find((x) => x.id === b.dataset.gdpick); if (!r) return; const { id, ...v } = r;
+        ivs()['my:' + id] = { ...v, src: 'rec', d: today(), at: Date.now() }; save('ivp'); put++; const w = ivWhen(ivPrep(ivU(v.uni)), id); toast(w ? `넣었어요 · ${w}` : '넣었어요');
+        const row = b.closest('.iv-rec'); if (row) { row.classList.add('iv-bye'); setTimeout(() => row.remove(), 320); } }));
+      const done = () => { ivs()['gd:add'] = { at: Date.now() }; save('ivp'); };
+      $('#ivgd-go', el).onclick = () => { done(); close(); setTimeout(() => { UI.tab = 'iv'; UI.ivRun = null; UI.ivSub = 'qs'; render(); scrollTo(0, 0); }, 280); };
+      $('#ivgd-ok', el).onclick = () => { done(); close(); setTimeout(() => render(), 280); };
+    });
   }
   function ivView() {
     if (UI.ivRun) return ivPractice();
@@ -8598,6 +8621,7 @@
       setTimeout(keep, 500);
     }));
     $$('[data-ivev]').forEach((b) => (b.onclick = () => ivEvalOpen(b.dataset.ivev)));
+    $$('[data-ivaddgd]').forEach((b) => (b.onclick = ivAddGuide));
     $$('[data-ivcd]').forEach((b) => (b.onclick = () => { const [uid, d] = b.dataset.ivcd.split(':'); UI.ivSel = { ...(UI.ivSel || {}), [uid]: d }; keep(); }));
     $$('[data-ivym]').forEach((b) => (b.onclick = () => { const [uid, m] = b.dataset.ivym.split(':'); if (!m) return; UI.ivYm = { ...(UI.ivYm || {}), [uid]: m }; keep(); }));
     if (UI.tab !== 'iv') return;
