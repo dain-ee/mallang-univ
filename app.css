@@ -4910,3 +4910,7 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 
 /* 11/10 수업에서 연 공부 화면 → 수업 목록 */
 .cl-back{margin-bottom:12px;animation:ivRecIn .3s ease both}
+
+/* 11/10 번호 눌러 내가 풀었던 화면 보기 */
+.lv-viewb{margin:4px 0 10px;padding:8px 12px;border-radius:12px;background:var(--fill,#f2f4f6);font-size:13px;font-weight:700;color:var(--t2,#4e5968);animation:ivRecIn .25s ease both}
+.lv-mine b{color:var(--green,#03b26c)}
