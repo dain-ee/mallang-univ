@@ -2363,7 +2363,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611110046', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611110058', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6770,9 +6770,11 @@
     if (F.m3off) L = L.filter((it) => !(it.subj === 'm3' && it.day >= F.m3off));
     const w = (it) => it.p === 'wm' ? Math.ceil((it.words || []).length / 2) : it.qs.reduce((a, q) => a + (q.t === 'para' ? (q.ps || []).filter((p) => !p.h).length : 1), 0);
     const st = (it) => it.p === 'wm' ? 'wm' : /^pp:mr/.test(it.id) ? 'read' : /^pp:mg/.test(it.id) ? 'gram' : /^pp:mc/.test(it.id) ? 'comm' : /^pp:mw/.test(it.id) ? 'word' : it.id.startsWith('pp:') ? it.id : it.subj;
-    const fixed = (it) => !it._new && (it.day < F.base || it.day > YF.end || it.p === 'wm' || /^pp:(mr|rv)/.test(it.id) || (F.keep || []).includes(it.id) || !it.qs.length);
+    // 11/11 선생님 «처음부터 심화까지 가는 게 아니라 모든 영역 먼저 개념 1판, 2판 응용, 3판 심화 … 개념은 잘게, 응용·심화는 밀집해서» → F.rounds [개념, 응용, 심화] 날 수 비율
+    const rd = (it) => !F.rounds ? 0 : it.hd ? 2 : it.p === 'L' || it.p === 'Lh' || it.id.startsWith('pp:') ? 0 : 1, sk = (it) => st(it) + '#' + rd(it);
+    const fixed = (it) => !it._new && (it.day < F.base || (it.day > YF.end && !(F.rounds && it.hd)) || it.p === 'wm' || /^pp:(mr|rv)/.test(it.id) || (F.keep || []).includes(it.id) || !it.qs.length);
     const half = (it) => {  // split 넘으면 고르게 나눠요(둘이면 앞·뒤 절반). 문제만 든 조각은 그 문항만 푸는 세트로
-      const n = Math.min(it.qs.length, Math.ceil(w(it) / (PER[st(it)] || ((F.splits || {})[st(it)]) || F.split || 30))); if (n < 2) return [it];
+      const n = Math.min(it.qs.length, Math.ceil(w(it) / (PER[sk(it)] || ((F.splits || {})[st(it)]) || F.split || 30))); if (n < 2) return [it];
       return Array.from({ length: n }, (_, k) => {
         const a = Math.floor((k * it.qs.length) / n), b = Math.floor(((k + 1) * it.qs.length) / n), nm = n === 2 ? (k ? '뒤 절반' : '앞 절반') : `${k + 1}/${n}`;
         const id = `${it.id}:h${k}`, qs = it.qs.slice(a, b), title = `${it.title} (${nm})`, solo = !!it.nav && qs.every((q) => /:q:/.test(q.i));
@@ -6782,15 +6784,16 @@
     };
     // 11/11 «매일 넣어, 과목들 일요일 빼고»: 과목(줄기)마다 남은 양 ÷ 남은 공부 날 = 하루 몫. 그 크기로 잘라서 매일 하나씩 가게 해요
     const offD = (d) => (YF.off || []).includes(new Date(d + 'T00:00:00').getDay()), DD = []; if (F.until) for (let d = F.from; d <= F.until; d = addD(d, 1)) if (!offD(d)) DD.push(d);
-    const PER = {}, WS = {}; if (DD.length) { for (const it of L) if (!fixed(it)) WS[st(it)] = (WS[st(it)] || 0) + w(it); for (const k in WS) PER[k] = Math.max(8, Math.ceil(WS[k] / DD.length)); }
+    const RT = F.rounds || [1], RS = RT.reduce((a, b) => a + b, 0), SEG = []; { let a = 0, c = 0; RT.forEach((x, i) => { c += x; const b = i === RT.length - 1 ? DD.length : Math.round((c / RS) * DD.length); SEG.push(DD.slice(a, b)); a = b; }); }
+    const PER = {}, WS = {}; if (DD.length) { for (const it of L) if (!fixed(it)) WS[sk(it)] = (WS[sk(it)] || 0) + w(it); for (const k in WS) PER[k] = Math.max(8, Math.ceil(WS[k] / Math.max(1, (SEG[+k.split('#')[1]] || DD).length))); }
     const keep = L.filter(fixed), pool = L.filter((it) => !fixed(it)).map((it, i) => ({ it, i })).sort((a, b) => (a.it.day < b.it.day ? -1 : a.it.day > b.it.day ? 1 : a.i - b.i)).flatMap((x) => half(x.it));
     const load = {}; for (const it of keep) load[it.day] = (load[it.day] || 0) + w(it);
     const off = (d) => (YF.off || []).includes(new Date(d + 'T00:00:00').getDay());
     // 날마다 줄기 차례(F.order: 문법 먼저 = 매3영 자리)로 줄기마다 다음 덩어리 하나씩. 그날 총량이 cap 을 넘으면 다음 날로 (그날 첫 덩어리는 cap+10 까지)
-    const Q = {}; for (const it of pool) (Q[st(it)] = Q[st(it)] || []).push(it);
+    const Q = {}; for (const it of pool) (Q[DD.length ? sk(it) : st(it)] = Q[DD.length ? sk(it) : st(it)] || []).push(it);
     const ord = [...(F.order || []).filter((s) => Q[s]), ...Object.keys(Q).filter((s) => !(F.order || []).includes(s))];
     // 11/11 선생님 «매일 넣어, 과목들 일요일 빼고 · 무슨 기말 1일 전이냐» → 과목(줄기)마다 남은 것을 F.from~F.until 공부하는 날에 고르게 펴요. 모든 과목이 거의 매일 나오고 같은 날 끝나요
-    if (DD.length) for (const s of ord) { let acc = 0; for (const it of Q[s]) { it.day = DD[Math.min(DD.length - 1, Math.floor(((acc + w(it) * 0.6) / (WS[s] || 1)) * DD.length))]; acc += w(it); } Q[s] = []; }
+    if (DD.length) for (const s of ord) { const G = SEG[+s.split('#')[1]] || DD; let acc = 0; for (const it of Q[s]) { it.day = G[Math.min(G.length - 1, Math.floor(((acc + w(it) * 0.6) / (WS[s] || 1)) * G.length))]; acc += w(it); } Q[s] = []; }
     for (let d = F.from, k = 0; k < 400 && ord.some((s) => Q[s].length); d = addD(d, 1), k++) {
       if (off(d)) continue; let n = 0;
       for (let pass = 0; pass < 2; pass++) for (const s of ord) { const it = Q[s][0]; if (!it) continue; const x = w(it); if ((load[d] || 0) + x <= F.cap || (!n && (load[d] || 0) + x <= F.cap + 10)) { Q[s].shift(); it.day = d; load[d] = (load[d] || 0) + x; n++; } }  // 자리가 남으면 한 줄기에서 하나 더 (기말 전에 끝나게)
@@ -6824,7 +6827,7 @@
         for (let k = 0; k < n; k++) {
           const id = `yp:${u.id}:${key}:${k}`, part = qs.slice(Math.floor((k * qs.length) / n), Math.floor(((k + 1) * qs.length) / n));
           const it = { id, subj: sb.key, unit: u.id, p: key, qs: part, title: `${head(u)} ${st.name}${n > 1 ? ` ${k + 1}/${n}` : ''}`, sub: u.title };
-          NXSETS[id] = { id, title: it.title, sub: `${u.title} · 기말 계획`, subj: sb.key, kind: NXSETS[st.id].kind, unit: u.id, qs: part }; ((u.thard || []).includes(key) ? HD : L).push(it);
+          NXSETS[id] = { id, title: it.title, sub: `${u.title} · 기말 계획`, subj: sb.key, kind: NXSETS[st.id].kind, unit: u.id, qs: part }; if ((u.thard || []).includes(key)) it.hd = 1; (it.hd ? HD : L).push(it);
         }
       }
     }
@@ -7528,7 +7531,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611110046'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611110058'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
