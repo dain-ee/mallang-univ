@@ -2363,7 +2363,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611110058', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611110106', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5583,7 +5583,9 @@
         : parts.map((p) => `<span class="lv-sw">${p.map((ch) => `<span class="lv-sg">${ch.split('').map((l) => (l === "'" ? '<span class="lv-ap">\'</span>' : (c.giv || []).includes(li++) ? `<span class="lv-slot fill giv">${esc(l)}</span>` : `<span class="lv-slot" data-lvslot="${n++}"></span>`)).join('')}</span>`).join('')}</span>`).join('');
       body = fb ? '' : `<div class="lv-slots ${s === 3 ? 'chs' : 'lts'}" data-lvn="${n}">${sl}</div><div class="lv-bank">${c.bank.map((b, k) => `<button class="lv-tile ${s === 3 ? 'ch' : ''}" style="--i:${k}" data-lvtile="${esc(b.id)}" type="button">${s === 3 ? lvVt(b.t) : esc(b.t)}</button>`).join('')}</div><div class="row lv-tbtn"><button class="btn sm" data-lvundo type="button">하나 지우기</button></div>`;
     } else {
-      body = fb ? '' : `<div class="lv-type"><input class="inp lv-in" ${s === 6 ? 'lang="en" autocapitalize="off" spellcheck="false" placeholder="영어로 써요"' : 'placeholder="뜻을 써요 (하나만 써도 돼요)"'} autocomplete="off" autocorrect="off" enterkeyhint="done"><button class="btn primary big" data-lvok type="button">확인</button></div>`;
+      // 11/11 선생님 «pardon 이면 _ _ _ _ _ _ 이렇게, 쓸 때마다 글자가 딱딱 채워지는 느낌 · take care of 는 아직 space 를 모르니까 그냥 바로바로 채워지게»
+      if (s === 6) body = fb ? '' : `<div class="lv-usw"><div class="lv-us" aria-hidden="true">${lvSp(w)[0].split(' ').map((wd) => `<span class="lv-uw">${wd.split('').map((ch) => (/[a-zA-Z]/.test(ch) ? '<span class="lv-u" data-lvu></span>' : `<span class="lv-u fx">${esc(ch)}</span>`)).join('')}</span>`).join('')}</div><input class="inp lv-in lv-in-h" lang="en" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" enterkeyhint="done" aria-label="영어로 써요"></div><p class="tiny lv-hl">자판으로 치면 칸이 채워져요 · 띄어쓰기는 안 해도 돼요</p><div class="lv-type"><button class="btn primary big block" data-lvok type="button">확인</button></div>`;
+      else body = fb ? '' : `<div class="lv-type"><input class="inp lv-in" ${s === 6 ? 'lang="en" autocapitalize="off" spellcheck="false" placeholder="영어로 써요"' : 'placeholder="뜻을 써요 (하나만 써도 돼요)"'} autocomplete="off" autocorrect="off" enterkeyhint="done"><button class="btn primary big" data-lvok type="button">확인</button></div>`;
     }
     let fbh = '';
     if (fb) {
@@ -5665,7 +5667,11 @@
     slots.forEach((sl, i) => (sl.onclick = () => { const c = r.cur; if (r.fb || i >= c.put.length) return; c.put.splice(i, 1); fill(); }));
     const u = $('[data-lvundo]'); if (u) u.onclick = () => { const c = r.cur; if (r.fb || !c.put.length) return; c.put.pop(); fill(); };
     const inp = $('.lv-in'), ok = $('[data-lvok]');
-    const sub = () => { const c = r.cur, w = r.words.find((x) => x.en === c.en), t = inp.value; if (!t.trim()) { bump(inp, 'shake-x'); return; } lvAnswer(r, c.s === 6 ? lvEnOk(w, t) : lvKoOk(w, t), t); };
+    const US = $$('[data-lvu]');
+    const usFill = (pop) => { const t = inp.value.replace(/[^a-zA-Z]/g, '').slice(0, US.length); if (inp.value !== t) inp.value = t; US.forEach((u, i) => { const had = u.textContent; u.textContent = t[i] || ''; u.classList.toggle('on', !!t[i]); u.classList.toggle('cur', i === t.length); if (pop && t[i] && !had) { bump(u, 'tap-pop'); tick(); } }); };
+    const usVal = () => { const c = r.cur, w = r.words.find((x) => x.en === c.en), t = inp.value.replace(/[^a-zA-Z]/g, ''); let k = 0; return lvSp(w)[0].split('').map((ch) => (/[a-zA-Z]/.test(ch) ? t[k++] || '' : ch)).join('').trim(); };
+    if (inp && US.length) { inp.oninput = () => usFill(1); usFill(0); const bx = $('.lv-usw'); if (bx) bx.onclick = () => inp.focus({ preventScroll: true }); }
+    const sub = () => { const c = r.cur, w = r.words.find((x) => x.en === c.en), t = US.length ? (inp.value ? usVal() : '') : inp.value; if (!t.trim()) { bump(US.length ? $('.lv-us') : inp, 'shake-x'); return; } lvAnswer(r, c.s === 6 ? lvEnOk(w, t) : lvKoOk(w, t), t); };
     if (inp) { inp.onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); sub(); } }; if (ok) ok.onclick = sub; }
     $$('[data-lvself]').forEach((b) => (b.onclick = () => { const c = r.cur, w = r.words.find((x) => x.en === c.en), typed = r.fb.typed; r.fb = null; lvCommit(r, b.dataset.lvself === '1', typed, w, r.W[c.en], today(), lvW(c.en)); }));
     const nx = $('[data-lvnext]'); if (nx) nx.onclick = () => lvNextQ(r);
@@ -7531,7 +7537,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611110058'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611110106'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

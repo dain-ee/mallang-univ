@@ -4929,3 +4929,16 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 
 /* 11/11 조각 칸 글자는 한 줄로 */
 .lv-slot{white-space:nowrap}.lv-sl-t{display:inline-block;white-space:nowrap}
+
+/* 11/11 영어 쓰기: 밑줄 칸에 글자가 하나씩 채워져요 */
+.lv-usw{position:relative;margin:10px 0 4px;padding:10px 0;cursor:text}
+.lv-us{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 18px}
+.lv-uw{display:inline-flex;gap:6px}
+.lv-u{width:28px;height:42px;display:inline-grid;place-items:center;font-size:28px;font-weight:700;line-height:1;color:var(--t1,#191f28);border-bottom:3px solid #b0b8c1;transition:border-color .15s}
+.lv-u.on{border-color:var(--blue,#3182f6)}
+.lv-u.cur{border-color:var(--blue,#3182f6);animation:lvCur 1s steps(2,start) infinite}
+.lv-u.fx{border-color:transparent;width:14px}
+@keyframes lvCur{50%{border-color:var(--line,#d1d6db)}}
+.lv-in-h{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px;caret-color:transparent}
+@media (max-width:480px){.lv-u{width:22px;height:38px;font-size:24px}.lv-uw{gap:4px}}
+@media (prefers-reduced-motion:reduce){.lv-u.cur{animation:none}}
