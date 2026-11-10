@@ -2363,7 +2363,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611110026', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611110039', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6772,7 +6772,7 @@
     const st = (it) => it.p === 'wm' ? 'wm' : /^pp:mr/.test(it.id) ? 'read' : /^pp:mg/.test(it.id) ? 'gram' : /^pp:mc/.test(it.id) ? 'comm' : /^pp:mw/.test(it.id) ? 'word' : it.id.startsWith('pp:') ? it.id : it.subj;
     const fixed = (it) => !it._new && (it.day < F.base || it.day > YF.end || it.p === 'wm' || /^pp:(mr|rv)/.test(it.id) || (F.keep || []).includes(it.id) || !it.qs.length);
     const half = (it) => {  // split 넘으면 고르게 나눠요(둘이면 앞·뒤 절반). 문제만 든 조각은 그 문항만 푸는 세트로
-      const n = Math.min(it.qs.length, Math.ceil(w(it) / (((F.splits || {})[st(it)]) || F.split || 30))); if (n < 2) return [it];
+      const n = Math.min(it.qs.length, Math.ceil(w(it) / (PER[st(it)] || ((F.splits || {})[st(it)]) || F.split || 30))); if (n < 2) return [it];
       return Array.from({ length: n }, (_, k) => {
         const a = Math.floor((k * it.qs.length) / n), b = Math.floor(((k + 1) * it.qs.length) / n), nm = n === 2 ? (k ? '뒤 절반' : '앞 절반') : `${k + 1}/${n}`;
         const id = `${it.id}:h${k}`, qs = it.qs.slice(a, b), title = `${it.title} (${nm})`, solo = !!it.nav && qs.every((q) => /:q:/.test(q.i));
@@ -6780,12 +6780,17 @@
         return { ...it, id, qs, title, nav: solo ? undefined : it.nav, ...(it.p === 'L' ? { p: 'Lh' } : {}) };
       });
     };
+    // 11/11 «매일 넣어, 과목들 일요일 빼고»: 과목(줄기)마다 남은 양 ÷ 남은 공부 날 = 하루 몫. 그 크기로 잘라서 매일 하나씩 가게 해요
+    const offD = (d) => (YF.off || []).includes(new Date(d + 'T00:00:00').getDay()), DD = []; if (F.until) for (let d = F.from; d <= F.until; d = addD(d, 1)) if (!offD(d)) DD.push(d);
+    const PER = {}, WS = {}; if (DD.length) { for (const it of L) if (!fixed(it)) WS[st(it)] = (WS[st(it)] || 0) + w(it); for (const k in WS) PER[k] = Math.max(8, Math.ceil(WS[k] / DD.length)); }
     const keep = L.filter(fixed), pool = L.filter((it) => !fixed(it)).map((it, i) => ({ it, i })).sort((a, b) => (a.it.day < b.it.day ? -1 : a.it.day > b.it.day ? 1 : a.i - b.i)).flatMap((x) => half(x.it));
     const load = {}; for (const it of keep) load[it.day] = (load[it.day] || 0) + w(it);
     const off = (d) => (YF.off || []).includes(new Date(d + 'T00:00:00').getDay());
     // 날마다 줄기 차례(F.order: 문법 먼저 = 매3영 자리)로 줄기마다 다음 덩어리 하나씩. 그날 총량이 cap 을 넘으면 다음 날로 (그날 첫 덩어리는 cap+10 까지)
     const Q = {}; for (const it of pool) (Q[st(it)] = Q[st(it)] || []).push(it);
     const ord = [...(F.order || []).filter((s) => Q[s]), ...Object.keys(Q).filter((s) => !(F.order || []).includes(s))];
+    // 11/11 선생님 «매일 넣어, 과목들 일요일 빼고 · 무슨 기말 1일 전이냐» → 과목(줄기)마다 남은 것을 F.from~F.until 공부하는 날에 고르게 펴요. 모든 과목이 거의 매일 나오고 같은 날 끝나요
+    if (DD.length) for (const s of ord) { let acc = 0; for (const it of Q[s]) { it.day = DD[Math.min(DD.length - 1, Math.floor(((acc + w(it) * 0.6) / (WS[s] || 1)) * DD.length))]; acc += w(it); } Q[s] = []; }
     for (let d = F.from, k = 0; k < 400 && ord.some((s) => Q[s].length); d = addD(d, 1), k++) {
       if (off(d)) continue; let n = 0;
       for (let pass = 0; pass < 2; pass++) for (const s of ord) { const it = Q[s][0]; if (!it) continue; const x = w(it); if ((load[d] || 0) + x <= F.cap || (!n && (load[d] || 0) + x <= F.cap + 10)) { Q[s].shift(); it.day = d; load[d] = (load[d] || 0) + x; n++; } }  // 자리가 남으면 한 줄기에서 하나 더 (기말 전에 끝나게)
@@ -7523,7 +7528,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611110026'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611110039'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
