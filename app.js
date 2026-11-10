@@ -2360,7 +2360,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611101036', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611101042', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4444,9 +4444,9 @@
   function leftMark() {
     clearTimeout(leftMark.t); leftMark.t = setTimeout(() => {
       if (TEACHER || PEEK || DAY_OFF() || !pulled || UI.run) return;
-      let L; try { L = todayTasks().tasks.filter((t) => !t.done && !t.memo); } catch (e) { return; }
-      const v = { d: realToday(), n: L.length, t: L.slice(0, 4).map((t) => String(t.t).slice(0, 40)) }, o = S.left || {};
-      if (o.d === v.d && o.n === v.n && JSON.stringify(o.t) === JSON.stringify(v.t)) return;
+      let L, A; try { A = todayTasks().tasks.filter((t) => !t.memo && t.icon !== 'party'); L = A.filter((t) => !t.done); } catch (e) { return; }
+      const v = { d: realToday(), n: L.length, tot: A.length, t: L.slice(0, 4).map((t) => String(t.t).slice(0, 40)) }, o = S.left || {};
+      if (o.d === v.d && o.n === v.n && o.tot === v.tot && JSON.stringify(o.t) === JSON.stringify(v.t)) return;
       S.left = { ...v, at: Date.now() }; save('left');
     }, 2500);
   }
@@ -7140,7 +7140,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611101036'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611101042'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8714,14 +8714,42 @@
       const RP = c.list.filter((l) => l.sent && !l.plan).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 12);
       if (RP.length) rpCard = `<section class="card c12 par-rp"><div class="card-h"><h2>${ic('love')} 선생님 리포트</h2><span class="tiny">${RP.length}개</span></div><div class="par-rps">${RP.map((l, k) => `<details class="par-r" style="--k:${k}" ${k === 0 ? 'open' : ''}><summary><b>${md(l.date)} ${esc(wdName(l.date))}${l.nth ? ` · ${esc(l.nth)}회차` : ''}</b>${l.score ? `<span class="tag">${esc(l.score)}${l.scoreTotal ? '/' + esc(l.scoreTotal) : ''}점</span>` : ''}<span class="chev"></span></summary>
           ${l.lesson ? `<div class="par-f"><span>${TUTOR ? '수업 내용' : '이번 주'}</span><p>${esc(l.lesson)}</p></div>` : ''}${l.hw ? `<div class="par-f"><span>숙제</span><p>${esc(l.hw)}</p></div>` : ''}${l.progress ? `<div class="par-f"><span>진도</span><p>${esc(l.progress)}%</p></div>` : ''}${l.comment ? `<div class="par-f"><span>선생님 한마디</span><p>${esc(l.comment)}</p></div>` : ''}</details>`).join('')}</div></section>`; }
-    return `<h1 class="h1">${esc(NMI())} 공부 현황</h1><p class="sub" style="margin:0 0 16px">${md(t)} ${esc(wdName(t))} · 숙제를 하면 이 화면도 바로 바뀌어요</p><div class="grid par">${hwCard}${lsCard}${rpCard}</div>`;
+    return `<h1 class="h1">${esc(NMI())} 공부 현황</h1><p class="sub" style="margin:0 0 16px">${md(t)} ${esc(wdName(t))} · 숙제를 하면 이 화면도 바로 바뀌어요</p><div class="grid par">${parPushBand()}${hwCard}${lsCard}${rpCard}</div>`;
+  }
+  // 11/10 «알림 가는 거야? 오늘 다 했다 안 했다» → 밤 10시에 「오늘 숙제 3개 중 2개 했어요」 (scripts/push/send.js parent · 구독은 univ_ppush 표)
+  const parPushHas = () => { try { return localStorage.getItem('mu:ppush') === devId; } catch (e) { return false; } };
+  function parPushBand() {
+    if (parPushHas() && PUSH_OK && Notification.permission === 'granted') return '';
+    const ios = IOS && !STANDALONE, off = PUSH_OK && Notification.permission === 'denied';
+    const d = ios ? 'Safari 아래 공유 단추 → 「홈 화면에 추가」 한 뒤, 홈 화면 아이콘으로 열어서 눌러 주세요' : off ? '휴대폰 설정에서 이 앱(또는 크롬) 알림을 허용해 주세요' : !PUSH_OK ? '이 브라우저는 알림이 안 돼요. 크롬이나 사파리로 열어 주세요' : '매일 밤 10시에 오늘 숙제를 다 했는지 알려 드려요';
+    return `<button type="button" class="c12 ts-band par-push" ${ios || off || !PUSH_OK ? 'data-parpushhow' : 'data-parpush'}><span class="ts-band-ic">${ic('bell')}</span><span class="ts-band-t"><b>밤 10시 숙제 알림 받기</b><span>${esc(d)}</span></span><span class="ts-band-go">${ios ? '방법 보기' : '알림 켜기'}</span></button>`;
+  }
+  async function parPushOn() {
+    try {
+      const p = await Notification.requestPermission();
+      if (p !== 'granted') { toast('알림이 꺼져 있어요. 휴대폰 설정에서 알림을 허용해 주세요'); parRender(); return; }
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription(); if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(VAPID) });
+      const j = sub.toJSON(), ua = navigator.userAgent;
+      await rpc('univ_ppush_put', { p_student: U.who, p_code: U.key, p_id: devId, p_sub: { e: j.endpoint, k: j.keys, d: /iPhone|iPad/.test(ua) ? '아이폰' : /Android/.test(ua) ? '갤럭시' : '기타' } });
+      try { localStorage.setItem('mu:ppush', devId); } catch (e) {}
+      reg.showNotification('알림이 켜졌어요', { body: `매일 밤 10시에 ${NMI()} 오늘 숙제를 알려 드릴게요`, icon: aiSrc(), tag: 'par' });
+      toast('알림을 켰어요'); const b = $('.par-push'); if (b && typeof cardBye === 'function') cardBye(b, parRender); else parRender();
+    } catch (e) { toast('알림을 켜지 못했어요. 잠시 뒤 다시 눌러 주세요'); }
+  }
+  function parPushHow() {
+    sheet(`<div class="app-sh"><h2 class="app-tt" style="margin-top:8px">밤 10시 숙제 알림 켜는 법</h2><p class="app-sub">아이폰은 홈 화면에 추가한 앱에서만 알림을 받을 수 있어요</p>
+      <ol class="app-steps" style="margin-top:20px">${[['Safari 아래 가운데 공유 단추를 눌러요', '네모에 화살표가 위로 난 모양이에요'], ['「홈 화면에 추가」를 눌러요', '안 보이면 목록을 아래로 내려요'], ['홈 화면에 생긴 말랑 아이콘으로 열어요'], ['「밤 10시 숙제 알림 받기」 → 「허용」', '그다음부터 매일 밤 알림이 와요']].map(([a, b], i) => `<li style="--i:${i}"><span class="app-n">${i + 1}</span><div><b>${esc(a)}</b>${b ? `<span class="tiny">${esc(b)}</span>` : ''}</div></li>`).join('')}</ol>
+      <button class="btn primary big block" type="button" id="pp-ok" style="margin-top:20px">알겠어요</button></div>`, (el, close) => { $('#pp-ok', el).onclick = close; });
   }
   function parRender() {
+    try { history.replaceState(null, '', `${location.pathname}?k=${encodeURIComponent(U.key)}&s=${encodeURIComponent(U.who)}&r=parent`); } catch (e) {}  // 아이폰 홈 화면 앱은 사파리와 저장소가 따로라, 주소에 열쇠를 남겨 둬야 홈 화면에서도 열려요
     document.body.classList.add('par-mode'); document.title = `${NMI()} 공부 현황`;
     const main = $('#main'), first = !parRender.on; parRender.on = 1;
     main.innerHTML = parView(); if (first) main.classList.add('enter');
     const sp = document.getElementById('splash'); if (sp) sp.remove();
     $$('[data-pday]').forEach((b) => (b.onclick = () => { UI.parDay = b.dataset.pday; const y = scrollY; parRender(); scrollTo(0, y); }));
+    $$('[data-parpush]').forEach((b) => (b.onclick = parPushOn)); $$('[data-parpushhow]').forEach((b) => (b.onclick = parPushHow));
   }
   function render() {
     if (PAR) return parRender();
