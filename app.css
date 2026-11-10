@@ -4876,8 +4876,8 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 @media (prefers-reduced-motion:reduce){.lv-card.lv-nudge{animation:none}}
 
 /* 11/10 게임 위 번호 줄 · 카드 다시 보기 */
-.lv-back{margin-left:8px}
-.lv-nums{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;margin:4px 0 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.lv-hd-r{display:flex;align-items:center;gap:8px;margin-left:auto}.lv-relist{flex:none}
+.lv-nums{display:flex;gap:6px;overflow-x:auto;padding:6px 6px 10px;scroll-padding:0 12px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent);mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent);padding-left:14px;padding-right:14px;margin:4px 0 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .lv-nums::-webkit-scrollbar{display:none}
 .lv-nums button{flex:none;width:34px;height:34px;border-radius:12px;border:0;font:inherit;font-size:13px;font-weight:700;color:var(--t3,#8b95a1);cursor:pointer;
   background:linear-gradient(to top,var(--blue-l,#e8f3ff) calc((var(--lv,1) - 1) / 6 * 100%),var(--fill,#f2f4f6) 0);transition:transform .15s,background .3s,box-shadow .2s}

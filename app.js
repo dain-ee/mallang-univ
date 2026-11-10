@@ -2363,7 +2363,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611101928', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611101946', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5445,14 +5445,14 @@
       else if (!rec.st) s = 1;
       else if (rec.sd === td) s = rec.st;  // 오늘 하던 데서 이어서
       else if (rec.st >= 6) s = rec.lm && rec.lm[0] !== td && rec.lm[1] >= 2 ? 3 : rec.lm && rec.lm[0] !== td && rec.lm[1] ? 4 : 5;  // 다음 날 복습: 바로 쓰기부터 (전날 틀린 건 조각부터)
-      else s = Math.max(1, rec.st);
+      else s = Math.max(3, rec.st);  // 전에 본 단어는 복습 날 고르기 없이 조각·쓰기부터 (11/10)
       W[w.en] = { s, k: 0, need: 1, nx: 0 }; }
     Object.assign(r, { mode, tag, W, words, q: words.filter((w) => W[w.en] && W[w.en].s < 7).map((w) => w.en), lap: lvRnd(words.filter((w) => W[w.en] && W[w.en].s >= 7).map((w) => w.en)), tot: words.length, n: 0, ok: 0, miss: 0, star: r.star || 0, combo: 0, best: r.best || 0, cur: null, fb: null, t0: Date.now() });
     r.stage = 'play'; lvPick(r);
   }
   function lvPick(r) {
     const ready = (en) => (r.W[en].nx || 0) <= r.step;
-    const en = r.q.find((x) => ready(x) && x !== r.last) || r.lap.find((x) => ready(x) && x !== r.last) || r.q.find((x) => x !== r.last) || r.lap.find((x) => x !== r.last) || r.q[0] || r.lap[0];
+    const win = r.q.slice(0, 4), en = win.find((x) => ready(x) && x !== r.last) || r.lap.find((x) => ready(x) && x !== r.last) || win.find((x) => x !== r.last) || r.lap.find((x) => ready(x) && x !== r.last) || r.q.find((x) => x !== r.last) || r.lap.find((x) => x !== r.last) || r.q[0] || r.lap[0];
     if (!en) { r.cur = null; r.fb = null; return lvFinish(r); }
     const w = r.words.find((x) => x.en === en), x = r.W[en];
     let s = x.s; if (s >= 7) s = (w.i + +r.date.slice(8) + (r.n || 0)) % 2 ? 6 : 5;  // 마지막 한 바퀴: 뜻 쓰기 · 영어 쓰기 번갈아 (시험지처럼)
@@ -5471,7 +5471,7 @@
     if (ok) {
       r.ok++; r.combo++; r.best = Math.max(r.best, r.combo); r.star += 1 + (r.combo >= 5 ? 1 : 0);
       if (x.s >= 7) { r.lap = r.lap.filter((e) => e !== c.en); x.s = 8; const ds = [...new Set([...(rec.ds || []), td])].slice(-6); lvPut('w:' + c.en, { st: 7, sd: td, dn: r.tag, ds, lst: 1, c: (rec.c || 0) + 1, ...(rec.lm && rec.lm[0] !== td ? { lm: null } : {}) }); }  // 지난날 틀린 표시는 오늘 다 맞히면 지워요
-      else { x.k++; const up = x.k >= (x.s === 6 ? Math.max(3, x.need) : x.s === 5 ? Math.max(2, x.need) : x.need); if (up) { x.s++; if (x.s === 2 || x.s === 4) x.s++; x.k = 0; x.need = 1; }  // 11/10 «다 고르기만 해 놨어, 시험지처럼 쓰는 게 포인트» → 고르기는 ① 한 번, 소리 조각 ③ 뒤 바로 쓰기 x.nx = r.step + 3;
+      else { x.k++; const up = x.k >= (x.s === 6 ? Math.max(3, x.need) : x.s === 5 ? Math.max(2, x.need) : x.need); if (up) { x.s++; if (x.s === 2 || x.s === 4) x.s++; x.k = 0; x.need = 1; } x.nx = r.step + 3;  // 11/10 «다 고르기만 해 놨어, 시험지처럼 쓰는 게 포인트» → 고르기는 ① 한 번, 소리 조각 ③ 뒤 바로 쓰기
         if (x.s >= 7) { r.q = r.q.filter((e) => e !== c.en); r.lap.push(c.en); x.nx = r.step + 2; }
         lvPut('w:' + c.en, { st: Math.min(x.s, 7), sd: td, c: (rec.c || 0) + 1 }); r.up = up ? c.en : null; }
     } else {
@@ -5535,7 +5535,7 @@
   function lvList(r) {
     const T = lvTest(r.test), P = lvPlan(T, r.date), before = new Set(T.plan.filter((x) => x.date < P.date).flatMap((x) => x.days)), all = lvAll(P.days), d = lvDay(r);
     const seenAll = d.seen || all.every((w) => r.seen[w.en]), n = all.filter((w) => r.seen[w.en]).length;
-    const goal = P.mock ? '카드로 한 번 보고 → 덜 외운 단어 데우기 → 시험지 그대로 모의시험 40문제 → 틀린 것 다시 외우고 다시 시험' : '카드를 다 넘겨 보고 → 단어마다 6단계 게임 → 마지막 한 바퀴. 틀린 단어는 맞힐 때까지 다시 나와요';
+    const goal = P.mock ? '카드로 한 번 보고 → 덜 외운 단어 데우기 → 시험지 그대로 모의시험 40문제 → 틀린 것 다시 외우고 다시 시험' : '카드 보기 → 네 단어씩: 뜻 고르기 한 번 → 소리 조각 → 뜻 쓰기 2번 → 영어 쓰기 3번(앞글자 힌트 → 힌트 없이) → 마지막에 학원 시험지 그대로';
     const sec = (dy) => { const L = all.filter((w) => w.day === dy), nw = !before.has(dy); return `<div class="lv-sec"><div class="row between"><b>Day ${dy} · ${nw ? '새 단어' : '배운 단어'}</b><span class="tiny">${L.length}개</span></div><div class="lv-cards">${L.map((w, k) => `<div class="lv-card ${r.seen[w.en] ? 'seen' : ''}" data-lvflip="${esc(w.en)}" role="button" tabindex="0" style="--i:${Math.min(k, 20)}"><div class="lv-in3"><div class="lv-f lv-front">${lvChunks(w)}<span class="tiny lv-hint">눌러서 뜻 보기</span></div><div class="lv-f lv-back"><b>${esc(w.k)}</b><span class="tiny">${esc(w.ko)}</span></div></div>${lvSay(w)}<i class="lv-ck"></i></div>`).join('')}</div></div>`; };
     return `<div class="qwrap lv" style="max-width:760px;margin:0 auto">${lvHead(r)}<h1 class="h1">${esc(lvPlanLabel(T, P))}</h1><p class="sub" style="margin:0">${md(P.date)} ${esc(wdName(P.date))} 몫 · ${esc(goal)}</p>${lvTop(r)}
       <section class="card"><div class="row between"><h3 style="margin:0">먼저 카드 보기</h3><span class="lv-hr"><span class="tiny lv-cnt"><b class="num">${seenAll ? all.length : n}</b> / ${all.length} 봤어요</span><button type="button" class="btn sm lv-all" data-lvflipall>전체 뒤집기</button></span></div><p class="tiny" style="margin:6px 0 0">색 글자는 소리 덩어리예요. 🔊 를 누르면 소리가 나요. 카드를 누르면 뒤집혀요</p>${[...new Set(all.map((w) => w.day))].map(sec).join('')}</section>
@@ -5581,8 +5581,8 @@
     const done = (en) => !r.q.includes(en) && !r.lap.includes(en);
     const nums = `<div class="lv-nums" role="list">${r.words.map((x, k) => { const W = r.W[x.en], lv = W ? Math.min(7, W.s) : 7;
       return `<button type="button" class="${x.en === c.en ? 'on' : ''} ${done(x.en) ? 'ok' : ''}" style="--lv:${lv}" data-lvnum="${k}" aria-label="${k + 1}번 ${esc(x.en)}">${k + 1}</button>`; }).join('')}</div>`;
-    const back = `<button type="button" class="btn sm lv-back" data-lvtolist>‹ 카드 다시 보기</button>`;
-    return `<div class="qwrap lv" style="max-width:640px;margin:0 auto">${lvHead(r, esc(ttl)).replace('</button>', '</button>' + back)}${hud}${nums}${lab}<section class="card lv-q">${prompt}${lvHint(r, w, c)}</section>${body}${fbh}</div>`;
+    const back = `<button type="button" class="btn sm lv-relist" data-lvtolist>‹ 카드 다시 보기</button>`;
+    return `<div class="qwrap lv" style="max-width:640px;margin:0 auto">${lvHead(r, esc(ttl)).replace('</span></div>', '</span>' + back + '</span></div>').replace('<span class="tiny">', '<span class="lv-hd-r"><span class="tiny">')}${hud}${nums}${lab}<section class="card lv-q">${prompt}${lvHint(r, w, c)}</section>${body}${fbh}</div>`;
   }
   function lvSheet(r, retest) {
     const mk = lvS()['mk:' + lvKey(r)] || {}, wr = retest ? ((mk.re ? mk.re.wr : mk.wr) || []) : null, L = lvSheetItems(r).filter((x) => !wr || wr.includes(x.w.en)), T = lvTest(r.test), P = lvPlan(T, r.date);
@@ -5668,7 +5668,7 @@
     const dr = $('[data-lvdrill]'); if (dr) dr.onclick = () => lvDrill(r);
   }
   document.addEventListener('keydown', (e) => { const r = UI.run; if (!r || r.kind !== 'lv' || r.stage !== 'play' || !r.fb || r.fb.ask || e.key !== 'Enter' || e.defaultPrevented || e.isComposing || typing()) return; e.preventDefault(); lvNextQ(r); });
-  if (localStorage.getItem('mu:offline') === '1') window.__lvT = { open: lvOpen, S: () => S, run: () => UI.run, hw: (L) => { S.hw = [...(S.hw || []).filter((h) => !L.some((x) => x.id === h.id)), ...L]; render(); } };  // 테스트 탭(서버 끊은 곳)에서만
+  if (localStorage.getItem('mu:offline') === '1') window.__lvT = { open: lvOpen, S: () => S, run: () => UI.run, ans: (ok) => { const r = UI.run; if (r && r.fb && !r.fb.ask) lvNextQ(r); else if (r) lvAnswer(r, ok); }, hw: (L) => { S.hw = [...(S.hw || []).filter((h) => !L.some((x) => x.id === h.id)), ...L]; render(); } };  // 테스트 탭(서버 끊은 곳)에서만
 
   // ── 🎧 Listening Live 2: 통째로 듣기는 어려워서 단어 → 한 문장씩 듣기 → 교과서 문제 → 받아쓰기(고르기)
   const JL_M = { words: '단어', lines: '한 문장씩 듣기', quiz: '교과서 문제', dict: '받아쓰기' };
@@ -6555,7 +6555,7 @@
   const lsnRow = (h, can) => `<div class="li ${can ? 'btnlike' : 'is-lock'} ${hwDone(h) ? 'is-done' : ''}" ${can ? `data-hwopen="${esc(h.id)}"` : 'aria-disabled="true"'}><div class="ico">${ic(hwDone(h) ? 'ok' : can ? 'pencil' : '1f512')}</div><div class="body"><div class="t">${esc(String(h.title || '').replace(/^[^\p{L}\p{N}]+\s/u, ''))}</div></div>${can ? '<span class="chev"></span>' : ''}</div>`;
   // ───────── 윤건 수업 시험 (11/3) ─────────
   // 범위는 S.jwt[날짜] = { units: [천일문 유닛], days: [워드마스터 Day], m3: [매3영 Day], n, wn, mn } · 선생님 말 듣고 바로 바꿔요
-  const ygPlan = (date) => { const o = { ...(((LS0.tests || {})[date]) || {}), ...(((S.jwt || {})[date]) || {}) }; return { units: (o.units || []).length ? o.units.map(Number) : null, days: (o.days || []).length ? o.days.map(Number) : null, m3: (o.m3 || []).length ? o.m3.map(Number) : null, tu: (o.tu || []).length ? o.tu.map(Number) : null, n: o.n || 15, wn: o.wn || 20, mn: o.mn || 10 }; };
+  const ygPlan = (date) => { const o = { ...(((LS0.tests || {})[date]) || {}), ...(((S.jwt || {})[date]) || {}) }; return { units: (o.units || []).length ? o.units.map(Number) : null, days: (o.days || []).length ? o.days.map(Number) : null, m3: (o.m3 || []).length ? o.m3.map(Number) : null, tu: (o.tu || []).length ? o.tu.map(Number) : null, gr: (o.gr || []).length ? o.gr.map(String) : null, n: o.n || 15, wn: o.wn || 20, mn: o.mn || 10 }; };
   const M3U = () => ((NXD.subjects || []).find((x) => x.key === 'm3') || {}).units || [];
   function ygTest(id) {
     const [k, date] = [id.slice(0, 2), id.slice(3)], P = ygPlan(date), [, m, d] = date.split('-').map(Number), saved = nxS().lq[id];
@@ -6589,7 +6589,11 @@
       return `<div class="li btnlike ${done ? 'is-done' : ''}" data-task="cl:m3:${esc(u.id)}"><div class="ico">${ic(done ? 'ok' : 'eng')}</div><div class="body"><div class="t">매3영 ${esc(u.code || 'Day ' + u.no)} ${esc(u.title || '')}</div><div class="d">${fin.length ? `${fin.map((L) => L.m3).join('·')} 지문 끝냈어요` : '지문마다 단어 → 문제 → 문장 구조'}</div></div><span class="chev"></span></div>`;
     }).join('');
     const step = (k, h, sub, body) => `<div class="cl-st"><div class="cl-st-h"><i>${k}</i><b>${h}</b>${sub ? `<span class="tiny">${sub}</span>` : ''}</div>${body}</div>`;
-    const B = { h1: P.tu ? '수업 전 시험' : '단어 시험', tests: `<div class="list">${P.tu || nxS().lq['ls:' + sl.date] ? row('ls', '천일문 시험') : ''}${row('lw', '단어 시험')}</div>`, items: chRows || m3Rows ? `<div class="list">${chRows}${m3Rows}</div>` : '', sub2: '누르면 그 단원이 열려요' };
+    const grRows = (P.gr || []).map((id) => NXU[id]).filter(Boolean).map((u) => { const L = stLessons(u).find((x) => x.nk === 'grammar'); if (!L) return '';
+      const ts = Object.keys(u.tsec || {}).filter((p) => u.tsec[p] === L.k && NXSETS[`${u.id}:${p}`]).map((p) => NXSETS[`${u.id}:${p}`]), qs = [L.q, ...ts.map((x) => x.id)].filter(Boolean).flatMap((x) => NXSETS[x].qs), dn = qs.filter((q) => nxS().a[q.i]).length, done = qs.length && dn >= qs.length && !!nxS().a[stLRead(u, L)];
+      const pts = [].concat((u.notes || {}).grammar || []).map((g) => g && g.title).filter(Boolean);
+      return `<div class="li btnlike ${done ? 'is-done' : ''}" data-task="cl:gr:${esc(u.id)}:${L.k}"><div class="ico">${ic(done ? 'ok' : 'pencil')}</div><div class="body"><div class="t">내신 ${esc(u.code || u.id)} 문법 · 개념 + 문제 ${qs.length}개</div><div class="d">${esc(pts.join(' · ') || u.title || '')}${dn && !done ? ` · ${dn}/${qs.length} 풀었어요` : ''}</div></div><span class="chev"></span></div>`; }).join('');
+    const B = { h1: P.tu ? '수업 전 시험' : '단어 시험', tests: `<div class="list">${P.tu || nxS().lq['ls:' + sl.date] ? row('ls', '천일문 시험') : ''}${row('lw', '단어 시험')}</div>`, items: chRows || m3Rows || grRows ? `<div class="list">${chRows}${m3Rows}${grRows}</div>` : '', sub2: '누르면 그 단원이 열려요' };
     if (bare) return B;
     return `<section class="card c6 jw-cl yg-cl"><div class="card-h"><h2>${ic('cal')} ${when} 수업</h2><span class="tag ${sl.open ? 'blue' : ''}">${sl.open ? '수업 중' : `${esc(timeKo(sl.time) || '')} 시작`}</span></div>
       ${step(1, B.h1, '점수는 리포트로 가요', B.tests)}
@@ -7450,7 +7454,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611101928'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611101946'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -9224,6 +9228,7 @@
     if (k.startsWith('wq:')) return wqOpen(k.slice(3));
     if (k.startsWith('cl:mq:')) { const [mid, kk] = [k.slice(6, k.lastIndexOf(':')), +k.slice(k.lastIndexOf(':') + 1)], mk = (NXD.mocks || []).find((m) => m.id === mid); if (mk && mqSet(mk, kk)) nxStart(`mq:${mid}:${kk}`, 'exam'); return; }
     if (k.startsWith('cl:hd:')) { if (hdSet(+k.slice(6))) nxStart('hd:' + k.slice(6), 'exam'); return; }
+    if (k.startsWith('cl:gr:')) { const [uid, lk] = k.slice(6).split(':'), u = NXU[uid]; if (!u) return; UI.run = null; UI.stS = u.subj; UI.stU = u.id; UI.stT = 'L' + lk; UI.stP = null; UI.stV = 'unit'; go('study'); window.scrollTo(0, 0); return; }
     if (k.startsWith('cl:m3:')) { const u = NXU[k.slice(6)]; if (!u) return; UI.run = null; UI.stS = 'm3'; UI.stU = u.id; UI.stT = null; UI.stP = null; UI.stV = 'unit'; go('study'); window.scrollTo(0, 0); return; }
     if (k.startsWith('cl:ch:')) { const i = CH_UNITS.findIndex((x) => String(x.unit) === k.slice(6)); if (i < 0) return; UI.tab = 'exam'; UI.run = { kind: 'unit', ref: i, back: 'exam' }; render(); window.scrollTo(0, 0); return; }
     if (k.startsWith('pp:ch:')) { const i = CH_UNITS.findIndex((x) => String(x.unit) === k.slice(6)); if (i < 0) return; UI.tab = 'hw'; UI.run = { kind: 'unit', ref: i, back: 'hw' }; render(); window.scrollTo(0, 0); return; }
