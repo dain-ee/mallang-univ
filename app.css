@@ -2819,6 +2819,7 @@ button.st-k.hid:hover { background: var(--blue-soft); }
 .st-sen em { display: block; font-style: normal; font-size: 12px; font-weight: 500; color: var(--blue); }
 @media (min-width: 900px) {
   .st-wrap { grid-template-columns: 280px 1fr; align-items: start; gap: 20px; }
+  .st-wrap.only { grid-template-columns: minmax(0, 1fr); max-width: 860px; }
   .st-side { position: sticky; top: 88px; max-height: calc(100vh - 104px); overflow: auto; padding: 16px; background: var(--card); border-radius: var(--r-card); }
   .st-ul { display: grid; gap: 4px; margin: 0; padding: 0; overflow: visible; }
   .st-lh { display: block; margin: 12px 4px 4px; }
@@ -3521,6 +3522,8 @@ button.st-k.rv { animation: stRv .32s cubic-bezier(.2, .8, .2, 1); }
 .hw-float i { flex: none; width: 7px; height: 7px; border-radius: 50%; background: #4dabf7; animation: myTmP 1.2s ease-in-out infinite; }
 .hw-float.paused i { background: #8b95a1; animation: none; }
 @media (max-width: 899px) { .hw-float { top: auto; bottom: calc(var(--tab-h) + 12px + env(safe-area-inset-bottom)); } }
+/* 11/11 타이머가 아래 큰 단추를 가리지 않게: 큰 단추 막대가 있는 화면에서는 그 위로 올려요 */
+@media (max-width: 899px) { body:has(#main .cta-bar) .hw-float { bottom: calc(var(--tab-h) + 12px + 56px + 10px + env(safe-area-inset-bottom)); } }
 
 /* 리포트 아래 칸: 위 큰 탭(공부 리포트·모의고사·내신)과 같은 모양이면 무슨 탭인지 헷갈려서 글자 밑줄 탭으로 (11/2) */
 .sr-bar-row .sr-tabs, .sr-tabs { display: flex; gap: 20px; max-width: none; flex: 1 1 auto; border-bottom: 1px solid var(--line, #e5e8eb); padding: 0 4px; }

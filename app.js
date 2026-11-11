@@ -2367,7 +2367,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611112256', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611112304', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7335,7 +7335,7 @@
       return `<section class="card st-sec m3-go"><div class="m3-hi">${gh(sub === 'c' ? 'focus' : 'peek', 'm3-gh')}<div><div class="st-kick">${esc(CL.t)} · ${esc(P.source || '')}</div><h2>${esc(say)}</h2><p class="sub">${sub === 'c' ? '다 외웠으면 뜻 고르기로 확인해요' : '다 풀면 문장 하나씩 구조를 봐요'}</p></div></div>${words}<button class="btn primary big block" data-nx="${esc(id)}" type="button">${g.d ? `이어서 하기 · ${g.d}/${g.n}` : sub === 'c' ? `다 외웠어요 · 뜻 고르기 ${g.n}개` : `문제 풀기 · ${g.n}문제`} ›</button></section>`; })() : '';
     const m3nx = CL && CL.m3 ? steps[sti + 1] : null;
     const lnext = !CL || inner || sub !== 'n' ? '' : CL.m3 ? `<div class="st-next"><button class="btn primary big block" data-stread type="button">${nxS().a[stLRead(u, CL)] ? '' : '다 봤어요 · '}${UI.stOnly === `${u.id}:${cur.k}` ? '숙제 끝내기' : `다음: ${esc(m3nx ? (m3nx.L ? `${m3nx.L.m3} 지문` : m3nx.name) : '끝')}`} ›</button></div>` : `<div class="st-next">${!nxS().a[stLRead(u, CL)] || CL.c || CL.q ? `<button class="btn primary big block" data-stread type="button">${nxS().a[stLRead(u, CL)] ? '' : '다 읽었어요 · '}다음: ${CL.c ? `빈칸 ${NXSETS[CL.c].qs.length}개` : CL.q ? `문제 ${NXSETS[CL.q].qs.length}개` : esc((nxt || {}).name || '')} ›</button>` : ''}</div>`;
-    const stOnly = !!cur && (UI.stOnly === `${u.id}:${cur.k}` || (!!inner && UI.stOnly === `${u.id}:run`));  /* 11/4 «자기 해당 범위가 아니면 탭 옆에 해 놓지 말라고»: 문제를 풀 때도 그 단계만 */
+    const stOnly = (!!cur && UI.stOnly === `${u.id}:${cur.k}`) || (!!inner && UI.stOnly === `${u.id}:run`);  /* 11/4 «자기 해당 범위가 아니면 탭 옆에 해 놓지 말라고»: 문제를 풀 때도 그 단계만 */
     // 11/4 «숙제를 했는데 다 하면 B 지문으로 인도해, 숙제가 뭔지도 모르고 계속 하게 될 거라고» → 숙제로 연 지문은 끝나면 결과와 함께 마무리하고 숙제 목록으로
     // 11/4 «이건 다른 과목도 마찬가지»: 숙제로 연 단원은 과목 상관없이, 다 하면 결과 카드로 마무리 (다음 지문·단원으로 끌고 가지 않아요). 「다시 보기」로 내용을 다시 펼 수 있어요
     const hwKey = cur ? `${u.id}:${cur.k}` : '', hwDone = !inner && CL && stOnly && UI.stAgain !== hwKey && (UI.stDone === hwKey || (!UI.m3rv && stLDone(u, CL)));
@@ -7354,7 +7354,7 @@
         ${hwDone ? '' : lsub}${!hwDone && (tab === 'notes' || tab === 'terms' || (CL && sub === 'n' && !inner)) ? `<div class="row between st-tools">${CL && CL.m3 ? `<span class="tiny">${UI.sxAll ? '구조와 해석이 다 보여요' : '문장마다 혼자 읽어 보고 구조 보기 → 해석 스티커 차례로 열어요'}</span><button type="button" class="btn sm ${UI.sxAll ? 'primary' : ''}" data-sxall aria-pressed="${!!UI.sxAll}">${UI.sxAll ? '다시 가리기' : '다 펼치기'}</button>` : `<span class="tiny">${u.subj === 'eng' && tab !== 'terms' ? '「가리고 외우기」를 켜면 우리말 뜻이 가려져요' : tab !== 'terms' ? '굵은 말이 빈칸에 나와요' : '눌러서 가렸다 보였다 해요'}</span><button type="button" class="btn sm ${UI.stHide ? 'primary' : ''}" data-sthide aria-pressed="${!!UI.stHide}">${UI.stHide ? '가린 것 다 보기' : '가리고 외우기'}</button>`}</div>` : ''}</section>
       ${inner ? `<div class="st-run">${inner}</div>` : hwDone ? doneHtml : m3go || (CL ? stNotes(u, CL) || '<div class="card empty"><b>정리가 아직 없어요</b></div>' : tab === 'notes' ? stNotes(u) || '<div class="card empty"><b>정리가 아직 없어요</b></div>' : tab === 'terms' ? stTerms(u) : tab === 'memo' ? m3Board(u) : tab === 'order' ? stOrder(u) : stParts(u))}${hwDone ? '' : nextBar}`;
     return `${UI.clRun ? '<button class="btn sm cl-back" data-go="exam" type="button">‹ 수업 목록</button>' : ''}<h1 class="h1">공부</h1><p class="sub">${YF ? `${esc(YF.title)} ${md(YF.from)}~${md(YF.to).replace(/^\d+월 /, '')}${dday(YF.from) >= 0 ? ` · D-${dday(YF.from)}` : ''}` : '단원별로 정리하고 문제를 풀어요'}</p>
-      ${inner || !YP_ON ? '' : `<div class="seg st-view">${[['unit', '단원 공부'], ['plan', '공부 계획']].map(([k, nm]) => `<button type="button" class="${(UI.stV || 'unit') === k ? 'on' : ''}" data-stv="${k}">${nm}</button>`).join('')}</div>`}${!inner && YP_ON && UI.stV === 'plan' ? `<div class="grid">${ypCard()}</div>` : `<div class="st-wrap">${side}<div class="st-main">${body}</div></div>`}`;  // 계획 달력과 단원 공부를 한 스크롤에 잇지 않아요 (10/31 «아래 숙제페이지랑 같이 스크롤로 연결된 게 맞냐»)
+      ${inner || stOnly || !YP_ON ? '' : `<div class="seg st-view">${[['unit', '단원 공부'], ['plan', '공부 계획']].map(([k, nm]) => `<button type="button" class="${(UI.stV || 'unit') === k ? 'on' : ''}" data-stv="${k}">${nm}</button>`).join('')}</div>`}${!inner && YP_ON && UI.stV === 'plan' ? `<div class="grid">${ypCard()}</div>` : `<div class="st-wrap ${stOnly ? 'only' : ''}">${stOnly ? '' : side}<div class="st-main">${body}</div></div>`}`;  // 계획 달력과 단원 공부를 한 스크롤에 잇지 않아요 (10/31 «아래 숙제페이지랑 같이 스크롤로 연결된 게 맞냐»)
   }
   // 단계를 바꿔도 단계 줄이 화면에서 같은 자리에 남게 (위로 튀지 않게)
   function stKeep(fn) { const h = $('.st-head'), y0 = h ? h.getBoundingClientRect().top : null; fn(); const h2 = $('.st-head'); if (h2 && y0 != null) window.scrollBy(0, h2.getBoundingClientRect().top - Math.max(y0, 72)); }
@@ -7567,7 +7567,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611112256'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611112304'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -9373,7 +9373,7 @@
     if (k.startsWith('pp:ch:')) { const i = CH_UNITS.findIndex((x) => String(x.unit) === k.slice(6)); if (i < 0) return; UI.tab = 'hw'; UI.run = { kind: 'unit', ref: i, back: 'hw' }; render(); window.scrollTo(0, 0); return; }
     if (k.startsWith('pp:memo:')) return memoReview(k.slice(8));
     if (k.startsWith('pp:wm:')) { const it = YP.find((x) => x.id === k); if (it) wqGo({ title: it.title, sub: `${md(it.test)} 단어 시험 준비`, M: it.words.map((w) => ({ en: w.en, ko: w.ko, day: w.day })), key: 'wm:' + k.slice(6), store: 'nx' }); return; }
-    if (k.startsWith('yp:') || k.startsWith('pp:')) { const ys = NXSETS[k]; if (ys && ys.nav) { const u = NXU[ys.unit]; UI.stS = u.subj; UI.stU = u.id; UI.stT = ys.nav; UI.stP = ys.rv ? 'n' : null; UI.stV = 'unit'; go('study'); UI.stOnly = u.id + ':' + ys.nav; UI.m3rv = ys.rv ? ys.qs[0].i : null; render(); const m = $('.st-main'); if (m) m.scrollIntoView({ block: 'start' }); return; } { const ys = NXSETS[k]; const uu = ys && NXU[ys.unit]; UI.stOnly = null; nxStart(k, uu ? 'study' : 'hw'); if (uu) { UI.stOnly = `${uu.id}:run`; render(); } return; }  /* 단원 없는 숙제(천일문 복습 같은 것)도 끝나면 숙제 목록으로 (11/4) */ }
+    if (k.startsWith('yp:') || k.startsWith('pp:')) { const ys = NXSETS[k]; if (ys && ys.nav) { const u = NXU[ys.unit]; UI.stS = u.subj; UI.stU = u.id; UI.stT = ys.nav; UI.stP = ys.rv ? 'n' : null; UI.stV = 'unit'; go('study'); UI.stOnly = u.id + ':' + ys.nav; UI.m3rv = ys.rv ? ys.qs[0].i : null; render(); const m = $('.st-main'); if (m) m.scrollIntoView({ block: 'start' }); return; } { const ys = NXSETS[k]; const uu = ys && NXU[ys.unit]; UI.stOnly = null; if (uu) { UI.stS = uu.subj; UI.stU = uu.id; } nxStart(k, uu ? 'study' : 'hw'); if (uu) { UI.stOnly = `${uu.id}:run`; render(); } return; }  /* 단원 없는 숙제(천일문 복습 같은 것)도 끝나면 숙제 목록으로 (11/4) */ }
     if (k.startsWith('study:')) { UI.stS = k.slice(6); UI.stU = null; return go('study'); }
     if (k === 'sci') { UI.tab = 'hw'; UI.run = { kind: 'sci' }; }
     else if (k === 'unit') { UI.tab = 'hw'; UI.run = { kind: 'unit' }; }
