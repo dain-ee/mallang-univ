@@ -4619,7 +4619,7 @@ main .wq-day { animation: waveInS .4s var(--ease) both; animation-delay: calc(va
 .iv-one .iv-nums { margin: -4px -4px 12px; padding: 4px 4px 12px; border-bottom: 1px solid var(--line); }
 .iv-bk-a.none b { font-weight: 600; color: var(--t3); margin-right: 4px; }
 /* 11/9 «귀신이 왜 저기 있어, 공간을 넓히면서» → 폰에서 승조 홈은 카드 위 빈칸 없이 제목 오른쪽에 */
-@media (max-width: 520px) { .iv-home > .card.has-perch { margin-top: 0 !important; } .iv-home .pet-perch { display: none; } }  /* 폰은 제목이 꽉 차서 유령이 앉을 데가 없어요 */
+@media (max-width: 520px) { .iv-home > .card.has-perch, .iv-home .pet-anchor { margin-top: 0 !important; } .iv-home .pet-perch { display: none; } }  /* 폰은 제목이 꽉 차서 유령이 앉을 데가 없어요 */
 .iv-gotoday { margin-top: 12px; animation: waveIn .45s .2s both; }
 .iv-app { display: flex; align-items: center; gap: 20px; }
 .iv-app-qr { flex: none; width: 112px; height: 112px; border-radius: 12px; background: var(--fill); padding: 6px; opacity: 0; transform: scale(.94); transition: opacity .4s, transform .4s cubic-bezier(.2,1.2,.4,1); }

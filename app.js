@@ -2367,7 +2367,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611112253', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611112256', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2440,7 +2440,7 @@
     requestAnimationFrame(() => { const hr = host.getBoundingClientRect(), pw = Math.max(el.offsetWidth, $('img', el).getBoundingClientRect().width), spill = (pw - el.offsetWidth) / 2; let lx = Infinity;
       $$('#main button, #main a').forEach((b) => { if (host.contains(b)) return; const r = b.getBoundingClientRect(); if (r.width && r.bottom > hr.top - pw * 0.8 && r.top < hr.top && r.right > hr.right - pw - 40 && r.left < hr.right) lx = Math.min(lx, r.left); });  // 카드 오른쪽 바깥(옆 칸 카드)은 비킬 필요 없어요 (10/31 선생님 화면에서 원이가 가운데로 밀려 말풍선이 옆 카드를 덮었어요)
       if (lx < Infinity) { const rr = hr.right - lx + 8 + spill; if (rr + pw > hr.width * 0.5) { el.remove(); host.classList.remove('has-perch'); return; } el.style.right = `${Math.max(16, rr)}px`; el.dataset.r0 = el.style.right; } // 비킬 자리가 없으면(버튼이 줄 전체) 이 화면엔 안 앉아요
-      fitSay(); clearTx(); hideHts(); setTimeout(() => { fitSay(); clearTx(); hideHts(); }, 700); document.fonts && document.fonts.ready.then(() => { fitSay(); clearTx(); hideHts(); }); });
+      fitSay(); clearTx(); clearSay(); hideHts(); setTimeout(() => { fitSay(); clearTx(); clearSay(); hideHts(); }, 700); document.fonts && document.fonts.ready.then(() => { fitSay(); clearTx(); clearSay(); hideHts(); }); });
     // 쿠로미 하트·밤돌이 나뭇잎: 글자와 겹치는 하트는 숨겨요 (글자를 가리면 안 돼요)
     const hideHts = () => { const hs = $$('.pet-hts i, .pet-lvs i', el); if (!hs.length) return; const tx = [], w = document.createTreeWalker($('#main'), NodeFilter.SHOW_TEXT); for (let n; (n = w.nextNode());) { if (!n.textContent.trim() || el.contains(n)) continue; const rg = document.createRange(); rg.selectNodeContents(n); tx.push(...rg.getClientRects()); }
       hs.forEach((h) => { const r = h.getBoundingClientRect(); h.hidden = tx.some((q) => q.width && r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top); }); };
@@ -2454,6 +2454,10 @@
       const need = Math.max(hit.length ? Math.max(...hit.map((q) => q.bottom)) - top + 6 : 0, hb ? hb + 6 - r.top : 0);
       if (need > 0) { const ht = host.getBoundingClientRect().top, row = [...host.parentNode.children].filter((c) => c !== host && c.classList.contains('card') && Math.abs(c.getBoundingClientRect().top - ht) < 3);  // 같은 줄 옆 카드도 같이 내려요 (10/31 «왜 단차가 있냐니까»)
         [host, ...row].forEach((c) => { c.style.marginTop = `${parseFloat(getComputedStyle(c).marginTop) + need}px`; if (c !== host) c.dataset.prow = '1'; }); } };
+    // 11/11 폰에서 말풍선이 제목 밑 글자를 가렸어요(지원 화면) → 가린 만큼 카드를 아래로 내려요
+    const clearSay = () => { if (innerWidth > 520 || !el.isConnected) return; const sy = $('.pet-say', el); if (!sy || sy.hidden || sy.style.visibility === 'hidden') return; const r = sy.getBoundingClientRect(), ht = host.getBoundingClientRect().top;
+      const hit = txRects().filter((q) => q.width && r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top && q.bottom < ht + 4); if (!hit.length) return;
+      const need = Math.max(...hit.map((q) => q.bottom)) - r.top + 8; if (need > 0 && need < 260) host.style.marginTop = `${parseFloat(getComputedStyle(host).marginTop) + need}px`; };
     // 말풍선은 언제나 펫 오른쪽 옆에 세로로 좁게, 카드 윗변 위에 (10/27 선생님 «위로 말고 옆으로 · 오른쪽 세로로»)
     // 오른쪽 자리가 모자라면 펫을 왼쪽으로 비켜 앉혀 자리를 만들어요
     // 말풍선 자리 규칙 (10/27 선생님 «배치 규칙을 정해»)
@@ -7563,7 +7567,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611112253'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611112256'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
