@@ -2367,7 +2367,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611111749', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611112157', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4303,8 +4303,23 @@
       <div class="wh-a" style="--i:4"><b>Q. 목적어 자리에 부사절이 올 수 있어?</b><span>아니요. 문장의 주어·목적어·보어 자리에는 명사(명사절)만 와요. whomever가 「목적어」라는 건 <b>절 안에서</b> 목적어라는 뜻이지, 문장의 목적어 자리에 있다는 뜻이 아니에요</span></div>
       <div class="wh-a" style="--i:5"><b>어제 C 문장은 이 순서로 봐요</b><span>① whoever 절을 지워 보고 남은 문장이 완전한지 → 명사절·부사절 ② 절 안에 주어가 비었는지 목적어가 비었는지 → whoever·whomever</span></div></div>`;
   const myAddSelf = () => { const M = myS(); if (!M.cls.some((c) => c.id === 'self')) { M.cls.push({ id: 'self', name: '내가 더 할 것', day: null }); save('my'); } M.last = 'self'; myAdd(); };
+  // 11/11 «정윤이 지금 모르는 거 분석해서 알림으로, whom 그거는 내려»: 11/6~11/11 천일문 9·10·11 유닛에서 틀린 5문제가 전부 that·what·whether 고르기와 의문사절 어순
+  const GD_TW = `<div class="wh-sh">
+      <div class="wh-q" style="--i:0"><span class="wh-n">1</span><div><b>that이냐 what이냐는 <mark class="hl-g">뒤 문장</mark>이 완전한지만 봐요</b><span>뒤에 주어·목적어가 다 있으면 <b>that</b>, 하나가 비어 있으면 <b>what</b> (비어 있는 그것이 what)</span></div></div>
+      <div class="wh-q" style="--i:1"><span class="wh-n">2</span><div><b>that이냐 whether냐는 <mark class="hl-g">앞말</mark>을 봐요</b><span>이미 정해진 사실이면 <b>that</b>, 아직 모르는 일이면 <b>whether</b>. debated, unclear, uncertain, remains to be seen, depends on 이 보이면 whether</span></div></div>
+      <div class="wh-q" style="--i:2"><span class="wh-n">3</span><div><b>의문사절은 <mark class="hl-g">평서문 순서</mark>예요</b><span>문장 안에 들어가면 did, does 를 빼고 「의문사 + 주어 + 동사」로 써요</span></div></div>
+      <div class="wh-t" style="--i:3"><span></span><b>언제</b><b>예문</b>
+        <b>that</b><p>뒤가 완전 · 정해진 사실<em>~라는 것</em></p><p><i>That</i> he resigned surprised everyone.<em>he resigned: 빠진 게 없어요</em></p>
+        <b>what</b><p>뒤에 주어나 목적어가 빔<em>~하는 것</em></p><p><i>What</i> I learned from the trip was patience.<em>learned 의 목적어가 비었어요</em></p>
+        <b>whether</b><p>뒤가 완전 · 아직 모름<em>~인지 아닌지</em></p><p>It is still debated <i>whether</i> it is accurate.<em>주어 자리에는 if 를 못 써요</em></p></div>
+      <p class="wh-k" style="--i:4">요즘 천일문에서 틀린 5문제가 전부 이 세 가지였어요</p>
+      <div class="wh-a" style="--i:5"><b>[What / That] leaders must also listen to others has been proven.</b><span>leaders must listen to others 는 빠진 게 없어요 → <b>That</b></span></div>
+      <div class="wh-a" style="--i:6"><b>it was found [that / what] the best performers had practiced far more hours.</b><span>the best performers had practiced 도 완전해요 → <b>that</b></span></div>
+      <div class="wh-a" style="--i:7"><b>That I learned from the trip was the value of patience. (틀린 문장)</b><span>learned 뒤에 「무엇을」이 없어요 → <b>What</b> I learned</span></div>
+      <div class="wh-a" style="--i:8"><b>it is still debated [that / whether] first impressions are accurate at all.</b><span>debated 는 아직 결론이 안 났다는 말이에요 → <b>whether</b></span></div>
+      <div class="wh-a" style="--i:9"><b>Where did the ancient people get the stone is still unknown. (틀린 문장)</b><span>주어 자리에 들어간 의문사절이라 평서문 순서 → Where the ancient people <b>got</b> the stone</span></div></div>`;
   const GD = {
-    wh: { on: () => U.who === '정윤' && today() <= '2026-11-24', ic: 'think', b: 'whoever · whomever 정리했어요', d: '어제 톡에서 헷갈린 것, 두 가지만 보면 돼요', go0: '보기', h: 'whoever · whomever 정리', sub: '어제 헷갈린 건 서로 다른 두 질문을 섞어서 생겼어요', html: GD_WH },
+    tw: { on: () => U.who === '정윤' && today() <= '2026-11-25', ic: 'think', b: 'that · what · whether 고르기 정리했어요', d: '요즘 천일문에서 틀린 5문제, 세 가지만 보면 돼요', go0: '보기', h: 'that · what · whether 고르기', sub: '천일문 9~11 유닛에서 틀린 문제가 전부 여기서 나왔어요', html: GD_TW },
     add: { on: () => U.who === '정윤' && !TEACHER, ic: 'write', b: '오늘 숙제에 더 넣고 싶나요?', d: '인강이나 문제집을 오늘 할 일에 직접 넣을 수 있어요', h: '오늘 할 일에 직접 넣는 법', sub: '선생님 숙제 말고 내가 더 하고 싶은 것도 오늘 할 일에 넣고 지울 수 있어요', go: '지금 넣기', act: () => myAddSelf(),
       steps: [['「숙제」 탭 「내 숙제」 칸에서 「+ 숙제 넣기」를 눌러요', '', '+ 숙제 넣기'], ['맨 위에서 「내가 더 할 것」을 골라요', '수업 이름들 맨 끝에 있어요', '내가 더 할 것'], ['「무엇을 해요?」에 적어요', '예: 사회 인강 3강, 수학 개념 영상 2개'], ['「언제까지?」는 오늘 그대로 두고 「넣기」', '오늘 할 일에 생겨요. 다 하면 눌러서 끝내요', '넣기'], ['이미 들은 인강은 「인강」 칸 「들은 강의 적기」로 적어도 돼요', '오늘 한 것과 공부 기록에 들어가요']] },
     ink: { on: () => INK.some((c) => inkCfg(c).on), ic: '1f3a7', b: '계획에 없던 인강을 들었나요?', d: '들은 강의를 골라 적으면 오늘 한 것에 들어가요', h: '들은 인강 적는 법', sub: '오늘 할 일에 없던 강의를 들어도 이렇게 적으면 기록돼요', go: '지금 적기', act: () => inkPast(),
@@ -4317,7 +4332,7 @@
   const gdNext = () => gdList()[0];
   function gdCard() {
     // 11/10 새로 만든 안내(정리·가이드)는 둘 다 보여요. 예전 안내는 하나씩
-    const L = gdList(), ks = L.filter((k) => k === 'wh' || k === 'add'); const show = ks.length ? ks : L.slice(0, 1);
+    const L = gdList(), ks = L.filter((k) => k === 'tw' || k === 'add'); const show = ks.length ? ks : L.slice(0, 1);
     return show.map((k) => { const g = GD[k]; return `<button type="button" class="c12 ts-band gd-card" data-gdopen="${k}"><span class="ts-band-ic">${ic(g.ic)}</span><span class="ts-band-t"><b>${esc(g.b)}</b><span>${esc(g.d)}</span></span><span class="ts-band-go">${esc(g.go0 || '방법 보기')}</span></button>`; }).join('');  // 11/8 «이 부분이 너무 정신없어» → 토스 띠 배너
   }
   function gdOpen(e) {
@@ -7541,7 +7556,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611111749'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611112157'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
