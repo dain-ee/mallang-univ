@@ -2367,7 +2367,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611112251', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611112253', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6943,10 +6943,11 @@
   }
   const YP_ON = YP.length > 0; if (YP_ON) WR_CAP = 5;
   if (SR_TEST) window.__ui = UI, window.__render = () => render();  // 테스트 탭: 날짜 옮겨 보기
+  if (SR_TEST) window.__ypq = (id) => { const it = YP.find((x) => x.id === id), st = NXSETS[id]; return JSON.stringify({ it: it && { day: it.day, p: it.p, n: it.qs.length, qs: it.qs.map((q) => [q.i, !!nxS().a[q.i], q.t, String(q.q || '').slice(0, 30)]) }, set: st && { nav: st.nav, n: st.qs.length, unit: st.unit } }); };
   if (SR_TEST) window.__yp = () => { const D = {}; for (const it of YP) { const d = (D[it.day] = D[it.day] || { n: 0, s: {} }); d.n += it.qs.length; d.s[it.subj] = (d.s[it.subj] || 0) + it.qs.length; (d.t = d.t || []).push(`${it.title} (${it.qs.length})`); } return JSON.stringify(D); };  // 테스트 탭: 날마다 몫
   // 천일문 유닛은 원래 기록(S.eng.ua)으로 끝났는지 봐요. 끝났으면 계획 칸(nx.a)에도 표시해 두어 진행 숫자가 맞게
   const ppChDone = (i) => { const un = CH_UNITS[i]; if (!un) return false; const st = (S.eng.ua || {})[uKey(un)] || {}, ids = qIds(un); return ids.length > 0 && ids.every((k) => st[k]); };
-  const ypDone = (it) => { if (it.p === 'ch') { const dn = ppChDone(it.ch); if (dn && !nxS().a[it.id]) nxS().a[it.id] = { ok: true, at: Date.now() }; return dn; } return it.qs.every((q) => nxS().a[q.i]); };
+  const ypDone = (it) => { if (it.p === 'ch') { const dn = ppChDone(it.ch); if (dn && !nxS().a[it.id]) nxS().a[it.id] = { ok: true, at: Date.now() }; return dn; } { const a = nxS().a, rd = it.qs.filter((q) => !q.t && /:n[^:]*$/.test(q.i) && !a[q.i]);  /* 11/11 «8/9 가 뭔지 모르겠고 안에 들어가면 9개가 아닌데»: 남은 게 「개념 읽기」 체크뿐이면(빈칸·문제를 다 풀었으면) 읽은 걸로 쳐요 */ if (rd.length && rd.length < it.qs.length && it.qs.every((q) => a[q.i] || rd.includes(q))) { const at = Math.max(...it.qs.map((q) => (a[q.i] || {}).at || 0)); for (const q of rd) a[q.i] = { ok: true, at }; } } return it.qs.every((q) => nxS().a[q.i]); };
   // 계획을 다시 짜서 뒤로 밀린 숙제라도 이미 풀기 시작했으면 오늘에 남겨요 (11/4 «한 개 지워지는 형식이 아니라 없어져 버렸네»: 윤건 국어 24/29가 사라졌어요)
   const ypTodayTouched = (it, t) => (it.qs || []).some((q) => { const a = nxS().a[q.i]; if (!a || !a.at) return false; const d = new Date(a.at); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` === t; });
   const ypPin = () => { const t = today(); for (const it of YP) if (it.day > t && NXSETS[it.id] && (ypDone(it) ? ypTodayTouched(it, t) : nxProg(NXSETS[it.id]).d > 0)) it.day = t; };
@@ -7562,7 +7563,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611112251'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611112253'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
