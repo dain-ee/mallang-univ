@@ -2367,7 +2367,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611112230', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611112234', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6216,12 +6216,12 @@
       const ok = qs.filter((q) => store[q.i].ok).length;
       if (!r.tmp) nxFinish(s, ok, n);
       const st = x.st[s.id] || {}, tm = r.tmp ? '' : nxTime((st.fin || 0) - (st.t0 || 0));
-      const by = {}; for (const q of qs) { const c = (s.kind === 'lesson' ? q.ty || q.g : q.cat) || '기타'; by[c] = by[c] || [0, 0]; by[c][1]++; if (store[q.i].ok) by[c][0]++; }
+      const by = {}; for (const q of qs) { const c = (s.kind === 'lesson' ? q.ty || q.g : q.cat) || '기타'; by[c] = by[c] || [0, 0]; by[c][1]++; if (store[q.i].ok || (!r.tmp && nxFx(q.i, store[q.i]))) by[c][0]++; }
       const areas = Object.entries(by).sort((a, b) => a[1][0] / a[1][1] - b[1][0] / b[1][1]);
       const bars = areas.length > 1 ? `<div class="nx-areas"><div class="eyebrow">영역별로 맞힌 비율</div><div class="sw-chart">${areas.slice(0, 8).map(([c, [o, t]]) => `<div class="sw-row"><span class="sw-n">${esc(c)}</span><div class="sw-track"><div class="sw-bar" style="width:100%;background:var(--fill)"><i style="width:${(o / t) * 100}%;background:${o === t ? 'var(--blue)' : o / t >= 0.6 ? 'var(--blue-l)' : 'var(--red)'}"></i></div></div><span class="sw-v num"><b>${o}</b> / ${t}</span></div>`).join('')}</div></div>` : '';
       const fxd = (q) => !r.tmp && nxFx(q.i, store[q.i]), fxN = qs.filter(fxd).length;
-      const wr = qs.filter((q) => !store[q.i].ok && !fxd(q)).length, ps = nxPs(qs, store), sc = Math.round((ps ? ps[0] / ps[1] : ok / n) * 100);
-      return `<div class="nx-wrap">${nxTop(s, n, n, sub, 1)}${doneCard(ps ? ps[0] : ok, ps ? ps[1] : n, `<b class="nx-score num">${sc}점</b>${ps ? ` · ${ps[1]}문장 중 ${ps[0]}문장` : ''}${tm ? ` · 걸린 시간 ${tm}` : ''}${fxN ? ` · 틀린 ${fxN}문제는 다시 풀어서 고쳤어요` : ''}${wr && !r.tmp ? ` · ${fxN ? `남은 ${wr}문제` : '틀린 문제'}는 오답 노트에 들어갔어요` : ''}`, (() => { const hwRun = r.back === 'study' && UI.stOnly, back = r.back === 'hw' ? '숙제 목록으로' : hwRun ? (UI.stOnly.endsWith(':run') ? '숙제 목록으로' : '이어서 하기 ›') : r.back === 'study' ? (UI.clRun ? '수업 목록으로' : '공부로') : '수업 목록으로';  // 11/4 숙제에서 연 문제는 끝나면 숙제로 (이어서 = 같은 숙제의 다음 칸, 다 했으면 결과 카드)  // 단추는 큰 것 하나 + 작은 글자 단추만 (10/31 «뭐가 이렇게 버튼이 많냐»)
+      const wr = qs.filter((q) => !store[q.i].ok && !fxd(q)).length, ps = nxPs(qs, store), sc = Math.round((ps ? ps[0] / ps[1] : (ok + fxN) / n) * 100);
+      return `<div class="nx-wrap">${nxTop(s, n, n, sub, 1)}${doneCard(ps ? ps[0] : ok + fxN, ps ? ps[1] : n, `<b class="nx-score num">${sc}점</b>${ps ? ` · ${ps[1]}문장 중 ${ps[0]}문장` : ''}${tm ? ` · 걸린 시간 ${tm}` : ''}${fxN && !ps ? ` · 처음엔 ${ok}문제 맞혔고 틀린 ${fxN}문제는 다시 풀어서 ${wr ? '' : '다 '}고쳤어요` : ''}${wr && !r.tmp ? ` · ${fxN ? `남은 ${wr}문제` : '틀린 문제'}는 오답 노트에 들어갔어요` : ''}`, (() => { const hwRun = r.back === 'study' && UI.stOnly, back = r.back === 'hw' ? '숙제 목록으로' : hwRun ? (UI.stOnly.endsWith(':run') ? '숙제 목록으로' : '이어서 하기 ›') : r.back === 'study' ? (UI.clRun ? '수업 목록으로' : '공부로') : '수업 목록으로';  // 11/4 숙제에서 연 문제는 끝나면 숙제로 (이어서 = 같은 숙제의 다음 칸, 다 했으면 결과 카드)  // 단추는 큰 것 하나 + 작은 글자 단추만 (10/31 «뭐가 이렇게 버튼이 많냐»)
         // 숙제로 연 단원(국어·역사·과학·영어·매3영 다 같음)의 한 칸을 끝내면: 같은 숙제의 다음 칸으로 바로, 다 했으면 「숙제 마무리」 → 결과 카드 (11/4 «역사 국어 과학 다른 영어 다 마찬가지»)
         const hl = hwRun && !UI.stOnly.endsWith(':run') ? (() => { const at = UI.stOnly.lastIndexOf(':'), hu = NXU[UI.stOnly.slice(0, at)], L = hu && stLessons(hu).find((x) => 'L' + x.k === UI.stOnly.slice(at + 1)); if (!L) return null;
           const nx = [L.c, L.q].find((id) => id && id !== s.id && NXSETS[id] && NXSETS[id].qs.some((q) => !nxS().a[q.i]));
@@ -6956,7 +6956,7 @@
   const ypQn = (it, g) => (it.p === 'wm' ? `${it.words.length}개 외우고 떠올리기 · ${md(it.test)} 시험` : it.p === 'rv' ? ((S0) => !nxHasL(S0) ? `${g.n}문제 · 안 본 문제와 틀린 문제` : (S0.qs[0] || {}).t === 'para' ? `개념 → 빈칸 ${S0.qs.reduce((t, q) => t + (q.ps || []).filter((x) => /\{/.test(x.s)).length, 0)}문장` : S0.learn.nk === 'w' ? `단어 읽고 → ${g.n}개 영어로` : `개념 → 문제 ${g.n}`)(NXSETS[it.id] || {}) : it.p === 'm3rv' ? '★ 문장 내 말로 해석 → 문법 연결' : it.p === 'memo' ? '담은 단어·문장 떠올리기' : it.p === 'ch' ? '개념 → 문제' : it.m3 ? `단어 ${it.nc} → 문제 ${it.nq} → 문장 구조` : it.p === 'L' ? `개념 → 빈칸 ${it.nc} → 문제 ${it.nq}` : it.nav === 'order' ? `흐름 ${g.n}개 차례대로` : `${g.n}문제`);
   function ypTasks() {
     if (!YP_ON) return [];
-    return ypNow().map((it) => { const late = it.day < today(), dn = ypDone(it), g = nxProg(NXSETS[it.id]); const pl = it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'; return { k: it.id, icon: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: dn ? `${pl} · 끝냈어요${it.p === 'ch' ? '' : ` · ${g.ps ? `${g.ps[0]}/${g.ps[1]}문장` : `${g.ok}/${g.n}`} 맞힘${g.fx && !g.ps ? ` · ${g.fx}개 고침` : ''}`}` : `${late ? `<b>${md(it.day)} 몫 · 밀렸어요</b>` : `${pl} · 오늘 몫`} · ${g.d ? `${g.d}/${g.n} 풀었어요` : ypQn(it, g)}`.replace(/<[^>]+>/g, ''), done: dn, late }; });
+    return ypNow().map((it) => { const late = it.day < today(), dn = ypDone(it), g = nxProg(NXSETS[it.id]); const pl = it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'; return { k: it.id, icon: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: dn ? `${pl} · 끝냈어요${it.p === 'ch' ? '' : ` · ${g.ps ? `${g.ps[0]}/${g.ps[1]}문장` : `${g.ok + g.fx}/${g.n}`} 맞힘${g.fx && !g.ps ? ` · ${g.fx}개는 다시 풀어서 고침` : ''}`}` : `${late ? `<b>${md(it.day)} 몫 · 밀렸어요</b>` : `${pl} · 오늘 몫`} · ${g.d ? `${g.d}/${g.n} 풀었어요` : ypQn(it, g)}`.replace(/<[^>]+>/g, ''), done: dn, late }; });
   }
   function ypLagRows(days, st0) {
     if (!YP_ON) return [];
@@ -7562,7 +7562,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611112230'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611112234'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
