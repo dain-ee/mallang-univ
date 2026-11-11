@@ -852,7 +852,7 @@
     const wordsDone = Object.keys(ed.wans || {}).length >= Math.min(10, wordsFor(ed.words).length) && wordsFor(ed.words).length;
     const unitDone = uDone(ed);
     const tasks = [...wqTasks()];
-    if (TUTOR) { for (const t of tutorTasks()) tasks.push(t); for (const t of ypTasks()) tasks.push(t); if (WR_CAP) { const q = todayWr(), dn = wrDayN(), left = todayWrAll().length - q.length; if (q.length || dn) tasks.push({ k: 'wrong', icon: 'retry', t: `오답 ${q.length + dn}문제 다시 풀기`, d: q.length ? `오답 노트 · 오늘 몫${dn ? ` · ${dn}문제 했어요` : ''}${left ? ` · 나머지 ${left}개는 다음 날에` : ''}` : `오답 노트 · 오늘 몫 끝냈어요${left ? ` · 남은 ${left}개는 내일부터` : ''}`, done: !q.length }); } for (const h of HWL().filter((x) => !hwDone(x) && !(x.grp && x.due > today()))) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due && h.due < today() ? `${md(h.due)} 몫 · 못 했어요` : `${h.subj && h.subj !== '영어' ? h.subj + ' · ' : ''}${h.due ? md(h.due) + '까지' : '선생님 숙제'}`, late: !!(h.due && h.due < today()), done: false }); for (const h of HWL().filter(hwDoneToday)) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due < today() ? `${md(h.due)} 몫 · 오늘 따라잡았어요` : '선생님 숙제 · 끝냈어요', late: h.due < today(), done: true }); return { tasks, off: false }; }
+    if (TUTOR) { for (const t of tutorTasks()) tasks.push(t); for (const t of ypTasks()) tasks.push(t); if (WR_CAP) { const q = todayWr(), dn = wrDayN(), left = todayWrAll().length - q.length; if (q.length || dn) tasks.push({ k: 'wrong', icon: 'retry', t: `오답 ${Math.min(WR_CAP, q.length + dn)}문제 다시 풀기`, d: q.length ? `오답 노트 · 오늘 몫${dn ? ` · ${dn}문제 했어요` : ''}${left ? ` · 나머지 ${left}개는 다음 날에` : ''}` : `오답 노트 · 오늘 몫 끝냈어요${left ? ` · 남은 ${left}개는 내일부터` : ''}`, done: !q.length }); } for (const h of HWL().filter((x) => !hwDone(x) && !(x.grp && x.due > today()))) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due && h.due < today() ? `${md(h.due)} 몫 · 못 했어요` : `${h.subj && h.subj !== '영어' ? h.subj + ' · ' : ''}${h.due ? md(h.due) + '까지' : '선생님 숙제'}`, late: !!(h.due && h.due < today()), done: false }); for (const h of HWL().filter(hwDoneToday)) tasks.push({ k: 'hw', hw: h.id, icon: 'pin', t: h.title, d: h.due < today() ? `${md(h.due)} 몫 · 오늘 따라잡았어요` : '선생님 숙제 · 끝냈어요', late: h.due < today(), done: true }); return { tasks, off: false }; }
     const off = !anyTask(new Date()) && !S.sci.days[today()] && !S.eng.days[today()];
     const has = (k) => !off && (onDay(k) || (!!(k === 'sci' ? S.sci.days[today()] : S.eng.days[today()]) && !(planEnd(k) && planEnd(k) < today())));  // 11/9 그만하기로 한 과제는 그날 기록이 있어도 안 내요
     // 지난번에 다 못 한 건 그대로 이어서 나와요 · 어제와 같은 숙제처럼 보이지 않게 알려 줘요
@@ -2367,7 +2367,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611112157', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611112230', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3155,7 +3155,7 @@
     else if (w.src === 'word') { const ww = w.word; const opts = UI.run.opts || (UI.run.opts = sshuffle([ww.ko, ...sshuffle(WORDS.filter((x) => x.ko !== ww.ko), 'wr:' + ww.en).slice(0, 3).map((x) => x.ko)], 'wr:' + ww.en + ':o')); body = `<div class="card" style="text-align:center;padding:40px"><div style="font-size:32px;font-weight:800">${esc(ww.en)}</div></div><div class="choices">${opts.map((o, k) => `<button class="choice ${a ? (o === ww.ko ? 'right' : k === a.pick ? 'wrong' : '') : ''}" data-pick="${k}" type="button" ${a ? 'disabled' : ''}><span class="n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div>${a ? verdict(a.ok) : ''}`; UI.run.q = { answer: opts.indexOf(ww.ko) }; }
     else if (w.src === 'g3') { const it = G3.find((x) => x.id === w.g3) || MM.find((x) => x.id === w.g3); if (!it) return wrSkip(id); body = `<div class="card"><div class="q-no">${esc(it.src || '')} <span class="tag">${esc(it.type || '')}</span></div><div class="q-text" style="margin-top:8px">${esc(it.q)}</div><div class="q-box" style="font-size:15.5px;line-height:1.85;font-weight:400">${esc(it.passage)}</div></div>${choicesHtml(it, a ? a.pick : null)}${a ? verdict(a.ok) + (it.exp ? `<div class="explain">${esc(it.exp)}</div>` : '') : ''}`; UI.run.q = it; }
     else if (w.src === 'drill') { const d = allDrills().find((x) => x.id === w.set), q = d && d.qs[w.i]; if (!q) return wrSkip(id); body = `<div class="card"><div class="q-no">${esc(d.title || '')} ${w.i + 1}번</div><div style="margin-top:8px">${qBody(q)}</div></div>${choicesHtml(q, a ? a.pick : null)}${a ? verdict(a.ok) + (q.exp ? `<div class="explain">${esc(q.exp)}</div>` : '') : ''}`; UI.run.q = q; }
-    else if (w.src === 'nx') { const z = NXQ[w.qi]; if (!z) return wrSkip(id); const v = nxView(z.q, a ? { ok: a.ok, v: a.pick } : null); wide = !!v.psg; body = v.psg ? `<div class="nx-split">${v.psg}<div class="nx-side">${v.side}</div></div>` : v.side; UI.run.q = z.q; }
+    else if (w.src === 'nx') { const z = NXQ[w.qi]; if (!z) return wrSkip(id); const v = nxView(z.q, a ? { ok: a.ok, v: a.pick, sc: a.sc } : null); wide = !!v.psg; body = v.psg ? `<div class="nx-split">${v.psg}<div class="nx-side">${v.side}</div></div>` : v.side; UI.run.q = z.q; }
     else if (w.src === 'mock') {
       const m = MOCKS.find((x) => x.id === w.exam), ms = m && mockSubj(m, w.subj), q = ms && ms.qs.find((x) => x.no === w.no);
       if (!q) return wrSkip(id);
@@ -3208,9 +3208,9 @@
   function bindRetry() {
     const r = UI.run; if (!r || r.kind !== 'retry') return; const w0 = S.wrong[r.id], w = w0;
     mathify($('.qwrap'));
-    const done = (ok, pick) => { const w = S.wrong[r.id] || w0; r.ans = { ok, pick }; w.tries = (w.tries || 0) + 1; if (ok) clearWrong(r.id); else { w.times = (w.times || 1) + 1; w.at = Date.now(); save('wrong'); } render(); };
+    const done = (ok, pick, sc) => { const w = S.wrong[r.id] || w0; r.ans = { ok, pick, ...(sc ? { sc } : {}) }; w.tries = (w.tries || 0) + 1; if (ok) clearWrong(r.id); else { w.times = (w.times || 1) + 1; w.at = Date.now(); save('wrong'); } render(); };
     $$('[data-pick]').forEach((b) => (b.onclick = () => { const k = +b.dataset.pick; done(k === r.q.answer, k); }));
-    if (w.src === 'nx' && r.q && !r.ans) nxBindQ(r.q, (ok, v) => done(ok, v));
+    if (w.src === 'nx' && r.q && !r.ans) nxBindQ(r.q, (ok, v, sc) => { if (sc) nxParaKeep(r.q.i, sc); done(ok, v, sc); });
     const nself = $('[data-nxself]'); if (nself && w.src === 'nx') nself.onclick = () => { r.ans = { ...r.ans, ok: true, self: 1 }; clearWrong(r.id); render(); };
     $$('[data-self]').forEach((b) => (b.onclick = () => done(b.dataset.self === '1', null)));
     $$('[data-jro]').forEach((b) => (b.onclick = () => done(jgOk(r.q, r.q.choices[+b.dataset.jro]), b.dataset.jro)));
@@ -4303,23 +4303,20 @@
       <div class="wh-a" style="--i:4"><b>Q. 목적어 자리에 부사절이 올 수 있어?</b><span>아니요. 문장의 주어·목적어·보어 자리에는 명사(명사절)만 와요. whomever가 「목적어」라는 건 <b>절 안에서</b> 목적어라는 뜻이지, 문장의 목적어 자리에 있다는 뜻이 아니에요</span></div>
       <div class="wh-a" style="--i:5"><b>어제 C 문장은 이 순서로 봐요</b><span>① whoever 절을 지워 보고 남은 문장이 완전한지 → 명사절·부사절 ② 절 안에 주어가 비었는지 목적어가 비었는지 → whoever·whomever</span></div></div>`;
   const myAddSelf = () => { const M = myS(); if (!M.cls.some((c) => c.id === 'self')) { M.cls.push({ id: 'self', name: '내가 더 할 것', day: null }); save('my'); } M.last = 'self'; myAdd(); };
-  // 11/11 «정윤이 지금 모르는 거 분석해서 알림으로, whom 그거는 내려»: 11/6~11/11 천일문 9·10·11 유닛에서 틀린 5문제가 전부 that·what·whether 고르기와 의문사절 어순
-  const GD_TW = `<div class="wh-sh">
-      <div class="wh-q" style="--i:0"><span class="wh-n">1</span><div><b>that이냐 what이냐는 <mark class="hl-g">뒤 문장</mark>이 완전한지만 봐요</b><span>뒤에 주어·목적어가 다 있으면 <b>that</b>, 하나가 비어 있으면 <b>what</b> (비어 있는 그것이 what)</span></div></div>
-      <div class="wh-q" style="--i:1"><span class="wh-n">2</span><div><b>that이냐 whether냐는 <mark class="hl-g">앞말</mark>을 봐요</b><span>이미 정해진 사실이면 <b>that</b>, 아직 모르는 일이면 <b>whether</b>. debated, unclear, uncertain, remains to be seen, depends on 이 보이면 whether</span></div></div>
-      <div class="wh-q" style="--i:2"><span class="wh-n">3</span><div><b>의문사절은 <mark class="hl-g">평서문 순서</mark>예요</b><span>문장 안에 들어가면 did, does 를 빼고 「의문사 + 주어 + 동사」로 써요</span></div></div>
-      <div class="wh-t" style="--i:3"><span></span><b>언제</b><b>예문</b>
-        <b>that</b><p>뒤가 완전 · 정해진 사실<em>~라는 것</em></p><p><i>That</i> he resigned surprised everyone.<em>he resigned: 빠진 게 없어요</em></p>
-        <b>what</b><p>뒤에 주어나 목적어가 빔<em>~하는 것</em></p><p><i>What</i> I learned from the trip was patience.<em>learned 의 목적어가 비었어요</em></p>
-        <b>whether</b><p>뒤가 완전 · 아직 모름<em>~인지 아닌지</em></p><p>It is still debated <i>whether</i> it is accurate.<em>주어 자리에는 if 를 못 써요</em></p></div>
-      <p class="wh-k" style="--i:4">요즘 천일문에서 틀린 5문제가 전부 이 세 가지였어요</p>
-      <div class="wh-a" style="--i:5"><b>[What / That] leaders must also listen to others has been proven.</b><span>leaders must listen to others 는 빠진 게 없어요 → <b>That</b></span></div>
-      <div class="wh-a" style="--i:6"><b>it was found [that / what] the best performers had practiced far more hours.</b><span>the best performers had practiced 도 완전해요 → <b>that</b></span></div>
-      <div class="wh-a" style="--i:7"><b>That I learned from the trip was the value of patience. (틀린 문장)</b><span>learned 뒤에 「무엇을」이 없어요 → <b>What</b> I learned</span></div>
-      <div class="wh-a" style="--i:8"><b>it is still debated [that / whether] first impressions are accurate at all.</b><span>debated 는 아직 결론이 안 났다는 말이에요 → <b>whether</b></span></div>
-      <div class="wh-a" style="--i:9"><b>Where did the ancient people get the stone is still unknown. (틀린 문장)</b><span>주어 자리에 들어간 의문사절이라 평서문 순서 → Where the ancient people <b>got</b> the stone</span></div></div>`;
+  // 11/11 정윤 쪽지 «이거 c 를 모르겠어, 능동이라서 그렇다는데 이해가 안 가» (천일문 Unit 11 독해 (C) encouraged / encouraging) → 감정 분사 정리. whoever 배너는 내렸어요
+  const GD_EC = `<div class="wh-sh">
+      <div class="wh-q" style="--i:0"><span class="wh-n">1</span><div><b>먼저 <mark class="hl-g">it 이 무엇인지</mark> 찾아요</b><span>it is (C) to know that skill can be built 에서 it 은 가짜 주어예요. 진짜 주어는 뒤의 <b>to know ~</b>, 곧 「실력을 쌓을 수 있다는 걸 아는 것」이에요</span></div></div>
+      <div class="wh-q" style="--i:1"><span class="wh-n">2</span><div><b>그 주어가 기분을 <mark class="hl-g">주는 쪽</mark>인지 <mark class="hl-g">받는 쪽</mark>인지 봐요</b><span>「아는 것」이 사람에게 용기를 <b>줘요</b>. 주는 쪽이라 <b>encouraging</b> (능동이라는 말이 이 뜻이에요)</span></div></div>
+      <div class="wh-q" style="--i:2"><span class="wh-n">3</span><div><b>용기를 받는 쪽은 <mark class="hl-g">사람</mark>이에요</b><span>사람이 주어면 <b>encouraged</b>. 「아는 것」이 용기를 받을 수는 없어서 여기에는 못 써요</span></div></div>
+      <div class="wh-t" style="--i:3"><span></span><b>-ing (기분을 주는 것)</b><b>-ed (기분을 받는 사람)</b>
+        <b>용기</b><p>It is <i>encouraging</i> to know that.<em>그걸 아는 것은 힘이 돼요</em></p><p>I am <i>encouraged</i> to know that.<em>나는 그걸 알고 힘을 얻어요</em></p>
+        <b>놀람</b><p>The news was <i>surprising</i>.<em>그 소식은 놀라웠어요</em></p><p>We were <i>surprised</i> at the news.<em>우리는 그 소식에 놀랐어요</em></p>
+        <b>지루함</b><p>The class is <i>boring</i>.<em>그 수업은 지루해요</em></p><p>I am <i>bored</i>.<em>나는 지루해요</em></p></div>
+      <p class="wh-k" style="--i:4">헷갈리면 it 자리에 진짜 주어를 넣어 읽어요. To know that skill can be built is encouraging.</p>
+      <div class="wh-a" style="--i:5"><b>Q. 사람이 주어면 무조건 -ed 예요?</b><span>아니요. 그 사람이 남에게 기분을 주면 -ing 예요. He is boring. 은 「그는 지루한 사람이다」, He is bored. 는 「그는 지루해하고 있다」</span></div>
+      <div class="wh-a" style="--i:6"><b>같은 방식으로 푸는 단어</b><span>interesting · interested, exciting · excited, confusing · confused, disappointing · disappointed, satisfying · satisfied</span></div></div>`;
   const GD = {
-    tw: { on: () => U.who === '정윤' && today() <= '2026-11-25', ic: 'think', b: 'that · what · whether 고르기 정리했어요', d: '요즘 천일문에서 틀린 5문제, 세 가지만 보면 돼요', go0: '보기', h: 'that · what · whether 고르기', sub: '천일문 9~11 유닛에서 틀린 문제가 전부 여기서 나왔어요', html: GD_TW },
+    ec: { on: () => U.who === '정윤' && today() <= '2026-11-25', ic: 'think', b: 'encouraging · encouraged 정리했어요', d: '오늘 물어본 (C), 주는 쪽인지 받는 쪽인지만 보면 돼요', go0: '보기', h: 'encouraging · encouraged', sub: '오늘 물어본 천일문 Unit 11 (C) 를 이렇게 풀어요', html: GD_EC },
     add: { on: () => U.who === '정윤' && !TEACHER, ic: 'write', b: '오늘 숙제에 더 넣고 싶나요?', d: '인강이나 문제집을 오늘 할 일에 직접 넣을 수 있어요', h: '오늘 할 일에 직접 넣는 법', sub: '선생님 숙제 말고 내가 더 하고 싶은 것도 오늘 할 일에 넣고 지울 수 있어요', go: '지금 넣기', act: () => myAddSelf(),
       steps: [['「숙제」 탭 「내 숙제」 칸에서 「+ 숙제 넣기」를 눌러요', '', '+ 숙제 넣기'], ['맨 위에서 「내가 더 할 것」을 골라요', '수업 이름들 맨 끝에 있어요', '내가 더 할 것'], ['「무엇을 해요?」에 적어요', '예: 사회 인강 3강, 수학 개념 영상 2개'], ['「언제까지?」는 오늘 그대로 두고 「넣기」', '오늘 할 일에 생겨요. 다 하면 눌러서 끝내요', '넣기'], ['이미 들은 인강은 「인강」 칸 「들은 강의 적기」로 적어도 돼요', '오늘 한 것과 공부 기록에 들어가요']] },
     ink: { on: () => INK.some((c) => inkCfg(c).on), ic: '1f3a7', b: '계획에 없던 인강을 들었나요?', d: '들은 강의를 골라 적으면 오늘 한 것에 들어가요', h: '들은 인강 적는 법', sub: '오늘 할 일에 없던 강의를 들어도 이렇게 적으면 기록돼요', go: '지금 적기', act: () => inkPast(),
@@ -4332,7 +4329,7 @@
   const gdNext = () => gdList()[0];
   function gdCard() {
     // 11/10 새로 만든 안내(정리·가이드)는 둘 다 보여요. 예전 안내는 하나씩
-    const L = gdList(), ks = L.filter((k) => k === 'tw' || k === 'add'); const show = ks.length ? ks : L.slice(0, 1);
+    const L = gdList(), ks = L.filter((k) => k === 'ec' || k === 'add'); const show = ks.length ? ks : L.slice(0, 1);
     return show.map((k) => { const g = GD[k]; return `<button type="button" class="c12 ts-band gd-card" data-gdopen="${k}"><span class="ts-band-ic">${ic(g.ic)}</span><span class="ts-band-t"><b>${esc(g.b)}</b><span>${esc(g.d)}</span></span><span class="ts-band-go">${esc(g.go0 || '방법 보기')}</span></button>`; }).join('');  // 11/8 «이 부분이 너무 정신없어» → 토스 띠 배너
   }
   function gdOpen(e) {
@@ -6114,12 +6111,12 @@
     let stem, ans = '';
     const typed = rec && rec.v != null ? String(rec.v).split(' ‖ ') : [];
     if (q.t === 'para') {
-      const pg = rec ? null : NXPG[q.i]; let k = 0;
+      const pg = rec ? null : (nxPgSeed(q) || NXPG[q.i]); let k = 0;
       const rows = q.ps.map((x, j) => {
         const sc = rec ? (rec.sc || [])[j] : pg ? pg.sc[j] : null, done = !!rec || (sc != null);
-        let b = 0; const html = esc(x.s).replace(/\{([^}]+)\}([.,!?;:”"’'…]*)/g, (m, a, pu) => `<span class="mp-nw">${((a) => { const i = k++, bi = b++; if (!done) return `<input class="nx-bl" data-pj="${j}" data-nxin="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" style="width:${Math.max(3.5, a.length * 0.62 + 1.6)}em" aria-label="${j + 1}번 문장 빈칸">`; const v = rec ? typed[i] : (pg.v[j] || [])[bi], ok = nxAlts(a).includes(nxKey(v)); return `<span class="nx-bl-r ${ok ? 'ok' : 'no'}"><b>${esc(a)}</b>${!ok && String(v || '').trim() ? `<s>${esc(v)}</s>` : ''}</span>`; })(a)}${pu}</span>`);
+        let b = 0; const html = esc(x.s).replace(/\{([^}]+)\}([.,!?;:”"’'…]*)/g, (m, a, pu) => `<span class="mp-nw">${((a) => { const i = k++, bi = b++; if (!done) return `<input class="nx-bl" data-pj="${j}" data-nxin="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" style="width:${Math.max(3.5, a.length * 0.62 + 1.6)}em" aria-label="${j + 1}번 문장 빈칸">`; const v = rec ? typed[i] : (pg.v[j] || [])[bi], ok = !!(pg && pg.seed && pg.seed[j]) || nxAlts(a).includes(nxKey(v)); return `<span class="nx-bl-r ${ok ? 'ok' : 'no'}"><b>${esc(a)}</b>${!ok && String(v || '').trim() ? `<s>${esc(v)}</s>` : ''}</span>`; })(a)}${pu}</span>`);
         return `<div class="mp-s ${x.h ? 'h' : ''} ${x.key ? 'key' : ''} ${sc === true ? 'ok' : sc === false ? 'no' : ''} ${pg && pg.last === j ? 'pop' : ''}" data-pr="${j}"><span class="st-ln num">${j + 1}</span><div><p class="mp-en">${html}</p><span class="mp-ko">${esc(x.ko || '')}</span>${x.key ? '<span class="tag blue">중요</span>' : ''}${done && x.note ? `<em>${esc(x.note)}</em>` : ''}</div><i class="mp-mk" aria-hidden="true">${sc === true ? '✓' : sc === false ? '✕' : ''}</i></div>`; }).join('');
-      stem = `<h2 class="nx-q">${esc(q.q)}</h2><p class="tiny" style="margin:4px 0 8px">우리말을 보고 빈칸에 영어를 써요. 한 문장 다 쓰고 Enter 를 치면 바로 채점돼요</p><div class="mp-list">${rows}</div>`;
+      stem = `<h2 class="nx-q">${esc(q.q)}</h2><p class="tiny" style="margin:4px 0 8px">우리말을 보고 빈칸에 영어를 써요. 한 문장 다 쓰고 Enter 를 치면 바로 채점돼요${pg && pg.seed ? ' · 전에 맞힌 문장은 채워 뒀어요. 틀린 문장만 다시 써요' : ''}</p><div class="mp-list">${rows}</div>`;
       if (!rec) ans = '<div class="nx-acts"><button class="nx-link" id="nx-give" type="button">남은 문장 모르겠어요</button></div>';
     } else if (q.t === 'blank') {
       let k = 0; stem = `${q.h ? `<div class="tiny" style="margin-bottom:6px">${esc(q.h)}</div>` : ''}<p class="nx-q nx-blq">${esc(q.q).replace(/\{([^}]+)\}/g, (m, a) => { const i = k++; if (!rec) return `<input class="nx-bl" data-nxin="${i}" autocomplete="off" spellcheck="false" style="width:${Math.max(4, a.length * 1.6 + 1)}em" aria-label="빈칸 ${i + 1}">`; const ok = nxAlts(a).includes(nxKey(typed[i])); return `<span class="nx-bl-r ${ok ? 'ok' : 'no'}"><b>${esc(a)}</b>${!ok && String(typed[i] || '').trim() ? `<s>${esc(typed[i])}</s>` : ''}</span>`; })}</p>`;
@@ -6140,7 +6137,7 @@
     let after = '';
     if (rec) {
       const right = q.t === 'mc' ? `${q.a + 1}번` : q.t === 'blank' || q.t === 'para' ? '' : q.t === 'wko' ? q.w.ko : q.t === 'wen' ? q.w.en : q.a.join(' / ');
-      after = `<div class="nx-vd ${rec.ok ? 'ok' : 'no'}"><i aria-hidden="true">${rec.ok ? '✓' : '✕'}</i><span>${q.t === 'para' && rec.sc ? `${rec.sc.filter((x) => x === true).length} / ${rec.sc.filter((x) => x != null).length}문장 맞혔어요` : rec.ok ? (rec.self ? '맞은 걸로 했어요' : '정답이에요') : '아쉬워요'}</span>${!rec.ok && right ? `<small>정답 ${esc(right)}</small>` : ''}</div>
+      after = `<div class="nx-vd ${rec.ok ? 'ok' : 'no'}"><i aria-hidden="true">${rec.ok ? '✓' : '✕'}</i><span>${q.t === 'para' && rec.sc ? `${rec.sc.filter((x) => x === true).length} / ${rec.sc.filter((x) => x != null).length}문장 맞혔어요` : rec.ok ? (rec.self ? '맞은 걸로 했어요' : '정답이에요') : rec.at && nxFx(q.i, rec) ? '처음엔 틀렸지만 다시 풀어서 고쳤어요' : '아쉬워요'}</span>${!rec.ok && right ? `<small>정답 ${esc(right)}</small>` : ''}</div>
         ${!rec.ok && q.t !== 'mc' && q.t !== 'para' && typed.join('').trim() ? '<button class="nx-link" data-nxself type="button">내 답도 맞아요</button>' : ''}
         ${q.exp || (q.w && q.w.ex) ? `<div class="explain nx-exp"><b>해설</b><br>${q.w ? `${esc(q.w.ex)}<br><span class="tiny">${esc(q.w.exKo || '')}</span>${q.w.extra ? `<br>${esc(q.w.extra)}` : ''}` : nxRich(q.exp)}</div>` : ''}`;
     }
@@ -6148,7 +6145,7 @@
   }
   function nxBindQ(q, submit) {
     if (q.t === 'para') {
-      const pg = (NXPG[q.i] = NXPG[q.i] || { v: {}, sc: {} }), need = q.ps.map((x, j) => (/\{[^}]+\}/.test(x.s) ? j : -1)).filter((j) => j >= 0);
+      const pg = nxPgSeed(q) || (NXPG[q.i] = NXPG[q.i] || { v: {}, sc: {} }), need = q.ps.map((x, j) => (/\{[^}]+\}/.test(x.s) ? j : -1)).filter((j) => j >= 0);
       const fin = () => { if (!need.every((j) => pg.sc[j] != null)) return false; const sc = q.ps.map((x, j) => (pg.sc[j] != null ? pg.sc[j] : null)), v = need.flatMap((j) => pg.v[j] || []).join(' ‖ '); delete NXPG[q.i]; submit(need.every((j) => pg.sc[j]), v, sc); return true; };
       const nextIn = (j) => { const n = need.find((x) => x > j && pg.sc[x] == null); const m = n != null ? n : need.find((x) => pg.sc[x] == null); return m != null ? $(`main [data-pj="${m}"]`) : null; };
       const gradeS = (j) => { const ins = $$(`main [data-pj="${j}"]`), vals = ins.map((x) => x.value), A = [...q.ps[j].s.matchAll(/\{([^}]+)\}/g)].map((m) => m[1]);
@@ -6168,7 +6165,14 @@
     if (ins[0] && matchMedia('(hover: hover)').matches) setTimeout(() => ins[0].focus({ preventScroll: true }), 40);
   }
   const nxLast = (id) => nxS().done.filter((x) => x.id === id).slice(-1)[0];
-  const nxProg = (s) => { const a = nxStore(s), n = s.qs.length, d = s.qs.filter((q) => a[q.i]).length; return { n, d, ok: s.qs.filter((q) => (a[q.i] || {}).ok).length }; };
+  // 11/11 윤건 «국어 오답을 고쳤는데 고쳤다고 표시가 안 돼요»: 처음엔 틀렸지만 그 뒤에 다시 맞힌 문제 (오답 기록이 그 뒤에 지워졌으면 고친 것)
+  const nxFx = (qi, rec) => { if (!rec || rec.ok) return false; const w = (S.wrong || {})['nx:' + qi]; return !!(w && w.cleared && (w.clearedAt || 0) >= (rec.at || 0)); };
+  // 11/11 윤건 «문장 틀렸을 때 오답하기 누르면 맞은 것도 다 해야 한다고 나와요»: 문단 빈칸을 다시 풀 때는 전에 맞힌 문장을 채워 두고 틀린 문장만 써요
+  const nxPgSeed = (q) => { if (NXPG[q.i]) return NXPG[q.i]; const p = nxS().a[q.i]; if (!p || p.ok || !p.sc || !p.sc.some((x) => x === true)) return null; const pg = (NXPG[q.i] = { v: {}, sc: {}, seed: {} }); p.sc.forEach((x, j) => { if (x === true && q.ps[j]) { pg.sc[j] = true; pg.seed[j] = 1; pg.v[j] = [...q.ps[j].s.matchAll(/\{([^}]+)\}/g)].map((m) => m[1]); } }); return pg; };
+  const nxParaKeep = (qi, sc) => { const p = nxS().a[qi]; if (p && p.sc && sc) { p.sc = p.sc.map((x, j) => (x === false && sc[j] === true ? true : x)); save('nx'); } };
+  // 문단 빈칸 묶음은 문장 수로 세요 (7문장 중 3문장 맞혔는데 0/1 로 나오지 않게)
+  const nxPs = (qs, a) => { if (!qs.length || !qs.every((q) => q.t === 'para' && a[q.i] && a[q.i].sc)) return null; let o = 0, n = 0; for (const q of qs) for (const x of a[q.i].sc) if (x != null) { n++; if (x === true || a[q.i].ok) o++; } return n ? [o, n] : null; };
+  const nxProg = (s) => { const a = nxStore(s), n = s.qs.length, d = s.qs.filter((q) => a[q.i]).length; return { n, d, ok: s.qs.filter((q) => (a[q.i] || {}).ok).length, fx: s.qs.filter((q) => nxFx(q.i, a[q.i])).length, ps: nxPs(s.qs, a) }; };
   const nxWdGot = (m, id) => { const r = nxS().wd[`${m}:${id}`]; return !!r && r.s >= (r.w ? 2 : 1); };
   const nxTime = (ms) => { if (!ms || ms > 3 * 3600e3) return ''; const m = Math.floor(ms / 60000), s = Math.round((ms % 60000) / 1000); return m ? `${m}분 ${s}초` : `${s}초`; };
   function nxStart(id, back, keep) { if (!NXSETS[id] && /^ls:/.test(id)) nxLesson(id.slice(3)); if (!NXSETS[id] && /^lw:/.test(id)) nxWord(id.slice(3)); if (/^l[smw]:/.test(id) && YG_CLS && !nxS().lq[id]) ygTest(id);  // 윤건: 열기 전엔 범위가 바뀌었을 수 있어요
@@ -6215,8 +6219,9 @@
       const by = {}; for (const q of qs) { const c = (s.kind === 'lesson' ? q.ty || q.g : q.cat) || '기타'; by[c] = by[c] || [0, 0]; by[c][1]++; if (store[q.i].ok) by[c][0]++; }
       const areas = Object.entries(by).sort((a, b) => a[1][0] / a[1][1] - b[1][0] / b[1][1]);
       const bars = areas.length > 1 ? `<div class="nx-areas"><div class="eyebrow">영역별로 맞힌 비율</div><div class="sw-chart">${areas.slice(0, 8).map(([c, [o, t]]) => `<div class="sw-row"><span class="sw-n">${esc(c)}</span><div class="sw-track"><div class="sw-bar" style="width:100%;background:var(--fill)"><i style="width:${(o / t) * 100}%;background:${o === t ? 'var(--blue)' : o / t >= 0.6 ? 'var(--blue-l)' : 'var(--red)'}"></i></div></div><span class="sw-v num"><b>${o}</b> / ${t}</span></div>`).join('')}</div></div>` : '';
-      const wr = qs.filter((q) => !store[q.i].ok).length, sc = Math.round((ok / n) * 100);
-      return `<div class="nx-wrap">${nxTop(s, n, n, sub, 1)}${doneCard(ok, n, `<b class="nx-score num">${sc}점</b>${tm ? ` · 걸린 시간 ${tm}` : ''}${wr && !r.tmp ? ' · 틀린 문제는 오답 노트에 들어갔어요' : ''}`, (() => { const hwRun = r.back === 'study' && UI.stOnly, back = r.back === 'hw' ? '숙제 목록으로' : hwRun ? (UI.stOnly.endsWith(':run') ? '숙제 목록으로' : '이어서 하기 ›') : r.back === 'study' ? (UI.clRun ? '수업 목록으로' : '공부로') : '수업 목록으로';  // 11/4 숙제에서 연 문제는 끝나면 숙제로 (이어서 = 같은 숙제의 다음 칸, 다 했으면 결과 카드)  // 단추는 큰 것 하나 + 작은 글자 단추만 (10/31 «뭐가 이렇게 버튼이 많냐»)
+      const fxd = (q) => !r.tmp && nxFx(q.i, store[q.i]), fxN = qs.filter(fxd).length;
+      const wr = qs.filter((q) => !store[q.i].ok && !fxd(q)).length, ps = nxPs(qs, store), sc = Math.round((ps ? ps[0] / ps[1] : ok / n) * 100);
+      return `<div class="nx-wrap">${nxTop(s, n, n, sub, 1)}${doneCard(ps ? ps[0] : ok, ps ? ps[1] : n, `<b class="nx-score num">${sc}점</b>${ps ? ` · ${ps[1]}문장 중 ${ps[0]}문장` : ''}${tm ? ` · 걸린 시간 ${tm}` : ''}${fxN ? ` · 틀린 ${fxN}문제는 다시 풀어서 고쳤어요` : ''}${wr && !r.tmp ? ` · ${fxN ? `남은 ${wr}문제` : '틀린 문제'}는 오답 노트에 들어갔어요` : ''}`, (() => { const hwRun = r.back === 'study' && UI.stOnly, back = r.back === 'hw' ? '숙제 목록으로' : hwRun ? (UI.stOnly.endsWith(':run') ? '숙제 목록으로' : '이어서 하기 ›') : r.back === 'study' ? (UI.clRun ? '수업 목록으로' : '공부로') : '수업 목록으로';  // 11/4 숙제에서 연 문제는 끝나면 숙제로 (이어서 = 같은 숙제의 다음 칸, 다 했으면 결과 카드)  // 단추는 큰 것 하나 + 작은 글자 단추만 (10/31 «뭐가 이렇게 버튼이 많냐»)
         // 숙제로 연 단원(국어·역사·과학·영어·매3영 다 같음)의 한 칸을 끝내면: 같은 숙제의 다음 칸으로 바로, 다 했으면 「숙제 마무리」 → 결과 카드 (11/4 «역사 국어 과학 다른 영어 다 마찬가지»)
         const hl = hwRun && !UI.stOnly.endsWith(':run') ? (() => { const at = UI.stOnly.lastIndexOf(':'), hu = NXU[UI.stOnly.slice(0, at)], L = hu && stLessons(hu).find((x) => 'L' + x.k === UI.stOnly.slice(at + 1)); if (!L) return null;
           const nx = [L.c, L.q].find((id) => id && id !== s.id && NXSETS[id] && NXSETS[id].qs.some((q) => !nxS().a[q.i]));
@@ -6231,7 +6236,7 @@
     const q = qs[cur], rec = store[q.i], v = nxView(q, rec, s.kind === 'mock' ? q.n || cur + 1 : s.kind === 'lesson' ? cur + 1 : null);
     const fresh = render.nxq !== q.i; render.nxq = q.i;
     const left = qs.some((y, k) => k !== cur && !store[y.i]);
-    const omr = r.omr ? `<div class="card nx-omr"><div class="nb-g">${qs.map((y, k) => `<button class="nb ${store[y.i] ? (store[y.i].ok ? 'ok' : 'no') : ''} ${k === cur ? 'cur' : ''}" data-nxj="${k}" type="button">${k + 1}</button>`).join('')}</div></div>` : '';
+    const omr = r.omr ? `<div class="card nx-omr"><div class="nb-g">${qs.map((y, k) => `<button class="nb ${store[y.i] ? (store[y.i].ok || (!r.tmp && nxFx(y.i, store[y.i])) ? 'ok' : 'no') : ''} ${k === cur ? 'cur' : ''}" data-nxj="${k}" type="button">${k + 1}</button>`).join('')}</div></div>` : '';
     const cta = r.rv && rec ? `<div class="cta-bar nx-rvbar">${cur > 0 ? '<button class="btn big" id="nx-prev" type="button">‹ 이전</button>' : ''}<button class="btn primary big block" id="nx-next" type="button">${cur < n - 1 ? '다음 문제 ›' : '결과로 돌아가기'}</button></div>`
       : rec ? `<div class="cta-bar"><button class="btn primary big block" id="nx-next" type="button">${left ? '다음 문제' : '결과 보기'}</button></div>` : '';
     const side = v.side + (!rec && /^w(ko|en)$/.test(q.t) ? '<div class="nx-acts"><button class="nx-link" id="nx-give" type="button">모르겠어요</button></div>' : '');
@@ -6252,8 +6257,8 @@
     const x = nxS(), store = nxStore(s, r), qs = r.only ? s.qs.filter((q) => r.only.includes(q.i)) : s.qs;
     const om = $('[data-nxomr]'); if (om) om.onclick = () => { r.omr = !r.omr; render(); };
     $$('[data-nxj]').forEach((b) => (b.onclick = () => { r.cur = +b.dataset.nxj; render(); }));
-    const re = $('[data-nxre]'); if (re) re.onclick = () => { for (const q of s.qs) delete x.a[q.i]; delete x.st[s.id]; save('nx'); UI.run = { kind: 'nx', id: s.id, back: r.back }; render(); window.scrollTo(0, 0); };
-    const wr = $('[data-nxwr]'); if (wr) wr.onclick = () => { UI.run = { kind: 'nx', id: s.id, back: r.back, only: qs.filter((q) => !store[q.i].ok).map((q) => q.i), tmp: {} }; render(); window.scrollTo(0, 0); };
+    const re = $('[data-nxre]'); if (re) re.onclick = () => { for (const q of s.qs) { delete x.a[q.i]; delete NXPG[q.i]; } delete x.st[s.id]; save('nx'); UI.run = { kind: 'nx', id: s.id, back: r.back }; render(); window.scrollTo(0, 0); };
+    const wr = $('[data-nxwr]'); if (wr) wr.onclick = () => { UI.run = { kind: 'nx', id: s.id, back: r.back, only: qs.filter((q) => !store[q.i].ok && !(!r.tmp && nxFx(q.i, store[q.i]))).map((q) => q.i), tmp: {} }; render(); window.scrollTo(0, 0); };
     const rv = $('[data-nxrv]'); if (rv) rv.onclick = () => { r.rv = true; r.cur = 0; r.omr = true; render(); window.scrollTo(0, 0); };
     const cur = r.cur != null && r.cur < qs.length ? r.cur : qs.findIndex((q) => !store[q.i]); const q = qs[cur]; if (!q) return;
     const pv = $('#nx-prev'); if (pv) pv.onclick = () => { r.cur = Math.max(0, cur - 1); render(); window.scrollTo(0, 0); };
@@ -6264,6 +6269,7 @@
     nxBindQ(q, (ok, v, sc) => {
       const store = nxStore(s, r), x = nxS();  // 누를 때 다시 찾아요 (서버 맞춤 뒤 옛 기록에 적지 않게 10/26)
       store[q.i] = { ok, v, at: Date.now(), ...(sc ? { sc } : {}) };
+      if (r.tmp && sc) nxParaKeep(q.i, sc);
       if (!r.tmp) { const st = (x.st[s.id] = x.st[s.id] || {}); if (!st.t0) st.t0 = Date.now(); }
       const wid = 'nx:' + q.i;
       if (!ok) addWrong(wid, { src: 'nx', qi: q.i, set: s.id, subj: q.subj || s.subj, subjName: NX_SN[q.subj || s.subj] || '영어', area: s.kind === 'mock' ? s.title : `${(NXU[s.unit || (NXSETS[(NXQ[q.i] || {}).set] || {}).unit] || {}).code || ''} ${q.cat || ''}`.trim(), sub: plain(q.q).slice(0, 40), title: `${s.title} ${(q.n || s.qs.indexOf(q) + 1)}번` });
@@ -6950,7 +6956,7 @@
   const ypQn = (it, g) => (it.p === 'wm' ? `${it.words.length}개 외우고 떠올리기 · ${md(it.test)} 시험` : it.p === 'rv' ? ((S0) => !nxHasL(S0) ? `${g.n}문제 · 안 본 문제와 틀린 문제` : (S0.qs[0] || {}).t === 'para' ? `개념 → 빈칸 ${S0.qs.reduce((t, q) => t + (q.ps || []).filter((x) => /\{/.test(x.s)).length, 0)}문장` : S0.learn.nk === 'w' ? `단어 읽고 → ${g.n}개 영어로` : `개념 → 문제 ${g.n}`)(NXSETS[it.id] || {}) : it.p === 'm3rv' ? '★ 문장 내 말로 해석 → 문법 연결' : it.p === 'memo' ? '담은 단어·문장 떠올리기' : it.p === 'ch' ? '개념 → 문제' : it.m3 ? `단어 ${it.nc} → 문제 ${it.nq} → 문장 구조` : it.p === 'L' ? `개념 → 빈칸 ${it.nc} → 문제 ${it.nq}` : it.nav === 'order' ? `흐름 ${g.n}개 차례대로` : `${g.n}문제`);
   function ypTasks() {
     if (!YP_ON) return [];
-    return ypNow().map((it) => { const late = it.day < today(), dn = ypDone(it), g = nxProg(NXSETS[it.id]); const pl = it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'; return { k: it.id, icon: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: dn ? `${pl} · 끝냈어요${it.p === 'ch' ? '' : ` · ${g.ok}/${g.n} 맞힘`}` : `${late ? `<b>${md(it.day)} 몫 · 밀렸어요</b>` : `${pl} · 오늘 몫`} · ${g.d ? `${g.d}/${g.n} 풀었어요` : ypQn(it, g)}`.replace(/<[^>]+>/g, ''), done: dn, late }; });
+    return ypNow().map((it) => { const late = it.day < today(), dn = ypDone(it), g = nxProg(NXSETS[it.id]); const pl = it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'; return { k: it.id, icon: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: dn ? `${pl} · 끝냈어요${it.p === 'ch' ? '' : ` · ${g.ps ? `${g.ps[0]}/${g.ps[1]}문장` : `${g.ok}/${g.n}`} 맞힘${g.fx && !g.ps ? ` · ${g.fx}개 고침` : ''}`}` : `${late ? `<b>${md(it.day)} 몫 · 밀렸어요</b>` : `${pl} · 오늘 몫`} · ${g.d ? `${g.d}/${g.n} 풀었어요` : ypQn(it, g)}`.replace(/<[^>]+>/g, ''), done: dn, late }; });
   }
   function ypLagRows(days, st0) {
     if (!YP_ON) return [];
@@ -7556,7 +7562,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611112157'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611112230'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
