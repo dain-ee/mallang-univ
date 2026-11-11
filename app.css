@@ -4942,3 +4942,9 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 .lv-in-h{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px;caret-color:transparent}
 @media (max-width:480px){.lv-u{width:22px;height:38px;font-size:24px}.lv-uw{gap:4px}}
 @media (prefers-reduced-motion:reduce){.lv-u.cur{animation:none}}
+/* 11/11 «이거 살짝 높이 비율이 안 맞는데» QR 을 오른쪽 글 높이에 맞춘 정사각으로 */
+.iv-app { align-items: center; }
+.iv-app-qr { width: 148px; height: 148px; align-self: center; }
+.iv-app-b { min-height: 148px; justify-content: space-between; }
+.iv-app-os { margin-top: 0; flex: 1; }
+.iv-app-h { margin-bottom: 10px; }
