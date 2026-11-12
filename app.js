@@ -13,6 +13,7 @@
   // 학생마다 다른 설정 (content/students.json): 용돈은 정윤만(가족), 보이는 탭, 말랑영어(초등)
   const ST = D.student || { name: U.who, edition: 'univ', wallet: true };
   const WALLET = ST.wallet !== false;
+  const PHONE = !!ST.phone;  // 11/12 폰 시간: 주아·윤건은 용돈 대신 「폰 시간」이 쌓여요 (하루 최대 1시간, 어머니가 스크린타임으로 풀어 줘요)
   const TUTOR = !!ST.tutor;  // 과외 학생: 홈이 「다음 수업」 중심, 숙제는 수업 때 정한 천일문 유닛
   const BRAND = ST.edition === 'english' ? '말랑영어' : '말랑대학';
   const NM = () => (typeof S !== 'undefined' && S.profile && S.profile.name) || U.who;
@@ -565,7 +566,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${TUTOR ? lessonHero() : ''}${appCard()}${gdCard()}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${juaRepCard()}${juaLinks()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${qlogCard()}${railCards(true)}${winCard()}${perfCard()}${finCard()}${admitCard('c12')}${lagCard()}${pomoCard('c12 rail-inline')}${growCard('c12')}${walletCard('c12')}${hotCard('c12 rail-inline')}${insightCard('c7')}${schedCard('c5')}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${ptCard('c12')}${TUTOR ? lessonHero() : ''}${appCard()}${gdCard()}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${juaRepCard()}${juaLinks()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${qlogCard()}${railCards(true)}${winCard()}${perfCard()}${finCard()}${admitCard('c12')}${lagCard()}${pomoCard('c12 rail-inline')}${growCard('c12')}${walletCard('c12')}${hotCard('c12 rail-inline')}${insightCard('c7')}${schedCard('c5')}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 11/8 «정윤이 너무 홈이 너무 지저분해»
@@ -1014,14 +1015,14 @@
   // 8초 지나고 맨 아래까지 내려야 「다 읽었어요」가 켜져요 → 불꽃 +1 · 팡팡 · 1·3·5·10·20·30개째 배지
   const NR_BADGE = [[1, 'fire', '첫 불꽃', '첫 소식을 끝까지 읽었어요!'], [3, 'news', '소식 새싹', '소식 3개 읽었어요. 벌써 아는 게 많아졌어요'], [5, 'bulb', '세상 탐험가', '소식 5개! 친구들보다 한 발 앞서 있어요'], [10, 'medal', '소식 박사', '10개나 읽었어요. 진짜 대단해요'], [20, 'trophy', '공대생 예약', '20개! 꿈에 한 걸음 더 가까워졌어요'], [30, 'crown', '소식 왕', '30개! 이제 설명해 주는 사람이에요']];
   // 윤건: 정윤이 동전처럼 기사 맨 위 막대가 8초 차면 불꽃 +1 이 저절로 (10/28 선생님 «몇 초 읽으면 코인처럼»)
-  const nrPill = (n) => (WALLET || TEACHER || U.who !== '윤건') ? '' : `<div class="rd-pill nr-pill${(S.nr || {})[n.id] ? ' done' : ''}" data-nrp>🔥<span class="rd-t">${(S.nr || {})[n.id] ? '불꽃 받았어요' : '8초 읽으면 불꽃 +1'}</span><i class="rd-bar"><b></b></i></div>`;
+  const nrPill = (n) => (WALLET || TEACHER || !(U.who === '윤건' || PHONE)) ? '' : `<div class="rd-pill nr-pill${(S.nr || {})[n.id] ? ' done' : ''}" data-nrp>🔥<span class="rd-t">${(S.nr || {})[n.id] ? '불꽃 받았어요' : '8초 읽으면 불꽃 +1'}</span><i class="rd-bar"><b></b></i></div>`;
   function nrBind(el, n) {
     const p = $('[data-nrp]', el); if (!p || p.classList.contains('done')) return;
     const t0 = Date.now(), T = 8000, bar = $('.rd-bar b', p), tx = $('.rd-t', p);
     const tm = setInterval(() => { if (!p.isConnected) return clearInterval(tm); if (document.hidden) return; const f = Math.min(1, (Date.now() - t0) / T); bar.style.width = f * 100 + '%'; tx.textContent = f < 1 ? `천천히 읽어요 · ${Math.ceil((T - (Date.now() - t0)) / 1000)}초` : '';
       if (f < 1) return; clearInterval(tm); p.classList.add('done');
       if (PEEK) { tx.textContent = '미리 보기라 불꽃은 안 받아요'; return; }
-      S.nr = S.nr || {}; S.nr[n.id] = Date.now(); save('nr'); const c = Object.keys(S.nr).length, r = p.getBoundingClientRect(); boom(r.left + 20, r.top + r.height / 2, 3); fanfare(); if (navigator.vibrate) navigator.vibrate([40, 30, 80]);
+      S.nr = S.nr || {}; S.nr[n.id] = Date.now(); save('nr'); setTimeout(() => ptEarn('news:' + n.id, 120, '기사 읽기', p), 1600); const c = Object.keys(S.nr).length, r = p.getBoundingClientRect(); boom(r.left + 20, r.top + r.height / 2, 3); fanfare(); if (navigator.vibrate) navigator.vibrate([40, 30, 80]);
       tx.textContent = `불꽃 ${c}개째!`; const bd = NR_BADGE.find((x) => x[0] === c);
       if (bd) setTimeout(() => badgePop([{ id: 'nr' + c, key: 'nr:' + c, w: 0, i: bd[1], eb: `🔥 소식 ${c}개 읽기`, t: bd[2], d: bd[3], mega: c >= 10 ? 1 : 0 }]), 500); else toast(`🔥 불꽃 ${c}개! 다음 배지까지 ${((NR_BADGE.find((x) => x[0] > c) || [c])[0]) - c}개`); }, 200);
   }
@@ -2407,7 +2408,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611122119', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611122140', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4960,7 +4961,69 @@
     return days < 3 ? Math.max(avg, W_PACE) : Math.max(avg, 100);
   }
   function wEta() { const rem = W_GOAL - wBal(); if (rem <= 0) return null; const d = new Date(); d.setDate(d.getDate() + Math.ceil(rem / wPace())); return md(dateOf(d)); }
+  // ───────── 폰 시간 (11/12 «주아랑 윤건이는 무조건 다 하면 1시간, 최대 1시간 · 시간이 팡팡 쌓이는 느낌 · 기사 읽는 것도 몇 초 몇 분 쌓이게») ─────────
+  //   오늘 숙제를 하나 끝낼 때마다 40분을 숙제 수로 나눈 만큼, 전부 끝내면 1시간이 꽉 차요. 문제 맞힘 +10초, 오답 다시 맞힘 +30초, 기사 읽기 +2분
+  //   하루 1시간까지만, 다음 날로 안 넘어가요. 날마다 S.pt.days[날짜].log 에 [{k, s, why, at}]
+  const PT_CAP = 3600, PT_TASK = 2400;
+  const ptLog = (d = realToday()) => (((S.pt || {}).days || {})[d] || {}).log || [];
+  const ptSum = (d = realToday()) => ptLog(d).reduce((a, x) => a + (x.s || 0), 0);
+  const ptFmt = (n) => { n = Math.max(0, Math.round(n)); const m = Math.floor(n / 60), r = n % 60; return n >= 3600 ? '1시간' : m && r ? `${m}분 ${r}초` : m ? `${m}분` : `${r}초`; };
+  let ptFxQ = null;
+  function ptEarn(key, sec, why, from) {
+    if (!PHONE || TEACHER || PEEK || !key || DAY_OFF()) return 0;
+    const d = realToday(), P0 = (S.pt = S.pt || {}); P0.days = P0.days || {};
+    const D0 = P0.days[d] || (P0.days[d] = { log: [] });
+    if (D0.log.some((x) => x.k === key)) return 0;
+    const a = Math.min(sec, PT_CAP - ptSum(d)); if (a <= 0) return 0;
+    D0.log.push({ k: key, s: a, why, at: Date.now() });
+    for (const k of Object.keys(P0.days).sort().slice(0, -14)) delete P0.days[k];  // 두 주 치만 남겨요
+    save('pt');
+    const f = ptFxQ || (ptFxQ = { a: 0, whys: [], from: null }); f.a += a; if (!f.whys.includes(why)) f.whys.push(why); if (from && !f.from) f.from = from;
+    clearTimeout(f.t); f.t = setTimeout(() => { ptFxQ = null; ptShow(f); }, 150);
+    return a;
+  }
+  function ptShow(f) {
+    const full = ptSum() >= PT_CAP;
+    coinToast(`${ic('timer')}<b class="num">+${ptFmt(f.a)}</b><span>${esc(full ? '오늘 폰 시간 1시간을 다 모았어요' : f.whys.slice(0, 2).join(' · '))}</span>`);
+    coinSound();
+    const top = $('#coin-top'); if (top) { ptChip(); if (!RM()) bump(top, 'coin-hit'); }
+    $$('[data-ptbal]').forEach((e) => (e.textContent = ptFmt(ptSum()))); $$('[data-ptbar]').forEach((e) => (e.style.width = Math.min(100, (ptSum() / PT_CAP) * 100) + '%'));
+    if (full && !RM()) { const r = (f.from && f.from.isConnected ? f.from : top || document.body).getBoundingClientRect(); boom(r.left + r.width / 2, r.top + r.height / 2, 5); fanfare(); }
+  }
+  function ptChip() { const ct = $('#coin-top'); if (!ct) return; ct.innerHTML = `${ic('timer')}<b class="num">${ptFmt(ptSum())}</b>`; ct.setAttribute('aria-label', `오늘 폰 시간 ${ptFmt(ptSum())}`); }
+  // 화면을 그릴 때마다: 끝낸 오늘 숙제만큼 시간을 줘요 (한 숙제에 한 번)
+  function ptScan() {
+    if (!PHONE || TEACHER || PEEK || DAY_OFF()) return;
+    let T; try { T = todayTasks().tasks.filter((t) => t.icon !== 'party' && !t.memo); } catch (e) { return; }
+    if (!T.length) return;
+    const share = Math.floor(PT_TASK / T.length);
+    for (const t of T) if (t.done) ptEarn('task:' + (t.k || t.t), share, '숙제 하나 끝');
+    if (T.every((t) => t.done)) ptEarn('all', PT_CAP, '오늘 숙제를 다 했어요');
+  }
+  function ptCard(cls) {
+    if (!PHONE || TEACHER) return '';
+    const sum = ptSum(), full = sum >= PT_CAP;
+    let T = []; try { T = todayTasks().tasks.filter((t) => t.icon !== 'party' && !t.memo); } catch (e) {}
+    const dn = T.filter((t) => t.done).length, share = T.length ? Math.floor(PT_TASK / T.length) : 0;
+    return `<section class="card ${cls} wl-home link" data-pt>
+      <div class="wl-top"><div class="wl-ic">${ic('timer')}</div><div class="wl-b"><div class="eyebrow">오늘 모은 폰 시간</div><b class="wl-bal num" data-ptbal>${ptFmt(sum)}</b></div>
+        <div class="wl-today"><span class="tiny">하루 최대</span><b class="num">1시간</b>${T.length ? `<span class="tiny">숙제 ${dn}/${T.length}</span>` : ''}</div></div>
+      <div><div class="wl-bar"><span data-ptbar style="width:${Math.min(100, (sum / PT_CAP) * 100)}%"></span></div>
+        <div class="row between" style="margin-top:8px;gap:8px"><span class="tiny">${full ? `${ic('party')} 오늘 1시간을 다 모았어요` : T.length && dn < T.length ? `숙제 ${dn}/${T.length} · 다 하면 1시간이 꽉 차요 · 하나 끝낼 때마다 +${ptFmt(share)}` : '문제를 맞히거나 기사를 읽으면 더 쌓여요'}</span><span class="tiny num" style="flex:none">문제 +10초 · 기사 +2분</span></div></div>
+    </section>`;
+  }
+  function ptSheet() {
+    const L = ptLog().slice().reverse(), sum = ptSum(), grp = {};
+    for (const x of ptLog()) { const g = grp[x.why] || (grp[x.why] = { n: 0, s: 0 }); g.n++; g.s += x.s; }
+    sheet(`<span class="eyebrow">${md(realToday())} ${esc(wdName(realToday()))}</span><h2 style="margin-top:6px">오늘 모은 폰 시간</h2>
+      <div style="text-align:center;margin:18px 0 6px"><b class="num" style="font-size:44px;font-weight:800;letter-spacing:-0.02em">${ptFmt(sum)}</b><div class="tiny" style="margin-top:4px">하루 최대 1시간 · 내일로 넘어가지 않아요</div></div>
+      <div class="wl-bar" style="margin:14px 0"><span style="width:${Math.min(100, (sum / PT_CAP) * 100)}%"></span></div>
+      <p class="sub" style="margin:0 0 12px">이 화면을 어머니께 보여 드리고 스크린타임을 요청해요</p>
+      ${L.length ? `<div class="list">${Object.entries(grp).map(([w, g]) => `<div class="li"><div class="ico">${ic(/기사/.test(w) ? 'news' : /오답/.test(w) ? 'retry' : /맞힘/.test(w) ? 'hundred' : 'pin')}</div><div class="body"><div class="t">${esc(w)}${g.n > 1 ? ` ${g.n}번` : ''}</div></div><b class="num" style="flex:none">+${ptFmt(g.s)}</b></div>`).join('')}</div>` : '<p class="tiny" style="margin:0">아직 모은 시간이 없어요. 숙제를 하나 끝내면 바로 쌓여요</p>'}
+      <div class="tiny" style="margin-top:14px">숙제 하나 끝 · 문제 맞힘 +10초 · 오답 다시 맞힘 +30초 · 기사 읽기 +2분</div>`);
+  }
   function earn(key, amt, why, opt = {}) {
+    if (PHONE) { const k = String(key || ''), sec = k.startsWith('ok:') ? 10 : /^(wr|myw):/.test(k) ? 30 : 0; return sec ? ptEarn(k, sec, why, opt.from) : 0; }
     if (!WALLET || PEEK) return 0;  // 용돈은 정윤만 (가족) · 선생님이 학생 화면을 들여다볼 때는 안 줘요
     if ((TEACHER && !opt.teacher) || !key || wHas(key)) return 0;
     const w = W(); if (!w.since) w.since = Date.now();
@@ -7607,7 +7670,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611122119'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611122140'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -9179,7 +9242,7 @@
     const on = $('button.on', tb); if (on && (on.offsetLeft < tb.scrollLeft || on.offsetLeft + on.offsetWidth > tb.scrollLeft + tb.clientWidth)) tb.scrollTo({ left: on.offsetLeft - (tb.clientWidth - on.offsetWidth) / 2, behavior: RM() ? 'auto' : 'smooth' });
     const u = uniOf(S.profile.uni);
     const bt = $('#bell-top'); if (bt) { bt.innerHTML = bellSVG(SOUND); bt.classList.toggle('on', SOUND); bt.setAttribute('aria-label', SOUND ? '소리 켜짐, 눌러서 무음' : '무음, 눌러서 소리 켜기'); }
-    const ct = $('#coin-top'); if (ct) ct.hidden = !WALLET || DASH_ONLY; if (ct && WALLET) { if (!coinPend) coinShown = wBal(); ct.innerHTML = `${ic('coin')}<b class="num">${won(coinShown)}</b>`; ct.setAttribute('aria-label', `말랑 용돈 ${won(coinShown)}`); ct.classList.toggle('on', UI.run && UI.run.kind === 'wallet'); }
+    const ct = $('#coin-top'); if (ct) ct.hidden = !(WALLET || (PHONE && !TEACHER)) || DASH_ONLY; if (ct && PHONE && !TEACHER) ptChip(); if (ct && WALLET) { if (!coinPend) coinShown = wBal(); ct.innerHTML = `${ic('coin')}<b class="num">${won(coinShown)}</b>`; ct.setAttribute('aria-label', `말랑 용돈 ${won(coinShown)}`); ct.classList.toggle('on', UI.run && UI.run.kind === 'wallet'); }
     const pt = $('#pomo-top'); if (pt) { const n = pDay().n; pt.innerHTML = `${ic('tomato')}<b class="num">${n}</b>`; pt.classList.toggle('on', !!n); pt.setAttribute('aria-label', `토마토 타이머 · 오늘 ${n}개`); }
     { const ptp = $('#pomo-top'); if (ptp) ptp.hidden = TEACHER; }
     $('#me').innerHTML = DASH_ONLY ? `<span>${esc(TP.name)}</span><span class="av" style="background:var(--t1)">${esc(TP.name.slice(0, 1))}</span>` : `<span>${esc(S.profile.name)}</span>${avatarHtml('sm')}`;
@@ -9283,7 +9346,7 @@
       const RP = c.list.filter((l) => l.sent && !l.plan).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 12);
       if (RP.length) rpCard = `<section class="card c12 par-rp"><div class="card-h"><h2>${ic('love')} 선생님 리포트</h2><span class="tiny">${RP.length}개</span></div><div class="par-rps">${RP.map((l, k) => `<details class="par-r" style="--k:${k}" ${k === 0 ? 'open' : ''}><summary><b>${md(l.date)} ${esc(wdName(l.date))}${l.nth ? ` · ${esc(l.nth)}회차` : ''}</b>${l.score ? `<span class="tag">${esc(l.score)}${l.scoreTotal ? '/' + esc(l.scoreTotal) : ''}점</span>` : ''}<span class="chev"></span></summary>
           ${l.lesson ? `<div class="par-f"><span>${TUTOR ? '수업 내용' : '이번 주'}</span><p>${esc(l.lesson)}</p></div>` : ''}${l.hw ? `<div class="par-f"><span>숙제</span><p>${esc(l.hw)}</p></div>` : ''}${l.progress ? `<div class="par-f"><span>진도</span><p>${esc(l.progress)}%</p></div>` : ''}${l.comment ? `<div class="par-f"><span>선생님 한마디</span><p>${esc(l.comment)}</p></div>` : ''}</details>`).join('')}</div></section>`; }
-    return `<h1 class="h1">${esc(NMI())} 공부 현황</h1><p class="sub" style="margin:0 0 16px">${md(t)} ${esc(wdName(t))} · 숙제를 하면 이 화면도 바로 바뀌어요</p><div class="grid par">${parPushBand()}${hwCard}${lsCard}${rpCard}</div>`;
+    return `<h1 class="h1">${esc(NMI())} 공부 현황</h1><p class="sub" style="margin:0 0 16px">${md(t)} ${esc(wdName(t))} · 숙제를 하면 이 화면도 바로 바뀌어요</p><div class="grid par">${parPushBand()}${PHONE ? `<section class="card c12 wl-home"><div class="wl-top"><div class="wl-ic">${ic('timer')}</div><div class="wl-b"><div class="eyebrow">오늘 모은 폰 시간</div><b class="wl-bal num">${ptFmt(ptSum())}</b></div><div class="wl-today"><span class="tiny">하루 최대</span><b class="num">1시간</b></div></div><div><div class="wl-bar"><span style="width:${Math.min(100, (ptSum() / PT_CAP) * 100)}%"></span></div><p class="tiny" style="margin:8px 0 0">숙제를 다 하면 1시간이 꽉 차요. 스크린타임 요청이 오면 이 시간만큼만 풀어 주세요</p></div></section>` : ''}${hwCard}${lsCard}${rpCard}</div>`;
   }
   // 11/10 «알림 가는 거야? 오늘 다 했다 안 했다» → 밤 10시에 「오늘 숙제 3개 중 2개 했어요」 (scripts/push/send.js parent · 구독은 univ_ppush 표)
   const parPushHas = () => { try { return localStorage.getItem('mu:ppush') === devId; } catch (e) { return false; } };
@@ -9324,7 +9387,7 @@
     if (PAR) return parRender();
     setTimeout(allDoneCheck, 700); setTimeout(taskDoneCheck, 450);
     finRe();  // 11/8 기말 예습 새 계획 먼저
-    hwRunFin(); setTimeout(autoTm, 0);
+    hwRunFin(); setTimeout(autoTm, 0); if (PHONE) setTimeout(ptScan, 900);
     { const k = navAt(), was = render.nav; if (was && k !== was && !render.pop && (k === 'run' || was === 'home')) try { history.pushState({ mu: k }, ''); } catch (e) {} render.nav = k; render.pop = 0; }
     nxReg(); pCloseOld(); leftMark(); appAuto(); if (ROLE_T && pulled && !save.snap) save.snap = pushIds(S);
     // 1학년 2학기는 아직 학기 최종 등급이 없어서, 먼저 넣은 등급은 중간고사 등급으로 옮겨요 (한 번만)
@@ -9530,7 +9593,7 @@
     $$('main [data-bell]').forEach((b) => (b.onclick = toggleBell));
     $$('[data-pomo]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); openPomo(); }));
     $$('[data-pmh]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); if (b.dataset.pmh === 'end') pStopAsk(); else pPause(); }));
-    $$('main [data-wallet]').forEach((b) => (b.onclick = openWallet));
+    $$('main [data-wallet]').forEach((b) => (b.onclick = openWallet)); $$('main [data-pt]').forEach((b) => (b.onclick = ptSheet));
     $$('[data-wact]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); walletAct(b.dataset.wact); }));
     if (UI.run && UI.run.kind === 'wallet') bindWallet();
     pPaint();
@@ -9603,7 +9666,7 @@
     // 새 탭이 막혀 같은 탭에서 열렸으면 window.close() 가 안 돼요. 이 탭의 학생·미리 보기 기억을 지우고 선생님 화면으로 돌아가요
     $('button', bar).onclick = () => { try { ['mu:peek', 'mu:who', 'mu:after'].forEach((k) => sessionStorage.removeItem(k)); } catch (e) {} if (window.opener) { try { window.close(); } catch (e) {} } setTimeout(() => location.reload(), 150); }; }
   $('#pomo-top').onclick = openPomo;
-  $('#coin-top').onclick = openWallet;
+  $('#coin-top').onclick = () => (PHONE ? ptSheet() : openWallet());
   $('#bell-top').onclick = toggleBell;
 
   // ───────── 세그먼트 · 칩: 고른 칸으로 미끄러지기 ─────────
