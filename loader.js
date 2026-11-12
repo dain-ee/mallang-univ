@@ -7,17 +7,31 @@ window.__boot = [];
 (function () {
   const mine = ((document.querySelector('script[src*="loader.js?v="]') || {}).src || '').match(/v=(\d+)/);
   if (!mine) return;
+  // 11/12 «캐시 좀 서버에서 지울 순 없나, 아이패드는 강력 새로고침도 없는데»: 주소 뒤에 시각을 붙여 받아서 10분 기억을 건너뛰어요
+  //   열 때·돌아올 때는 바로 새로 열고, 켜 둔 채로 있을 때는 3분마다 보고 「새 버전」 알약만 띄워요 (하던 걸 끊지 않게)
+  if (/^\?_=\d+$/.test(location.search)) history.replaceState(null, '', location.pathname);
   let busy = false;
-  const chk = async () => {
+  const pill = (go) => {
+    if (document.getElementById('mu-upd')) return;
+    const b = document.createElement('button'); b.id = 'mu-upd'; b.type = 'button'; b.textContent = '새 버전이 나왔어요 · 눌러서 열기';
+    b.style.cssText = 'white-space:nowrap;position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top));z-index:300;padding:12px 20px;border:0;border-radius:99px;background:#191f28;color:#fff;font:600 14px/1.3 inherit;font-family:inherit;box-shadow:0 8px 24px rgba(0,27,55,.25);cursor:pointer;opacity:0;transform:translate(-50%,-16px);transition:opacity .25s,transform .45s cubic-bezier(.2,1.2,.3,1)';
+    b.onclick = go; document.body.appendChild(b);
+    requestAnimationFrame(() => { b.style.opacity = '1'; b.style.transform = 'translate(-50%,0)'; });
+  };
+  const chk = async (auto) => {
     if (busy || document.hidden) return; busy = true;
     try {
-      const h = await (await fetch(location.pathname, { cache: 'reload' })).text(), m = h.match(/loader\.js\?v=(\d+)/);
-      if (m && m[1] !== mine[1] && sessionStorage.getItem('mu:upd') !== m[1]) { sessionStorage.setItem('mu:upd', m[1]); location.reload(); }
+      const h = await (await fetch(location.pathname + '?t=' + Date.now(), { cache: 'no-store' })).text(), m = h.match(/loader\.js\?v=(\d+)/);
+      if (m && m[1] !== mine[1]) {
+        const go = () => { sessionStorage.setItem('mu:upd', m[1]); location.replace(location.pathname + '?_=' + m[1]); };
+        if (auto && sessionStorage.getItem('mu:upd') !== m[1]) go(); else pill(go);
+      }
     } catch (e) {}
     busy = false;
   };
-  setTimeout(chk, 1500);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) chk(); });
+  setTimeout(() => chk(true), 1500);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) chk(true); });
+  setInterval(() => chk(false), 180000);
 })();
 (function () {
   const C = window.UNIV_SYNC;
