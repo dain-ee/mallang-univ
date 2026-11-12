@@ -2408,7 +2408,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611130010', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611130022', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6302,9 +6302,9 @@
       const pg = rec ? null : (nxPgSeed(q) || NXPG[q.i]); let k = 0;
       const rows = q.ps.map((x, j) => {
         const sc = rec ? (rec.sc || [])[j] : pg ? pg.sc[j] : null, done = !!rec || (sc != null);
-        let b = 0; const html = esc(x.s).replace(/\{([^}]+)\}([.,!?;:”"’'…]*)/g, (m, a, pu) => `<span class="mp-nw">${((a) => { const i = k++, bi = b++; if (!done) return `<input class="nx-bl" data-pj="${j}" data-nxin="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" style="width:${Math.max(3.5, a.length * 0.62 + 1.6)}em" aria-label="${j + 1}번 문장 빈칸">`; const v = rec ? typed[i] : (pg.v[j] || [])[bi], ok = !!(pg && pg.seed && pg.seed[j]) || nxAlts(a).includes(nxKey(v)); return `<span class="nx-bl-r ${ok ? 'ok' : 'no'}"><b>${esc(a)}</b>${!ok && String(v || '').trim() ? `<s>${esc(v)}</s>` : ''}</span>`; })(a)}${pu}</span>`);
+        let b = 0; const html = esc(x.s).replace(/\{([^}]+)\}([.,!?;:”"’'…]*)/g, (m, a, pu) => `<span class="mp-nw">${((a) => { const i = k++, bi = b++; if (!done) return `<input class="nx-bl" data-pj="${j}" data-nxin="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(((pg && pg.d) || {})[i] || '')}" style="width:${Math.max(3.5, a.length * 0.62 + 1.6)}em" aria-label="${j + 1}번 문장 빈칸">`; const v = rec ? typed[i] : (pg.v[j] || [])[bi], ok = !!(pg && pg.seed && pg.seed[j]) || nxAlts(a).includes(nxKey(v)); return `<span class="nx-bl-r ${ok ? 'ok' : 'no'}"><b>${esc(a)}</b>${!ok && String(v || '').trim() ? `<s>${esc(v)}</s>` : ''}</span>`; })(a)}${pu}</span>`);
         return `<div class="mp-s ${x.h ? 'h' : ''} ${x.key ? 'key' : ''} ${sc === true ? 'ok' : sc === false ? 'no' : ''} ${pg && pg.last === j ? 'pop' : ''}" data-pr="${j}"><span class="st-ln num">${j + 1}</span><div><p class="mp-en">${html}</p><span class="mp-ko">${esc(x.ko || '')}</span>${x.key ? '<span class="tag blue">중요</span>' : ''}${done && x.note ? `<em>${esc(x.note)}</em>` : ''}</div><i class="mp-mk" aria-hidden="true">${sc === true ? '✓' : sc === false ? '✕' : ''}</i></div>`; }).join('');
-      stem = `<h2 class="nx-q">${esc(q.q)}</h2><p class="tiny" style="margin:4px 0 8px">우리말을 보고 빈칸에 영어를 써요. 한 문장 다 쓰고 Enter 를 치면 바로 채점돼요${pg && pg.seed ? ' · 전에 맞힌 문장은 채워 뒀어요. 틀린 문장만 다시 써요' : ''}</p><div class="mp-list">${rows}</div>`;
+      stem = `<h2 class="nx-q">${esc(q.q)}</h2><p class="tiny" style="margin:4px 0 8px">우리말을 보고 빈칸에 영어를 써요. 한 문장을 다 쓰고 다음 칸으로 가거나 Enter 를 치면 바로 채점돼요${pg && pg.seed ? ' · 전에 맞힌 문장은 채워 뒀어요. 틀린 문장만 다시 써요' : ''}</p><div class="mp-list">${rows}</div>`;
       if (!rec) ans = '<div class="nx-acts"><button class="nx-link" id="nx-give" type="button">남은 문장 모르겠어요</button></div>';
     } else if (q.t === 'blank') {
       let k = 0; stem = `${q.h ? `<div class="tiny" style="margin-bottom:6px">${esc(q.h)}</div>` : ''}<p class="nx-q nx-blq">${esc(q.q).replace(/\{([^}]+)\}/g, (m, a) => { const i = k++; if (!rec) return `<input class="nx-bl" data-nxin="${i}" autocomplete="off" spellcheck="false" style="width:${Math.max(4, a.length * 1.6 + 1)}em" aria-label="빈칸 ${i + 1}">`; const ok = nxAlts(a).includes(nxKey(typed[i])); return `<span class="nx-bl-r ${ok ? 'ok' : 'no'}"><b>${esc(a)}</b>${!ok && String(typed[i] || '').trim() ? `<s>${esc(typed[i])}</s>` : ''}</span>`; })}</p>`;
@@ -6336,14 +6336,15 @@
       const pg = nxPgSeed(q) || (NXPG[q.i] = NXPG[q.i] || { v: {}, sc: {} }), need = q.ps.map((x, j) => (/\{[^}]+\}/.test(x.s) ? j : -1)).filter((j) => j >= 0);
       const fin = () => { if (!need.every((j) => pg.sc[j] != null)) return false; const sc = q.ps.map((x, j) => (pg.sc[j] != null ? pg.sc[j] : null)), v = need.flatMap((j) => pg.v[j] || []).join(' ‖ '); delete NXPG[q.i]; submit(need.every((j) => pg.sc[j]), v, sc); return true; };
       const nextIn = (j) => { const n = need.find((x) => x > j && pg.sc[x] == null); const m = n != null ? n : need.find((x) => pg.sc[x] == null); return m != null ? $(`main [data-pj="${m}"]`) : null; };
-      const gradeS = (j) => { const ins = $$(`main [data-pj="${j}"]`), vals = ins.map((x) => x.value), A = [...q.ps[j].s.matchAll(/\{([^}]+)\}/g)].map((m) => m[1]);
+      const gradeS = (j, keep) => { const ins = $$(`main [data-pj="${j}"]`), vals = ins.map((x) => x.value), A = [...q.ps[j].s.matchAll(/\{([^}]+)\}/g)].map((m) => m[1]);
         if (vals.some((x) => /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(x))) return toast('한글 자판이에요. 영어로 바꿔서 써요');
         const ok = A.every((a, b) => nxAlts(a).includes(nxKey(vals[b]))); pg.v[j] = vals; pg.sc[j] = ok; pg.last = j; if (ok) ding(1);
-        if (fin()) return; render(); pg.last = null; const el = nextIn(j); if (el) el.focus(); };
+        if (fin()) return; render(); pg.last = null; const el = (keep != null && $(`main [data-nxin="${keep}"]`)) || nextIn(j); if (el) el.focus(); };
       $$('main [data-pj]').forEach((x) => (x.onkeydown = (e) => { if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return; e.preventDefault(); e.stopPropagation(); const j = +x.dataset.pj, row = $$(`main [data-pj="${j}"]`), k = row.indexOf(x); if (k < row.length - 1) row[k + 1].focus(); else gradeS(j); }));
       /* 11/13 «다 채웠는데도 단추가…»: Enter 를 안 치고 다 채우면 단추가 「채점하기」로 바뀌어요. 채운 문장은 틀림 처리하지 않고 채점해요 */
       const gv = $('#nx-give'), allIn = () => $$('main [data-pj]').length > 0 && $$('main [data-pj]').every((x) => x.value.trim()), gvSet = () => { if (!gv) return; const on = allIn(); gv.className = on ? 'btn primary big block' : 'nx-link'; gv.textContent = on ? '채점하기' : '남은 문장 모르겠어요'; };
-      if (gv) { gvSet(); $$('main [data-pj]').forEach((x) => (x.oninput = gvSet));
+      if (gv) { gvSet(); pg.d = pg.d || {}; $$('main [data-pj]').forEach((x) => { x.oninput = () => { pg.d[x.dataset.nxin] = x.value; gvSet(); };
+          x.onchange = () => setTimeout(() => { const j = +x.dataset.pj, row = $$(`main [data-pj="${j}"]`); if (!row.length || pg.sc[j] != null || !row.every((y) => y.value.trim()) || row.includes(document.activeElement)) return; const ae = document.activeElement, keep = ae && ae.dataset ? ae.dataset.nxin : null; gradeS(j, keep); }, 0); });
         gv.onclick = () => { if ($$('main [data-pj]').some((x) => /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(x.value))) return toast('한글 자판이에요. 영어로 바꿔서 써요'); let hit = 0;
           for (const j of need) if (pg.sc[j] == null) { const vals = $$(`main [data-pj="${j}"]`).map((x) => x.value), A = [...q.ps[j].s.matchAll(/\{([^}]+)\}/g)].map((m) => m[1]); pg.v[j] = vals; pg.sc[j] = vals.every((x) => x.trim()) && A.every((a, k) => nxAlts(a).includes(nxKey(vals[k]))); if (pg.sc[j]) hit++; }
           if (hit) ding(1); fin(); }; }
@@ -7790,7 +7791,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611130010'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611130022'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
