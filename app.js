@@ -1292,7 +1292,7 @@
     // 11/7 선생님 «너무 안 이쁘다, 토스처럼»: 줄마다 큰 단추 하나 + 「⋯」(미루기·했어요는 아래에서 올라와요)
     return `<section class="card c12 miss-card"><div class="card-h"><h2>${when} 못 한 숙제가 있어요</h2><span class="tiny">${L.length}개</span></div><div class="list">${L.map(({ it, d, was, now, nd, left, over, n, first }) => `<div class="li miss-it"><div class="body"><div class="t">${esc(it.book)}${tsTg([n > 1 ? [`${n}일째`, 'red'] : null, !nd && over ? ['마감 지남', 'red'] : null, nd && avg && now > avg ? ['평소보다 많아요', ''] : null])}</div>
       <div class="d">${n <= 1 && ds.length > 1 ? `${md(d)} 몫 · ` : ''}${nd ? `남은 ${nd}일에 하루 <b>${now}${u(it)}</b>씩` : over ? `${left}${u(it)} 남았어요` : '마감까지 남은 날이 없어요'}</div></div>
-      <div class="miss-b"><button class="btn sm primary" type="button" data-miss="split|${esc(it.id)}|${d}">${nd ? '나눠 하기' : '오늘 할게요'}</button><button class="btn sm x-ic" type="button" data-xmore="${esc(it.book)}" aria-label="더 보기">⋯</button><button hidden type="button" data-xm="${over ? '마감 미루기' : '하루 미루기'}" data-miss="push|${esc(it.id)}|${d}"></button><button hidden type="button" data-xm="이미 했어요" data-miss="did|${esc(it.id)}|${d}|${was}"></button></div></div>`).join('')}</div></section>`;
+      <div class="miss-b"><button class="btn sm primary" type="button" data-miss="split|${esc(it.id)}|${d}">${nd ? '나눠 하기' : '오늘 할게요'}</button><button class="btn sm x-ic" type="button" data-xmore="${esc(it.book)}" aria-label="더 보기">⋯</button><button hidden type="button" data-xm="${over ? '마감 미루기' : '하루 미루기'}" data-miss="push|${esc(it.id)}|${d}"></button><button hidden type="button" data-xm="이미 했어요" data-miss="did|${esc(it.id)}|${d}|${was}"></button>${it.from != null ? `<button hidden type="button" data-xm="몇 문제만 못 풀었어요" data-miss="part|${esc(it.id)}|${d}|${was}"></button>` : ''}</div></div>`).join('')}</div></section>`;
   }
 
   // ───────── 밀린 것 한눈에 (간트) ─────────
@@ -1696,7 +1696,7 @@
       <input type="hidden" id="my-w" inputmode="numeric" placeholder="예: 1225 1231 1240" value="${esc((dt && dt.w || []).filter((v) => !(dt.p || []).includes(v)).join(' '))}"><input type="hidden" id="my-p" value="${esc((dt && dt.p || []).join(' '))}">`}
       <button class="btn primary big block" id="my-ok" type="button" style="margin-top:16px">${it.unit === '건' ? (myFin(it) ? '아직 안 끝났어요' : '끝냈어요') : dt ? '고쳐서 저장' : '오늘 것 끝냈어요'}</button>
       <div class="row" style="gap:8px;margin-top:8px">${it.unit === '건' ? `<button class="btn block" id="my-plan" type="button">${isPlan(it) ? '꼭 할 일로 바꾸기' : '일정으로 바꾸기'}</button>` : `<button class="btn block" id="my-fin" type="button">${it.fin ? '다시 하기' : '다 끝났어요'}</button>`}<button class="btn block" id="my-del" type="button">지우기</button></div>
-      <details class="my-edit"><summary>범위·마감 고치기</summary><div class="my-ed">${it.unit === '건' ? '' : it.from != null ? `<div class="my-er"><span class="my-el">범위</span><span class="my-in">${it.unit === '쪽' ? '<span>p.</span>' : ''}<input class="inp" type="number" inputmode="numeric" id="my-ea" value="${it.from}"><span>~</span><input class="inp" type="number" inputmode="numeric" id="my-eb" value="${it.to}"><span>${it.unit === '쪽' ? '쪽' : '번'}</span></span></div>` : `<div class="my-er"><span class="my-el">문제 수</span><span class="my-in"><input class="inp" type="number" inputmode="numeric" id="my-ec" value="${it.total}"><span>문제</span></span></div>`}
+      ${it.unit !== '건' && it.from != null ? '<button class="btn block" id="my-pass" type="button" style="margin-top:8px">전에 몰라서 넘긴 문제 적기</button>' : ''}<details class="my-edit"><summary>범위·마감 고치기</summary><div class="my-ed">${it.unit === '건' ? '' : it.from != null ? `<div class="my-er"><span class="my-el">범위</span><span class="my-in">${it.unit === '쪽' ? '<span>p.</span>' : ''}<input class="inp" type="number" inputmode="numeric" id="my-ea" value="${it.from}"><span>~</span><input class="inp" type="number" inputmode="numeric" id="my-eb" value="${it.to}"><span>${it.unit === '쪽' ? '쪽' : '번'}</span></span></div>` : `<div class="my-er"><span class="my-el">문제 수</span><span class="my-in"><input class="inp" type="number" inputmode="numeric" id="my-ec" value="${it.total}"><span>문제</span></span></div>`}
         <label class="my-er"><span class="my-el">마감</span><input type="date" class="inp sm" id="my-ed" value="${it.due}"></label><button class="btn primary big block" id="my-es" type="button">고쳐서 저장</button></div></details>`, (el, close) => {
       myTmBind(it); if (mySheet.wFocus) { mySheet.wFocus = 0; myWFocus(); }
       $('#my-es', el).onclick = () => { const a = $('#my-ea', el), b = $('#my-eb', el), c = $('#my-ec', el), d = $('#my-ed', el).value;
@@ -1746,6 +1746,7 @@
         if (myFin(it)) { const r = document.body.getBoundingClientRect(); boom(innerWidth / 2, innerHeight * 0.4, 4); }
       };
       if ($('#my-fin', el)) $('#my-fin', el).onclick = () => { it.fin = !it.fin; save('my'); close(); render(); };
+      if ($('#my-pass', el)) $('#my-pass', el).onclick = () => { close(); setTimeout(() => myPassSheet(it), 260); };
       $('#my-del', el).onclick = () => { if (!$('#my-del', el).dataset.sure) { $('#my-del', el).dataset.sure = 1; $('#my-del', el).textContent = '한 번 더 누르면 지워요'; return; } myS().gone = { ...(myS().gone || {}), [it.id]: Date.now() }; myS().items = myS().items.filter((y) => y !== it); if (it.unit === '번' && myDone(it) < it.total) myS().trash = [...(myS().trash || []).filter((y) => y.id !== it.id).slice(-9), { ...it, delAt: Date.now() }]; /* 지운 숙제도 「몇 번까지 풀었나요?」 한 번은 물어요 (11/3) */ save('my'); close(); render(); toast('지웠어요'); };
     });
   }
@@ -1885,6 +1886,26 @@
     if ((it.wrong || []).includes(n)) { it.wrong = it.wrong.filter((x) => x !== n); it.redo = [...(it.redo || []), n]; earn('myw:' + it.id + ':' + n, 50, '학원 오답 다시 맞힘'); toast(WALLET ? '맞혔어요! 50원' : '맞혔어요!'); }
     else { it.redo = (it.redo || []).filter((x) => x !== n); it.wrong = [...(it.wrong || []), n].sort((a, c) => a - c); }
     save('my');
+  }
+  // 11/12 정윤 «숙제를 다 못 한 게 아니라 그중에서 몇 번 문제만 못 푼 건데, 아예 못 풀었다 하고 미루기밖에 없으니까»
+  //   못 푼 번호만 골라요. 고른 건 「모름」으로 오답 탭에 모이고, 나머지는 푼 걸로 적어요 (넘긴 문제도 한 걸로 쳐요)
+  //   o.d 가 있으면 그날 몫(o.a~o.z, o.n 문제), 없으면 숙제 전체 번호에서 전에 넘긴 것을 골라요
+  function myPassSheet(it, o = {}) {
+    if (it.from == null) return;
+    const a = o.d ? o.a : it.from, z = o.d ? o.z : it.to, had = new Set(it.pass || []), PS = new Set();
+    const left0 = it.total - myDone(it);
+    sheet(`<span class="eyebrow">${esc(it.book)}</span><h2 style="margin-top:6px">${o.d ? '못 푼 번호만 눌러요' : '몰라서 넘긴 번호를 눌러요'}</h2><p class="sub">${o.d ? `${md(o.d)} 몫 ${a}~${z}번 · 나머지는 푼 걸로 적어요` : '넘긴 문제도 한 걸로 쳐요 · 오답 탭에 「모름」으로 모여요'}</p>
+      <div class="my-wc my-pass">${Array.from({ length: z - a + 1 }, (_, k) => a + k).map((v) => `<button type="button" class="${had.has(v) ? 'dk' : ''}" data-mpn="${v}" ${had.has(v) ? 'disabled' : ''}>${v}</button>`).join('')}</div>
+      <button class="btn primary big block" id="mp-ok" type="button" style="margin-top:16px" aria-disabled="true">번호를 눌러요</button>`, (el, close) => {
+      const ok = $('#mp-ok', el), sync = () => { ok.textContent = PS.size ? `못 푼 ${PS.size}문제 적기` : '번호를 눌러요'; PS.size ? ok.removeAttribute('aria-disabled') : ok.setAttribute('aria-disabled', 'true'); };
+      $$('[data-mpn]', el).forEach((b) => (b.onclick = () => { const v = +b.dataset.mpn; PS.has(v) ? PS.delete(v) : PS.add(v); b.classList.toggle('dk', PS.has(v)); sync(); }));
+      ok.onclick = () => { if (!PS.size) return; const pp = [...PS].sort((x, y) => x - y), d = o.d || today(), old = it.log[d] || {};
+        const n = o.d ? o.n : (old.n || 0) + Math.min(pp.length, left0);
+        const un = (L) => [...new Set([...(L || []), ...pp])].sort((x, y) => x - y);
+        it.log[d] = { ...old, n, w: un(old.w), p: un(old.p), at: Date.now() }; it.wrong = un(it.wrong); it.pass = un(it.pass);
+        if (o.d) it.ack = { ...(it.ack || {}), [o.d]: 1 };
+        save('my'); close(); render(); toast(`못 푼 ${pp.length}문제는 오답 탭에 「모름」으로 모아 뒀어요${it.total - myDone(it) <= 0 ? ' · 이 숙제는 끝!' : ''}`); };
+    });
   }
   function myWrongCard(cls) {
     const L = myS().items.filter((it) => (it.wrong || []).length || (it.redo || []).length); if (!L.length) return '';
@@ -2370,7 +2391,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611121057', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611121138', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7570,7 +7591,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611121057'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611121138'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -9439,7 +9460,9 @@
     bindAlive();
     $$('[data-skinset]').forEach((b) => (b.onclick = skinSheet));
     $$('[data-homeset]').forEach((b) => (b.onclick = skinSheet));
-    $$('[data-miss]').forEach((b) => (b.onclick = () => { const [k, id, d, was] = b.dataset.miss.split('|'), it = myS().items.find((x) => x.id === id); if (!it) return; it.ack = { ...(it.ack || {}), [d]: 1 };
+    $$('[data-miss]').forEach((b) => (b.onclick = () => { const [k, id, d, was] = b.dataset.miss.split('|'), it = myS().items.find((x) => x.id === id); if (!it) return;
+      if (k === 'part') { const a = it.from + myDone(it), n = Math.min(+was, it.total - myDone(it)); return myPassSheet(it, { d, a, z: a + n - 1, n }); }  // 못 푼 번호만 고르고 나머지는 한 걸로
+      it.ack = { ...(it.ack || {}), [d]: 1 };
       const u = it.unit === '쪽' ? '쪽' : '문제';
       if (k === 'push') toast(myPush(it));
       else if (k === 'did') { it.log[d] = { n: +was, at: Date.now() }; toast(`${md(d)}에 ${was}${u} 한 걸로 적었어요`); }
