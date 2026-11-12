@@ -2408,7 +2408,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611122145', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611122150', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4489,7 +4489,8 @@
     let sub = await reg.pushManager.getSubscription();
     if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(VAPID) });
     const j = sub.toJSON(), box = ROLE_T ? (TP.push = TP.push || {}) : (S.push = S.push || {});
-    if (!force && box[devId] && box[devId].e === j.endpoint) return;
+    let dupe = 0; for (const k of Object.keys(box)) if (k !== devId && box[k] && box[k].e === j.endpoint) { delete box[k]; dupe++; }  // 11/12 «메시지 3개에 알림이 6개»: 같은 브라우저가 다른 이름으로 또 올라가 있었어요
+    if (!force && box[devId] && box[devId].e === j.endpoint) { if (dupe) { if (ROLE_T) tSave(); else save('push'); } return; }
     const ua = navigator.userAgent;
     box[devId] = { e: j.endpoint, k: j.keys, at: Date.now(), d: /iPad/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? '아이패드' : /iPhone/.test(ua) ? '아이폰' : '기타' };
     if (ROLE_T) tSave(); else save('push');
@@ -4967,6 +4968,10 @@
   const PT_CAP = 3600, PT_TASK = 2400;
   const ptLog = (d = realToday()) => (((S.pt || {}).days || {})[d] || {}).log || [];
   const ptSum = (d = realToday()) => ptLog(d).reduce((a, x) => a + (x.s || 0), 0);
+  const ptUsed = (d = realToday()) => Math.min(ptSum(d), (((S.pt || {}).days || {})[d] || {}).used || 0);
+  const ptLeft = (d = realToday()) => ptSum(d) - ptUsed(d);  // 아직 안 받은 시간 (어머니가 「풀어 줬어요」를 누르면 0)
+  // 특별한 날 선물 (하루 1시간 안에서): 생일 30분, 그 밖의 날 15분
+  const PT_GIFT = { '12-25': ['크리스마스 선물', 900], '01-01': ['새해 선물', 900], '05-05': ['어린이날 선물', 900] };
   const ptFmt = (n) => { n = Math.max(0, Math.round(n)); const m = Math.floor(n / 60), r = n % 60; return n >= 3600 ? '1시간' : m && r ? `${m}분 ${r}초` : m ? `${m}분` : `${r}초`; };
   let ptFxQ = null;
   function ptEarn(key, sec, why, from) {
@@ -4984,16 +4989,20 @@
   }
   function ptShow(f) {
     const full = ptSum() >= PT_CAP;
-    coinToast(`${ic('timer')}<b class="num">+${ptFmt(f.a)}</b><span>${esc(full ? '오늘 폰 시간 1시간을 다 모았어요' : f.whys.slice(0, 2).join(' · '))}</span>`);
+    const gift = f.whys.find((w) => /선물/.test(w));
+    coinToast(`${ic(gift ? 'gift' : 'timer')}<b class="num">+${ptFmt(f.a)}</b><span>${esc(gift ? (/생일/.test(gift) ? '생일 축하해요! 폰 시간 선물이에요' : gift) : full ? '오늘 폰 시간 1시간을 다 모았어요' : f.whys.slice(0, 2).join(' · '))}</span>`);
     coinSound();
     const top = $('#coin-top'); if (top) { ptChip(); if (!RM()) bump(top, 'coin-hit'); }
-    $$('[data-ptbal]').forEach((e) => (e.textContent = ptFmt(ptSum()))); $$('[data-ptbar]').forEach((e) => (e.style.width = Math.min(100, (ptSum() / PT_CAP) * 100) + '%'));
-    if (full && !RM()) { const r = (f.from && f.from.isConnected ? f.from : top || document.body).getBoundingClientRect(); boom(r.left + r.width / 2, r.top + r.height / 2, 5); fanfare(); }
+    $$('[data-ptbal]').forEach((e) => (e.textContent = ptFmt(ptLeft()))); $$('[data-ptbar]').forEach((e) => (e.style.width = Math.min(100, (ptSum() / PT_CAP) * 100) + '%'));
+    if ((full || gift) && !RM()) { const r = (f.from && f.from.isConnected ? f.from : top || document.body).getBoundingClientRect(); boom(r.left + r.width / 2, r.top + r.height / 2, 5); fanfare(); }
   }
-  function ptChip() { const ct = $('#coin-top'); if (!ct) return; ct.innerHTML = `${ic('timer')}<b class="num">${ptFmt(ptSum())}</b>`; ct.setAttribute('aria-label', `오늘 폰 시간 ${ptFmt(ptSum())}`); }
+  function ptChip() { const ct = $('#coin-top'); if (!ct) return; ct.innerHTML = `${ic('timer')}<b class="num">${ptFmt(ptLeft())}</b>`; ct.setAttribute('aria-label', `쓸 수 있는 폰 시간 ${ptFmt(ptLeft())}`); }
   // 화면을 그릴 때마다: 끝낸 오늘 숙제만큼 시간을 줘요 (한 숙제에 한 번)
   function ptScan() {
     if (!PHONE || TEACHER || PEEK || DAY_OFF()) return;
+    const mmdd = realToday().slice(5);
+    if (ST.birth && ST.birth === mmdd) ptEarn('gift:bday', 1800, '생일 선물'); else if (PT_GIFT[mmdd]) ptEarn('gift:' + mmdd, PT_GIFT[mmdd][1], PT_GIFT[mmdd][0]);
+    if (!(S.pt || {}).guide && !UI.run && UI.tab === 'home' && !$('#sheet-root .sheet') && !$('.bdg-card')) ptGuide();
     let T; try { T = todayTasks().tasks.filter((t) => t.icon !== 'party' && !t.memo); } catch (e) { return; }
     if (!T.length) return;
     const share = Math.floor(PT_TASK / T.length);
@@ -5002,25 +5011,45 @@
   }
   function ptCard(cls) {
     if (!PHONE || TEACHER) return '';
-    const sum = ptSum(), full = sum >= PT_CAP;
+    const sum = ptSum(), full = sum >= PT_CAP, left = ptLeft(), used = ptUsed();
     let T = []; try { T = todayTasks().tasks.filter((t) => t.icon !== 'party' && !t.memo); } catch (e) {}
     const dn = T.filter((t) => t.done).length, share = T.length ? Math.floor(PT_TASK / T.length) : 0;
     return `<section class="card ${cls} wl-home link" data-pt>
-      <div class="wl-top"><div class="wl-ic">${ic('timer')}</div><div class="wl-b"><div class="eyebrow">오늘 모은 폰 시간</div><b class="wl-bal num" data-ptbal>${ptFmt(sum)}</b></div>
+      <div class="wl-top"><div class="wl-ic">${ic('timer')}</div><div class="wl-b"><div class="eyebrow">${used ? '남은 폰 시간' : '오늘 모은 폰 시간'}</div><b class="wl-bal num" data-ptbal>${ptFmt(left)}</b></div>
         <div class="wl-today"><span class="tiny">하루 최대</span><b class="num">1시간</b>${T.length ? `<span class="tiny">숙제 ${dn}/${T.length}</span>` : ''}</div></div>
       <div><div class="wl-bar"><span data-ptbar style="width:${Math.min(100, (sum / PT_CAP) * 100)}%"></span></div>
-        <div class="row between" style="margin-top:8px;gap:8px"><span class="tiny">${full ? `${ic('party')} 오늘 1시간을 다 모았어요` : T.length && dn < T.length ? `숙제 ${dn}/${T.length} · 다 하면 1시간이 꽉 차요 · 하나 끝낼 때마다 +${ptFmt(share)}` : '문제를 맞히거나 기사를 읽으면 더 쌓여요'}</span><span class="tiny num" style="flex:none">문제 +10초 · 기사 +2분</span></div></div>
+        <div class="row between" style="margin-top:8px;gap:8px"><span class="tiny">${used && !left ? `${ic('ok')} 오늘 ${ptFmt(used)} 받았어요${full ? '' : ' · 더 모으면 또 받을 수 있어요'}` : full ? `${ic('party')} 오늘 1시간을 다 모았어요` : T.length && dn < T.length ? `숙제 ${dn}/${T.length} · 다 하면 1시간이 꽉 차요 · 하나 끝낼 때마다 +${ptFmt(share)}` : '문제를 맞히거나 기사를 읽으면 더 쌓여요'}</span><span class="tiny num" style="flex:none">문제 +10초 · 기사 +2분</span></div></div>
+      ${full && left ? '<button class="btn primary big block" type="button">어머니께 보여 드리기</button>' : ''}
     </section>`;
   }
   function ptSheet() {
-    const L = ptLog().slice().reverse(), sum = ptSum(), grp = {};
+    const L = ptLog().slice().reverse(), sum = ptSum(), left = ptLeft(), used = ptUsed(), grp = {};
     for (const x of ptLog()) { const g = grp[x.why] || (grp[x.why] = { n: 0, s: 0 }); g.n++; g.s += x.s; }
     sheet(`<span class="eyebrow">${md(realToday())} ${esc(wdName(realToday()))}</span><h2 style="margin-top:6px">오늘 모은 폰 시간</h2>
-      <div style="text-align:center;margin:18px 0 6px"><b class="num" style="font-size:44px;font-weight:800;letter-spacing:-0.02em">${ptFmt(sum)}</b><div class="tiny" style="margin-top:4px">하루 최대 1시간 · 내일로 넘어가지 않아요</div></div>
+      <div style="text-align:center;margin:18px 0 6px"><b class="num" style="font-size:44px;font-weight:800;letter-spacing:-0.02em">${ptFmt(left)}</b><div class="tiny" style="margin-top:4px">${used ? `오늘 ${ptFmt(used)}은 이미 받았어요 · ` : ''}하루 최대 1시간 · 내일로 넘어가지 않아요</div></div>
       <div class="wl-bar" style="margin:14px 0"><span style="width:${Math.min(100, (sum / PT_CAP) * 100)}%"></span></div>
       <p class="sub" style="margin:0 0 12px">이 화면을 어머니께 보여 드리고 스크린타임을 요청해요</p>
+      ${left ? `<button class="btn primary big block" id="pt-give" type="button" style="margin-bottom:16px">어머니가 눌러요 · ${ptFmt(left)} 풀어 줬어요</button>` : ''}
       ${L.length ? `<div class="list">${Object.entries(grp).map(([w, g]) => `<div class="li"><div class="ico">${ic(/기사/.test(w) ? 'news' : /오답/.test(w) ? 'retry' : /맞힘/.test(w) ? 'hundred' : 'pin')}</div><div class="body"><div class="t">${esc(w)}${g.n > 1 ? ` ${g.n}번` : ''}</div></div><b class="num" style="flex:none">+${ptFmt(g.s)}</b></div>`).join('')}</div>` : '<p class="tiny" style="margin:0">아직 모은 시간이 없어요. 숙제를 하나 끝내면 바로 쌓여요</p>'}
-      <div class="tiny" style="margin-top:14px">숙제 하나 끝 · 문제 맞힘 +10초 · 오답 다시 맞힘 +30초 · 기사 읽기 +2분</div>`);
+      <button class="btn block" id="pt-how" type="button" style="margin-top:14px">시간을 쌓는 방법</button>`, (el, close) => {
+      const g = $('#pt-give', el);
+      if (g) g.onclick = () => {
+        if (!g.dataset.sure) { g.dataset.sure = '1'; g.textContent = '한 번 더 누르면 남은 시간이 0이 돼요'; if (!RM()) bump(g, 'tap-pop'); return; }
+        const d = realToday(), D0 = S.pt.days[d]; D0.used = ptSum(d); D0.usedAt = Date.now(); save('pt'); close(); render(); toast(`${ptFmt(left)} 받았어요 · 재미있게 써요`);
+      };
+      $('#pt-how', el).onclick = () => { close(); setTimeout(ptGuide, 260); };
+    });
+  }
+  // 처음 한 번 홈에서 저절로 떠요. 그 뒤엔 「시간을 쌓는 방법」 단추로 다시 봐요
+  function ptGuide() {
+    if (!(S.pt || {}).guide && !TEACHER && !PEEK) { S.pt = S.pt || {}; S.pt.guide = Date.now(); save('pt'); }
+    const row = (i, t, d, a) => `<div class="li"><div class="ico">${ic(i)}</div><div class="body"><div class="t">${t}</div>${d ? `<div class="d">${d}</div>` : ''}</div><b class="num" style="flex:none">${a}</b></div>`;
+    sheet(`<span class="eyebrow">새로 생겼어요</span><h2 style="margin-top:6px">폰 시간을 쌓는 방법</h2><p class="sub">공부하면 폰 시간이 쌓여요. 하루에 1시간까지 모을 수 있어요</p>
+      <div class="list">${row('pin', '오늘 숙제 하나 끝내기', '숙제가 많은 날은 하나에 조금씩, 적은 날은 많이', '몇 분씩')}${row('party', '오늘 숙제 다 끝내기', '남은 시간이 한 번에 채워져요', '1시간 꽉')}${row('hundred', '문제 맞히기', '', '+10초')}${row('retry', '오답 다시 맞히기', '', '+30초')}${row('news', '기사 하나 읽기', '숙제를 다 못 한 날에도 모을 수 있어요', '+2분')}${row('gift', '생일 같은 특별한 날', '', '선물')}</div>
+      <div class="eyebrow" style="margin:18px 0 8px">모은 시간 쓰는 방법</div>
+      <div class="list">${row('timer', '어머니께 보여 드리기', '위쪽 시간이나 홈 카드를 눌러 모은 시간을 보여 드려요', '①')}${row('ok', '어머니가 단추를 눌러요', '스크린타임을 풀어 주시고 「어머니가 눌러요」 단추를 누르면 남은 시간이 0이 돼요', '②')}</div>
+      <p class="tiny" style="margin:14px 0 0">오늘 모은 시간은 오늘만 쓸 수 있어요. 내일로 넘어가지 않아요</p>
+      <button class="btn primary big block" id="pg-ok" type="button" style="margin-top:16px">알겠어요</button>`, (el, close) => { $('#pg-ok', el).onclick = close; });
   }
   function earn(key, amt, why, opt = {}) {
     if (PHONE) { const k = String(key || ''), sec = k.startsWith('ok:') ? 10 : /^(wr|myw):/.test(k) ? 30 : 0; return sec ? ptEarn(k, sec, why, opt.from) : 0; }
@@ -7670,7 +7699,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611122145'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611122150'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -9346,7 +9375,7 @@
       const RP = c.list.filter((l) => l.sent && !l.plan).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 12);
       if (RP.length) rpCard = `<section class="card c12 par-rp"><div class="card-h"><h2>${ic('love')} 선생님 리포트</h2><span class="tiny">${RP.length}개</span></div><div class="par-rps">${RP.map((l, k) => `<details class="par-r" style="--k:${k}" ${k === 0 ? 'open' : ''}><summary><b>${md(l.date)} ${esc(wdName(l.date))}${l.nth ? ` · ${esc(l.nth)}회차` : ''}</b>${l.score ? `<span class="tag">${esc(l.score)}${l.scoreTotal ? '/' + esc(l.scoreTotal) : ''}점</span>` : ''}<span class="chev"></span></summary>
           ${l.lesson ? `<div class="par-f"><span>${TUTOR ? '수업 내용' : '이번 주'}</span><p>${esc(l.lesson)}</p></div>` : ''}${l.hw ? `<div class="par-f"><span>숙제</span><p>${esc(l.hw)}</p></div>` : ''}${l.progress ? `<div class="par-f"><span>진도</span><p>${esc(l.progress)}%</p></div>` : ''}${l.comment ? `<div class="par-f"><span>선생님 한마디</span><p>${esc(l.comment)}</p></div>` : ''}</details>`).join('')}</div></section>`; }
-    return `<h1 class="h1">${esc(NMI())} 공부 현황</h1><p class="sub" style="margin:0 0 16px">${md(t)} ${esc(wdName(t))} · 숙제를 하면 이 화면도 바로 바뀌어요</p><div class="grid par">${parPushBand()}${PHONE ? `<section class="card c12 wl-home"><div class="wl-top"><div class="wl-ic">${ic('timer')}</div><div class="wl-b"><div class="eyebrow">오늘 모은 폰 시간</div><b class="wl-bal num">${ptFmt(ptSum())}</b></div><div class="wl-today"><span class="tiny">하루 최대</span><b class="num">1시간</b></div></div><div><div class="wl-bar"><span style="width:${Math.min(100, (ptSum() / PT_CAP) * 100)}%"></span></div><p class="tiny" style="margin:8px 0 0">숙제를 다 하면 1시간이 꽉 차요. 스크린타임 요청이 오면 이 시간만큼만 풀어 주세요</p></div></section>` : ''}${hwCard}${lsCard}${rpCard}</div>`;
+    return `<h1 class="h1">${esc(NMI())} 공부 현황</h1><p class="sub" style="margin:0 0 16px">${md(t)} ${esc(wdName(t))} · 숙제를 하면 이 화면도 바로 바뀌어요</p><div class="grid par">${parPushBand()}${PHONE ? `<section class="card c12 wl-home"><div class="wl-top"><div class="wl-ic">${ic('timer')}</div><div class="wl-b"><div class="eyebrow">${ptUsed() ? '남은 폰 시간' : '오늘 모은 폰 시간'}</div><b class="wl-bal num">${ptFmt(ptLeft())}</b></div><div class="wl-today"><span class="tiny">${ptUsed() ? '오늘 받은 시간' : '하루 최대'}</span><b class="num">${ptUsed() ? ptFmt(ptUsed()) : '1시간'}</b></div></div><div><div class="wl-bar"><span style="width:${Math.min(100, (ptSum() / PT_CAP) * 100)}%"></span></div><p class="tiny" style="margin:8px 0 0">숙제를 다 하면 1시간이 꽉 차요. 스크린타임을 풀어 주신 뒤 아이 화면의 「어머니가 눌러요」 단추를 누르면 남은 시간이 0이 돼요</p></div></section>` : ''}${hwCard}${lsCard}${rpCard}</div>`;
   }
   // 11/10 «알림 가는 거야? 오늘 다 했다 안 했다» → 밤 10시에 「오늘 숙제 3개 중 2개 했어요」 (scripts/push/send.js parent · 구독은 univ_ppush 표)
   const parPushHas = () => { try { return localStorage.getItem('mu:ppush') === devId; } catch (e) { return false; } };
