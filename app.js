@@ -1692,8 +1692,8 @@
       ${it.unit === '건' ? '' : `<div class="my-today"><span class="tiny">오늘 할 것${myAvg() ? ` · 보통 하루 ${myAvg()}문제 해요` : ''}</span><b>${x.skip ? '내일로 미뤘어요' : x.n ? esc(myRange(it, x)) : '오늘 몫은 없어요'}</b>${it.orig ? `<span class="tiny">원래 ${md(it.orig)} 마감 → ${md(it.due)}로 미뤄짐</span>` : ''}${!dt && (x.n || x.skip) ? `<button type="button" class="my-skip" id="my-skip">${x.skip ? '미룬 것 취소' : '내일로 미루기'}</button>` : ''}</div>
       <div class="my-amt"><span>오늘 한 만큼</span><button type="button" class="btn sm" data-ma="-1">−</button><input class="inp sm" id="my-n" type="number" inputmode="numeric" min="0" value="${dt ? dt.n : x.n}"><button type="button" class="btn sm" data-ma="1">+</button></div>
       <div class="my-st" id="my-st" hidden><span class="tiny">틀린 번호를 고르려면 오늘 푼 첫 번호를 적어요</span><input class="inp" type="number" inputmode="numeric" id="my-s0" placeholder="예: 1225" value="${dt && dt.s ? dt.s : ''}"></div>
-      <div class="my-wcw" id="my-wcw"><div class="my-wq" id="my-wq" hidden><b>틀린 게 있었나요?</b><span>틀린 번호만 톡톡 눌러요. 다 맞았으면 아래 단추를 눌러요</span></div><div class="tiny" style="margin-top:14px">틀린 번호를 눌러요 · 나중에 오답 탭에서 다시 풀어요</div><div class="my-wc" id="my-wc"></div><div class="my-qa" id="my-qa"></div></div>
-      <input type="hidden" id="my-w" inputmode="numeric" placeholder="예: 1225 1231 1240" value="${esc((dt && dt.w || []).join(' '))}">`}
+      <div class="my-wcw" id="my-wcw"><div class="my-wq" id="my-wq" hidden><b>틀린 게 있었나요?</b><span>틀린 번호만 톡톡 눌러요. 몰라서 넘긴 문제는 두 번 눌러요. 다 맞았으면 아래 단추를 눌러요</span></div><div class="tiny" style="margin-top:14px">한 번 누르면 틀린 문제 · 두 번 누르면 몰라서 넘긴 문제 · 넘긴 문제도 한 걸로 쳐요</div><div class="my-wc" id="my-wc"></div><div class="my-qa" id="my-qa"></div></div>
+      <input type="hidden" id="my-w" inputmode="numeric" placeholder="예: 1225 1231 1240" value="${esc((dt && dt.w || []).filter((v) => !(dt.p || []).includes(v)).join(' '))}"><input type="hidden" id="my-p" value="${esc((dt && dt.p || []).join(' '))}">`}
       <button class="btn primary big block" id="my-ok" type="button" style="margin-top:16px">${it.unit === '건' ? (myFin(it) ? '아직 안 끝났어요' : '끝냈어요') : dt ? '고쳐서 저장' : '오늘 것 끝냈어요'}</button>
       <div class="row" style="gap:8px;margin-top:8px">${it.unit === '건' ? `<button class="btn block" id="my-plan" type="button">${isPlan(it) ? '꼭 할 일로 바꾸기' : '일정으로 바꾸기'}</button>` : `<button class="btn block" id="my-fin" type="button">${it.fin ? '다시 하기' : '다 끝났어요'}</button>`}<button class="btn block" id="my-del" type="button">지우기</button></div>
       <details class="my-edit"><summary>범위·마감 고치기</summary><div class="my-ed">${it.unit === '건' ? '' : it.from != null ? `<div class="my-er"><span class="my-el">범위</span><span class="my-in">${it.unit === '쪽' ? '<span>p.</span>' : ''}<input class="inp" type="number" inputmode="numeric" id="my-ea" value="${it.from}"><span>~</span><input class="inp" type="number" inputmode="numeric" id="my-eb" value="${it.to}"><span>${it.unit === '쪽' ? '쪽' : '번'}</span></span></div>` : `<div class="my-er"><span class="my-el">문제 수</span><span class="my-in"><input class="inp" type="number" inputmode="numeric" id="my-ec" value="${it.total}"><span>문제</span></span></div>`}
@@ -1715,9 +1715,11 @@
         $('#my-st', el).hidden = it.from != null;
         const has = !(a0 == null || !n || n > 80); $('#my-wcw', el).hidden = !has; 
         if (!has) { box.innerHTML = ''; return; }
-        const W = new Set((wi.value.match(/\d+/g) || []).map(Number)), z = Math.min(it.to != null ? it.to : Infinity, a0 + n - 1);
-        box.innerHTML = Array.from({ length: z - a0 + 1 }, (_, k) => a0 + k).map((v) => `<button type="button" class="${W.has(v) ? 'on' : ''}" data-wn="${v}">${v}</button>`).join('');
-        $$('[data-wn]', box).forEach((b) => (b.onclick = () => { const v = +b.dataset.wn; W.has(v) ? W.delete(v) : W.add(v); wi.value = [...W].sort((p, q) => p - q).join(' '); b.classList.toggle('on', W.has(v)); const ob = $('#my-ok', el); if (ob && ob.dataset.sure) ob.textContent = W.size ? `틀린 ${W.size}개 적고 끝내기` : '틀린 거 없이 다 맞았어요'; }));
+        const pi = $('#my-p', el), W = new Set((wi.value.match(/\d+/g) || []).map(Number)), PS = new Set((((pi || {}).value || '').match(/\d+/g) || []).map(Number)), z = Math.min(it.to != null ? it.to : Infinity, a0 + n - 1);
+        // 11/12 정윤 «모르는 건 패스해서 다 끝내진 못했는데 미루기 해 버리니까 이상해져»: 몰라서 넘긴 문제는 「모름」으로 적고 한 걸로 쳐요 (없음 → 틀림 → 모름 → 없음)
+        const lab = (v) => `${v}${PS.has(v) ? '<small>모름</small>' : ''}`;
+        box.innerHTML = Array.from({ length: z - a0 + 1 }, (_, k) => a0 + k).map((v) => `<button type="button" class="${W.has(v) ? 'on' : PS.has(v) ? 'dk' : ''}" data-wn="${v}">${lab(v)}</button>`).join('');
+        $$('[data-wn]', box).forEach((b) => (b.onclick = () => { const v = +b.dataset.wn; if (W.has(v)) { W.delete(v); PS.add(v); } else if (PS.has(v)) PS.delete(v); else W.add(v); const srt = (S0) => [...S0].sort((p, q) => p - q).join(' '); wi.value = srt(W); if (pi) pi.value = srt(PS); b.className = W.has(v) ? 'on' : PS.has(v) ? 'dk' : ''; b.innerHTML = lab(v); const ob = $('#my-ok', el); if (ob && ob.dataset.sure) ob.textContent = W.size || PS.size ? `${[W.size ? `틀린 ${W.size}개` : '', PS.size ? `모르는 ${PS.size}개` : ''].filter(Boolean).join(' · ')} 적고 끝내기` : '틀린 거 없이 다 맞았어요'; }));
         qa(a0, z); };
       // 빠른 정답: 오늘 푼 번호의 답을 한눈에, 그래프 답은 정답표 그림으로 (10/31 «마더텅 빠른답지 넣어놔»)
       const qal = $('#my-qall', el); if (qal) qal.onclick = () => mbAllSheet(MB_ID(it.book), (mbKeys(it, it.from || 1)[0] || '').replace(/-[^-]*$/, ''));
@@ -1735,11 +1737,12 @@
       $$('[data-ma]', el).forEach((b) => (b.onclick = () => { const i = $('#my-n', el); i.value = Math.max(0, (+i.value || 0) + +b.dataset.ma); wc(); }));
       $('#my-ok', el).onclick = () => {
         if (it.unit === '건') { if (myFin(it)) { const at = Date.now(); for (const d of Object.keys(it.log || {})) it.log[d] = { n: 0, at }; it.fin = false; } else { it.log[t] = { n: 1, at: Date.now() }; if (!isPlan(it)) earn('my:' + it.id + ':' + t, 100, '내 숙제'); boom(innerWidth / 2, innerHeight * 0.4, 2); } save('my'); close(); render(); return; }
-        const n = Math.max(0, +$('#my-n', el).value || 0), w = ($('#my-w', el).value.match(/\d+/g) || []).map(Number);
+        const n = Math.max(0, +$('#my-n', el).value || 0), pp = ((($('#my-p', el) || {}).value || '').match(/\d+/g) || []).map(Number), w = [...new Set([...($('#my-w', el).value.match(/\d+/g) || []).map(Number), ...pp])].sort((a, b) => a - b);
         const ok0 = $('#my-ok', el), wcw = $('#my-wcw', el);
         if (n && !w.length && wcw && !wcw.hidden && !ok0.dataset.sure && !TEACHER) { ok0.dataset.sure = 1; ok0.textContent = '틀린 거 없이 다 맞았어요'; const q = $('#my-wq', el); if (q) q.hidden = false; myWFocus(); return; }  // 틀린 번호 없이 끝내면 한 번 물어요 (11/5)
-        it.log[t] = { n, w, at: Date.now(), ...(+($('#my-s0', el) || {}).value ? { s: +$('#my-s0', el).value } : {}) }; it.wrong = [...new Set([...(it.wrong || []).filter((v) => !(dt && (dt.w || []).includes(v))), ...w])].sort((a, b) => a - b);
-        save('my'); close(); render(); if (n) earn('my:' + it.id + ':' + t, 100, '학원·과외 숙제'); try { const bh = myBeh(it), uu = it.unit === '쪽' ? '쪽' : '문제'; if (bh.caught > 0) { toast(`밀린 것 ${bh.caught}${uu} 따라잡았어요! ${bh.now ? `이제 ${bh.now}${uu} 남았어요` : '이제 밀린 거 없어요'}`); boom(innerWidth / 2, innerHeight * 0.4, bh.now ? 3 : 4); } else toast(w.length ? `틀린 ${w.length}문제는 오답 탭에 모아 뒀어요` : '오늘 것 끝! 잘했어요'); } catch (e) { toast('오늘 것 끝! 잘했어요'); }
+        it.log[t] = { n, w, ...(pp.length ? { p: pp } : {}), at: Date.now(), ...(+($('#my-s0', el) || {}).value ? { s: +$('#my-s0', el).value } : {}) }; it.wrong = [...new Set([...(it.wrong || []).filter((v) => !(dt && (dt.w || []).includes(v))), ...w])].sort((a, b) => a - b);
+        it.pass = [...new Set([...(it.pass || []).filter((v) => !(dt && (dt.p || []).includes(v))), ...pp])].sort((a, b) => a - b);  // 모르는 문제도 오답 탭에 「모름」으로 모여요
+        save('my'); close(); render(); if (n) earn('my:' + it.id + ':' + t, 100, '학원·과외 숙제'); try { const bh = myBeh(it), uu = it.unit === '쪽' ? '쪽' : '문제'; if (bh.caught > 0) { toast(`밀린 것 ${bh.caught}${uu} 따라잡았어요! ${bh.now ? `이제 ${bh.now}${uu} 남았어요` : '이제 밀린 거 없어요'}`); boom(innerWidth / 2, innerHeight * 0.4, bh.now ? 3 : 4); } else toast(pp.length ? `모르는 ${pp.length}문제는 오답 탭에 모아 뒀어요 · 수업 때 물어봐요` : w.length ? `틀린 ${w.length}문제는 오답 탭에 모아 뒀어요` : '오늘 것 끝! 잘했어요'); } catch (e) { toast('오늘 것 끝! 잘했어요'); }
         if (myFin(it)) { const r = document.body.getBoundingClientRect(); boom(innerWidth / 2, innerHeight * 0.4, 4); }
       };
       if ($('#my-fin', el)) $('#my-fin', el).onclick = () => { it.fin = !it.fin; save('my'); close(); render(); };
@@ -1886,7 +1889,7 @@
   function myWrongCard(cls) {
     const L = myS().items.filter((it) => (it.wrong || []).length || (it.redo || []).length); if (!L.length) return '';
     return `<section class="card ${cls}"><div class="card-h"><h2>${ic('write')} 학원·과외 틀린 문제</h2><span class="tiny">다시 풀어 맞히면 눌러요</span></div>
-      ${L.map((it) => `<div class="my-wr"><b>${esc(it.book)} <span class="tiny">${esc(myCls(it.cls).name)}</span></b><div class="my-wn">${(it.wrong || []).map((v) => `<button type="button" data-mw="${esc(it.id)}:${v}">${v}</button>`).join('')}${(it.redo || []).map((v) => `<button type="button" class="ok" data-mw="${esc(it.id)}:${v}">${v}</button>`).join('')}</div></div>`).join('')}</section>`;
+      ${L.map((it) => `<div class="my-wr"><b>${esc(it.book)} <span class="tiny">${esc(myCls(it.cls).name)}</span></b><div class="my-wn">${(it.wrong || []).map((v) => `<button type="button" class="${(it.pass || []).includes(v) ? 'dk' : ''}" data-mw="${esc(it.id)}:${v}">${v}${(it.pass || []).includes(v) ? '<small>모름</small>' : ''}</button>`).join('')}${(it.redo || []).map((v) => `<button type="button" class="ok" data-mw="${esc(it.id)}:${v}">${v}</button>`).join('')}</div></div>`).join('')}</section>`;
   }
   // 천일문 개념 정리: 한 줄 핵심 · 표 · 포인트(예문 강조) · 꼭 외울 것(가리고 외우기) · 시험 함정
   function chLesson(un) {
@@ -2367,7 +2370,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611112304', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611121057', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7567,7 +7570,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611112304'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611121057'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

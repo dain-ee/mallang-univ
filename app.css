@@ -1404,6 +1404,9 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
 .my-wc { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .my-wc button { min-width: 52px; height: 40px; padding: 0 8px; border: 0; border-radius: 10px; background: var(--fill); font: inherit; font-size: 15px; font-weight: 700; color: var(--t2); cursor: pointer; }
 .my-wc button.on { background: #ffeeee; color: #f04452; box-shadow: inset 0 0 0 1.5px rgba(240, 68, 82, .5); }
+/* 11/12 몰라서 넘긴 문제: 틀림(빨강)과 다르게 파랑 테두리 + 작은 「모름」 */
+.my-wc button.dk, .my-wn button.dk { background: #e8f3ff; color: #3182f6; box-shadow: inset 0 0 0 1.5px rgba(49, 130, 246, .45); }
+.my-wc button small, .my-wn button small { margin-left: 4px; font-size: 11px; font-weight: 700; }
 
 .my-st { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
 .my-st .inp { width: 120px; height: 44px; text-align: center; font-size: 16px; font-weight: 700; }
