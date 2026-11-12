@@ -1626,13 +1626,13 @@
     if (!r.paused) { if (r.watch) { r.acc += n - r.t0; r.seg.push([r.t0, n]); slogPut(r.t0, n, r.subj, 'w', r.ti); save('slog'); } else r.left = pLeft(); r.paused = true; }
     P.held = (P.held || []).filter((x) => x !== r); if (r.watch) P.held.push(r); P.run = null;
   }
-  function tmStart(tk, ti, subj) {
+  function tmStart(tk, ti, subj, quiet) {
     const h = (P.held || []).find((x) => tkOf(x) === tk);
     if (P.run && tkOf(P.run) === tk) { if (P.run.paused) pPause(); return; }
     tmHold();
     if (h) { P.held = P.held.filter((x) => x !== h); h.t0 = Date.now(); h.paused = false; P.run = h; }
     else P.run = { mode: 'focus', watch: 1, pick: 'sw', t0: Date.now(), acc: 0, seg: [], paused: false, subj: subj || tmSubj(ti), ti, tk, ...(tk.startsWith('my:') ? { hw: tk.slice(3) } : {}), dur: 0 };
-    P.offer = null; pSave(); ding(1); if (navigator.vibrate) navigator.vibrate(20); pLoop();
+    P.offer = null; pSave(); if (!quiet) { ding(1); if (navigator.vibrate) navigator.vibrate(20); } pLoop();
   }
   function tmGo(tk, ti, after) {
     const cur = P.run && !P.run.paused && tkOf(P.run) !== tk ? P.run : null, h = tmOf(tk), again = h && h !== P.run;  // 11/8 정윤 «멈추기 했는데 다른 과목 시작 누를 때 진행 중이니 멈추겠냐고 물어봐»
@@ -2407,7 +2407,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611121744', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611122119', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7607,7 +7607,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611121744'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611122119'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -9222,13 +9222,15 @@
   function autoTm() {
     if (TEACHER || PEEK || ROLE_T) return;
     const R = UI.run, inApp = (R && !TM_SKIP.has(R.kind)) || (UI.tab === 'study' && UI.stU && UI.stV === 'unit');
+    if (document.hidden) return;
+    if (!autoTm.swept) { autoTm.swept = 1; const h0 = (P.held || []).length; P.held = (P.held || []).filter((x) => !(x.auto && pWatchSec(x) < 60)); if (P.held.length !== h0) pSave(); }  // 켜졌다 바로 멈춘 자투리(1분 안 됨)는 치워요
     const cur = P.run && !P.run.paused ? P.run : null;
-    if (!inApp) { if (cur && cur.auto) { tmHold(); pSave(); } return; }
+    if (!inApp) { if (cur && cur.auto && autoTm.mine === tkOf(cur)) { autoTm.mine = null; tmHold(); pSave(); } return; }
     const hw = UI.hwRun && (S.hw || []).find((x) => x.id === UI.hwRun.id);
     const tk = hw ? 'hw:' + hw.id : 'auto:' + (R ? `${R.kind}:${R.id || R.unit || R.ref || ''}` : `st:${UI.stU}`);
-    if (cur && (!cur.auto || tkOf(cur) === tk)) return;
+    if (cur && (!cur.auto || tkOf(cur) === tk)) { if (cur.auto) autoTm.mine = tk; return; }
     const ti = hw ? hw.title : R && R.kind === 'news' ? '소식 읽기' : R && R.kind === 'nx' && NXSETS[R.id] ? NXSETS[R.id].title : R && R.kind === 'unit' ? '천일문' : R && R.kind === 'retry' ? '오답 다시 풀기' : R && R.kind === 'words' ? '단어' : (($('main .h1') || {}).textContent || '공부').trim().slice(0, 30);
-    tmStart(tk, ti); if (P.run && tkOf(P.run) === tk) { P.run.auto = 1; pSave(); }
+    tmStart(tk, ti, undefined, true); if (P.run && tkOf(P.run) === tk) { P.run.auto = 1; autoTm.mine = tk; pSave(); }
   }
   // 11/8 «오늘 만약 정윤이가 다 하면 정말정말정말 잘했다고 팡팡 같은 걸 주면 좋을 것 같아»: 오늘 할 일을 하나도 안 빼고 다 끝낸 순간 한 번, 큰 축하 (하루 한 번, 모든 학생)
   function allDoneCheck() {
