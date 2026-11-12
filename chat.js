@@ -343,8 +343,10 @@ html.nc-has-fab .main{padding-bottom:calc(var(--tab-h,64px) + 104px + env(safe-a
       stus.querySelectorAll('.nc-stu').forEach((b) => (b.onclick = () => openStu(b.dataset.s)));
       paintBtn();
     }
-    function notify(fresh) {
+    // 11/12 «알림이 두 개 와»: 이 기기가 서버 알림(푸시)을 받고 있으면 화면이 따로 또 띄우지 않아요
+    async function notify(fresh) {
       if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      try { const r = navigator.serviceWorker && (await navigator.serviceWorker.getRegistration()); if (r && r.pushManager && (await r.pushManager.getSubscription())) return; } catch (e) {}
       fresh.forEach((x) => { try { const n = new Notification(`${x.student}: 새 메시지`, { body: x.last_body || '', tag: 'univ-msg-' + x.student, icon: 'assets/favicon.svg' }); n.onclick = () => { window.focus(); setOpen(true); openStu(x.student); n.close(); }; } catch (e) {} });
     }
     async function pollInbox() {
