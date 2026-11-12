@@ -4960,3 +4960,7 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 .iv-app-b { min-height: 148px; justify-content: space-between; }
 .iv-app-os { margin-top: 0; flex: 1; }
 .iv-app-h { margin-bottom: 10px; }
+
+/* 11/13 매3영 주어진 문장·요약문 상자 */
+.nx-given { display: block; margin: 2px 0 12px; padding: 12px 14px; border: 1.5px solid var(--line, #d1d6db); border-radius: 12px; background: var(--bg, #fff); }
+.nx-ptext .nx-given:last-child { margin: 12px 0 0; }

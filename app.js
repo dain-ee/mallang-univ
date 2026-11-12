@@ -2408,7 +2408,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611130022', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611130028', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6275,7 +6275,7 @@
   const nxS = () => { const x = (S.nx = S.nx || {}); x.a = x.a || {}; x.done = x.done || []; x.st = x.st || {}; x.wd = x.wd || {}; x.la = x.la || {}; x.lq = x.lq || {}; return x; };
   const plain = (h) => String(h || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   // 지문·문제 글: 밑줄(<u>)·굵게는 살리고, 빈칸(___)과 (가)·㉠·(A) 표시는 눈에 띄게
-  const nxRich = (t) => rich(t).replace(/_{3,}/g, '<span class="nx-gap"></span>').replace(/\(\s*[가나다라마바사아자차카타파하A-E]\s*\)|[㉠-㉭]/g, '<b class="nx-mk">$&</b>');
+  const nxRich = (t) => rich(t).replace(/\[\[box\]\]/g, '<span class="nx-given">').replace(/\[\[\/box\]\]\s*/g, '</span>').replace(/_{3,}/g, '<span class="nx-gap"></span>').replace(/\(\s*[가나다라마바사아자차카타파하A-E]\s*\)|[㉠-㉭]/g, '<b class="nx-mk">$&</b>');
   const nxKey = (s) => String(s || '').toLowerCase().replace(/[’‘`]/g, "'").replace(/\([^)]*\)/g, '').replace(/[^a-z0-9'가-힣]/g, '');
   const nxAlts = (a) => [...new Set([a, ...String(a).split(/\s*\/\s*/)].map(nxKey).filter(Boolean))];
   const nxParts = (q) => { const a = String((q.a || [])[0] || ''); if (!/\(1\)/.test(a)) return null; const ps = a.split(/\(\d\)/).map((t) => t.trim().replace(/[,\s]+$/, '')).filter(Boolean); return ps.length > 1 ? ps : null; };
@@ -7226,7 +7226,7 @@
     const N = u.notes || {};
     if (u.subj === 'm3' && L && L.m3) return m3Struct(u, (N.passages || [])[L.k] || {});
     if (u.subj === 'm3') {
-      const P = (N.passages || []).map((ps) => `<section class="card st-sec"><h2>${esc(ps.letter)}. ${esc(ps.type || '')} <span class="tiny">${esc(ps.source || '')}</span></h2><p class="st-pre st-psg">${esc(ps.passage || '')}</p>${ps.note ? `<p class="tiny">${esc(ps.note)}</p>` : ''}${ps.translation ? `<div class="st-ex"><b>해석</b>${UI.stHide ? `<button type="button" class="st-k hid" data-stk>${esc(ps.translation.replace(/^\[해석\]\s*/, ''))}</button>` : esc(ps.translation.replace(/^\[해석\]\s*/, ''))}</div>` : ''}</section>`).join('');
+      const P = (N.passages || []).map((ps) => `<section class="card st-sec"><h2>${esc(ps.letter)}. ${esc(ps.type || '')} <span class="tiny">${esc(ps.source || '')}</span></h2><p class="st-pre st-psg nx-ptext">${nxRich(ps.pf || ps.passage || '')}</p>${ps.note ? `<p class="tiny">${esc(ps.note)}</p>` : ''}${ps.translation ? `<div class="st-ex"><b>해석</b>${UI.stHide ? `<button type="button" class="st-k hid" data-stk>${esc(ps.translation.replace(/^\[해석\]\s*/, ''))}</button>` : esc(ps.translation.replace(/^\[해석\]\s*/, ''))}</div>` : ''}</section>`).join('');
       const C = (N.chunk || []).length ? `<section class="card st-sec"><h2>끊어 읽기</h2>${N.chunk.map((ch) => ch.sentences.map((sn) => `<p class="st-sen"><b class="st-no">${esc(ch.letter)}</b> ${esc(sn.en)}<span>${UI.stHide ? `<button type="button" class="st-k hid" data-stk>${esc(sn.ko)}</button>` : esc(sn.ko)}</span></p>`).join('')).join('')}</section>` : '';
       return `${P}${C}`;
     }
@@ -7298,7 +7298,7 @@
     const done = rv ? `<div class="st-next"><button class="btn primary big block" data-m3rvdone="${esc(UI.m3rv)}" type="button" ${rvOk ? '' : 'disabled'}>${nxS().a[UI.m3rv] ? '복습 끝냈어요 ✓' : rvOk ? '복습 끝냈어요' : `★ 문장 ${myN}/${RS.length} 해석했어요`}</button></div>` : '';
     return `${guide}<section class="card st-sec sx" data-mu="${esc(u.id)}" data-lt="${esc(ps.letter)}"><div class="st-kick">문장 구조 · ${esc(ps.source || '')}</div><h2>${esc(ps.letter)}. ${esc(ps.type || '')}</h2>
       <div class="sx-key">${Object.entries(SX_L).map(([k, v]) => `<span class="sx-r sx-${k}"><sup class="sx-l">${k}</sup>${v}</span>`).join('')}<span><i class="sx-p">( )</i> 꾸며 주는 말</span><span><i class="sx-cut">/</i> 끊어 읽기</span></div>
-      ${SN.length ? SN.map(sent).join('') : `<p class="st-pre st-psg">${esc(ps.passage || '')}</p>`}
+      ${SN.length ? SN.map(sent).join('') : `<p class="st-pre st-psg nx-ptext">${nxRich(ps.pf || ps.passage || '')}</p>`}
       ${ps.vocabNote || notes.length ? `<div class="st-tipbox"><h3>${ic('memo')} 필기</h3><ul>${notes.map((w) => `<li><b>${esc(w.en)}</b> ${esc(w.ko)}</li>`).join('')}${ps.vocabNote ? `<li>${esc(ps.vocabNote.replace(/\[해설\]\s*해석 참조/, '').trim())}</li>` : ''}</ul></div>` : ''}
       ${ps.translation ? `<details class="sx-all"><summary>전체 해석 보기</summary><p class="st-pre">${esc(ps.translation.replace(/^\[해석\]\s*/, ''))}</p></details>` : ''}</section>${done}`;
   }
@@ -7791,7 +7791,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611130022'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611130028'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
