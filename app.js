@@ -2408,7 +2408,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611122352', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611130008', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6341,7 +6341,12 @@
         const ok = A.every((a, b) => nxAlts(a).includes(nxKey(vals[b]))); pg.v[j] = vals; pg.sc[j] = ok; pg.last = j; if (ok) ding(1);
         if (fin()) return; render(); pg.last = null; const el = nextIn(j); if (el) el.focus(); };
       $$('main [data-pj]').forEach((x) => (x.onkeydown = (e) => { if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return; e.preventDefault(); e.stopPropagation(); const j = +x.dataset.pj, row = $$(`main [data-pj="${j}"]`), k = row.indexOf(x); if (k < row.length - 1) row[k + 1].focus(); else gradeS(j); }));
-      const gv = $('#nx-give'); if (gv) gv.onclick = () => { for (const j of need) if (pg.sc[j] == null) { pg.v[j] = $$(`main [data-pj="${j}"]`).map((x) => x.value); pg.sc[j] = false; } fin(); };
+      /* 11/13 «다 채웠는데도 단추가…»: Enter 를 안 치고 다 채우면 단추가 「채점하기」로 바뀌어요. 채운 문장은 틀림 처리하지 않고 채점해요 */
+      const gv = $('#nx-give'), allIn = () => $$('main [data-pj]').length > 0 && $$('main [data-pj]').every((x) => x.value.trim()), gvSet = () => { if (!gv) return; const on = allIn(); gv.className = on ? 'btn primary big block' : 'nx-link'; gv.textContent = on ? '채점하기' : '남은 문장 모르겠어요'; };
+      if (gv) { gvSet(); $$('main [data-pj]').forEach((x) => (x.oninput = gvSet));
+        gv.onclick = () => { if ($$('main [data-pj]').some((x) => /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(x.value))) return toast('한글 자판이에요. 영어로 바꿔서 써요'); let hit = 0;
+          for (const j of need) if (pg.sc[j] == null) { const vals = $$(`main [data-pj="${j}"]`).map((x) => x.value), A = [...q.ps[j].s.matchAll(/\{([^}]+)\}/g)].map((m) => m[1]); pg.v[j] = vals; pg.sc[j] = vals.every((x) => x.trim()) && A.every((a, k) => nxAlts(a).includes(nxKey(vals[k]))); if (pg.sc[j]) hit++; }
+          if (hit) ding(1); fin(); }; }
       if (matchMedia('(hover: hover)').matches) { const el = nextIn(-1); if (el) setTimeout(() => el.focus({ preventScroll: true }), 40); }
       return;
     }
@@ -7785,7 +7790,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611122352'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611130008'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
