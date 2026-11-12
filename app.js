@@ -2040,7 +2040,7 @@
       <aside class="bk-side"><div class="row between" style="padding:0 8px 8px"><span class="tiny">${esc(b.pub)} · ${esc(b.range)}</span><button class="btn sm" type="button" id="bk-tocx">닫기</button></div>${toc}</aside>
       <div class="bk-stage" id="bk-stage"><button type="button" class="bk-arr l" data-turn="-1" ${first ? 'disabled' : ''} aria-label="앞 쪽">‹</button><div class="bk-spread ${sp.length > 1 ? 'two' : ''}" id="bk-spread">${sp.map((k) => pg(P[k])).join('')}</div><button type="button" class="bk-arr r" data-turn="1" ${last ? 'disabled' : ''} aria-label="다음 쪽">›</button></div>
       <div class="bk-bar"><input type="range" class="bk-sl" id="bk-sl" min="0" max="${P.length - 1}" value="${sp[0]}" style="--p:${P.length > 1 ? sp[0] / (P.length - 1) * 100 : 0}%" aria-label="쪽 고르기"><span class="bk-pn num">${sp.map((k) => P[k].n).join('~')}쪽 <span class="tiny">/ ${P.length}쪽 중 ${sp[sp.length - 1] + 1}</span></span></div>
-      <div class="bk-tools" role="toolbar" aria-label="읽기 도구">${[['hl', '형광펜'], ['ul', '밑줄']].map(([k, t]) => `<button type="button" class="bk-tl ${tool === k ? 'on' : ''}" data-tool="${k}" aria-pressed="${tool === k}"><i class="bk-sw ${k}"></i>${t}</button>`).join('')}<span class="bk-sep"></span><button type="button" class="bk-tl" data-bklist="all">모아 보기</button></div>
+      <div class="bk-tools" role="toolbar" aria-label="읽기 도구">${[['hl', '형광펜'], ['ul', '밑줄']].map(([k, t]) => `<button type="button" class="bk-tl ${tool === k ? 'on' : ''}" data-tool="${k}" aria-pressed="${tool === k}"><i class="bk-sw ${k}"></i>${t}</button>`).join('')}<span class="bk-sep"></span><button type="button" class="bk-tl" data-bklist="all">모아 보기</button>${b.dl ? '<button type="button" class="bk-tl" id="bk-dl">PDF 받기</button>' : ''}</div>
       <p class="bk-hint">${bkHint(tool)}</p></div>`;
   }
   function bkDraw(ly, W, cid, n, tmp) {
@@ -2064,6 +2064,22 @@
     s.last[b.id] = { c: P[sp[0]].c.id, n: P[sp[0]].n };
     const go = (n, dir) => { if (n === r.n) return; UI.run = { ...r, n, mk: null, dir }; const y = scrollY; render(); window.scrollTo(0, bkOne() && innerWidth >= 1100 ? 0 : y); };
     const turn = (d) => { const k = d > 0 ? sp[sp.length - 1] + 1 : sp[0] - 1; if (P[k]) go(P[k].n, d); };
+    // 11/12 정윤 «거기 갖다 놓으면 pdf 로 되어 있는 게 아니야» → 시험 범위 PDF 를 파일로 받아요 (필기 앱에 넣을 수 있게)
+    if ($('#bk-dl')) $('#bk-dl').onclick = async () => {
+      const bt = $('#bk-dl'); if (bt.dataset.busy) return; bt.dataset.busy = '1'; bt.textContent = '받는 중…';
+      try {
+        const u = await ebGet(b.dl.f), file = new File([u], b.dl.n, { type: 'application/pdf' });
+        const down = () => { const x = URL.createObjectURL(file), a = document.createElement('a'); a.href = x; a.download = b.dl.n; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(x), 60000); };
+        const canShare = matchMedia('(pointer: coarse)').matches && navigator.canShare && navigator.canShare({ files: [file] });
+        if (!canShare) { down(); toast('PDF 를 받았어요'); }
+        else sheet(`<span class="eyebrow">${esc(b.title)}</span><h2 style="margin-top:6px">PDF 가 준비됐어요</h2><p class="sub">${esc(b.range)} · ${b.dl.mb}MB</p>
+          <button class="btn primary big block" id="dl-share" type="button" style="margin-top:16px">파일에 저장하거나 필기 앱으로 보내기</button><button class="btn block" id="dl-down" type="button" style="margin-top:8px">그냥 내려받기</button>`, (el, close) => {
+          $('#dl-share', el).onclick = async () => { try { await navigator.share({ files: [file] }); close(); } catch (e) { if (e && e.name !== 'AbortError') { down(); close(); } } };
+          $('#dl-down', el).onclick = () => { down(); close(); toast('PDF 를 받았어요'); };
+        });
+      } catch (e) { toast('PDF 를 못 받았어요 · 인터넷을 확인하고 다시 눌러요'); }
+      delete bt.dataset.busy; bt.textContent = 'PDF 받기';
+    };
     $('[data-bkback]').onclick = () => { if (r.from) { UI.run = r.from; render(); window.scrollTo(0, 0); return; } UI.run = null; UI.tab = r.back || 'book'; document.onkeydown = null; render(); };
     $$('[data-bkn]').forEach((x) => (x.onclick = () => go(+x.dataset.bkn, 0)));
     $('#bk-toc').onclick = () => $('.bk-side').classList.toggle('open');
@@ -2391,7 +2407,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611121138', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611121722', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7591,7 +7607,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611121138'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611121722'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
