@@ -2408,7 +2408,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611130903', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611130910', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7796,7 +7796,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611130903'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611130910'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8946,8 +8946,12 @@
     const t = today(), NM = { eng: '영어', kor: '국어', hist: '역사', sci: '과학' }, SJ = Object.keys(NM).filter((k) => YP.some((x) => x.subj === k && !x.id.startsWith('pp:')));
     if (!SJ.length) return '';
     const endOf = (L) => { const days = [...new Set(L.map((x) => x.day))].sort(), beh = L.filter((x) => x.day < t && !ypDone(x)).length, per = Math.max(1, L.length / Math.max(1, days.length)); let d = days[days.length - 1], k = Math.ceil(beh / per); while (k > 0) { d = addD(d, 1); if (!(YF.off || []).includes(new Date(d + 'T00:00:00').getDay())) k--; } return { d, beh }; };
+    /* 11/13 «1회독 며칠 전, 2회독 며칠 전, 3회독 며칠 전 이게 있어야»: 범위를 한 번씩 도는 세 바퀴(소단원 개념·문제 → 실전·선생님 유형 → 심화)가 각각 언제 끝나는지 */
+    const rounds = (L) => { const G = [['개념', L.filter((x) => x.p === 'L')], ['실전', L.filter((x) => x.p !== 'L' && !x.hd)], ['심화', L.filter((x) => x.hd)]].filter((g) => g[1].length).map((g, i) => [`${i + 1}회독`, ...g]);
+      return `<div class="yf-rs">${G.map(([n, w, X]) => { const dn = X.filter(ypDone).length, fin = dn >= X.length, e = fin ? null : endOf(X), gap = fin ? 0 : Math.round((new Date(YF.from + 'T00:00:00') - new Date(e.d + 'T00:00:00')) / 864e5);
+        return `<span class="yf-r ${fin ? 'on' : ''}"><b>${n}</b><i>${w}</i>${fin ? '끝 ✓' : `<span class="num">${dn}/${X.length}</span> · ${+e.d.slice(5, 7)}/${+e.d.slice(8)} · ${gap > 0 ? `기말 <b class="num">${gap}일</b> 전` : '<b class="red">기말보다 늦어요</b>'}`}</span>`; }).join('')}</div>`; };
     const row = (sj) => { const L = YP.filter((x) => x.subj === sj && !x.id.startsWith('pp:')), k = L.filter(ypDone).length, td = L.filter((x) => x.day === t && !ypDone(x)).length, e = endOf(L), left = Math.max(0, Math.round((new Date(e.d + 'T00:00:00') - new Date(t + 'T00:00:00')) / 864e5));
-      return `<div class="li btnlike" data-go="study"><div class="ico">${ic(k >= L.length ? 'ok' : sj === 'hist' ? 'scroll' : sj === 'sci' ? 'sci' : 'books')}</div><div class="body"><div class="t">${NM[sj]}${tsTg([e.beh ? [`밀림 ${e.beh}개`, 'red'] : null])}</div><div class="d">${td ? `오늘 ${td}개` : '오늘은 없어요'} · ${k >= L.length ? '다 끝냈어요' : `<span class="nw">${md(e.d)}에 끝나요 · 기말 <b class="num">${Math.max(0, Math.round((new Date(YF.from + 'T00:00:00') - new Date(e.d + 'T00:00:00')) / 864e5))}일</b> 전</span>`}</div></div>${tsEnd(k, L.length)}</div>`; };
+      return `<div class="li btnlike" data-go="study"><div class="ico">${ic(k >= L.length ? 'ok' : sj === 'hist' ? 'scroll' : sj === 'sci' ? 'sci' : 'books')}</div><div class="body"><div class="t">${NM[sj]}${tsTg([e.beh ? [`밀림 ${e.beh}개`, 'red'] : null])}</div><div class="d">${td ? `오늘 ${td}개` : '오늘은 없어요'} · ${k >= L.length ? '다 끝냈어요' : `<span class="nw">${md(e.d)}에 다 끝나요</span>`}</div>${k >= L.length ? '' : rounds(L)}</div>${tsEnd(k, L.length)}</div>`; };
     const A = YP.filter((x) => SJ.includes(x.subj) && !x.id.startsWith('pp:')), ak = A.filter(ypDone).length, ae = endOf(A);
     return `<section class="card c12"><div class="card-h"><h2>${ic('books')} 학교 내신 공부</h2><span class="tiny">${A.length - ak ? `기말 ${md(YF.from)} · ${ddTxt(YF.from)}` : '다 끝냈어요'}</span></div><div class="list">${SJ.map(row).join('')}</div></section>`;
   }
