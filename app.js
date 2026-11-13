@@ -2408,7 +2408,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611130037', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611130903', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7796,7 +7796,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611130037'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611130903'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -9021,6 +9021,21 @@
   const ivIvOf = (u) => u.steps.find((s) => s.kind === 'iv');
   const ivActive = () => IV.unis.filter((u) => { const s = ivIvOf(u); return s && (s.end || s.date) >= today(); });
   const ivPrepC = {};
+  const ivRestSet = () => new Set(Object.entries(ivs()).filter(([k, v]) => k.startsWith('rest:') && v && Array.isArray(v.days)).flatMap(([, v]) => v.days));
+  const IV_SICK = { 승조: '2026-11-14' };  // 이 날까지 「몸은 좀 어때요?」를 물어요 (선생님이 아프다고 알려 준 학생)
+  function ivSickBand() {
+    const t = today(), M = ivs(); if (!(IV_SICK[U.who] >= t) || M['rest:' + t] || ivRestSet().has(t)) return '';
+    return `<section class="c12 card iv-sp iv-sick"><div class="iv-sp-t"><span class="ts-band-ic">${ic('think')}</span><span><b>${esc(NM())}${jongOf(NM()) ? '아' : '야'}, 몸은 좀 어때요?</b><span>아프다고 들었어요. 무리하지 말고 오늘·내일 할 것을 어떻게 할지 골라요. 못 한 것은 남은 날에 고르게 나눠 줄게요</span></span></div>
+      <div class="iv-sp-b"><button type="button" class="btn primary" data-ivsick="1">오늘은 쉴게요</button><button type="button" class="btn" data-ivsick="2">내일까지 쉴게요</button><button type="button" class="btn" data-ivsick="0">조금씩 할게요</button><button type="button" class="btn" data-ivsick="x">괜찮아요, 그대로 해요</button></div></section>`;
+  }
+  function ivSickBind() {
+    $$('[data-ivsick]').forEach((b) => (b.onclick = () => { const c = b.dataset.ivsick, t = today(), y = addD(t, -1), M = ivs();
+      const days = c === 'x' ? [] : c === '0' ? [y] : c === '1' ? [y, t] : [y, t, addD(t, 1)];
+      M['rest:' + t] = { c, days, at: Date.now() }; save('ivp');
+      const P = ivActive().map(ivPrep).filter(Boolean)[0], nx = P && P.plan.find((x) => x.date >= t && !x.rest && (x.ids.length || x.more.length));
+      toast(c === 'x' ? '좋아요, 그대로 해요. 힘들면 쉬어요' : c === '0' ? '어제 못 한 것을 남은 날에 나눠 놨어요. 할 수 있는 만큼만 해요' : `${c === '1' ? '오늘은' : '내일까지'} 푹 쉬어요. 남은 것은 ${nx ? md(nx.date) + '부터 ' : ''}나눠 놨어요`);
+      const box = b.closest('.iv-sp'), y0 = scrollY; if (box) ivRowOut(box, () => { render(); scrollTo(0, y0); }); else render(); }));
+  }
   function ivPrep(u) {
     const iv = ivIvOf(u); if (!iv) return null;
     const st = (IV.start || {})[u.id] || IV_START[u.id] || today(), end = addD(iv.date, -1), days = [];
@@ -9040,6 +9055,13 @@
       for (const [k, d] of [['write', w], ['mem', m], ['say', sy]]) { const p = plan.find((x) => x.date === d); if (!p) continue;
         if (p.k === k) p.ids = [...p.ids, q.id]; else { let g = p.more.find((x) => x.k === k); if (!g) p.more.push((g = { k, ids: [] })); g.ids.push(q.id); } }
     }
+    /* 11/13 «승조가 어제오늘 아프대 … 오늘 내일을 어떻게 미룰지 자기가 선택»: 쉬는 날(rest:날짜 = { days })부터의 안 한 몫만 남은 날에 고르게 다시 나눠요 */
+    const RS = ivRestSet(), t0 = today(), LT = new Set(Object.entries(ivs()).filter(([k, v]) => k.startsWith('rest:') && v && v.c === '0').map(([k]) => k.slice(5)));
+    if ([...RS].some((d) => d >= st && d <= end)) { const Q = [];  // 옮길 것: 지난 날·쉬는 날(+「조금씩」을 고른 날)의 안 한 몫. 한 것과 다른 날 몫은 제자리
+      for (const x of plan) { if (RS.has(x.date)) x.rest = 1; if (!(x.date < t0 || x.rest || LT.has(x.date))) continue;
+        const G = [{ k: x.k, ids: x.ids }, ...x.more].map((g) => ({ k: g.k, ids: g.ids.filter((id) => (ivDone(g.k, id) ? true : (Q.push({ k: g.k, id }), false))) })); x.ids = G[0].ids; x.more = G.slice(1).filter((g) => g.ids.length); }
+      let av = plan.filter((x) => x.date >= t0 && !x.rest); if (!av.length) { av = [plan[plan.length - 1]]; delete av[0].rest; }
+      av.forEach((x, i) => { for (const it of Q.slice(Math.floor((i * Q.length) / av.length), Math.floor(((i + 1) * Q.length) / av.length))) { if (it.k === x.k) x.ids.push(it.id); else { let g = x.more.find((y) => y.k === it.k); if (!g) x.more.push((g = { k: it.k, ids: [] })); g.ids.push(it.id); } } }); }
     const all = [...ids, ...my.map((q) => q.id)];
     const ph = ['write', 'mem', 'say'].map((k) => { const L = plan.filter((p) => p.k === k); return { k, from: L[0] && L[0].date, to: L.length && L[L.length - 1].date, n: all.length, dn: all.filter((id) => ivDone(k, id)).length }; });
     return { u, iv, st, end, ids: all, plan, ph };
@@ -9085,7 +9107,7 @@
     const t = today(), R = ivActive().map(ivPrep).filter(Boolean).map((P) => ({ P, p: P.plan.find((x) => x.date === t), b: ivBehind(P) })).filter((r) => r.p || r.b.length);
     if (!R.length) { const nx = ivActive().map(ivPrep).filter(Boolean).sort((a, b) => a.st.localeCompare(b.st))[0];
       return `<section class="card ${cls}"><div class="card-h"><h2>${ic('pin')} 오늘 할 일</h2></div><p class="tiny" style="margin:0">오늘은 정해진 게 없어요${nx ? ` · ${esc(nx.u.short)} 준비는 ${md(nx.st)}부터` : ''}</p></section>`; }
-    return `<section class="card ${cls} iv-today"><div class="card-h"><h2>${ic('pin')} 오늘 할 일</h2><span class="tiny">${md(t)} ${esc(wdName(t))}</span></div>${R.map(({ P, p, b }) => `<div class="iv-tg"><div class="iv-tg-h">${ivLogo(P.u, 'sm')}<b>${esc(P.u.short)}</b><span class="tiny">면접 ${ivDdLabel(dday(P.iv.date))}${p ? ` · ${IV_PH[p.k][0]} 단계` : ''}</span></div><div class="list">${p ? ivDayRows(P, p) : ''}${b.length ? `<div class="li btnlike iv-it" data-ivlag="${P.u.id}"><div class="ico">${ic('think')}</div><div class="body"><div class="t">밀린 것 ${b.length}개</div><div class="d">지난 날 몫이에요. 오늘 같이 끝내요</div></div><span class="chev"></span></div>` : ''}</div></div>`).join('')}</section>`;
+    return `<section class="card ${cls} iv-today"><div class="card-h"><h2>${ic('pin')} 오늘 할 일</h2><span class="tiny">${md(t)} ${esc(wdName(t))}</span></div>${R.map(({ P, p, b }) => `<div class="iv-tg"><div class="iv-tg-h">${ivLogo(P.u, 'sm')}<b>${esc(P.u.short)}</b><span class="tiny">면접 ${ivDdLabel(dday(P.iv.date))}${p ? ` · ${IV_PH[p.k][0]} 단계` : ''}</span></div><div class="list">${p && p.rest ? `<div class="li"><div class="ico">${ic('idle')}</div><div class="body"><div class="t">오늘은 쉬는 날이에요</div><div class="d">푹 쉬어요. 못 한 것은 남은 날에 나눠 놨어요</div></div></div>` : ''}${p && !(p.rest && !p.ids.some((id) => !ivDone(p.k, id)) && !p.more.length) ? ivDayRows(P, p) : ''}${b.length ? `<div class="li btnlike iv-it" data-ivlag="${P.u.id}"><div class="ico">${ic('think')}</div><div class="body"><div class="t">밀린 것 ${b.length}개</div><div class="d">지난 날 몫이에요. 오늘 같이 끝내요</div></div><span class="chev"></span></div>` : ''}</div></div>`).join('')}</section>`;
   }
   function ivUniCards() {
     return ivActive().map((u) => { const P = ivPrep(u), dd = dday(P.iv.date), cur = P.ph.find((h) => h.from <= today() && today() <= h.to) || P.ph[0];
@@ -9145,7 +9167,7 @@
     const nx = ivNext(), dd = nx ? dday(nx.date) : null;
     const main = `<h1 class="h1"><mark class="hl-g">${esc(NM())}${jongOf(NM()) ? '아' : '야'}</mark>,<br class="br-m"> ${nx ? (dd > 0 ? `${esc(nx.u.short)} 면접까지 ${dd}일 남았어요` : '오늘 면접이에요, 잘하고 와요') : '면접 다 끝났어요'}</h1>
       <p class="sub" style="margin:0 0 16px">${esc(IV.line || '1차는 다 붙었어요. 이제 2차 면접만 남았어요')}</p>
-      <div class="grid iv-home">${ivSpreadBand()}${ivAddBand()}${ivAppCard()}${appCard().replace(/<section class="card c12 gift-card app-card">[\s\S]*?<\/section>/, '')}${ivHeadCard('c6')}${ivTodayCard('c6')}${ivUniCards()}${pomoCard('c6')}${hotCard('c6')}${ivEvalCard()}</div>`;
+      <div class="grid iv-home">${ivSickBand()}${ivSpreadBand()}${ivAddBand()}${ivAppCard()}${appCard().replace(/<section class="card c12 gift-card app-card">[\s\S]*?<\/section>/, '')}${ivHeadCard('c6')}${ivTodayCard('c6')}${ivUniCards()}${pomoCard('c6')}${hotCard('c6')}${ivEvalCard()}</div>`;
     return main;  // 11/9 오른쪽 줄(시계·토마토·뉴스)은 «다시 원래대로» → 홈 안 두 칸으로
   }
   // 연습 화면: 단계(mode)마다 다르게. 쓰기 = 노션 답을 고쳐 쓰기 · 외우기 = 가리고 떠올리기 · 말하기 = 1분 타이머
@@ -9214,7 +9236,7 @@
     const f = (d) => `${+d.slice(5, 7)}/${+d.slice(8)}`, ds = [...new Set(out)].sort();
     toast(ds.length ? `쓰기를 ${f(ds[0])}${ds.length > 1 ? '~' + f(ds[ds.length - 1]) : ''}에 나눠 넣었어요` : '나눌 날이 모자라서 그대로 두었어요'); render();
   }
-  function ivSpBind() {
+  function ivSpBind() { ivSickBind();
     $$('[data-ivsp]').forEach((b) => (b.onclick = () => { if (b.dataset.ivsp === 'spread') return ivSpread(); const M = ivs(); M['sp:' + today()] = { c: 'today', at: Date.now() }; save('ivp'); toast('좋아요, 오늘 다 해요!');
       const box = b.closest('.iv-sp'); if (box) ivRowOut(box, () => {}); }));
   }
