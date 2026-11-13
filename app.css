@@ -4979,3 +4979,14 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 .nx-dlg{display:flex;flex-direction:column;gap:6px}
 .nx-dl{display:grid;grid-template-columns:20px 1fr;gap:6px;align-items:baseline}
 .nx-dl>b{color:var(--t3);font-weight:700}
+
+/* 11/13 본문 필기 화면: 문장이 먼저, 단추는 작은 칩, 움직임은 짧게 */
+.sx-s.rdq > div { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.sx-s.rdq > div > * { flex: 1 0 100%; min-width: 0; }
+.sx-s.rdq .sx-open, .sx-s.rdq .sx-put { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px; width: auto; margin-top: 4px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); font-size: 13px; font-weight: 600; color: var(--t2); }
+.sx-s.rdq .sx-open:active, .sx-s.rdq .sx-put:active { transform: none; background: var(--fill2); }
+.sx-s.rdq .sx-put::before { font-size: 13px; }
+.sx-s.rdq .m3n:has(> .sx-put:only-child) { flex: 0 0 auto; display: block; margin-top: 0; }
+.sx-s.rdq .ch-stk, .sx-s.rdq .sx-pts, .sx-s.rdq .sx-w, .sx-s.rdq .m3s { animation: fade .2s ease both; animation-delay: 0s; }
+.sx-s.rdq .ch-stk::after { background: var(--fill2); box-shadow: inset 0 0 0 1px var(--line); color: var(--t3); font-size: 13px; transition: opacity .2s ease; }
+.sx-s.rdq .ch-stk.peel::after { transform: none; opacity: 0; }
