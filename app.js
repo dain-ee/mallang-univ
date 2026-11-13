@@ -685,7 +685,7 @@
     if (b) { const [, m, d] = b.split('-'), y0 = +today().slice(0, 4); for (const y of [y0, y0 + 1]) { const day = `${y}-${m}-${d}`; L.push({ id: 'bd' + y, from: day, to: day, day, i: 'cake', t: '생일', hi: '생일 축하해', msg: '선생님이 생일 선물을 보냈어요', gift: 2000, c: '#f06595' }); } }
     return L.sort((a, b) => a.from.localeCompare(b.from) || (b.id.startsWith('bd') - a.id.startsWith('bd')));
   }
-  const BIRTH = U.who === '정윤' ? '2010-01-03' : '';  // 정윤 생일 (내 정보에 안 넣었을 때)
+  const BIRTH = U.who === '정윤' ? '2010-01-03' : ST.birth ? `2000-${ST.birth}` : '';  /* 11/13 명단에 적힌 생일(월-일)도 홈 생일 인사·선물에 써요 */  // 정윤 생일 (내 정보에 안 넣었을 때)
   const seasonNow = () => { const L = seasonList().filter((s) => s.from <= today() && today() <= s.to); return L.find((s) => s.id.startsWith('bd')) || L[0] || null; };
   function seasonCard() {
     const s = seasonNow(); if (!s || !WALLET) return '';
@@ -2408,7 +2408,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611131006', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611131010', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7803,7 +7803,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611131006'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611131010'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
