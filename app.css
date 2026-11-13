@@ -4983,10 +4983,33 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 /* 11/13 본문 필기 화면: 문장이 먼저, 단추는 작은 칩, 움직임은 짧게 */
 .sx-s.rdq > div { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 .sx-s.rdq > div > * { flex: 1 0 100%; min-width: 0; }
-.sx-s.rdq .sx-open, .sx-s.rdq .sx-put { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px; width: auto; margin-top: 4px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); font-size: 13px; font-weight: 600; color: var(--t2); }
-.sx-s.rdq .sx-open:active, .sx-s.rdq .sx-put:active { transform: none; background: var(--fill2); }
+.sx-s.rdq .sx-open, .sx-s.rdq .sx-put { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 4px; width: auto; height: 32px; margin-top: 6px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--fill); font-size: 13px; font-weight: 600; color: var(--t2); transition: background .15s; }
+.sx-s.rdq .sx-put { background: var(--blue-soft); color: var(--blue); }
+.sx-s.rdq .sx-put::before { content: none; }
+.sx-s.star.rdq .sx-open { background: var(--card); }
+.sx-s.star.rdq .sx-put { background: var(--card); }
+.sx-s.rdq .sx-open:active, .sx-s.rdq .sx-put:active { transform: none; filter: brightness(.96); }
 .sx-s.rdq .sx-put::before { font-size: 13px; }
 .sx-s.rdq .m3n:has(> .sx-put:only-child) { flex: 0 0 auto; display: block; margin-top: 0; }
 .sx-s.rdq .ch-stk, .sx-s.rdq .sx-pts, .sx-s.rdq .sx-w, .sx-s.rdq .m3s { animation: fade .2s ease both; animation-delay: 0s; }
 .sx-s.rdq .ch-stk::after { background: var(--fill2); box-shadow: inset 0 0 0 1px var(--line); color: var(--t3); font-size: 13px; transition: opacity .2s ease; }
 .sx-s.rdq .ch-stk.peel::after { transform: none; opacity: 0; }
+
+/* 11/13 본문 필기 모음: 문단 전체 문장 + 써 둔 필기(글로만) */
+.rdv-s { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: baseline; padding: 12px 0; border-top: 1px solid var(--line); }
+.rdv h2 + .rdv-s { border-top: 0; }
+.rdv-en { margin: 0; font-size: 17px; line-height: 1.7; color: var(--t1); }
+.rdv-n { margin-top: 6px; padding: 8px 12px; border-radius: 10px; background: #fff8e1; font-size: 15px; line-height: 1.6; color: var(--t1); }
+.rdv-n ul { margin: 0; padding-left: 18px; }
+.rdv-w { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 14px; color: var(--t2); }
+.rdv-n ul + .rdv-w { margin-top: 4px; }
+.rdv-w b { color: var(--t1); }
+
+/* 11/13 본문 필기 칸: 노란 상자 대신 토스 입력 칸 꼴 (기존 .btn·.inp 결) */
+.sx-s.rdq .m3n-i { padding: 0; border-radius: 0; background: none; box-shadow: none; }
+.sx-s.rdq .m3n-h { margin-bottom: 4px; padding: 0 2px; font-size: 12px; color: var(--t3); }
+.sx-s.rdq .m3n-h .ic { display: none; }
+.sx-s.rdq .m3n-h b { font-weight: 600; }
+.sx-s.rdq .m3n-i textarea.m3b-ko { padding: 12px 14px; border: 0; border-radius: 12px; background: var(--fill); font-size: 15px; box-shadow: none; transition: box-shadow .15s, background .15s; }
+.sx-s.rdq .m3n-i textarea.m3b-ko:focus { outline: 0; background: var(--card); box-shadow: inset 0 0 0 2px var(--blue); }
+.sx-s.star.rdq .m3n-i textarea.m3b-ko { background: var(--card); }

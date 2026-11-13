@@ -2408,7 +2408,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611131027', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611131045', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7322,7 +7322,18 @@
     const N = m3OfSent(u, ps, sn, i).sort(m3Ord), hasS = N.some((m) => m.kind === 's');
     return `<div class="m3n">${N.map(m3Row).join('')}${hasS ? '' : `<button type="button" class="sx-put" data-m3put="${i}">${u.subj !== 'm3' ? '필기 쓰기' : '이 문장 아래에 내 필기 쓰기'}</button>`}</div>`;
   }
+  function rdNotePage(u, ps) {
+    const M = m3Memos(u, ps.letter), SN = ps.sents || [], at = (m) => { if (m.kind === 's') { const k = SN.findIndex((x) => m3Key(x.en) === m3Key(m.t)); return k < 0 ? -1 : k; } return m.si != null ? m.si : -1; };
+    const G = {}; M.forEach((m) => { const k = at(m); (G[k] = G[k] || []).push(m); });
+    const lines = (m) => String(m.ko || '').split('\n').map((x) => x.replace(/^[\s•·\-]+/, '').trim()).filter(Boolean);
+    const notes = (L) => { const W = L.filter((m) => m.kind !== 's' && String(m.ko || '').trim()), N = L.filter((m) => m.kind === 's').flatMap(lines), W0 = L.filter((m) => m.kind !== 's' && !String(m.ko || '').trim());
+      return W.length || N.length || W0.length ? `<div class="rdv-n">${N.length ? `<ul>${N.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}${W.length || W0.length ? `<div class="rdv-w">${[...W, ...W0].map((m) => `<span><b>${esc(m.t)}</b>${String(m.ko || '').trim() ? ' ' + esc(m.ko) : ''}</span>`).join('')}</div>` : ''}</div>` : ''; };
+    const nN = SN.filter((_, k) => G[k] && notes(G[k])).length;
+    return `<section class="card st-sec rdv"><div class="st-kick">${esc(u.code || '')} 본문 ${esc(ps.letter)} · 내 필기</div><h2>${nN ? `문장 ${SN.length}개 중 ${nN}개에 필기했어요` : '아직 필기한 문장이 없어요'}</h2>
+      ${SN.map((sn, k) => `<div class="rdv-s ${sn.star ? 'star' : ''}"><span class="st-ln num">${sn.star ? '<i class="sx-star" aria-label="핵심 문장">★</i>' : k + 1}</span><div><p class="rdv-en">${esc(sn.en)}</p>${G[k] ? notes(G[k]) : ''}</div></div>`).join('')}${G[-1] && notes(G[-1]) ? `<div class="rdv-s"><span class="st-ln num">+</span><div><p class="rdv-en tiny">그 밖에 담은 것</p>${notes(G[-1])}</div></div>` : ''}</section>`;
+  }
   function m3NotePage(u, ps) {
+    if (u.subj !== 'm3') return rdNotePage(u, ps);
     const M = m3Memos(u, ps.letter);
     if (!M.length) return `<section class="card st-sec"><div class="empty">${gh('idle', 'gh-empty')}<b>아직 필기한 게 없어요</b><span>${u.subj !== 'm3' ? '① 문장 분석에서 문장 밑 「필기 쓰기」를 누르거나, 단어를 끌어서 「담기」를 눌러요' : '③ 문장 구조에서 문장 밑 「+ 이 문장 필기하기」를 누르거나, 단어를 끌어서 「담기」를 눌러요'}</span></div></section>`;
     const SN = ps.sents || [], idx = (m) => { if (m.kind === 's') { const k = SN.findIndex((x) => m3Key(x.en) === m3Key(m.t)); return k < 0 ? 999 : k; } return m.si != null ? m.si : 999; };
@@ -7803,7 +7814,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611131027'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611131045'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
