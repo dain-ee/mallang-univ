@@ -4974,3 +4974,8 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 .yf-r>b:first-child{display:inline-block;min-width:36px;color:var(--t1,#333d4b);font-weight:700}
 .yf-r>i{font-style:normal;margin-right:6px;color:var(--t3,#8b95a1)}
 .yf-r.on{color:var(--t3,#8b95a1)}
+
+/* 11/13 보기 속 대화문: 말하는 사람마다 한 줄 */
+.nx-dlg{display:flex;flex-direction:column;gap:6px}
+.nx-dl{display:grid;grid-template-columns:20px 1fr;gap:6px;align-items:baseline}
+.nx-dl>b{color:var(--t3);font-weight:700}
