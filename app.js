@@ -2408,7 +2408,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611131608', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611131620', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4414,7 +4414,7 @@
   const DIARY_URL = /github\.io$/.test(location.hostname) ? '/my-diary/' : 'https://dain-ee.github.io/my-diary/';
   function diaryCard() {
     if (U.who !== '정윤' || TUTOR) return '';
-    return `<a class="c12 dy-ban" href="${DIARY_URL}"><img class="dy-rb" src="assets/diary/ribbon.webp" alt="" width="663" height="424"><span class="dy-t"><em>MY DIARY · 2026</em><b>나만 여는 다이어리가 생겼어요</b><span>일기와 고민은 나만 보고, 오늘 한 공부는 저절로 적혀요</span></span><span class="dy-go">열어 보기</span><i class="dy-lace" aria-hidden="true"></i></a>`;
+    return `<a class="c12 ts-band dy-ban" href="${DIARY_URL}"><span class="ts-band-ic dy-ic"><img src="assets/diary/ribbon.webp" alt=""></span><span class="ts-band-t"><b>나만 여는 다이어리가 생겼어요</b><span>일기와 고민은 나만 보고, 오늘 한 공부는 저절로 적혀요</span></span><span class="ts-band-go">열어 보기</span></a>`;
   }
   function gdCard() {
     // 11/10 새로 만든 안내(정리·가이드)는 둘 다 보여요. 예전 안내는 하나씩
@@ -7820,7 +7820,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611131608'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611131620'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
