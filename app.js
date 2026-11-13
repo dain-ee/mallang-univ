@@ -566,7 +566,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${ptCard('c12')}${TUTOR ? lessonHero() : ''}${appCard()}${gdCard()}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${juaRepCard()}${juaLinks()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${qlogCard()}${railCards(true)}${winCard()}${perfCard()}${finCard()}${admitCard('c12')}${lagCard()}${pomoCard('c12 rail-inline')}${growCard('c12')}${walletCard('c12')}${hotCard('c12 rail-inline')}${insightCard('c7')}${schedCard('c5')}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${ptCard('c12')}${TUTOR ? lessonHero() : ''}${appCard()}${gdCard()}${diaryCard()}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${juaRepCard()}${juaLinks()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${qlogCard()}${railCards(true)}${winCard()}${perfCard()}${finCard()}${admitCard('c12')}${lagCard()}${pomoCard('c12 rail-inline')}${growCard('c12')}${walletCard('c12')}${hotCard('c12 rail-inline')}${insightCard('c7')}${schedCard('c5')}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 11/8 «정윤이 너무 홈이 너무 지저분해»
@@ -2408,7 +2408,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611131045', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611131608', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4410,6 +4410,12 @@
   };
   const gdList = () => (TUTOR || (ROLE_T && !PEEK)) ? [] : Object.keys(GD).filter((k) => !gdHas(k) && GD[k].on());
   const gdNext = () => gdList()[0];
+  // 11/13 «배너도 아주 사랑스럽게 이 컨셉으로 만들어서 들어가고 싶게 해 정윤이한테만» → 다이어리(my-diary)로 가는 배너. 표지의 십자수 리본·레이스 그대로
+  const DIARY_URL = /github\.io$/.test(location.hostname) ? '/my-diary/' : 'https://dain-ee.github.io/my-diary/';
+  function diaryCard() {
+    if (U.who !== '정윤' || TUTOR) return '';
+    return `<a class="c12 dy-ban" href="${DIARY_URL}"><img class="dy-rb" src="assets/diary/ribbon.webp" alt="" width="663" height="424"><span class="dy-t"><em>MY DIARY · 2026</em><b>나만 여는 다이어리가 생겼어요</b><span>일기와 고민은 나만 보고, 오늘 한 공부는 저절로 적혀요</span></span><span class="dy-go">열어 보기</span><i class="dy-lace" aria-hidden="true"></i></a>`;
+  }
   function gdCard() {
     // 11/10 새로 만든 안내(정리·가이드)는 둘 다 보여요. 예전 안내는 하나씩
     const L = gdList(), ks = L.filter((k) => k === 'iq' || k === 'add'); const show = ks.length ? ks : L.slice(0, 1);
@@ -7814,7 +7820,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611131045'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611131608'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

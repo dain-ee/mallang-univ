@@ -4,6 +4,7 @@
 @font-face { font-family: "Pretendard"; font-weight: 600; src: url("fonts/Pretendard-SemiBold.woff2") format("woff2"); font-display: swap; }
 @font-face { font-family: "Pretendard"; font-weight: 700; src: url("fonts/Pretendard-Bold.woff2") format("woff2"); font-display: swap; }
 @font-face { font-family: "Pretendard"; font-weight: 800; src: url("fonts/Pretendard-ExtraBold.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Galmuri11"; src: url("fonts/Galmuri11.woff2") format("woff2"); font-display: swap; }
 @font-face { font-family: "Malang"; font-weight: 700; src: url("fonts/Malang-brand.woff2") format("woff2"); font-display: swap; }
 
 :root {
@@ -5013,3 +5014,23 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 .sx-s.rdq .m3n-i textarea.m3b-ko { padding: 12px 14px; border: 0; border-radius: 12px; background: var(--fill); font-size: 15px; box-shadow: none; transition: box-shadow .15s, background .15s; }
 .sx-s.rdq .m3n-i textarea.m3b-ko:focus { outline: 0; background: var(--card); box-shadow: inset 0 0 0 2px var(--blue); }
 .sx-s.star.rdq .m3n-i textarea.m3b-ko { background: var(--card); }
+
+/* 11/13 정윤 다이어리 배너: 다이어리 표지와 같은 결 (연분홍 + 먹회색 십자수 + 흰 레이스) */
+.dy-ban { position: relative; display: flex; align-items: center; gap: 18px; min-height: 150px; padding: 18px 24px 52px; border-radius: 16px; overflow: hidden; text-decoration: none; color: #4e4a50;
+  background: #fdc7dc radial-gradient(circle, #fff 1.2px, transparent 1.6px) 0 0 / 28px 28px; transition: transform .16s ease; }
+.dy-ban:active { transform: scale(.985); }
+.dy-rb { flex: none; width: 168px; height: auto; }
+.dy-t { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.dy-t em { font: 400 12px/1.2 "Galmuri11", monospace; font-style: normal; letter-spacing: .14em; color: #6b6470; }
+.dy-t b { font: 400 20px/1.35 "Galmuri11", "Pretendard", sans-serif; color: #4e4a50; word-break: keep-all; }
+.dy-t span { font-size: 13px; line-height: 1.45; color: #6b6470; word-break: keep-all; }
+.dy-go { flex: none; padding: 8px 12px; background: #fff; border: 1.5px dotted #6b6470; font: 400 13px/1 "Galmuri11", "Pretendard", sans-serif; color: #4e4a50; white-space: nowrap; }
+.dy-go::after { content: ' ›'; }
+.dy-lace { position: absolute; left: 0; right: 0; bottom: 0; height: 40px; background: url("assets/diary/lace.webp") 50% 0 / auto 40px repeat-x; filter: drop-shadow(0 -1px 1px rgba(190, 110, 150, .22)); pointer-events: none; }
+@media (max-width: 560px) {
+  .dy-ban { flex-wrap: wrap; gap: 12px; padding: 16px 16px 52px; }
+  .dy-rb { width: 108px; }
+  .dy-t { flex-basis: calc(100% - 120px); }
+  .dy-t b { font-size: 16px; }
+  .dy-go { margin-left: auto; }
+}
