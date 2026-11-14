@@ -5057,3 +5057,13 @@ textarea.inp.r2-ta { min-height: 88px; }
 .r2-cta .block { flex: 1; }
 .r2-old { margin-top: 12px; }
 @media (prefers-reduced-motion: reduce) { .r2-open .r2-gist, .r2-open .r2-flow li, .r2-ul li, .r2-df { animation: none; } }
+
+/* 11/14 그래머 결과 카드: 틀린 문제 목록 */
+.jg-bad{align-self:stretch;width:100%;box-sizing:border-box;margin:16px 0 4px;text-align:left;background:var(--bg);border-radius:16px;padding:16px}
+.jg-bad>b{display:block;font-size:15px;margin-bottom:8px}
+.jg-bad-r{display:flex;gap:12px;padding:10px 0;border-top:1px solid rgba(0,0,0,.06)}
+.jg-bad-r:first-of-type{border-top:0}
+.jg-bad-r>span{flex:0 0 auto;font-weight:700;color:var(--t2,#4e5968);min-width:36px}
+.jg-bad-r p{margin:0 0 4px;font-size:14px;line-height:1.5;color:var(--t1,#191f28)}
+.jg-bad-r small{font-size:13px;color:var(--t3,#8b95a1)}
+.jg-bad-r small b{color:var(--blue,#3182f6)}
