@@ -2408,7 +2408,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611141449', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611142221', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3294,9 +3294,9 @@
   if (SR_TEST) window.__hwTest = (h) => { S.hw = S.hw || []; if (!S.hw.some((x) => x.id === h.id)) S.hw.push(h); hwSheet(h.id); };
   if (SR_TEST) window.__tm = () => JSON.stringify({ run: P.run && { tk: tkOf(P.run), ti: P.run.ti, paused: P.run.paused }, held: (P.held || []).map((x) => ({ tk: tkOf(x), ti: x.ti, sec: Math.round(pWatchSec(x)) })) });
   if (SR_TEST) window.__myTest = (it) => { if (!myS().items.some((x) => x.id === it.id)) myS().items.push({ log: {}, wrong: [], days: [1, 2, 3, 4, 5], at: Date.now(), ...it }); mySheet(it.id); };  // 오프라인 시험 탭에서만
-  function srOn() { return !D.iv && (SR_TEST || (!TUTOR && !(NXD.subjects || []).length)); }  // 11/3 «정윤이는 왜 화면이 안 보이지» → 정윤 앱에도. ⛔ 선생님·학생 화면 보기에서만 보이는 기능을 만들지 않아요
+  function srOn() { return !D.iv && (SR_TEST || !!ST.report || (!TUTOR && !(NXD.subjects || []).length)); }  // 11/14 «윤건이만 정윤이 리포트 시간 그거 넣어 놔» → students.json report  // 11/3 «정윤이는 왜 화면이 안 보이지» → 정윤 앱에도. ⛔ 선생님·학생 화면 보기에서만 보이는 기능을 만들지 않아요
   var SR_MINE = 1793511014696;  // 11/1 선생님이 대신 넣어 준 기록은 빼요
-  var SR_K = { olymp: ['올림포스 지문', 0], g3: ['고3 영어', 96], cheonil: ['천일문', 0], 'fin-q': ['기말 문제', 0], 'fin-b': ['기말 빈칸', 0], sci: ['과학', 0], word: ['단어', 0], nx: ['수업·따로 공부', 0] };  // 둘째 값: 수능 영어 독해 문항당 1분 36초. 올림포스는 기말(내신) 지문을 꼼꼼히 보는 거라 수능 시간과 안 견줘요 (11/1 선생님 «내신이니까 느릴 수 있지»)
+  var SR_K = { olymp: ['올림포스 지문', 0], g3: ['고3 영어', 96], cheonil: ['천일문', 0], 'fin-q': ['기말 문제', 0], 'fin-b': ['기말 빈칸', 0], sci: ['과학', 0], word: ['단어', 0], nx: ['수업·따로 공부', 0], nxe: ['영어 내신', 0], nxk: ['국어', 0], nxh: ['역사', 0], nxs: ['과학', 0], m3: ['매3영', 0], mem: ['외우기·단어', 0], les: ['수업 시험', 0] };  // 둘째 값: 수능 영어 독해 문항당 1분 36초. 올림포스는 기말(내신) 지문을 꼼꼼히 보는 거라 수능 시간과 안 견줘요 (11/1 선생님 «내신이니까 느릴 수 있지»)
   var srWk = (d) => addD(d, -((new Date(d + 'T00:00:00').getDay() + 6) % 7));  // 그 주 월요일
   var srDay = (at) => new Date(at).toLocaleDateString('sv');  // 시간표 칸 계산용 달력 날짜 (하루 나누기는 srLD 가 새벽 5시 기준)
   function srEvents() {
@@ -3306,7 +3306,9 @@
     for (const x of Object.values((S.eng || {}).days || {})) { for (const v of Object.values(x.uans || {})) put(v, 'cheonil'); for (const v of Object.values(x.uans2 || {})) put(v, 'cheonil'); for (const v of Object.values(x.wans || {})) put(v, 'word'); }
     for (const v of Object.values((S.eng || {}).g3ans || {})) put(v, 'g3');
     for (const x of Object.values((S.sci || {}).days || {})) for (const v of Object.values(x.ans || {})) put(v, 'sci');
-    for (const v of Object.values((S.nx || {}).a || {})) put(v, 'nx');
+    const nk = (k) => !ST.report ? 'nx' : /^e\d/.test(k) ? 'nxe' : /^k\d/.test(k) ? 'nxk' : /^h\d/.test(k) ? 'nxh' : /^s\d/.test(k) ? 'nxs' : /^m3d/.test(k) ? 'm3' : /^(m:|wm)/.test(k) ? 'mem' : 'nx';  // 과외 학생은 과목별로 나눠요
+    for (const [k, v] of Object.entries((S.nx || {}).a || {})) put(v, nk(k));
+    if (ST.report) for (const g of Object.values((S.nx || {}).la || {})) for (const v of Object.values(g || {})) put(v, 'les');
     A.sort((a, b) => a.at - b.at);
     srEvents.c = { t: Date.now(), v: A }; return A;
   }
@@ -3322,7 +3324,8 @@
     });
     if (cur) { const m = (cur.end - cur.start) / 60000 + 1; appMin += m; days[srDay(cur.start)].app += m; }
     let man = 0, manApp = 0; const P = pomo().days || {};
-    for (let i = 0; i < 7; i++) { const d = addD(w0, i), x = P[d] || {}, m = (+x.man || 0) + (+x.min || 0); if (m) { man += m; manApp += (days[d] || {}).app || 0; } }
+    const cutM = {}; if (ST.report) for (const b of srBlocks(w0)) if (b.t !== '앱') cutM[b.d] = (cutM[b.d] || 0) + (b.e - b.s) / 60000;  // 끄는 걸 잊은 칸은 줄인 값으로
+    for (let i = 0; i < 7; i++) { const d = addD(w0, i), x = P[d] || {}, m = ST.report ? Math.round(cutM[d] || 0) : (+x.man || 0) + (+x.min || 0); if (m) { man += m; manApp += (days[d] || {}).app || 0; } }
     let probs = 0, pages = 0;
     for (const it of myS().items) for (const [d, x] of Object.entries(it.log || {})) if (d >= w0 && d < w1 && x && x.n && x.at !== SR_MINE) { if (it.unit === '쪽') pages += x.n; else if (it.unit !== '건') probs += x.n; }
     const hwDue = HWL().filter((h) => h.due && h.due >= w0 && h.due < w1), hwOk = hwDue.filter((h) => hwDone(h)).length;
@@ -3336,13 +3339,20 @@
   //   직접 잰 것(시작·끝, 토마토)은 과목 색, 앱에서 문제 푼 것은 답 시각을 8분 안쪽끼리 묶은 블록. 하루는 새벽 5시에 바뀌어요
   var SR_C = { 국어: '#f59f00', 수학: '#3182f6', 영어: '#8b5cf6', 과학: '#03b26c', 사회: '#e8590c', 숙제: '#0ca5b0', '학원 숙제': '#0ca5b0', 책: '#ae3ec9', 오답: '#f04452', 단어: '#d6336c', 내신: '#5c7cfa', 자유: '#868e96', 앱: '#b0b8c1' };
   var srLD = (t) => srDay(t - 5 * 3600000);  // 새벽 0~5시는 전날로
+  // 11/14 윤건: 숙제를 열면 저절로 재는데 끄는 걸 잊어 20시간짜리 칸이 생겨요 → 45분 넘는 칸은 그 안에서 마지막으로 문제를 푼 때까지만 쳐요 (고친 칸은 그대로)
+  function srCut(x) {
+    if (!ST.report || x.ed || x.e - x.s <= 45 * 60000) return x.e;
+    let last = x.s; for (const e of srEvents()) { if (e.at > x.e || e.at - last > 20 * 60000) { if (e.at > last) break; } if (e.at >= x.s) last = e.at; }  // 시작부터 20분 넘게 안 끊기고 이어진 풀이까지
+    return Math.min(x.e, Math.max(last, x.s + 4 * 60000) + 60000);
+  }
   function srBlocks(w0) {
     const w1 = addD(w0, 7), B = [];
     const L0 = Object.assign({}, S.slog || {}), r0 = typeof P !== 'undefined' && P.run;  // 지금 재는 칸도 바로 보여요 (11/2 «바로바로 기록이 되어야»)
     if (r0 && r0.watch && !r0.paused) L0['w' + r0.t0] = { s: r0.t0, e: Date.now(), subj: r0.subj, k: 'w', ti: r0.ti, live: 1 };
-    for (const [id, x] of Object.entries(L0)) { if (x.del) continue; const d = srLD(x.s); if (d >= w0 && d < w1 && x.e > x.s) B.push({ id, ed: x.ed, d, s: x.s, e: x.e, t: x.subj || '자유', ti: x.ti, live: x.live, k: x.live ? '지금 재는 중' : x.k === 't' ? '토마토 타이머' : x.ti ? '「시작」으로 잰 시간' : '직접 잰 시간' }); }
+    for (const [id, x] of Object.entries(L0)) { if (x.del) continue; const d = srLD(x.s); if (d >= w0 && d < w1 && x.e > x.s) { const e2 = srCut(x), cut = e2 < x.e; B.push({ id, ed: x.ed, d, s: x.s, e: e2, t: x.subj || '자유', ti: x.ti, live: x.live, k: cut ? '끄는 걸 잊은 것 같아 마지막 문제 푼 때까지만 쳤어요' : x.live ? '지금 재는 중' : x.k === 't' ? '토마토 타이머' : x.ti ? '「시작」으로 잰 시간' : '직접 잰 시간' }); } }
     let cur = null; const flush = () => { if (!cur) return; const top = Object.entries(cur.n).sort((a, b) => b[1] - a[1])[0][0]; B.push({ d: srLD(cur.s), s: cur.s, e: Math.max(cur.e, cur.s + 60000), t: '앱', k: `앱 · ${SR_K[top][0]} ${cur.c}문항` }); cur = null; };
-    for (const e of srEvents()) { const d = srLD(e.at); if (d < w0 || d >= w1) continue; if (cur && e.at - cur.e <= 20 * 60000) { cur.e = e.at; cur.c++; cur.n[e.k] = (cur.n[e.k] || 0) + 1; } else { flush(); cur = { s: e.at, e: e.at, c: 1, n: { [e.k]: 1 } }; } }
+    const TB = ST.report ? B.slice() : [];  // 과외 학생은 숙제마다 저절로 재서, 잰 칸 안에서 푼 문제를 회색 칸으로 또 치지 않아요
+    for (const e of srEvents()) { const d = srLD(e.at); if (d < w0 || d >= w1) continue; if (TB.some((b) => e.at >= b.s - 60000 && e.at <= b.e + 60000)) { flush(); continue; } if (cur && e.at - cur.e <= 20 * 60000) { cur.e = e.at; cur.c++; cur.n[e.k] = (cur.n[e.k] || 0) + 1; } else { flush(); cur = { s: e.at, e: e.at, c: 1, n: { [e.k]: 1 } }; } }
     flush();
     return B.sort((a, b) => a.s - b.s);
   }
@@ -7820,7 +7830,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611141449'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611142221'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
