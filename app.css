@@ -5018,3 +5018,42 @@ body.par-mode .main { max-width: 720px; margin: 0 auto; padding-bottom: 40px; }
 .ts-band.dy-ban { background: #fde4ee; text-decoration: none; }
 .ts-band-ic.dy-ic { width: 52px; background: none; }
 .ts-band-ic.dy-ic img { width: 52px; height: auto; }
+
+/* 11/14 정윤 올림포스 2회독 (r2): 기존 띠 배너·지문 카드·선지·시트 꼴 그대로, 새로 필요한 칸만 */
+.gd-card.r2-ban .ts-band-t span { white-space: normal; }
+.r2-seg button[disabled] { opacity: .4; }
+.r2-qh { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 12px 0 8px; }
+.r2-veil { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; padding: 28px 16px; border: 0; border-radius: 14px; background: repeating-linear-gradient(-45deg, var(--blue-soft) 0 10px, #fff 10px 20px); box-shadow: inset 0 0 0 1.5px var(--blue-l); font: inherit; color: var(--t1); cursor: pointer; transition: transform .15s; }
+.r2-veil:active { transform: scale(.98); }
+.r2-veil .ic { width: 32px; height: 32px; }
+.r2-veil b { font-size: 16px; }
+.r2-veil span { font-size: 13px; color: var(--t3); }
+.r2-flow { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.r2-flow li { display: flex; gap: 12px; align-items: flex-start; }
+.r2-flow p { margin: 2px 0 0; font-size: 15px; line-height: 1.7; }
+.r2-open .r2-gist, .r2-open .r2-flow li { animation: waveInS .45s ease both; animation-delay: calc(var(--i, 0) * 70ms + 80ms); }
+.r2-open .r2-gist { animation-delay: 0ms; }
+.oly-p .r2-ko, .r2-kko { font-size: 16px; font-weight: 600; line-height: 1.6; color: var(--t1); }
+.r2-kko { margin: 0 0 12px; }
+.r2-line { display: flex; flex-wrap: wrap; gap: 8px; min-height: 52px; align-items: center; padding: 8px 12px; margin-bottom: 12px; border-radius: 12px; background: var(--fill2); }
+.r2-arr .jg-op { height: auto; min-height: 38px; padding: 6px 14px; font-size: 15px; }
+textarea.inp.r2-ta { min-height: 88px; }
+.r2-df { margin-top: 12px; padding: 14px 16px; border-radius: 14px; background: var(--red-soft); animation: shake .4s; }
+.r2-df b { display: block; margin-bottom: 4px; color: var(--red); }
+.r2-df p { margin: 0 0 4px; font-family: Georgia, 'Times New Roman', serif; font-size: 16px; line-height: 1.9; }
+.r2-df del { color: var(--red); text-decoration-thickness: 2px; }
+.r2-gap { display: inline-block; width: 36px; height: 1.1em; vertical-align: -3px; border-radius: 6px; background: var(--card); box-shadow: inset 0 0 0 1.5px var(--t3); }
+.r2-kdone { padding: 12px 0; border-top: 1px solid var(--line); }
+.r2-ken { margin: 0 0 4px; font-family: Georgia, 'Times New Roman', serif; font-size: 16px; line-height: 1.7; }
+.r2-sum { margin: 12px 0 0; }
+.r2-suml { display: block; margin-bottom: 4px; font-family: Pretendard, system-ui, sans-serif; font-size: 12px; color: var(--blue); }
+.r2-h { margin: 24px 0 8px; font-size: 16px; text-align: left; }
+.r2-ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; text-align: left; }
+.r2-ul li { position: relative; padding: 10px 14px 10px 28px; border-radius: 12px; background: var(--fill2); font-size: 14.5px; line-height: 1.6; animation: waveInS .45s ease both; animation-delay: calc(100ms + var(--i) * 40ms); }
+.r2-ul li::before { content: ''; position: absolute; left: 14px; top: 19px; width: 5px; height: 5px; border-radius: 50%; background: var(--blue); }
+.r2-tbl { width: 100%; }
+.r2-tbl td:first-child { text-align: left; }
+.r2-cta { display: flex; gap: 8px; }
+.r2-cta .block { flex: 1; }
+.r2-old { margin-top: 12px; }
+@media (prefers-reduced-motion: reduce) { .r2-open .r2-gist, .r2-open .r2-flow li, .r2-ul li, .r2-df { animation: none; } }
