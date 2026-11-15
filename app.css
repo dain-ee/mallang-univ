@@ -5203,3 +5203,22 @@ textarea.inp.bn-ta { min-height: 360px; font-size: 16px; line-height: 1.8; resiz
 .sa-ck { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid rgba(2, 32, 71, .2); display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff; flex: none; }
 .sa-i.on { border-color: #3182f6; background: rgba(49, 130, 246, .06); }
 .sa-i.on .sa-ck { background: #3182f6; border-color: #3182f6; }
+
+/* 11/16 한국사 외우기 판 (백지 대신 · 자동 채점) */
+.bnm-flow { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 10px; }
+.bnm-flow li { display: flex; gap: 12px; align-items: flex-start; animation: waveIn .35s var(--ease) both; animation-delay: calc(var(--i, 0) * 40ms); }
+.bnm-flow li.no .ls-n { background: var(--orange, #ff8a3d); color: #fff; }
+.bnm-flow p { margin: 2px 0 0; font-size: 16px; line-height: 1.7; }
+.bnm-k { color: var(--blue); font-weight: 700; background: rgba(49, 130, 246, .08); border-radius: 6px; padding: 0 3px; }
+.bnm-when { display: inline-block; font-size: 12px; font-weight: 600; color: var(--sub, #6b7684); margin-bottom: 2px; }
+.bnm-pool { display: grid; gap: 8px; margin-top: 16px; }
+.bnm-pc { text-align: left; border: 1px solid var(--line, #e5e8eb); background: var(--card, #fff); border-radius: 14px; padding: 12px 14px; font: inherit; color: inherit; cursor: pointer; transition: transform .15s; }
+.bnm-pc:active { transform: scale(.98); }
+.bnm-pc p { margin: 0; font-size: 15px; line-height: 1.6; }
+.bnm-pc.shake, .bnm-in.no { animation: cmShake .35s; }
+.bnm-s { font-size: 18px; line-height: 2.4; margin: 8px 0 0; }
+.bnm-slot { display: inline-flex; flex-direction: column; vertical-align: top; margin: 0 2px; }
+.bnm-in { display: inline-block; height: 40px; padding: 0 10px; font-size: 16px; max-width: 100%; }
+.bnm-in.ok { border-color: var(--green, #03a35f); background: rgba(3, 163, 95, .08); }
+.bnm-in.no { border-color: var(--red, #f04452); }
+.bnm-hint { font-size: 12px; line-height: 1.4; color: var(--blue); font-weight: 600; margin-top: 2px; }
