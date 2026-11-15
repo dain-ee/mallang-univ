@@ -359,14 +359,15 @@
   const R3M = !R2_ON ? [] : (D.olp3m || []).filter((m) => m && Array.isArray(m.qs) && m.qs.length).map((m) => ({ id: m.id, m, no: m.id === 'mock2' ? 2 : 1, day: m.id === 'mock2' ? '2026-12-03' : '2026-12-02' }));
   // 11/15 국어·통합사회 2회독 (덩어리 방식): 과목마다 하루 한 덩어리, 11/16(월)부터 날마다(일요일 11/22 포함) → 11/26 에 끝나요. 과목을 더 붙이려면 이 표에 한 줄 (한국사·과학 예정)
   // 날짜는 덩어리 번호(K01 → 첫날)로 정해져요. 문제 파일(D.r2s, source/jy_r2s/<과목>/)이 없는 덩어리는 숙제에 안 떠요
-  const R2S_SUBJ = { kor: { name: '국어', ic: 'books', start: '2026-11-16' }, soc: { name: '통합사회', ic: 'books', start: '2026-11-16' }, hist: { name: '한국사', ic: 'scroll', start: '2026-11-16' } };  // 11/15 한국사 A1~A6 (11/16~11/21)
+  const R2S_SUBJ = { kor: { name: '국어', ic: 'books', start: '2026-11-16' }, soc: { name: '통합사회', ic: 'books', start: '2026-11-16' }, hist: { name: '한국사', ic: 'scroll', start: '2026-11-16' }, sci: { name: '통합과학', ic: 'sci', start: '2026-11-15', rd: '해류 외우기' } };  // 11/15 정윤 카톡 «해류를 다 외우라는데 한류 난류 구분하기 어려워, 어케 외워야 될지 모르겠어» → 5번에 나눠 (11/15~11/19)
+  const r2sRd = (sj) => (R2S_SUBJ[sj] || {}).rd || '2회독';  // 11/15 한국사 A1~A6 (11/16~11/21)
   const R2S_ON = true;  // 11/15 올해 시험지 꼴로 고친 국어 K·통합사회 S·한국사 A 를 켜요
   const R2S = !R2_ON || !R2S_ON ? [] : Object.entries(R2S_SUBJ).flatMap(([sj, m]) => ((D.r2s || {})[sj] || []).filter((x) => x && x.id && Array.isArray(x.qs) && x.qs.length && x.recall).map((x) => { const d = new Date(m.start + 'T00:00:00'); d.setDate(d.getDate() + Math.max(0, (parseInt(String(x.id).replace(/\D/g, ''), 10) || 1) - 1)); return { id: x.id, sj, x, day: fmtDay(d), cs: (x.cids || []).map((id) => FIN_ALL.find((c) => c.id === id)).filter(Boolean) }; }));
   const r2sEnd = (sj) => R2S.reduce((m, x) => (x.sj === sj && x.day > m ? x.day : m), '');
   function r2Ends() {  // 2회독 끝 디데이: 같은 날 끝나는 과목은 한 줄로 묶어요 (디데이 칸이 길어지지 않게)
-    const L = [...(R2.length ? [['영어', R2.reduce((m, x) => (x.day > m ? x.day : m), '')]] : []), ...Object.keys(R2S_SUBJ).filter((sj) => r2sEnd(sj)).map((sj) => [R2S_SUBJ[sj].name, r2sEnd(sj)])], by = {};
+    const L = [...(R2.length ? [['영어', R2.reduce((m, x) => (x.day > m ? x.day : m), '')]] : []), ...Object.keys(R2S_SUBJ).filter((sj) => r2sEnd(sj) && !R2S_SUBJ[sj].rd).map((sj) => [R2S_SUBJ[sj].name, r2sEnd(sj)])], by = {};
     for (const [n, d] of L) (by[d] = by[d] || []).push(n);
-    return Object.entries(by).map(([date, N]) => ({ title: N.length > 1 ? `2회독 끝 · ${N.join('·')}` : N[0] === '영어' ? '올림포스 2회독 끝' : `${N[0]} 2회독 끝`, date }));
+    return [...Object.entries(by).map(([date, N]) => ({ title: N.length > 1 ? `2회독 끝 · ${N.join('·')}` : N[0] === '영어' ? '올림포스 2회독 끝' : `${N[0]} 2회독 끝`, date })), ...Object.keys(R2S_SUBJ).filter((sj) => R2S_SUBJ[sj].rd && r2sEnd(sj)).map((sj) => ({ title: `${R2S_SUBJ[sj].name} ${R2S_SUBJ[sj].rd} 끝`, date: r2sEnd(sj) }))];
   }
   let FIN_LAST = FIN_ORDER.length ? (() => { const d = new Date(FIN_START + 'T00:00:00'); d.setDate(d.getDate() + Math.max(...FIN_ORDER.map((c) => c.fday))); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })() : FIN_END;
   const conceptOf = (qid) => SCI.concepts.find((c) => (c.base || []).some((q) => q.id === qid) || (c.deep || []).some((q) => q.id === qid));
@@ -2458,7 +2459,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611151914', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611152048', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3458,7 +3459,7 @@
     return r2sToday().map((x) => {
       const st = r2sSt(x), A = r2sGet(x.id), dn = st === 'fin', n = x.x.qs.length, qn = x.x.qs.filter((q, i) => A['q' + i]).length, kn = (x.x.key || []).length;
       const d = dn ? `${r2sOkN(x)}/${n} 맞힘 · 핵심 쓰기까지 끝냈어요` : st === 'rc' ? `떠올리기 → 다시 보기 → 학교 꼴 문제 ${n}개 → 핵심 쓰기 ${kn}개` : st === 'rd' ? '② 다시 보기 차례예요' : st === 'q' ? `③ 학교 꼴 문제 ${qn}/${n}` : st === 'k' ? '④ 핵심 쓰기 차례예요' : `⑤ 틀린 것 ${r2sWrong(x).length}개 다시`;
-      return { k: 'r2s:' + x.id, id: 'r2s:' + x.id, icon: R2S_SUBJ[x.sj].ic, t: `${r2sNm(x)} 2회독 · ${x.x.title}`, d, tg: [!dn && st !== 'rc' ? [`${NO[st]}/5단계`, 'blue'] : null, !dn ? [`2회독 끝 ${ddTxt(r2sEnd(x.sj))}`, ''] : null], done: dn, late: x.day < t };
+      return { k: 'r2s:' + x.id, id: 'r2s:' + x.id, icon: R2S_SUBJ[x.sj].ic, t: `${r2sNm(x)} ${r2sRd(x.sj)} · ${x.x.title}`, d, tg: [!dn && st !== 'rc' ? [`${NO[st]}/5단계`, 'blue'] : null, !dn ? [`${r2sRd(x.sj)} 끝 ${ddTxt(r2sEnd(x.sj))}`, ''] : null], done: dn, late: x.day < t };
     });
   }
   // 단답 채점: 공백·대소문자·끝 문장부호는 무시해요. 띄어쓰기를 묻는 문제만 띄어쓰기를 지켜야 맞아요
@@ -3500,7 +3501,7 @@
     const r = UI.run, x = r2sOf(r.cid); if (!x) { UI.run = null; UI.tab = 'hw'; return hwView(); }
     const X = x.x, A = r2sGet(x.id), auto = r2sSt(x), qs = X.qs, key = X.key || [], st = r.st || auto, wr = r2sWrong(x), end = r2sEnd(x.sj);
     const ORD = ['rc', 'rd', 'q', 'k', 'x'], reach = auto === 'fin' ? 5 : ORD.indexOf(auto);
-    const head = `<div class="row between"><button class="btn sm" data-r2sback type="button">‹ 숙제</button><span class="tiny">${md(x.day)} 몫 · 2회독 끝 ${md(end)}까지 ${ddTxt(end)}</span></div><p class="eyebrow" style="margin:16px 0 4px">${ic(R2S_SUBJ[x.sj].ic)} ${esc(r2sNm(x))} 2회독</p><h1 class="h1" style="margin:0 0 8px">${esc(X.title)}</h1>`;
+    const head = `<div class="row between"><button class="btn sm" data-r2sback type="button">‹ 숙제</button><span class="tiny">${md(x.day)} 몫 · ${r2sRd(x.sj)} 끝 ${md(end)}까지 ${ddTxt(end)}</span></div><p class="eyebrow" style="margin:16px 0 4px">${ic(R2S_SUBJ[x.sj].ic)} ${esc(r2sNm(x))} ${esc(r2sRd(x.sj))}</p><h1 class="h1" style="margin:0 0 8px">${esc(X.title)}</h1>`;
     const wrap = (b) => `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${b}</div>`;
     const seg = `<div class="seg r2-seg" style="margin:0 0 16px">${[['rc', '① 떠올리기'], ['rd', '② 다시 보기'], ['q', '③ 문제'], ['k', '④ 핵심 쓰기'], ['x', '⑤ 틀린 것']].map(([k, t], i) => `<button type="button" class="${st === k ? 'on' : ''}" data-r2sst="${k}" ${i <= reach && !(k === 'x' && !wr.length) ? '' : 'disabled'}>${t}${i < reach && !(k === 'x' && auto !== 'fin') ? ' ✓' : ''}</button>`).join('')}</div>`;
     if (st === 'rc') {
@@ -3511,7 +3512,8 @@
     }
     if (st === 'rd') {
       const cards = x.cs.map((c) => { const done = finDone(c); return `<div class="r2s-c"><div class="row between" style="margin:20px 0 8px"><h3 class="r2s-ct">${esc(c.title)}</h3>${done ? '' : '<span class="tag">1회독 전</span>'}</div>${done ? '' : `<div class="ls-box warn" style="margin:0 0 12px"><b>이 개념은 1회독을 아직 안 했어요</b><p>여기서 1회독 내용을 읽는 것으로 대신해요. 천천히 읽고 넘어가요</p></div>${c.sum ? finRead(c) : ''}`}${finSumHtml(c)}${done && c.sum ? `<details class="hw-more"><summary><b>교과서 풀이 다시 읽기</b></summary>${finRead(c)}</details>` : ''}</div>`; }).join('');
-      return wrap(`${seg}<p class="sub" style="margin:0">② 1회독 때 본 정리를 다시 훑어봐요. 떠올리기에서 빠뜨린 것을 눈으로 찾아봐요</p>${cards || '<section class="card"><p class="sub">이 덩어리의 1회독 카드를 찾지 못했어요</p></section>'}<div class="cta-bar"><button class="btn primary big block" data-r2sgo="q" type="button">${A.rd && auto !== 'q' ? '다음 ›' : `다 봤어요 · 학교 꼴 문제 ${qs.length}개 풀기 ›`}</button></div>`);
+      const study = (X.study || []).map((b) => `<section class="card r2s-study" style="margin-top:12px">${b.h ? `<h3 class="r2s-ct" style="margin:0 0 8px">${esc(b.h)}</h3>` : ''}${b.img ? `<img src="${esc(b.img)}" alt="${esc(b.h || '그림')}" loading="lazy" style="width:100%;border-radius:12px;display:block">` : ''}${b.cap ? `<p class="tiny" style="margin:6px 0 0">${esc(b.cap)}</p>` : ''}${(b.p || []).map((t) => `<p style="margin:8px 0 0;line-height:1.7">${esc(t)}</p>`).join('')}${b.table ? `<div class="tbl-wrap" style="margin-top:8px"><table class="q-tbl r2s-tbl">${b.table.map((row, ri) => `<tr>${row.map((c) => (ri ? `<td>${esc(c)}</td>` : `<th>${esc(c)}</th>`)).join('')}</tr>`).join('')}</table></div>` : ''}</section>`).join('');  // 11/15 해류: 교과서 지도 + 외우는 규칙
+      return wrap(`${seg}<p class="sub" style="margin:0">${study ? '② 지도와 규칙을 보면서 떠올리기에서 빠뜨린 것을 찾아봐요' : '② 1회독 때 본 정리를 다시 훑어봐요. 떠올리기에서 빠뜨린 것을 눈으로 찾아봐요'}</p>${study}${cards || (study ? '' : '<section class="card"><p class="sub">이 덩어리의 1회독 카드를 찾지 못했어요</p></section>')}<div class="cta-bar"><button class="btn primary big block" data-r2sgo="q" type="button">${A.rd && auto !== 'q' ? '다음 ›' : `다 봤어요 · 학교 꼴 문제 ${qs.length}개 풀기 ›`}</button></div>`);
     }
     if (st === 'q') {
       const i = r.i != null ? r.i : Math.max(0, qs.findIndex((q, k) => !A['q' + k])), q = qs[i], a = A['q' + i] || null;
@@ -3553,7 +3555,7 @@
       const A = r2sGet(x.id), i = r.i != null ? r.i : Math.max(0, qs.findIndex((q, k) => !A['q' + k])), q = qs[i];
       if (!A['q' + i]) r2sQBind(q, r, (ok, ex) => {
         r2sA(x.id)['q' + i] = { ok: ok ? 1 : 0, at: Date.now(), ...ex }; r.i = i;
-        if (ok) ding(1); else if (q.type === 'essay') buzz(); else addWrong(wid(i), { src: 'r2s', subj: x.sj, subjName: nm, area: `${nm} 2회독`, sub: x.x.title, title: `${x.x.title} · ${q.kind || ''}`, r2s: [x.id, i] });
+        if (ok) ding(1); else if (q.type === 'essay') buzz(); else addWrong(wid(i), { src: 'r2s', subj: x.sj, subjName: nm, area: `${nm} ${r2sRd(x.sj)}`, sub: x.x.title, title: `${x.x.title} · ${q.kind || ''}`, r2s: [x.id, i] });
         save('r2s'); keep(); setTimeout(seeVerdict, 60);
       });
       const nx = $('#r2s-next'); if (nx) nx.onclick = () => { if (i < qs.length - 1) { r.i = i + 1; top(); } else auto(); };
@@ -5081,6 +5083,8 @@
   }
   const qnaBack = () => { const f = UI.qnaFrom; return f && UI.run && ((UI.run.kind === 'fin' && UI.run.cid === f.cid) || (UI.run.kind === 'unit' && UI.run.back === 'qna')) ? f.id : null; };
   const GD = {
+    // 11/15 정윤 카톡 «과학 해류 다 외우라는데 한류 난류 구분이 어려워» → 5번에 나눈 해류 외우기. 다 끝내면 사라져요
+    sci: { on: () => U.who === '정윤' && R2S.some((x) => x.sj === 'sci' && !r2sDone(x)), ic: 'sci', cls: 'r2-ban', b: '과학 해류, 외우는 법 만들었어요', d: '한류 난류 헷갈린다고 했지요? 규칙 세 개로 오늘부터 5번에 나눠 외워요', go0: '시작', keep: 1, open: () => { const L = R2S.filter((x) => x.sj === 'sci' && !r2sDone(x)), x = L.find((y) => y.day <= today()) || L[0]; if (x) r2sStart(x.id); } },
     // 11/14 정윤 올림포스 2회독 배너 둘: 시험 분석(알겠어요 누르면 사라져요) · 선생님께 알려 주기(네 가지를 다 적으면 사라져요)
     r2a: { on: () => R2_ON, ic: 'score', cls: 'r2-ban', b: '영어, 지난 시험을 분석했어요', d: '학교 선생님이 원문을 어떻게 바꾸는지, 그래서 어떻게 공부하면 되는지 알려 줄게요', go0: '보기', keep: 1, open: () => r2AnaSheet() },
     r2q: { on: () => R2_ON && !r2AskDone(), ic: 'write', cls: 'r2-ban', b: '선생님께 알려 주면 더 정확해져요', d: '영어 시험 날짜, 범위, 중간고사 틀린 번호 네 가지만 적어 주세요', go0: '적기', keep: 1, open: () => r2AskSheet() },
@@ -5103,7 +5107,7 @@
   }
   function gdCard() {
     // 11/10 새로 만든 안내(정리·가이드)는 둘 다 보여요. 예전 안내는 하나씩
-    const L = gdList(), ks = L.filter((k) => k === 'iq' || k === 'add' || k === 'r2a' || k === 'r2q'); const show = ks.length ? ks : L.slice(0, 1);
+    const L = gdList(), ks = L.filter((k) => k === 'sci' || k === 'iq' || k === 'add' || k === 'r2a' || k === 'r2q'); const show = ks.length ? ks : L.slice(0, 1);
     return show.map((k) => { const g = GD[k]; return `<button type="button" class="c12 ts-band gd-card ${g.cls || ''}" data-gdopen="${k}"><span class="ts-band-ic">${ic(g.ic)}</span><span class="ts-band-t"><b>${esc(g.b)}</b><span>${esc(g.d)}</span></span><span class="ts-band-go">${esc(g.go0 || '방법 보기')}</span></button>`; }).join('');  // 11/8 «이 부분이 너무 정신없어» → 토스 띠 배너
   }
   function gdOpen(e) {
@@ -8543,7 +8547,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611151914'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152048'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
