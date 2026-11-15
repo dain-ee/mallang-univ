@@ -5118,3 +5118,47 @@ textarea.inp.r2-ta { min-height: 88px; }
 .lv-solo-t { text-align: center; margin: 12px 0 0; }
 .lv-solo-go[aria-disabled] { color: var(--t3); background: var(--fill); }
 @keyframes lvSoloIn { from { opacity: 0; transform: translateX(24px) scale(.97); } to { opacity: 1; transform: none; } }
+
+/* 11/15 해류 외우는 규칙: 번호 + 굵은 한 줄 + 짧은 줄 */
+.r2s-rules { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 16px; }
+.r2s-rules li { display: flex; gap: 12px; align-items: flex-start; animation: waveIn .4s var(--ease) both; animation-delay: calc(var(--i) * 60ms); }
+.r2s-rn { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--blue-soft); color: var(--blue); font-size: 13px; font-weight: 700; display: grid; place-items: center; margin-top: 1px; }
+.r2s-rules li > div { display: grid; gap: 4px; min-width: 0; }
+.r2s-rules b { font-size: 16px; font-weight: 700; color: var(--t1); line-height: 1.45; }
+.r2s-rules span { font-size: 14px; color: var(--t2); line-height: 1.55; }
+.r2s-warm { font-style: normal; font-weight: 700; color: #e5503c; }
+.r2s-cold { font-style: normal; font-weight: 700; color: #2f6fe0; }
+
+/* 11/15 해류 지도 놀이 */
+.cm-tabs { margin: 0 0 12px; }
+.cm-map { position: relative; border-radius: 12px; overflow: hidden; line-height: 0; }
+.cm-map img { width: 100%; display: block; }
+.cm-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cm-band.l { fill: rgba(255, 179, 49, .16); }
+.cm-band.r { fill: rgba(49, 130, 246, .12); }
+.cm-row path { fill: none; stroke: rgba(255, 255, 255, .95); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 2px rgba(25, 31, 40, .55)); }
+.cm-row.r { animation: cmR 2.2s linear infinite; animation-delay: var(--d); }
+.cm-row.l { animation: cmL 2.2s linear infinite; animation-delay: var(--d); }
+.cm-row.l path { transform-box: fill-box; transform-origin: center; transform: scaleX(-1); }
+@keyframes cmR { from { transform: translateX(0); } to { transform: translateX(140px); } }
+@keyframes cmL { from { transform: translateX(140px); } to { transform: translateX(0); } }
+.cm-wt { position: absolute; left: 8px; transform: translateY(-50%); padding: 3px 8px; border-radius: 8px; font-size: 12px; font-weight: 700; line-height: 1.3; color: #fff; background: rgba(25, 31, 40, .72); animation: waveIn .4s var(--ease) both; }
+.cm-wt.l { background: rgba(214, 120, 0, .9); }
+.cm-wt.r { background: rgba(27, 100, 218, .9); }
+.cm-lat { position: absolute; right: 6px; transform: translateY(-50%); font-size: 11px; font-weight: 700; line-height: 1.2; color: var(--t1); background: rgba(255, 255, 255, .85); padding: 1px 5px; border-radius: 6px; }
+.cm-slot { position: absolute; display: grid; place-items: center; padding: 0 2px; border: 1.5px dashed rgba(49, 130, 246, .7); border-radius: 8px; background: #e9f3fb; color: #2f6fe0; font-size: clamp(10px, 1.6vw, 14px); font-weight: 700; line-height: 1.15; cursor: pointer; word-break: keep-all; transition: transform .2s var(--spring); }
+.cm-slot:active { transform: scale(.94); }
+.cm-slot.ok { border-style: solid; color: #fff; cursor: default; animation: cmPop .45s var(--spring) both; }
+.cm-slot.warm { background: #e5503c; border-color: #e5503c; }
+.cm-slot.cold { background: #3182f6; border-color: #3182f6; }
+.cm-slot.shake { animation: cmShake .35s; }
+@keyframes cmPop { 0% { transform: scale(.6); } 70% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@keyframes cmShake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.cm-tip { display: grid; gap: 4px; margin: 12px 0 0; line-height: 1.5; }
+.cm-tip b { font-size: 15px; color: var(--t1); }
+.cm-tip span { font-size: 13px; color: var(--t2); }
+.cm-bank { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.cm-chip { padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); font-size: 14px; font-weight: 600; color: var(--t1); cursor: pointer; animation: waveIn .35s var(--ease) both; animation-delay: calc(var(--i) * 30ms); transition: transform .2s var(--spring), background .2s; }
+.cm-chip.on { background: #2f6fe0; border-color: #2f6fe0; color: #fff; transform: translateY(-2px); }
+.cm + .btn, .cm .btn { margin-top: 12px; }
+@media (max-width: 520px) { .cm-wt { font-size: 10px; padding: 1px 5px; left: 4px; } .cm-lat { font-size: 9px; } .cm-row path { stroke-width: 6; } }

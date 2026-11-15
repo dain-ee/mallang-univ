@@ -360,6 +360,46 @@
   // 11/15 국어·통합사회 2회독 (덩어리 방식): 과목마다 하루 한 덩어리, 11/16(월)부터 날마다(일요일 11/22 포함) → 11/26 에 끝나요. 과목을 더 붙이려면 이 표에 한 줄 (한국사·과학 예정)
   // 날짜는 덩어리 번호(K01 → 첫날)로 정해져요. 문제 파일(D.r2s, source/jy_r2s/<과목>/)이 없는 덩어리는 숙제에 안 떠요
   const R2S_SUBJ = { kor: { name: '국어', ic: 'books', start: '2026-11-16' }, soc: { name: '통합사회', ic: 'books', start: '2026-11-16' }, hist: { name: '한국사', ic: 'scroll', start: '2026-11-16' }, sci: { name: '통합과학', ic: 'sci', start: '2026-11-15', rd: '해류 외우기' } };  // 11/15 정윤 카톡 «해류를 다 외우라는데 한류 난류 구분하기 어려워, 어케 외워야 될지 모르겠어» → 5번에 나눠 (11/15~11/19)
+  const r2sHl = (t) => esc(t).replace(/(난류)/g, '<em class="r2s-warm">$1</em>').replace(/(한류)/g, '<em class="r2s-cold">$1</em>');  // 해류: 지도 색 그대로 난류 빨강 · 한류 파랑
+
+  // ───────── 11/15 해류 지도 놀이 («이 그림에서 초반에 채울 수 있게, 애니메이션으로 풍향을 해 준다거나»)
+  // ① 바람 보기: 위도 띠마다 바람 화살표가 흘러요 ② 이름 채우기: 이름 12개를 가리고 골라서 채워요(맞히면 난류 빨강·한류 파랑) ③ 정답 지도
+  const CM_W = 1009, CM_H = 538;
+  const CM_L = [['북태평양 해류', 456, 112, 146, 32, 1], ['캘리포니아 해류', 604, 178, 118, 60, 0], ['쿠로시오 해류', 260, 192, 96, 60, 1], ['북적도 해류', 422, 207, 126, 32, 1], ['적도 반류', 414, 286, 104, 32, 1], ['남적도 해류', 540, 331, 124, 32, 1],
+    ['페루 해류', 676, 394, 70, 60, 0], ['남극 순환 해류', 507, 452, 148, 32, 0], ['멕시코 만류', 770, 177, 76, 60, 1], ['북대서양 해류', 940, 78, 106, 60, 1], ['브라질 해류', 855, 358, 78, 60, 1], ['벵겔라 해류', 951, 391, 76, 60, 0]];
+  const cmS = () => { const r = UI.run || {}; if (!r.cm) r.cm = { tab: r.cid === 'C1' ? 'wind' : 'fill', got: {}, sel: null, ord: lvRnd(CM_L.map((l) => l[0])) }; return r.cm; };
+  const cmPct = (v, t) => `${((v / t) * 100).toFixed(2)}%`;
+  function cmWind() {
+    // 위도선: 60°N 68 · 30°N 175 · 적도 268 · 30°S 362 · 60°S 468 (교과서 그림의 점선)
+    const B = [[68, 175, 1, '편서풍'], [175, 268, -1, '무역풍'], [268, 362, -1, '무역풍'], [362, 468, 1, '편서풍']];
+    const ar = (y, d, k) => `<path d="M${k * 140} ${y} h56 m-14 -9 l14 9 l-14 9" transform="${d < 0 ? `translate(${k * 280 + 56},0) scale(-1,1) translate(${-k * 140},0)` : ''}" />`;
+    const rows = B.map(([a, b, d], i) => { const y = (a + b) / 2; return `<g class="cm-row ${d < 0 ? 'l' : 'r'}" style="--d:${i * 0.25}s">${Array.from({ length: 9 }, (_, k) => `<path d="M${k * 140 - 140} ${y} h56 m-14 -10 l14 10 l-14 10" />`).join('')}</g>`; }).join('');
+    const tags = B.map(([a, b, d, t]) => `<span class="cm-wt ${d < 0 ? 'l' : 'r'}" style="top:${cmPct((a + b) / 2, CM_H)}">${d < 0 ? '← ' : ''}${t}${d > 0 ? ' →' : ''}</span>`).join('');
+    const lat = [[68, '60°N'], [175, '30°N'], [268, '적도'], [362, '30°S'], [468, '60°S']].map(([y, t]) => `<span class="cm-lat" style="top:${cmPct(y, CM_H)}">${t}</span>`).join('');
+    return `<svg class="cm-svg" viewBox="0 0 ${CM_W} ${CM_H}" preserveAspectRatio="none" aria-hidden="true">${B.map(([a, b, d]) => `<rect x="0" y="${a}" width="${CM_W}" height="${b - a}" class="cm-band ${d < 0 ? 'l' : 'r'}" />`).join('')}${rows}</svg>${tags}${lat}`;
+  }
+  function cmHtml() {
+    const m = cmS(), n = Object.keys(m.got).length, all = n >= CM_L.length;
+    const tabs = [['wind', '① 바람 보기'], ['fill', `② 이름 채우기 ${n}/${CM_L.length}`], ['ans', '③ 정답 지도']].map(([k, t]) => `<button type="button" class="${m.tab === k ? 'on' : ''}" data-cmt="${k}">${t}</button>`).join('');
+    const slots = m.tab === 'fill' ? CM_L.map(([nm, x, y, w, h, warm]) => { const ok = m.got[nm]; return `<button type="button" class="cm-slot ${ok ? (warm ? 'ok warm' : 'ok cold') : ''}" data-cms="${esc(nm)}" style="left:${cmPct(x - w / 2, CM_W)};top:${cmPct(y - h / 2, CM_H)};width:${cmPct(w, CM_W)};height:${cmPct(h, CM_H)}" ${ok ? 'disabled' : ''}>${ok ? esc(nm.replace(/ 해류$/, '')) : '?'}</button>`; }).join('') : '';
+    const tip = m.tab === 'wind' ? '<b>바람이 미는 쪽으로 바닷물이 흘러요.</b><span>적도~30°는 무역풍이 동쪽에서 서쪽으로, 30°~60°는 편서풍이 서쪽에서 동쪽으로 불어요. 화살표와 해류 고리를 맞대어 봐요.</span>'
+      : m.tab === 'fill' ? (all ? '<b>12개 다 채웠어요!</b><span>빨강은 난류, 파랑은 한류예요. 한류는 캘페벵남 넷뿐이에요.</span>' : `<b>${m.sel ? `「${esc(m.sel)}」 자리를 지도에서 눌러요` : '아래에서 이름을 고르고, 지도의 ? 를 눌러요'}</b><span>맞히면 난류는 빨강, 한류는 파랑으로 칠해져요</span>`)
+      : '<b>교과서 88쪽 그림 그대로예요</b><span>빨강 난류, 파랑 한류</span>';
+    const bank = m.tab === 'fill' && !all ? `<div class="cm-bank">${m.ord.filter((nm) => !m.got[nm]).map((nm, k) => `<button type="button" class="cm-chip ${m.sel === nm ? 'on' : ''}" data-cmc="${esc(nm)}" style="--i:${k}">${esc(nm)}</button>`).join('')}</div>` : '';
+    return `<div class="cm" data-cm><div class="seg cm-tabs">${tabs}</div><div class="cm-map ${m.tab}"><img src="assets/jy/currents.jpg" alt="표층 해류 지도" loading="lazy">${m.tab === 'wind' ? cmWind() : ''}${slots}</div><p class="cm-tip">${tip}</p>${bank}${m.tab === 'fill' && all ? '<button type="button" class="btn big block" data-cmt="ans">정답 지도와 맞춰 보기</button>' : ''}</div>`;
+  }
+  function cmBind() {
+    const box = $('[data-cm]'); if (!box) return;
+    const m = cmS(), redraw = () => { const b = $('[data-cm]'); if (!b) return; b.outerHTML = cmHtml(); cmBind(); };
+    $$('[data-cmt]', box).forEach((b) => (b.onclick = () => { m.tab = b.dataset.cmt; m.sel = null; tick(); redraw(); }));
+    $$('[data-cmc]', box).forEach((b) => (b.onclick = () => { m.sel = m.sel === b.dataset.cmc ? null : b.dataset.cmc; tick(); redraw(); }));
+    $$('[data-cms]', box).forEach((b) => (b.onclick = () => {
+      const nm = b.dataset.cms; if (!m.sel) { bump($('.cm-bank') || b, 'tap-pop'); toast('아래에서 이름을 먼저 골라요'); return; }
+      if (m.sel === nm) { m.got[nm] = 1; m.sel = null; ding(1); redraw(); const s2 = $(`[data-cms="${nm}"]`); if (s2) bump(s2, 'tap-pop');
+        if (Object.keys(m.got).length >= CM_L.length) { const rc = $('.cm-map').getBoundingClientRect(); boom(rc.left + rc.width / 2, rc.top + rc.height / 2, 3); fanfare(); } }
+      else { buzz(); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); }
+    }));
+  }
   const r2sRd = (sj) => (R2S_SUBJ[sj] || {}).rd || '2회독';  // 11/15 한국사 A1~A6 (11/16~11/21)
   const R2S_ON = true;  // 11/15 올해 시험지 꼴로 고친 국어 K·통합사회 S·한국사 A 를 켜요
   const R2S = !R2_ON || !R2S_ON ? [] : Object.entries(R2S_SUBJ).flatMap(([sj, m]) => ((D.r2s || {})[sj] || []).filter((x) => x && x.id && Array.isArray(x.qs) && x.qs.length && x.recall).map((x) => { const d = new Date(m.start + 'T00:00:00'); d.setDate(d.getDate() + Math.max(0, (parseInt(String(x.id).replace(/\D/g, ''), 10) || 1) - 1)); return { id: x.id, sj, x, day: fmtDay(d), cs: (x.cids || []).map((id) => FIN_ALL.find((c) => c.id === id)).filter(Boolean) }; }));
@@ -2459,7 +2499,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611152058', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611152140', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3101,7 +3141,7 @@
       const i = r.i != null ? r.i : Math.max(0, qs.findIndex((q, k) => !A['q' + k])), q = qs[i], a = A['q' + i] || null;
       if (r.pk !== 'q' + i) { r.pk = 'q' + i; r.put = []; }
       const dots = `<div class="progress-dots">${qs.map((y, k) => `<i class="${A['q' + k] ? (A['q' + k].ok ? 'ok' : 'no') : k === i ? 'cur' : ''}"></i>`).join('')}</div>`;
-      return wrap(`${seg}${dots}<div class="r2-qh"><div class="q-no">${i + 1}번 · ${esc(q.kind || '')}</div></div>${r2QHtml(q, a, r)}${a ? `<div style="margin-top:12px">${r2After(q, a)}</div><div class="row" style="margin-top:12px">${r1Btn}</div><div class="cta-bar r2-cta">${r.rv && i > 0 ? '<button class="btn big" id="r2-prev" type="button">‹ 이전</button>' : ''}<button class="btn primary big block" id="r2-next" type="button">${i < qs.length - 1 ? '다음 문제 ›' : r.rv ? '돌아가기' : `다음: 핵심 문장 ${key.length}개 쓰기 ›`}</button></div>` : '<p class="tiny" style="margin:12px 0 0;text-align:center">1회독 때 본 것은 문제를 풀고 나서 볼 수 있어요</p>'}`);
+      return wrap(`${seg}${dots}<div class="r2-qh row between"><div class="q-no">${i + 1}번 · ${esc(q.kind || '')}</div>${i > 0 ? '<button class="btn sm" data-qprev type="button">‹ 이전 문제</button>' : ''}</div>${r2QHtml(q, a, r)}${a ? `<div style="margin-top:12px">${r2After(q, a)}</div><div class="row" style="margin-top:12px">${r1Btn}</div><div class="cta-bar r2-cta">${i > 0 ? '<button class="btn big" id="r2-prev" type="button">‹ 이전</button>' : ''}<button class="btn primary big block" id="r2-next" type="button">${i < qs.length - 1 ? '다음 문제 ›' : r.rv ? '돌아가기' : `다음: 핵심 문장 ${key.length}개 쓰기 ›`}</button></div>` : '<p class="tiny" style="margin:12px 0 0;text-align:center">1회독 때 본 것은 문제를 풀고 나서 볼 수 있어요</p>'}`);
     }
     if (st === 'k') {
       const j = key.findIndex((k, n) => !A['k' + n]);
@@ -3143,7 +3183,7 @@
         save('r2'); keep(); setTimeout(seeVerdict, 60);
       });
       const nx = $('#r2-next'); if (nx) nx.onclick = () => { if (i < qs.length - 1) { r.i = i + 1; top(); } else auto(); };
-      const pv = $('#r2-prev'); if (pv) pv.onclick = () => { r.i = i - 1; top(); };
+      $$('#r2-prev, [data-qprev]').forEach((pv) => pv.onclick = () => { r.i = i - 1; top(); });
     }
     if (st === 'k') {
       const j = key.findIndex((k, n) => !r2Get(x.id)['k' + n]), K = key[j], inp = $('#r2-kin'), okb = $('#r2-kok');
@@ -3290,7 +3330,7 @@
       const i = r.i != null ? r.i : Math.max(0, qs.findIndex((q, k) => !A['q' + k])), q = qs[i], a = A['q' + i] || null;
       if (r.pk !== 'q' + i) { r.pk = 'q' + i; r.put = []; }
       const dots = `<div class="progress-dots">${qs.map((y, k) => `<i class="${A['q' + k] ? (A['q' + k].ok ? 'ok' : 'no') : k === i ? 'cur' : ''}"></i>`).join('')}</div>`;
-      return wrap(`${seg}${dots}<div class="r2-qh"><div class="q-no">${i + 1}번 · ${esc(q.kind || '')}</div></div>${r2QHtml(q, a, r)}${a ? `<div style="margin-top:12px">${r2After(q, a)}</div><div class="row" style="margin-top:12px">${r1Btn}</div><div class="cta-bar r2-cta">${r.rv && i > 0 ? '<button class="btn big" id="r3-prev" type="button">‹ 이전</button>' : ''}<button class="btn primary big block" id="r3-next" type="button">${i < qs.length - 1 ? '다음 문제 ›' : r.rv ? '돌아가기' : rd.length ? `다음: 2회독에서 틀렸던 것 ${rd.length}개 ›` : '결과 보기 ›'}</button></div>` : '<p class="tiny" style="margin:12px 0 0;text-align:center">1회독 때 본 것은 문제를 풀고 나서 볼 수 있어요</p>'}`);
+      return wrap(`${seg}${dots}<div class="r2-qh row between"><div class="q-no">${i + 1}번 · ${esc(q.kind || '')}</div>${i > 0 ? '<button class="btn sm" data-qprev type="button">‹ 이전 문제</button>' : ''}</div>${r2QHtml(q, a, r)}${a ? `<div style="margin-top:12px">${r2After(q, a)}</div><div class="row" style="margin-top:12px">${r1Btn}</div><div class="cta-bar r2-cta">${i > 0 ? '<button class="btn big" id="r3-prev" type="button">‹ 이전</button>' : ''}<button class="btn primary big block" id="r3-next" type="button">${i < qs.length - 1 ? '다음 문제 ›' : r.rv ? '돌아가기' : rd.length ? `다음: 2회독에서 틀렸던 것 ${rd.length}개 ›` : '결과 보기 ›'}</button></div>` : '<p class="tiny" style="margin:12px 0 0;text-align:center">1회독 때 본 것은 문제를 풀고 나서 볼 수 있어요</p>'}`);
     }
     if (st === 'x' && (rd.length || r.xa)) {
       const cur = r.xa && r.xc ? r.xc : rd.find((y) => r.xc && y[0] === r.xc[0] && y[1] === r.xc[1]) || rd[0]; r.xc = cur;
@@ -3331,7 +3371,7 @@
         save('r3'); keep(); setTimeout(seeVerdict, 60);
       });
       const nx = $('#r3-next'); if (nx) nx.onclick = () => { if (i < qs.length - 1) { r.i = i + 1; top(); return; } const W = r3A(x.id); if (!W.xl) { W.xl = { at: Date.now(), ...r3Redo0(x) }; save('r3'); } if (!r.rv && !(W.xl.q.length + W.xl.k.length)) toast(r3All2(x) ? '2회독 때 다 맞혔어요 · 다시 풀 것이 없어요' : '2회독에서 틀린 것이 아직 없어서 다시 풀 것이 없어요'); auto(); };
-      const pv = $('#r3-prev'); if (pv) pv.onclick = () => { r.i = i - 1; top(); };
+      $$('#r3-prev, [data-qprev]').forEach((pv) => pv.onclick = () => { r.i = i - 1; top(); });
     }
     if (st === 'x' && r.xc) {
       const [t, i] = r.xc, cell = (t === 'q' ? 'xq' : 'xk') + i, w2 = `r2:${x.id}:${i}`;
@@ -3512,14 +3552,14 @@
     }
     if (st === 'rd') {
       const cards = x.cs.map((c) => { const done = finDone(c); return `<div class="r2s-c"><div class="row between" style="margin:20px 0 8px"><h3 class="r2s-ct">${esc(c.title)}</h3>${done ? '' : '<span class="tag">1회독 전</span>'}</div>${done ? '' : `<div class="ls-box warn" style="margin:0 0 12px"><b>이 개념은 1회독을 아직 안 했어요</b><p>여기서 1회독 내용을 읽는 것으로 대신해요. 천천히 읽고 넘어가요</p></div>${c.sum ? finRead(c) : ''}`}${finSumHtml(c)}${done && c.sum ? `<details class="hw-more"><summary><b>교과서 풀이 다시 읽기</b></summary>${finRead(c)}</details>` : ''}</div>`; }).join('');
-      const study = (X.study || []).map((b) => `<section class="card r2s-study" style="margin-top:12px">${b.h ? `<h3 class="r2s-ct" style="margin:0 0 8px">${esc(b.h)}</h3>` : ''}${b.img ? `<img src="${esc(b.img)}" alt="${esc(b.h || '그림')}" loading="lazy" style="width:100%;border-radius:12px;display:block">` : ''}${b.cap ? `<p class="tiny" style="margin:6px 0 0">${esc(b.cap)}</p>` : ''}${(b.p || []).map((t) => `<p style="margin:8px 0 0;line-height:1.7">${esc(t)}</p>`).join('')}${b.table ? `<div class="tbl-wrap" style="margin-top:8px"><table class="q-tbl r2s-tbl">${b.table.map((row, ri) => `<tr>${row.map((c) => (ri ? `<td>${esc(c)}</td>` : `<th>${esc(c)}</th>`)).join('')}</tr>`).join('')}</table></div>` : ''}</section>`).join('');  // 11/15 해류: 교과서 지도 + 외우는 규칙
+      const study = (X.study || []).map((b) => `<section class="card r2s-study" style="margin-top:12px">${b.h ? `<h3 class="r2s-ct" style="margin:0 0 8px">${esc(b.h)}</h3>` : ''}${b.map === 'cur' ? cmHtml() : b.img ? `<img src="${esc(b.img)}" alt="${esc(b.h || '그림')}" loading="lazy" style="width:100%;border-radius:12px;display:block">` : ''}${b.cap && b.map !== 'cur' ? `<p class="tiny" style="margin:6px 0 0">${esc(b.cap)}</p>` : ''}${(b.p || []).map((t) => `<p style="margin:8px 0 0;line-height:1.7">${esc(t)}</p>`).join('')}${(b.pts || []).length ? `<ol class="r2s-rules">${b.pts.map((q, i) => `<li style="--i:${i}"><span class="r2s-rn">${i + 1}</span><div><b>${r2sHl(q.t)}</b>${(q.d || []).map((t) => `<span>${r2sHl(t)}</span>`).join('')}</div></li>`).join('')}</ol>` : ''}${b.table ? `<div class="tbl-wrap" style="margin-top:8px"><table class="q-tbl r2s-tbl">${b.table.map((row, ri) => `<tr>${row.map((c) => (ri ? `<td>${esc(c)}</td>` : `<th>${esc(c)}</th>`)).join('')}</tr>`).join('')}</table></div>` : ''}</section>`).join('');  // 11/15 해류: 교과서 지도 + 외우는 규칙
       return wrap(`${seg}<p class="sub" style="margin:0">${study ? '② 지도와 규칙을 보면서 떠올리기에서 빠뜨린 것을 찾아봐요' : '② 1회독 때 본 정리를 다시 훑어봐요. 떠올리기에서 빠뜨린 것을 눈으로 찾아봐요'}</p>${study}${cards || (study ? '' : '<section class="card"><p class="sub">이 덩어리의 1회독 카드를 찾지 못했어요</p></section>')}<div class="cta-bar"><button class="btn primary big block" data-r2sgo="q" type="button">${A.rd && auto !== 'q' ? '다음 ›' : `다 봤어요 · 학교 꼴 문제 ${qs.length}개 풀기 ›`}</button></div>`);
     }
     if (st === 'q') {
       const i = r.i != null ? r.i : Math.max(0, qs.findIndex((q, k) => !A['q' + k])), q = qs[i], a = A['q' + i] || null;
       if (r.pk !== 'q' + i) { r.pk = 'q' + i; r.es = null; }
       const dots = `<div class="progress-dots">${qs.map((y, k) => `<i class="${A['q' + k] ? (A['q' + k].ok ? 'ok' : 'no') : k === i ? 'cur' : ''}"></i>`).join('')}</div>`;
-      return wrap(`${seg}${dots}<div class="r2-qh"><div class="q-no">${i + 1}번 · ${esc(q.kind || '')}</div></div>${r2sQHtml(q, a, r)}${a ? `<div style="margin-top:12px">${r2sAfter(q, a)}</div><div class="cta-bar r2-cta">${r.rv && i > 0 ? '<button class="btn big" id="r2s-prev" type="button">‹ 이전</button>' : ''}<button class="btn primary big block" id="r2s-next" type="button">${i < qs.length - 1 ? '다음 문제 ›' : r.rv ? '돌아가기' : `다음: 핵심 쓰기 ${key.length}개 ›`}</button></div>` : ''}`);
+      return wrap(`${seg}${dots}<div class="r2-qh row between"><div class="q-no">${i + 1}번 · ${esc(q.kind || '')}</div>${i > 0 ? '<button class="btn sm" data-qprev type="button">‹ 이전 문제</button>' : ''}</div>${r2sQHtml(q, a, r)}${a ? `<div style="margin-top:12px">${r2sAfter(q, a)}</div><div class="cta-bar r2-cta">${i > 0 ? '<button class="btn big" id="r2s-prev" type="button">‹ 이전</button>' : ''}<button class="btn primary big block" id="r2s-next" type="button">${i < qs.length - 1 ? '다음 문제 ›' : r.rv ? '돌아가기' : `다음: 핵심 쓰기 ${key.length}개 ›`}</button></div>` : ''}`);
     }
     if (st === 'k') {
       const j = key.findIndex((k, n) => !A['k' + n]);
@@ -3541,6 +3581,7 @@
   }
   function bindR2s() {
     const r = UI.run, x = r2sOf(r.cid); if (!x) return;
+    cmBind();
     const top = () => { render(); window.scrollTo(0, 0); }, keep = () => { const y = window.scrollY; render(); window.scrollTo(0, y); };
     const qs = x.x.qs, key = x.x.key || [], wid = (i) => `r2s:${x.id}:${i}`, nm = r2sNm(x);
     const cheer = () => { if (r2sDone(x) && !r.cheer) { r.cheer = 1; setTimeout(() => { boom(innerWidth / 2, innerHeight * 0.4, 4); fanfare(); [500, 1100].forEach((ms, k) => setTimeout(() => boom(innerWidth * [0.25, 0.75][k], innerHeight * 0.35, 4), ms)); }, 250); } };
@@ -3559,7 +3600,7 @@
         save('r2s'); keep(); setTimeout(seeVerdict, 60);
       });
       const nx = $('#r2s-next'); if (nx) nx.onclick = () => { if (i < qs.length - 1) { r.i = i + 1; top(); } else auto(); };
-      const pv = $('#r2s-prev'); if (pv) pv.onclick = () => { r.i = i - 1; top(); };
+      $$('#r2s-prev, [data-qprev]').forEach((pv) => pv.onclick = () => { r.i = i - 1; top(); });
     }
     if (st === 'k') {
       const j = key.findIndex((k, n) => !r2sGet(x.id)['k' + n]), K = key[j];
@@ -6285,7 +6326,7 @@
   const lvPut = (k, v) => { const o = lvS(); o[k] = { ...(o[k] || {}), ...v, at: Date.now() }; save('lv'); };
   const lvTest = (t) => ((LVJ && LVJ.tests) || []).find((x) => x.date === t) || null;
   const lvTestOf = (date) => { const L = ((LVJ && LVJ.tests) || []).filter((t) => t.plan.some((p) => p.date === date)); return L.find((t) => !t.tentative) || L[0] || null; };
-  const lvKeyG = (g) => `${g.test || (lvTestOf(g.date) || {}).date}:${g.date}${g.part ? '#' + g.part : ''}`;
+  const lvKeyG = (g) => `${g.test || (lvTestOf(g.date) || {}).date}:${g.date}${g.part ? '#' + g.part : ''}${g.st ? '~s' + g.st : ''}`;
   const lvPlan = (T, date, part) => (T ? T.plan.find((p) => p.date === date && (p.part || '') === (part || '')) : null);
   const lvDayW = (d) => ((LVJ && LVJ.days[String(d)]) || []).map((w, i) => ({ ...w, day: +d, i }));
   const lvAll = (days) => days.flatMap(lvDayW);
@@ -6342,25 +6383,25 @@
   // ── 화면 열기 · 그날 몫 만들기
   function lvOpen(g, o = {}) {
     const T = lvTest(g.test) || lvTestOf(g.date); if (!T || !lvPlan(T, g.date, g.part)) return false;
-    UI.tab = 'hw'; UI.lib = null; UI.run = { kind: 'lv', test: T.date, date: g.date, part: g.part || '', stage: 'list', step: 0, seen: {}, ...(g.once ? { once: 1 } : {}), ...o };
+    UI.tab = 'hw'; UI.lib = null; UI.run = { kind: 'lv', test: T.date, date: g.date, part: g.part || '', stage: 'list', step: 0, seen: {}, ...(g.once ? { once: 1 } : {}), ...(g.st ? { st: g.st } : {}), ...o };
     if (!o.stage && !g.once && lvNew(UI.run) && lvNth(UI.run) === 1) { lvGo(UI.run); return true; }  // 외우기는 카드가 문제 안에 있어요
     render(); window.scrollTo(0, 0); return true;
   }
-  const lvKey = (r) => `${r.test}:${r.date}${r.part ? '#' + r.part : ''}`;
+  const lvKey = (r) => `${r.test}:${r.date}${r.part ? '#' + r.part : ''}${r.st ? '~s' + r.st : ''}`;
   const lvDay = (r) => lvS()['d:' + lvKey(r)] || {};
   // 같은 Day 를 몇 번째 하는 날인지 (계획에서 그 Day 가 나온 차례). 첫날 = 고르기만, 둘째 날 = 조각·글자 맞추기, 셋째 날부터 = 뜻 고르기 + 영어 쓰기
-  const lvNth = (r) => { const T = lvTest(r.test), P = T && lvPlan(T, r.date, r.part); if (!T || !P || P.mock || !P.days || !P.days.length) return 0; const d0 = P.days[0], L = T.plan.filter((x) => !x.mock && x.days && x.days[0] === d0).map((x) => x.date + '#' + (x.part || '')).sort(); return L.indexOf(r.date + '#' + (r.part || '')) + 1; };
-  const LV_SEQ = { 1: [1, 2], 2: [3, 4] }, LV_SEQ2 = { 1: [0, 1], 2: [1, 2], 3: [3, 4] }, LV_NEW_FROM = '2026-11-17';
-  const lvNew = (r) => String(r.test || '') >= LV_NEW_FROM;
-  const LV_STEP = ['외우기', '복습', '마지막 복습'];
-  const lvStepGoal = (r, n) => (lvNew(r) ? ['카드를 한 장씩 뒤집어 외우고, 바로 그 단어 뜻 문제 · 20개', '뜻 고르기 → 영어 고르기', '소리 조각 → 글자 맞추기'] : ['뜻 고르기 → 영어 고르기', '소리 조각 → 글자 맞추기', '뜻 고르기 → 영어 쓰기'])[n - 1] || '';
+  const lvNth = (r) => { if (r.st) return r.st; const T = lvTest(r.test), P = T && lvPlan(T, r.date, r.part); if (!T || !P || P.mock || !P.days || !P.days.length) return 0; const d0 = P.days[0], L = T.plan.filter((x) => !x.mock && x.days && x.days[0] === d0).map((x) => x.date + '#' + (x.part || '')).sort(); return L.indexOf(r.date + '#' + (r.part || '')) + 1; };
+  const LV_SEQ = { 1: [1, 2], 2: [3, 4] }, LV_SEQ2 = { 1: [0, 1], 2: [1, 2], 3: [3, 4], 4: [6] }, LV_NEW_FROM = '2026-11-17';
+  const lvNew = (r) => !!r.st || String(r.test || '') >= LV_NEW_FROM;
+  const LV_STEP = ['외우기', '복습', '마지막 복습', '쓰기'];
+  const lvStepGoal = (r, n) => (lvNew(r) ? ['카드를 한 장씩 뒤집어 외우고, 바로 그 단어 뜻 문제 · 20개', '뜻 고르기 → 영어 고르기', '소리 조각 → 글자 맞추기', '뜻 보고 영어로 한 번씩 쓰기 · 20개'] : ['뜻 고르기 → 영어 고르기', '소리 조각 → 글자 맞추기', '뜻 고르기 → 영어 쓰기'])[n - 1] || '';
   // 1·2·3단계 띠: 무엇이 먼저인지 보이게
-  function lvSteps(r) { const n = lvNth(r); if (!n || r.once) return ''; return `<div class="lv-steps" role="list">${LV_STEP.map((t, i) => `<span class="lv-step ${i + 1 < n ? 'ok' : i + 1 === n ? 'on' : ''}" role="listitem" style="--i:${i}"><b>${i + 1}단계</b>${esc(t)}</span>`).join('<i class="lv-step-ar" aria-hidden="true">›</i>')}</div>`; }
+  function lvSteps(r) { const n = lvNth(r); if (!n || r.once) return ''; return `<div class="lv-steps" role="list">${LV_STEP.slice(0, lvNew(r) ? 4 : 3).map((t, i) => `<span class="lv-step ${i + 1 < n ? 'ok' : i + 1 === n ? 'on' : ''}" role="listitem" style="--i:${i}"><b>${i + 1}단계</b>${esc(t)}</span>`).join('<i class="lv-step-ar" aria-hidden="true">›</i>')}</div>`; }
   // 숙제 줄 앞 작은 이름표: 「1단계」·「2단계」·「3단계」, 모의시험은 「3단계 뒤」
-  function lvStepTag(h) { const g = h && h.go; if (!g || g.kind !== 'lv') return ''; const T = lvTest(g.test) || lvTestOf(g.date), P = T && lvPlan(T, g.date, g.part); if (!P) return ''; if (P.mock) return '<span class="lv-stag mk">3단계 뒤</span>'; const n = lvNth({ test: T.date, date: g.date, part: g.part || '' }); return n && n <= 3 ? `<span class="lv-stag">${n}단계</span>` : ''; }
+  function lvStepTag(h) { const g = h && h.go; if (!g || g.kind !== 'lv') return ''; const T = lvTest(g.test) || lvTestOf(g.date), P = T && lvPlan(T, g.date, g.part); if (!P) return ''; if (P.mock) return `<span class="lv-stag mk">${String(T.date) >= LV_NEW_FROM || (S.hw || []).some((x) => x.go && x.go.kind === 'lv' && x.go.st && x.go.test === T.date) ? 4 : 3}단계 뒤</span>`; const n = lvNth({ test: T.date, date: g.date, part: g.part || '', st: g.st }); return n && n <= 4 ? `<span class="lv-stag">${n}단계</span>` : ''; }
   function lvBuild(r, words, mode) {
     r.nth = mode === 'study' ? lvNth(r) : 0; r.seq = r.once && mode === 'study' ? [1] : r.nth ? (lvNew(r) ? LV_SEQ2 : LV_SEQ)[r.nth] || [1, 6] : null; r.learn = !!(r.seq && r.seq[0] === 0); if (r.once && mode === 'study' && !r.nth) r.nth = 1;
-    const td = today(), tag = `${r.date}@${td}${mode === 'drill' ? ':d' + (r.drillN || 1) : ''}`, W = {};
+    const td = today(), tag = `${r.date}${r.st ? '~' + r.st : ''}@${td}${mode === 'drill' ? ':d' + (r.drillN || 1) : ''}`, W = {};
     for (const w of words) { const rec = lvW(w.en); if (rec.dn === tag) continue; let s;
       if (r.seq) s = rec.sd === td && rec.tg === tag && r.seq.includes(rec.st) ? rec.st : r.seq[0];  // 그날 단계만 (하던 데서 이어서)
       else if (mode === 'drill') s = 4;  // 모의시험에서 틀린 단어는 글자 맞추기부터 다시
@@ -6468,7 +6509,7 @@
     const seenAll = d.seen || all.every((w) => r.seen[w.en]), n = all.filter((w) => r.seen[w.en]).length;
     const goal = r.once ? '수업에서는 한 번만 봐요 · 카드로 한 번 보고 → 단어마다 뜻 고르기 한 번' : P.mock ? '카드로 한 번 보고 → 덜 외운 단어 데우기 → 시험지 그대로 모의시험 40문제 → 틀린 것 다시 외우고 다시 시험' : '카드 보기 → 네 단어씩: 뜻 고르기 한 번 → 소리 조각 → 뜻 쓰기 2번 → 영어 쓰기 3번(앞글자 힌트 → 힌트 없이) → 마지막에 학원 시험지 그대로';
     const sec = (dy) => { const L = all.filter((w) => w.day === dy), nw = !before.has(dy); return `<div class="lv-sec"><div class="row between"><b>Day ${dy} · ${nw ? '새 단어' : '배운 단어'}</b><span class="tiny">${L.length}개</span></div><div class="lv-cards">${L.map((w, k) => `<div class="lv-card ${r.seen[w.en] ? 'seen' : ''}" data-lvflip="${esc(w.en)}" role="button" tabindex="0" style="--i:${Math.min(k, 20)}"><div class="lv-in3"><div class="lv-f lv-front">${lvChunks(w)}<span class="tiny lv-hint">눌러서 뜻 보기</span></div><div class="lv-f lv-back"><b>${esc(w.k)}</b><span class="tiny">${esc(w.ko)}</span></div></div>${lvSay(w)}<i class="lv-ck"></i></div>`).join('')}</div></div>`; };
-    return `<div class="qwrap lv" style="max-width:760px;margin:0 auto">${lvHead(r)}${lvSteps(r)}<h1 class="h1">${esc(lvPlanLabel(T, P))}</h1><p class="sub" style="margin:0">${md(P.date)} ${esc(wdName(P.date))} 몫 · ${esc(lvNth(r) && lvNth(r) <= 3 && !r.once ? `${lvNth(r)}단계 ${LV_STEP[lvNth(r) - 1]} · ${lvStepGoal(r, lvNth(r))}` : goal)}</p>${lvTop(r)}
+    return `<div class="qwrap lv" style="max-width:760px;margin:0 auto">${lvHead(r)}${lvSteps(r)}<h1 class="h1">${esc(lvPlanLabel(T, P))}</h1><p class="sub" style="margin:0">${md(P.date)} ${esc(wdName(P.date))} 몫 · ${esc(lvNth(r) && lvNth(r) <= 4 && !r.once ? `${lvNth(r)}단계 ${LV_STEP[lvNth(r) - 1]} · ${lvStepGoal(r, lvNth(r))}` : goal)}</p>${lvTop(r)}
       <section class="card"><div class="row between"><h3 style="margin:0">먼저 카드 보기</h3><span class="lv-hr"><span class="tiny lv-cnt"><b class="num">${seenAll ? all.length : n}</b> / ${all.length} 봤어요</span><button type="button" class="btn sm lv-all" data-lvflipall>전체 뒤집기</button></span></div><p class="tiny" style="margin:6px 0 0">색 글자는 소리 덩어리예요. 🔊 를 누르면 소리가 나요. 카드를 누르면 뒤집혀요</p>${[...new Set(all.map((w) => w.day))].map(sec).join('')}</section>
       <div class="cta-bar"><button class="btn primary big block lv-golist ${seenAll ? 'ready' : ''}" data-lvgo type="button" ${seenAll ? '' : 'aria-disabled="true"'}>${seenAll ? (d.seen && (d.n || lvS()['mk:' + lvKey(r)]) ? '이어서 하기' : P.mock ? '다 봤어요 · 시험 준비 시작' : '다 봤어요 · 게임 시작') : `카드 ${all.length - n}장 더 넘겨 봐요`}</button></div></div>`;
   }
@@ -6488,7 +6529,7 @@
     const V = r.view && r.cur && r.view !== r.cur.en ? (r.hist || {})[r.view] : null; if (!V) r.view = null;
     const c = V ? V.cur : r.cur; if (!c) return '';
     const w = r.words.find((x) => x.en === c.en), fin = r.tot - r.q.length - r.lap.length, fb = V ? V.fb : r.fb, s = c.s;
-    const ttl = r.mode === 'drill' ? '틀린 단어 다시 외우기' : r.mode === 'warm' ? '시험 전 데우기' : r.nth && r.nth <= 3 && !r.once ? `${r.nth}단계 · ${LV_STEP[r.nth - 1]}` : '오늘 단어 게임';
+    const ttl = r.mode === 'drill' ? '틀린 단어 다시 외우기' : r.mode === 'warm' ? '시험 전 데우기' : r.nth && r.nth <= 4 && !r.once ? `${r.nth}단계 · ${LV_STEP[r.nth - 1]}` : '오늘 단어 게임';
     const back = `<button type="button" class="btn sm lv-relist" data-lvtolist>‹ 카드 다시 보기</button>`;
     const hud = `<div class="lv-hud"><div class="nx-bar lv-pbar"><i style="width:${Math.round((fin / Math.max(1, r.tot)) * 100)}%"></i></div><div class="row between"><span class="tiny"><b class="num">${fin}</b> / ${r.tot} 단어 끝</span><span class="lv-stat"><span class="lv-star ${r.star !== r.starShown ? 'bump' : ''}">⭐ <b class="num">${r.star}</b></span>${r.combo >= 2 ? `<span class="lv-combo">🔥 ${r.combo} 콤보</span>` : ''}</span></div></div>`;
     r.starShown = r.star;
@@ -8567,7 +8608,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152058'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152140'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
