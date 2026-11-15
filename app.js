@@ -2499,7 +2499,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611152140', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611152143', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6398,7 +6398,7 @@
   // 1·2·3단계 띠: 무엇이 먼저인지 보이게
   function lvSteps(r) { const n = lvNth(r); if (!n || r.once) return ''; return `<div class="lv-steps" role="list">${LV_STEP.slice(0, lvNew(r) ? 4 : 3).map((t, i) => `<span class="lv-step ${i + 1 < n ? 'ok' : i + 1 === n ? 'on' : ''}" role="listitem" style="--i:${i}"><b>${i + 1}단계</b>${esc(t)}</span>`).join('<i class="lv-step-ar" aria-hidden="true">›</i>')}</div>`; }
   // 숙제 줄 앞 작은 이름표: 「1단계」·「2단계」·「3단계」, 모의시험은 「3단계 뒤」
-  function lvStepTag(h) { const g = h && h.go; if (!g || g.kind !== 'lv') return ''; const T = lvTest(g.test) || lvTestOf(g.date), P = T && lvPlan(T, g.date, g.part); if (!P) return ''; if (P.mock) return `<span class="lv-stag mk">${String(T.date) >= LV_NEW_FROM || (S.hw || []).some((x) => x.go && x.go.kind === 'lv' && x.go.st && x.go.test === T.date) ? 4 : 3}단계 뒤</span>`; const n = lvNth({ test: T.date, date: g.date, part: g.part || '', st: g.st }); return n && n <= 4 ? `<span class="lv-stag">${n}단계</span>` : ''; }
+  function lvStepTag(h) { const g = h && h.go; if (!g || g.kind !== 'lv' || /\d단계/.test(h.title || '')) return ''; const T = lvTest(g.test) || lvTestOf(g.date), P = T && lvPlan(T, g.date, g.part); if (!P) return ''; if (P.mock) return `<span class="lv-stag mk">${String(T.date) >= LV_NEW_FROM || (S.hw || []).some((x) => x.go && x.go.kind === 'lv' && x.go.st && x.go.test === T.date) ? 4 : 3}단계 뒤</span>`; const n = lvNth({ test: T.date, date: g.date, part: g.part || '', st: g.st }); return n && n <= 4 ? `<span class="lv-stag">${n}단계</span>` : ''; }
   function lvBuild(r, words, mode) {
     r.nth = mode === 'study' ? lvNth(r) : 0; r.seq = r.once && mode === 'study' ? [1] : r.nth ? (lvNew(r) ? LV_SEQ2 : LV_SEQ)[r.nth] || [1, 6] : null; r.learn = !!(r.seq && r.seq[0] === 0); if (r.once && mode === 'study' && !r.nth) r.nth = 1;
     const td = today(), tag = `${r.date}${r.st ? '~' + r.st : ''}@${td}${mode === 'drill' ? ':d' + (r.drillN || 1) : ''}`, W = {};
@@ -8608,7 +8608,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152140'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152143'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
