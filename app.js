@@ -2515,7 +2515,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611152245', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611152249', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3242,7 +3242,7 @@
   function r2AskLine() { const a = (S.exam || {}).ask || {}; return [a.date ? `시험 ${md(a.date)}` : '', a.perf ? `서술형·논술형 Practice ${a.perf === 'y' ? '범위예요' : a.perf === 'n' ? '범위 아니에요' : '아직 몰라요'}` : '', a.miss ? `중간 틀린 번호 ${a.miss}` : ''].filter(Boolean).join(' · '); }
   function r2AskSheet() {
     const x = exS(), a = { ...(x.ask || {}) }, e = x.subs.find((u) => u.id === 'eng');
-    sheet(`<h2>선생님께 알려 주면 더 정확해져요</h2><p class="sub">아는 것만 적어도 돼요. 네 가지를 다 적으면 이 안내는 사라져요</p>
+    sheet(`<h2>선생님께 알려 주면 더 정확해져요</h2><p class="sub">아는 것만 적어도 돼요. 저장하면 이 안내는 사라지고, 나중에 「교재 › 기말 범위」에서 고칠 수 있어요</p>
       <div class="field"><label>① 영어 시험 날짜</label><input class="inp" id="ra-date" type="date" min="2026-12-01" max="2026-12-31" value="${esc(a.date || '')}"></div>
       <div class="field"><label>② 올림포스는 몇 강까지인지, 교과서 범위</label><textarea class="inp" id="ra-range" rows="4" placeholder="예) 올림포스 9강부터 16강까지, 교과서 3~4과">${esc((e && e.range) || '')}</textarea>${e && e.range ? '<span class="tiny">전에 적어 둔 내용이에요. 바뀐 게 있으면 고쳐 주세요</span>' : ''}</div>
       <div class="field"><label>③ 서술형·논술형 Practice(65~66, 85~86, 111~112쪽)도 범위인가요?</label><div class="chips" id="ra-perf">${[['y', '범위예요'], ['n', '아니에요'], ['?', '아직 몰라요']].map(([k, t]) => `<button type="button" class="chip ${a.perf === k ? 'on' : ''}" data-v="${k}">${t}</button>`).join('')}</div></div>
@@ -3253,7 +3253,7 @@
         const now = Date.now(), rg = $('#ra-range', el).value.trim();
         if (e && rg !== (e.range || '')) x.subs[x.subs.indexOf(e)] = { ...e, range: rg, by: TEACHER ? 't' : 's', at: now };
         x.ask = { date: $('#ra-date', el).value || '', perf: a.perf || '', miss: $('#ra-miss', el).value.trim().slice(0, 120), rangeAt: rg ? now : 0, at: now };
-        save('exam'); close(); const fin = r2AskDone(); toast(fin ? '다 적었어요! 선생님이 보고 맞출게요' : TEACHER ? '저장했어요' : '저장했어요 · 선생님도 볼 수 있어요');
+        save('exam'); if (!TEACHER) gdMark('r2q'); close(); const fin = r2AskDone() || gdHas('r2q'); toast(fin ? '다 적었어요! 선생님이 보고 맞출게요' : TEACHER ? '저장했어요' : '저장했어요 · 선생님도 볼 수 있어요');
         if (fin && $('.gd-card[data-gdopen="r2q"]')) setTimeout(() => cardBye(document.querySelector('.gd-card[data-gdopen="r2q"]'), render), 260); else render();
       };
     });
@@ -5240,7 +5240,7 @@
     tm: { on: () => U.who === '정윤' && today() <= '2026-11-22', ic: 'clock', cls: 'r2-ban', b: '공부 시간, 이제 과목마다 따로 재져요', d: '부탁한 두 가지 고쳤어요 · 앱을 한 번 껐다 켜 주세요', go0: '보기',
       open: () => sheet(`<h2>공부 시간 재기, 이렇게 바뀌었어요</h2><ol class="r2s-rules" style="margin-top:12px"><li style="--i:0"><span class="r2s-rn">1</span><div><b>과목마다 따로 재져요</b><span>숙제를 열면 그 숙제 이름과 과목으로 재요. 영어를 열면 영어, 한국사를 열면 한국사예요</span><span>앱을 한 번 껐다 켜야 바뀐 게 들어가요</span></div></li><li style="--i:1"><span class="r2s-rn">2</span><div><b>잠금 화면 표시는 못 해요</b><span>잠금 화면에 시간과 멈춤 단추를 띄우는 건 앱스토어 앱만 할 수 있어서, 아이패드가 우리 앱에는 허락을 안 해 줘요</span></div></li><li style="--i:2"><span class="r2s-rn">3</span><div><b>대신 오래 나갔다 오면 물어봐요</b><span>재는 중에 15분 넘게 앱 밖에 있다 돌아오면 「그 시간 빼고 멈추기」와 「계속 공부했어요」 중에 고를 수 있어요</span></div></li></ol><button class="btn primary big block" id="tm-ok" type="button" style="margin-top:20px">알겠어요</button>`, (el, close) => { $('#tm-ok', el).onclick = () => close(); }) },
     // 11/15 정윤 카톡 «과학 해류 다 외우라는데 한류 난류 구분이 어려워» → 5번에 나눈 해류 외우기. 다 끝내면 사라져요
-    sci: { on: () => U.who === '정윤' && R2S.some((x) => x.sj === 'sci' && !r2sDone(x)), ic: 'sci', cls: 'r2-ban', b: '과학 해류, 외우는 법 만들었어요', d: '한류 난류 헷갈린다고 했지요? 규칙 세 개로 오늘부터 5번에 나눠 외워요', go0: '시작', keep: 1, open: () => { const L = R2S.filter((x) => x.sj === 'sci' && !r2sDone(x)), x = L.find((y) => y.day <= today()) || L[0]; if (x) r2sStart(x.id); } },
+    sci: { on: () => U.who === '정윤' && R2S.some((x) => x.sj === 'sci' && !r2sDone(x)), ic: 'sci', cls: 'r2-ban', b: '과학 해류, 외우는 법 만들었어요', d: '한류 난류 헷갈린다고 했지요? 규칙 세 개로 오늘부터 5번에 나눠 외워요', go0: '시작', open: () => { const L = R2S.filter((x) => x.sj === 'sci' && !r2sDone(x)), x = L.find((y) => y.day <= today()) || L[0]; if (x) r2sStart(x.id); } },
     // 11/14 정윤 올림포스 2회독 배너 둘: 시험 분석(알겠어요 누르면 사라져요) · 선생님께 알려 주기(네 가지를 다 적으면 사라져요)
     r2a: { on: () => R2_ON, ic: 'score', cls: 'r2-ban', b: '영어, 지난 시험을 분석했어요', d: '학교 선생님이 원문을 어떻게 바꾸는지, 그래서 어떻게 공부하면 되는지 알려 줄게요', go0: '보기', keep: 1, open: () => r2AnaSheet() },
     r2q: { on: () => R2_ON && !r2AskDone(), ic: 'write', cls: 'r2-ban', b: '선생님께 알려 주면 더 정확해져요', d: '영어 시험 날짜, 범위, 중간고사 틀린 번호 네 가지만 적어 주세요', go0: '적기', keep: 1, open: () => r2AskSheet() },
@@ -8754,7 +8754,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152245'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152249'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
