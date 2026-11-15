@@ -5080,3 +5080,22 @@ textarea.inp.r2-ta { min-height: 88px; }
 .mk-sc { display: flex; align-items: baseline; justify-content: center; gap: 6px; margin: 4px 0 12px; }
 .mk-sc b { font-size: 32px; font-weight: 800; color: var(--t1); }
 .mk-sc span { font-size: 14px; color: var(--t3); }
+/* 11/15 정윤 국어·통합사회 2회독 (r2s): 영어 2회독 꼴 그대로, 발문 카드·채점 요소 체크만 */
+.r2s-q p { margin: 0 0 10px; font-size: 15.5px; line-height: 1.8; }
+.r2s-q p:last-child { margin-bottom: 0; }
+.r2s-q .r2s-qq { font-size: 16px; line-height: 1.65; }
+.r2s-q .r2s-blk { padding: 12px 14px; border-radius: 12px; background: var(--fill2); }
+.r2s-q .r2s-box { margin-top: 12px; }
+.r2s-tbl { width: 100%; }
+.r2s-tbl td, .r2s-tbl th { text-align: left; vertical-align: top; line-height: 1.6; }
+.r2s-ct { margin: 0; font-size: 17px; }
+.r2s-pt { display: flex; align-items: flex-start; gap: 12px; width: 100%; padding: 12px 14px; margin-top: 8px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--card); font: inherit; font-size: 15px; line-height: 1.6; text-align: left; color: var(--t1); transition: transform .12s, border-color .15s, background .15s; }
+.r2s-pt:active:not([disabled]) { transform: scale(.98); }
+.r2s-pt i { flex: none; width: 22px; height: 22px; margin-top: 1px; border-radius: 7px; box-shadow: inset 0 0 0 1.5px var(--t3); transition: background .15s, box-shadow .15s; }
+.r2s-pt.on { border-color: var(--blue); background: var(--blue-soft); }
+.r2s-pt.on i { background: var(--blue) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 16px no-repeat; box-shadow: none; }
+.r2s-pt[disabled] { opacity: 1; cursor: default; }
+.r2s-kq { margin: 0 0 4px; line-height: 1.6; }
+
+/* 11/15 윤건: 위쪽 가운데 진행 시간이 화면 제목을 가려서, 넓은 화면에서는 토마토 타이머처럼 오른쪽 아래에 */
+@media (min-width: 900px) { .hw-float.corner { left: auto; right: 24px; top: auto; bottom: calc(24px + env(safe-area-inset-bottom)); transform: none; max-width: min(420px, calc(100vw - 48px)); height: 44px; padding: 0 16px 0 14px; } }
