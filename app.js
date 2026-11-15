@@ -900,7 +900,7 @@
   }
   const greetTime = (d) => { const h = d.getHours(); return h < 6 ? '늦었어요, 조금만 하고 자요' : h < 12 ? '좋은 아침이에요' : h < 18 ? '오후도 힘내요' : h < 22 ? '저녁 공부 시간이에요' : '오늘도 수고했어요'; };
   function ddayWidget() {
-    const t = today(), nx0 = TUTOR ? nextLesson() : null, ev = [TUTOR ? (nx0 ? { title: '다음 수업', date: nx0.date, big: true } : null) : { title: CSAT.title || '수능', date: CSAT.date, big: true }, ...[...(D.events || []), ...(S.myEvents || []).map((e) => ({ ...e, mine: true }))].filter((e) => e.date >= t && e.kind !== 'csat')].filter(Boolean).sort((a, b) => a.date.localeCompare(b.date));
+    const t = today(), nx0 = TUTOR ? nextLesson() : null, ev = [TUTOR ? (nx0 ? { title: '다음 수업', date: nx0.date, big: true } : null) : { title: CSAT.title || '수능', date: CSAT.date, big: true }, ...[...(D.events || []), ...(S.myEvents || []).map((e) => ({ ...e, mine: true })), ...(R2.length ? [{ title: '올림포스 2회독 끝', date: R2.reduce((m, x) => (x.day > m ? x.day : m), '') }] : [])].filter((e) => e.date >= t && e.kind !== 'csat')].filter(Boolean).sort((a, b) => a.date.localeCompare(b.date));
     const L = [ev[0], ...ev.slice(1).filter(Boolean).slice(0, 3)].filter(Boolean);
     return `<section class="card tight w-dday"><div class="card-h"><h3>디데이</h3><button class="more" type="button" id="w-sched">일정</button></div>
       <div class="w-dl">${L.map((e) => { const n = dday(e.date); return `<div class="w-di ${e.big ? 'big' : ''}"><span class="w-dn">${esc(e.title)}</span><span class="w-dd">${md(e.date)}</span><b class="num ${n <= 7 ? 'red' : n <= 30 ? 'blue' : ''}">${n === 0 ? 'D-DAY' : 'D-' + n}</b></div>`; }).join('')}</div></section>`;
@@ -2423,7 +2423,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611150009', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611151027', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2960,7 +2960,7 @@
     return r2Today().map((x) => {
       const st = r2St(x), A = r2Get(x.id), dn = st === 'fin', n = x.x.qs.length, qn = x.x.qs.filter((q, i) => A['q' + i]).length, okn = x.x.qs.filter((q, i) => A['q' + i] && A['q' + i].ok).length;
       const d = dn ? `${okn}/${n} 맞힘 · 핵심 문장까지 끝냈어요` : st === 'rc' ? '떠올리기 → 원문 → 변형 문제 5개 → 핵심 문장 2개' : st === 'rd' ? '② 원문 다시 읽기 차례예요' : st === 'q' ? `③ 변형 문제 ${qn}/${n}` : st === 'k' ? '④ 핵심 문장 쓰기 차례예요' : `⑤ 틀린 문제 ${r2Wrong(x).length}개 다시 풀기`;
-      return { k: 'r2:' + x.id, id: 'r2:' + x.id, icon: 'eng', t: `올림포스 2회독 · ${r2Short(x)}`, d, tg: [!dn && st !== 'rc' ? [`${NO[st]}/5단계`, 'blue'] : null], done: dn, late: x.day < t };
+      return { k: 'r2:' + x.id, id: 'r2:' + x.id, icon: 'eng', t: `올림포스 2회독 · ${r2Short(x)}`, d, tg: [!dn && st !== 'rc' ? [`${NO[st]}/5단계`, 'blue'] : null, !dn ? [`2회독 끝 ${ddTxt(R2.reduce((m, y) => (y.day > m ? y.day : m), ''))}`, ''] : null], done: dn, late: x.day < t };
     });
   }
   function r2U(t) { return esc(t).replace(/&lt;(\/?)u&gt;/g, '<$1u>'); }
@@ -3007,7 +3007,7 @@
     const r = UI.run, x = r2Of(r.cid); if (!x) { UI.run = null; UI.tab = 'hw'; return hwView(); }
     const c = x.c, X = x.x, A = r2Get(x.id), auto = r2St(x), qs = X.qs, key = X.key || [], st = r.st || auto, wr = r2Wrong(x);
     const ORD = ['rc', 'rd', 'q', 'k', 'x'], reach = auto === 'fin' ? 5 : ORD.indexOf(auto), olp = !!((c.sx || {}).sents || []).length, ou = olp ? olpU(c) : null;
-    const head = `<div class="row between"><button class="btn sm" data-r2back type="button">‹ 숙제</button><span class="tiny">올림포스 ${esc(c.pages)}쪽 · ${md(x.day)} 몫</span></div><p class="eyebrow" style="margin:16px 0 4px">${ic('eng')} 올림포스 2회독</p><h1 class="h1" style="margin:0 0 8px">${esc(c.title)}</h1>`;
+    const head = `<div class="row between"><button class="btn sm" data-r2back type="button">‹ 숙제</button><span class="tiny">올림포스 ${esc(c.pages)}쪽 · ${md(x.day)} 몫 · 2회독 끝 ${md(R2.reduce((m, y) => (y.day > m ? y.day : m), ''))}까지 ${ddTxt(R2.reduce((m, y) => (y.day > m ? y.day : m), ''))}</span></div><p class="eyebrow" style="margin:16px 0 4px">${ic('eng')} 올림포스 2회독</p><h1 class="h1" style="margin:0 0 8px">${esc(c.title)}</h1>`;
     const wrap = (b) => `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${b}</div>`;
     const seg = `<div class="seg r2-seg" style="margin:0 0 16px">${[['rc', '① 떠올리기'], ['rd', '② 원문'], ['q', '③ 변형 문제'], ['k', '④ 핵심 문장'], ['x', '⑤ 틀린 문제']].map(([k, t], i) => `<button type="button" class="${st === k ? 'on' : ''}" data-r2st="${k}" ${i <= reach && !(k === 'x' && !wr.length) ? '' : 'disabled'}>${t}${i < reach && !(k === 'x' && auto !== 'fin') ? ' ✓' : ''}</button>`).join('')}</div>`;
     const r1Btn = `<button class="btn sm" data-r2r1 type="button">${ic('books')} 1회독 때 본 것</button>`;
@@ -8071,7 +8071,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611150009'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611151027'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
