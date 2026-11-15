@@ -5067,3 +5067,16 @@ textarea.inp.r2-ta { min-height: 88px; }
 .jg-bad-r p{margin:0 0 4px;font-size:14px;line-height:1.5;color:var(--t1,#191f28)}
 .jg-bad-r small{font-size:13px;color:var(--t3,#8b95a1)}
 .jg-bad-r small b{color:var(--blue,#3182f6)}
+/* 11/15 정윤 올림포스 3회독·실전 (r3): 2회독 꼴 그대로, 고른 선지 표시·번호 칸·남은 시간만 */
+.choice.r3-pick { border-color: var(--t1); box-shadow: inset 0 0 0 1.5px var(--t1); background: var(--fill2); }
+.choice.r3-pick .ct { font-weight: 700; }
+.mk-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 12px; position: sticky; top: 0; z-index: 3; padding: 8px 0; background: var(--bg); }
+.mk-clock { font-size: 17px; font-weight: 700; color: var(--t1); font-variant-numeric: tabular-nums; }
+.mk-clock.over { color: var(--red); }
+.mk-omr { padding: 16px; margin-bottom: 4px; }
+.mk-omr .omr { grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; }
+.mk-omr .omr button { height: 40px; font-size: 14px; }
+.mk-omr .omr button.cur { box-shadow: inset 0 0 0 2px var(--blue); color: var(--blue); }
+.mk-sc { display: flex; align-items: baseline; justify-content: center; gap: 6px; margin: 4px 0 12px; }
+.mk-sc b { font-size: 32px; font-weight: 800; color: var(--t1); }
+.mk-sc span { font-size: 14px; color: var(--t3); }
