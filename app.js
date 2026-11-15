@@ -2499,7 +2499,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611152143', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611152152', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -8451,17 +8451,21 @@
   }
   function ygDid(n, date) {
     const d = dRowD(n) || {}, J0 = (d.jwt || {})[date]; if (!J0 || (rOf(n).lesson || {}).tests) return null;  // 11/8 지원도 jwt 를 써서 윤건 것으로 잘못 잡히던 것
-    const J = { ...J0, ...(n === '윤건' ? YG_JWT_FIX[date] || {} : {}) }, cd = (uid) => (NXU[uid] || {}).code || uid;  // 11/15 수업 범위 고친 것(매3영 빼기·본문 문제)도 리포트에
+    const J = { ...J0, ...(n === '윤건' ? YG_JWT_FIX[date] || {} : {}) }, cd = (uid) => { const c = (NXU[uid] || {}).code || uid, m = /^e(\d+)$/.exec(c); return m ? `${m[1]}과` : c; };
+    // 11/15 «오늘 본 시험은 윤건이 리포트 이야기야»: 줄마다 그날 본 점수를 붙여요
+    const RS = nxRecs(n, date).filter((x) => String(x.id).includes(date)), rec = (id) => RS.find((x) => x.id === id), scT = (r) => (r ? ` ${r.ok}/${r.n}` : '');  // 11/15 «이렇게 리포트하지 말라고 했잖아»: e7 같은 안쪽 코드 대신 「영어 7과」  // 11/15 수업 범위 고친 것(매3영 빼기·본문 문제)도 리포트에
     const units = (J.units || []).map(Number).filter((k) => cuByNo(k)), L = [];
-    if ((J.gt || []).length) L.push(`${J.gt.map(cd).join('·')} 문법 시험`);
-    if ((J.days || []).length) L.push(`단어 시험 · ${WM_BOOK} Day ${J.days.join('·')}`);
-    if ((J.gr || []).length) L.push(`${J.gr.map(cd).join('·')} 문법 개념 복습 · 하·중 단계 문제`);
+    if ((J.gt || []).length) L.push(`${J.gt.map(cd).join('·')} 문법 시험${scT(rec('ls:' + date))}`);
+    if ((J.days || []).length) L.push(`단어 시험 · ${WM_BOOK} Day ${J.days.join('·')}${scT(rec('lw:' + date))}`);
+    if ((J.gr || []).length) { const G = J.gr.flatMap((u) => RS.filter((x) => String(x.id).startsWith(`lc:${date}:${u}:g`))).sort((a, b) => String(a.id).localeCompare(String(b.id))).map((x) => `${(/(하|중|상)\s*\d*문제/.exec(x.title) || [])[1] || ''}${scT(x)}`.trim()).filter(Boolean);
+      L.push(`${J.gr.map(cd).join('·')} 문법 개념 복습${G.length ? ' · ' + G.join(' · ') : ' · 하·중 단계 문제'}`); }
     if ((J.tx || []).length) L.push(`${J.tx.map(cd).join('·')} 본문 문장 분석하고 필기`);
-    for (const sid of J.rq || []) { const R = (NXD.rq || []).find((x) => x.id === sid); if (R) L.push(`${R.title.replace(/ · /, ' ')}문제`.replace('중 20문제', '학교 시험 꼴 문제 20개')); }
+    for (const sid of J.rq || []) { const R = (NXD.rq || []).find((x) => x.id === sid); if (R) L.push(`${R.title.replace(/ · .*$/, '')} 학교 시험 꼴 문제 ${R.qs.length}개${scT(rec(`lc:${date}:${sid}`))}`); }
     const t0 = new Date(date + 'T00:00:00').getTime(), A = ((d.nx || {}).a) || {};
     for (const no of J.m3 || []) { const lt = [...new Set(Object.entries(A).filter(([k, v]) => k.startsWith(`m3d${no}:`) && v && v.at >= t0 && v.at < t0 + 864e5).map(([k]) => { const q = NXQ[k]; return q && q.q.lt; }).filter(Boolean))].sort(); if (!lt.length) for (const x of nxRecs(n, date)) { const m = String(x.title || '').match(/^매3영 Day (\d+) ([A-Z]) /); if (m && +m[1] === +no && !lt.includes(m[2])) lt.push(m[2]); } lt.sort(); L.push(`매3영 Day ${no}${lt.length ? ` ${lt.join('·')} 지문` : ''}`); }
     let ok = 0, tot = 0; for (const k of units) { const st = ((d.eng || {}).ua || {})[uKey(cuByNo(k))] || {}; for (const v of Object.values(st)) { tot++; if (v && v.ok) ok++; } }
-    return { units, L, sc: tot ? { score: String(ok), total: String(tot), title: `천일문 Unit ${units.join('·')}` } : null };
+    const lsR = rec('ls:' + date);
+    return { units, L, sc: tot ? { score: String(ok), total: String(tot), title: `천일문 Unit ${units.join('·')}` } : lsR ? { score: String(lsR.ok), total: String(lsR.n), title: `${(J.gt || []).map(cd).join('·')} 문법 시험` } : null };
   }
   function autoScore(n) {
     { const yd = ygDid(n, drOf(n).date || today()); if (yd && yd.sc) return yd.sc; const jd = juaDid(n, drOf(n).date || today()); if (jd && jd.sc) return jd.sc; }
@@ -8608,7 +8612,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152143'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152152'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
