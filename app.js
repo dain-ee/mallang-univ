@@ -2458,7 +2458,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611151829', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611151837', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7741,7 +7741,7 @@
     const st = (it) => it.p === 'wm' ? 'wm' : /^pp:mr/.test(it.id) ? 'read' : /^pp:mg/.test(it.id) ? 'gram' : /^pp:mc/.test(it.id) ? 'comm' : /^pp:mw/.test(it.id) ? 'word' : it.id.startsWith('pp:') ? it.id : it.subj;
     // 11/11 선생님 «처음부터 심화까지 가는 게 아니라 모든 영역 먼저 개념 1판, 2판 응용, 3판 심화 … 개념은 잘게, 응용·심화는 밀집해서» → F.rounds [개념, 응용, 심화] 날 수 비율
     const rd = (it) => !F.rounds ? 0 : it.hd ? 2 : it.p === 'L' || it.p === 'Lh' || it.id.startsWith('pp:') ? 0 : 1, sk = (it) => st(it) + '#' + rd(it);
-    const fixed = (it) => !it._new && (it.day < F.base || (it.day > YF.end && !(F.rounds && it.hd)) || it.p === 'wm' || /^pp:(mr|rv)/.test(it.id) || (F.keep || []).includes(it.id) || !it.qs.length);
+    const fixed = (it) => !it._new && (it.day < F.base || (it.day > YF.end && !(F.rounds && it.hd)) || it.p === 'wm' || /^pp:(mr|rv|ms)/.test(it.id) || (F.keep || []).includes(it.id) || !it.qs.length);
     const half = (it) => {  // split 넘으면 고르게 나눠요(둘이면 앞·뒤 절반). 문제만 든 조각은 그 문항만 푸는 세트로
       const n = Math.min(it.qs.length, Math.ceil(w(it) / (PER[sk(it)] || ((F.splits || {})[st(it)]) || F.split || 30))); if (n < 2) return [it];
       return Array.from({ length: n }, (_, k) => {
@@ -7910,10 +7910,12 @@
   const ypNow = () => { ypPin(); return YP.filter((it) => it.day <= today() && (!ypDone(it) || it.day === today() || atDay(ypAt(it)) === today())); };  // 밀린 걸 오늘 끝냈어도 오늘 목록에 줄 그어 남겨요 (달력 개수와 맞게)  // 오늘 몫 + 밀린 것
   // 끝나는 날: 밀린 게 없으면 계획한 마지막 날, 밀렸으면 하루 몫 속도로 그만큼 뒤로
   const ypEnd = () => { if (!YP.some((it) => !ypDone(it))) return null; const days = [...new Set(YP.map((x) => x.day))], per = Math.max(1, Math.ceil(YP.length / days.length)), beh = YP.filter((it) => it.day < today() && !ypDone(it)).length; let d = days[days.length - 1], n = Math.ceil(beh / per); while (n > 0) { d = addD(d, 1); if (!(YF.off || []).includes(new Date(d + 'T00:00:00').getDay())) n--; } return d; };
-  const ypQn = (it, g) => (it.p === 'wm' ? `${it.words.length}개 외우고 떠올리기 · ${md(it.test)} 시험` : it.p === 'rv' ? ((S0) => !nxHasL(S0) ? `${g.n}문제 · 안 본 문제와 틀린 문제` : (S0.qs[0] || {}).t === 'para' ? `개념 → 빈칸 ${S0.qs.reduce((t, q) => t + (q.ps || []).filter((x) => /\{/.test(x.s)).length, 0)}문장` : S0.learn.nk === 'w' ? `단어 읽고 → ${g.n}개 영어로` : `개념 → 문제 ${g.n}`)(NXSETS[it.id] || {}) : it.p === 'm3rv' ? '★ 문장 내 말로 해석 → 문법 연결' : it.p === 'memo' ? '담은 단어·문장 떠올리기' : it.p === 'ch' ? '개념 → 문제' : it.m3 ? `단어 ${it.nc} → 문제 ${it.nq} → 문장 구조` : it.p === 'L' ? `개념 → 빈칸 ${it.nc} → 문제 ${it.nq}` : it.nav === 'order' ? `흐름 ${g.n}개 차례대로` : `${g.n}문제`);
+  const ypQn = (it, g) => (it.p === 'wm' ? `${it.words.length}개 외우고 떠올리기 · ${md(it.test)} 시험` : it.p === 'rv' ? ((S0) => !nxHasL(S0) && (S0.qs[0] || {}).t === 'para' ? `${/통문장/.test(S0.title || '') ? '통문장' : '빈칸'} ${S0.qs.reduce((t, q) => t + (q.ps || []).filter((x) => /\{/.test(x.s)).length, 0)}문장` : !nxHasL(S0) ? `${g.n}문제 · 안 본 문제와 틀린 문제` : (S0.qs[0] || {}).t === 'para' ? `개념 → 빈칸 ${S0.qs.reduce((t, q) => t + (q.ps || []).filter((x) => /\{/.test(x.s)).length, 0)}문장` : S0.learn.nk === 'w' ? `단어 읽고 → ${g.n}개 영어로` : `개념 → 문제 ${g.n}`)(NXSETS[it.id] || {}) : it.p === 'm3rv' ? '★ 문장 내 말로 해석 → 문법 연결' : it.p === 'memo' ? '담은 단어·문장 떠올리기' : it.p === 'ch' ? '개념 → 문제' : it.m3 ? `단어 ${it.nc} → 문제 ${it.nq} → 문장 구조` : it.p === 'L' ? `개념 → 빈칸 ${it.nc} → 문제 ${it.nq}` : it.nav === 'order' ? `흐름 ${g.n}개 차례대로` : `${g.n}문제`);
   function ypTasks() {
     if (!YP_ON) return [];
-    return ypNow().map((it) => { const late = it.day < today(), dn = ypDone(it), g = nxProg(NXSETS[it.id]); const pl = it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'; return { k: it.id, icon: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: dn ? `${pl} · 끝냈어요${it.p === 'ch' ? '' : ` · ${g.ps ? `${g.ps[0]}/${g.ps[1]}문장` : `${g.ok + g.fx}/${g.n}`} 맞힘${g.fx && !g.ps ? ` · ${g.fx}개는 다시 풀어서 고침` : ''}`}` : `${late ? `<b>${md(it.day)} 몫 · 밀렸어요</b>` : `${pl} · 오늘 몫`} · ${g.d ? `${g.d}/${g.n} 풀었어요` : ypQn(it, g)}`.replace(/<[^>]+>/g, ''), done: dn, late }; });
+    /* 11/15 선생님 «이런 거 정윤이 윤건이 둘 다 해 놔, 1회독 2회독 3회독 이런 라벨링 좋다»: 기말 계획 줄마다 몇 회독인지와 그 과목 그 회독이 끝나는 날 디데이 */
+    const ypRd = (it) => (it.hd ? 2 : it.p === 'L' || it.p === 'Lh' ? 0 : 1), RDE = {}, rdEnd = (it) => { const k = it.subj + '#' + ypRd(it); if (!(k in RDE)) RDE[k] = YP.filter((x) => !x.id.startsWith('pp:') && x.subj === it.subj && ypRd(x) === ypRd(it)).reduce((m, x) => (x.day > m ? x.day : m), ''); return RDE[k]; };
+    return ypNow().map((it) => { const late = it.day < today(), dn = ypDone(it), g = nxProg(NXSETS[it.id]); const pl = it.id.startsWith('pp:') ? '매일 영어' : '기말 계획', rt = !dn && !it.id.startsWith('pp:') && rdEnd(it) ? [`${ypRd(it) + 1}회독 끝 ${ddTxt(rdEnd(it))}`, ''] : it.tg && !dn ? it.tg : null; return { k: it.id, tg: rt ? [rt] : [], icon: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: dn ? `${pl} · 끝냈어요${it.p === 'ch' ? '' : ` · ${g.ps ? `${g.ps[0]}/${g.ps[1]}문장` : `${g.ok + g.fx}/${g.n}`} 맞힘${g.fx && !g.ps ? ` · ${g.fx}개는 다시 풀어서 고침` : ''}`}` : `${late ? `<b>${md(it.day)} 몫 · 밀렸어요</b>` : `${pl} · 오늘 몫`} · ${g.d ? `${g.d}/${g.n} 풀었어요` : ypQn(it, g)}`.replace(/<[^>]+>/g, ''), done: dn, late }; });
   }
   function ypLagRows(days, st0) {
     if (!YP_ON) return [];
@@ -8535,7 +8537,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611151829'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611151837'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
