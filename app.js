@@ -414,7 +414,7 @@
   // 11/15 선생님 «실제 시험에 서술형이 없으면 안 하는 거야 · 있는데 또 막 빼지 말고»: 실제 시험지로 확인된 것만 빼요
   //   국어: 1학기 1차 정답표 서답형 0점, 담당 교사 세 분이 2학기와 같아요 → 쓰기 빼요
   //   통합사회: 1학기 1차에 논술형 3문항 10점이 실제로 나왔어요 → 그대로 · 한국사: 2학기 중간 시험지를 못 봐서 확인 전까지 그대로 · 영어: 서술형 20점, 그대로
-  const R2S_NOWRITE = { kor: 1 };
+  const R2S_NOWRITE = { kor: 1, hist: 1 };  // 11/15 선생님(정윤 확인) «국어 한국사 서술형 없대»
   const R2S = !R2_ON || !R2S_ON ? [] : Object.entries(R2S_SUBJ).flatMap(([sj, m]) => ((D.r2s || {})[sj] || []).filter((x) => x && x.id && Array.isArray(x.qs) && x.qs.length && x.recall).map((x0) => { const x = R2S_NOWRITE[sj] ? { ...x0, qs: x0.qs.filter((q) => q.type === 'mc'), key: [] } : x0; const d = new Date(m.start + 'T00:00:00'); d.setDate(d.getDate() + Math.max(0, (parseInt(String(x.id).replace(/\D/g, ''), 10) || 1) - 1)); return { id: x.id, sj, x, day: fmtDay(d), cs: (x.cids || []).map((id) => FIN_ALL.find((c) => c.id === id)).filter(Boolean) }; }));
   const r2sEnd = (sj) => R2S.reduce((m, x) => (x.sj === sj && x.day > m ? x.day : m), '');
   // 11/15 한국사 백지 노트: 정윤 «한국사는 애들 다 백지 노트 하는 게 제일 도움 된다는데, 컴터에서 백지 노트를 할 수 있나» · 선생님 «1부터 겹쳐서 해도 돼, 어차피 복습이니까» → 2회독과 따로 A1부터 하루 하나
@@ -2519,7 +2519,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611152324', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611152332', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3247,6 +3247,24 @@
   // 「선생님께 알려 주면 더 정확해져요」: 기말 범위 칸(S.exam)에 같이 저장해요 → 선생님은 학생 화면 보기의 「교재 › 기말 범위」에서 봐요
   function r2AskDone() { const x = S.exam || {}, a = x.ask || {}, e = (x.subs || []).find((u) => u.id === 'eng'); return !!(a.date && a.rangeAt && e && e.range && (a.perf === 'y' || a.perf === 'n') && a.miss); }
   function r2AskLine() { const a = (S.exam || {}).ask || {}; return [a.date ? `시험 ${md(a.date)}` : '', a.perf ? `서술형·논술형 Practice ${a.perf === 'y' ? '범위예요' : a.perf === 'n' ? '범위 아니에요' : '아직 몰라요'}` : '', a.miss ? `중간 틀린 번호 ${a.miss}` : ''].filter(Boolean).join(' · '); }
+  // 11/15 선생님 «과학 범위 물어봐, 배너에. 아마 인강 가면 알 걸, 걔가 들은 거 있잖아» → 인강에서 고른 강의로 짐작한 단원을 보여 주고 맞는 것만 남기게 해요
+  const SCI_U = [['22강', '산, 염기와 중화 반응', 1], ['23강', '물질 변화에서 에너지의 출입', 1], ['24강', '생물과 환경, 생태계 평형', 0], ['25강', '지구 환경 변화와 인간 생활 (해류·엘니뇨)', 1], ['26강', '태양 에너지의 생성과 전환', 1], ['27강', '발전과 에너지원 (발전기·전력)', 1], ['28강', '에너지 효율과 신재생 에너지', 1], ['29강', '과학 기술의 활용', 0]];
+  function sciAskSheet() {
+    const x = exS(), A = { ...((x.sciAsk || {}).u || Object.fromEntries(SCI_U.map(([k, , on]) => [k, on]))) }, u = x.subs.find((y) => y.id === 'sci');
+    sheet(`<h2>과학 기말 범위, 이게 맞나요?</h2><p class="sub">인강에서 들은 강의로 짐작했어요. 시험 범위인 것만 켜 두고, 아니면 눌러서 꺼 주세요</p>
+      <div class="sa-list" id="sa-list">${SCI_U.map(([k, t], i) => `<button type="button" class="sa-i ${A[k] ? 'on' : ''}" data-v="${k}" style="--i:${i}"><span class="sa-ck">${A[k] ? '✓' : ''}</span><b>${k}</b><span>${esc(t)}</span></button>`).join('')}</div>
+      <div class="field" style="margin-top:12px"><label>더 들은 것 (교과서 쪽, 프린트, 시험 날짜)</label><textarea class="inp" id="sa-note" rows="3" placeholder="예) 교과서 42~59쪽, 88~109쪽 · 프린트 3장 · 12월 11일">${esc((x.sciAsk || {}).note || '')}</textarea></div>
+      <button class="btn primary big block" type="button" id="sa-ok">저장</button>`, (el, close) => {
+      $$('#sa-list .sa-i', el).forEach((b) => (b.onclick = () => { const k = b.dataset.v; A[k] = A[k] ? 0 : 1; b.classList.toggle('on', !!A[k]); $('.sa-ck', b).textContent = A[k] ? '✓' : ''; tick(); }));
+      $('#sa-ok', el).onclick = () => {
+        const now = Date.now(), note = $('#sa-note', el).value.trim().slice(0, 300), on = SCI_U.filter(([k]) => A[k]);
+        x.sciAsk = { u: A, note, at: now };
+        if (u && !TEACHER) x.subs[x.subs.indexOf(u)] = { ...u, range: `[확인 ${md(today())}] ${on.map(([k, t]) => `${k} ${t}`).join(' · ')}${note ? `\n${note}` : ''}`, by: 's', at: now };
+        save('exam'); if (!TEACHER) gdMark('scr'); close(); toast('저장했어요 · 선생님이 이걸로 과학 계획을 짤게요');
+        setTimeout(() => { const g = document.querySelector('.gd-card[data-gdopen="scr"]'); if (g) cardBye(g, render); else render(); }, 260);
+      };
+    });
+  }
   function r2AskSheet() {
     const x = exS(), a = { ...(x.ask || {}) }, e = x.subs.find((u) => u.id === 'eng');
     sheet(`<h2>선생님께 알려 주면 더 정확해져요</h2><p class="sub">아는 것만 적어도 돼요. 저장하면 이 안내는 사라지고, 나중에 「교재 › 기말 범위」에서 고칠 수 있어요</p>
@@ -5241,6 +5259,7 @@
   }
   const qnaBack = () => { const f = UI.qnaFrom; return f && UI.run && ((UI.run.kind === 'fin' && UI.run.cid === f.cid) || (UI.run.kind === 'unit' && UI.run.back === 'qna')) ? f.id : null; };
   const GD = {
+    scr: { on: () => U.who === '정윤' && !TEACHER && !(exS().sciAsk || {}).at, ic: 'sci', cls: 'r2-ban', b: '과학 기말 범위, 이게 맞는지 봐 줄래요?', d: '인강 들은 걸로 짐작했어요 · 맞는 것만 남기면 과학 계획을 짜 줄게요', go0: '확인', keep: 1, open: () => sciAskSheet() },
     // 11/15 정윤 카톡 «능수동 좀 약해서 이거 왜 능동이고 수동인지 설명 좀 더 자세히» → 문장 분석 포인트 97개를 「왜」까지 고치고 배너로 알려요
     vc: { on: () => U.who === '정윤' && today() <= '2026-11-22', ic: 'think', cls: 'r2-ban', b: '능동·수동, 왜 그런지까지 적었어요', d: '올림포스 문장 분석에 -ing인지 p.p.인지 까닭을 붙였어요', go0: '보기',
       open: () => sheet(`<h2>능동·수동, 이렇게 가려요</h2><ol class="r2s-rules" style="margin-top:12px"><li style="--i:0"><span class="r2s-rn">1</span><div><b>꾸밈받는 말(주어)부터 찾아요</b><span>relating이면 꾸밈받는 costs, linked면 problems처럼 그 동작을 하는 쪽인지 볼 말을 먼저 찾아요</span></div></li><li style="--i:1"><span class="r2s-rn">2</span><div><b>직접 하면 -ing, 당하면 p.p.</b><span>비용이 스스로 ~와 「관련되는」 거라 relating (= costs which relate to)</span><span>문제들은 무언가에 의해 「연결된」 거라 linked (= problems which are linked)</span></div></li><li style="--i:2"><span class="r2s-rn">3</span><div><b>「누가 했지?」가 떠오르면 수동이에요</b><span>by 누구가 숨어 있으면 p.p.예요. 감정은 사람이 느끼면 p.p.(stressed), 감정을 일으키면 -ing(stressing)</span></div></li></ol><p class="tiny" style="margin:12px 0 0">문장 분석의 「포인트」에서 분사가 나오는 문장마다 이렇게 까닭을 적어 두었어요</p><button class="btn primary big block" id="vc-ok" type="button" style="margin-top:20px">알겠어요</button>`, (el, close) => { $('#vc-ok', el).onclick = () => close(); }) },
@@ -5271,7 +5290,7 @@
   }
   function gdCard() {
     // 11/10 새로 만든 안내(정리·가이드)는 둘 다 보여요. 예전 안내는 하나씩
-    const L = gdList(), ks = L.filter((k) => k === 'vc' || k === 'tm' || k === 'sci' || k === 'iq' || k === 'add' || k === 'r2a' || k === 'r2q'); const show = ks.length ? ks : L.slice(0, 1);
+    const L = gdList(), ks = L.filter((k) => k === 'scr' || k === 'vc' || k === 'tm' || k === 'sci' || k === 'iq' || k === 'add' || k === 'r2a' || k === 'r2q'); const show = ks.length ? ks : L.slice(0, 1);
     return show.map((k) => { const g = GD[k]; return `<button type="button" class="c12 ts-band gd-card ${g.cls || ''}" data-gdopen="${k}"><span class="ts-band-ic">${ic(g.ic)}</span><span class="ts-band-t"><b>${esc(g.b)}</b><span>${esc(g.d)}</span></span><span class="ts-band-go">${esc(g.go0 || '방법 보기')}</span></button>`; }).join('');  // 11/8 «이 부분이 너무 정신없어» → 토스 띠 배너
   }
   function gdOpen(e) {
@@ -8773,7 +8792,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152324'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152332'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

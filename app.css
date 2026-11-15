@@ -5194,3 +5194,12 @@ textarea.inp.bn-ta { min-height: 360px; font-size: 16px; line-height: 1.8; resiz
 .lv-back .lv-pic-bk { width: 28px; height: 28px; }
 .lv-solo .lv-back .lv-pic-bk { width: 44px; height: 44px; }
 .lv-card:not(.lv-solo) .lv-back { padding-top: 22px; gap: 4px; }
+
+/* 11/15 과학 범위 확인 */
+.sa-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.sa-i { display: flex; align-items: center; gap: 10px; text-align: left; padding: 12px 14px; border-radius: 14px; border: 1.5px solid rgba(2, 32, 71, .08); background: var(--card, #fff); font: inherit; color: inherit; animation: waveIn .3s var(--ease) both; animation-delay: calc(var(--i) * 30ms); transition: border-color .15s, background .15s; }
+.sa-i b { font-size: 13px; min-width: 34px; }
+.sa-i span:last-child { font-size: 14px; }
+.sa-ck { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid rgba(2, 32, 71, .2); display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff; flex: none; }
+.sa-i.on { border-color: #3182f6; background: rgba(49, 130, 246, .06); }
+.sa-i.on .sa-ck { background: #3182f6; border-color: #3182f6; }
