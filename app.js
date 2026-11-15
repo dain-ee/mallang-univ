@@ -2519,7 +2519,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611152332', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611152335', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3254,7 +3254,7 @@
     sheet(`<h2>과학 기말 범위, 이게 맞나요?</h2><p class="sub">인강에서 들은 강의로 짐작했어요. 시험 범위인 것만 켜 두고, 아니면 눌러서 꺼 주세요</p>
       <div class="sa-list" id="sa-list">${SCI_U.map(([k, t], i) => `<button type="button" class="sa-i ${A[k] ? 'on' : ''}" data-v="${k}" style="--i:${i}"><span class="sa-ck">${A[k] ? '✓' : ''}</span><b>${k}</b><span>${esc(t)}</span></button>`).join('')}</div>
       <div class="field" style="margin-top:12px"><label>더 들은 것 (교과서 쪽, 프린트, 시험 날짜)</label><textarea class="inp" id="sa-note" rows="3" placeholder="예) 교과서 42~59쪽, 88~109쪽 · 프린트 3장 · 12월 11일">${esc((x.sciAsk || {}).note || '')}</textarea></div>
-      <button class="btn primary big block" type="button" id="sa-ok">저장</button>`, (el, close) => {
+      <p class="tiny" style="margin:0 0 12px">📸 1학기 중간·기말, 2학기 중간 <b>과학 시험지</b>가 있으면 사진으로 선생님 카톡에 보내 주세요. 우리 학교 과학 선생님이 어떻게 내는지 봐야 100점 계획을 짤 수 있어요</p><button class="btn primary big block" type="button" id="sa-ok">저장</button>`, (el, close) => {
       $$('#sa-list .sa-i', el).forEach((b) => (b.onclick = () => { const k = b.dataset.v; A[k] = A[k] ? 0 : 1; b.classList.toggle('on', !!A[k]); $('.sa-ck', b).textContent = A[k] ? '✓' : ''; tick(); }));
       $('#sa-ok', el).onclick = () => {
         const now = Date.now(), note = $('#sa-note', el).value.trim().slice(0, 300), on = SCI_U.filter(([k]) => A[k]);
@@ -8792,7 +8792,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152332'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152335'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
