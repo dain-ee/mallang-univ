@@ -2522,7 +2522,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611160006', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611160010', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3727,7 +3727,7 @@
       if (!cc) return wrap(`${seg}<section class="card"><p class="sub">카드를 준비하고 있어요</p></section>`);
       const c = cc.c, H = r.h || {}, old = cc.b !== x, bad = F.bad || {}, tot = Object.keys(F.ok || {}).length + F.q.length;
       const inp = bnSent(c, (j, w) => `<span class="bnm-slot"><input class="inp bnm-in ${r.res && r.res[j] === 1 ? 'ok' : r.res && r.res[j] === 0 ? 'no' : ''}" data-bi="${j}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="next" style="width:${Math.max(4, w.length + 2)}em" value="${esc((r.val || {})[j] || '')}" ${r.res && r.res.every((v) => v === 1) ? 'disabled' : ''}>${H[j] ? `<span class="bnm-hint">${H[j] >= 2 ? `정답: ${esc(w)}` : `첫 글자 「${esc(w[0])}」`}</span>` : ''}</span>`);
-      return wrap(`${seg}<section class="card st-sec${fx}"><div class="st-kick">③ 빈칸 쓰기 ${old ? '<span class="tag">어제 틀린 것</span>' : ''}</div><h2>빈칸에 들어갈 말을 써요</h2><p class="sub" style="margin:0 0 12px">남은 카드 ${F.q.length}장 · 다 맞힌 카드 ${tot - F.q.length}장${bad[key] ? ' · 이 카드는 아까 틀렸어요, 이번엔 힌트 없이!' : ''}</p><div class="progress-dots">${Array.from({ length: Math.min(tot, 30) }, (v, k) => `<i class="${k < tot - F.q.length ? 'ok' : k === tot - F.q.length ? 'cur' : ''}"></i>`).join('')}</div>${when(c)}<p class="bnm-s">${inp}</p></section><div class="cta-bar"><div style="display:flex;gap:8px"><button class="btn big" id="bn-idk" type="button">모르겠어요</button><button class="btn primary big" id="bn-fok" type="button" style="flex:1">확인</button></div></div>`);
+      return wrap(`${seg}<section class="card st-sec${fx}"><div class="st-kick">③ 빈칸 쓰기 ${old ? '<span class="tag">어제 틀린 것</span>' : ''}</div><h2>빈칸에 들어갈 말을 써요</h2><p class="sub" style="margin:0 0 12px">남은 카드 ${F.q.length}장 · 다 맞힌 카드 ${tot - F.q.length}장${bad[key] && !r.used ? ' · 아까 틀린 카드예요, 이번엔 힌트 없이!' : ''}</p><div class="progress-dots">${Array.from({ length: Math.min(tot, 30) }, (v, k) => `<i class="${k < tot - F.q.length ? 'ok' : k === tot - F.q.length ? 'cur' : ''}"></i>`).join('')}</div>${when(c)}<p class="bnm-s" data-ck="${esc(key)}">${inp}</p></section><div class="cta-bar"><div style="display:flex;gap:8px"><button class="btn big" id="bn-idk" type="button">모르겠어요</button><button class="btn primary big" id="bn-fok" type="button" style="flex:1">확인</button></div></div>`);
     }
     // 끝: 결과 카드 → 숙제 목록 · 다시 열면 카드와 틀렸던 것
     const n = bnN(x), bad = (A.f || {}).bad || {};
@@ -8828,7 +8828,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611160006'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611160010'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
