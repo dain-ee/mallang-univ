@@ -2458,7 +2458,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611151837', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611151905', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6816,7 +6816,7 @@
     h += `<section class="card"><p class="tiny" style="font-size:14px;margin:0;line-height:1.7">${esc(w.promptKo)}</p><div class="row wrap" style="margin-top:12px">${w.words.map(([e, k]) => `<span class="tag"><b>${esc(e)}</b>&nbsp;${esc(k)}</span>`).join('')}</div></section>`;
     if (m === 'pick') {
       h += w.parts.map((p, pi) => `<section class="card jp-part"><div class="card-h"><h3>${esc(p.h)}</h3><span class="tiny">${esc(p.tip || '')}</span></div>${L.filter((x) => x.pi === pi).map((x) => { const ok = jpDone(w, x), v = jpVals(w, x);
-        return `<div class="jp-s ${ok ? 'ok' : ''}" data-jpk="${esc(x.k)}"><p class="jp-ko">${esc(x.ko)}</p><p class="jp-en">${jpLine(w, x, true)}${ok ? ` <button type="button" class="jp-say" data-jpsay="${esc(x.k)}" aria-label="듣기">🔊</button>` : ''}</p>${(x.opts || []).map((g, gi) => `<div class="jp-ops">${x.lb && x.lb[gi] ? `<span class="jp-lb ${x.lb[gi] === '주어' ? 's' : 'v'}">${esc(x.lb[gi])}</span>` : ''}${g.map(([e, k]) => `<button type="button" class="jp-op ${v[gi] === e ? 'on' : ''}" data-jpk="${esc(x.k)}" data-gi="${gi}" data-v="${esc(e)}"><b>${esc(e)}</b><small>${esc(k)}</small></button>`).join('')}<button type="button" class="jp-op mine ${v[gi] && !g.some(([e]) => e === v[gi]) ? 'on' : ''}" data-jpmine="${esc(x.k)}" data-gi="${gi}"><b>✏️ 직접 쓰기</b><small>${v[gi] && !g.some(([e]) => e === v[gi]) ? esc(v[gi]) : '내 말로'}</small></button></div>`).join('')}</div>`; }).join('')}</section>`).join('');
+        return `<div class="jp-s ${ok ? 'ok' : ''}" data-jpk="${esc(x.k)}"><p class="jp-ko">${esc(x.ko)}</p><p class="jp-en">${jpLine(w, x, true)}${ok ? ` <button type="button" class="jp-say" data-jpsay="${esc(x.k)}" aria-label="듣기">🔊</button>` : ''}</p>${(x.opts || []).map((g, gi) => `<div class="jp-ops">${x.lb && x.lb[gi] ? `<span class="jp-lb ${x.lb[gi] === '주어' ? 's' : 'v'}">${esc(x.lb[gi])}</span>` : ''}${g.map(([e, k]) => `<button type="button" class="jp-op ${v[gi] === e ? 'on' : ''}" data-jpk="${esc(x.k)}" data-gi="${gi}" data-v="${esc(e)}"><b>${esc(e)}</b><small>${esc(k)}</small></button>`).join('')}<button type="button" class="jp-op mine ${v[gi] && !g.some(([e]) => e === v[gi]) ? 'on' : ''}" data-jpmine="${esc(x.k)}" data-gi="${gi}"><b>✏️ 직접 쓰기</b><small>${v[gi] && !g.some(([e]) => e === v[gi]) ? esc(v[gi]) : (jGet('jw', x.k + ':d') || {})[gi] ? '쓰던 것: ' + esc((jGet('jw', x.k + ':d') || {})[gi]) : '내 말로'}</small></button></div>`).join('')}</div>`; }).join('')}</section>`).join('');
       h += `<section class="card"><div class="card-h"><h3>지금까지 만든 ${esc(w.sayNm || '대본')}</h3><span class="tiny">${dn.length}/${L.length}문장</span></div><p class="jw-model">${dn.map((x) => esc(jpLine(w, x))).join(' ') || '<span class="tiny">문장을 고르면 여기 차곡차곡 쌓여요</span>'}</p>${dn.length === L.length ? '<button class="btn primary big block" data-jwm="say" type="button" style="margin-top:12px">다 만들었어요 · 소리 내어 읽기</button>' : ''}</section>`;
     } else {
       const n = (jGet('jw', w.id + ':say') || {}).n || 0;
@@ -6834,10 +6834,11 @@
     const L = jpSents(w), byK = (k) => L.find((x) => x.k === k);
     $$('[data-jwm]').forEach((b) => (b.onclick = () => { UI.run = { kind: 'jw', id: w.id, m: b.dataset.jwm }; render(); window.scrollTo(0, 0); }));
     const put = (x, gi, val, b) => { const A = (x.ans || [])[gi]; if (A && val.trim().toLowerCase().replace(/[.!?]$/, '') !== A.toLowerCase()) { jFx(false, b); toast(((x.why || [])[gi] || '다시 골라 봐요') + ' 🤔'); return; } const v = [...jpVals(w, x)]; v[gi] = val; const was = jpDone(w, x); jSet('jw', x.k, { v }); if (!was && jpDone(w, x)) jFx(true, b); /* 11/8 «자꾸 먼저 말해서 주아가 읽을 기회를 빼앗아» → 저절로 읽지 않아요 */ jKeep(); };
-    $$('[data-jpk]').forEach((b) => (b.onclick = () => put(byK(b.dataset.jpk), +b.dataset.gi, b.dataset.v, b)));
+    $$('button[data-jpk]').forEach((b) => (b.onclick = () => put(byK(b.dataset.jpk), +b.dataset.gi, b.dataset.v, b)));  // 11/15 주아 «마지막 두 줄 직접 쓰기를 눌러도 안 돼»: 문장 칸(div)에도 data-jpk 가 있어서 그 클릭이 화면을 다시 그려 쓰기 칸을 지웠어요
     $$('[data-jpmine]').forEach((b) => (b.onclick = () => { const x = byK(b.dataset.jpmine), gi = +b.dataset.gi, cur = jpVals(w, x)[gi] || '';
-      b.outerHTML = `<form class="jp-mine" data-jpf="${esc(x.k)}" data-gi="${gi}"><input class="inp" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="영어로 써요" value="${esc((x.opts[gi] || []).some(([e]) => e === cur) ? '' : cur)}"><button class="btn primary" type="submit">넣기</button></form>`;
+      b.outerHTML = `<form class="jp-mine" data-jpf="${esc(x.k)}" data-gi="${gi}"><input class="inp" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="영어로 써요" value="${esc((x.opts[gi] || []).some(([e]) => e === cur) ? '' : cur || ((jGet('jw', x.k + ':d') || {})[gi] || ''))}"><button class="btn primary" type="submit">넣기</button></form>`;
       const f = $(`[data-jpf="${CSS.escape(x.k)}"][data-gi="${gi}"]`); $('input', f).focus();
+      f.onclick = (e) => e.stopPropagation(); let dT = 0; $('input', f).oninput = (e) => { const t = e.target.value; clearTimeout(dT); dT = setTimeout(() => { const d = { ...(jGet('jw', x.k + ':d') || {}) }; d[gi] = t; jSet('jw', x.k + ':d', d); }, 400); };  // 11/15 «중간 임시 저장도 없어서»: 치는 대로 초안 저장
       f.onsubmit = (e) => { e.preventDefault(); const t = $('input', f).value.trim(); if (!t) return; if (/[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(t)) return toast('영어로 써 봐요. 모르면 보기에서 골라요'); put(x, gi, t, f); }; }));
     $$('[data-jpsay]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); const x = byK(b.dataset.jpsay); if (x) jSay(jpLine(w, x)); }));
     const all = $('[data-jpall]'); if (all) all.onclick = () => jSay(L.filter((x) => jpDone(w, x)).map((x) => jpLine(w, x)).join(' '));
@@ -8384,9 +8385,14 @@
     return L.length ? { L, sc } : null;
   }
   function ygDid(n, date) {
-    const d = dRowD(n) || {}, J = (d.jwt || {})[date]; if (!J || (rOf(n).lesson || {}).tests) return null;  // 11/8 지원도 jwt 를 써서 윤건 것으로 잘못 잡히던 것
+    const d = dRowD(n) || {}, J0 = (d.jwt || {})[date]; if (!J0 || (rOf(n).lesson || {}).tests) return null;  // 11/8 지원도 jwt 를 써서 윤건 것으로 잘못 잡히던 것
+    const J = { ...J0, ...(n === '윤건' ? YG_JWT_FIX[date] || {} : {}) }, cd = (uid) => (NXU[uid] || {}).code || uid;  // 11/15 수업 범위 고친 것(매3영 빼기·본문 문제)도 리포트에
     const units = (J.units || []).map(Number).filter((k) => cuByNo(k)), L = [];
+    if ((J.gt || []).length) L.push(`${J.gt.map(cd).join('·')} 문법 시험`);
     if ((J.days || []).length) L.push(`단어 시험 · ${WM_BOOK} Day ${J.days.join('·')}`);
+    if ((J.gr || []).length) L.push(`${J.gr.map(cd).join('·')} 문법 개념 복습 · 하·중 단계 문제`);
+    if ((J.tx || []).length) L.push(`${J.tx.map(cd).join('·')} 본문 문장 분석하고 필기`);
+    for (const sid of J.rq || []) { const R = (NXD.rq || []).find((x) => x.id === sid); if (R) L.push(`${R.title.replace(/ · /, ' ')}문제`.replace('중 20문제', '학교 시험 꼴 문제 20개')); }
     const t0 = new Date(date + 'T00:00:00').getTime(), A = ((d.nx || {}).a) || {};
     for (const no of J.m3 || []) { const lt = [...new Set(Object.entries(A).filter(([k, v]) => k.startsWith(`m3d${no}:`) && v && v.at >= t0 && v.at < t0 + 864e5).map(([k]) => { const q = NXQ[k]; return q && q.q.lt; }).filter(Boolean))].sort(); if (!lt.length) for (const x of nxRecs(n, date)) { const m = String(x.title || '').match(/^매3영 Day (\d+) ([A-Z]) /); if (m && +m[1] === +no && !lt.includes(m[2])) lt.push(m[2]); } lt.sort(); L.push(`매3영 Day ${no}${lt.length ? ` ${lt.join('·')} 지문` : ''}`); }
     let ok = 0, tot = 0; for (const k of units) { const st = ((d.eng || {}).ua || {})[uKey(cuByNo(k))] || {}; for (const v of Object.values(st)) { tot++; if (v && v.ok) ok++; } }
@@ -8537,7 +8543,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611151837'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611151905'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
