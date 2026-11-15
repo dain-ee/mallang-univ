@@ -411,7 +411,10 @@
   }
   const r2sRd = (sj) => (R2S_SUBJ[sj] || {}).rd || '2회독';  // 11/15 한국사 A1~A6 (11/16~11/21)
   const R2S_ON = true;  // 11/15 올해 시험지 꼴로 고친 국어 K·통합사회 S·한국사 A 를 켜요
-  const R2S = !R2_ON || !R2S_ON ? [] : Object.entries(R2S_SUBJ).flatMap(([sj, m]) => ((D.r2s || {})[sj] || []).filter((x) => x && x.id && Array.isArray(x.qs) && x.qs.length && x.recall).map((x) => { const d = new Date(m.start + 'T00:00:00'); d.setDate(d.getDate() + Math.max(0, (parseInt(String(x.id).replace(/\D/g, ''), 10) || 1) - 1)); return { id: x.id, sj, x, day: fmtDay(d), cs: (x.cids || []).map((id) => FIN_ALL.find((c) => c.id === id)).filter(Boolean) }; }));
+  // 11/15 선생님 «실제 시험에 서술형이 없으면 안 하는 거야»: 정윤 1학기 실제 시험지·정답표가 국어·통합사회·한국사 모두 선택형 100점(서답형 0점)이라
+  //   이 세 과목 2회독은 객관식만 풀고 ④ 핵심 쓰기는 빼요. 영어는 실제 시험에 서술형 20점이 있어 그대로예요. 기말에 서술형이 나온다고 공지되면 여기서 빼면 돼요
+  const R2S_NOWRITE = { kor: 1, soc: 1, hist: 1 };
+  const R2S = !R2_ON || !R2S_ON ? [] : Object.entries(R2S_SUBJ).flatMap(([sj, m]) => ((D.r2s || {})[sj] || []).filter((x) => x && x.id && Array.isArray(x.qs) && x.qs.length && x.recall).map((x0) => { const x = R2S_NOWRITE[sj] ? { ...x0, qs: x0.qs.filter((q) => q.type === 'mc'), key: [] } : x0; const d = new Date(m.start + 'T00:00:00'); d.setDate(d.getDate() + Math.max(0, (parseInt(String(x.id).replace(/\D/g, ''), 10) || 1) - 1)); return { id: x.id, sj, x, day: fmtDay(d), cs: (x.cids || []).map((id) => FIN_ALL.find((c) => c.id === id)).filter(Boolean) }; }));
   const r2sEnd = (sj) => R2S.reduce((m, x) => (x.sj === sj && x.day > m ? x.day : m), '');
   // 11/15 한국사 백지 노트: 정윤 «한국사는 애들 다 백지 노트 하는 게 제일 도움 된다는데, 컴터에서 백지 노트를 할 수 있나» · 선생님 «1부터 겹쳐서 해도 돼, 어차피 복습이니까» → 2회독과 따로 A1부터 하루 하나
   const BN_START = '2026-11-16', BN_MAX = 4000;
@@ -2515,7 +2518,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611152313', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611152319', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3523,11 +3526,12 @@
   function r2sOkN(x) { const A = r2sGet(x.id); return x.x.qs.filter((q, i) => A['q' + i] && A['q' + i].ok).length; }
   function r2sToday() { const t = today(); return R2S.filter((x) => { if (x.day > t) return false; const d = r2sDoneDay(x); return !d || d >= t; }); }
   function r2sTasks() {
-    const t = today(), NO = { rc: 1, rd: 2, q: 3, k: 4, x: 5 };
+    const t = today();
     return r2sToday().map((x) => {
       const st = r2sSt(x), A = r2sGet(x.id), dn = st === 'fin', n = x.x.qs.length, qn = x.x.qs.filter((q, i) => A['q' + i]).length, kn = (x.x.key || []).length;
-      const d = dn ? `${r2sOkN(x)}/${n} 맞힘 · 핵심 쓰기까지 끝냈어요` : st === 'rc' ? `떠올리기 → 다시 보기 → 학교 꼴 문제 ${n}개 → 핵심 쓰기 ${kn}개` : st === 'rd' ? '② 다시 보기 차례예요' : st === 'q' ? `③ 학교 꼴 문제 ${qn}/${n}` : st === 'k' ? '④ 핵심 쓰기 차례예요' : `⑤ 틀린 것 ${r2sWrong(x).length}개 다시`;
-      return { k: 'r2s:' + x.id, id: 'r2s:' + x.id, icon: R2S_SUBJ[x.sj].ic, t: `${r2sNm(x)} ${r2sRd(x.sj)} · ${x.x.title}`, d, tg: [!dn && st !== 'rc' ? [`${NO[st]}/5단계`, 'blue'] : null, !dn ? [`${r2sRd(x.sj)} 끝 ${ddTxt(r2sEnd(x.sj))}`, ''] : null], done: dn, late: x.day < t };
+      const NS = kn ? ['rc', 'rd', 'q', 'k', 'x'] : ['rc', 'rd', 'q', 'x'], NO = (k) => NS.indexOf(k) + 1;
+      const d = dn ? `${r2sOkN(x)}/${n} 맞힘 · ${kn ? '핵심 쓰기까지 ' : ''}끝냈어요` : st === 'rc' ? `떠올리기 → 다시 보기 → 학교 꼴 문제 ${n}개${kn ? ` → 핵심 쓰기 ${kn}개` : ''}` : st === 'rd' ? '② 다시 보기 차례예요' : st === 'q' ? `③ 학교 꼴 문제 ${qn}/${n}` : st === 'k' ? '④ 핵심 쓰기 차례예요' : `${'①②③④⑤'[NO('x') - 1]} 틀린 것 ${r2sWrong(x).length}개 다시`;
+      return { k: 'r2s:' + x.id, id: 'r2s:' + x.id, icon: R2S_SUBJ[x.sj].ic, t: `${r2sNm(x)} ${r2sRd(x.sj)} · ${x.x.title}`, d, tg: [!dn && st !== 'rc' ? [`${NO(st)}/${NS.length}단계`, 'blue'] : null, !dn ? [`${r2sRd(x.sj)} 끝 ${ddTxt(r2sEnd(x.sj))}`, ''] : null], done: dn, late: x.day < t };
     });
   }
   // 단답 채점: 공백·대소문자·끝 문장부호는 무시해요. 띄어쓰기를 묻는 문제만 띄어쓰기를 지켜야 맞아요
@@ -3571,7 +3575,7 @@
     const ORD = ['rc', 'rd', 'q', 'k', 'x'], reach = auto === 'fin' ? 5 : ORD.indexOf(auto);
     const head = `<div class="row between"><button class="btn sm" data-r2sback type="button">‹ 숙제</button><span class="tiny">${md(x.day)} 몫 · ${r2sRd(x.sj)} 끝 ${md(end)}까지 ${ddTxt(end)}</span></div><p class="eyebrow" style="margin:16px 0 4px">${ic(R2S_SUBJ[x.sj].ic)} ${esc(r2sNm(x))} ${esc(r2sRd(x.sj))}</p><h1 class="h1" style="margin:0 0 8px">${esc(X.title)}</h1>`;
     const wrap = (b) => `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${b}</div>`;
-    const seg = `<div class="seg r2-seg" style="margin:0 0 16px">${[['rc', '① 떠올리기'], ['rd', '② 다시 보기'], ['q', '③ 문제'], ['k', '④ 핵심 쓰기'], ['x', '⑤ 틀린 것']].map(([k, t], i) => `<button type="button" class="${st === k ? 'on' : ''}" data-r2sst="${k}" ${i <= reach && !(k === 'x' && !wr.length) ? '' : 'disabled'}>${t}${i < reach && !(k === 'x' && auto !== 'fin') ? ' ✓' : ''}</button>`).join('')}</div>`;
+    const seg = `<div class="seg r2-seg" style="margin:0 0 16px">${[['rc', '떠올리기'], ['rd', '다시 보기'], ['q', '문제'], ['k', '핵심 쓰기'], ['x', '틀린 것']].map((g, i) => [...g, i]).filter((g) => g[0] !== 'k' || key.length).map(([k, t0, i], n) => [k, `${'①②③④⑤'[n]} ${t0}`, i]).map(([k, t, i]) => `<button type="button" class="${st === k ? 'on' : ''}" data-r2sst="${k}" ${i <= reach && !(k === 'x' && !wr.length) ? '' : 'disabled'}>${t}${i < reach && !(k === 'x' && auto !== 'fin') ? ' ✓' : ''}</button>`).join('')}</div>`;
     if (st === 'rc') {
       const a = A.rc;
       return wrap(`${seg}<section class="card st-sec r2-rc"><div class="st-kick">① 떠올리기</div><h2>${esc(X.recall.q)}</h2><p class="sub" style="margin:0 0 16px">책과 정리를 보지 말고 생각나는 대로 먼저 써요. 쓰고 나서 떠올렸어야 할 것과 맞춰 봐요</p>
@@ -8757,7 +8761,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152313'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152319'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
