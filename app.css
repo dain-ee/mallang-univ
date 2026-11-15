@@ -5162,3 +5162,11 @@ textarea.inp.r2-ta { min-height: 88px; }
 .cm-chip.on { background: #2f6fe0; border-color: #2f6fe0; color: #fff; transform: translateY(-2px); }
 .cm + .btn, .cm .btn { margin-top: 12px; }
 @media (max-width: 520px) { .cm-wt { font-size: 10px; padding: 1px 5px; left: 4px; } .cm-lat { font-size: 9px; } .cm-row path { stroke-width: 6; } }
+
+/* 11/15 주아 단어 그림 «주아 말이야 그림을 넣어 주는 건 어때?!» 살짝 통 튀며 나와요 */
+@keyframes lvPicIn { 0% { opacity: 0; transform: translateY(8px) scale(.4); } 70% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+.lv-pic { display: block; width: 36px; height: 36px; flex: none; animation: lvPicIn .5s var(--spring) both; animation-delay: calc(var(--i, 0) * 25ms + .12s); pointer-events: none; }
+.lv-cards .lv-card:has(.lv-pic) { height: 150px; }
+.lv-solo .lv-pic-solo { width: 64px; height: 64px; animation-delay: .1s; }
+.lv-pr .lv-pic-q { width: 44px; height: 44px; animation-delay: .05s; }
+.lv-rev .lv-pic-rev { width: 48px; height: 48px; animation-delay: .15s; }

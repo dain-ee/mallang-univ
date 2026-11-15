@@ -1701,7 +1701,8 @@
   //   P.run 하나만 돌고, 멈춰 둔 것은 P.held 에 남아요. 줄마다 tk(줄 열쇠)로 찾아요
   const tkOf = (r) => r ? r.tk || (r.hw ? 'my:' + r.hw : '') : '';
   const tmOf = (tk) => (P.run && tkOf(P.run) === tk ? P.run : (P.held || []).find((x) => tkOf(x) === tk)) || null;
-  const tmSubj = (t) => [['국어', '국어'], ['영어', '영어'], ['수학', '수학'], ['과학', '과학'], ['한국사', '사회'], ['역사', '사회'], ['사회', '사회']].find(([k]) => String(t).includes(k))?.[1] || '자유';
+  // 11/15 올림포스·천일문은 영어, 한국사는 통합사회와 따로 (정윤 «구분되게 해 줘»)
+  const tmSubj = (t) => [['국어', '국어'], ['영어', '영어'], ['올림포스', '영어'], ['천일문', '영어'], ['수학', '수학'], ['과학', '과학'], ['한국사', '한국사'], ['역사', '한국사'], ['사회', '사회']].find(([k]) => String(t).includes(k))?.[1] || '자유';
   const tmShow = (r) => r === P.run ? pShow() : mmss(Math.floor(pWatchSec(r)));
   function tmHold() {  // 지금 도는 것을 멈춰서 옆에 둬요
     const r = P.run; if (!r) return; const n = Date.now();
@@ -2499,7 +2500,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611152152', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611152156', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4052,7 +4053,7 @@
   var srPct = (a, b) => (b ? Math.round(((a - b) / b) * 100) : null);
   // 시간표 (11/2 «시간별로 내가 뭘 한지 나오잖아, 결과로 보여 주면 좋을 것 같아»): 월~일 칸에 몇 시에 무엇을 했는지 블록으로
   //   직접 잰 것(시작·끝, 토마토)은 과목 색, 앱에서 문제 푼 것은 답 시각을 8분 안쪽끼리 묶은 블록. 하루는 새벽 5시에 바뀌어요
-  var SR_C = { 국어: '#f59f00', 수학: '#3182f6', 영어: '#8b5cf6', 과학: '#03b26c', 사회: '#e8590c', 숙제: '#0ca5b0', '학원 숙제': '#0ca5b0', 책: '#ae3ec9', 오답: '#f04452', 단어: '#d6336c', 내신: '#5c7cfa', 자유: '#868e96', 앱: '#b0b8c1' };
+  var SR_C = { 한국사: '#9c6644', 국어: '#f59f00', 수학: '#3182f6', 영어: '#8b5cf6', 과학: '#03b26c', 사회: '#e8590c', 숙제: '#0ca5b0', '학원 숙제': '#0ca5b0', 책: '#ae3ec9', 오답: '#f04452', 단어: '#d6336c', 내신: '#5c7cfa', 자유: '#868e96', 앱: '#b0b8c1' };
   var srLD = (t) => srDay(t - 5 * 3600000);  // 새벽 0~5시는 전날로
   // 11/14 윤건: 숙제를 열면 저절로 재는데 끄는 걸 잊어 20시간짜리 칸이 생겨요 → 45분 넘는 칸은 그 안에서 마지막으로 문제를 푼 때까지만 쳐요 (고친 칸은 그대로)
   function srCut(x) {
@@ -5703,7 +5704,29 @@
     const v = $('#amb-vol'); if (v) v.oninput = () => ambVol(v.value / 100);
     $$('[data-mus]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); musPlay(b.dataset.mus); render(); }));
   }
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && P.run) pTick(); });
+  // 11/15 정윤 «아이패드에서 멈추는 거 까먹어서 잠금 화면에서 멈추기»: 웹앱은 잠금 화면에 시간·단추를 못 띄워요(라이브 액티비티는 앱스토어 앱만)
+  //   대신 앱을 나간 시각을 적어 두고, 15분 넘게 비웠다 돌아오면 그 시간을 뺄지 물어요. 종이로 공부했을 수도 있어 저절로 빼지는 않아요
+  const TM_AWAY = 15 * 60000;
+  function tmAwayMark() { const r = P.run; if (TEACHER || PEEK || !r || !r.watch || r.paused) return; P.awayAt = Date.now(); pSave(); }
+  function tmAwayAsk() {
+    const a = P.awayAt, r = P.run; if (!a) return; P.awayAt = null; pSave();
+    if (TEACHER || PEEK || !r || !r.watch || r.paused || a < r.t0) return;
+    const gap = Date.now() - a; if (gap < TM_AWAY) return;
+    const mn = Math.round(gap / 60000), txt = mn >= 60 ? `${Math.floor(mn / 60)}시간${mn % 60 ? ` ${mn % 60}분` : ''}` : `${mn}분`;
+    sheet(`<h2>${txt} 동안 앱 밖에 있었어요</h2><p class="sub">${esc(r.ti || r.subj)} 시간이 그동안에도 흘렀어요. 그때도 공부했어요?<br>아니면 앱을 나간 때까지만 남기고 멈춰요</p><div class="pm-btns"><button class="btn big" id="aw-cut" type="button">그 시간 빼고 멈추기</button><button class="btn primary big" id="aw-keep" type="button">계속 공부했어요</button></div>`, (el, close) => {
+      $('#aw-keep', el).onclick = () => { close(); toast('그대로 이어서 재요'); };
+      $('#aw-cut', el).onclick = () => {
+        close(); if (P.run !== r || r.paused) return;
+        const L = (S.slog = S.slog || {}), k = 'w' + r.t0;
+        if (a - r.t0 >= 60000) { r.acc += a - r.t0; r.seg.push([r.t0, a]); slogPut(r.t0, a, r.subj, 'w', r.ti); }  // 5분마다 늘려 둔 칸을 나간 때까지로 줄여요
+        else if (L[k] && !L[k].ed) L[k] = { ...L[k], del: 1, at: Date.now() };  // 1분도 안 되면 칸을 지워요 (키를 지우면 서버가 되살려서 del)
+        r.paused = true; pSave(); save('slog'); render(); pLoop(); toast(`${txt} 뺐어요 · 「이어 하기」로 다시 재요`);
+      };
+    });
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) return tmAwayMark(); if (P.run) pTick(); setTimeout(tmAwayAsk, 400); });
+  addEventListener('pagehide', tmAwayMark);
+  setTimeout(tmAwayAsk, 2500);  // 앱이 꺼졌다 다시 켜진 경우
   window.addEventListener('storage', (e) => { if (e.key !== PKEY) return; const cur = pRead(); if (cur) { P = Object.assign(P, cur); pLoop(); pRedraw(); } });
 
   // ───────── 말랑 용돈 ─────────
@@ -6319,6 +6342,9 @@
   // 규칙: 카드 다 넘기기 → 단어마다 ① 뜻 고르기 ② 영어 고르기 ③ 소리 조각 ④ 글자 ⑤ 뜻 쓰기 ⑥ 영어 쓰기 → 마지막 한 바퀴. 틀리면 한 단계 내려가 두 번 연속 맞혀야 올라가고 두 문제 뒤에 다시 나와요
   //   다음 날은 ⑤부터(전날 틀린 단어는 ③·④부터). 외운 단어 = 마지막 한 바퀴를 서로 다른 이틀 이상 맞히고 마지막에도 맞힌 것
   const LVJ = JUA.lv || null;
+  // 11/15 «주아 말이야 그림을 넣어 주는 건 어때?!» 단어마다 Tossface 그림 (표에 없는 단어는 그림 없이)
+  const LVPIC = JUA.lvpic || {};
+  const lvPic = (w, cls = '') => (w && LVPIC[w.en] ? ic(LVPIC[w.en], 'lv-pic' + (cls ? ' ' + cls : '')) : '');
   const LV_ST = ['카드 보고 외우기', '뜻 고르기', '영어 고르기', '소리 조각 맞추기', '글자 맞추기', '뜻 쓰기', '영어 쓰기', '마지막 한 바퀴'];
   const LV_NO = ['🃏', '①', '②', '③', '④', '⑤', '⑥', '★'];
   const lvS = () => (S.lv = S.lv || {});
@@ -6508,7 +6534,7 @@
     const T = lvTest(r.test), P = lvPlan(T, r.date, r.part), before = new Set(T.plan.filter((x) => x.date < P.date).flatMap((x) => x.days)), all = lvAll(P.days), d = lvDay(r);
     const seenAll = d.seen || all.every((w) => r.seen[w.en]), n = all.filter((w) => r.seen[w.en]).length;
     const goal = r.once ? '수업에서는 한 번만 봐요 · 카드로 한 번 보고 → 단어마다 뜻 고르기 한 번' : P.mock ? '카드로 한 번 보고 → 덜 외운 단어 데우기 → 시험지 그대로 모의시험 40문제 → 틀린 것 다시 외우고 다시 시험' : '카드 보기 → 네 단어씩: 뜻 고르기 한 번 → 소리 조각 → 뜻 쓰기 2번 → 영어 쓰기 3번(앞글자 힌트 → 힌트 없이) → 마지막에 학원 시험지 그대로';
-    const sec = (dy) => { const L = all.filter((w) => w.day === dy), nw = !before.has(dy); return `<div class="lv-sec"><div class="row between"><b>Day ${dy} · ${nw ? '새 단어' : '배운 단어'}</b><span class="tiny">${L.length}개</span></div><div class="lv-cards">${L.map((w, k) => `<div class="lv-card ${r.seen[w.en] ? 'seen' : ''}" data-lvflip="${esc(w.en)}" role="button" tabindex="0" style="--i:${Math.min(k, 20)}"><div class="lv-in3"><div class="lv-f lv-front">${lvChunks(w)}<span class="tiny lv-hint">눌러서 뜻 보기</span></div><div class="lv-f lv-back"><b>${esc(w.k)}</b><span class="tiny">${esc(w.ko)}</span></div></div>${lvSay(w)}<i class="lv-ck"></i></div>`).join('')}</div></div>`; };
+    const sec = (dy) => { const L = all.filter((w) => w.day === dy), nw = !before.has(dy); return `<div class="lv-sec"><div class="row between"><b>Day ${dy} · ${nw ? '새 단어' : '배운 단어'}</b><span class="tiny">${L.length}개</span></div><div class="lv-cards">${L.map((w, k) => `<div class="lv-card ${r.seen[w.en] ? 'seen' : ''}" data-lvflip="${esc(w.en)}" role="button" tabindex="0" style="--i:${Math.min(k, 20)}"><div class="lv-in3"><div class="lv-f lv-front">${lvPic(w)}${lvChunks(w)}<span class="tiny lv-hint">눌러서 뜻 보기</span></div><div class="lv-f lv-back"><b>${esc(w.k)}</b><span class="tiny">${esc(w.ko)}</span></div></div>${lvSay(w)}<i class="lv-ck"></i></div>`).join('')}</div></div>`; };
     return `<div class="qwrap lv" style="max-width:760px;margin:0 auto">${lvHead(r)}${lvSteps(r)}<h1 class="h1">${esc(lvPlanLabel(T, P))}</h1><p class="sub" style="margin:0">${md(P.date)} ${esc(wdName(P.date))} 몫 · ${esc(lvNth(r) && lvNth(r) <= 4 && !r.once ? `${lvNth(r)}단계 ${LV_STEP[lvNth(r) - 1]} · ${lvStepGoal(r, lvNth(r))}` : goal)}</p>${lvTop(r)}
       <section class="card"><div class="row between"><h3 style="margin:0">먼저 카드 보기</h3><span class="lv-hr"><span class="tiny lv-cnt"><b class="num">${seenAll ? all.length : n}</b> / ${all.length} 봤어요</span><button type="button" class="btn sm lv-all" data-lvflipall>전체 뒤집기</button></span></div><p class="tiny" style="margin:6px 0 0">색 글자는 소리 덩어리예요. 🔊 를 누르면 소리가 나요. 카드를 누르면 뒤집혀요</p>${[...new Set(all.map((w) => w.day))].map(sec).join('')}</section>
       <div class="cta-bar"><button class="btn primary big block lv-golist ${seenAll ? 'ready' : ''}" data-lvgo type="button" ${seenAll ? '' : 'aria-disabled="true"'}>${seenAll ? (d.seen && (d.n || lvS()['mk:' + lvKey(r)]) ? '이어서 하기' : P.mock ? '다 봤어요 · 시험 준비 시작' : '다 봤어요 · 게임 시작') : `카드 ${all.length - n}장 더 넘겨 봐요`}</button></div></div>`;
@@ -6551,14 +6577,14 @@
     let fbh = '';
     if (fb) {
       const mine = fb.typed && (s >= 3) && (!fb.ok || V) ? `<p class="lv-mine">내 답 ${fb.ok ? `<b>${esc(fb.typed)}</b>` : `<s>${esc(fb.typed)}</s>`}</p>` : '';
-      fbh = `<div class="lv-fb">${fb.ask ? `<div class="verdict no">${ic('think')}<span>정답과 달라요. 같은 뜻으로 썼나요?</span></div>` : verdict(fb.ok)}<div class="lv-rev card">${lvChunks(w, 'big')}${lvSay(w)}<b class="lv-ko2">${esc(w.k)}</b><span class="tiny">${esc(w.ko)}</span>${mine}${!V && r.up === c.en && !c.lap ? `<span class="lv-upt">${LV_NO[Math.min(r.W[c.en].s, 7)]} ${r.W[c.en].s >= 7 ? '여섯 단계 끝! 마지막 한 바퀴에서 또 나와요' : '다음 단계로 올라가요'}</span>` : ''}${!V && !fb.ok && !fb.ask ? `<span class="lv-upt no">${r.learn ? '다음 단어 하나 뒤에 카드로 다시 보고 풀어요' : '조금 뒤에 다시 나와요 · 두 번 연속 맞히면 올라가요'}</span>` : ''}</div>
+      fbh = `<div class="lv-fb">${fb.ask ? `<div class="verdict no">${ic('think')}<span>정답과 달라요. 같은 뜻으로 썼나요?</span></div>` : verdict(fb.ok)}<div class="lv-rev card">${lvPic(w, 'lv-pic-rev')}${lvChunks(w, 'big')}${lvSay(w)}<b class="lv-ko2">${esc(w.k)}</b><span class="tiny">${esc(w.ko)}</span>${mine}${!V && r.up === c.en && !c.lap ? `<span class="lv-upt">${LV_NO[Math.min(r.W[c.en].s, 7)]} ${r.W[c.en].s >= 7 ? '여섯 단계 끝! 마지막 한 바퀴에서 또 나와요' : '다음 단계로 올라가요'}</span>` : ''}${!V && !fb.ok && !fb.ask ? `<span class="lv-upt no">${r.learn ? '다음 단어 하나 뒤에 카드로 다시 보고 풀어요' : '조금 뒤에 다시 나와요 · 두 번 연속 맞히면 올라가요'}</span>` : ''}</div>
         ${V ? '<button class="btn primary big block" data-lvview="" type="button">지금 문제로 돌아가기 ›</button>' : fb.ask ? `<div class="pm-btns"><button class="btn big" data-lvself="0" type="button">틀렸어요</button><button class="btn primary big" data-lvself="1" type="button">같은 뜻이에요</button></div>` : `<button class="btn ${fb.ok ? '' : 'primary'} big block" data-lvnext type="button">${fb.ok ? '다음' : '알겠어요 · 다음'}</button>`}</div>`;
     }
     const done = (en) => !r.q.includes(en) && !r.lap.includes(en);
     const nums = `<div class="lv-nums" role="list">${r.words.map((x, k) => { const W = r.W[x.en], lv = W ? Math.min(7, W.s) : 7;
       return `<button type="button" class="${x.en === c.en ? 'on' : ''} ${done(x.en) ? 'ok' : ''}" style="--lv:${lv};--p:${done(x.en) ? 100 : !W ? 100 : r.seq ? Math.round((Math.max(0, r.seq.indexOf(W.s)) / r.seq.length) * 100) : Math.round(((Math.min(7, W.s) - 1) / 6) * 100)}%" data-lvnum="${k}" aria-label="${k + 1}번 ${esc(x.en)}"><i class="lv-wat" aria-hidden="true"></i><span>${k + 1}</span></button>`; }).join('')}</div><p class="tiny lv-nums-l">맞힐 때마다 물이 차올라요 · 가득 차면 그 단어는 끝 · 번호를 누르면 풀었던 화면을 봐요</p>`;
     if (s === 0 && !V) { const fl = r.flip === c.en, k = r.words.findIndex((x) => x.en === c.en) + 1, re = (r.W[c.en] || {}).re;
-      const card = `<div class="lv-card lv-solo ${fl ? 'flip' : ''}" data-lvsolo role="button" tabindex="0"><div class="lv-in3"><div class="lv-f lv-front">${lvChunks(w, 'big')}<span class="tiny lv-hint">눌러서 뜻 보기</span></div><div class="lv-f lv-back"><span class="lv-solo-en">${esc(lvSp(w)[0])}</span><b>${esc(w.k)}</b><span class="tiny">${esc(w.ko)}</span></div></div>${lvSay(w)}</div>`;
+      const card = `<div class="lv-card lv-solo ${fl ? 'flip' : ''}" data-lvsolo role="button" tabindex="0"><div class="lv-in3"><div class="lv-f lv-front">${lvPic(w, 'lv-pic-solo')}${lvChunks(w, 'big')}<span class="tiny lv-hint">눌러서 뜻 보기</span></div><div class="lv-f lv-back"><span class="lv-solo-en">${esc(lvSp(w)[0])}</span><b>${esc(w.k)}</b><span class="tiny">${esc(w.ko)}</span></div></div>${lvSay(w)}</div>`;
       return `<div class="qwrap lv" style="max-width:640px;margin:0 auto">${lvHead(r, esc(ttl)).replace('</span></div>', '</span>' + back + '</span></div>').replace('<span class="tiny">', '<span class="lv-hd-r"><span class="tiny">')}${lvSteps(r)}${hud}${nums}<div class="row between lv-lab"><span class="lv-stg">${k}번째 단어 · ${re ? '한 번 더 보고 외워요' : '카드를 뒤집어 뜻을 외워요'}</span></div>${card}
         <p class="tiny lv-solo-t">${fl ? '소리 내어 두 번 읽고, 뜻을 머릿속으로 말해 봐요' : '영어를 먼저 소리 내어 읽고 뒤집어요'}</p><div class="cta-bar"><button class="btn primary big block lv-solo-go ${fl ? 'ready' : ''}" data-lvlearn type="button" ${fl ? '' : 'aria-disabled="true"'}>${fl ? '외웠어요 · 바로 문제' : '카드를 눌러 뒤집어요'}</button></div></div>`; }
     return `<div class="qwrap lv" style="max-width:640px;margin:0 auto">${lvHead(r, esc(ttl)).replace('</span></div>', '</span>' + back + '</span></div>').replace('<span class="tiny">', '<span class="lv-hd-r"><span class="tiny">')}${lvSteps(r)}${hud}${nums}${V ? `<div class="lv-viewb">${r.words.findIndex((x) => x.en === c.en) + 1}번 · 내가 풀었던 화면이에요</div>` : lab}<section class="card lv-q">${prompt}${V ? '' : lvHint(r, w, c)}</section>${body}${fbh}</div>`;
@@ -8612,7 +8638,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152152'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152156'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -10251,18 +10277,31 @@
   // 11/8 정윤 «앱에서 할 수 있는 건(신문·오답·단어·빈칸) 시작 안 눌러도 숙제 하러 들어가면 알아서 시작되고 나오면 멈췄으면»
   //   손으로 켠 타이머가 돌고 있으면 건드리지 않아요. 저절로 켠 것(auto)만 나오면 멈춰 둬요 (「이어 하기」로 다시 이어져요)
   const TM_SKIP = new Set(['wallet', 'pomo', 'print', 'book', 'qa', 'qna']);
+  // 11/15 정윤 «다 눌러도 한국사 하나로»: 기말 예습·2회독은 덩어리 id 가 cid(올림포스 실전은 mid)에 있는데 열쇠가 id·unit·ref 만 봐서
+  //   국어·영어·한국사가 다 'auto:fin:' 하나로 묶여 처음 연 한국사 이름으로 이어 쟀어요. 덩어리마다 열쇠·이름·과목을 따로 붙여요
+  function autoTmMeta(R) {
+    if (!R) return { id: '', ti: null, subj: undefined };
+    const id = [R.id, R.cid, R.mid, R.map, R.unit, R.ref, R.day, R.lib].find((v) => v != null && v !== '');
+    const h1 = (($('main .h1') || {}).textContent || '').trim().slice(0, 30);
+    let ti = null, subj;
+    if (R.kind === 'r2s') { const x = r2sOf(R.cid); if (x) { ti = `${r2sNm(x)} ${r2sRd(x.sj)} · ${x.x.title}`; subj = tmSubj(r2sNm(x)); } }
+    else if (R.kind === 'fin' && R.cid) { const c = FIN_ALL.find((y) => y.id === R.cid); if (c) { ti = `${c.subj === 'eng' ? '올림포스 지문' : c.sname + ' 기말 예습'} · ${c.title}`; subj = c.subj === 'eng' ? '영어' : tmSubj(c.sname); } }
+    else if (R.kind === 'r2' || R.kind === 'r3') { ti = `올림포스 ${R.kind === 'r2' ? 2 : 3}회독 · ${h1}`; subj = '영어'; }
+    else if (R.kind === 'r3m') subj = '영어';
+    return { id: id == null ? '' : String(id), ti, subj };
+  }
   function autoTm() {
     if (TEACHER || PEEK || ROLE_T) return;
     const R = UI.run, inApp = (R && !TM_SKIP.has(R.kind)) || (UI.tab === 'study' && UI.stU && UI.stV === 'unit');
     if (document.hidden) return;
-    if (!autoTm.swept) { autoTm.swept = 1; const h0 = (P.held || []).length; P.held = (P.held || []).filter((x) => !(x.auto && pWatchSec(x) < 60)); if (P.held.length !== h0) pSave(); }  // 켜졌다 바로 멈춘 자투리(1분 안 됨)는 치워요
+    if (!autoTm.swept) { autoTm.swept = 1; const h0 = (P.held || []).length; P.held = (P.held || []).filter((x) => !(x.auto && (pWatchSec(x) < 60 || /^auto:[a-z0-9]+:$/.test(tkOf(x)))));  /* 11/15 예전 묶인 열쇠(auto:fin: 등)는 칸이 이미 slog 에 있어 치워요 */ if (P.held.length !== h0) pSave(); }  // 켜졌다 바로 멈춘 자투리(1분 안 됨)는 치워요
     const cur = P.run && !P.run.paused ? P.run : null;
     if (!inApp) { if (cur && cur.auto && autoTm.mine === tkOf(cur)) { autoTm.mine = null; tmHold(); pSave(); } return; }
     const hw = UI.hwRun && (S.hw || []).find((x) => x.id === UI.hwRun.id);
-    const tk = hw ? 'hw:' + hw.id : 'auto:' + (R ? `${R.kind}:${R.id || R.unit || R.ref || ''}` : `st:${UI.stU}`);
+    const am = autoTmMeta(R), tk = hw ? 'hw:' + hw.id : 'auto:' + (R ? `${R.kind}:${am.id}` : `st:${UI.stU}`);
     if (cur && (!cur.auto || tkOf(cur) === tk)) { if (cur.auto) autoTm.mine = tk; return; }
-    const ti = hw ? hw.title : R && R.kind === 'news' ? '소식 읽기' : R && R.kind === 'nx' && NXSETS[R.id] ? NXSETS[R.id].title : R && R.kind === 'unit' ? '천일문' : R && R.kind === 'retry' ? '오답 다시 풀기' : R && R.kind === 'words' ? '단어' : (($('main .h1') || {}).textContent || '공부').trim().slice(0, 30);
-    tmStart(tk, ti, undefined, true); if (P.run && tkOf(P.run) === tk) { P.run.auto = 1; autoTm.mine = tk; pSave(); }
+    const ti = hw ? hw.title : am.ti ? am.ti : R && R.kind === 'news' ? '소식 읽기' : R && R.kind === 'nx' && NXSETS[R.id] ? NXSETS[R.id].title : R && R.kind === 'unit' ? '천일문' : R && R.kind === 'retry' ? '오답 다시 풀기' : R && R.kind === 'words' ? '단어' : (($('main .h1') || {}).textContent || '공부').trim().slice(0, 30);
+    tmStart(tk, ti, hw ? undefined : am.subj, true); if (P.run && tkOf(P.run) === tk) { P.run.auto = 1; autoTm.mine = tk; pSave(); }
   }
   // 11/8 «오늘 만약 정윤이가 다 하면 정말정말정말 잘했다고 팡팡 같은 걸 주면 좋을 것 같아»: 오늘 할 일을 하나도 안 빼고 다 끝낸 순간 한 번, 큰 축하 (하루 한 번, 모든 학생)
   function allDoneCheck() {
