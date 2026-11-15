@@ -5194,14 +5194,3 @@ textarea.inp.bn-ta { min-height: 360px; font-size: 16px; line-height: 1.8; resiz
 .lv-back .lv-pic-bk { width: 28px; height: 28px; }
 .lv-solo .lv-back .lv-pic-bk { width: 44px; height: 44px; }
 .lv-card:not(.lv-solo) .lv-back { padding-top: 22px; gap: 4px; }
-
-/* 11/15 매일 기말 예습: 과목마다 회독 줄 */
-.fin-rd { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-.fin-rd-i { font-size: 12px; font-weight: 600; line-height: 1; padding: 5px 8px; border-radius: 8px; background: rgba(2, 32, 71, .05); color: #4e5968; }
-.fin-rd-i.on { background: rgba(49, 130, 246, .1); color: #1b64da; }
-.fin-rd-i.ok { background: rgba(3, 163, 95, .1); color: #03a35f; }
-.fin-rd-i.wait { color: #8b95a1; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .fin-rd-i { background: rgba(255, 255, 255, .06); color: #b0b8c1; } :root:not([data-theme="light"]) .fin-rd-i.on { color: #4d9bff; } :root:not([data-theme="light"]) .fin-rd-i.ok { color: #2fd18a; } }
-:root[data-theme="dark"] .fin-rd-i { background: rgba(255, 255, 255, .06); color: #b0b8c1; }
-:root[data-theme="dark"] .fin-rd-i.on { color: #4d9bff; }
-:root[data-theme="dark"] .fin-rd-i.ok { color: #2fd18a; }

@@ -2515,7 +2515,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611152252', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611152305', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2835,12 +2835,15 @@
   }
   // 11/15 «정윤이 1회차 2회차 3회차를 시킨 것 같은데» → 과목마다 몇 회독째인지 카드에 한 줄로 보여요
   function finRounds(sj, k1, n1) {
-    const t = today(), one = (nm, L, isD, first) => { if (!L.length) return ''; const k = L.filter(isD).length, st = L.reduce((m, x) => (x.day < m ? x.day : m), L[0].day);
-      return `<span class="fin-rd-i ${k >= L.length ? 'ok' : st > t ? 'wait' : 'on'}">${nm} ${k >= L.length ? '끝' : st > t ? `${md(st)}부터` : `${k}/${L.length}`}</span>`; };
-    const R = [`<span class="fin-rd-i ${k1 >= n1 ? 'ok' : 'on'}">1회독 ${k1 >= n1 ? '끝' : `${k1}/${n1}`}</span>`];
-    if (sj === 'eng') R.push(one('2회독', R2, (x) => !!r2DoneDay(x)), one('3회독', R3, (x) => !!r3DoneDay(x)), one('실전', R3M, (z) => !!mkGet(z.id).fin));
-    else { R.push(one('2회독', R2S.filter((x) => x.sj === sj), (x) => !!r2sDoneDay(x))); if (sj === 'hist') R.push(one('백지 노트', BN, (x) => !!bnDoneDay(x))); }
-    return `<div class="fin-rd">${R.join('')}</div>`;
+    // 11/15 «윤건이는 되게 보기 편하게 잘해 놨던데» → 윤건이 「학교 내신 공부」 회독 줄(yf-rs) 꼴 그대로: 회차 · 무엇 · 한 것/전체 · 끝나는 날 · 기말 며칠 전
+    const t = today(), gapOf = (d) => Math.round((new Date(EB_EXAM + 'T00:00:00') - new Date(d + 'T00:00:00')) / 864e5);
+    const line = (n, w, k, N, end, st) => { const fin = k >= N, g = fin ? 0 : gapOf(end);
+      return `<span class="yf-r ${fin ? 'on' : ''}"><b>${n}</b><i>${w}</i>${fin ? '끝 ✓' : `<span class="num">${k}/${N}</span> · ${st && st > t ? `${+st.slice(5, 7)}/${+st.slice(8)}부터 · ` : ''}${+end.slice(5, 7)}/${+end.slice(8)} · ${g > 0 ? `기말 <b class="num">${g}일</b> 전` : '<b class="red">기말보다 늦어요</b>'}`}</span>`; };
+    const of = (n, w, L, isD) => { if (!L.length) return ''; const ds = L.map((x) => x.day).sort(); return line(n, w, L.filter(isD).length, L.length, ds[ds.length - 1], ds[0]); };
+    const z = finLag(sj), R = [line('1회독', '예습', k1, n1, z ? z.end : t)];
+    if (sj === 'eng') R.push(of('2회독', '원문', R2, (x) => !!r2DoneDay(x)), of('3회독', '변형', R3, (x) => !!r3DoneDay(x)), of('실전', '시험지', R3M, (m) => !!mkGet(m.id).fin));
+    else { R.push(of('2회독', '시험 꼴', R2S.filter((x) => x.sj === sj), (x) => !!r2sDoneDay(x))); if (sj === 'hist') R.push(of('백지', '노트', BN, (x) => !!bnDoneDay(x))); }
+    return `<div class="yf-rs">${R.join('')}</div>`;
   }
   function finCard() {
     if (!FIN_ON) return '';
@@ -8754,7 +8757,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152252'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152305'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
