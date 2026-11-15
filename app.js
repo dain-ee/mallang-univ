@@ -2458,7 +2458,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611151815', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611151829', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7501,7 +7501,7 @@
   // ───────── 윤건 수업 시험 (11/3) ─────────
   // 범위는 S.jwt[날짜] = { units: [천일문 유닛], days: [워드마스터 Day], m3: [매3영 Day], n, wn, mn } · 선생님 말 듣고 바로 바꿔요
   // 11/15 선생님 «윤건이 오늘 매3영 빼고 7과 본문 중하로 20개 … 두 개 넣어 봐 중하 20개 중 20개» → 그날 매3영 시험 빼고, 7과 본문 문제 두 묶음(NXD.rq)을 수업에
-  const YG_JWT_FIX = { '2026-11-15': { m3: [], rq: ['e7r1', 'e7r2'] } };
+  const YG_JWT_FIX = { '2026-11-15': { m3: [], rq: ['e7r2'] } };  // 11/15 «학교 문제 꼴만 해, 중하 없애 줘» → 중 20(e7r2)만
   const ygPlan = (date) => { const o = { ...(((LS0.tests || {})[date]) || {}), ...(((S.jwt || {})[date]) || {}), ...(YG_JWT_FIX[date] || {}) }; return { units: (o.units || []).length ? o.units.map(Number) : null, days: (o.days || []).length ? o.days.map(Number) : null, m3: (o.m3 || []).length ? o.m3.map(Number) : null, tu: (o.tu || []).length ? o.tu.map(Number) : null, gr: (o.gr || []).length ? o.gr.map(String) : null, gt: (o.gt || []).length ? o.gt.map(String) : null, tx: (o.tx || []).length ? o.tx.map(String) : null, off: o.off || [], rq: (o.rq || []).map(String), n: o.n || 15, wn: o.wn || 20, mn: o.mn || 10 }; };
   const M3U = () => ((NXD.subjects || []).find((x) => x.key === 'm3') || {}).units || [];
   // 11/12 «이번엔 천일문 시험이 아니라 지난 수업 7과 문법으로 · 개념 물어보는 거 한 문제 · 한 과에 문법이 2개 있는데 한 판에 있는 걸 한 문제로»
@@ -8535,7 +8535,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611151815'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611151829'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
