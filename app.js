@@ -2515,7 +2515,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611152249', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611152252', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3158,7 +3158,7 @@
       const open = !!A.rc;
       return wrap(`${seg}<section class="card st-sec r2-rc"><div class="st-kick">① 내용 떠올리기</div><h2>이 글이 무슨 내용이었는지 먼저 떠올려 봐요</h2><p class="sub" style="margin:0 0 16px">책을 보지 말고 요지와 글의 흐름을 우리말로 말해 봐요. 다 떠올린 다음에 눌러서 맞춰 봐요</p>
         ${open ? `<div class="ls-box r2-gist"><b>요지</b><p>${esc(X.gist || '')}</p></div><ol class="r2-flow">${[].concat(X.flow || []).map((t, i) => `<li style="--i:${i}"><span class="ls-n">${i + 1}</span><p>${esc(t)}</p></li>`).join('')}</ol><div class="row wrap" style="gap:8px;margin-top:16px">${r1Btn}<button class="btn sm" data-r2ana type="button">${ic('score')} 지난 시험 분석 보기</button></div>` : `<button class="r2-veil" data-r2rc type="button">${ic('think')}<b>다 떠올렸어요</b><span>눌러서 요지와 흐름 확인하기</span></button>`}</section>
-        ${r2AskDone() ? '' : `<button type="button" class="ts-band gd-card r2-ban" data-r2askb style="width:100%;margin-top:12px"><span class="ts-band-ic">${ic('write')}</span><span class="ts-band-t"><b>선생님께 알려 주면 더 정확해져요</b><span>영어 시험 날짜, 범위, 중간고사 틀린 번호 네 가지만 적어 주세요</span></span><span class="ts-band-go">적기</span></button>`}
+        ${r2AskDone() || gdHas('r2q') ? '' : `<button type="button" class="ts-band gd-card r2-ban" data-r2askb style="width:100%;margin-top:12px"><span class="ts-band-ic">${ic('write')}</span><span class="ts-band-t"><b>선생님께 알려 주면 더 정확해져요</b><span>영어 시험 날짜, 범위, 중간고사 틀린 번호 네 가지만 적어 주세요</span></span><span class="ts-band-go">적기</span></button>`}
         ${open ? '<div class="cta-bar"><button class="btn primary big block" data-r2go="rd" type="button">다음: 원문 다시 읽기 ›</button></div>' : ''}`);
     }
     if (st === 'rd') return wrap(`${seg}<div class="row between" style="margin:0 0 8px;gap:8px"><p class="sub" style="margin:0">② 원문을 한 문장씩 가볍게 훑어봐요. 3분이면 돼요</p>${A.rd ? '' : '<button class="btn sm" data-r2go="q" type="button" style="flex:none">건너뛰기 ›</button>'}</div>${tools}${orig}<div class="cta-bar"><button class="btn primary big block" data-r2go="q" type="button">${A.rd && auto !== 'q' ? '다음 ›' : `다 읽었어요 · 변형 문제 ${qs.length}개 풀기 ›`}</button></div>`);
@@ -8754,7 +8754,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152249'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152252'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
