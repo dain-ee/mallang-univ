@@ -5131,6 +5131,13 @@ textarea.inp.r2-ta { min-height: 88px; }
 .r2s-rules span { font-size: 14px; color: var(--t2); line-height: 1.55; }
 .r2s-warm { font-style: normal; font-weight: 700; color: #e5503c; }
 .r2s-cold { font-style: normal; font-weight: 700; color: #2f6fe0; }
+/* 11/15 정윤 한국사 백지 노트 (bn): 2회독 화면 그대로, 큰 글쓰기 칸과 단계 바뀔 때 움직임만 */
+textarea.inp.bn-ta { min-height: 360px; font-size: 16px; line-height: 1.8; resize: vertical; }
+@media (max-width: 600px) { textarea.inp.bn-ta { min-height: 240px; } }
+.bn-note { margin: 4px 0 0; white-space: pre-wrap; line-height: 1.8; }
+.bn-in { animation: waveIn .45s cubic-bezier(.2,.8,.2,1) both; }
+.bn-in .r2s-pt, .bn-in .r2-flow li { animation: waveInS .4s ease both; animation-delay: calc(var(--i, 0) * 45ms + 80ms); }
+@media (prefers-reduced-motion: reduce) { .bn-in, .bn-in .r2s-pt, .bn-in .r2-flow li { animation: none; } }
 
 /* 11/15 해류 지도 놀이 */
 .cm-tabs { margin: 0 0 12px; }

@@ -413,6 +413,10 @@
   const R2S_ON = true;  // 11/15 올해 시험지 꼴로 고친 국어 K·통합사회 S·한국사 A 를 켜요
   const R2S = !R2_ON || !R2S_ON ? [] : Object.entries(R2S_SUBJ).flatMap(([sj, m]) => ((D.r2s || {})[sj] || []).filter((x) => x && x.id && Array.isArray(x.qs) && x.qs.length && x.recall).map((x) => { const d = new Date(m.start + 'T00:00:00'); d.setDate(d.getDate() + Math.max(0, (parseInt(String(x.id).replace(/\D/g, ''), 10) || 1) - 1)); return { id: x.id, sj, x, day: fmtDay(d), cs: (x.cids || []).map((id) => FIN_ALL.find((c) => c.id === id)).filter(Boolean) }; }));
   const r2sEnd = (sj) => R2S.reduce((m, x) => (x.sj === sj && x.day > m ? x.day : m), '');
+  // 11/15 한국사 백지 노트: 정윤 «한국사는 애들 다 백지 노트 하는 게 제일 도움 된다는데, 컴터에서 백지 노트를 할 수 있나» · 선생님 «1부터 겹쳐서 해도 돼, 어차피 복습이니까» → 2회독과 따로 A1부터 하루 하나
+  const BN_START = '2026-11-16', BN_MAX = 4000;
+  const BN = ((D.r2s || {}).hist || []).filter((x) => x && x.id && x.recall).map((x) => { const d = new Date(BN_START + 'T00:00:00'); d.setDate(d.getDate() + Math.max(0, (parseInt(String(x.id).replace(/\D/g, ''), 10) || 1) - 1)); return { id: x.id, sj: 'hist', x, day: fmtDay(d) }; });
+  const bnEnd = () => BN.reduce((m, x) => (x.day > m ? x.day : m), '');
   function r2Ends() {  // 2회독 끝 디데이: 같은 날 끝나는 과목은 한 줄로 묶어요 (디데이 칸이 길어지지 않게)
     const L = [...(R2.length ? [['영어', R2.reduce((m, x) => (x.day > m ? x.day : m), '')]] : []), ...Object.keys(R2S_SUBJ).filter((sj) => r2sEnd(sj) && !R2S_SUBJ[sj].rd).map((sj) => [R2S_SUBJ[sj].name, r2sEnd(sj)])], by = {};
     for (const [n, d] of L) (by[d] = by[d] || []).push(n);
@@ -954,7 +958,7 @@
     // 기말 개념은 과목마다 한 줄, 맨 위에 (한국사가 섞여 안 보인다고 해서 10/26)
     if (FIN_ON) tasks.unshift(...mapToday().map((m) => { const N = mapN(m); return { k: 'map:' + m.id, icon: 'scroll', t: `한국사 한눈에 정리 · ${mapShort(m)}`, d: mapDone(m) ? `${N.ok}/${N.n} 맞혔어요` : `소단원 흐름 그림 빈칸 ${N.n}개 · ${N.k}/${N.n}`, done: mapDone(m) }; }));
     if (FIN_ON) { const L = finToday(), subs = [...new Set(L.map((c) => c.subj))].sort((x, y) => (y === 'hist') - (x === 'hist')); tasks.unshift(...subs.map((sj) => { const M = L.filter((c) => c.subj === sj), n = M.filter(finDone).length, due = FIN_DUE[sj]; return { k: 'fin:' + sj, icon: sj === 'hist' ? 'scroll' : 'books', t: sj === 'eng' ? `올림포스 지문 ${M.length}개` : `${M[0].sname} 기말 예습 ${M.length}개`, d: n >= M.length ? '오늘 것 끝' : `${M.slice(0, 2).map((c) => c.title).join(', ')}${M.length > 2 ? ` 외 ${M.length - 2}개` : ''}`, tg: [n && n < M.length ? [`${n}/${M.length}`, 'blue'] : null], done: n >= M.length, late: !!(finLag(sj) || {}).n }; })); }
-    if (R2S.length) tasks.unshift(...r2sTasks());  // 11/15 국어·통합사회 2회독 (영어 줄 아래)
+    if (R2S.length || BN.length) tasks.unshift(...(R2S.length ? r2sTasks() : []), ...bnTasks());  // 11/15 한국사 백지 노트는 2회독 줄 아래 따로  // 11/15 국어·통합사회 2회독 (영어 줄 아래)
     if (R3.length || R3M.length) tasks.unshift(...r3Tasks());  // 11/15 올림포스 3회독·실전 (2회독 밀린 줄 바로 아래)
     if (R2.length) tasks.unshift(...r2Tasks());  // 11/14 올림포스 2회독: 지문마다 한 줄, 맨 위에
     // 매일 영어 계획(PF) 기간엔 천일문이 계획 쪽에 Unit 41부터 들어가요 (10/31)
@@ -2331,6 +2335,7 @@
     for (const c of FIN_ALL) if (finDoneDay(c) === d) { const q = c.page || c.text ? null : finPicked(c); out.push({ i: c.subj === 'hist' ? 'scroll' : 'books', t: `${c.subj === 'eng' ? '올림포스 지문' : c.sname + ' 기말 예습'} · ${c.title}`, d: q ? `${q}문제 풀었어요 · 눌러서 다시 보기` : '끝냈어요 · 눌러서 다시 보기', go: 'fincid:' + c.id }); }
     for (const x of R2) if (r2DoneDay(x) === d) { const A = r2Get(x.id), n = x.x.qs.length, ok = x.x.qs.filter((q, i) => A['q' + i] && A['q' + i].ok).length; out.push({ i: 'eng', t: `올림포스 2회독 · ${r2Short(x)}`, d: `${ok}/${n} 맞힘 · 끝냈어요${x.day < d ? ` · ${md(x.day)} 몫` : ''} · 눌러서 다시 보기`, late: x.day < d, go: 'r2:' + x.id }); }
     for (const x of R3) if (r3DoneDay(x) === d) out.push({ i: 'eng', t: `올림포스 3회독 · ${r2Short(x)}`, d: `${r3OkN(x)}/${x.x.qs.length + 1} 맞힘 · 끝냈어요${x.day < d ? ` · ${md(x.day)} 몫` : ''} · 눌러서 다시 보기`, late: x.day < d, go: 'r3:' + x.id });
+    for (const x of BN) if (bnDoneDay(x) === d) out.push({ i: 'scroll', t: `한국사 백지 노트 · ${x.x.title}`, d: `${bnPts(x).length}개 중 ${bnN(x)}개 떠올림 · 끝냈어요${x.day < d ? ` · ${md(x.day)} 몫` : ''} · 눌러서 다시 보기`, late: x.day < d, go: 'bn:' + x.id });  // 11/15 백지 노트
     for (const x of R2S) if (r2sDoneDay(x) === d) out.push({ i: R2S_SUBJ[x.sj].ic, t: `${r2sNm(x)} 2회독 · ${x.x.title}`, d: `${r2sOkN(x)}/${x.x.qs.length} 맞힘 · 끝냈어요${x.day < d ? ` · ${md(x.day)} 몫` : ''} · 눌러서 다시 보기`, late: x.day < d, go: 'r2s:' + x.id });
     for (const z of R3M) { const f = mkGet(z.id).fin; if (f && atDay(f.at) === d) out.push({ i: 'score', t: `올림포스 실전 ${z.no}회`, d: `${f.sc}점 · ${f.ok}/${z.m.qs.length} 맞힘${z.day < d ? ` · ${md(z.day)} 몫` : ''} · 눌러서 결과 보기`, late: z.day < d, go: 'r3m:' + z.id }); }
     for (const it of myS().items) { const x = (it.log || {})[d]; if (x && (x.n || it.unit === '건')) out.push({ i: 'write', t: it.book, d: `${myCls(it.cls).name}${x.n && it.unit !== '건' ? ` · ${x.n}${it.unit === '쪽' ? '쪽' : '문제'}` : ' · 끝냄'}`, go: 'my:' + it.id }); }
@@ -2345,7 +2350,7 @@
   const ypAt = (it) => { const a = nxS().a; if (it.p === 'ch') return (a[it.id] || {}).at || 0; let m = 0; for (const q of it.qs || []) { const v = a[q.i]; if (v && v.at > m) m = v.at; } return m; };
   function calDone(d) { const out = dayItems(d).filter((x) => x.i !== 'clock' && x.i !== 'tomato'); /* 공부 시간·토마토는 숙제가 아니라 빼요 */ for (const it of YP) if (ypDone(it)) { const at = ypAt(it); if (at && atDay(at) === d) { const g = NXSETS[it.id] ? nxProg(NXSETS[it.id]) : null; out.push({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 끝냈어요${g && it.p !== 'ch' ? ` · ${g.ok}/${g.n} 맞힘` : ''}${it.day < d ? ` · ${md(it.day)} 몫` : ''}`, go: it.id }); } } return out; }
   // 그날 몫인데 못 한 것: 윤건 기말 계획·매일 영어(YP), 정윤 기말 예습·올림포스(FIN)
-  const calMiss = (d) => { if (d >= today()) return []; const out = HWL().filter((h) => h.due === d && !hwDone(h)).map((h) => ({ i: 'pin', t: h.title, d: '선생님 숙제 · 못 했어요', go: 'hwid:' + h.id })).concat(HWL().filter((h) => h.due === d && hwDone(h) && hwDoneAt(h) && atDay(hwDoneAt(h)) > d).map((h) => ({ i: 'pin', t: h.title, d: `선생님 숙제 · ${md(atDay(hwDoneAt(h)))}에 했어요`, go: 'hwid:' + h.id, moved: 1 }))).concat(YP.filter((it) => it.day === d && !ypDone(it)).map((it) => ({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 못 했어요`, go: it.id }))); if (FIN_ON) for (const c of FIN_ORDER) if (addD(FIN_START, c.fday) === d && !finDone(c)) out.push({ i: c.subj === 'hist' ? 'scroll' : 'books', t: `${c.subj === 'eng' ? '올림포스 지문' : c.sname + ' 기말 예습'} · ${c.title}`, d: '기말 예습 · 못 했어요', go: 'fincid:' + c.id }); for (const x of R2) if (x.day === d) { const dd = r2DoneDay(x); if (!dd) out.push({ i: 'eng', t: `올림포스 2회독 · ${r2Short(x)}`, d: '올림포스 2회독 · 못 했어요', go: 'r2:' + x.id }); else if (dd > d) out.push({ i: 'eng', t: `올림포스 2회독 · ${r2Short(x)}`, d: `올림포스 2회독 · ${md(dd)}에 했어요`, go: 'r2:' + x.id, moved: 1 }); } for (const x of R2S) if (x.day === d) { const dd = r2sDoneDay(x), t = `${r2sNm(x)} 2회독 · ${x.x.title}`; if (!dd) out.push({ i: R2S_SUBJ[x.sj].ic, t, d: `${r2sNm(x)} 2회독 · 못 했어요`, go: 'r2s:' + x.id }); else if (dd > d) out.push({ i: R2S_SUBJ[x.sj].ic, t, d: `${r2sNm(x)} 2회독 · ${md(dd)}에 했어요`, go: 'r2s:' + x.id, moved: 1 }); } for (const x of R3) if (x.day === d) { const dd = r3DoneDay(x); if (!dd) out.push({ i: 'eng', t: `올림포스 3회독 · ${r2Short(x)}`, d: '올림포스 3회독 · 못 했어요', go: 'r3:' + x.id }); else if (dd > d) out.push({ i: 'eng', t: `올림포스 3회독 · ${r2Short(x)}`, d: `올림포스 3회독 · ${md(dd)}에 했어요`, go: 'r3:' + x.id, moved: 1 }); } for (const z of R3M) if (z.day === d) { const f = mkGet(z.id).fin; if (!f) out.push({ i: 'score', t: `올림포스 실전 ${z.no}회`, d: '올림포스 실전 · 못 했어요', go: 'r3m:' + z.id }); else if (atDay(f.at) > d) out.push({ i: 'score', t: `올림포스 실전 ${z.no}회`, d: `올림포스 실전 · ${md(atDay(f.at))}에 했어요`, go: 'r3m:' + z.id, moved: 1 }); } if (!TUTOR) for (const it of myS().items) { const m = myMissOn(it, d); if (m) out.push({ i: 'write', t: it.book, d: `${myCls(it.cls).name} · ${m.did ? `이날 몫 ${m.want}${m.u} 중 ${m.did}${m.u} 했어요 · ${m.miss}${m.u} 남음` : `이날 몫 ${m.want}${m.u} 못 했어요`}`, go: 'my:' + it.id }); } return out; };
+  const calMiss = (d) => { if (d >= today()) return []; const out = HWL().filter((h) => h.due === d && !hwDone(h)).map((h) => ({ i: 'pin', t: h.title, d: '선생님 숙제 · 못 했어요', go: 'hwid:' + h.id })).concat(HWL().filter((h) => h.due === d && hwDone(h) && hwDoneAt(h) && atDay(hwDoneAt(h)) > d).map((h) => ({ i: 'pin', t: h.title, d: `선생님 숙제 · ${md(atDay(hwDoneAt(h)))}에 했어요`, go: 'hwid:' + h.id, moved: 1 }))).concat(YP.filter((it) => it.day === d && !ypDone(it)).map((it) => ({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 못 했어요`, go: it.id }))); if (FIN_ON) for (const c of FIN_ORDER) if (addD(FIN_START, c.fday) === d && !finDone(c)) out.push({ i: c.subj === 'hist' ? 'scroll' : 'books', t: `${c.subj === 'eng' ? '올림포스 지문' : c.sname + ' 기말 예습'} · ${c.title}`, d: '기말 예습 · 못 했어요', go: 'fincid:' + c.id }); for (const x of R2) if (x.day === d) { const dd = r2DoneDay(x); if (!dd) out.push({ i: 'eng', t: `올림포스 2회독 · ${r2Short(x)}`, d: '올림포스 2회독 · 못 했어요', go: 'r2:' + x.id }); else if (dd > d) out.push({ i: 'eng', t: `올림포스 2회독 · ${r2Short(x)}`, d: `올림포스 2회독 · ${md(dd)}에 했어요`, go: 'r2:' + x.id, moved: 1 }); } for (const x of R2S) if (x.day === d) { const dd = r2sDoneDay(x), t = `${r2sNm(x)} 2회독 · ${x.x.title}`; if (!dd) out.push({ i: R2S_SUBJ[x.sj].ic, t, d: `${r2sNm(x)} 2회독 · 못 했어요`, go: 'r2s:' + x.id }); else if (dd > d) out.push({ i: R2S_SUBJ[x.sj].ic, t, d: `${r2sNm(x)} 2회독 · ${md(dd)}에 했어요`, go: 'r2s:' + x.id, moved: 1 }); } for (const x of BN) if (x.day === d) { const dd = bnDoneDay(x), t = `한국사 백지 노트 · ${x.x.title}`; if (!dd) out.push({ i: 'scroll', t, d: '백지 노트 · 못 했어요', go: 'bn:' + x.id }); else if (dd > d) out.push({ i: 'scroll', t, d: `백지 노트 · ${md(dd)}에 했어요`, go: 'bn:' + x.id, moved: 1 }); } for (const x of R3) if (x.day === d) { const dd = r3DoneDay(x); if (!dd) out.push({ i: 'eng', t: `올림포스 3회독 · ${r2Short(x)}`, d: '올림포스 3회독 · 못 했어요', go: 'r3:' + x.id }); else if (dd > d) out.push({ i: 'eng', t: `올림포스 3회독 · ${r2Short(x)}`, d: `올림포스 3회독 · ${md(dd)}에 했어요`, go: 'r3:' + x.id, moved: 1 }); } for (const z of R3M) if (z.day === d) { const f = mkGet(z.id).fin; if (!f) out.push({ i: 'score', t: `올림포스 실전 ${z.no}회`, d: '올림포스 실전 · 못 했어요', go: 'r3m:' + z.id }); else if (atDay(f.at) > d) out.push({ i: 'score', t: `올림포스 실전 ${z.no}회`, d: `올림포스 실전 · ${md(atDay(f.at))}에 했어요`, go: 'r3m:' + z.id, moved: 1 }); } if (!TUTOR) for (const it of myS().items) { const m = myMissOn(it, d); if (m) out.push({ i: 'write', t: it.book, d: `${myCls(it.cls).name} · ${m.did ? `이날 몫 ${m.want}${m.u} 중 ${m.did}${m.u} 했어요 · ${m.miss}${m.u} 남음` : `이날 몫 ${m.want}${m.u} 못 했어요`}`, go: 'my:' + it.id }); } return out; };
   const calLeft = () => { try { return todayTasks().tasks.filter((t) => t.icon !== 'party' && !t.memo && !t.done).length; } catch (e) { return 0; } };
   function hwCal() {
     const m = UI.calM || today().slice(0, 7), [Y, M] = m.split('-').map(Number), first = new Date(Y, M - 1, 1), n = new Date(Y, M, 0).getDate(), pad = first.getDay();
@@ -2365,6 +2370,7 @@
     if (FIN_ON) for (const c of FIN_ORDER) if (addD(FIN_START, c.fday) === d && !finDone(c)) out.push({ i: c.subj === 'hist' ? 'scroll' : 'books', t: `${c.subj === 'eng' ? '올림포스 지문' : c.sname + ' 기말 예습'} · ${c.title}`, d: '기말 예습', go: 'fincid:' + c.id });
     for (const x of R2) if (x.day === d && !r2Done(x)) out.push({ i: 'eng', t: `올림포스 2회독 · ${r2Short(x)}`, d: '올림포스 2회독 · 변형 문제 5개와 핵심 문장 2개', go: 'r2:' + x.id });
     for (const x of R3) if (x.day === d && !r3Done(x)) out.push({ i: 'eng', t: `올림포스 3회독 · ${r2Short(x)}`, d: '올림포스 3회독 · 달라진 곳 찾기와 새 문제 3개', go: 'r3:' + x.id });
+    for (const x of BN) if (x.day === d && !bnDone(x)) out.push({ i: 'scroll', t: `한국사 백지 노트 · ${x.x.title}`, d: '백지 노트 · 책 덮고 쓰고 맞춰 보기', go: 'bn:' + x.id });  // 11/15 백지 노트
     for (const x of R2S) if (x.day === d && !r2sDone(x)) out.push({ i: R2S_SUBJ[x.sj].ic, t: `${r2sNm(x)} 2회독 · ${x.x.title}`, d: `${r2sNm(x)} 2회독 · 학교 꼴 문제 ${x.x.qs.length}개와 핵심 쓰기`, go: 'r2s:' + x.id });
     for (const z of R3M) if (z.day === d && !mkGet(z.id).fin) out.push({ i: 'score', t: `올림포스 실전 ${z.no}회`, d: `올림포스 실전 · ${z.m.min || 50}분 동안 ${z.m.qs.length}문제`, go: 'r3m:' + z.id });
     return out;
@@ -2509,7 +2515,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611152228', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611152232', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3629,6 +3635,89 @@
       const nx = $('#r2s-xnext'); if (nx) nx.onclick = next;
     }
   }
+  // ───────── 11/15 한국사 백지 노트 ─────────
+  // 기록: S.r2s.a['bn:A1'] = { dr(쓰는 중 임시 저장), w(다 쓴 노트), c(맞춰 본 것 m[]), r(빠진 것 다시 쓴 것) } · 2회독 칸과 안 겹쳐요
+  const bnK = (id) => 'bn:' + id;
+  function bnOf(id) { return BN.find((x) => x.id === id); }
+  function bnPts(x) { return [...[].concat(x.x.recall.must || []), ...(x.x.key || []).flatMap((k) => [].concat(k.pts || []))]; }
+  function bnMiss(x) { const m = (r2sGet(bnK(x.id)).c || {}).m || []; return bnPts(x).map((p, k) => k).filter((k) => !m.includes(k)); }
+  function bnSt(x) { const A = r2sGet(bnK(x.id)); if (!A.w) return 'w'; if (!A.c) return 'c'; if (!A.r && bnMiss(x).length) return 'r'; return 'fin'; }
+  function bnDone(x) { return bnSt(x) === 'fin'; }
+  function bnDoneDay(x) { if (!bnDone(x)) return null; const A = r2sGet(bnK(x.id)); return atDay(Math.max(...['w', 'c', 'r'].map((k) => (A[k] && A[k].at) || 0))); }
+  function bnN(x) { return ((r2sGet(bnK(x.id)).c || {}).m || []).length; }
+  function bnToday() { const t = today(); return BN.filter((x) => { if (x.day > t) return false; const d = bnDoneDay(x); return !d || d >= t; }); }
+  function bnTasks() {
+    const t = today(), NO = { c: 2, r: 3 }, end = bnEnd();
+    return bnToday().map((x) => {
+      const st = bnSt(x), dn = st === 'fin', N = bnPts(x).length, A = r2sGet(bnK(x.id));
+      const d = dn ? `${N}개 중 ${bnN(x)}개 떠올렸어요 · 끝냈어요` : st === 'w' ? (A.dr && A.dr.v ? '① 백지에 쓰는 중이에요 · 이어서 써요' : `책 덮고 백지에 쓰기 → 맞춰 보기 ${N}개 → 빠진 것 다시 쓰기`) : st === 'c' ? '② 맞춰 보기 차례예요' : `③ 빠진 것 ${bnMiss(x).length}개 다시 쓰기 차례예요`;
+      return { k: 'bn:' + x.id, id: 'bn:' + x.id, icon: 'scroll', t: `한국사 백지 노트 · ${x.x.title}`, d, tg: [!dn && st !== 'w' ? [`${NO[st]}/3단계`, 'blue'] : null, !dn ? [`백지 노트 끝 ${ddTxt(end)}`, ''] : null], done: dn, late: x.day < t };
+    });
+  }
+  function bnRun() {
+    const r = UI.run, x = bnOf(r.cid); if (!x) { UI.run = null; UI.tab = 'hw'; return hwView(); }
+    const X = x.x, A = r2sGet(bnK(x.id)), auto = bnSt(x), dn = auto === 'fin', P = bnPts(x), N = P.length, MU = [].concat(X.recall.must || []).length, end = bnEnd(), miss = bnMiss(x);
+    const ORD = ['w', 'c', 'r'], reach = dn ? 3 : ORD.indexOf(auto), st = ORD.includes(r.st) ? r.st : auto, fx = r.fx ? ' bn-in' : '';
+    const pg = (String(X.title).match(/\(([^()]*쪽)\)\s*$/) || [])[1] || '이 덩어리';
+    const head = `<div class="row between"><button class="btn sm" data-bnback type="button">‹ 숙제</button><span class="tiny">${md(x.day)} 몫 · 백지 노트 끝 ${md(end)}까지 ${ddTxt(end)}</span></div><p class="eyebrow" style="margin:16px 0 4px">${ic('scroll')} 한국사 백지 노트</p><h1 class="h1" style="margin:0 0 8px">${esc(X.title)}</h1>`;
+    const wrap = (b) => `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${b}</div>`;
+    const seg = `<div class="seg r2-seg" style="margin:0 0 16px">${[['w', '① 백지에 쓰기'], ['c', '② 맞춰 보기'], ['r', '③ 빠진 것 다시 쓰기']].map(([k, t], i) => `<button type="button" class="${st === k ? 'on' : ''}" data-bnst="${k}" ${i <= reach && !(k === 'r' && A.c && !miss.length) ? '' : 'disabled'}>${t}${i < reach && !(k === 'r' && !A.r) ? ' ✓' : ''}</button>`).join('')}</div>`;
+    const note = (b, v) => `<div class="explain"><b>${b}</b><p class="bn-note">${esc(v || '')}</p></div>`;
+    // 채점 요소 체크 (2회독 r2s-pt 그대로) · 사건 흐름과 핵심을 나눠 보여요
+    const pts = (m, only, off) => P.map((p, k) => (only && m.includes(k) ? '' : `${k === 0 && MU ? '<p class="tiny" style="margin:12px 0 0">사건 흐름</p>' : ''}${k === MU ? '<p class="tiny" style="margin:16px 0 0">꼭 넣을 핵심</p>' : ''}<button type="button" class="r2s-pt ${m.includes(k) ? 'on' : ''}" data-bnpt="${k}" aria-pressed="${m.includes(k)}" style="--i:${Math.min(k, 12)}" ${off ? 'disabled' : ''}><i></i><span>${esc(p)}</span></button>`)).join('');
+    if (st === 'w') {
+      if (dn) return wrap(`${seg}<section class="card st-sec${fx}"><div class="st-kick">① 백지에 쓰기</div><h2>책 덮고 쓴 내 노트예요</h2>${note('내가 쓴 것', A.w.v)}</section><div class="cta-bar"><button class="btn primary big block" data-bngo="c" type="button">다음: 맞춰 본 것 보기 ›</button></div>`);
+      const W = A.w, Dr = A.dr, pre = Dr && Dr.v && (!W || Dr.at > W.at) ? Dr.v : W ? W.v : '';
+      return wrap(`${seg}<section class="card st-sec${fx}"><div class="st-kick">① 백지에 쓰기</div><h2>책 덮고, ${esc(pg)}에서 기억나는 것을 다 써요</h2><p class="sub" style="margin:0 0 16px">사건 순서 · 누가 · 무엇을 · 결과를 떠올려 써요. 낱말만 떠올라도 괜찮아요</p><textarea class="inp r2-ta bn-ta" id="bn-w" rows="14" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="${BN_MAX}" placeholder="기억나는 것부터 한 줄에 하나씩 써요">${esc(pre)}</textarea><p class="tiny" id="bn-sv" style="margin:8px 0 0">${Dr && Dr.v ? '쓰던 것을 불러왔어요 · 쓰는 동안 저절로 저장돼요' : '쓰는 동안 저절로 저장돼요'}</p></section><div class="cta-bar"><button class="btn primary big block" id="bn-wok" type="button">다 썼어요 · 맞춰 보기 ›</button></div>`);
+    }
+    if (st === 'c') {
+      const m = r.m || (A.c && A.c.m) || [];
+      return wrap(`${seg}<section class="card${fx}">${note('내가 쓴 것', A.w.v)}</section><section class="card st-sec r2s-pts${fx}" style="margin-top:12px"><div class="st-kick">② 맞춰 보기</div><h2>떠올렸어야 할 것 ${N}개</h2><div class="row between" style="gap:8px"><p class="tiny" id="bn-cn" style="margin:0">${dn ? `${N}개 중 ${m.length}개가 들어 있었어요` : `내 노트에 들어 있는 것을 눌러 체크해요. 내 말로 비슷하게 썼어도 체크해요 · ${m.length}/${N}`}</p><button class="btn sm ${r.only ? 'primary' : ''}" data-bnonly type="button">${r.only ? '다 보기' : '빠진 것만 보기'}</button></div>${pts(m, r.only, dn)}${r.only && m.length === N ? '<p class="sub" style="margin:12px 0 0">빠진 것이 없어요!</p>' : ''}</section><div class="cta-bar">${dn ? `<button class="btn primary big block" data-bngo="${A.r ? 'r' : 'fin'}" type="button">${A.r ? '다음: 다시 쓴 것 보기 ›' : '결과 보기 ›'}</button>` : `<button class="btn primary big block" id="bn-cok" type="button">다 맞춰 봤어요 · ${m.length}/${N} ›</button>`}</div>`);
+    }
+    if (st === 'r') {
+      return wrap(`${seg}<section class="card st-sec${fx}"><div class="st-kick">③ 빠진 것 다시 쓰기</div><h2>빠진 것 ${miss.length}개를 한 번 더 써요</h2><p class="sub" style="margin:0 0 4px">아래를 한 번 읽고, 내 말로 짧게 다시 써 봐요</p><ol class="r2-flow">${miss.map((k, i) => `<li style="--i:${Math.min(i, 12)}"><span class="ls-n">${i + 1}</span><p>${esc(P[k])}</p></li>`).join('')}</ol>${dn ? (A.r ? `<div style="margin-top:16px">${note('다시 쓴 것', A.r.v)}</div>` : '') : `<textarea class="inp r2-ta" id="bn-r" rows="6" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="${BN_MAX}" placeholder="빠진 것을 짧게 다시 써요" style="margin-top:16px">${esc((A.r && A.r.v) || '')}</textarea>`}</section><div class="cta-bar">${dn ? '<button class="btn primary big block" data-bngo="fin" type="button">결과 보기 ›</button>' : '<button class="btn primary big block" id="bn-rok" type="button">다 썼어요 · 끝내기 ›</button>'}</div>`);
+    }
+    // 끝: 결과 카드 → 숙제 목록 (끌고 다니지 않아요) · 다시 열면 내 노트와 점수
+    const n = bnN(x), m = (A.c && A.c.m) || [];
+    const card = doneCard(n, N, `${N}개 중 ${n}개를 백지에 떠올렸어요. 저장됐고 숙제 목록에 줄이 그어져요`, '<button class="btn primary big block" data-bnback type="button">숙제 목록으로 ›</button>').replace('맞힘</span>', '떠올렸어요</span>');
+    return wrap(`${seg}${card}<section class="card st-sec r2s-pts" style="margin-top:12px"><div class="st-kick">내 백지 노트</div>${note('내가 쓴 것', A.w && A.w.v)}${pts(m, 0, 1)}${A.r ? `<div style="margin-top:16px">${note('빠진 것 다시 쓴 것', A.r.v)}</div>` : ''}</section>`);
+  }
+  function bindBn() {
+    const r = UI.run, x = bnOf(r.cid); if (!x) return;
+    r.fx = 0;  // 단계가 바뀔 때만 움직여요 (체크 누를 때는 그대로)
+    const K = bnK(x.id), P = bnPts(x);
+    const top = () => { r.fx = 1; render(); window.scrollTo(0, 0); }, keep = () => { const y = window.scrollY; render(); window.scrollTo(0, y); };
+    const cheer = () => { if (bnDone(x) && !r.cheer) { r.cheer = 1; setTimeout(() => { boom(innerWidth / 2, innerHeight * 0.4, 4); fanfare(); [500, 1100].forEach((ms, k) => setTimeout(() => boom(innerWidth * [0.25, 0.75][k], innerHeight * 0.35, 4), ms)); }, 250); } };
+    $$('[data-bnback]').forEach((b) => (b.onclick = () => { UI.run = null; UI.tab = 'hw'; render(); window.scrollTo(0, 0); }));
+    $$('[data-bnst]').forEach((b) => (b.onclick = () => { r.st = b.dataset.bnst; r.only = 0; r.m = null; top(); }));
+    $$('[data-bngo]').forEach((b) => (b.onclick = () => { r.st = b.dataset.bngo; r.only = 0; top(); }));
+    // ① 쓰는 동안 0.8초마다 임시 저장
+    const ta = $('#bn-w');
+    if (ta) {
+      let tm = null; const sv = $('#bn-sv');
+      const put = () => { clearTimeout(tm); tm = null; const v = ta.value.slice(0, BN_MAX), o = r2sGet(K).dr; if (o && o.v === v) return; r2sA(K).dr = { v, at: Date.now() }; save('r2s'); if (sv) sv.textContent = '저장됐어요'; };
+      ta.oninput = () => { if (sv) sv.textContent = '쓰는 중이에요'; clearTimeout(tm); tm = setTimeout(put, 800); };
+      ta.onblur = () => { if (tm) put(); };
+      const ok = $('#bn-wok'); if (ok) ok.onclick = () => { const v = ta.value.trim(); if (!v) { ta.focus(); toast('한 줄이라도 먼저 써 봐요'); return; } clearTimeout(tm); tm = null; const now = Date.now(), A = r2sA(K); A.w = { v: v.slice(0, BN_MAX), at: now }; A.dr = { v: '', at: now - 1 }; save('r2s'); r.st = 'c'; r.m = null; top(); };
+    }
+    // ② 체크: 다시 그리지 않고 그 자리만 바꿔요
+    $$('[data-bnpt]').forEach((b) => (b.onclick = () => {
+      const k = +b.dataset.bnpt, m = r.m || [...((r2sGet(K).c || {}).m || [])];
+      r.m = m.includes(k) ? m.filter((y) => y !== k) : [...m, k].sort((p, q) => p - q);
+      if (r.only) return keep();
+      const on = r.m.includes(k); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
+      const cn = $('#bn-cn'); if (cn) cn.textContent = `내 노트에 들어 있는 것을 눌러 체크해요. 내 말로 비슷하게 썼어도 체크해요 · ${r.m.length}/${P.length}`;
+      const ok = $('#bn-cok'); if (ok) ok.textContent = `다 맞춰 봤어요 · ${r.m.length}/${P.length} ›`;
+    }));
+    const only = $('[data-bnonly]'); if (only) only.onclick = () => { r.only = !r.only; keep(); };
+    const cok = $('#bn-cok'); if (cok) cok.onclick = () => { const m = r.m || (r2sGet(K).c || {}).m || []; r2sA(K).c = { m: [...m], at: Date.now() }; save('r2s'); r.m = null; r.only = 0; r.st = bnMiss(x).length ? 'r' : null; if (r.st) { ding(1); top(); } else { ding(2); top(); cheer(); } };
+    // ③ 다시 쓰고 끝
+    const rok = $('#bn-rok'), rt = $('#bn-r'); if (rok && rt) rok.onclick = () => { const v = rt.value.trim(); if (!v) { rt.focus(); toast('한 줄이라도 써 봐요'); return; } r2sA(K).r = { v: v.slice(0, BN_MAX), at: Date.now() }; save('r2s'); r.st = null; top(); cheer(); };
+  }
+  function bnStart(id) {
+    const x = bnOf(id); if (!x) { UI.tab = 'hw'; UI.run = null; render(); return; }
+    UI.tab = 'hw'; UI.run = { kind: 'bn', cid: id, fx: 1 }; render(); window.scrollTo(0, 0);
+  }
   function r2sStart(id) {
     const x = r2sOf(id); if (!x) { UI.tab = 'hw'; UI.run = null; render(); return; }
     UI.tab = 'hw'; UI.run = { kind: 'r2s', cid: id, st: r2sSt(x) }; render(); window.scrollTo(0, 0);
@@ -4017,7 +4106,7 @@
   if (SR_TEST) window.__myTest = (it) => { if (!myS().items.some((x) => x.id === it.id)) myS().items.push({ log: {}, wrong: [], days: [1, 2, 3, 4, 5], at: Date.now(), ...it }); mySheet(it.id); };  // 오프라인 시험 탭에서만
   function srOn() { return !D.iv && (SR_TEST || !!ST.report || (!TUTOR && !(NXD.subjects || []).length)); }  // 11/14 «윤건이만 정윤이 리포트 시간 그거 넣어 놔» → students.json report  // 11/3 «정윤이는 왜 화면이 안 보이지» → 정윤 앱에도. ⛔ 선생님·학생 화면 보기에서만 보이는 기능을 만들지 않아요
   var SR_MINE = 1793511014696;  // 11/1 선생님이 대신 넣어 준 기록은 빼요
-  var SR_K = { olymp: ['올림포스 지문', 0], olp2: ['올림포스 2회독', 0], olp3: ['올림포스 3회독', 0], olp3m: ['올림포스 실전', 0], ...Object.fromEntries(Object.entries(R2S_SUBJ).map(([k, v]) => ['r2s-' + k, [v.name + ' 2회독', 0]])), g3: ['고3 영어', 96], cheonil: ['천일문', 0], 'fin-q': ['기말 문제', 0], 'fin-b': ['기말 빈칸', 0], sci: ['과학', 0], word: ['단어', 0], nx: ['수업·따로 공부', 0], nxe: ['영어 내신', 0], nxk: ['국어', 0], nxh: ['역사', 0], nxs: ['과학', 0], m3: ['매3영', 0], mem: ['외우기·단어', 0], les: ['수업 시험', 0] };  // 둘째 값: 수능 영어 독해 문항당 1분 36초. 올림포스는 기말(내신) 지문을 꼼꼼히 보는 거라 수능 시간과 안 견줘요 (11/1 선생님 «내신이니까 느릴 수 있지»)
+  var SR_K = { olymp: ['올림포스 지문', 0], olp2: ['올림포스 2회독', 0], olp3: ['올림포스 3회독', 0], olp3m: ['올림포스 실전', 0], ...Object.fromEntries(Object.entries(R2S_SUBJ).map(([k, v]) => ['r2s-' + k, [v.name + ' 2회독', 0]])), bn: ['한국사 백지 노트', 0], g3: ['고3 영어', 96], cheonil: ['천일문', 0], 'fin-q': ['기말 문제', 0], 'fin-b': ['기말 빈칸', 0], sci: ['과학', 0], word: ['단어', 0], nx: ['수업·따로 공부', 0], nxe: ['영어 내신', 0], nxk: ['국어', 0], nxh: ['역사', 0], nxs: ['과학', 0], m3: ['매3영', 0], mem: ['외우기·단어', 0], les: ['수업 시험', 0] };  // 둘째 값: 수능 영어 독해 문항당 1분 36초. 올림포스는 기말(내신) 지문을 꼼꼼히 보는 거라 수능 시간과 안 견줘요 (11/1 선생님 «내신이니까 느릴 수 있지»)
   var srWk = (d) => addD(d, -((new Date(d + 'T00:00:00').getDay() + 6) % 7));  // 그 주 월요일
   var srDay = (at) => new Date(at).toLocaleDateString('sv');  // 시간표 칸 계산용 달력 날짜 (하루 나누기는 srLD 가 새벽 5시 기준)
   function srEvents() {
@@ -4026,6 +4115,7 @@
     for (const qs of Object.values((S.fin || {}).ans || {})) for (const [k, v] of Object.entries(qs || {})) put(v, k === 'q' ? 'olymp' : k.startsWith('b') ? 'fin-b' : 'fin-q');
     for (const qs of Object.values((S.r2 || {}).a || {})) for (const [k, v] of Object.entries(qs || {})) if (/^[qkx]\d/.test(k)) put(v, 'olp2');  // 올림포스 2회독: 변형 문제·핵심 문장·틀린 문제 다시
     for (const qs of Object.values((S.r3 || {}).a || {})) for (const [k, v] of Object.entries(qs || {})) if (/^(s$|q\d|xq\d|xk\d)/.test(k)) put(v, 'olp3');  // 올림포스 3회독: 달라진 곳 찾기·새 문제·틀렸던 것 다시
+    for (const x of BN) { const A = r2sGet(bnK(x.id)); put(A.w, 'bn'); put(A.r, 'bn'); }  // 11/15 한국사 백지 노트
     for (const [id, qs] of Object.entries((S.r2s || {}).a || {})) { const x = r2sOf(id); if (x) for (const [k, v] of Object.entries(qs || {})) if (/^[qkx]\d/.test(k)) put(v, 'r2s-' + x.sj); }  // 국어·통합사회 2회독: 문제·핵심 쓰기·틀린 것 다시
     for (const z of R3M) { const M = mkGet(z.id); if (M.fin) for (const [k, v] of Object.entries(M.a || {})) if (z.m.qs[k]) put({ at: v.at, ok: mkOk(z.m.qs[k], v) }, 'olp3m'); }  // 실전은 낸 뒤에만 (풀 때는 맞았는지 몰라요)
     for (const x of Object.values((S.eng || {}).days || {})) { for (const v of Object.values(x.uans || {})) put(v, 'cheonil'); for (const v of Object.values(x.uans2 || {})) put(v, 'cheonil'); for (const v of Object.values(x.wans || {})) put(v, 'word'); }
@@ -8652,7 +8742,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152228'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152232'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -8687,7 +8777,7 @@
   const prCat = (it) => {
     const g = String(it.go || '');
     if (it.i === 'clock' || it.i === 'tomato') return null;
-    if (g.startsWith('r2:')) return '올림포스 2회독'; if (g.startsWith('r3:')) return '올림포스 3회독'; if (g.startsWith('r3m:')) return '올림포스 실전'; if (g.startsWith('r2s:')) { const x = r2sOf(g.slice(4)); return x ? r2sNm(x) + ' 2회독' : '2회독'; } if (g.startsWith('fincid:')) return '기말 예습'; if (g.startsWith('ink:')) return '인강'; if (g.startsWith('my:')) return '학원·학교 숙제';
+    if (g.startsWith('bn:')) return '한국사 백지 노트'; if (g.startsWith('r2:')) return '올림포스 2회독'; if (g.startsWith('r3:')) return '올림포스 3회독'; if (g.startsWith('r3m:')) return '올림포스 실전'; if (g.startsWith('r2s:')) { const x = r2sOf(g.slice(4)); return x ? r2sNm(x) + ' 2회독' : '2회독'; } if (g.startsWith('fincid:')) return '기말 예습'; if (g.startsWith('ink:')) return '인강'; if (g.startsWith('my:')) return '학원·학교 숙제';
     if (g.startsWith('news:')) return '기사 읽기'; if (g.startsWith('perf:')) return '수행평가 준비'; if (it.i === 'sci') return '과학 문제';
     if (it.i === 'pin') return '선생님 숙제'; if (it.t === '학교에서 한 것') return '학교 기록'; return '영어';
   };
@@ -10298,7 +10388,8 @@
     const id = [R.id, R.cid, R.mid, R.map, R.unit, R.ref, R.day, R.lib].find((v) => v != null && v !== '');
     const h1 = (($('main .h1') || {}).textContent || '').trim().slice(0, 30);
     let ti = null, subj;
-    if (R.kind === 'r2s') { const x = r2sOf(R.cid); if (x) { ti = `${r2sNm(x)} ${r2sRd(x.sj)} · ${x.x.title}`; subj = tmSubj(r2sNm(x)); } }
+    if (R.kind === 'bn') { const x = bnOf(R.cid); if (x) { ti = `한국사 백지 노트 · ${x.x.title}`; subj = tmSubj('한국사'); } }
+    else if (R.kind === 'r2s') { const x = r2sOf(R.cid); if (x) { ti = `${r2sNm(x)} ${r2sRd(x.sj)} · ${x.x.title}`; subj = tmSubj(r2sNm(x)); } }
     else if (R.kind === 'fin' && R.cid) { const c = FIN_ALL.find((y) => y.id === R.cid); if (c) { ti = `${c.subj === 'eng' ? '올림포스 지문' : c.sname + ' 기말 예습'} · ${c.title}`; subj = c.subj === 'eng' ? '영어' : tmSubj(c.sname); } }
     else if (R.kind === 'r2' || R.kind === 'r3') { ti = `올림포스 ${R.kind === 'r2' ? 2 : 3}회독 · ${h1}`; subj = '영어'; }
     else if (R.kind === 'r3m') subj = '영어';
@@ -10419,7 +10510,7 @@
     let html = '';
     syncGoals();
     redoFix();
-    if (UI.run) html = (UI.run.kind === 'qna' ? qnaRun() : UI.run.kind === 'news' ? newsRun() : UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'lv' ? lvRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'wqd' ? wqDays() : UI.run.kind === 'wq' ? wqPage() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'r2' ? r2Run() : UI.run.kind === 'r3' ? r3Run() : UI.run.kind === 'r3m' ? mkRun() : UI.run.kind === 'r2s' ? r2sRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'qa' ? qaRun() : UI.run.kind === 'nx' ? nxRail(nxRun()) : UI.run.kind === 'nxw' ? nxwRun() : UI.run.kind === 'print' ? printRun() : '') + hwFinBar();
+    if (UI.run) html = (UI.run.kind === 'qna' ? qnaRun() : UI.run.kind === 'news' ? newsRun() : UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'lv' ? lvRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'wqd' ? wqDays() : UI.run.kind === 'wq' ? wqPage() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'r2' ? r2Run() : UI.run.kind === 'r3' ? r3Run() : UI.run.kind === 'r3m' ? mkRun() : UI.run.kind === 'r2s' ? r2sRun() : UI.run.kind === 'bn' ? bnRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'qa' ? qaRun() : UI.run.kind === 'nx' ? nxRail(nxRun()) : UI.run.kind === 'nxw' ? nxwRun() : UI.run.kind === 'print' ? printRun() : '') + hwFinBar();
     else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'tprac' ? tbdView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'qna' ? qnaView() : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'tme' ? tmeView() : UI.tab === 'picks' ? picksView() : UI.tab === 'kmla' ? kmlaView() : UI.tab === 'iv' ? ivView() : UI.tab === 'ivs' ? ivSchedView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'report' ? reportTabView() : UI.tab === 'grade' ? gradeView() : UI.tab === 'study' ? studyView() : UI.tab === 'exam' ? examView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
     const wqv = UI.run && UI.run.kind === 'wq' ? (UI.run.stage === 'list' ? 1 : UI.run.k >= UI.run.Q.length ? 3 : 2) : 0;  // 11/4 «애니메이션 굉장히 중요»: 단어 Day 목록 → 표 → 시험 → 끝도 화면 넘기듯
@@ -10523,6 +10614,7 @@
     else if (k.startsWith('r3:')) return r3Start(k.slice(3));
     else if (k.startsWith('r3m:')) return mkStart(k.slice(4));
     else if (k.startsWith('r2s:')) return r2sStart(k.slice(4));
+    else if (k.startsWith('bn:')) return bnStart(k.slice(3));  // 11/15 한국사 백지 노트
     else if (k.startsWith('map:')) { UI.tab = 'hw'; UI.run = { kind: 'fin', map: k.slice(4) }; }
     else if (k === 'fin' || k.startsWith('fin:')) { const sj = k.slice(4), c = sj && (finToday().find((x) => x.subj === sj && !finDone(x)) || FIN_ORDER.find((x) => x.subj === sj && !finDone(x)) || finToday().find((x) => x.subj === sj)); UI.tab = 'hw'; UI.run = c ? { kind: 'fin', cid: c.id, read: finDone(c) } : { kind: 'fin' }; }
     else if (k.startsWith('drill:')) { UI.tab = 'hw'; UI.run = { kind: 'drill', id: k.slice(6) }; }
@@ -10619,7 +10711,7 @@
     const sn = $('#sg-new'); if (sn) sn.onclick = () => sgbSheet(null);
     $$('#sg-pick, #sg-pick2').forEach((b) => (b.onclick = () => pickSheet(UI.sgbArea)));
     $$('[data-sg]').forEach((b) => (b.onclick = () => sgbSheet(b.dataset.sg)));
-    if (UI.run) { if (UI.run.kind === 'sci') bindSci(); if (UI.run.kind === 'unit') bindUnit(); if (UI.run.kind === 'gram') bindGram(); if (UI.run.kind === 'lv') bindLv(); if (UI.run.kind === 'jl') bindJl(); if (UI.run.kind === 'jr') bindJr(); if (UI.run.kind === 'jw') bindJw(); if (UI.run.kind === 'words') bindWords(); if (UI.run.kind === 'wq' || UI.run.kind === 'wqd') bindWq(); if (UI.run.kind === 'retry') bindRetry(); if (UI.run.kind === 'g3') bindG3(); if (UI.run.kind === 'drill') bindDrill(); if (UI.run.kind === 'concept') bindConcept(); if (UI.run.kind === 'fin') bindFin(); if (UI.run.kind === 'r2') bindR2(); if (UI.run.kind === 'r3') bindR3(); if (UI.run.kind === 'r3m') bindMk(); if (UI.run.kind === 'r2s') bindR2s(); if (UI.run.kind === 'perf') bindPerf(); if (UI.run.kind === 'book') bindBook(); if (UI.run.kind === 'mbw') bindMbw(); if (UI.run.kind === 'qa') bindQa(); if (UI.run.kind === 'pomo') { bindPomo(); bindSound(); } }
+    if (UI.run) { if (UI.run.kind === 'sci') bindSci(); if (UI.run.kind === 'unit') bindUnit(); if (UI.run.kind === 'gram') bindGram(); if (UI.run.kind === 'lv') bindLv(); if (UI.run.kind === 'jl') bindJl(); if (UI.run.kind === 'jr') bindJr(); if (UI.run.kind === 'jw') bindJw(); if (UI.run.kind === 'words') bindWords(); if (UI.run.kind === 'wq' || UI.run.kind === 'wqd') bindWq(); if (UI.run.kind === 'retry') bindRetry(); if (UI.run.kind === 'g3') bindG3(); if (UI.run.kind === 'drill') bindDrill(); if (UI.run.kind === 'concept') bindConcept(); if (UI.run.kind === 'fin') bindFin(); if (UI.run.kind === 'r2') bindR2(); if (UI.run.kind === 'r3') bindR3(); if (UI.run.kind === 'r3m') bindMk(); if (UI.run.kind === 'r2s') bindR2s(); if (UI.run.kind === 'bn') bindBn(); if (UI.run.kind === 'perf') bindPerf(); if (UI.run.kind === 'book') bindBook(); if (UI.run.kind === 'mbw') bindMbw(); if (UI.run.kind === 'qa') bindQa(); if (UI.run.kind === 'pomo') { bindPomo(); bindSound(); } }
     nxBind();
     $$('main [data-bell]').forEach((b) => (b.onclick = toggleBell));
     $$('[data-pomo]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); openPomo(); }));
