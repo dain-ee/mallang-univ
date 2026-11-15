@@ -332,14 +332,14 @@
     return out;
   })();
   // 11/8 «정윤이가 앞으로 계속 한국사를 해도 얘는 과거에 7개 밀린 전적이 있으니 영원히 없어지지 않는 거잖아. 어차피 아마 얘 디데이 보면서 안 한 걸 테니까 좀 어떻게 고려해서 고쳐 놔»: 새 계획(finReplan)이 끝나는 날을 다시 매겨요
-  // 11/14 정윤 올림포스 2회독: 책 순서대로 하루 2지문. 11/15(일) 한 번만 일요일에 시작하고 그 뒤는 월~토 (11/22·11/29 일요일은 새 몫 없음) → 12/2 에 끝나요
+  // 11/14 정윤 올림포스 2회독: 책 순서대로 하루 2지문. 11/15(일) 한 번만 일요일에 시작하고 그 뒤는 월~토 (11/22·11/29 일요일은 새 몫 없음) → 12/2 에 끝나요. 11/15 «너무 느린데, 양을 늘려서 시험 14일 전에 끝내고 7일 동안 3회독» → 하루 3지문, 11/26 에 끝나요
   // 문제 파일(D.olp2, source/jy_olp2)이 아직 없는 지문은 숙제에 안 떠요. 날짜는 지문 자리로 정해져서 파일이 늦게 와도 안 흔들려요
   const R2_ON = !TUTOR && U.who === '정윤';
   const R2 = (() => {
     if (!R2_ON) return [];
     const src = D.olp2 || {}, L = FIN_ALL.filter((c) => c.subj === 'eng' && c.text), days = [], d = new Date('2026-11-15T00:00:00');
-    while (days.length * 2 < L.length) { if (!days.length || d.getDay() !== 0) days.push(fmtDay(d)); d.setDate(d.getDate() + 1); }
-    return L.map((c, i) => ({ id: c.id, c, day: days[i >> 1], x: src[c.id] })).filter((x) => x.x && Array.isArray(x.x.qs) && x.x.qs.length);
+    while (days.length * 3 < L.length) { if (!days.length || d.getDay() !== 0) days.push(fmtDay(d)); d.setDate(d.getDate() + 1); }
+    return L.map((c, i) => ({ id: c.id, c, day: days[Math.floor(i / 3)], x: src[c.id] })).filter((x) => x.x && Array.isArray(x.x.qs) && x.x.qs.length);
   })();
   let FIN_LAST = FIN_ORDER.length ? (() => { const d = new Date(FIN_START + 'T00:00:00'); d.setDate(d.getDate() + Math.max(...FIN_ORDER.map((c) => c.fday))); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })() : FIN_END;
   const conceptOf = (qid) => SCI.concepts.find((c) => (c.base || []).some((q) => q.id === qid) || (c.deep || []).some((q) => q.id === qid));
@@ -2423,7 +2423,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611151027', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611151030', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3113,7 +3113,7 @@
       ${sec('학교 선생님은 이렇게 바꿔요', ['책 유형 그대로 낸 문제는 하나도 없어요. 확인한 45문항이 전부 다른 유형이었어요', '한 지문에 한 문제씩, 범위 32지문 중 28지문이 나왔어요', '어법은 정답이 아닌 밑줄도 원문과 다르게 고쳐 놔요. 「원문과 다른 곳이 답」이 안 통해요', '원문 표현 그대로인 선지를 오답으로 만들어요', '어휘는 반의어 하나에 동의어 바꿔치기를 섞어요', '무관한 문장과 삽입 문제는 문장을 직접 지어 넣어요', '서술형은 문법 포인트가 든 원문 문장 배열·쓰기가 가장 많아요'])}
       <h3 class="r2-h">원문을 알면 얼마나 풀리나요</h3><p class="tiny" style="margin:0 0 8px">1학기 2차 시험 100점 기준이에요</p><div class="tbl-wrap"><table class="q-tbl ls-tbl r2-tbl"><tr><th>문제 종류</th><th>배점</th></tr><tr><td>내용·흐름을 기억하면 풀려요</td><td><b class="num">38점</b></td></tr><tr><td>기억에 더해 바꿔 쓴 선지를 이해해야 해요</td><td><b class="num">45점</b></td></tr><tr><td>암기가 안 통하거나 함정이에요</td><td><b class="num">17점</b></td></tr></table></div><p class="tiny" style="margin:8px 0 0">영어 문장을 글자 그대로 써야 하는 건 서술형 8~16점뿐이에요</p>
       ${sec(`${esc(NMI())}가 틀린 문제`, ['2차 15번(빈칸)은 원문 표현 그대로인 선지를 골랐어요', '2차 10번과 1차 8번(어법)은 배점으로 추정한 문제예요', '세 문제 모두 「본 적 있는 표현」을 믿어서 나간 문제이고, 다른 유형은 한 번도 안 틀렸어요'])}
-      ${sec('그래서 2회독은 이렇게 해요', ['내용은 우리말로 통째로 알기', '영어로 외우는 건 지문마다 2문장', '원문과 달라진 곳 찾기 연습', '본 적 있는 선지라고 바로 고르지 말고 앞뒤가 바뀌었는지 먼저 보기', '11/15부터 하루 2지문, 12/2에 끝나요'])}
+      ${sec('그래서 2회독은 이렇게 해요', ['내용은 우리말로 통째로 알기', '영어로 외우는 건 지문마다 2문장', '원문과 달라진 곳 찾기 연습', '본 적 있는 선지라고 바로 고르지 말고 앞뒤가 바뀌었는지 먼저 보기', '11/15부터 하루 3지문, 11/26에 끝나요', '그다음 7일(11/27~12/3)은 3회독으로 마무리해요'])}
       <button class="btn primary big block" type="button" id="r2a-ok" style="margin-top:20px">${after ? '알겠어요 · 2회독 시작하기' : '알겠어요'}</button></div>`, (el, close) => {
       $('#r2a-ok', el).onclick = () => { const was = gdHas('r2a'); gdMark('r2a'); close(); if (after) setTimeout(after, 280); else if (!was) setTimeout(() => cardBye(document.querySelector('.gd-card[data-gdopen="r2a"]'), render), 260); };
     });
@@ -8071,7 +8071,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611151027'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611151030'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
