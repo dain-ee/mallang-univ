@@ -359,8 +359,8 @@
   const R3M = !R2_ON ? [] : (D.olp3m || []).filter((m) => m && Array.isArray(m.qs) && m.qs.length).map((m) => ({ id: m.id, m, no: m.id === 'mock2' ? 2 : 1, day: m.id === 'mock2' ? '2026-12-03' : '2026-12-02' }));
   // 11/15 국어·통합사회 2회독 (덩어리 방식): 과목마다 하루 한 덩어리, 11/16(월)부터 날마다(일요일 11/22 포함) → 11/26 에 끝나요. 과목을 더 붙이려면 이 표에 한 줄 (한국사·과학 예정)
   // 날짜는 덩어리 번호(K01 → 첫날)로 정해져요. 문제 파일(D.r2s, source/jy_r2s/<과목>/)이 없는 덩어리는 숙제에 안 떠요
-  const R2S_SUBJ = { kor: { name: '국어', ic: 'books', start: '2026-11-16' }, soc: { name: '통합사회', ic: 'books', start: '2026-11-16' } };
-  const R2S_ON = false;  // 11/15 올해 시험지 꼴로 문제를 고치는 중이라 아직 끔. 고친 뒤 true
+  const R2S_SUBJ = { kor: { name: '국어', ic: 'books', start: '2026-11-16' }, soc: { name: '통합사회', ic: 'books', start: '2026-11-16' }, hist: { name: '한국사', ic: 'scroll', start: '2026-11-16' } };  // 11/15 한국사 A1~A6 (11/16~11/21)
+  const R2S_ON = true;  // 11/15 올해 시험지 꼴로 고친 국어 K·통합사회 S·한국사 A 를 켜요
   const R2S = !R2_ON || !R2S_ON ? [] : Object.entries(R2S_SUBJ).flatMap(([sj, m]) => ((D.r2s || {})[sj] || []).filter((x) => x && x.id && Array.isArray(x.qs) && x.qs.length && x.recall).map((x) => { const d = new Date(m.start + 'T00:00:00'); d.setDate(d.getDate() + Math.max(0, (parseInt(String(x.id).replace(/\D/g, ''), 10) || 1) - 1)); return { id: x.id, sj, x, day: fmtDay(d), cs: (x.cids || []).map((id) => FIN_ALL.find((c) => c.id === id)).filter(Boolean) }; }));
   const r2sEnd = (sj) => R2S.reduce((m, x) => (x.sj === sj && x.day > m ? x.day : m), '');
   function r2Ends() {  // 2회독 끝 디데이: 같은 날 끝나는 과목은 한 줄로 묶어요 (디데이 칸이 길어지지 않게)
@@ -2458,7 +2458,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611151750', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611151754', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -8532,7 +8532,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611151750'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611151754'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
