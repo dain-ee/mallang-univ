@@ -367,32 +367,41 @@
   const CM_W = 1009, CM_H = 538;
   const CM_L = [['북태평양 해류', 456, 112, 146, 32, 1], ['캘리포니아 해류', 604, 178, 118, 60, 0], ['쿠로시오 해류', 260, 192, 96, 60, 1], ['북적도 해류', 422, 207, 126, 32, 1], ['적도 반류', 414, 286, 104, 32, 1], ['남적도 해류', 540, 331, 124, 32, 1],
     ['페루 해류', 676, 394, 70, 60, 0], ['남극 순환 해류', 507, 452, 148, 32, 0], ['멕시코 만류', 770, 177, 76, 60, 1], ['북대서양 해류', 940, 78, 106, 60, 1], ['브라질 해류', 855, 358, 78, 60, 1], ['벵겔라 해류', 951, 391, 76, 60, 0]];
-  const cmS = () => { const r = UI.run || {}; if (!r.cm) r.cm = { tab: r.cid === 'C1' ? 'wind' : 'fill', got: {}, sel: null, ord: lvRnd(CM_L.map((l) => l[0])) }; return r.cm; };
+  const cmS = () => { const r = UI.run || {}; if (!r.cm) r.cm = { tab: r.cid === 'C1' ? 'wind' : 'fill', got: {}, wr: {}, sel: null, ord: lvRnd(CM_L.map((l) => l[0])) }; if (!r.cm.wr) r.cm.wr = {}; return r.cm; };
+  const cmNorm = (t) => String(t || '').replace(/\s+/g, '').replace(/해류$/, '');
   const cmPct = (v, t) => `${((v / t) * 100).toFixed(2)}%`;
   function cmWind() {
     // 위도선: 60°N 68 · 30°N 175 · 적도 268 · 30°S 362 · 60°S 468 (교과서 그림의 점선)
-    const B = [[68, 175, 1, '편서풍'], [175, 268, -1, '무역풍'], [268, 362, -1, '무역풍'], [362, 468, 1, '편서풍']];
+    const B = [[0, 68, -1, '극동풍'], [68, 175, 1, '편서풍'], [175, 268, -1, '무역풍'], [268, 362, -1, '무역풍'], [362, 468, 1, '편서풍'], [468, 538, -1, '극동풍']];  // 11/15 정윤 «무역풍하고 편서풍은 있는데 극동풍은 없어»
     const ar = (y, d, k) => `<path d="M${k * 140} ${y} h56 m-14 -9 l14 9 l-14 9" transform="${d < 0 ? `translate(${k * 280 + 56},0) scale(-1,1) translate(${-k * 140},0)` : ''}" />`;
     const rows = B.map(([a, b, d], i) => { const y = (a + b) / 2; return `<g class="cm-row ${d < 0 ? 'l' : 'r'}" style="--d:${i * 0.25}s">${Array.from({ length: 9 }, (_, k) => `<path d="M${k * 140 - 140} ${y} h56 m-14 -10 l14 10 l-14 10" />`).join('')}</g>`; }).join('');
-    const tags = B.map(([a, b, d, t]) => `<span class="cm-wt ${d < 0 ? 'l' : 'r'}" style="top:${cmPct((a + b) / 2, CM_H)}">${d < 0 ? '← ' : ''}${t}${d > 0 ? ' →' : ''}</span>`).join('');
+    const tags = B.map(([a, b, d, t]) => `<span class="cm-wt ${d < 0 ? 'l' : 'r'} ${t === '극동풍' ? 'p' : ''}" style="top:${cmPct((a + b) / 2, CM_H)}">${d < 0 ? '← ' : ''}${t}${d > 0 ? ' →' : ''}</span>`).join('');
     const lat = [[68, '60°N'], [175, '30°N'], [268, '적도'], [362, '30°S'], [468, '60°S']].map(([y, t]) => `<span class="cm-lat" style="top:${cmPct(y, CM_H)}">${t}</span>`).join('');
     return `<svg class="cm-svg" viewBox="0 0 ${CM_W} ${CM_H}" preserveAspectRatio="none" aria-hidden="true">${B.map(([a, b, d]) => `<rect x="0" y="${a}" width="${CM_W}" height="${b - a}" class="cm-band ${d < 0 ? 'l' : 'r'}" />`).join('')}${rows}</svg>${tags}${lat}`;
   }
   function cmHtml() {
     const m = cmS(), n = Object.keys(m.got).length, all = n >= CM_L.length;
-    const tabs = [['wind', '① 바람 보기'], ['fill', `② 이름 채우기 ${n}/${CM_L.length}`], ['ans', '③ 정답 지도']].map(([k, t]) => `<button type="button" class="${m.tab === k ? 'on' : ''}" data-cmt="${k}">${t}</button>`).join('');
+    const nw = Object.keys(m.wr).length, allW = nw >= CM_L.length;
+    const tabs = [['wind', '① 바람'], ['fill', `② 고르기 ${n}/${CM_L.length}`], ['write', `③ 쓰기 ${nw}/${CM_L.length}`], ['ans', '④ 정답']].map(([k, t]) => `<button type="button" class="${m.tab === k ? 'on' : ''}" data-cmt="${k}">${t}</button>`).join('');
+    const wslots = m.tab === 'write' ? CM_L.map(([nm, x, y, w, h, warm]) => { const ok = m.wr[nm], on = m.sel === nm; return `<button type="button" class="cm-slot ${ok ? (warm ? 'ok warm' : 'ok cold') : on ? 'on' : ''}" data-cmw="${esc(nm)}" style="left:${cmPct(x - w / 2, CM_W)};top:${cmPct(y - h / 2, CM_H)};width:${cmPct(w, CM_W)};height:${cmPct(h, CM_H)}" ${ok ? 'disabled' : ''}>${ok ? esc(nm.replace(/ 해류$/, '')) : on ? '✏️' : '?'}</button>`; }).join('') : '';
     const slots = m.tab === 'fill' ? CM_L.map(([nm, x, y, w, h, warm]) => { const ok = m.got[nm]; return `<button type="button" class="cm-slot ${ok ? (warm ? 'ok warm' : 'ok cold') : ''}" data-cms="${esc(nm)}" style="left:${cmPct(x - w / 2, CM_W)};top:${cmPct(y - h / 2, CM_H)};width:${cmPct(w, CM_W)};height:${cmPct(h, CM_H)}" ${ok ? 'disabled' : ''}>${ok ? esc(nm.replace(/ 해류$/, '')) : '?'}</button>`; }).join('') : '';
-    const tip = m.tab === 'wind' ? '<b>바람이 미는 쪽으로 바닷물이 흘러요.</b><span>적도~30°는 무역풍이 동쪽에서 서쪽으로, 30°~60°는 편서풍이 서쪽에서 동쪽으로 불어요. 화살표와 해류 고리를 맞대어 봐요.</span>'
+    const tip = m.tab === 'wind' ? '<b>바람이 미는 쪽으로 바닷물이 흘러요.</b><span>적도~30°는 무역풍(동 → 서), 30°~60°는 편서풍(서 → 동), 60° 넘는 극 쪽은 극동풍(동 → 서)이에요. 화살표와 해류 고리를 맞대어 봐요.</span>'
       : m.tab === 'fill' ? (all ? '<b>12개 다 채웠어요!</b><span>빨강은 난류, 파랑은 한류예요. 한류는 캘페벵남 넷뿐이에요.</span>' : `<b>${m.sel ? `「${esc(m.sel)}」 자리를 지도에서 눌러요` : '아래에서 이름을 고르고, 지도의 ? 를 눌러요'}</b><span>맞히면 난류는 빨강, 한류는 파랑으로 칠해져요</span>`)
+      : m.tab === 'write' ? (allW ? '<b>12개를 다 손으로 썼어요!</b><span>이제 진짜 외운 거예요. 학교 시험 지도 문제도 이렇게 나와요</span>' : `<b>${m.sel ? '이 자리 해류 이름을 써요' : '지도의 ? 를 눌러 이름을 직접 써요'}</b><span>보기 없이 쓰는 게 진짜 외운 거예요 · 「해류」는 빼고 써도 돼요</span>`)
       : '<b>교과서 88쪽 그림 그대로예요</b><span>빨강 난류, 파랑 한류</span>';
     const bank = m.tab === 'fill' && !all ? `<div class="cm-bank">${m.ord.filter((nm) => !m.got[nm]).map((nm, k) => `<button type="button" class="cm-chip ${m.sel === nm ? 'on' : ''}" data-cmc="${esc(nm)}" style="--i:${k}">${esc(nm)}</button>`).join('')}</div>` : '';
-    return `<div class="cm" data-cm><div class="seg cm-tabs">${tabs}</div><div class="cm-map ${m.tab}"><img src="assets/jy/currents.jpg" alt="표층 해류 지도" loading="lazy">${m.tab === 'wind' ? cmWind() : ''}${slots}</div><p class="cm-tip">${tip}</p>${bank}${m.tab === 'fill' && all ? '<button type="button" class="btn big block" data-cmt="ans">정답 지도와 맞춰 보기</button>' : ''}</div>`;
+    return `<div class="cm" data-cm><div class="seg cm-tabs">${tabs}</div><div class="cm-map ${m.tab}"><img src="assets/jy/currents.jpg" alt="표층 해류 지도" loading="lazy">${m.tab === 'wind' ? cmWind() : ''}${slots}${wslots}</div><p class="cm-tip">${tip}</p>${bank}${m.tab === 'write' && m.sel && !allW ? `<div class="cm-in"><input class="inp" id="cm-in" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="해류 이름" enterkeyhint="done"><button class="btn primary" id="cm-ok" type="button">확인</button></div><p class="tiny cm-hint" id="cm-hint"></p>` : ''}${m.tab === 'write' && allW ? '<button type="button" class="btn big block" data-cmt="ans">정답 지도와 맞춰 보기</button>' : ''}${m.tab === 'fill' && all ? '<button type="button" class="btn primary big block" data-cmt="write">다음: 보기 없이 직접 쓰기</button>' : ''}</div>`;
   }
   function cmBind() {
     const box = $('[data-cm]'); if (!box) return;
     const m = cmS(), redraw = () => { const b = $('[data-cm]'); if (!b) return; b.outerHTML = cmHtml(); cmBind(); };
     $$('[data-cmt]', box).forEach((b) => (b.onclick = () => { m.tab = b.dataset.cmt; m.sel = null; tick(); redraw(); }));
     $$('[data-cmc]', box).forEach((b) => (b.onclick = () => { m.sel = m.sel === b.dataset.cmc ? null : b.dataset.cmc; tick(); redraw(); }));
+    $$('[data-cmw]', box).forEach((b) => (b.onclick = () => { m.sel = b.dataset.cmw; tick(); redraw(); setTimeout(() => { const i = $('#cm-in'); if (i) i.focus({ preventScroll: true }); }, 60); }));
+    { const inp = $('#cm-in', box), ok = $('#cm-ok', box); if (inp && ok) { let miss = 0; const go = () => { const v = inp.value.trim(); if (!v) return inp.focus(); const nm = m.sel;
+        if (cmNorm(v) === cmNorm(nm)) { m.wr[nm] = 1; m.sel = null; ding(1); redraw(); const s2 = $(`[data-cmw="${nm}"]`); if (s2) bump(s2, 'tap-pop'); if (Object.keys(m.wr).length >= CM_L.length) { const rc = $('.cm-map').getBoundingClientRect(); boom(rc.left + rc.width / 2, rc.top + rc.height / 2, 3); fanfare(); } }
+        else { miss++; buzz(); inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake'); const h = $('#cm-hint', box); if (h) h.textContent = miss >= 2 ? `정답은 「${nm}」 · 한 번 보고 다시 써 봐요` : `첫 글자는 「${nm[0]}」예요`; inp.select(); } };
+      ok.onclick = go; inp.onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); go(); } }; } }
     $$('[data-cms]', box).forEach((b) => (b.onclick = () => {
       const nm = b.dataset.cms; if (!m.sel) { bump($('.cm-bank') || b, 'tap-pop'); toast('아래에서 이름을 먼저 골라요'); return; }
       if (m.sel === nm) { m.got[nm] = 1; m.sel = null; ding(1); redraw(); const s2 = $(`[data-cms="${nm}"]`); if (s2) bump(s2, 'tap-pop');
@@ -2500,7 +2509,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611152156', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611152228', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5125,6 +5134,9 @@
   }
   const qnaBack = () => { const f = UI.qnaFrom; return f && UI.run && ((UI.run.kind === 'fin' && UI.run.cid === f.cid) || (UI.run.kind === 'unit' && UI.run.back === 'qna')) ? f.id : null; };
   const GD = {
+    // 11/15 정윤 카톡(시간 재기가 한국사로 묶임 · 잠금 화면 멈추기) 답을 배너로. 열어 보고 「알겠어요」면 사라져요
+    tm: { on: () => U.who === '정윤' && today() <= '2026-11-22', ic: 'clock', cls: 'r2-ban', b: '공부 시간, 이제 과목마다 따로 재져요', d: '부탁한 두 가지 고쳤어요 · 앱을 한 번 껐다 켜 주세요', go0: '보기',
+      open: () => sheet(`<h2>공부 시간 재기, 이렇게 바뀌었어요</h2><ol class="r2s-rules" style="margin-top:12px"><li style="--i:0"><span class="r2s-rn">1</span><div><b>과목마다 따로 재져요</b><span>숙제를 열면 그 숙제 이름과 과목으로 재요. 영어를 열면 영어, 한국사를 열면 한국사예요</span><span>앱을 한 번 껐다 켜야 바뀐 게 들어가요</span></div></li><li style="--i:1"><span class="r2s-rn">2</span><div><b>잠금 화면 표시는 못 해요</b><span>잠금 화면에 시간과 멈춤 단추를 띄우는 건 앱스토어 앱만 할 수 있어서, 아이패드가 우리 앱에는 허락을 안 해 줘요</span></div></li><li style="--i:2"><span class="r2s-rn">3</span><div><b>대신 오래 나갔다 오면 물어봐요</b><span>재는 중에 15분 넘게 앱 밖에 있다 돌아오면 「그 시간 빼고 멈추기」와 「계속 공부했어요」 중에 고를 수 있어요</span></div></li></ol><button class="btn primary big block" id="tm-ok" type="button" style="margin-top:20px">알겠어요</button>`, (el, close) => { $('#tm-ok', el).onclick = () => close(); }) },
     // 11/15 정윤 카톡 «과학 해류 다 외우라는데 한류 난류 구분이 어려워» → 5번에 나눈 해류 외우기. 다 끝내면 사라져요
     sci: { on: () => U.who === '정윤' && R2S.some((x) => x.sj === 'sci' && !r2sDone(x)), ic: 'sci', cls: 'r2-ban', b: '과학 해류, 외우는 법 만들었어요', d: '한류 난류 헷갈린다고 했지요? 규칙 세 개로 오늘부터 5번에 나눠 외워요', go0: '시작', keep: 1, open: () => { const L = R2S.filter((x) => x.sj === 'sci' && !r2sDone(x)), x = L.find((y) => y.day <= today()) || L[0]; if (x) r2sStart(x.id); } },
     // 11/14 정윤 올림포스 2회독 배너 둘: 시험 분석(알겠어요 누르면 사라져요) · 선생님께 알려 주기(네 가지를 다 적으면 사라져요)
@@ -5149,7 +5161,7 @@
   }
   function gdCard() {
     // 11/10 새로 만든 안내(정리·가이드)는 둘 다 보여요. 예전 안내는 하나씩
-    const L = gdList(), ks = L.filter((k) => k === 'sci' || k === 'iq' || k === 'add' || k === 'r2a' || k === 'r2q'); const show = ks.length ? ks : L.slice(0, 1);
+    const L = gdList(), ks = L.filter((k) => k === 'tm' || k === 'sci' || k === 'iq' || k === 'add' || k === 'r2a' || k === 'r2q'); const show = ks.length ? ks : L.slice(0, 1);
     return show.map((k) => { const g = GD[k]; return `<button type="button" class="c12 ts-band gd-card ${g.cls || ''}" data-gdopen="${k}"><span class="ts-band-ic">${ic(g.ic)}</span><span class="ts-band-t"><b>${esc(g.b)}</b><span>${esc(g.d)}</span></span><span class="ts-band-go">${esc(g.go0 || '방법 보기')}</span></button>`; }).join('');  // 11/8 «이 부분이 너무 정신없어» → 토스 띠 배너
   }
   function gdOpen(e) {
@@ -6481,6 +6493,7 @@
     }
     const d = lvDay(r); lvPut('d:' + lvKey(r), { n: (d.n || 0) + 1, ok: (d.ok || 0) + (ok ? 1 : 0), star: Math.max(d.star || 0, r.star), cb: Math.max(d.cb || 0, r.best) });
     r.fb = { ok, typed }; (r.hist = r.hist || {})[c.en] = { cur: { ...c }, fb: { ok, typed }, n: r.n }; render();
+    jSay(lvSp(w)[0]);  // 누른 그 순간에 불러야 아이폰·아이패드도 소리가 나요  // 11/15 «맞추고 나서 바로 발음이 나오게»
     if (ok) { const f = r.fb; setTimeout(() => { if (UI.run === r && r.fb === f) lvNextQ(r); }, c.s >= 5 || c.lap ? 1300 : 950); }
   }
   function lvNextQ(r) { if (r.stage !== 'play' || !r.cur) return; r.last = r.cur && r.cur.en; r.up = null; lvPick(r); if (r.stage === 'play') { render(); lvFocus(); } }
@@ -6534,7 +6547,7 @@
     const T = lvTest(r.test), P = lvPlan(T, r.date, r.part), before = new Set(T.plan.filter((x) => x.date < P.date).flatMap((x) => x.days)), all = lvAll(P.days), d = lvDay(r);
     const seenAll = d.seen || all.every((w) => r.seen[w.en]), n = all.filter((w) => r.seen[w.en]).length;
     const goal = r.once ? '수업에서는 한 번만 봐요 · 카드로 한 번 보고 → 단어마다 뜻 고르기 한 번' : P.mock ? '카드로 한 번 보고 → 덜 외운 단어 데우기 → 시험지 그대로 모의시험 40문제 → 틀린 것 다시 외우고 다시 시험' : '카드 보기 → 네 단어씩: 뜻 고르기 한 번 → 소리 조각 → 뜻 쓰기 2번 → 영어 쓰기 3번(앞글자 힌트 → 힌트 없이) → 마지막에 학원 시험지 그대로';
-    const sec = (dy) => { const L = all.filter((w) => w.day === dy), nw = !before.has(dy); return `<div class="lv-sec"><div class="row between"><b>Day ${dy} · ${nw ? '새 단어' : '배운 단어'}</b><span class="tiny">${L.length}개</span></div><div class="lv-cards">${L.map((w, k) => `<div class="lv-card ${r.seen[w.en] ? 'seen' : ''}" data-lvflip="${esc(w.en)}" role="button" tabindex="0" style="--i:${Math.min(k, 20)}"><div class="lv-in3"><div class="lv-f lv-front">${lvPic(w)}${lvChunks(w)}<span class="tiny lv-hint">눌러서 뜻 보기</span></div><div class="lv-f lv-back"><b>${esc(w.k)}</b><span class="tiny">${esc(w.ko)}</span></div></div>${lvSay(w)}<i class="lv-ck"></i></div>`).join('')}</div></div>`; };
+    const sec = (dy) => { const L = all.filter((w) => w.day === dy), nw = !before.has(dy); return `<div class="lv-sec"><div class="row between"><b>Day ${dy} · ${nw ? '새 단어' : '배운 단어'}</b><span class="tiny">${L.length}개</span></div><div class="lv-cards">${L.map((w, k) => `<div class="lv-card ${r.seen[w.en] ? 'seen' : ''}" data-lvflip="${esc(w.en)}" role="button" tabindex="0" style="--i:${Math.min(k, 20)}"><div class="lv-in3"><div class="lv-f lv-front">${lvPic(w)}${lvChunks(w)}<span class="tiny lv-hint">눌러서 뜻 보기</span></div><div class="lv-f lv-back">${lvPic(w, 'lv-pic-bk')}<b>${esc(w.k)}</b><span class="tiny">${esc(w.ko)}</span></div></div>${lvSay(w)}<i class="lv-ck"></i></div>`).join('')}</div></div>`; };
     return `<div class="qwrap lv" style="max-width:760px;margin:0 auto">${lvHead(r)}${lvSteps(r)}<h1 class="h1">${esc(lvPlanLabel(T, P))}</h1><p class="sub" style="margin:0">${md(P.date)} ${esc(wdName(P.date))} 몫 · ${esc(lvNth(r) && lvNth(r) <= 4 && !r.once ? `${lvNth(r)}단계 ${LV_STEP[lvNth(r) - 1]} · ${lvStepGoal(r, lvNth(r))}` : goal)}</p>${lvTop(r)}
       <section class="card"><div class="row between"><h3 style="margin:0">먼저 카드 보기</h3><span class="lv-hr"><span class="tiny lv-cnt"><b class="num">${seenAll ? all.length : n}</b> / ${all.length} 봤어요</span><button type="button" class="btn sm lv-all" data-lvflipall>전체 뒤집기</button></span></div><p class="tiny" style="margin:6px 0 0">색 글자는 소리 덩어리예요. 🔊 를 누르면 소리가 나요. 카드를 누르면 뒤집혀요</p>${[...new Set(all.map((w) => w.day))].map(sec).join('')}</section>
       <div class="cta-bar"><button class="btn primary big block lv-golist ${seenAll ? 'ready' : ''}" data-lvgo type="button" ${seenAll ? '' : 'aria-disabled="true"'}>${seenAll ? (d.seen && (d.n || lvS()['mk:' + lvKey(r)]) ? '이어서 하기' : P.mock ? '다 봤어요 · 시험 준비 시작' : '다 봤어요 · 게임 시작') : `카드 ${all.length - n}장 더 넘겨 봐요`}</button></div></div>`;
@@ -6560,7 +6573,8 @@
     const hud = `<div class="lv-hud"><div class="nx-bar lv-pbar"><i style="width:${Math.round((fin / Math.max(1, r.tot)) * 100)}%"></i></div><div class="row between"><span class="tiny"><b class="num">${fin}</b> / ${r.tot} 단어 끝</span><span class="lv-stat"><span class="lv-star ${r.star !== r.starShown ? 'bump' : ''}">⭐ <b class="num">${r.star}</b></span>${r.combo >= 2 ? `<span class="lv-combo">🔥 ${r.combo} 콤보</span>` : ''}</span></div></div>`;
     r.starShown = r.star;
     const lab = `<div class="row between lv-lab"><span class="lv-stg ${c.lap ? 'lap' : ''}">${LV_NO[c.lap ? 7 : s]} ${esc(c.lap ? '마지막 한 바퀴 · ' + LV_ST[s] : LV_ST[s])}</span>${c.lap ? '' : lvLadder(r.W[c.en].s >= 7 ? 7 : Math.min(s, 6))}</div>`;
-    const showEn = s === 1 || s === 5, prompt = showEn ? `<div class="lv-pr">${lvChunks(w, 'big')}${lvSay(w)}</div><p class="tiny lv-ask">${s === 1 ? '뜻을 골라요' : '우리말 뜻을 써요'}</p>` : `<div class="lv-pr"><b class="lv-ko">${esc(w.k)}</b>${s >= 3 && s <= 4 ? lvSay(w) : ''}</div><p class="tiny lv-ask">${s === 2 ? '영어 단어를 골라요' : s === 3 ? '소리 조각을 차례대로 눌러요' : s === 4 ? '글자를 차례대로 눌러요' : '영어로 써요'}</p>`;
+    const picQ = (s === 1 || s === 2) && r.nth && r.nth <= 2 && !c.lap ? lvPic(w, 'lv-pic-q') : '';  // 11/15 «처음 2단계까지 아이콘을 띄워 줘, 아이콘을 보고 맞출 수 있게»
+    const showEn = s === 1 || s === 5, prompt = showEn ? `<div class="lv-pr">${picQ}${lvChunks(w, 'big')}${lvSay(w)}</div><p class="tiny lv-ask">${s === 1 ? '뜻을 골라요' : '우리말 뜻을 써요'}</p>` : `<div class="lv-pr">${picQ}<b class="lv-ko">${esc(w.k)}</b>${s >= 3 && s <= 4 ? lvSay(w) : ''}</div><p class="tiny lv-ask">${s === 2 ? '영어 단어를 골라요' : s === 3 ? '소리 조각을 차례대로 눌러요' : s === 4 ? '글자를 차례대로 눌러요' : '영어로 써요'}</p>`;
     let body = '';
     if (s === 1 || s === 2) { const right = s === 1 ? w.k : lvSp(w)[0];
       body = `<div class="choices lv-chs">${c.ch.map((o, k) => `<button class="choice ${fb ? (o === right ? 'right' : o === fb.typed ? 'wrong' : '') : ''}" style="--i:${k}" data-lvch="${k}" type="button" ${fb ? 'disabled' : ''}><span class="n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div>`; }
@@ -6584,7 +6598,7 @@
     const nums = `<div class="lv-nums" role="list">${r.words.map((x, k) => { const W = r.W[x.en], lv = W ? Math.min(7, W.s) : 7;
       return `<button type="button" class="${x.en === c.en ? 'on' : ''} ${done(x.en) ? 'ok' : ''}" style="--lv:${lv};--p:${done(x.en) ? 100 : !W ? 100 : r.seq ? Math.round((Math.max(0, r.seq.indexOf(W.s)) / r.seq.length) * 100) : Math.round(((Math.min(7, W.s) - 1) / 6) * 100)}%" data-lvnum="${k}" aria-label="${k + 1}번 ${esc(x.en)}"><i class="lv-wat" aria-hidden="true"></i><span>${k + 1}</span></button>`; }).join('')}</div><p class="tiny lv-nums-l">맞힐 때마다 물이 차올라요 · 가득 차면 그 단어는 끝 · 번호를 누르면 풀었던 화면을 봐요</p>`;
     if (s === 0 && !V) { const fl = r.flip === c.en, k = r.words.findIndex((x) => x.en === c.en) + 1, re = (r.W[c.en] || {}).re;
-      const card = `<div class="lv-card lv-solo ${fl ? 'flip' : ''}" data-lvsolo role="button" tabindex="0"><div class="lv-in3"><div class="lv-f lv-front">${lvPic(w, 'lv-pic-solo')}${lvChunks(w, 'big')}<span class="tiny lv-hint">눌러서 뜻 보기</span></div><div class="lv-f lv-back"><span class="lv-solo-en">${esc(lvSp(w)[0])}</span><b>${esc(w.k)}</b><span class="tiny">${esc(w.ko)}</span></div></div>${lvSay(w)}</div>`;
+      const card = `<div class="lv-card lv-solo ${fl ? 'flip' : ''}" data-lvsolo role="button" tabindex="0"><div class="lv-in3"><div class="lv-f lv-front">${lvPic(w, 'lv-pic-solo')}${lvChunks(w, 'big')}<span class="tiny lv-hint">눌러서 뜻 보기</span></div><div class="lv-f lv-back">${lvPic(w, 'lv-pic-bk lv-pic-solo')}<span class="lv-solo-en">${esc(lvSp(w)[0])}</span><b>${esc(w.k)}</b><span class="tiny">${esc(w.ko)}</span></div></div>${lvSay(w)}</div>`;
       return `<div class="qwrap lv" style="max-width:640px;margin:0 auto">${lvHead(r, esc(ttl)).replace('</span></div>', '</span>' + back + '</span></div>').replace('<span class="tiny">', '<span class="lv-hd-r"><span class="tiny">')}${lvSteps(r)}${hud}${nums}<div class="row between lv-lab"><span class="lv-stg">${k}번째 단어 · ${re ? '한 번 더 보고 외워요' : '카드를 뒤집어 뜻을 외워요'}</span></div>${card}
         <p class="tiny lv-solo-t">${fl ? '소리 내어 두 번 읽고, 뜻을 머릿속으로 말해 봐요' : '영어를 먼저 소리 내어 읽고 뒤집어요'}</p><div class="cta-bar"><button class="btn primary big block lv-solo-go ${fl ? 'ready' : ''}" data-lvlearn type="button" ${fl ? '' : 'aria-disabled="true"'}>${fl ? '외웠어요 · 바로 문제' : '카드를 눌러 뒤집어요'}</button></div></div>`; }
     return `<div class="qwrap lv" style="max-width:640px;margin:0 auto">${lvHead(r, esc(ttl)).replace('</span></div>', '</span>' + back + '</span></div>').replace('<span class="tiny">', '<span class="lv-hd-r"><span class="tiny">')}${lvSteps(r)}${hud}${nums}${V ? `<div class="lv-viewb">${r.words.findIndex((x) => x.en === c.en) + 1}번 · 내가 풀었던 화면이에요</div>` : lab}<section class="card lv-q">${prompt}${V ? '' : lvHint(r, w, c)}</section>${body}${fbh}</div>`;
@@ -6629,14 +6643,14 @@
       const T = lvTest(r.test), all = lvAll(lvPlan(T, r.date, r.part).days), n = all.filter((w) => r.seen[w.en]).length, c = $('.lv-cnt b'), g = $('[data-lvgo]');
       if (c) { c.textContent = n; if (!quiet) bump(c, 'tap-pop'); }
       if (g && n >= all.length) { g.removeAttribute('aria-disabled'); g.classList.add('ready'); g.textContent = '다 봤어요 · ' + (lvPlan(T, r.date, r.part).mock ? '시험 준비 시작' : '게임 시작'); bump(g, 'tap-pop'); ding(1); } else if (g) g.textContent = `카드 ${all.length - n}장 더 넘겨 봐요`; };
-    $$('[data-lvflip]').forEach((cd) => (cd.onclick = () => { cd.classList.toggle('flip'); lvSeen(cd); }));
+    $$('[data-lvflip]').forEach((cd) => (cd.onclick = () => { cd.classList.toggle('flip'); lvSeen(cd); if (cd.classList.contains('flip')) { const w = lvByEn(cd.dataset.lvflip); if (w) jSay(lvSp(w)[0]); } }));
     // 전체 뒤집기: 한 장씩 차르르 넘어가요. 다 뒷면이면 다시 앞면으로
     $$('[data-lvflipall]').forEach((b) => (b.onclick = () => { const C = $$('[data-lvflip]'), back = C.every((cd) => cd.classList.contains('flip'));
       C.forEach((cd, i) => setTimeout(() => { cd.classList.toggle('flip', !back); if (!back) lvSeen(cd, i < C.length - 1); }, RM() ? 0 : i * 45));
       b.textContent = back ? '전체 뒤집기' : '전체 앞면으로'; tick(); }));
     const g = $('[data-lvgo]'); if (g) g.onclick = () => { if (g.getAttribute('aria-disabled')) { const C = $$('[data-lvflip]'), left = C.filter((cd) => !r.seen[cd.dataset.lvflip]);
       toast(`먼저 카드를 뒤집어 주세요 · ${left.length}장 남았어요`); const f = left[0]; if (f) { f.scrollIntoView({ behavior: RM() ? 'auto' : 'smooth', block: 'center' }); f.classList.remove('lv-nudge'); void f.offsetWidth; f.classList.add('lv-nudge'); } return; } lvGo(r); };
-    { const cd = $('[data-lvsolo]'), go = $('[data-lvlearn]'), flip = () => { if (!r.cur) return; r.flip = r.flip === r.cur.en ? null : r.cur.en; cd.classList.toggle('flip', r.flip === r.cur.en); tick();
+    { const cd = $('[data-lvsolo]'), go = $('[data-lvlearn]'), flip = () => { if (!r.cur) return; r.flip = r.flip === r.cur.en ? null : r.cur.en; cd.classList.toggle('flip', r.flip === r.cur.en); tick(); if (r.flip) { const w = r.words.find((x) => x.en === r.cur.en); if (w) jSay(lvSp(w)[0]); }
         if (go) { const on = r.flip === r.cur.en; go.classList.toggle('ready', on); if (on) { go.removeAttribute('aria-disabled'); go.textContent = '외웠어요 · 바로 문제'; bump(go, 'tap-pop'); } } const t = $('.lv-solo-t'); if (t && r.flip === r.cur.en) t.textContent = '소리 내어 두 번 읽고, 뜻을 머릿속으로 말해 봐요'; };
       if (cd) { cd.onclick = flip; cd.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } }; }
       if (go) go.onclick = () => { if (go.getAttribute('aria-disabled')) { if (cd) { bump(cd, 'tap-pop'); } return; } r.flip = null; lvAnswer(r, true, ''); }; }
@@ -8638,7 +8652,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152156'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152228'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

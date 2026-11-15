@@ -3005,8 +3005,11 @@ button.st-k.hid:hover { background: var(--blue-soft); }
 .sx-ko { margin: 2px 0 0; font-size: 14px; line-height: 1.6; color: var(--t3); }
 .sx-r { padding-bottom: 1px; border-bottom: 2px solid var(--sx, var(--t3)); }
 .sx-l { margin-right: 2px; padding: 0 4px; font-size: 10px; font-weight: 800; line-height: 1; color: #fff; background: var(--sx, var(--t3)); border-radius: 4px; vertical-align: 0.6em; }
-.sx-S { --sx: var(--blue); }
-.sx-V { --sx: var(--green); }
+.sx-S { --sx: #3182f6; }
+.sx-V { --sx: #03a35f; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .sx-S { --sx: #4d9bff; } :root:not([data-theme="light"]) .sx-V { --sx: #2fd18a; } }
+:root[data-theme="dark"] .sx-S { --sx: #4d9bff; }
+:root[data-theme="dark"] .sx-V { --sx: #2fd18a; }
 .sx-O { --sx: #8b5cf6; }
 .sx-C { --sx: #f08c00; }
 .sx-M, .sx-A { --sx: var(--t3); }
@@ -5170,3 +5173,17 @@ textarea.inp.r2-ta { min-height: 88px; }
 .lv-solo .lv-pic-solo { width: 64px; height: 64px; animation-delay: .1s; }
 .lv-pr .lv-pic-q { width: 44px; height: 44px; animation-delay: .05s; }
 .lv-rev .lv-pic-rev { width: 48px; height: 48px; animation-delay: .15s; }
+
+/* 11/15 해류: 극동풍 · 직접 쓰기 */
+.cm-wt.p { background: rgba(95, 105, 120, .9); }
+.cm-slot.on { border-style: solid; border-color: #2f6fe0; background: #fff; box-shadow: 0 0 0 3px rgba(49, 130, 246, .25); }
+.cm-in { display: flex; gap: 8px; margin-top: 12px; animation: waveIn .3s var(--ease) both; }
+.cm-in .inp { flex: 1; min-width: 0; }
+.cm-in .inp.shake { animation: cmShake .35s; }
+.cm-hint { margin: 6px 0 0; min-height: 1em; }
+.cm-tabs button { font-size: 13px; }
+
+/* 11/15 «카드는 무조건 맞추고»: 뒷면에도 같은 그림 */
+.lv-back .lv-pic-bk { width: 28px; height: 28px; }
+.lv-solo .lv-back .lv-pic-bk { width: 44px; height: 44px; }
+.lv-card:not(.lv-solo) .lv-back { padding-top: 22px; gap: 4px; }
