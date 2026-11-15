@@ -359,7 +359,9 @@
   const R3M = !R2_ON ? [] : (D.olp3m || []).filter((m) => m && Array.isArray(m.qs) && m.qs.length).map((m) => ({ id: m.id, m, no: m.id === 'mock2' ? 2 : 1, day: m.id === 'mock2' ? '2026-12-03' : '2026-12-02' }));
   // 11/15 국어·통합사회 2회독 (덩어리 방식): 과목마다 하루 한 덩어리, 11/16(월)부터 날마다(일요일 11/22 포함) → 11/26 에 끝나요. 과목을 더 붙이려면 이 표에 한 줄 (한국사·과학 예정)
   // 날짜는 덩어리 번호(K01 → 첫날)로 정해져요. 문제 파일(D.r2s, source/jy_r2s/<과목>/)이 없는 덩어리는 숙제에 안 떠요
-  const R2S_SUBJ = { kor: { name: '국어', ic: 'books', start: '2026-11-16' }, soc: { name: '통합사회', ic: 'books', start: '2026-11-16' }, hist: { name: '한국사', ic: 'scroll', start: '2026-11-16' }, sci: { name: '통합과학', ic: 'sci', start: '2026-11-15', rd: '해류 외우기' } };  // 11/15 정윤 카톡 «해류를 다 외우라는데 한류 난류 구분하기 어려워, 어케 외워야 될지 모르겠어» → 5번에 나눠 (11/15~11/19)
+  const R2S_SUBJ = { kor: { name: '국어', ic: 'books', start: '2026-11-16' }, soc: { name: '통합사회', ic: 'books', start: '2026-11-16' }, hist: { name: '한국사', ic: 'scroll', start: '2026-11-16' }, sci: { name: '통합과학', ic: 'sci', start: '2026-11-15', rd: '해류 외우기' },
+    // 11/15 선생님 «정윤이가 100점 맞게 하는 게 너의 목표야»: 2회독 다음 3회독(11/27~12/2, 헷갈린 짝·정윤이 실제로 틀린 꼴 새 문제) + 12/3 실전 모의시험
+    kor3: { name: '국어', ic: 'books', start: '2026-11-27', rd: '3회독' }, soc3: { name: '통합사회', ic: 'books', start: '2026-11-27', rd: '3회독' }, hist3: { name: '한국사', ic: 'scroll', start: '2026-11-27', rd: '3회독' } };  // 11/15 정윤 카톡 «해류를 다 외우라는데 한류 난류 구분하기 어려워, 어케 외워야 될지 모르겠어» → 5번에 나눠 (11/15~11/19)
   const r2sHl = (t) => esc(t).replace(/(난류)/g, '<em class="r2s-warm">$1</em>').replace(/(한류)/g, '<em class="r2s-cold">$1</em>');  // 해류: 지도 색 그대로 난류 빨강 · 한류 파랑
 
   // ───────── 11/15 해류 지도 놀이 («이 그림에서 초반에 채울 수 있게, 애니메이션으로 풍향을 해 준다거나»)
@@ -414,8 +416,8 @@
   // 11/15 선생님 «실제 시험에 서술형이 없으면 안 하는 거야 · 있는데 또 막 빼지 말고»: 실제 시험지로 확인된 것만 빼요
   //   국어: 1학기 1차 정답표 서답형 0점, 담당 교사 세 분이 2학기와 같아요 → 쓰기 빼요
   //   통합사회: 1학기 1차에 논술형 3문항 10점이 실제로 나왔어요 → 그대로 · 한국사: 2학기 중간 시험지를 못 봐서 확인 전까지 그대로 · 영어: 서술형 20점, 그대로
-  const R2S_NOWRITE = { kor: 1, hist: 1 };  // 11/15 선생님(정윤 확인) «국어 한국사 서술형 없대»
-  const R2S = !R2_ON || !R2S_ON ? [] : Object.entries(R2S_SUBJ).flatMap(([sj, m]) => ((D.r2s || {})[sj] || []).filter((x) => x && x.id && Array.isArray(x.qs) && x.qs.length && x.recall).map((x0) => { const x = R2S_NOWRITE[sj] ? { ...x0, qs: x0.qs.filter((q) => q.type === 'mc'), key: [] } : x0; const d = new Date(m.start + 'T00:00:00'); d.setDate(d.getDate() + Math.max(0, (parseInt(String(x.id).replace(/\D/g, ''), 10) || 1) - 1)); return { id: x.id, sj, x, day: fmtDay(d), cs: (x.cids || []).map((id) => FIN_ALL.find((c) => c.id === id)).filter(Boolean) }; }));
+  const R2S_NOWRITE = { kor: 1, hist: 1, kor3: 1, hist3: 1 };  // 11/15 선생님(정윤 확인) «국어 한국사 서술형 없대»
+  const R2S = !R2_ON || !R2S_ON ? [] : Object.entries(R2S_SUBJ).flatMap(([sj, m]) => ((D.r2s || {})[sj] || []).filter((x) => x && x.id && Array.isArray(x.qs) && x.qs.length && x.recall).map((x0) => { const x = R2S_NOWRITE[sj] ? { ...x0, qs: x0.qs.filter((q) => q.type === 'mc'), key: [] } : x0; const d = new Date(m.start + 'T00:00:00'); d.setDate(d.getDate() + Math.max(0, (parseInt(String(x.id).replace(/\D/g, ''), 10) || 1) - 1)); return { id: x.id, sj, x, day: /^\d{4}-\d\d-\d\d$/.test(x0.day || '') ? x0.day : fmtDay(d), cs: (x.cids || []).map((id) => FIN_ALL.find((c) => c.id === id)).filter(Boolean) }; }));
   const r2sEnd = (sj) => R2S.reduce((m, x) => (x.sj === sj && x.day > m ? x.day : m), '');
   // 11/15 한국사 백지 노트: 정윤 «한국사는 애들 다 백지 노트 하는 게 제일 도움 된다는데, 컴터에서 백지 노트를 할 수 있나» · 선생님 «1부터 겹쳐서 해도 돼, 어차피 복습이니까» → 2회독과 따로 A1부터 하루 하나
   const BN_START = '2026-11-16', BN_MAX = 4000;
@@ -2340,7 +2342,7 @@
     for (const x of R2) if (r2DoneDay(x) === d) { const A = r2Get(x.id), n = x.x.qs.length, ok = x.x.qs.filter((q, i) => A['q' + i] && A['q' + i].ok).length; out.push({ i: 'eng', t: `올림포스 2회독 · ${r2Short(x)}`, d: `${ok}/${n} 맞힘 · 끝냈어요${x.day < d ? ` · ${md(x.day)} 몫` : ''} · 눌러서 다시 보기`, late: x.day < d, go: 'r2:' + x.id }); }
     for (const x of R3) if (r3DoneDay(x) === d) out.push({ i: 'eng', t: `올림포스 3회독 · ${r2Short(x)}`, d: `${r3OkN(x)}/${x.x.qs.length + 1} 맞힘 · 끝냈어요${x.day < d ? ` · ${md(x.day)} 몫` : ''} · 눌러서 다시 보기`, late: x.day < d, go: 'r3:' + x.id });
     for (const x of BN) if (bnDoneDay(x) === d) out.push({ i: 'scroll', t: `한국사 백지 노트 · ${x.x.title}`, d: `${bnPts(x).length}개 중 ${bnN(x)}개 떠올림 · 끝냈어요${x.day < d ? ` · ${md(x.day)} 몫` : ''} · 눌러서 다시 보기`, late: x.day < d, go: 'bn:' + x.id });  // 11/15 백지 노트
-    for (const x of R2S) if (r2sDoneDay(x) === d) out.push({ i: R2S_SUBJ[x.sj].ic, t: `${r2sNm(x)} 2회독 · ${x.x.title}`, d: `${r2sOkN(x)}/${x.x.qs.length} 맞힘 · 끝냈어요${x.day < d ? ` · ${md(x.day)} 몫` : ''} · 눌러서 다시 보기`, late: x.day < d, go: 'r2s:' + x.id });
+    for (const x of R2S) if (r2sDoneDay(x) === d) out.push({ i: R2S_SUBJ[x.sj].ic, t: `${r2sNm(x)} ${r2sRd(x.sj)} · ${x.x.title}`, d: `${r2sOkN(x)}/${x.x.qs.length} 맞힘 · 끝냈어요${x.day < d ? ` · ${md(x.day)} 몫` : ''} · 눌러서 다시 보기`, late: x.day < d, go: 'r2s:' + x.id });
     for (const z of R3M) { const f = mkGet(z.id).fin; if (f && atDay(f.at) === d) out.push({ i: 'score', t: `올림포스 실전 ${z.no}회`, d: `${f.sc}점 · ${f.ok}/${z.m.qs.length} 맞힘${z.day < d ? ` · ${md(z.day)} 몫` : ''} · 눌러서 결과 보기`, late: z.day < d, go: 'r3m:' + z.id }); }
     for (const it of myS().items) { const x = (it.log || {})[d]; if (x && (x.n || it.unit === '건')) out.push({ i: 'write', t: it.book, d: `${myCls(it.cls).name}${x.n && it.unit !== '건' ? ` · ${x.n}${it.unit === '쪽' ? '쪽' : '문제'}` : ' · 끝냄'}`, go: 'my:' + it.id }); }
     for (const l of W().log.filter((x) => x.date === d && String(x.key).startsWith('news:'))) { const n = ((D.news && D.news.items) || []).find((y) => 'news:' + y.id === l.key); if (n) out.push({ i: 'news', t: n.title, d: '기사 읽음', go: l.key }); }
@@ -2375,7 +2377,7 @@
     for (const x of R2) if (x.day === d && !r2Done(x)) out.push({ i: 'eng', t: `올림포스 2회독 · ${r2Short(x)}`, d: '올림포스 2회독 · 변형 문제 5개와 핵심 문장 2개', go: 'r2:' + x.id });
     for (const x of R3) if (x.day === d && !r3Done(x)) out.push({ i: 'eng', t: `올림포스 3회독 · ${r2Short(x)}`, d: '올림포스 3회독 · 달라진 곳 찾기와 새 문제 3개', go: 'r3:' + x.id });
     for (const x of BN) if (x.day === d && !bnDone(x)) out.push({ i: 'scroll', t: `한국사 백지 노트 · ${x.x.title}`, d: '백지 노트 · 책 덮고 쓰고 맞춰 보기', go: 'bn:' + x.id });  // 11/15 백지 노트
-    for (const x of R2S) if (x.day === d && !r2sDone(x)) out.push({ i: R2S_SUBJ[x.sj].ic, t: `${r2sNm(x)} 2회독 · ${x.x.title}`, d: `${r2sNm(x)} 2회독 · 학교 꼴 문제 ${x.x.qs.length}개와 핵심 쓰기`, go: 'r2s:' + x.id });
+    for (const x of R2S) if (x.day === d && !r2sDone(x)) out.push({ i: R2S_SUBJ[x.sj].ic, t: `${r2sNm(x)} ${r2sRd(x.sj)} · ${x.x.title}`, d: `${r2sNm(x)} ${r2sRd(x.sj)} · ${/실전/.test(x.x.title) ? '학교 시험지처럼 한 번에 ' + x.x.qs.length + '문제' : '학교 꼴 문제 ' + x.x.qs.length + '개' + ((x.x.key || []).length ? '와 핵심 쓰기' : '')}`, go: 'r2s:' + x.id });
     for (const z of R3M) if (z.day === d && !mkGet(z.id).fin) out.push({ i: 'score', t: `올림포스 실전 ${z.no}회`, d: `올림포스 실전 · ${z.m.min || 50}분 동안 ${z.m.qs.length}문제`, go: 'r3m:' + z.id });
     return out;
   }
@@ -2519,7 +2521,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611152335', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611152352', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2846,7 +2848,8 @@
     const of = (n, w, L, isD) => { if (!L.length) return ''; const ds = L.map((x) => x.day).sort(); return line(n, w, L.filter(isD).length, L.length, ds[ds.length - 1], ds[0]); };
     const z = finLag(sj), R = [line('1회독', '예습', k1, n1, z ? z.end : t)];
     if (sj === 'eng') R.push(of('2회독', '원문', R2, (x) => !!r2DoneDay(x)), of('3회독', '변형', R3, (x) => !!r3DoneDay(x)), of('실전', '시험지', R3M, (m) => !!mkGet(m.id).fin));
-    else { R.push(of('2회독', '떠올리기', R2S.filter((x) => x.sj === sj), (x) => !!r2sDoneDay(x))); if (sj === 'hist') R.push(of('백지', '노트', BN, (x) => !!bnDoneDay(x))); }
+    else { R.push(of('2회독', '떠올리기', R2S.filter((x) => x.sj === sj), (x) => !!r2sDoneDay(x))); if (sj === 'hist') R.push(of('백지', '노트', BN, (x) => !!bnDoneDay(x)));
+      const T3 = R2S.filter((x) => x.sj === sj + '3'); R.push(of('3회독', '헷갈린 것', T3.filter((x) => !/실전/.test(x.x.title)), (x) => !!r2sDoneDay(x)), of('실전', '시험지', T3.filter((x) => /실전/.test(x.x.title)), (x) => !!r2sDoneDay(x))); }
     return `<div class="yf-rs">${R.join('')}</div>`;
   }
   function finCard() {
@@ -8792,7 +8795,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152335'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152352'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
