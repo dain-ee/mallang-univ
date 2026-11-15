@@ -5099,3 +5099,22 @@ textarea.inp.r2-ta { min-height: 88px; }
 
 /* 11/15 윤건: 위쪽 가운데 진행 시간이 화면 제목을 가려서, 넓은 화면에서는 토마토 타이머처럼 오른쪽 아래에 */
 @media (min-width: 900px) { .hw-float.corner { left: auto; right: 24px; top: auto; bottom: calc(24px + env(safe-area-inset-bottom)); transform: none; max-width: min(420px, calc(100vw - 48px)); height: 44px; padding: 0 16px 0 14px; } }
+
+/* 11/15 주아 단어 1·2·3단계 띠 + 한 장씩 외우기 카드 */
+.lv-steps { display: flex; align-items: center; gap: 6px; margin: 12px 0 4px; flex-wrap: wrap; }
+.lv-step { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--fill); color: var(--t3); font-size: 13px; font-weight: 600; animation: waveIn .35s var(--ease) both; animation-delay: calc(var(--i) * 60ms); }
+.lv-step b { font-weight: 700; }
+.lv-step.on { background: var(--blue); color: #fff; }
+.lv-step.ok { background: var(--blue-soft); color: var(--blue); }
+.lv-step-ar { font-style: normal; color: var(--t3); font-size: 13px; }
+.lv-stag { display: inline-block; margin-right: 6px; padding: 1px 7px; border-radius: 6px; background: var(--blue-soft); color: var(--blue); font-size: 12px; font-weight: 700; vertical-align: 1px; }
+.lv-stag.mk { background: var(--fill); color: var(--t2); }
+.lv-solo { height: 240px; margin-top: 12px; animation: lvSoloIn .45s var(--spring) both; }
+.lv-solo .lv-front .lv-w { font-size: 30px; }
+.lv-solo .lv-back b { font-size: 24px; }
+.lv-solo .lv-back .tiny { -webkit-line-clamp: 3; font-size: 14px; }
+.lv-solo-en { font-size: 15px; color: var(--t2); font-weight: 600; }
+.lv-solo .lv-say { width: 40px; height: 40px; font-size: 18px; top: 10px; right: 10px; }
+.lv-solo-t { text-align: center; margin: 12px 0 0; }
+.lv-solo-go[aria-disabled] { color: var(--t3); background: var(--fill); }
+@keyframes lvSoloIn { from { opacity: 0; transform: translateX(24px) scale(.97); } to { opacity: 1; transform: none; } }
