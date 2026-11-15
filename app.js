@@ -2515,7 +2515,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611152239', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611152245', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5233,6 +5233,9 @@
   }
   const qnaBack = () => { const f = UI.qnaFrom; return f && UI.run && ((UI.run.kind === 'fin' && UI.run.cid === f.cid) || (UI.run.kind === 'unit' && UI.run.back === 'qna')) ? f.id : null; };
   const GD = {
+    // 11/15 정윤 카톡 «능수동 좀 약해서 이거 왜 능동이고 수동인지 설명 좀 더 자세히» → 문장 분석 포인트 97개를 「왜」까지 고치고 배너로 알려요
+    vc: { on: () => U.who === '정윤' && today() <= '2026-11-22', ic: 'think', cls: 'r2-ban', b: '능동·수동, 왜 그런지까지 적었어요', d: '올림포스 문장 분석에 -ing인지 p.p.인지 까닭을 붙였어요', go0: '보기',
+      open: () => sheet(`<h2>능동·수동, 이렇게 가려요</h2><ol class="r2s-rules" style="margin-top:12px"><li style="--i:0"><span class="r2s-rn">1</span><div><b>꾸밈받는 말(주어)부터 찾아요</b><span>relating이면 꾸밈받는 costs, linked면 problems처럼 그 동작을 하는 쪽인지 볼 말을 먼저 찾아요</span></div></li><li style="--i:1"><span class="r2s-rn">2</span><div><b>직접 하면 -ing, 당하면 p.p.</b><span>비용이 스스로 ~와 「관련되는」 거라 relating (= costs which relate to)</span><span>문제들은 무언가에 의해 「연결된」 거라 linked (= problems which are linked)</span></div></li><li style="--i:2"><span class="r2s-rn">3</span><div><b>「누가 했지?」가 떠오르면 수동이에요</b><span>by 누구가 숨어 있으면 p.p.예요. 감정은 사람이 느끼면 p.p.(stressed), 감정을 일으키면 -ing(stressing)</span></div></li></ol><p class="tiny" style="margin:12px 0 0">문장 분석의 「포인트」에서 분사가 나오는 문장마다 이렇게 까닭을 적어 두었어요</p><button class="btn primary big block" id="vc-ok" type="button" style="margin-top:20px">알겠어요</button>`, (el, close) => { $('#vc-ok', el).onclick = () => close(); }) },
     // 11/15 정윤 카톡(시간 재기가 한국사로 묶임 · 잠금 화면 멈추기) 답을 배너로. 열어 보고 「알겠어요」면 사라져요
     tm: { on: () => U.who === '정윤' && today() <= '2026-11-22', ic: 'clock', cls: 'r2-ban', b: '공부 시간, 이제 과목마다 따로 재져요', d: '부탁한 두 가지 고쳤어요 · 앱을 한 번 껐다 켜 주세요', go0: '보기',
       open: () => sheet(`<h2>공부 시간 재기, 이렇게 바뀌었어요</h2><ol class="r2s-rules" style="margin-top:12px"><li style="--i:0"><span class="r2s-rn">1</span><div><b>과목마다 따로 재져요</b><span>숙제를 열면 그 숙제 이름과 과목으로 재요. 영어를 열면 영어, 한국사를 열면 한국사예요</span><span>앱을 한 번 껐다 켜야 바뀐 게 들어가요</span></div></li><li style="--i:1"><span class="r2s-rn">2</span><div><b>잠금 화면 표시는 못 해요</b><span>잠금 화면에 시간과 멈춤 단추를 띄우는 건 앱스토어 앱만 할 수 있어서, 아이패드가 우리 앱에는 허락을 안 해 줘요</span></div></li><li style="--i:2"><span class="r2s-rn">3</span><div><b>대신 오래 나갔다 오면 물어봐요</b><span>재는 중에 15분 넘게 앱 밖에 있다 돌아오면 「그 시간 빼고 멈추기」와 「계속 공부했어요」 중에 고를 수 있어요</span></div></li></ol><button class="btn primary big block" id="tm-ok" type="button" style="margin-top:20px">알겠어요</button>`, (el, close) => { $('#tm-ok', el).onclick = () => close(); }) },
@@ -5260,7 +5263,7 @@
   }
   function gdCard() {
     // 11/10 새로 만든 안내(정리·가이드)는 둘 다 보여요. 예전 안내는 하나씩
-    const L = gdList(), ks = L.filter((k) => k === 'tm' || k === 'sci' || k === 'iq' || k === 'add' || k === 'r2a' || k === 'r2q'); const show = ks.length ? ks : L.slice(0, 1);
+    const L = gdList(), ks = L.filter((k) => k === 'vc' || k === 'tm' || k === 'sci' || k === 'iq' || k === 'add' || k === 'r2a' || k === 'r2q'); const show = ks.length ? ks : L.slice(0, 1);
     return show.map((k) => { const g = GD[k]; return `<button type="button" class="c12 ts-band gd-card ${g.cls || ''}" data-gdopen="${k}"><span class="ts-band-ic">${ic(g.ic)}</span><span class="ts-band-t"><b>${esc(g.b)}</b><span>${esc(g.d)}</span></span><span class="ts-band-go">${esc(g.go0 || '방법 보기')}</span></button>`; }).join('');  // 11/8 «이 부분이 너무 정신없어» → 토스 띠 배너
   }
   function gdOpen(e) {
@@ -8751,7 +8754,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152239'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152245'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
