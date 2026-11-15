@@ -411,9 +411,10 @@
   }
   const r2sRd = (sj) => (R2S_SUBJ[sj] || {}).rd || '2회독';  // 11/15 한국사 A1~A6 (11/16~11/21)
   const R2S_ON = true;  // 11/15 올해 시험지 꼴로 고친 국어 K·통합사회 S·한국사 A 를 켜요
-  // 11/15 선생님 «실제 시험에 서술형이 없으면 안 하는 거야»: 정윤 1학기 실제 시험지·정답표가 국어·통합사회·한국사 모두 선택형 100점(서답형 0점)이라
-  //   이 세 과목 2회독은 객관식만 풀고 ④ 핵심 쓰기는 빼요. 영어는 실제 시험에 서술형 20점이 있어 그대로예요. 기말에 서술형이 나온다고 공지되면 여기서 빼면 돼요
-  const R2S_NOWRITE = { kor: 1, soc: 1, hist: 1 };
+  // 11/15 선생님 «실제 시험에 서술형이 없으면 안 하는 거야 · 있는데 또 막 빼지 말고»: 실제 시험지로 확인된 것만 빼요
+  //   국어: 1학기 1차 정답표 서답형 0점, 담당 교사 세 분이 2학기와 같아요 → 쓰기 빼요
+  //   통합사회: 1학기 1차에 논술형 3문항 10점이 실제로 나왔어요 → 그대로 · 한국사: 2학기 중간 시험지를 못 봐서 확인 전까지 그대로 · 영어: 서술형 20점, 그대로
+  const R2S_NOWRITE = { kor: 1 };
   const R2S = !R2_ON || !R2S_ON ? [] : Object.entries(R2S_SUBJ).flatMap(([sj, m]) => ((D.r2s || {})[sj] || []).filter((x) => x && x.id && Array.isArray(x.qs) && x.qs.length && x.recall).map((x0) => { const x = R2S_NOWRITE[sj] ? { ...x0, qs: x0.qs.filter((q) => q.type === 'mc'), key: [] } : x0; const d = new Date(m.start + 'T00:00:00'); d.setDate(d.getDate() + Math.max(0, (parseInt(String(x.id).replace(/\D/g, ''), 10) || 1) - 1)); return { id: x.id, sj, x, day: fmtDay(d), cs: (x.cids || []).map((id) => FIN_ALL.find((c) => c.id === id)).filter(Boolean) }; }));
   const r2sEnd = (sj) => R2S.reduce((m, x) => (x.sj === sj && x.day > m ? x.day : m), '');
   // 11/15 한국사 백지 노트: 정윤 «한국사는 애들 다 백지 노트 하는 게 제일 도움 된다는데, 컴터에서 백지 노트를 할 수 있나» · 선생님 «1부터 겹쳐서 해도 돼, 어차피 복습이니까» → 2회독과 따로 A1부터 하루 하나
@@ -2518,7 +2519,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611152319', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611152322', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6493,7 +6494,18 @@
     for (let v of [...String(w.ko).split(','), ...String(w.k).split(','), ...(w.alt || [])]) { v = v.trim(); if (!v) continue; const tl = /^~/.test(v);
       for (const f of [v.replace(/\([^)]*\)|\[[^\]]*\]/g, ''), v.replace(/[()[\]]/g, ''), v.replace(/\([^)]*\)/g, '').replace(/\S+\s*\[([^\]]*)\]/, '$1')]) { let n = lvNK(f); if (tl) n = n.replace(/^(를|을|이|가|의|에게|에서|에|과|와)/, ''); if (n) out.add(n); } }
     return (w._ko = out); };
-  const lvKoOk = (w, t) => { let a = lvNK(t); if (/^\s*~/.test(t || '')) a = a.replace(/^(를|을|이|가|의|에게|에서|에|과|와)/, ''); return !!a && lvKoSet(w).has(a); };
+  // 11/15 선생님 «두 개 뜻 있는 거, 스페이스 이런 거 다 맞출 수 없고 그중에 하나라도 맞추거나, 뛰다 달리다 이럴 수도 있고… 관대하게»
+  //   ① 띄어쓰기·문장부호 무시 ② 여러 뜻 중 하나만 맞아도 ③ 내가 여러 개 쓰면(쉼표·빗금·띄어쓰기) 그중 하나만 맞아도 ④ 비슷한 말(alt) ⑤ 끝말 차이(달리다·달리기·달림·달려요, 표시·표시하다, 행복한·행복하다)
+  //   ⑥ 뜻의 앞부분만 써도(아마도거의 → 아마도, 기념하다 → 기념) ⑦ 세 글자 넘으면 한 글자 틀린 것까지
+  const lvKS = (n) => n.replace(/(하였다|했다|합니다|해요|하기|하는|하다|한다|한|함|해)$/, '').replace(/(였다|었다|았다|습니다|ㅂ니다|어요|아요|여요|기|는|은|음|다|요|ㅁ)$/, '').replace(/(스러운|스럽다|적인|적)$/, '');
+  const lvLev1 = (a, b) => { if (Math.abs(a.length - b.length) > 1) return false; let i = 0, j = 0, d = 0; while (i < a.length && j < b.length) { if (a[i] === b[j]) { i++; j++; continue; } if (++d > 1) return false; if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; } } return d + (a.length - i) + (b.length - j) <= 1; };
+  const lvKoOk1 = (w, a) => { if (!a) return false; const set = lvKoSet(w); if (set.has(a)) return true; const sa = lvKS(a);
+    for (const m of set) { const sm = lvKS(m); if (sa && sm && sa === sm && sa.length >= 1) return true;
+      if (sa.length >= 2 && sm.startsWith(sa) && sa.length / sm.length >= 0.5 && !/^(가|자|사|원|인|님|기|물|품|소|장)$/.test(sm.slice(sa.length))) return true;  // 건축가 → 건축(뜻이 달라져요)은 안 돼요
+      if (sa.length >= 3 && sm.length >= 3 && lvLev1(sa, sm)) return true; }
+    return false; };
+  const lvKoOk = (w, t) => { const raw = String(t || ''), tl = /^\s*~/.test(raw), fix = (x) => { let n = lvNK(x); if (tl) n = n.replace(/^(를|을|이|가|의|에게|에서|에|과|와)/, ''); return n; };
+    const parts = [raw, ...raw.split(/[,/;·、]|\s+/)].map(fix).filter(Boolean); return parts.some((a) => lvKoOk1(w, a)); };
   const lvMastered = (en) => { const r = lvW(en); return (r.ds || []).length >= 2 && !!r.lst; };
   // 금요일(시험 날)엔 덜 단단한 단어만 먼저 데워요: 사흘 못 채웠거나 지난번에 틀린 것
   const lvWeak = (w) => { const r = lvW(w.en); return (r.ds || []).length < 3 || !r.lst || !!(r.lm && r.lm[1]); };
@@ -8761,7 +8773,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152319'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611152322'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
