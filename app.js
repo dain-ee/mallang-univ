@@ -428,9 +428,20 @@
   const r2sEnd = (sj) => R2S.reduce((m, x) => (x.sj === sj && x.day > m ? x.day : m), '');
   // 11/15 한국사 백지 노트: 정윤 «한국사는 애들 다 백지 노트 하는 게 제일 도움 된다는데, 컴터에서 백지 노트를 할 수 있나» · 선생님 «1부터 겹쳐서 해도 돼, 어차피 복습이니까» → 2회독과 따로 A1부터 하루 하나
   const BN_START = '2026-11-16', BN_MAX = 4000;
-  const BN = !R2_ON ? [] : [...((D.r2s || {}).hist || []).filter((x) => x && x.id && x.mem && (x.mem.cards || []).length).map((x) => { const d = new Date(BN_START + 'T00:00:00'); d.setDate(d.getDate() + Math.max(0, (parseInt(String(x.id).replace(/\D/g, ''), 10) || 1) - 1)); return { id: x.id, sj: 'hist', x, day: fmtDay(d) }; }), ...((D.r2s || {}).perf || []).filter((x) => x && x.id && x.day && x.mem && (x.mem.cards || []).length).map((x) => ({ id: x.id, sj: 'perf', x, day: x.day }))];  // 11/16 수행평가 외우기(춘향전 답 통암기·체육 빈칸)도 같은 외우기 판 (source/jy_r2s/perf, 파일마다 day·lab·ic)
+  const BN = !R2_ON ? [] : [...((D.r2s || {}).hist || []).filter((x) => x && x.id && x.mem && (x.mem.cards || []).length).map((x) => { const d = new Date(BN_START + 'T00:00:00'); d.setDate(d.getDate() + Math.max(0, (parseInt(String(x.id).replace(/\D/g, ''), 10) || 1) - 1)); return { id: x.id, sj: 'hist', x, day: fmtDay(d) }; }), ...((D.r2s || {}).perf || []).filter((x) => x && x.id && x.day && x.mem && (x.mem.cards || []).length).map((x) => ({ id: x.id, sj: 'perf', x, get day() { return pfDay(this); } }))];  // 11/16 수행평가 외우기(춘향전 답 통암기·체육 빈칸)도 같은 외우기 판 (source/jy_r2s/perf, 파일마다 day·lab·ic)
+  // 11/16 선생님 «며칠까진데 이렇게 해? 그냥 하나로 해, D-day 정해 달라 하고, 넌 모르잖아» → 수행평가마다 숙제 한 줄: 단계를 하나 끝내면 다음 날 다음 단계 (날짜가 빠듯하면 바로 이어서)
+  //   날짜는 정윤이가 배너에서 넣어요 (S.r2s.a.pfd = { chj, pe })
+  const pfG = (x) => (String(x.id).startsWith('PC') ? 'chj' : 'pe'), PF_NM = { chj: '춘향전(국어)', pe: '체육 운동 손상' };
+  const pfD = (g) => (r2sGet('pfd') || {})[g] || '';
+  function pfDay(it) {
+    const t = today(), G = BN.filter((y) => y.sj === 'perf' && pfG(y) === pfG(it)), i = G.indexOf(it);
+    if (bnDone(it)) return bnDoneDay(it);
+    for (let j = 0; j < i; j++) if (!bnDone(G[j])) return '9999-12-31';
+    const pd = i > 0 ? bnDoneDay(G[i - 1]) : null, D = pfD(pfG(it)), left = D ? Math.max(0, Math.round((new Date(D + 'T00:00:00') - new Date(t + 'T00:00:00')) / 864e5)) : 99;
+    return pd === t && G.length - i < left ? addD(t, 1) : t;
+  }
   const bnLab = (x) => (x && x.x.lab) || '한국사 백지 노트', bnIc = (x) => (x && x.x.ic) || 'scroll', bnShort = (x) => (x && x.x.short) || '백지 노트';
-  const bnEnd = (x) => BN.filter((y) => !x || bnLab(y) === bnLab(x)).reduce((m, y) => (y.day > m ? y.day : m), '');
+  const bnEnd = (x) => x && x.sj === 'perf' ? (pfD(pfG(x)) || today()) : BN.filter((y) => !x || bnLab(y) === bnLab(x)).reduce((m, y) => (y.day > m ? y.day : m), '');
   function r2Ends() {  // 2회독 끝 디데이: 같은 날 끝나는 과목은 한 줄로 묶어요 (디데이 칸이 길어지지 않게)
     const L = [...(R2.length ? [['영어', R2.reduce((m, x) => (x.day > m ? x.day : m), '')]] : []), ...Object.keys(R2S_SUBJ).filter((sj) => r2sEnd(sj) && !R2S_SUBJ[sj].rd).map((sj) => [R2S_SUBJ[sj].name, r2sEnd(sj)])], by = {};
     for (const [n, d] of L) (by[d] = by[d] || []).push(n);
@@ -2536,7 +2547,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611161801', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611161924', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3711,6 +3722,12 @@
   const bnCard = (key) => { const [id, i] = String(key).split(':'), b = bnOf(id); const c = b && bnCards(b)[+i]; return c ? { b, c } : null; };
   const bnBlankN = (x) => bnCards(x).reduce((n, c) => n + (c.ans || []).length, 0);
   function bnPrevMiss(x) { const G = BN.filter((y) => bnLab(y) === bnLab(x)), i = G.indexOf(x); if (i <= 0) return []; const p = G[i - 1], f = r2sGet(bnK(p.id)).f || {}; return Object.keys(f.bad || {}).filter((k) => k.startsWith(p.id + ':') && bnCard(k)); }
+  function pfAsk() {
+    const v = (g) => pfD(g) || '';
+    sheet(`<h2>수행평가 날짜를 넣어 주세요</h2><p class="sub">그날까지 외우기 단계를 맞춰 줄게요 · 나중에 바뀌면 다시 넣어도 돼요</p>${['chj', 'pe'].map((g) => `<label class="pf-row" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px"><b>${PF_NM[g]}</b><input class="inp" type="date" data-pfd="${g}" value="${v(g)}" min="${today()}" style="width:180px"></label>`).join('')}<button class="btn primary big block" style="margin-top:20px" type="button" data-pfok>저장</button>`, (el, close) => {
+      $('[data-pfok]', el).onclick = () => { const a = r2sA('pfd'); $$('[data-pfd]', el).forEach((i) => { if (i.value) a[i.dataset.pfd] = i.value; }); save('r2s'); close(); toast('고마워요 · 그날까지 맞춰 둘게요'); render(); };
+    });
+  }
   function bnSt(x) { const A = r2sGet(bnK(x.id)); if (!A.v) return 'v'; if (!A.o) return 'o'; if (!(A.f && A.f.at)) return 'f'; return 'fin'; }
   function bnDone(x) { return bnSt(x) === 'fin'; }
   function bnDoneDay(x) { return bnDone(x) ? atDay(r2sGet(bnK(x.id)).f.at) : null; }
@@ -3721,7 +3738,7 @@
     return bnToday().map((x) => {
       const st = bnSt(x), dn = st === 'fin', N = bnCards(x).length, F = r2sGet(bnK(x.id)).f;
       const d = dn ? `카드 ${N}장 중 ${bnN(x)}장 한 번에 맞혔어요 · 끝냈어요` : st === 'v' ? `흐름 보기 → 순서 맞추기 → 빈칸 ${bnBlankN(x)}개 쓰기 · 바로 채점돼요` : st === 'o' ? '② 순서 맞추기 차례예요' : `③ 빈칸 쓰기 · 남은 카드 ${F && F.q ? F.q.length : N}장`;
-      const end = bnEnd(x); return { k: 'bn:' + x.id, id: 'bn:' + x.id, icon: bnIc(x), t: `${bnLab(x)} · ${x.x.title}`, d, tg: [!dn && st !== 'v' ? [`${NO[st]}/3단계`, 'blue'] : null, !dn ? [`${bnShort(x)} 끝 ${ddTxt(end)}`, ''] : null], done: dn, late: x.day < t };
+      const end = bnEnd(x); return { k: 'bn:' + x.id, id: 'bn:' + x.id, icon: bnIc(x), t: `${bnLab(x)} · ${x.x.title}`, d, tg: [!dn && st !== 'v' ? [`${NO[st]}/3단계`, 'blue'] : null, !dn ? (x.sj === 'perf' ? (pfD(pfG(x)) ? [`수행평가 ${ddTxt(end)}`, 'red'] : ['날짜 넣어 주세요', '']) : [`${bnShort(x)} 끝 ${ddTxt(end)}`, '']) : null], done: dn, late: x.day < t };
     });
   }
   // 채점: 띄어쓰기·문장 부호·끝 조사는 봐주고, 4글자 넘는 말은 한 글자 틀려도 맞아요
@@ -5321,7 +5338,8 @@
     // 11/16 선생님 «국어 4단원 나 몰라, 윤건이가 그런지 아닌지 배너에서 맞다 아니다 선택할 수 있게» → 고른 건 학생 기록 gdi(k4y·k4n)에 남아요
     k4: { tutor: 1, on: () => U.who === '윤건' && !TEACHER && !gdHas('k4y') && !gdHas('k4n'), ic: 'books', cls: 'r2-ban', b: '국어 4단원 「읽고 분석하고」도 기말 범위예요?', d: '맞다 아니다만 눌러 주면 돼요 · 범위면 계획에 넣어 줄게요', go0: '고르기', keep: 1, open: () => sheet(`<h2>국어 4단원도 기말 범위예요?</h2><p class="sub">4단원 「읽고 분석하고」 (점검·조정, 읽기 과정)<br>학교에서 들은 대로 골라 주세요</p><div class="k4-btns" style="display:flex;gap:8px;margin-top:14px"><button class="btn primary big" style="flex:1" type="button" data-k4="y">맞아요, 범위예요</button><button class="btn big" style="flex:1" type="button" data-k4="n">아니에요</button></div><p class="tiny" style="margin-top:10px">잘 모르겠으면 내일 선생님께 여쭤보고 골라도 돼요</p>`, (el, close) => { $$('[data-k4]', el).forEach((b) => (b.onclick = () => { gdMark(b.dataset.k4 === 'y' ? 'k4y' : 'k4n'); close(); toast(b.dataset.k4 === 'y' ? '알려 줘서 고마워요 · 4단원도 계획에 넣을게요' : '알려 줘서 고마워요 · 3단원만 할게요'); setTimeout(() => { const g = document.querySelector('.gd-card[data-gdopen="k4"]'); if (g) cardBye(g, render); else render(); }, 260); })); }) },
     // 11/16 정윤 카톡 «이거 답 통암기 해야 되는데 어떻게 할 수 있을까» · «이거는 빈칸» → 선생님 «배너에 하고 숙제로 넣어 놔, 어제 해류처럼»
-    pf: { on: () => U.who === '정윤' && !TEACHER && BN.some((x) => x.sj === 'perf'), ic: 'books', cls: 'r2-ban', b: '수행평가 두 개, 외우기 숙제로 넣었어요', d: '춘향전 답 통암기 6번 · 체육 운동 손상 빈칸 6번 · 11/17부터 하루 하나씩, 바로 채점돼요', go0: '시작', open: () => { const x = BN.find((y) => y.sj === 'perf' && !bnDone(y)); if (x) bnStart(x.id); else { UI.tab = 'hw'; render(); } } },
+    pfd: { keep: 1, on: () => U.who === '정윤' && !TEACHER && BN.some((x) => x.sj === 'perf') && (!pfD('chj') || !pfD('pe')), ic: 'books', cls: 'r2-ban', b: '수행평가 날짜를 알려 줄래요?', d: '춘향전 답 통암기 · 체육 운동 손상 빈칸 외우기를 넣었어요 · 날짜를 넣으면 그날까지 맞춰 줄게요', go0: '날짜 넣기', open: () => pfAsk() },
+  // (pfAsk 는 아래 함수)
     scr: { on: () => U.who === '정윤' && !TEACHER && !(exS().sciAsk || {}).at, ic: 'sci', cls: 'r2-ban', b: '과학 기말 범위, 이게 맞는지 봐 줄래요?', d: '인강 들은 걸로 짐작했어요 · 맞는 것만 남기면 과학 계획을 짜 줄게요', go0: '확인', keep: 1, open: () => sciAskSheet() },
     // 11/15 정윤 카톡 «능수동 좀 약해서 이거 왜 능동이고 수동인지 설명 좀 더 자세히» → 문장 분석 포인트 97개를 「왜」까지 고치고 배너로 알려요
     vc: { on: () => U.who === '정윤' && today() <= '2026-11-22', ic: 'think', cls: 'r2-ban', b: '능동·수동, 왜 그런지까지 적었어요', d: '올림포스 문장 분석에 -ing인지 p.p.인지 까닭을 붙였어요', go0: '보기',
@@ -5356,7 +5374,7 @@
   }
   function gdCard() {
     // 11/10 새로 만든 안내(정리·가이드)는 둘 다 보여요. 예전 안내는 하나씩
-    const L = gdList(), ks = L.filter((k) => k.startsWith('q_') || k === 'scr' || k === 'k4' || k === 'pf' || k === 'vc' || k === 'tm' || k === 'sci' || k === 'iq' || k === 'add' || k === 'r2a' || k === 'r2q'); const show = ks.length ? ks : L.slice(0, 1);
+    const L = gdList(), ks = L.filter((k) => k.startsWith('q_') || k === 'scr' || k === 'k4' || k === 'pfd' || k === 'vc' || k === 'tm' || k === 'sci' || k === 'iq' || k === 'add' || k === 'r2a' || k === 'r2q'); const show = ks.length ? ks : L.slice(0, 1);
     return show.map((k) => { const g = GD[k]; return `<button type="button" class="c12 ts-band gd-card ${g.cls || ''}" data-gdopen="${k}"><span class="ts-band-ic">${ic(g.ic)}</span><span class="ts-band-t"><b>${esc(g.b)}</b><span>${esc(g.d)}</span></span><span class="ts-band-go">${esc(g.go0 || '방법 보기')}</span></button>`; }).join('');  // 11/8 «이 부분이 너무 정신없어» → 토스 띠 배너
   }
   function gdOpen(e) {
@@ -8864,7 +8882,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611161801'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611161924'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
