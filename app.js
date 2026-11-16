@@ -2360,6 +2360,10 @@
     return out;
   }
   // 달력용: 앱 안 계획 숙제(윤건 기말·매일 영어)는 dayItems 에 안 잡혀서 지난 날 칸이 비고, 밀린 것도 안 보였어요 (11/5 «어제 밀린 거 왜 안 나오지 · 당일만 개수가 없어»)
+  // 11/16 선생님 «끝났으면 정확히 시간도 기록해줘»: 끝낸 줄에 끝낸 시각과 걸린 시간 (첫 답 → 마지막 답)
+  const ypAt0 = (it) => { const a = nxS().a; if (it.p === 'ch') return (a[it.id] || {}).at || 0; let m = 0; for (const q of it.qs || []) { const v = a[q.i]; if (v && v.at && (!m || v.at < m)) m = v.at; } return m; };
+  const ypClock = (t) => { const d = new Date(t), h = d.getHours(), mi = String(d.getMinutes()).padStart(2, '0'); return `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}:${mi}`; };
+  const ypTimeTxt = (it) => { const b = ypAt(it); if (!b) return ''; const a = ypAt0(it), m = a && b > a ? Math.round((b - a) / 60000) : 0; return ` · ${atDay(b) === today() ? '' : md(atDay(b)) + ' '}${ypClock(b)}에 끝${m >= 1 && m <= 180 ? ` (${m}분 걸림)` : ''}`; };
   const ypAt = (it) => { const a = nxS().a; if (it.p === 'ch') return (a[it.id] || {}).at || 0; let m = 0; for (const q of it.qs || []) { const v = a[q.i]; if (v && v.at > m) m = v.at; } return m; };
   function calDone(d) { const out = dayItems(d).filter((x) => x.i !== 'clock' && x.i !== 'tomato'); /* 공부 시간·토마토는 숙제가 아니라 빼요 */ for (const it of YP) if (ypDone(it)) { const at = ypAt(it); if (at && atDay(at) === d) { const g = NXSETS[it.id] ? nxProg(NXSETS[it.id]) : null; out.push({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 끝냈어요${g && it.p !== 'ch' ? ` · ${g.ok}/${g.n} 맞힘` : ''}${it.day < d ? ` · ${md(it.day)} 몫` : ''}`, go: it.id }); } } return out; }
   // 그날 몫인데 못 한 것: 윤건 기말 계획·매일 영어(YP), 정윤 기말 예습·올림포스(FIN)
@@ -2528,7 +2532,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611160912', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611161343', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -8040,7 +8044,7 @@
     const st = (it) => it.p === 'wm' ? 'wm' : /^pp:mr/.test(it.id) ? 'read' : /^pp:mg/.test(it.id) ? 'gram' : /^pp:mc/.test(it.id) ? 'comm' : /^pp:mw/.test(it.id) ? 'word' : it.id.startsWith('pp:') ? it.id : it.subj;
     // 11/11 선생님 «처음부터 심화까지 가는 게 아니라 모든 영역 먼저 개념 1판, 2판 응용, 3판 심화 … 개념은 잘게, 응용·심화는 밀집해서» → F.rounds [개념, 응용, 심화] 날 수 비율
     const rd = (it) => !F.rounds ? 0 : it.hd ? 2 : it.p === 'L' || it.p === 'Lh' || it.id.startsWith('pp:') ? 0 : 1, sk = (it) => st(it) + '#' + rd(it);
-    const fixed = (it) => !it._new && (it.day < F.base || (it.day > YF.end && !(F.rounds && it.hd)) || it.p === 'wm' || /^pp:(mr|rv|ms)/.test(it.id) || (F.keep || []).includes(it.id) || !it.qs.length);
+    const fixed = (it) => !it._new && (it.day < F.base || (it.day > YF.end && !(F.rounds && it.hd)) || it.p === 'wm' || /^pp:(mr|rv|ms|mt)/.test(it.id) || (F.keep || []).includes(it.id) || !it.qs.length);
     const half = (it) => {  // split 넘으면 고르게 나눠요(둘이면 앞·뒤 절반). 문제만 든 조각은 그 문항만 푸는 세트로
       const n = Math.min(it.qs.length, Math.ceil(w(it) / (PER[sk(it)] || ((F.splits || {})[st(it)]) || F.split || 30))); if (n < 2) return [it];
       return Array.from({ length: n }, (_, k) => {
@@ -8185,7 +8189,7 @@
         NXSETS[id] = { id, title, sub: '추가 숙제', subj: 'm3', kind: 'L', unit: u.id, qs, nav: 'L' + L.k }; out.push({ id, subj: 'm3', unit: u.id, p: 'L', m3: 1, qs, title, sub: u.title, nav: 'L' + L.k, day: d, nc: L.c ? NXSETS[L.c].qs.length : 0, nq: L.q ? NXSETS[L.q].qs.length : 0 }); d = addD(d, 1); } }
     // 11/3 «이번 숙제는 천일문 2개 복습(문제 이미 풀어져 있으면 안 돼) + 매3영 오늘 2개 + 필기 복기»
     for (const [d, r] of Object.entries(NXD.rv || {})) {
-      for (const s0 of r.sets || []) { const id = 'pp:' + s0.id, S0 = NXSETS[id]; if (S0) out.push({ id, subj: 'eng', p: 'rv', qs: S0.qs, title: S0.title, sub: S0.sub, day: d }); }
+      for (const s0 of r.sets || []) { const id = 'pp:' + s0.id, S0 = NXSETS[id]; if (S0) out.push({ id, subj: S0.subj && S0.subj !== 'm3' ? S0.subj : 'eng', p: 'rv', qs: S0.qs, title: S0.title, sub: S0.sub, day: d }); }
       const u = r.m3 && NXU[r.m3.u];
       if (u) for (const L of stLessons(u).filter((x) => (r.m3.lt || []).includes(x.m3))) {
         const id = `pp:m3rv:${u.id}:${L.m3}`, qs = [{ i: `m3rv:${u.id}:${L.m3}` }], title = `복습 · 매3영 Day ${u.no} ${L.m3} 지문`;
@@ -8214,7 +8218,7 @@
     if (!YP_ON) return [];
     /* 11/15 선생님 «이런 거 정윤이 윤건이 둘 다 해 놔, 1회독 2회독 3회독 이런 라벨링 좋다»: 기말 계획 줄마다 몇 회독인지와 그 과목 그 회독이 끝나는 날 디데이 */
     const ypRd = (it) => (it.hd ? 2 : it.p === 'L' || it.p === 'Lh' ? 0 : 1), RDE = {}, rdEnd = (it) => { const k = it.subj + '#' + ypRd(it); if (!(k in RDE)) RDE[k] = YP.filter((x) => !x.id.startsWith('pp:') && x.subj === it.subj && ypRd(x) === ypRd(it)).reduce((m, x) => (x.day > m ? x.day : m), ''); return RDE[k]; };
-    return ypNow().map((it) => { const late = it.day < today(), dn = ypDone(it), g = nxProg(NXSETS[it.id]); const pl = it.id.startsWith('pp:') ? '매일 영어' : '기말 계획', rt = !dn && !it.id.startsWith('pp:') && rdEnd(it) ? [`${ypRd(it) + 1}회독 끝 ${ddTxt(rdEnd(it))}`, ''] : it.tg && !dn ? it.tg : null; return { k: it.id, tg: rt ? [rt] : [], icon: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: dn ? `${pl} · 끝냈어요${it.p === 'ch' ? '' : ` · ${g.ps ? `${g.ps[0]}/${g.ps[1]}문장` : `${g.ok + g.fx}/${g.n}`} 맞힘${g.fx && !g.ps ? ` · ${g.fx}개는 다시 풀어서 고침` : ''}`}` : `${late ? `<b>${md(it.day)} 몫 · 밀렸어요</b>` : `${pl} · 오늘 몫`} · ${g.d ? `${g.d}/${g.n} 풀었어요` : ypQn(it, g)}`.replace(/<[^>]+>/g, ''), done: dn, late }; });
+    return ypNow().map((it) => { const late = it.day < today(), dn = ypDone(it), g = nxProg(NXSETS[it.id]); const pl = it.id.startsWith('pp:') ? '매일 영어' : '기말 계획', rt = !dn && !it.id.startsWith('pp:') && rdEnd(it) ? [`${ypRd(it) + 1}회독 끝 ${ddTxt(rdEnd(it))}`, ''] : it.tg && !dn ? it.tg : null; return { k: it.id, tg: rt ? [rt] : [], icon: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: dn ? `${pl} · 끝냈어요${ypTimeTxt(it)}${it.p === 'ch' ? '' : ` · ${g.ps ? `${g.ps[0]}/${g.ps[1]}문장` : `${g.ok + g.fx}/${g.n}`} 맞힘${g.fx && !g.ps ? ` · ${g.fx}개는 다시 풀어서 고침` : ''}`}` : `${late ? `<b>${md(it.day)} 몫 · 밀렸어요</b>` : `${pl} · 오늘 몫`} · ${g.d ? `${g.d}/${g.n} 풀었어요` : ypQn(it, g)}`.replace(/<[^>]+>/g, ''), done: dn, late }; });
   }
   function ypLagRows(days, st0) {
     if (!YP_ON) return [];
@@ -8845,7 +8849,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611160912'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611161343'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
