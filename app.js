@@ -2533,7 +2533,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611161357', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611161412', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -8212,7 +8212,8 @@
   const ypDone = (it) => { if (it.p === 'ch') { const dn = ppChDone(it.ch); if (dn && !nxS().a[it.id]) nxS().a[it.id] = { ok: true, at: Date.now() }; return dn; } { const a = nxS().a, rd = it.qs.filter((q) => !q.t && /:n[^:]*$/.test(q.i) && !a[q.i]);  /* 11/11 «8/9 가 뭔지 모르겠고 안에 들어가면 9개가 아닌데»: 남은 게 「개념 읽기」 체크뿐이면(빈칸·문제를 다 풀었으면) 읽은 걸로 쳐요 */ if (rd.length && rd.length < it.qs.length && it.qs.every((q) => a[q.i] || rd.includes(q))) { const at = Math.max(...it.qs.map((q) => (a[q.i] || {}).at || 0)); for (const q of rd) a[q.i] = { ok: true, at }; } } return it.qs.every((q) => nxS().a[q.i]); };
   // 계획을 다시 짜서 뒤로 밀린 숙제라도 이미 풀기 시작했으면 오늘에 남겨요 (11/4 «한 개 지워지는 형식이 아니라 없어져 버렸네»: 윤건 국어 24/29가 사라졌어요)
   const ypTodayTouched = (it, t) => (it.qs || []).some((q) => { const a = nxS().a[q.i]; if (!a || !a.at) return false; const d = new Date(a.at); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` === t; });
-  const ypPin = () => { const t = today(); for (const it of YP) if (it.day > t && NXSETS[it.id] && (ypDone(it) ? ypTodayTouched(it, t) : nxProg(NXSETS[it.id]).d > 0)) it.day = t; };
+  const ypPin = () => { const t = today(); for (const it of YP) if (it.day && ypDone(it)) { const b = ypAt(it), d = b && atDay(b); if (d && d < it.day) it.day = d; }  // 11/16 «이날 푼 게 아니니까 그날로 넣어 놔»: 계획한 날보다 먼저 끝낸 건 실제로 푼 날에 둬요
+    for (const it of YP) if (it.day > t && NXSETS[it.id] && (ypDone(it) ? ypTodayTouched(it, t) : nxProg(NXSETS[it.id]).d > 0)) it.day = t; };
   const ypNow = () => { ypPin(); return YP.filter((it) => it.day <= today() && (!ypDone(it) || it.day === today() || atDay(ypAt(it)) === today())); };  // 밀린 걸 오늘 끝냈어도 오늘 목록에 줄 그어 남겨요 (달력 개수와 맞게)  // 오늘 몫 + 밀린 것
   // 끝나는 날: 밀린 게 없으면 계획한 마지막 날, 밀렸으면 하루 몫 속도로 그만큼 뒤로
   const ypEnd = () => { if (!YP.some((it) => !ypDone(it))) return null; const days = [...new Set(YP.map((x) => x.day))], per = Math.max(1, Math.ceil(YP.length / days.length)), beh = YP.filter((it) => it.day < today() && !ypDone(it)).length; let d = days[days.length - 1], n = Math.ceil(beh / per); while (n > 0) { d = addD(d, 1); if (!(YF.off || []).includes(new Date(d + 'T00:00:00').getDay())) n--; } return d; };
@@ -8852,7 +8853,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611161357'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611161412'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
