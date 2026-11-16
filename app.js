@@ -2363,7 +2363,8 @@
   // 11/16 선생님 «끝났으면 정확히 시간도 기록해줘»: 끝낸 줄에 끝낸 시각과 걸린 시간 (첫 답 → 마지막 답)
   const ypAt0 = (it) => { const a = nxS().a; if (it.p === 'ch') return (a[it.id] || {}).at || 0; let m = 0; for (const q of it.qs || []) { const v = a[q.i]; if (v && v.at && (!m || v.at < m)) m = v.at; } return m; };
   const ypClock = (t) => { const d = new Date(t), h = d.getHours(), mi = String(d.getMinutes()).padStart(2, '0'); return `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}:${mi}`; };
-  const ypTimeTxt = (it) => { const b = ypAt(it); if (!b) return ''; const a = ypAt0(it), m = a && b > a ? Math.round((b - a) / 60000) : 0; return ` · ${atDay(b) === today() ? '' : md(atDay(b)) + ' '}${ypClock(b)}에 끝${m >= 1 && m <= 180 ? ` (${m}분 걸림)` : ''}`; };
+  const ypTimeTxt = (it) => { const b = ypAt(it); if (!b) return ''; const a = ypAt0(it), m = a && b > a ? Math.round((b - a) / 60000) : 0; return ` · ${atDay(b) === today() ? '' : md(atDay(b)) + ' '}${ypClock(b)}에 ${it.day && atDay(b) < it.day ? '미리 ' : ''}끝${m >= 1 && m <= 180 ? ` (${m}분 걸림)` : ''}`; };  // 11/16 «어제 끝난 게 왜 오늘?» → 계획한 날보다 먼저 끝냈으면 「미리」
+  const tmTxt = (V, day) => { const T = V.map((v) => (v && v.at) || 0).filter(Boolean); if (!T.length) return ''; const a = Math.min(...T), b = Math.max(...T), m = b > a ? Math.round((b - a) / 60000) : 0; return ` · ${atDay(b) === today() ? '' : md(atDay(b)) + ' '}${ypClock(b)}에 ${day && atDay(b) < day ? '미리 ' : ''}끝${m >= 1 && m <= 180 ? ` (${m}분 걸림)` : ''}`; };
   const ypAt = (it) => { const a = nxS().a; if (it.p === 'ch') return (a[it.id] || {}).at || 0; let m = 0; for (const q of it.qs || []) { const v = a[q.i]; if (v && v.at > m) m = v.at; } return m; };
   function calDone(d) { const out = dayItems(d).filter((x) => x.i !== 'clock' && x.i !== 'tomato'); /* 공부 시간·토마토는 숙제가 아니라 빼요 */ for (const it of YP) if (ypDone(it)) { const at = ypAt(it); if (at && atDay(at) === d) { const g = NXSETS[it.id] ? nxProg(NXSETS[it.id]) : null; out.push({ i: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: `${it.id.startsWith('pp:') ? '매일 영어' : '기말 계획'} · 끝냈어요${g && it.p !== 'ch' ? ` · ${g.ok}/${g.n} 맞힘` : ''}${it.day < d ? ` · ${md(it.day)} 몫` : ''}`, go: it.id }); } } return out; }
   // 그날 몫인데 못 한 것: 윤건 기말 계획·매일 영어(YP), 정윤 기말 예습·올림포스(FIN)
@@ -2532,7 +2533,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611161343', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611161357', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3574,7 +3575,7 @@
     return r2sToday().map((x) => {
       const st = r2sSt(x), A = r2sGet(x.id), dn = st === 'fin', n = x.x.qs.length, qn = x.x.qs.filter((q, i) => A['q' + i]).length, kn = (x.x.key || []).length;
       const NS = kn ? ['rc', 'rd', 'q', 'k', 'x'] : ['rc', 'rd', 'q', 'x'], NO = (k) => NS.indexOf(k) + 1;
-      const d = dn ? `${r2sOkN(x)}/${n} 맞힘 · ${kn ? '핵심 쓰기까지 ' : ''}끝냈어요` : st === 'rc' ? `떠올리기 → 다시 보기 → 학교 꼴 문제 ${n}개${kn ? ` → 핵심 쓰기 ${kn}개` : ''}` : st === 'rd' ? '② 다시 보기 차례예요' : st === 'q' ? `③ 학교 꼴 문제 ${qn}/${n}` : st === 'k' ? '④ 핵심 쓰기 차례예요' : `${'①②③④⑤'[NO('x') - 1]} 틀린 것 ${r2sWrong(x).length}개 다시`;
+      const d = dn ? `${r2sOkN(x)}/${n} 맞힘 · ${kn ? '핵심 쓰기까지 ' : ''}끝냈어요${tmTxt(Object.values(A), x.day)}` : st === 'rc' ? `떠올리기 → 다시 보기 → 학교 꼴 문제 ${n}개${kn ? ` → 핵심 쓰기 ${kn}개` : ''}` : st === 'rd' ? '② 다시 보기 차례예요' : st === 'q' ? `③ 학교 꼴 문제 ${qn}/${n}` : st === 'k' ? '④ 핵심 쓰기 차례예요' : `${'①②③④⑤'[NO('x') - 1]} 틀린 것 ${r2sWrong(x).length}개 다시`;
       return { k: 'r2s:' + x.id, id: 'r2s:' + x.id, icon: R2S_SUBJ[x.sj].ic, t: `${r2sNm(x)} ${r2sLab(x)} · ${x.x.title}`, d, tg: [!dn && st !== 'rc' ? [`${NO(st)}/${NS.length}단계`, 'blue'] : null, !dn ? [`${r2sRd(x.sj)} 끝 ${ddTxt(r2sEnd(x.sj))}`, ''] : null], done: dn, late: x.day < t };
     });
   }
@@ -5313,6 +5314,8 @@
   }
   const qnaBack = () => { const f = UI.qnaFrom; return f && UI.run && ((UI.run.kind === 'fin' && UI.run.cid === f.cid) || (UI.run.kind === 'unit' && UI.run.back === 'qna')) ? f.id : null; };
   const GD = {
+    // 11/16 선생님 «국어 4단원 나 몰라, 윤건이가 그런지 아닌지 배너에서 맞다 아니다 선택할 수 있게» → 고른 건 학생 기록 gdi(k4y·k4n)에 남아요
+    k4: { tutor: 1, on: () => U.who === '윤건' && !TEACHER && !gdHas('k4y') && !gdHas('k4n'), ic: 'books', cls: 'r2-ban', b: '국어 4단원 「읽고 분석하고」도 기말 범위예요?', d: '맞다 아니다만 눌러 주면 돼요 · 범위면 계획에 넣어 줄게요', go0: '고르기', keep: 1, open: () => sheet(`<h2>국어 4단원도 기말 범위예요?</h2><p class="sub">4단원 「읽고 분석하고」 (점검·조정, 읽기 과정)<br>학교에서 들은 대로 골라 주세요</p><div class="k4-btns" style="display:flex;gap:8px;margin-top:14px"><button class="btn primary big" style="flex:1" type="button" data-k4="y">맞아요, 범위예요</button><button class="btn big" style="flex:1" type="button" data-k4="n">아니에요</button></div><p class="tiny" style="margin-top:10px">잘 모르겠으면 내일 선생님께 여쭤보고 골라도 돼요</p>`, (el, close) => { $$('[data-k4]', el).forEach((b) => (b.onclick = () => { gdMark(b.dataset.k4 === 'y' ? 'k4y' : 'k4n'); close(); toast(b.dataset.k4 === 'y' ? '알려 줘서 고마워요 · 4단원도 계획에 넣을게요' : '알려 줘서 고마워요 · 3단원만 할게요'); setTimeout(() => { const g = document.querySelector('.gd-card[data-gdopen="k4"]'); if (g) cardBye(g, render); else render(); }, 260); })); }) },
     scr: { on: () => U.who === '정윤' && !TEACHER && !(exS().sciAsk || {}).at, ic: 'sci', cls: 'r2-ban', b: '과학 기말 범위, 이게 맞는지 봐 줄래요?', d: '인강 들은 걸로 짐작했어요 · 맞는 것만 남기면 과학 계획을 짜 줄게요', go0: '확인', keep: 1, open: () => sciAskSheet() },
     // 11/15 정윤 카톡 «능수동 좀 약해서 이거 왜 능동이고 수동인지 설명 좀 더 자세히» → 문장 분석 포인트 97개를 「왜」까지 고치고 배너로 알려요
     vc: { on: () => U.who === '정윤' && today() <= '2026-11-22', ic: 'think', cls: 'r2-ban', b: '능동·수동, 왜 그런지까지 적었어요', d: '올림포스 문장 분석에 -ing인지 p.p.인지 까닭을 붙였어요', go0: '보기',
@@ -5337,7 +5340,7 @@
   const GD_QOLD = { if: 'iq', vc: 'vc' };
   for (const q of QNA) GD['q_' + q.id] = { on: () => !TEACHER && q.date >= addD(today(), -7) && !(GD_QOLD[q.id] && gdHas(GD_QOLD[q.id])), ic: 'think', cls: 'r2-ban', b: q.ban || `물어본 것 정리했어요: ${q.t}`, d: `${q.sub} · 질문 탭에 차곡차곡 모여요`, go0: '보기', open: () => qnaOpen(q.id) };
   delete GD.iq; delete GD.vc;
-  const gdList = () => (TUTOR || (ROLE_T && !PEEK)) ? [] : Object.keys(GD).filter((k) => !gdHas(k) && GD[k].on());
+  const gdList = () => (ROLE_T && !PEEK) ? [] : Object.keys(GD).filter((k) => (!TUTOR || GD[k].tutor) && !gdHas(k) && GD[k].on());  // 11/16 과외 학생(윤건)은 tutor 표시한 배너만
   const gdNext = () => gdList()[0];
   // 11/13 «배너도 아주 사랑스럽게 이 컨셉으로 만들어서 들어가고 싶게 해 정윤이한테만» → 다이어리(my-diary)로 가는 배너. 표지의 십자수 리본·레이스 그대로
   const DIARY_URL = /github\.io$/.test(location.hostname) ? '/my-diary/' : 'https://dain-ee.github.io/my-diary/';
@@ -5347,7 +5350,7 @@
   }
   function gdCard() {
     // 11/10 새로 만든 안내(정리·가이드)는 둘 다 보여요. 예전 안내는 하나씩
-    const L = gdList(), ks = L.filter((k) => k.startsWith('q_') || k === 'scr' || k === 'vc' || k === 'tm' || k === 'sci' || k === 'iq' || k === 'add' || k === 'r2a' || k === 'r2q'); const show = ks.length ? ks : L.slice(0, 1);
+    const L = gdList(), ks = L.filter((k) => k.startsWith('q_') || k === 'scr' || k === 'k4' || k === 'vc' || k === 'tm' || k === 'sci' || k === 'iq' || k === 'add' || k === 'r2a' || k === 'r2q'); const show = ks.length ? ks : L.slice(0, 1);
     return show.map((k) => { const g = GD[k]; return `<button type="button" class="c12 ts-band gd-card ${g.cls || ''}" data-gdopen="${k}"><span class="ts-band-ic">${ic(g.ic)}</span><span class="ts-band-t"><b>${esc(g.b)}</b><span>${esc(g.d)}</span></span><span class="ts-band-go">${esc(g.go0 || '방법 보기')}</span></button>`; }).join('');  // 11/8 «이 부분이 너무 정신없어» → 토스 띠 배너
   }
   function gdOpen(e) {
@@ -8218,7 +8221,7 @@
     if (!YP_ON) return [];
     /* 11/15 선생님 «이런 거 정윤이 윤건이 둘 다 해 놔, 1회독 2회독 3회독 이런 라벨링 좋다»: 기말 계획 줄마다 몇 회독인지와 그 과목 그 회독이 끝나는 날 디데이 */
     const ypRd = (it) => (it.hd ? 2 : it.p === 'L' || it.p === 'Lh' ? 0 : 1), RDE = {}, rdEnd = (it) => { const k = it.subj + '#' + ypRd(it); if (!(k in RDE)) RDE[k] = YP.filter((x) => !x.id.startsWith('pp:') && x.subj === it.subj && ypRd(x) === ypRd(it)).reduce((m, x) => (x.day > m ? x.day : m), ''); return RDE[k]; };
-    return ypNow().map((it) => { const late = it.day < today(), dn = ypDone(it), g = nxProg(NXSETS[it.id]); const pl = it.id.startsWith('pp:') ? '매일 영어' : '기말 계획', rt = !dn && !it.id.startsWith('pp:') && rdEnd(it) ? [`${ypRd(it) + 1}회독 끝 ${ddTxt(rdEnd(it))}`, ''] : it.tg && !dn ? it.tg : null; return { k: it.id, tg: rt ? [rt] : [], icon: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: dn ? `${pl} · 끝냈어요${ypTimeTxt(it)}${it.p === 'ch' ? '' : ` · ${g.ps ? `${g.ps[0]}/${g.ps[1]}문장` : `${g.ok + g.fx}/${g.n}`} 맞힘${g.fx && !g.ps ? ` · ${g.fx}개는 다시 풀어서 고침` : ''}`}` : `${late ? `<b>${md(it.day)} 몫 · 밀렸어요</b>` : `${pl} · 오늘 몫`} · ${g.d ? `${g.d}/${g.n} 풀었어요` : ypQn(it, g)}`.replace(/<[^>]+>/g, ''), done: dn, late }; });
+    return ypNow().map((it) => { const late = it.day < today(), dn = ypDone(it), g = nxProg(NXSETS[it.id]); const pl = it.id.startsWith('pp:mt') ? '기말 외우기' : it.id.startsWith('pp:') ? '매일 영어' : '기말 계획', rt = !dn && !it.id.startsWith('pp:') && rdEnd(it) ? [`${ypRd(it) + 1}회독 끝 ${ddTxt(rdEnd(it))}`, ''] : it.tg && !dn ? it.tg : null; return { k: it.id, tg: rt ? [rt] : [], icon: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: it.title, d: dn ? `${pl} · 끝냈어요${ypTimeTxt(it)}${it.p === 'ch' ? '' : ` · ${g.ps ? `${g.ps[0]}/${g.ps[1]}문장` : `${g.ok + g.fx}/${g.n}`} 맞힘${g.fx && !g.ps ? ` · ${g.fx}개는 다시 풀어서 고침` : ''}`}` : `${late ? `<b>${md(it.day)} 몫 · 밀렸어요</b>` : `${pl} · 오늘 몫`} · ${g.d ? `${g.d}/${g.n} 풀었어요` : ypQn(it, g)}`.replace(/<[^>]+>/g, ''), done: dn, late }; });
   }
   function ypLagRows(days, st0) {
     if (!YP_ON) return [];
@@ -8849,7 +8852,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611161343'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611161357'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
