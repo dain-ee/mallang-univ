@@ -361,8 +361,8 @@
   // 날짜는 덩어리 번호(K01 → 첫날)로 정해져요. 문제 파일(D.r2s, source/jy_r2s/<과목>/)이 없는 덩어리는 숙제에 안 떠요
   const R2S_SUBJ = { kor: { name: '국어', ic: 'books', start: '2026-11-16' }, soc: { name: '통합사회', ic: 'books', start: '2026-11-16' }, hist: { name: '한국사', ic: 'scroll', start: '2026-11-16' }, sci: { name: '통합과학', ic: 'sci', start: '2026-11-15', rd: '1회독' },
     // 11/16 선생님 «선생님이 어떤 방식인지 해서 과학 1회독 2회독 3회독 다 해야 돼» → 2학기 1차 시험지 분석(영역마다 7문항, 있는 대로 82%, 한 낱말 바꿔치기)대로
-    //   1회독 22~28강 개념(G22~G28, 11/17~11/24, 해류 C1~C5 포함) · 2회독 자료 해석(P1~P6, 11/25~12/1) · 3회독 함정(X1~X4, 12/2~12/5) · 모고 28문항 두 번(X5·X6, 12/7·12/8)
-    sci2: { name: '통합과학', ic: 'sci', start: '2026-11-25', rd: '2회독' }, sci3: { name: '통합과학', ic: 'sci', start: '2026-12-02', rd: '3회독' },
+    //   1회독 22~28강 개념(G22~G28, 11/17~11/24, 해류 C1~C5 포함) · 2회독 자료 해석(P1~P6, 11/16 «2회독 앞당겨»·«너무 바로 붙는 건 말이 안 돼»·«2회독은 1~3개 3회독은 1~5개 아우르는 것» → 묶음 범위를 1회독에서 다 본 뒤: 22~24강 묶음 P1~P3 11/20·21·23, 25~28강 묶음 P4~P6 11/25·26·27) · 3회독 함정(X1~X4, 11/28~12/2, 같은 영역 2회독 뒤 4일 넘게) · 모고 28문항 두 번(X5·X6, 12/4·12/7), 12/8·9는 틀린 것 다시
+    sci2: { name: '통합과학', ic: 'sci', start: '2026-11-20', rd: '2회독' }, sci3: { name: '통합과학', ic: 'sci', start: '2026-11-28', rd: '3회독' },
     // 11/15 선생님 «정윤이가 100점 맞게 하는 게 너의 목표야»: 2회독 다음 3회독(11/27~12/2, 헷갈린 짝·정윤이 실제로 틀린 꼴 새 문제) + 12/3 실전 모의시험
     kor3: { name: '국어', ic: 'books', start: '2026-11-27', rd: '3회독' }, soc3: { name: '통합사회', ic: 'books', start: '2026-11-27', rd: '3회독' }, hist3: { name: '한국사', ic: 'scroll', start: '2026-11-27', rd: '3회독' } };  // 11/15 정윤 카톡 «해류를 다 외우라는데 한류 난류 구분하기 어려워, 어케 외워야 될지 모르겠어» → 5번에 나눠 (11/15~11/19)
   const r2sHl = (t) => esc(t).replace(/(난류)/g, '<em class="r2s-warm">$1</em>').replace(/(한류)/g, '<em class="r2s-cold">$1</em>');  // 해류: 지도 색 그대로 난류 빨강 · 한류 파랑
@@ -2525,7 +2525,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611160320', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611160909', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -8842,7 +8842,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611160320'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611160909'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
