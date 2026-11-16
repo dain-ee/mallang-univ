@@ -2547,7 +2547,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611161924', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611161947', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3728,7 +3728,7 @@
       $('[data-pfok]', el).onclick = () => { const a = r2sA('pfd'); $$('[data-pfd]', el).forEach((i) => { if (i.value) a[i.dataset.pfd] = i.value; }); save('r2s'); close(); toast('고마워요 · 그날까지 맞춰 둘게요'); render(); };
     });
   }
-  function bnSt(x) { const A = r2sGet(bnK(x.id)); if (!A.v) return 'v'; if (!A.o) return 'o'; if (!(A.f && A.f.at)) return 'f'; return 'fin'; }
+  function bnSt(x) { const A = r2sGet(bnK(x.id)); if (!A.v) return 'v'; if (!A.o && !x.x.noOrd) return 'o'; if (!(A.f && A.f.at)) return 'f'; return 'fin'; }
   function bnDone(x) { return bnSt(x) === 'fin'; }
   function bnDoneDay(x) { return bnDone(x) ? atDay(r2sGet(bnK(x.id)).f.at) : null; }
   function bnN(x) { const bad = (r2sGet(bnK(x.id)).f || {}).bad || {}; return bnCards(x).filter((c, i) => !bad[x.id + ':' + i]).length; }  // 한 번에 맞힌 카드
@@ -3751,13 +3751,13 @@
   function bnRun() {
     const r = UI.run, x = bnOf(r.cid); if (!x) { UI.run = null; UI.tab = 'hw'; return hwView(); }
     const X = x.x, A = r2sGet(bnK(x.id)), auto = bnSt(x), dn = auto === 'fin', C = bnCards(x), N = C.length, end = bnEnd(x);
-    const ORD = ['v', 'o', 'f'], reach = dn ? 3 : ORD.indexOf(auto), st = ORD.includes(r.st) ? r.st : auto === 'fin' ? 'fin' : auto, fx = r.fx ? ' bn-in' : '';
+    const ORD = X.noOrd ? ['v', 'f'] : ['v', 'o', 'f'], reach = dn ? 3 : ORD.indexOf(auto), st = ORD.includes(r.st) ? r.st : auto === 'fin' ? 'fin' : auto, fx = r.fx ? ' bn-in' : '';
     const head = `<div class="row between"><button class="btn sm" data-bnback type="button">‹ 숙제</button><span class="tiny">${md(x.day)} 몫 · ${bnShort(x)} 끝 ${md(end)}까지 ${ddTxt(end)}</span></div><p class="eyebrow" style="margin:16px 0 4px">${ic(bnIc(x))} ${bnLab(x)}</p><h1 class="h1" style="margin:0 0 8px">${esc(X.title)}</h1>`;
     const wrap = (b) => `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${b}</div>`;
-    const seg = `<div class="seg r2-seg" style="margin:0 0 16px">${[['v', '① 흐름 보기'], ['o', '② 순서 맞추기'], ['f', '③ 빈칸 쓰기']].map(([k, t], i) => `<button type="button" class="${st === k ? 'on' : ''}" data-bnst="${k}" ${i <= reach ? '' : 'disabled'}>${t}${i < reach ? ' ✓' : ''}</button>`).join('')}</div>`;
-    const when = (c) => (c.when ? `<span class="bnm-when num">${esc(c.when)}</span>` : '');
+    const seg = `<div class="seg r2-seg" style="margin:0 0 16px">${(X.noOrd ? [['v', '① 답 보기'], ['f', '② 빈칸 쓰기']] : [['v', '① 흐름 보기'], ['o', '② 순서 맞추기'], ['f', '③ 빈칸 쓰기']]).map(([k, t], i) => `<button type="button" class="${st === k ? 'on' : ''}" data-bnst="${k}" ${i <= reach ? '' : 'disabled'}>${t}${i < reach ? ' ✓' : ''}</button>`).join('')}</div>`;
+    const when = (c) => (c.when ? `<span class="bnm-when num">${esc(c.when)}</span>` : '') + (c.q ? `<p class="bnm-q" style="margin:4px 0 8px;padding:10px 12px;border-radius:12px;background:var(--bg2, #f2f4f6);font-weight:600;line-height:1.55">${esc(c.q)}</p>` : '');  // 11/16 «질문도 안 보여 주고»: 수행평가는 문제를 같이 보여요
     const flow = (bad) => `<ol class="bnm-flow">${C.map((c, i) => `<li style="--i:${Math.min(i, 12)}" class="${bad && bad[x.id + ':' + i] ? 'no' : ''}"><span class="ls-n">${i + 1}</span><div>${when(c)}<p>${bnShow(c)}</p></div></li>`).join('')}</ol>`;
-    if (st === 'v') return wrap(`${seg}<section class="card st-sec${fx}"><div class="st-kick">① 흐름 보기</div><h2>${X.flowH ? X.flowH.replace('{N}', N) : `사건 ${N}개를 일어난 순서대로 읽어요`}</h2><p class="sub" style="margin:0">색칠한 낱말이 다음에 빈칸으로 나와요. 소리 내어 한 번 읽어요</p>${flow()}</section><div class="cta-bar"><button class="btn primary big block" ${dn || A.v ? 'data-bngo="o"' : 'id="bn-vok"'} type="button">다 읽었어요 · 순서 맞추기 ›</button></div>`);
+    if (st === 'v') return wrap(`${seg}<section class="card st-sec${fx}"><div class="st-kick">${X.noOrd ? '① 답 보기' : '① 흐름 보기'}</div><h2>${X.flowH ? X.flowH.replace('{N}', N) : `사건 ${N}개를 일어난 순서대로 읽어요`}</h2><p class="sub" style="margin:0">색칠한 낱말이 다음에 빈칸으로 나와요. 소리 내어 한 번 읽어요</p>${flow()}</section><div class="cta-bar"><button class="btn primary big block" ${dn || A.v ? `data-bngo="${X.noOrd ? 'f' : 'o'}"` : 'id="bn-vok"'} type="button">다 읽었어요 · ${X.noOrd ? '빈칸 쓰기' : '순서 맞추기'} ›</button></div>`);
     if (st === 'o') {
       if (A.o && !r.oRe) return wrap(`${seg}<section class="card st-sec${fx}"><div class="st-kick">② 순서 맞추기</div><h2>${A.o.miss ? `${A.o.miss}번 헷갈리고 다 맞췄어요` : '한 번도 안 틀리고 다 맞췄어요!'}</h2>${flow()}<button class="btn sm" data-bnore type="button" style="margin-top:12px">한 번 더 맞춰 보기</button></section><div class="cta-bar"><button class="btn primary big block" data-bngo="f" type="button">다음: 빈칸 쓰기 ›</button></div>`);
       if (!r.ord) { r.ord = lvRnd(C.map((c, i) => i)); r.got = []; r.om = 0; }
@@ -3765,12 +3765,12 @@
       return wrap(`${seg}<section class="card st-sec${fx}"><div class="st-kick">② 순서 맞추기</div><h2>${all ? '다 맞췄어요!' : `${got.length + 1}${X.ordQ || '번째로 일어난 일을 눌러요'}`}</h2><p class="sub" style="margin:0">맞으면 위로 올라가요 · ${got.length}/${N}</p><ol class="bnm-flow">${got.map((i, k) => `<li class="bnm-got" style="--i:0"><span class="ls-n">${k + 1}</span><div>${when(C[i])}<p>${bnShow(C[i])}</p></div></li>`).join('')}</ol><div class="bnm-pool">${r.ord.filter((i) => !got.includes(i)).map((i) => `<button type="button" class="bnm-pc" data-bno="${i}"><p>${bnShow(C[i])}</p></button>`).join('')}</div></section>${all ? `<div class="cta-bar"><button class="btn primary big block" id="bn-ook" type="button">다음: 빈칸 쓰기 ›</button></div>` : ''}`);
     }
     if (st === 'f' && !dn) {
-      if (!A.f) { const A2 = r2sA(bnK(x.id)); if (!A2.f) { A2.f = { q: [...bnPrevMiss(x), ...C.map((c, i) => x.id + ':' + i)], ok: {}, bad: {} }; save('r2s'); } }  // 11/16 순서 맞추기 끝내고 앱을 닫았다 열면 「카드를 준비하고 있어요」에서 멈췄어요
+      if (!A.f) { const A2 = r2sA(bnK(x.id)); if (!A2.f) { const Q0 = C.map((c, i) => x.id + ':' + i); if (X.shuf) Q0.sort(() => Math.random() - 0.5); A2.f = { q: [...bnPrevMiss(x), ...Q0], ok: {}, bad: {} }; save('r2s'); } }  // 11/16 순서 맞추기 끝내고 앱을 닫았다 열면 「카드를 준비하고 있어요」에서 멈췄어요
       const F = r2sGet(bnK(x.id)).f || { q: [] }, key = F.q[0], cc = key && bnCard(key);
       if (!cc) return wrap(`${seg}<section class="card"><p class="sub">카드를 준비하고 있어요</p></section>`);
       const c = cc.c, H = r.h || {}, old = cc.b !== x, bad = F.bad || {}, tot = Object.keys(F.ok || {}).length + F.q.length;
       const inp = bnSent(c, (j, w) => `<span class="bnm-slot"><input class="inp bnm-in ${r.res && r.res[j] === 1 ? 'ok' : r.res && r.res[j] === 0 ? 'no' : ''}" data-bi="${j}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="next" style="width:${Math.max(4, w.length + 2)}em" value="${esc((r.val || {})[j] || '')}" ${r.res && r.res.every((v) => v === 1) ? 'disabled' : ''}>${H[j] ? `<span class="bnm-hint">${H[j] >= 2 ? `정답: ${esc(w)}` : `첫 글자 「${esc(w[0])}」`}</span>` : ''}</span>`);
-      return wrap(`${seg}<section class="card st-sec${fx}"><div class="st-kick">③ 빈칸 쓰기 ${old ? '<span class="tag">어제 틀린 것</span>' : ''}</div><h2>빈칸에 들어갈 말을 써요</h2><p class="sub" style="margin:0 0 12px">남은 카드 ${F.q.length}장 · 다 맞힌 카드 ${tot - F.q.length}장${bad[key] && !r.used ? ' · 아까 틀린 카드예요, 이번엔 힌트 없이!' : ''}</p><div class="progress-dots">${Array.from({ length: Math.min(tot, 30) }, (v, k) => `<i class="${k < tot - F.q.length ? 'ok' : k === tot - F.q.length ? 'cur' : ''}"></i>`).join('')}</div>${when(c)}<p class="bnm-s" data-ck="${esc(key)}">${inp}</p></section><div class="cta-bar"><div style="display:flex;gap:8px"><button class="btn big" id="bn-idk" type="button">모르겠어요</button><button class="btn primary big" id="bn-fok" type="button" style="flex:1">확인</button></div></div>`);
+      return wrap(`${seg}<section class="card st-sec${fx}"><div class="st-kick">${X.noOrd ? '②' : '③'} 빈칸 쓰기 ${old ? '<span class="tag">어제 틀린 것</span>' : ''}</div><h2>빈칸에 들어갈 말을 써요</h2><p class="sub" style="margin:0 0 12px">남은 카드 ${F.q.length}장 · 다 맞힌 카드 ${tot - F.q.length}장${bad[key] && !r.used ? ' · 아까 틀린 카드예요, 이번엔 힌트 없이!' : ''}</p><div class="progress-dots">${Array.from({ length: Math.min(tot, 30) }, (v, k) => `<i class="${k < tot - F.q.length ? 'ok' : k === tot - F.q.length ? 'cur' : ''}"></i>`).join('')}</div>${when(c)}<p class="bnm-s" data-ck="${esc(key)}">${inp}</p></section><div class="cta-bar"><div style="display:flex;gap:8px"><button class="btn big" id="bn-idk" type="button">모르겠어요</button><button class="btn primary big" id="bn-fok" type="button" style="flex:1">확인</button></div></div>`);
     }
     // 끝: 결과 카드 → 숙제 목록 · 다시 열면 카드와 틀렸던 것
     const n = bnN(x), bad = (A.f || {}).bad || {};
@@ -3783,11 +3783,11 @@
     const K = bnK(x.id), C = bnCards(x);
     const top = () => { r.fx = 1; render(); window.scrollTo(0, 0); }, keep = () => { const y = window.scrollY; render(); window.scrollTo(0, y); };
     const cheer = () => { if (bnDone(x) && !r.cheer) { r.cheer = 1; setTimeout(() => { boom(innerWidth / 2, innerHeight * 0.4, 4); fanfare(); [500, 1100].forEach((ms, k) => setTimeout(() => boom(innerWidth * [0.25, 0.75][k], innerHeight * 0.35, 4), ms)); }, 250); } };
-    const startF = () => { const A = r2sA(K); if (!A.f) { A.f = { q: [...bnPrevMiss(x), ...C.map((c, i) => x.id + ':' + i)], ok: {}, bad: {} }; save('r2s'); } r.h = {}; r.res = null; r.val = {}; r.used = 0; };
+    const startF = () => { const A = r2sA(K); if (!A.f) { const Q0 = C.map((c, i) => x.id + ':' + i); if (x.x.shuf) Q0.sort(() => Math.random() - 0.5); A.f = { q: [...bnPrevMiss(x), ...Q0], ok: {}, bad: {} }; save('r2s'); } r.h = {}; r.res = null; r.val = {}; r.used = 0; };
     $$('[data-bnback]').forEach((b) => (b.onclick = () => { UI.run = null; UI.tab = 'hw'; render(); window.scrollTo(0, 0); }));
     $$('[data-bnst]').forEach((b) => (b.onclick = () => { r.st = b.dataset.bnst; r.oRe = 0; if (r.st === 'f') startF(); top(); }));
     $$('[data-bngo]').forEach((b) => (b.onclick = () => { r.st = b.dataset.bngo; r.oRe = 0; if (r.st === 'f') startF(); top(); }));
-    const vok = $('#bn-vok'); if (vok) vok.onclick = () => { r2sA(K).v = { at: Date.now() }; save('r2s'); r.st = 'o'; top(); };
+    const vok = $('#bn-vok'); if (vok) vok.onclick = () => { r2sA(K).v = { at: Date.now() }; save('r2s'); r.st = ((bnOf(r.cid) || {}).x || {}).noOrd ? 'f' : 'o'; if (r.st === 'f') startF(); top(); };
     const ore = $('[data-bnore]'); if (ore) ore.onclick = () => { r.oRe = 1; r.ord = null; keep(); };
     $$('[data-bno]').forEach((b) => (b.onclick = () => {
       const i = +b.dataset.bno;
@@ -3803,6 +3803,7 @@
       const next = () => { r.h = {}; r.res = null; r.val = {}; r.used = 0; if (!F.q.length) { F.at = Date.now(); save('r2s'); r.st = null; top(); cheer(); return; } save('r2s'); top(); setTimeout(() => { const f = $('.bnm-in'); if (f) f.focus({ preventScroll: true }); }, 80); };
       const grade = (giveUp) => {
         if (!cc) return;
+        if (!giveUp && ins.length && ins.every((e) => !e.value.trim()) && !r.res) { ins[0].focus(); return; }  // 11/16 빈칸을 하나도 안 쓰고 눌리면(두 번 눌림 등) 채점하지 않아요
         const A2 = cc.c.ans || [], vals = ins.map((e) => e.value); vals.forEach((v, j) => (r.val[j] = v));
         const res = A2.map((a, j) => (!giveUp && bnOk(a, vals[j]) ? 1 : 0));
         if (res.every((v) => v === 1)) {
@@ -8882,7 +8883,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611161924'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611161947'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
