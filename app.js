@@ -2547,7 +2547,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611170451', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611170501', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -8188,7 +8188,18 @@
       for (const st of stSteps(u)) { if (st.k !== 'set') continue; const key = st.id.slice(u.id.length + 1), days = KD[key]; if (!days || !NXSETS[st.id]) continue; const qs = NXSETS[st.id].qs;
         days.forEach((d, k) => { const id = `yp:${u.id}:${key}:x${k}`, part = qs.slice(Math.floor((k * qs.length) / days.length), Math.floor(((k + 1) * qs.length) / days.length)), title = `${NX_SN[sb.key]} ${u.code} ${st.name}${days.length > 1 ? ` (${k + 1}/${days.length})` : ''}`;
           NXSETS[id] = { id, title, sub: `${u.title} · 기말 계획`, subj: sb.key, kind: NXSETS[st.id].kind, unit: u.id, qs: part }; X.push({ id, subj: sb.key, unit: u.id, p: key, qs: part, title, sub: u.title, day: d, ...((u.thard || []).includes(key) ? { hd: 1 } : {}) }); }); } }
-    return old.filter((it) => !sj.has(it.subj) || it.day < FZ.day).concat(nw, X);
+    const OUT = old.filter((it) => !sj.has(it.subj) || it.day < FZ.day).concat(nw, X);
+    // 11/17 선생님 «시험은 적어도 일주일 전에는 끝, 베스트는 10일 전» → YF.cut: from~old 공부하는 날을 from~to 로 비율대로 당겨요 (build.py _cutd 와 같은 규칙)
+    // pp:(외우기)는 build.py 가 이미 옮겼어요
+    const CT = YF.cut; if (CT) { const dl = (a, b) => { const o = []; for (let d = a; d <= b; d = addD(d, 1)) if (new Date(d + 'T00:00:00').getDay() !== 0) o.push(d); return o; };
+      const O = dl(CT.from, CT.old), N = dl(CT.from, CT.to);
+      for (const it of OUT) if (it.day >= CT.from && !String(it.id).startsWith('pp:')) { const i = O.indexOf(it.day), k = i >= 0 ? i : O.filter((d) => d < it.day).length; it.day = N[Math.min(N.length - 1, Math.floor((k * N.length) / O.length))]; }
+      // 당기다 보니 한 날에 몰리면(두 날이 한 날로) 고르게: 순서(개념→응용→심화)는 그대로 두고, 외우기(pp:)까지 합한 하루 양이 비슷하도록 차례로 채워요
+      const MV = OUT.map((it, i) => ({ it, i })).filter((x) => x.it.day >= CT.from && !String(x.it.id).startsWith('pp:')).sort((a, b) => (a.it.day < b.it.day ? -1 : a.it.day > b.it.day ? 1 : a.i - b.i)).map((x) => x.it);
+      const ppn = {}; for (const it of OUT) if (String(it.id).startsWith('pp:') && it.day >= CT.from && it.day <= CT.to) ppn[it.day] = (ppn[it.day] || 0) + 1;
+      const tot = MV.length + Object.values(ppn).reduce((a, b) => a + b, 0); let k2 = 0, acc = 0;
+      N.forEach((d, j) => { acc += tot / N.length - (ppn[d] || 0); while (k2 < MV.length && (j === N.length - 1 || acc >= 0.5)) { MV[k2++].day = d; acc -= 1; } }); }
+    return OUT;
   })();
   // 천일문·매3영 매일 (11/1~11/15, 수업 날 토요일도 숙제): 하루에 천일문 한 유닛 + 매3영 지문 3개(지문마다 단어 → 문제 → 문장 구조)
   //   (10/31 «천일문 매 unit 하고 문제 풀기, 매3영도 하루에 3-4개, 단어 먼저·문제 먼저·문장 하나씩 구조 분석»)
@@ -8883,7 +8894,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611170451'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611170501'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
