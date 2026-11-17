@@ -2547,7 +2547,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611171116', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611171120', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -8145,7 +8145,9 @@
       const n = Math.min(it.qs.length, Math.ceil(w(it) / (PER[sk(it)] || ((F.splits || {})[st(it)]) || F.split || 30))); if (n < 2) return [it];
       return Array.from({ length: n }, (_, k) => {
         const a = Math.floor((k * it.qs.length) / n), b = Math.floor(((k + 1) * it.qs.length) / n), nm = n === 2 ? (k ? '뒤 절반' : '앞 절반') : `${k + 1}/${n}`;
-        const id = `${it.id}:h${k}`, qs = it.qs.slice(a, b), title = `${it.title} (${nm})`, solo = !!it.nav && qs.every((q) => /:q:/.test(q.i));
+        // 11/17 이미 나뉜 조각(앞·뒤 절반, 1/3)을 또 나누면 꼬리표가 두 번 붙었어요(「(뒤 절반) (앞 절반)」) → 번호 하나로 이어요(「(3/4)」)
+        const pm = /\s\((?:(앞|뒤) 절반|(\d+)\/(\d+))\)$/.exec(it.title);
+        const id = `${it.id}:h${k}`, qs = it.qs.slice(a, b), title = pm ? `${it.title.slice(0, pm.index)} (${(pm[1] ? (pm[1] === '뒤' ? 1 : 0) : +pm[2] - 1) * n + k + 1}/${(pm[1] ? 2 : +pm[3]) * n})` : `${it.title} (${nm})`, solo = !!it.nav && qs.every((q) => /:q:/.test(q.i));
         NXSETS[id] = { ...NXSETS[it.id], id, title, qs, ...(solo ? { kind: 'q', nav: undefined } : {}) };
         return { ...it, id, qs, title, nav: solo ? undefined : it.nav, ...(it.p === 'L' ? { p: 'Lh' } : {}) };
       });
@@ -8962,7 +8964,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611171116'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611171120'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
