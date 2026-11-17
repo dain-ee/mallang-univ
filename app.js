@@ -2392,7 +2392,7 @@
     const prev = new Date(Y, M - 2, 1).toLocaleDateString('sv').slice(0, 7), next = new Date(Y, M, 1).toLocaleDateString('sv').slice(0, 7);
     return `<section class="card c4 col-card hcal-card"><div class="card-h"><h2>${ic('cal')} 숙제 달력</h2><div class="row" style="gap:2px"><button class="btn sm ghost" type="button" data-calm="${prev}" aria-label="지난달">‹</button><b class="num" style="min-width:44px;text-align:center">${M}월</b><button class="btn sm ghost" type="button" data-calm="${next}" aria-label="다음 달" ${next > addD(today().slice(0, 7) + '-15', 62).slice(0, 7) ? 'disabled' : ''}>›</button></div></div>
       <p class="tiny" style="margin:0 0 12px">${dn ? `이번 달 ${dn}일 동안 ${tot}개 했어요${mo ? ` · 공부 ${hm(mo)}` : ''}` : '숙제를 하면 그날 칸에 쌓여요'} · 날짜를 누르면 왼쪽에 그날 것이 나와요</p><div class="hcal-key"><span><i class="ok"></i>다 했어요</span><span><i class="miss"></i>덜 했어요</span><span><i class="today"></i>오늘</span><span><i class="fut"></i>앞으로</span></div>
-      <div class="hcal-g">${'일월화수목금토'.split('').map((w) => `<span class="hcal-w">${w}</span>`).join('')}${cells.map((d) => { if (!d) return '<i></i>'; const c = cnt[d] || 0, st = sMin(d), fut = d > today(), isT = d === today(), pl = fut ? planItems(d).length : isT ? left : 0, ms = !fut && !isT ? calMiss(d).filter((x) => !x.moved).length : 0, ok = !fut && !isT && !ms && c > 0, kd = fut ? 'fut' : isT ? (pl ? 'today' : 'today ok') : ms ? 'miss' : ok ? 'ok' : ''; return `<button type="button" class="hcal-d ${kd} ${UI.hwDay === d ? 'sel' : ''}" data-day="${d}"><span class="hc-n num">${ok || (isT && !pl) ? '✓ ' : ''}${+d.slice(8)}</span>${c ? `<span class="hc-c">${c}개</span>` : ''}${ms ? `<span class="hc-m">못 한 ${ms}</span>` : ''}${pl ? `<span class="hc-p">${isT ? '남은 것' : '할 것'} ${pl}</span>` : ''}${st ? `<span class="hc-h">${st >= 60 ? (st / 60).toFixed(1) + '시간' : st + '분'}</span>` : ''}</button>`; }).join('')}</div></section>`;
+      <div class="hcal-g">${'일월화수목금토'.split('').map((w) => `<span class="hcal-w">${w}</span>`).join('')}${cells.map((d) => { if (!d) return '<i></i>'; const c = cnt[d] || 0, st = sMin(d), fut = d > today(), isT = d === today(), pl = fut ? planItems(d).length : isT ? left : 0, ms = !fut && !isT ? calMiss(d).filter((x) => !x.moved).length : 0, ok = !fut && !isT && !ms && c > 0, kd = fut ? 'fut' : isT ? (pl ? 'today' : 'today ok') : ms ? 'miss' : ok ? 'ok' : ''; return `<button type="button" class="hcal-d ${kd} ${UI.hwDay === d ? 'sel' : ''}" data-day="${d}"><span class="hc-n num">${ok || (isT && !pl) ? '✓ ' : ''}${+d.slice(8)}</span>${fut ? (pl ? `<span class="hc-p">할 것 ${pl}</span>` : '') : c || ms || pl ? `<span class="hc-c num">${c}/${c + ms + pl}</span>` : ''}${st ? `<span class="hc-h">${st >= 60 ? (st / 60).toFixed(1) + '시간' : st + '분'}</span>` : ''}</button>`; }).join('')}</div></section>`;
   }
   // 앞날: 기말 계획(윤건)·기말 예습(정윤)에 잡힌 것 (10/30 «왜 11월 넘어가지가 않냐»)
   function planItems(d) {
@@ -2547,7 +2547,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611171705', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611171749', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7431,7 +7431,7 @@
       stem = `<h2 class="nx-q">${nxRich(q.q)}</h2>${q.p && !long ? `<div class="nx-box">${nxRich(q.p)}</div>` : ''}`;
       if (q.t === 'mc') {
         const ok = rec && rec.ok, pk = rec ? +rec.v : null;
-        ans = `<div class="choices nx-ch">${q.ch.map((c, k) => { const cls = !rec ? '' : k === pk && ok ? 'nx-good' : k === pk ? 'wrong' : k === q.a ? 'right' : 'nx-dim'; return `<button class="choice ${cls}" data-nxp="${k}" type="button" ${rec ? 'disabled' : ''}><span class="n">${k + 1}</span><span class="ct">${q.html ? esc(c) : nxDlg(c)}</span>${rec && k === q.a && !ok ? '<em class="nx-ans">정답</em>' : ''}</button>`; }).join('')}</div>`;
+        ans = `<div class="choices nx-ch">${q.ch.map((c, k) => { const cls = !rec ? '' : k === pk && ok ? 'nx-good' : k === pk ? 'wrong' : k === q.a ? 'right' : 'nx-dim'; return `<button class="choice ${cls}" data-nxp="${k}" type="button" ${rec ? 'disabled' : ''}><span class="n">${k + 1}</span><span class="ct">${((c) => (q.html ? esc(c) : nxDlg(c)))(String(c).replace(/^[①-⑩]\s*/, ''))}</span>${rec && k === q.a && !ok ? '<em class="nx-ans">정답</em>' : ''}</button>`; }).join('')}</div>`;
       } else {
         const ps = q.t === 'short' ? nxParts(q) : null;
         ans = rec ? (typed.join('').trim() ? `<div class="nx-mine"><span class="tiny">내 답</span> ${esc(typed.join(' / '))}</div>` : '') : `<div class="nx-ins">${(ps || ['']).map((p, i) => `${ps ? `<span class="tiny">(${i + 1})</span>` : ''}${q.t === 'essay' ? `<textarea class="inp" data-nxin="${i}" rows="3" spellcheck="false" placeholder="문장으로 써요"></textarea>` : `<input class="inp" data-nxin="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${ps ? `(${i + 1})의 답` : '답을 써요 · Enter 로 채점'}">`}`).join('')}</div><div class="nx-acts"><button class="btn primary big" id="nx-go" type="button">채점하기</button><button class="nx-link" id="nx-give" type="button">모르겠어요</button></div>`;
@@ -7927,8 +7927,9 @@
   // ───────── 윤건 수업 시험 (11/3) ─────────
   // 범위는 S.jwt[날짜] = { units: [천일문 유닛], days: [워드마스터 Day], m3: [매3영 Day], n, wn, mn } · 선생님 말 듣고 바로 바꿔요
   // 11/15 선생님 «윤건이 오늘 매3영 빼고 7과 본문 중하로 20개 … 두 개 넣어 봐 중하 20개 중 20개» → 그날 매3영 시험 빼고, 7과 본문 문제 두 묶음(NXD.rq)을 수업에
-  const YG_JWT_FIX = { '2026-11-15': { m3: [], rq: ['e7r2'] } };  // 11/15 «학교 문제 꼴만 해, 중하 없애 줘» → 중 20(e7r2)만
-  const ygPlan = (date) => { const o = { ...(((LS0.tests || {})[date]) || {}), ...(((S.jwt || {})[date]) || {}), ...(YG_JWT_FIX[date] || {}) }; return { units: (o.units || []).length ? o.units.map(Number) : null, days: (o.days || []).length ? o.days.map(Number) : null, m3: (o.m3 || []).length ? o.m3.map(Number) : null, tu: (o.tu || []).length ? o.tu.map(Number) : null, gr: (o.gr || []).length ? o.gr.map(String) : null, gt: (o.gt || []).length ? o.gt.map(String) : null, tx: (o.tx || []).length ? o.tx.map(String) : null, off: o.off || [], rq: (o.rq || []).map(String), n: o.n || 15, wn: o.wn || 20, mn: o.mn || 10 }; };
+  // 11/17 «오늘 윤건이 수업 준비해 봐 저번에 했던 거 보고 · 매3영은 빼야 해, 이제 내신이잖아» → 11/15 틀 그대로: 8과 문법 시험 → 8과 문법 개념 복습·하·중·상 → 8과 본문 분석·필기 → 8과 본문 학교 시험 꼴 20
+  const YG_JWT_FIX = { '2026-11-15': { m3: [], rq: ['e7r2'] }, '2026-11-17': { m3: [], gt: ['e8'], gr: ['e8'], tx: ['e8'], rq: ['e8r2'], off: ['lw'], n: 10 } };  // 11/15 «학교 문제 꼴만 해, 중하 없애 줘» → 중 20(e7r2)만
+  const ygPlan = (date) => { const o = { ...(((LS0.tests || {})[date]) || {}), ...(((S.jwt || {})[date]) || {}), ...(YG_JWT_FIX[date] || {}) }; return { units: (o.units || []).length ? o.units.map(Number) : null, days: (o.days || []).length ? o.days.map(Number) : null, m3: (o.m3 || []).length ? o.m3.map(Number) : null, tu: (o.tu || []).length ? o.tu.map(Number) : null, gr: (o.gr || []).length ? o.gr.map(String) : null, gt: (o.gt || []).length ? o.gt.map(String) : null, tx: (o.tx || []).length ? o.tx.map(String) : null, off: o.off || [], rq: (o.rq || []).map(String), gl: o.gl || {}, n: o.n || 15, wn: o.wn || 20, mn: o.mn || 10 }; };
   const M3U = () => ((NXD.subjects || []).find((x) => x.key === 'm3') || {}).units || [];
   // 11/12 «이번엔 천일문 시험이 아니라 지난 수업 7과 문법으로 · 개념 물어보는 거 한 문제 · 한 과에 문법이 2개 있는데 한 판에 있는 걸 한 문제로»
   const YG_GC = {
@@ -7967,7 +7968,7 @@
   function ygCls(date, P) {
     const out = { gr: [], tx: [], rq: [] }, mk = (id, title, sub, qs, learn) => { if (!qs || !qs.length) return null; return (NXSETS[id] = { id, title, sub, subj: 'eng', kind: 'lesson', date, qs, mix: {}, ...(learn ? { learn } : {}) }); };
     for (const uid of P.gr || []) { const u = NXU[uid]; if (!u) continue; const nm = u.code || uid, G = NXSETS['pp:mg' + u.no], lr = (G && G.learn) || { nk: 'grammar', notes: u.notes || {} }, all = ygGramQs(uid), lv = (q) => Math.min(3, q.lv || (q.t === 'mc' ? 1 : 2)); let first = true;
-      [[1, '하'], [2, '중'], [3, '상']].forEach(([k, nmL]) => { const qs = all.filter((q) => lv(q) === k), x = mk(`lc:${date}:${uid}:g${k}`, `${nm} 문법 · ${first ? '개념 복습 → ' : ''}${nmL} ${qs.length}문제`, first ? '개념을 다시 읽고 쉬운 문제부터' : `${nmL} 단계 문제`, qs, first ? lr : null); if (x) { out.gr.push(x); first = false; } }); }
+      [[1, '하'], [2, '중'], [3, '상']].forEach(([k, nmL]) => { if (P.gl && P.gl[uid] && !P.gl[uid].includes(k)) return; const qs = all.filter((q) => lv(q) === k), x = mk(`lc:${date}:${uid}:g${k}`, `${nm} 문법 · ${first ? '개념 복습 → ' : ''}${nmL} ${qs.length}문제`, first ? '개념을 다시 읽고 쉬운 문제부터' : `${nmL} 단계 문제`, qs, first ? lr : null); if (x) { out.gr.push(x); first = false; } }); }
     for (const uid of P.tx || []) { const u = NXU[uid]; if (!u) continue; const nm = u.code || uid;
       for (let k = 1; k <= 12; k++) { const S0 = NXSETS[`pp:mr${u.no}p${k}`]; if (!S0) break; const x = mk(`lc:${date}:${uid}:r${k}`, `${nm} 본문 ${k}문단 · 필기 → 외우기`, '본문을 읽으며 필기하고 → 빈칸 채우기 (문장마다 Enter)', S0.qs, S0.learn); if (x) out.tx.push(x); } }
     for (const sid of P.rq || []) { const R = (NXD.rq || []).find((x) => x.id === sid); if (!R) continue; const id = `lc:${date}:${sid}`; for (const q of R.qs) if (!NXQ[q.i]) NXQ[q.i] = { q, set: id }; const x = mk(id, R.title, R.sub, R.qs); if (x) out.rq.push(x); }
@@ -8993,7 +8994,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611171705'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611171749'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
