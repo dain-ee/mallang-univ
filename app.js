@@ -2547,7 +2547,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611171622', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611171705', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5377,7 +5377,9 @@
   const GD_VC = `<ol class="r2s-rules" style="margin-top:12px"><li style="--i:0"><span class="r2s-rn">1</span><div><b>꾸밈받는 말(주어)부터 찾아요</b><span>relating이면 꾸밈받는 costs, linked면 problems처럼 그 동작을 하는 쪽인지 볼 말을 먼저 찾아요</span></div></li><li style="--i:1"><span class="r2s-rn">2</span><div><b>직접 하면 -ing, 당하면 p.p.</b><span>비용이 스스로 ~와 「관련되는」 거라 relating (= costs which relate to)</span><span>문제들은 무언가에 의해 「연결된」 거라 linked (= problems which are linked)</span></div></li><li style="--i:2"><span class="r2s-rn">3</span><div><b>「누가 했지?」가 떠오르면 수동이에요</b><span>by 누구가 숨어 있으면 p.p.예요. 감정은 사람이 느끼면 p.p.(stressed), 감정을 일으키면 -ing(stressing)</span></div></li></ol><p class="tiny" style="margin:12px 0 0">문장 분석의 「포인트」에서 분사가 나오는 문장마다 이렇게 까닭을 적어 두었어요</p>`;
   const GD_CM = `<ol class="r2s-rules" style="margin-top:12px"><li style="--i:0"><span class="r2s-rn">1</span><div><b>바람이 미는 쪽으로 흘러요</b><span>적도~30°는 무역풍(동 → 서), 30°~60°는 편서풍(서 → 동), 60° 넘는 극 쪽은 극동풍(동 → 서)이에요</span><span>지도에 빠져 있던 극동풍도 넣었어요</span></div></li><li style="--i:1"><span class="r2s-rn">2</span><div><b>바다마다 큰 고리를 그려요</b><span>북반구는 시계 방향, 남반구는 시계 반대 방향으로 돌아요</span></div></li><li style="--i:2"><span class="r2s-rn">3</span><div><b>서한동난: 대륙 서쪽은 한류, 동쪽은 난류</b><span>적도에서 극으로 올라가면 따뜻한 난류(빨강), 극에서 적도로 내려오면 차가운 한류(파랑)예요</span><span>쿠로시오(동쪽 바다 → 난류), 캘리포니아(서쪽 바다 → 한류)처럼 붙여 외워요</span></div></li></ol>`;
   // 11/16 «왜 질문이 질문으로 바로 안 나오냐 · 바로바로 넣어야지 그 로직이 있었어야지» → 정윤이 물어본 것은 여기 한 줄만 넣으면 질문 탭에 쌓이고, 7일 동안 배너로도 떠요(gdQ)
+  const GD_OR = `<ol class="r2s-rules" style="margin-top:12px"><li style="--i:0"><span class="r2s-rn">1</span><div><b>지문은 이제 교과서 원문 그대로예요</b><span>「춘향전」·「유자소전」·판소리계 소설·한글 맞춤법 글에서 일부러 한 군데 바꿔 싣던 문제 11개를 원문으로 되돌렸어요</span></div></li><li style="--i:1"><span class="r2s-rn">2</span><div><b>정답은 원문과 같은 선지예요</b><span>예전엔 바뀐 지문에 맞는 선지가 정답이었는데, 이제는 원문 그대로인 선지가 정답이에요. 원문을 외운 만큼 바로 맞힐 수 있어요</span></div></li><li style="--i:2"><span class="r2s-rn">3</span><div><b>함정은 선지 쪽에만 있어요</b><span>예방↔승발, 강정↔송편, 팔십만↔칠십만처럼 원문 한 군데만 바꾼 선지를 걸러 내면 돼요</span></div></li></ol>`;
   const QNA = U.who === '정윤' ? [
+    { id: 'or', date: '2026-11-17', t: '왜 소설 교과서 원문 내용을 바꿔서 내요?', sub: '국어 내용 일치 · 이제 원문 그대로', html: GD_OR, links: [{ k: 'r2s', id: 'K02', t: '변 사또의 생일잔치 문제 다시 보기' }] },
     { id: 'cm', date: '2026-11-15', t: '한류 난류 구분이 어려워요 · 극동풍은 왜 없어요?', sub: '통합과학 해류 · 바람·고리·서한동난', html: GD_CM, links: [{ k: 'r2s', id: 'C1', t: '해류 지도로 외우기' }] },
     { id: 'vc', date: '2026-11-15', t: '왜 능동이고 왜 수동이에요?', sub: '올림포스 문장 분석 · -ing와 p.p. 가르기', html: GD_VC, links: [] },
     { id: 'if', date: '2026-11-12', t: 'if 절이 두 개인데 왜 연결어 없이 이어져요?', sub: '올림포스 9강 Practice 03 · 안에 든 if 절', html: GD_IF, links: [{ k: 'fin', cid: 'eng-p064', t: '올림포스 9강 Practice 03 지문 보기' }] },
@@ -8991,7 +8993,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611171622'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611171705'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
