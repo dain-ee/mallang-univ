@@ -2547,7 +2547,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611172103', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611172120', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7371,7 +7371,8 @@
   (() => {
     const add = (s) => { NXSETS[s.id] = s; for (const q of s.qs) if (!NXQ[q.i]) NXQ[q.i] = { q, set: s.id }; };
     for (const m of NXD.mocks || []) add({ ...m, kind: 'mock' });
-    for (const r of Object.values(NXD.rv || {})) for (const s of r.sets || []) add({ ...s, id: 'pp:' + s.id });  // 11/3 수업 복습 문제 (안 본 문제 + 틀린 문제 새 번호로)
+    for (const r of Object.values(NXD.rv || {})) for (const s of r.sets || []) add({ ...s, id: 'pp:' + s.id });
+    for (const L of Object.values(NXD.wsd || {})) for (const s of L) add({ ...s, id: 'pp:' + s.id });  // 11/17 학교 학습지 숙제  // 11/3 수업 복습 문제 (안 본 문제 + 틀린 문제 새 번호로)
     for (const sb of NXD.subjects || []) for (const u of sb.units) {
       NXU[u.id] = u;
       for (const p of ['c', 'q', 'x', 'e', 'v', 's', 'd', 'w', ...Object.keys(u.tn || {})]) if ((u.parts[p] || []).length) add({ id: `${u.id}:${p}`, title: `${NX_SN[u.subj]} ${u.code} ${nxPartName(u, p)}`, sub: u.title, subj: u.subj, kind: p[0] === 't' ? 'x' : p, unit: u.id, qs: u.parts[p] });
@@ -8311,7 +8312,9 @@
       const tot = MV.length + Object.values(ppn).reduce((a, b) => a + b, 0); let k2 = 0, acc = 0;
       N.forEach((d, j) => { acc += tot / N.length - (ppn[d] || 0); while (k2 < MV.length && (j === N.length - 1 || acc >= 0.5)) { MV[k2++].day = d; acc -= 1; } }); }
     // 11/17 선생님 «학교 학습지 … 오늘부터 내는 숙제 중에 겹치는 부분이 있으면 이걸 우선시해서 교체» → 7과 단어·숙어 / 의사소통·대화 / 문법 2회독 외우기는 내일부터 학습지 세트(pp:ws7…)로
-    return OUT.filter((it) => !(it.day > '2026-11-17' && /^pp:(mw7|mc7|mg7b)(?![a-z0-9])/.test(String(it.id))));
+    // 학습지 세트는 계획 나누기가 끝난 뒤 정한 날에 붙여요 (다른 줄 날짜는 그대로)
+    const WSI = Object.entries(NXD.wsd || {}).flatMap(([d, L]) => L.map((s0) => NXSETS['pp:' + s0.id]).filter(Boolean).map((S0) => ({ id: S0.id, subj: 'eng', p: 'rv', qs: S0.qs, title: S0.title, sub: S0.sub, day: d })));
+    return OUT.filter((it) => !(it.day > '2026-11-17' && /^pp:(mw7|mc7|mg7b)(?![a-z0-9])/.test(String(it.id)))).concat(WSI);
   })();
   // 천일문·매3영 매일 (11/1~11/15, 수업 날 토요일도 숙제): 하루에 천일문 한 유닛 + 매3영 지문 3개(지문마다 단어 → 문제 → 문장 구조)
   //   (10/31 «천일문 매 unit 하고 문제 풀기, 매3영도 하루에 3-4개, 단어 먼저·문제 먼저·문장 하나씩 구조 분석»)
@@ -9010,7 +9013,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611172103'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611172120'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
