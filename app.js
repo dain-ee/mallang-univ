@@ -2547,7 +2547,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611172159', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611172205', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6513,7 +6513,7 @@
     if (r.con) { const hc = (S.hw || []).find((x) => x.id === (UI.hwRun || {}).id), dn = !!(hc && hc.done);
       return `<div class="qwrap" style="max-width:760px;margin:0 auto"><div class="row between"><button class="btn sm" data-go="hw" type="button">‹ ${(UI.hwRun || {}).from === 'exam' ? '수업' : '숙제'}</button><span class="tiny">📗 Grammar Stage Plus 2</span></div>
         <h1 class="h1" style="margin-top:12px">Unit ${esc(u.no)} · ${esc(u.title)}</h1><p class="sub">개념을 먼저 읽고, 다음에 Review Test 를 풀어요</p>${lesson}
-        <div class="cta-bar jg-cta"><button class="btn primary big block" id="jg-con-ok" type="button">${dn ? '수업 목록으로 ›' : '다 읽었어요'}</button></div></div>`; }
+        <div class="cta-bar jg-cta"><button class="btn primary big block" id="jg-con-ok" type="button">${dn ? `${(UI.hwRun || {}).from === 'exam' ? '수업' : '숙제'} 목록으로 ›` : '다 읽었어요'}</button></div></div>`; }
     // 11/14 «주아도 숙제할 때 몇 개 중에 몇 개 맞췄고 틀렸는지, 다 하면 윤건이처럼 나와야» → 한 문제씩이든 시험지든 다 풀면 결과 카드(맞힘·틀림·틀린 문제) → 숙제 목록
     if ((r.sheet && r.res && left < 0) || (!r.sheet && cur < 0)) {
       const ok = qs.filter((q) => (jgRec(u, q) || {}).ok).length, bad = qs.map((q, k) => [q, k, jgRec(u, q)]).filter((x) => x[2] && !x[2].ok);
@@ -9013,7 +9013,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611172159'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611172205'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -10647,7 +10647,7 @@
     R.cheered = 1; setTimeout(() => { boom(innerWidth / 2, innerHeight * 0.4, 4); fanfare(); toast('다 했어요! 🎉 밑의 「다 했어요」를 누르면 목록으로 가요'); }, 600);  // 11/8 «다 했다는 건 내가 누를게, 끝나자마자 나가 버리면 어떡해» → 저절로 나가지 않아요
   }
   // 끝난 숙제는 화면 밑에 「다 했어요 · 목록으로」 단추가 붙어요 (누를 때만 나가요)
-  const hwFinBar = () => { const R = UI.hwRun; if (!R || !UI.run || UI.run.kind === 'lv') return ''; const h = (S.hw || []).find((x) => x.id === R.id); if (h && UI.run.kind === 'gram' && !UI.run.con && hwDone(h)) return UI.run.sheet && !UI.run.res ? `<div class="hw-finbar"><button class="btn primary big block" data-jgres type="button">${ic('ok')} 다 풀었어요 · 결과 보기</button></div>` : '';  /* 그래머는 결과 카드를 거쳐 목록으로 */ return h && hwDone(h) ? `<div class="hw-finbar"><button class="btn primary big block" data-hwfin type="button">${ic('ok')} 다 했어요 · ${R.from === 'exam' ? '수업' : '숙제'} 목록으로</button></div>` : ''; };
+  const hwFinBar = () => { const R = UI.hwRun; if (!R || !UI.run || UI.run.kind === 'lv' || (UI.run.kind === 'gram' && UI.run.con)) return '';  /* 11/17 개념 보기는 자기 단추 하나만 (두 개 겹쳐 보였어요) */ const h = (S.hw || []).find((x) => x.id === R.id); if (h && UI.run.kind === 'gram' && !UI.run.con && hwDone(h)) return UI.run.sheet && !UI.run.res ? `<div class="hw-finbar"><button class="btn primary big block" data-jgres type="button">${ic('ok')} 다 풀었어요 · 결과 보기</button></div>` : '';  /* 그래머는 결과 카드를 거쳐 목록으로 */ return h && hwDone(h) ? `<div class="hw-finbar"><button class="btn primary big block" data-hwfin type="button">${ic('ok')} 다 했어요 · ${R.from === 'exam' ? '수업' : '숙제'} 목록으로</button></div>` : ''; };
   document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-hwfin]'); if (!b) return; const R = UI.hwRun || {}, h = (S.hw || []).find((x) => x.id === R.id); if (h && !h.done) { h.done = true; h.doneAt = Date.now(); save('hw'); } UI.hwRun = null; go(R.from || 'hw'); });
   // 11/8 정윤 «앱에서 할 수 있는 건(신문·오답·단어·빈칸) 시작 안 눌러도 숙제 하러 들어가면 알아서 시작되고 나오면 멈췄으면»
   //   손으로 켠 타이머가 돌고 있으면 건드리지 않아요. 저절로 켠 것(auto)만 나오면 멈춰 둬요 (「이어 하기」로 다시 이어져요)
