@@ -2391,8 +2391,8 @@
     const mo = sSum(m + '-01', m + '-31');
     const prev = new Date(Y, M - 2, 1).toLocaleDateString('sv').slice(0, 7), next = new Date(Y, M, 1).toLocaleDateString('sv').slice(0, 7);
     return `<section class="card c4 col-card hcal-card"><div class="card-h"><h2>${ic('cal')} 숙제 달력</h2><div class="row" style="gap:2px"><button class="btn sm ghost" type="button" data-calm="${prev}" aria-label="지난달">‹</button><b class="num" style="min-width:44px;text-align:center">${M}월</b><button class="btn sm ghost" type="button" data-calm="${next}" aria-label="다음 달" ${next > addD(today().slice(0, 7) + '-15', 62).slice(0, 7) ? 'disabled' : ''}>›</button></div></div>
-      <p class="tiny" style="margin:0 0 12px">${dn ? `이번 달 ${dn}일 동안 ${tot}개 했어요${mo ? ` · 공부 ${hm(mo)}` : ''}` : '숙제를 하면 그날 칸에 쌓여요'} · 날짜를 누르면 왼쪽에 그날 것이 나와요</p>
-      <div class="hcal-g">${'일월화수목금토'.split('').map((w) => `<span class="hcal-w">${w}</span>`).join('')}${cells.map((d) => { if (!d) return '<i></i>'; const c = cnt[d] || 0, lv = c, st = sMin(d), fut = d > today(), pl = fut ? planItems(d).length : d === today() ? left : 0; return `<button type="button" class="hcal-d ${d === today() ? 'today' : ''} ${UI.hwDay === d ? 'sel' : ''} ${lv ? 'l' + (lv >= 8 ? 3 : lv >= 4 ? 2 : 1) : ''} ${fut ? 'fut' : ''}" data-day="${d}"><span class="hc-n num">${+d.slice(8)}</span>${c ? `<span class="hc-c">${c}개</span>` : ''}${pl ? `<span class="hc-p">할 것 ${pl}</span>` : ''}${st ? `<span class="hc-h">${st >= 60 ? (st / 60).toFixed(1) + '시간' : st + '분'}</span>` : ''}</button>`; }).join('')}</div></section>`;
+      <p class="tiny" style="margin:0 0 12px">${dn ? `이번 달 ${dn}일 동안 ${tot}개 했어요${mo ? ` · 공부 ${hm(mo)}` : ''}` : '숙제를 하면 그날 칸에 쌓여요'} · 날짜를 누르면 왼쪽에 그날 것이 나와요</p><div class="hcal-key"><span><i class="ok"></i>다 했어요</span><span><i class="miss"></i>덜 했어요</span><span><i class="today"></i>오늘</span><span><i class="fut"></i>앞으로</span></div>
+      <div class="hcal-g">${'일월화수목금토'.split('').map((w) => `<span class="hcal-w">${w}</span>`).join('')}${cells.map((d) => { if (!d) return '<i></i>'; const c = cnt[d] || 0, st = sMin(d), fut = d > today(), isT = d === today(), pl = fut ? planItems(d).length : isT ? left : 0, ms = !fut && !isT ? calMiss(d).filter((x) => !x.moved).length : 0, ok = !fut && !isT && !ms && c > 0, kd = fut ? 'fut' : isT ? (pl ? 'today' : 'today ok') : ms ? 'miss' : ok ? 'ok' : ''; return `<button type="button" class="hcal-d ${kd} ${UI.hwDay === d ? 'sel' : ''}" data-day="${d}"><span class="hc-n num">${ok || (isT && !pl) ? '✓ ' : ''}${+d.slice(8)}</span>${c ? `<span class="hc-c">${c}개</span>` : ''}${ms ? `<span class="hc-m">못 한 ${ms}</span>` : ''}${pl ? `<span class="hc-p">${isT ? '남은 것' : '할 것'} ${pl}</span>` : ''}${st ? `<span class="hc-h">${st >= 60 ? (st / 60).toFixed(1) + '시간' : st + '분'}</span>` : ''}</button>`; }).join('')}</div></section>`;
   }
   // 앞날: 기말 계획(윤건)·기말 예습(정윤)에 잡힌 것 (10/30 «왜 11월 넘어가지가 않냐»)
   function planItems(d) {
@@ -2547,7 +2547,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611171120', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611171315', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -4329,8 +4329,11 @@
   var SR_C = { 한국사: '#9c6644', 국어: '#f59f00', 수학: '#3182f6', 영어: '#8b5cf6', 과학: '#03b26c', 사회: '#e8590c', 숙제: '#0ca5b0', '학원 숙제': '#0ca5b0', 책: '#ae3ec9', 오답: '#f04452', 단어: '#d6336c', 내신: '#5c7cfa', 자유: '#868e96', 앱: '#b0b8c1' };
   var srLD = (t) => srDay(t - 5 * 3600000);  // 새벽 0~5시는 전날로
   // 11/14 윤건: 숙제를 열면 저절로 재는데 끄는 걸 잊어 20시간짜리 칸이 생겨요 → 45분 넘는 칸은 그 안에서 마지막으로 문제를 푼 때까지만 쳐요 (고친 칸은 그대로)
+  var TM_MAX = 3 * 3600000;  // 「시작」으로 잰 한 칸은 3시간까지만 (11/17)
   function srCut(x) {
-    if (!ST.report || x.ed || x.e - x.s <= 45 * 60000) return x.e;
+    if (x.ed) return x.e;
+    if (!ST.report) return x.e - x.s > TM_MAX ? x.s + TM_MAX : x.e;
+    if (x.e - x.s <= 45 * 60000) return x.e;
     let last = x.s; for (const e of srEvents()) { if (e.at > x.e || e.at - last > 20 * 60000) { if (e.at > last) break; } if (e.at >= x.s) last = e.at; }  // 시작부터 20분 넘게 안 끊기고 이어진 풀이까지
     return Math.min(x.e, Math.max(last, x.s + 4 * 60000) + 60000);
   }
@@ -4338,7 +4341,7 @@
     const w1 = addD(w0, 7), B = [];
     const L0 = Object.assign({}, S.slog || {}), r0 = typeof P !== 'undefined' && P.run;  // 지금 재는 칸도 바로 보여요 (11/2 «바로바로 기록이 되어야»)
     if (r0 && r0.watch && !r0.paused) L0['w' + r0.t0] = { s: r0.t0, e: Date.now(), subj: r0.subj, k: 'w', ti: r0.ti, live: 1 };
-    for (const [id, x] of Object.entries(L0)) { if (x.del) continue; const d = srLD(x.s); if (d >= w0 && d < w1 && x.e > x.s) { const e2 = srCut(x), cut = e2 < x.e; B.push({ id, ed: x.ed, d, s: x.s, e: e2, t: x.subj || '자유', ti: x.ti, live: x.live, k: cut ? '끄는 걸 잊은 것 같아 마지막 문제 푼 때까지만 쳤어요' : x.live ? '지금 재는 중' : x.k === 't' ? '토마토 타이머' : x.ti ? '「시작」으로 잰 시간' : '직접 잰 시간' }); } }
+    for (const [id, x] of Object.entries(L0)) { if (x.del) continue; const d = srLD(x.s); if (d >= w0 && d < w1 && x.e > x.s) { const e2 = srCut(x), cut = e2 < x.e; B.push({ id, ed: x.ed, d, s: x.s, e: e2, t: x.subj || '자유', ti: x.ti, live: x.live, k: cut ? (ST.report ? '끄는 걸 잊은 것 같아 마지막 문제 푼 때까지만 쳤어요' : '끄는 걸 잊은 것 같아 3시간까지만 쳤어요 · 「고치기」로 바꿀 수 있어요') : x.live ? '지금 재는 중' : x.k === 't' ? '토마토 타이머' : x.ti ? '「시작」으로 잰 시간' : '직접 잰 시간' }); } }
     let cur = null; const flush = () => { if (!cur) return; const top = Object.entries(cur.n).sort((a, b) => b[1] - a[1])[0][0]; B.push({ d: srLD(cur.s), s: cur.s, e: Math.max(cur.e, cur.s + 60000), t: '앱', k: `앱 · ${SR_K[top][0]} ${cur.c}문항` }); cur = null; };
     const TB = ST.report ? B.slice() : [];  // 과외 학생은 숙제마다 저절로 재서, 잰 칸 안에서 푼 문제를 회색 칸으로 또 치지 않아요
     for (const e of srEvents()) { const d = srLD(e.at); if (d < w0 || d >= w1) continue; if (TB.some((b) => e.at >= b.s - 60000 && e.at <= b.e + 60000)) { flush(); continue; } if (cur && e.at - cur.e <= 20 * 60000) { cur.e = e.at; cur.c++; cur.n[e.k] = (cur.n[e.k] || 0) + 1; } else { flush(); cur = { s: e.at, e: e.at, c: 1, n: { [e.k]: 1 } }; } }
@@ -5656,7 +5659,10 @@
     pSave(); save('pomo', 'slog');
   }
   // 공부 시간 (2026-10-27 정윤: 내 타이머로 재고 숫자만 적고 싶어요) · 직접 적은 시간과 토마토 시간 중 큰 쪽
-  const sMin = (d) => { const x = pomo().days[d]; if (!x) return 0; return Math.max(x.man || 0, x.min || 0); };
+  // 11/17 달력 「189.1시간」: 끄는 걸 잊은 타이머가 그대로 더해졌어요 → 시간표와 같은 칸(3시간 상한)으로 다시 더해요
+  const sMinC = { k: '', m: {} };
+  const slogMin = () => { const L = S.slog || {}, k = Object.keys(L).length + ':' + ((S._at || {}).slog || 0) + ':' + Math.floor(Date.now() / 600000); if (sMinC.k === k) return sMinC.m; const m = {}; for (const x of Object.values(L)) { if (!x || x.del || !(x.e > x.s)) continue; const d = srLD(x.s); m[d] = (m[d] || 0) + Math.max(0, srCut(x) - x.s) / 60000; } sMinC.k = k; sMinC.m = m; return m; };
+  const sMin = (d) => { const x = pomo().days[d]; if (!x) return 0; const lg = Math.round(slogMin()[d] || 0); return Math.max(x.man || 0, lg > 0 ? lg : x.min || 0); };  // 잰 칸이 있으면 상한 지난 값, 없으면(11/2 전) 예전 합
   const sDays = () => Object.keys(pomo().days).filter((d) => sMin(d) > 0).sort();
   const sSum = (from, to = today()) => sDays().filter((d) => d >= from && d <= to).reduce((a, d) => a + sMin(d), 0);
   const sAll = () => sDays().reduce((a, d) => a + sMin(d), 0);
@@ -5860,7 +5866,14 @@
   }
   let pT = 0;
   let pLive = 0;
+  // 11/17 정윤 시간표에 「수행 준비하기」 16시간 칸 («대체 이건 뭐야») → 끄는 걸 잊고 3시간을 넘기면 저절로 끝내고 3시간까지만 남겨요
+  function pCapLong() {
+    const r = P.run; if (!r || !r.watch || r.paused || Date.now() - r.t0 <= TM_MAX) return false;
+    const e = r.t0 + TM_MAX; r.acc += e - r.t0; r.seg.push([r.t0, e]); r.paused = true;
+    pWatchEnd(r); setTimeout(() => toast(`${r.ti || r.subj} 3시간 넘게 재고 있어서 3시간까지만 남겼어요 · 더 했으면 시간표 「고치기」로 바꿔요`), 600); return true;
+  }
   function pTick() {
+    if (pCapLong()) return;
     const r = P.run, n = Date.now(); if (r && !r.paused && n >= r.endAt) return pFinish();
     if (r && r.watch && !r.paused && !TEACHER && n - r.t0 >= 60000 && n - pLive >= 5 * 60000) { pLive = n; slogPut(r.t0, n, r.subj, 'w', r.ti); save('slog'); }  // 재는 중에도 5분마다 서버에 남겨요: 선생님 화면·다른 기기에서 바로 보여요
     pPaint();
@@ -7466,7 +7479,12 @@
   const nxParaKeep = (qi, sc) => { const p = nxS().a[qi]; if (p && p.sc && sc) { p.sc = p.sc.map((x, j) => (x === false && sc[j] === true ? true : x)); save('nx'); } };
   // 문단 빈칸 묶음은 문장 수로 세요 (7문장 중 3문장 맞혔는데 0/1 로 나오지 않게)
   const nxPs = (qs, a) => { if (!qs.length || !qs.every((q) => q.t === 'para' && a[q.i] && a[q.i].sc)) return null; let o = 0, n = 0; for (const q of qs) for (const x of a[q.i].sc) if (x != null) { n++; if (x === true || a[q.i].ok) o++; } return n ? [o, n] : null; };
-  const nxProg = (s) => { const a = nxStore(s), n = s.qs.length, d = s.qs.filter((q) => a[q.i]).length; return { n, d, ok: s.qs.filter((q) => (a[q.i] || {}).ok).length, fx: s.qs.filter((q) => nxFx(q.i, a[q.i])).length, ps: nxPs(s.qs, a) }; };
+  // 11/17 «1은 아니잖아, 안에 빈칸이 몇 개인데 그걸 써야지»: 본문 빈칸(para)은 문단 하나를 1문제로 세지 말고 빈칸 수로 세요
+  const nxBl = (qs, a) => { if (!qs.length || !qs.every((q) => q.t === 'para' && a[q.i] && a[q.i].v != null)) return null; let o = 0, n = 0;
+    for (const q of qs) { const A = q.ps.flatMap((x) => [...String(x.s).matchAll(/\{([^}]+)\}/g)].map((m) => m[1])), V = String(a[q.i].v || '').split(' ‖ '); A.forEach((x, k) => { n++; if (a[q.i].ok || nxAlts(x).includes(nxKey(V[k] || ''))) o++; }); }
+    return n ? [o, n] : null; };
+  const nxDoneFix = (x, a) => { const S0 = NXSETS[x.id]; const b = S0 && a ? nxBl(S0.qs, a) : null; return b ? { ...x, ok: b[0], n: b[1] } : x; };
+  const nxProg = (s) => { const a = nxStore(s), n = s.qs.length, d = s.qs.filter((q) => a[q.i]).length; return { n, d, ok: s.qs.filter((q) => (a[q.i] || {}).ok).length, fx: s.qs.filter((q) => nxFx(q.i, a[q.i])).length, ps: nxBl(s.qs, a) || nxPs(s.qs, a) }; };
   const nxWdGot = (m, id) => { const r = nxS().wd[`${m}:${id}`]; return !!r && r.s >= (r.w ? 2 : 1); };
   const nxTime = (ms) => { if (!ms || ms > 3 * 3600e3) return ''; const m = Math.floor(ms / 60000), s = Math.round((ms % 60000) / 1000); return m ? `${m}분 ${s}초` : `${s}초`; };
   function nxStart(id, back, keep) { if (!NXSETS[id] && /^ls:/.test(id)) nxLesson(id.slice(3)); if (!NXSETS[id] && /^lw:/.test(id)) nxWord(id.slice(3)); if (/^l[smw]:/.test(id) && YG_CLS && !nxS().lq[id]) ygTest(id);  // 윤건: 열기 전엔 범위가 바뀌었을 수 있어요
@@ -7475,6 +7493,7 @@
     UI.tab = back || 'exam'; UI.run = { kind: NXSETS[id].kind === 'words' ? 'nxw' : 'nx', id, back: back || 'exam' }; render(); if (!keep) window.scrollTo(0, 0); }
   function nxFinish(s, ok, n) {
     const x = nxS(), st = (x.st[s.id] = x.st[s.id] || {}); if (st.fin) return; const at = Date.now(); st.fin = at;
+    { const b = nxBl(s.qs, nxStore(s)); if (b) [ok, n] = b; }
     x.done.push({ id: s.id, title: s.title, kind: s.kind, ok, n, at, ms: st.t0 ? at - st.t0 : 0 }); if (x.done.length > 80) x.done = x.done.slice(-80);
     let hw = false; for (const h of S.hw || []) if (h.nx === s.id && !h.done) { h.done = true; h.doneAt = at; hw = true; }
     save('nx', ...(hw ? ['hw'] : []));
@@ -7482,7 +7501,12 @@
   }
   function nxTop(s, k, n, sub, bar, extra = '') {
     const r = UI.run;
-    return `<div class="nx-top"><button class="nx-x" data-nxexit type="button" aria-label="나가기">‹</button><div class="nx-tt"><b>${esc(s.title)}</b><span>${esc(sub)}</span></div><span class="nx-cnt num"><b>${k}</b> / ${n}</span>${nxHasL(s) && !(r || {}).inLearn ? '<button class="btn sm" data-nxlearn type="button">개념 다시 보기</button>' : ''}${extra}</div><div class="nx-bar" role="progressbar" aria-valuenow="${Math.round(bar * 100)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${bar * 100}%"></i></div>`;
+    // 11/17 본문 빈칸(para)은 「1 / 1」 대신 빈칸 수로: 채운 빈칸 / 전체 빈칸
+    let unit = '';
+    if (s.qs.length && s.qs.every((q) => q.t === 'para')) { const st = nxStore(s, r), bl = (x) => (String(x.s).match(/\{[^}]+\}/g) || []).length; let N = 0, D = 0;
+      for (const q of s.qs) { const t = q.ps.reduce((u, x) => u + bl(x), 0); N += t; if (st[q.i]) D += t; else if (typeof NXPG !== 'undefined' && NXPG[q.i]) D += q.ps.reduce((u, x, j) => u + (NXPG[q.i].sc[j] != null ? bl(x) : 0), 0); }
+      if (N) { k = D; n = N; unit = "<small>빈칸</small> "; if (bar < 1) bar = D / N; } }
+    return `<div class="nx-top"><button class="nx-x" data-nxexit type="button" aria-label="나가기">‹</button><div class="nx-tt"><b>${esc(s.title)}</b><span>${esc(sub)}</span></div><span class="nx-cnt num">${unit}<b>${k}</b> / ${n}</span>${nxHasL(s) && !(r || {}).inLearn ? '<button class="btn sm" data-nxlearn type="button">개념 다시 보기</button>' : ''}${extra}</div><div class="nx-bar" role="progressbar" aria-valuenow="${Math.round(bar * 100)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${bar * 100}%"></i></div>`;
   }
   // 11/8 «개념도 없이 하면 어떡해, 아예 배우지 않은 건데»: 외우기 숙제(learn 있는 세트)는 배우는 화면 먼저 → 「다 읽었어요」 뒤 문제
   function nxLearn(s, r) {
@@ -7514,8 +7538,8 @@
       const areas = Object.entries(by).sort((a, b) => a[1][0] / a[1][1] - b[1][0] / b[1][1]);
       const bars = areas.length > 1 ? `<div class="nx-areas"><div class="eyebrow">영역별로 맞힌 비율</div><div class="sw-chart">${areas.slice(0, 8).map(([c, [o, t]]) => `<div class="sw-row"><span class="sw-n">${esc(c)}</span><div class="sw-track"><div class="sw-bar" style="width:100%;background:var(--fill)"><i style="width:${(o / t) * 100}%;background:${o === t ? 'var(--blue)' : o / t >= 0.6 ? 'var(--blue-l)' : 'var(--red)'}"></i></div></div><span class="sw-v num"><b>${o}</b> / ${t}</span></div>`).join('')}</div></div>` : '';
       const fxd = (q) => !r.tmp && nxFx(q.i, store[q.i]), fxN = qs.filter(fxd).length;
-      const wr = qs.filter((q) => !store[q.i].ok && !fxd(q)).length, ps = nxPs(qs, store), sc = Math.round((ps ? ps[0] / ps[1] : (ok + fxN) / n) * 100);
-      return `<div class="nx-wrap">${nxTop(s, n, n, sub, 1)}${doneCard(ps ? ps[0] : ok + fxN, ps ? ps[1] : n, `<b class="nx-score num">${sc}점</b>${ps ? ` · ${ps[1]}문장 중 ${ps[0]}문장` : ''}${tm ? ` · 걸린 시간 ${tm}` : ''}${fxN && !ps ? ` · 처음엔 ${ok}문제 맞혔고 틀린 ${fxN}문제는 다시 풀어서 ${wr ? '' : '다 '}고쳤어요` : ''}${wr && !r.tmp ? ` · ${fxN ? `남은 ${wr}문제` : '틀린 문제'}는 오답 노트에 들어갔어요` : ''}`, (() => { const hwRun = r.back === 'study' && UI.stOnly, back = r.back === 'hw' ? '숙제 목록으로' : hwRun ? (UI.stOnly.endsWith(':run') ? '숙제 목록으로' : '이어서 하기 ›') : r.back === 'study' ? (UI.clRun ? '수업 목록으로' : '공부로') : '수업 목록으로';  // 11/4 숙제에서 연 문제는 끝나면 숙제로 (이어서 = 같은 숙제의 다음 칸, 다 했으면 결과 카드)  // 단추는 큰 것 하나 + 작은 글자 단추만 (10/31 «뭐가 이렇게 버튼이 많냐»)
+      const wr = qs.filter((q) => !store[q.i].ok && !fxd(q)).length, ps = nxBl(qs, store) || nxPs(qs, store), sc = Math.round((ps ? ps[0] / ps[1] : (ok + fxN) / n) * 100);
+      return `<div class="nx-wrap">${nxTop(s, n, n, sub, 1)}${doneCard(ps ? ps[0] : ok + fxN, ps ? ps[1] : n, `<b class="nx-score num">${sc}점</b>${ps ? ` · 빈칸 ${ps[1]}개 중 ${ps[0]}개` : ''}${tm ? ` · 걸린 시간 ${tm}` : ''}${fxN && !ps ? ` · 처음엔 ${ok}문제 맞혔고 틀린 ${fxN}문제는 다시 풀어서 ${wr ? '' : '다 '}고쳤어요` : ''}${wr && !r.tmp ? ` · ${fxN ? `남은 ${wr}문제` : '틀린 문제'}는 오답 노트에 들어갔어요` : ''}`, (() => { const hwRun = r.back === 'study' && UI.stOnly, back = r.back === 'hw' ? '숙제 목록으로' : hwRun ? (UI.stOnly.endsWith(':run') ? '숙제 목록으로' : '이어서 하기 ›') : r.back === 'study' ? (UI.clRun ? '수업 목록으로' : '공부로') : '수업 목록으로';  // 11/4 숙제에서 연 문제는 끝나면 숙제로 (이어서 = 같은 숙제의 다음 칸, 다 했으면 결과 카드)  // 단추는 큰 것 하나 + 작은 글자 단추만 (10/31 «뭐가 이렇게 버튼이 많냐»)
         // 숙제로 연 단원(국어·역사·과학·영어·매3영 다 같음)의 한 칸을 끝내면: 같은 숙제의 다음 칸으로 바로, 다 했으면 「숙제 마무리」 → 결과 카드 (11/4 «역사 국어 과학 다른 영어 다 마찬가지»)
         const hl = hwRun && !UI.stOnly.endsWith(':run') ? (() => { const at = UI.stOnly.lastIndexOf(':'), hu = NXU[UI.stOnly.slice(0, at)], L = hu && stLessons(hu).find((x) => 'L' + x.k === UI.stOnly.slice(at + 1)); if (!L) return null;
           const nx = [L.c, L.q].find((id) => id && id !== s.id && NXSETS[id] && NXSETS[id].qs.some((q) => !nxS().a[q.i]));
@@ -7709,7 +7733,7 @@
       ${u.papers.length ? `<section class="card c12"><div class="card-h"><h2>기출 시험지별로</h2><span class="tiny">${u.papers.length}개</span></div><div class="list">${u.papers.map((pp) => nxRow(NXSETS[`${u.id}:x:${pp.id}`], { icon: 'memo' })).join('')}</div></section>` : ''}</div>`;
   }
   function nxRecent() {
-    const L = nxS().done.slice(-5).reverse(); if (!L.length) return '';
+    const L = nxS().done.slice(-5).reverse().map((x) => nxDoneFix(x, nxS().a)); if (!L.length) return '';
     return `<section class="card c12"><div class="card-h"><h2>최근 시험</h2><span class="tiny">선생님 리포트에 점수가 가요</span></div><div class="list">${L.map((x) => `<div class="li btnlike" data-nx="${esc(x.id)}"><div class="ico">${ic(x.ok === x.n ? 'trophy' : 'ok')}</div><div class="body"><div class="t">${esc(x.title)}</div><div class="d">${md(new Date(x.at).toLocaleDateString('sv'))}${nxTime(x.ms) ? ' · ' + nxTime(x.ms) : ''}</div></div><b class="num">${x.ok} / ${x.n}</b></div>`).join('')}</div></section>`;
   }
   // 수업 시험: 수업 날 수업 시간이 되면 열리고 그날 밤 12시에 닫혀요. 그 학생 문제를 늘 섞어서, 같은 날은 같은 시험
@@ -8328,12 +8352,12 @@
   const ypNow = () => { ypPin(); return YP.filter((it) => it.day <= today() && (!ypDone(it) || it.day === today() || atDay(ypAt(it)) === today())); };  // 밀린 걸 오늘 끝냈어도 오늘 목록에 줄 그어 남겨요 (달력 개수와 맞게)  // 오늘 몫 + 밀린 것
   // 끝나는 날: 밀린 게 없으면 계획한 마지막 날, 밀렸으면 하루 몫 속도로 그만큼 뒤로
   const ypEnd = () => { if (!YP.some((it) => !ypDone(it))) return null; const days = [...new Set(YP.map((x) => x.day))], per = Math.max(1, Math.ceil(YP.length / days.length)), beh = YP.filter((it) => it.day < today() && !ypDone(it)).length; let d = days[days.length - 1], n = Math.ceil(beh / per); while (n > 0) { d = addD(d, 1); if (!(YF.off || []).includes(new Date(d + 'T00:00:00').getDay())) n--; } return d; };
-  const ypQn = (it, g) => (it.p === 'wm' ? `${it.words.length}개 외우고 떠올리기 · ${md(it.test)} 시험` : it.p === 'rv' ? ((S0) => !nxHasL(S0) && (S0.qs[0] || {}).t === 'para' ? `${/통문장/.test(S0.title || '') ? '통문장' : '빈칸'} ${S0.qs.reduce((t, q) => t + (q.ps || []).filter((x) => /\{/.test(x.s)).length, 0)}문장` : !nxHasL(S0) ? `${g.n}문제 · 안 본 문제와 틀린 문제` : (S0.qs[0] || {}).t === 'para' ? `개념 → 빈칸 ${S0.qs.reduce((t, q) => t + (q.ps || []).filter((x) => /\{/.test(x.s)).length, 0)}문장` : S0.learn.nk === 'w' ? `단어 읽고 → ${g.n}개 영어로` : `개념 → 문제 ${g.n}`)(NXSETS[it.id] || {}) : it.p === 'm3rv' ? '★ 문장 내 말로 해석 → 문법 연결' : it.p === 'memo' ? '담은 단어·문장 떠올리기' : it.p === 'ch' ? '개념 → 문제' : it.m3 ? `단어 ${it.nc} → 문제 ${it.nq} → 문장 구조` : it.p === 'L' ? `개념 → 빈칸 ${it.nc} → 문제 ${it.nq}` : it.nav === 'order' ? `흐름 ${g.n}개 차례대로` : `${g.n}문제`);
+  const ypQn = (it, g) => (it.p === 'wm' ? `${it.words.length}개 외우고 떠올리기 · ${md(it.test)} 시험` : it.p === 'rv' ? ((S0) => !nxHasL(S0) && (S0.qs[0] || {}).t === 'para' ? (/통문장/.test(S0.title || '') ? `통문장 ${S0.qs.reduce((t, q) => t + (q.ps || []).filter((x) => /\{/.test(x.s)).length, 0)}문장` : `빈칸 ${S0.qs.reduce((t, q) => t + (q.ps || []).reduce((u, x) => u + (String(x.s).match(/\{[^}]+\}/g) || []).length, 0), 0)}개`) : !nxHasL(S0) ? `${g.n}문제 · 안 본 문제와 틀린 문제` : (S0.qs[0] || {}).t === 'para' ? `개념 → 빈칸 ${S0.qs.reduce((t, q) => t + (q.ps || []).filter((x) => /\{/.test(x.s)).length, 0)}문장` : S0.learn.nk === 'w' ? `단어 읽고 → ${g.n}개 영어로` : `개념 → 문제 ${g.n}`)(NXSETS[it.id] || {}) : it.p === 'm3rv' ? '★ 문장 내 말로 해석 → 문법 연결' : it.p === 'memo' ? '담은 단어·문장 떠올리기' : it.p === 'ch' ? '개념 → 문제' : it.m3 ? `단어 ${it.nc} → 문제 ${it.nq} → 문장 구조` : it.p === 'L' ? `개념 → 빈칸 ${it.nc} → 문제 ${it.nq}` : it.nav === 'order' ? `흐름 ${g.n}개 차례대로` : `${g.n}문제`);
   function ypTasks() {
     if (!YP_ON) return [];
     /* 11/15 선생님 «이런 거 정윤이 윤건이 둘 다 해 놔, 1회독 2회독 3회독 이런 라벨링 좋다»: 기말 계획 줄마다 몇 회독인지와 그 과목 그 회독이 끝나는 날 디데이 */
     const ypRd = (it) => (it.hd ? 2 : it.p === 'L' || it.p === 'Lh' ? 0 : 1), RDE = {}, rdEnd = (it) => { const k = it.subj + '#' + ypRd(it); if (!(k in RDE)) RDE[k] = YP.filter((x) => !x.id.startsWith('pp:') && x.subj === it.subj && ypRd(x) === ypRd(it)).reduce((m, x) => (x.day > m ? x.day : m), ''); return RDE[k]; };
-    return ypNow().map((it) => { const late = it.day < today(), dn = ypDone(it), g = nxProg(NXSETS[it.id]); const pl = it.id.startsWith('pp:mt') ? '기말 외우기' : it.id.startsWith('pp:') ? '매일 영어' : '기말 계획', rt = !dn && !it.id.startsWith('pp:') && rdEnd(it) ? [`${ypRd(it) + 1}회독 다 끝내는 날 ${ddTxt(rdEnd(it))}`, ''] : it.tg && !dn ? it.tg : null; return { k: it.id, tg: rt ? [rt] : [], icon: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: (it.id.startsWith('yp:') ? `${ypRd(it) + 1}회독 · ` : '') + it.title, d: dn ? `${pl} · 끝냈어요${ypTimeTxt(it)}${it.p === 'ch' ? '' : ` · ${g.ps ? `${g.ps[0]}/${g.ps[1]}문장` : `${g.ok + g.fx}/${g.n}`} 맞힘${g.fx && !g.ps ? ` · ${g.fx}개는 다시 풀어서 고침` : ''}`}` : `${late ? `<b>${md(it.day)} 몫 · 밀렸어요</b>` : `${pl} · 오늘 몫`} · ${g.d ? `${g.d}/${g.n} 풀었어요` : ypQn(it, g)}`.replace(/<[^>]+>/g, ''), done: dn, late }; });
+    return ypNow().map((it) => { const late = it.day < today(), dn = ypDone(it), g = nxProg(NXSETS[it.id]); const pl = it.id.startsWith('pp:mt') ? '기말 외우기' : it.id.startsWith('pp:') ? '매일 영어' : '기말 계획', rt = !dn && !it.id.startsWith('pp:') && rdEnd(it) ? [`${ypRd(it) + 1}회독 다 끝내는 날 ${ddTxt(rdEnd(it))}`, ''] : it.tg && !dn ? it.tg : null; return { k: it.id, tg: rt ? [rt] : [], icon: it.subj === 'hist' ? 'scroll' : it.subj === 'sci' ? 'sci' : 'eng', t: (it.id.startsWith('yp:') ? `${ypRd(it) + 1}회독 · ` : '') + it.title, d: dn ? `${pl} · 끝냈어요${ypTimeTxt(it)}${it.p === 'ch' ? '' : ` · ${g.ps ? `빈칸 ${g.ps[0]}/${g.ps[1]}개` : `${g.ok + g.fx}/${g.n}`} 맞힘${g.fx && !g.ps ? ` · ${g.fx}개는 다시 풀어서 고침` : ''}`}` : `${late ? `<b>${md(it.day)} 몫 · 밀렸어요</b>` : `${pl} · 오늘 몫`} · ${g.d && !(NXSETS[it.id] || { qs: [] }).qs.every((q) => q.t === 'para') ? `${g.d}/${g.n} 풀었어요` : ypQn(it, g)}`.replace(/<[^>]+>/g, ''), done: dn, late }; });
   }
   function ypLagRows(days, st0) {
     if (!YP_ON) return [];
@@ -8776,7 +8800,7 @@
   // 선생님: 리포트 날짜까지 7일 동안 끝낸 시험
   function nxRecs(n, date) {
     const d = dRowD(n), L = (d && d.nx && d.nx.done) || [], t0 = new Date(addD(date, -6) + 'T00:00:00').getTime(), t1 = new Date(addD(date, 1) + 'T00:00:00').getTime();
-    return L.filter((x) => x.at >= t0 && x.at < t1).sort((a, b) => b.at - a.at);
+    return L.filter((x) => x.at >= t0 && x.at < t1).map((x) => nxDoneFix(x, (d.nx || {}).a)).sort((a, b) => b.at - a.at);
   }
   // 11/3 윤건: 그날 수업(S.jwt[날짜])에서 나간 천일문·매3영·단어 시험을 리포트에 저절로 («오늘 한 게 자동으로 입력이 안 되어 있네»)
   // 11/8 «주아는 왜 리포트가 오늘 한 거 그대로 안 나오네»: 그날 푼 그래머·라이팅·끝낸 숙제로 「오늘 한 것」을 채워요
@@ -8964,7 +8988,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611171120'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611171315'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
