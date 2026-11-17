@@ -2547,7 +2547,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611171043', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611171057', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3628,13 +3628,48 @@
     inp.onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); e.stopPropagation(); ok.click(); } };
   }
   const r2sAfter = (q, a) => `${q.type === 'essay' ? verdict(a.ok, a.ok ? '' : ' <span style="margin-left:auto">채점 요소가 빠졌어요</span>').replace('정답이에요', '채점 요소가 다 들어 있어요') : verdict(a.ok, a.ok || q.type !== 'mc' ? '' : ` <span style="margin-left:auto">정답 ${'①②③④⑤'[q.answer] || ''}</span>`)}${q.exp ? `<div class="explain" style="margin-top:12px"><b>${q.type === 'essay' ? '자주 감점되는 곳' : '해설'}</b><br>${rich(q.exp)}</div>` : ''}${q.trap ? `<div class="ls-box warn" style="margin-top:12px"><b>함정</b><p>${rich(q.trap)}</p></div>` : ''}`;
+  // 11/17 «모의고사 형식을 시험지처럼, 실제 경화여고 시험지처럼»: 모고(X.mock)는 문제 단계를 한 장짜리 시험지로 보여요
+  //   머리 표(학년·교과명·실시일시) · 안내 상자 · 2단 · <보기> 상자 · [배점] · 같은 지문은 [n~m] 으로 한 번만 · 답은 번호에 동그라미(OMR 처럼)
+  //   다 고르고 「답안 제출」 → 한꺼번에 채점: 문항 번호에 빨간 동그라미(맞음)·빗금(틀림), 위에 점수. 서답형은 제출 뒤 하나씩 채점 요소 체크
+  const xpPts = (q) => { const m = String(q.q || '').match(/\[([\d.]+)점\]/); return m ? +m[1] : 0; };
+  function r2sPaper(x, A, r) {
+    const X = x.x, qs = X.qs, P = A.pp || {}, pk = P.p || {}, es = P.e || {}, done = !!A.paper, nm = ({ sci: '통합과학2', soc: '통합사회2', hist: '한국사2', kor: '공통국어2' })[String(x.sj).replace(/\d+$/, '')] || r2sNm(x);
+    const sc = done ? qs.reduce((t, q, i) => t + (q.type === 'mc' && A['q' + i] && A['q' + i].ok ? xpPts(q) : 0), 0) : 0;
+    const mcTot = qs.reduce((t, q) => t + (q.type === 'mc' ? xpPts(q) : 0), 0), nEs = qs.filter((q) => q.type !== 'mc').length;
+    const L = (v) => [].concat(v || []), same = (a, b) => L(a.text).length && JSON.stringify(L(a.text)) === JSON.stringify(L(b.text));
+    const grp = []; qs.forEach((q, i) => { const g = grp[grp.length - 1]; if (g && same(qs[g[0]], q)) g.push(i); else grp.push([i]); });
+    const box = (q) => L(q.box).length ? `<div class="xp-bogi"><span class="xp-bogi-h">&lt; 보 기 &gt;</span>${q.box.map((t) => `<p>${r2U(t)}</p>`).join('')}</div>` : '';
+    const tbl = (q) => L(q.table).length ? `<table class="xp-tbl">${q.table.map((row, k) => `<tr>${[].concat(row).map((v) => (k ? `<td>${r2U(v)}</td>` : `<th>${r2U(v)}</th>`)).join('')}</tr>`).join('')}</table>` : '';
+    const one = (i, shared) => { const q = qs[i], a = A['q' + i], ln = String(q.q || '').split(/\s*(?=\[(?:문장|자료|대화)\])/);
+      const mk = done && q.type === 'mc' ? (a && a.ok ? 'o' : 'x') : '';
+      const ch = q.type === 'mc' ? `<div class="xp-ch ${L(q.choices).every((c) => String(c).length <= 14) ? 'row' : ''}">${L(q.choices).map((c, k) => { const m = String(c).match(/^([①②③④⑤])\s*(.*)$/) || [0, '①②③④⑤'[k], c];
+          const me = done ? (a && a.p === k) : pk[i] === k; return `<button type="button" class="xp-c ${me ? 'on' : ''} ${done && k === q.answer ? 'ans' : ''}" data-xpp="${i}:${k}" ${done ? 'disabled' : ''}><i>${m[1]}</i><span>${r2U(m[2])}</span></button>`; }).join('')}</div>`
+        : `<div class="xp-es"><p class="xp-es-h">서답형</p><textarea class="xp-ta" data-xpe="${i}" rows="5" ${done ? 'disabled' : ''} placeholder="조건을 지켜서 써요">${esc(es[i] || '')}</textarea></div>`;
+      return `<div class="xp-q ${mk ? 'mk-' + mk : ''}" id="xp-q${i}"><p class="xp-stem"><b class="xp-n">${i + 1}.</b> ${r2U(ln[0])}</p>${ln.slice(1).map((t) => `<p class="xp-line">${r2U(t)}</p>`).join('')}${shared ? '' : L(q.text).length ? `<div class="xp-text">${L(q.text).map((t) => `<p>${r2U(t)}</p>`).join('')}</div>` : ''}${tbl(q)}${box(q)}${ch}
+        ${done && q.type === 'mc' && !(a && a.ok) && q.exp ? `<details class="xp-exp"><summary>해설 보기 · 정답 ${'①②③④⑤'[q.answer]}</summary><p>${r2U(q.exp)}</p>${q.trap ? `<p class="tiny">함정: ${r2U(q.trap)}</p>` : ''}</details>` : ''}</div>`; };
+    const wq = (i) => { const q = qs[i]; return 90 + String(q.q || '').length + L(q.box).join('').length + L(q.choices).join('').length + L(q.table).flat().join('').length * 1.4 + L(q.table).length * 30 + (q.type === 'mc' ? 0 : 260); };
+    const wg = (g) => g.reduce((t, i) => t + wq(i), g.length > 1 ? L(qs[g[0]].text).join('').length : L(qs[g[0]].text).join('').length);
+    const tot = grp.reduce((t, g) => t + wg(g), 0), NP = Math.max(1, Math.round(tot / 1500)), PG = [[]]; let acc = 0;
+    grp.forEach((g) => { const w = wg(g); if (PG[PG.length - 1].length && acc + w / 2 > (tot / NP) * PG.length && PG.length < NP) PG.push([]); PG[PG.length - 1].push(g); acc += w; });
+    const gHtml = (g) => g.length > 1 ? `<div class="xp-set"><p class="xp-stem"><b>[${g[0] + 1}~${g[g.length - 1] + 1}]</b> 다음 글을 읽고 물음에 답하시오.</p><div class="xp-text">${L(qs[g[0]].text).map((t) => `<p>${r2U(t)}</p>`).join('')}</div></div>${g.map((i) => one(i, 1)).join('')}` : one(g[0], 0);
+    const nPk = qs.filter((q, i) => q.type === 'mc' ? pk[i] != null : (es[i] || '').trim()).length;
+    const head = `<div class="xp-head"><div class="xp-title">2026학년도 2학기 2차 정기시험 대비 모의고사${done ? `<span class="xp-score">${Math.round(sc * 100) / 100}</span>` : ''}</div>
+      <table class="xp-ht"><tr><th>학년</th><th>교과명</th><th>실시일시</th><th>이름</th></tr><tr><td>1</td><td class="xp-subj">${esc(nm)}</td><td>${md(x.day)}</td><td>${esc(U.who)}</td></tr></table></div>
+      <div class="xp-note"><p>◦ 받은 문제지의 학년, 교과명, 문항 수를 확인하시오.</p><p>◦ 총 (${qs.length})문항입니다. 문항에 따라 배점이 다르니, 각 물음의 끝에 표시된 배점을 참고하시오.</p><p>◦ 답은 번호를 눌러 표시하고, 다 풀면 맨 아래 「답안 제출」을 누르시오.</p></div>`;
+    const foot = (n) => `<div class="xp-foot"><span><b>경화여자고등학교</b> 2026학년도 2학기 2차 정기시험 대비 1학년 <b class="xp-fs">${esc(nm)}</b></span><span class="xp-pg"><b>${n}</b><small>${PG.length}쪽 중</small></span></div>`;
+    const t0 = P.t0 || Date.now(), mins = Math.floor(((done ? (A.paper.at - t0) : Date.now() - t0)) / 60000);
+    const bar = done ? `<div class="cta-bar"><button class="btn primary big block" data-r2sgo="auto" type="button">${nEs && qs.some((q, i) => q.type !== 'mc' && !A['q' + i]) ? '다음: 서답형 채점 ›' : r2sWrong(x).length ? `다음: 틀린 것 ${r2sWrong(x).length}개 다시 ›` : '다음 ›'}</button></div>`
+      : `<div class="cta-bar"><button class="btn primary big block" id="xp-sub" type="button">답안 제출 · <span id="xp-cnt">${nPk}/${qs.length} · ${mins}분</span></button></div>`;
+    const res = done ? `<section class="card xp-res"><b>${Math.round(sc * 100) / 100}점</b><span>선택형 ${qs.filter((q, i) => q.type === 'mc' && A['q' + i] && A['q' + i].ok).length}/${qs.filter((q) => q.type === 'mc').length}문항 맞음 · ${Math.round(mcTot * 100) / 100}점 만점${nEs ? ` · 서답형 ${nEs}문항은 채점 요소로 따로 채점` : ''} · ${mins}분 걸림</span></section>` : '';
+    return `${res}${PG.map((pg, n) => `<div class="xp-paper ${done ? 'graded' : ''}">${n ? '' : head}<div class="xp-cols">${pg.map(gHtml).join('')}</div>${foot(n + 1)}</div>`).join('')}<div style="height:96px"></div>${bar}`;
+  }
   function r2sRun() {
     const r = UI.run, x = r2sOf(r.cid); if (!x) { UI.run = null; UI.tab = 'hw'; return hwView(); }
     const X = x.x, A = r2sGet(x.id), auto = r2sSt(x), qs = X.qs, key = X.key || [], st = r.st || auto, wr = r2sWrong(x), end = r2sEnd(x.sj);
     const ORD = ['rc', 'rd', 'q', 'k', 'x'], reach = auto === 'fin' ? 5 : ORD.indexOf(auto);
     const head = `<div class="row between"><button class="btn sm" data-r2sback type="button">‹ 숙제</button><span class="tiny">${md(x.day)} 몫 · ${r2sLab(x)} 끝 ${md(end)}까지 ${ddTxt(end)}</span></div><p class="eyebrow" style="margin:16px 0 4px">${ic(R2S_SUBJ[x.sj].ic)} ${esc(r2sNm(x))} ${esc(r2sRd(x.sj))}</p><h1 class="h1" style="margin:0 0 8px">${esc(X.title)}</h1>`;
     const wrap = (b) => `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${b}</div>`;
-    const seg = `<div class="seg r2-seg" style="margin:0 0 16px">${[['rc', '떠올리기'], ['rd', r2sFirst(x) ? '개념 보기' : '다시 보기'], ['q', '문제'], ['k', '핵심 쓰기'], ['x', '틀린 것']].map((g, i) => [...g, i]).filter((g) => (g[0] !== 'k' || key.length) && !(g[0] === 'rc' && r2sFirst(x))).map(([k, t0, i], n) => [k, `${'①②③④⑤'[n]} ${t0}`, i]).map(([k, t, i]) => `<button type="button" class="${st === k ? 'on' : ''}" data-r2sst="${k}" ${i <= reach && !(k === 'x' && !wr.length) ? '' : 'disabled'}>${t}${i < reach && !(k === 'x' && auto !== 'fin') ? ' ✓' : ''}</button>`).join('')}</div>`;
+    const seg = `<div class="seg r2-seg" style="margin:0 0 16px">${[['rc', '떠올리기'], ['rd', r2sFirst(x) ? '개념 보기' : '다시 보기'], ['q', X.mock ? '시험지' : '문제'], ['k', '핵심 쓰기'], ['x', '틀린 것']].map((g, i) => [...g, i]).filter((g) => (g[0] !== 'k' || key.length) && !(g[0] === 'rc' && r2sFirst(x))).map(([k, t0, i], n) => [k, `${'①②③④⑤'[n]} ${t0}`, i]).map(([k, t, i]) => `<button type="button" class="${st === k ? 'on' : ''}" data-r2sst="${k}" ${i <= reach && !(k === 'x' && !wr.length) ? '' : 'disabled'}>${t}${i < reach && !(k === 'x' && auto !== 'fin') ? ' ✓' : ''}</button>`).join('')}</div>`;
     if (st === 'rc') {
       const a = A.rc;
       return wrap(`${seg}<section class="card st-sec r2-rc"><div class="st-kick">① 떠올리기</div><h2>${esc(X.recall.q)}</h2><p class="sub" style="margin:0 0 16px">책과 정리를 보지 말고 생각나는 대로 먼저 써요. 쓰고 나서 떠올렸어야 할 것과 맞춰 봐요</p>
@@ -3646,8 +3681,10 @@
       const study = (X.study || []).map((b) => `<section class="card r2s-study" style="margin-top:12px">${b.h ? `<h3 class="r2s-ct" style="margin:0 0 8px">${esc(b.h)}</h3>` : ''}${b.map === 'cur' ? cmHtml() : b.img ? `<img src="${esc(b.img)}" alt="${esc(b.h || '그림')}" loading="lazy" style="width:100%;border-radius:12px;display:block">` : ''}${b.cap && b.map !== 'cur' ? `<p class="tiny" style="margin:6px 0 0">${esc(b.cap)}</p>` : ''}${(b.p || []).map((t) => `<p style="margin:8px 0 0;line-height:1.7">${esc(t)}</p>`).join('')}${(b.pts || []).length ? `<ol class="r2s-rules">${b.pts.map((q, i) => `<li style="--i:${i}"><span class="r2s-rn">${i + 1}</span><div><b>${r2sHl(q.t)}</b>${(q.d || []).map((t) => `<span>${r2sHl(t)}</span>`).join('')}</div></li>`).join('')}</ol>` : ''}${b.table ? `<div class="tbl-wrap" style="margin-top:8px"><table class="q-tbl r2s-tbl">${b.table.map((row, ri) => `<tr>${row.map((c) => (ri ? `<td>${esc(c)}</td>` : `<th>${esc(c)}</th>`)).join('')}</tr>`).join('')}</table></div>` : ''}</section>`).join('');  // 11/15 해류: 교과서 지도 + 외우는 규칙
       return wrap(`${seg}<p class="sub" style="margin:0">${r2sFirst(x) ? '① 오늘 처음 보는 개념이에요. 그림에서 볼 것과 꼬리표까지 천천히 읽고 문제로 가요' : study ? '② 지도와 규칙을 보면서 떠올리기에서 빠뜨린 것을 찾아봐요' : '② 1회독 때 본 정리를 다시 훑어봐요. 떠올리기에서 빠뜨린 것을 눈으로 찾아봐요'}</p>${study}${cards || (study ? '' : '<section class="card"><p class="sub">이 덩어리의 1회독 카드를 찾지 못했어요</p></section>')}<div class="cta-bar"><button class="btn primary big block" data-r2sgo="q" type="button">${A.rd && auto !== 'q' ? '다음 ›' : `다 봤어요 · 학교 꼴 문제 ${qs.length}개 풀기 ›`}</button></div>`);
     }
+    if (st === 'q' && X.mock && (!A.paper || qs.every((q, k) => q.type === 'mc' || A['q' + k]))) return `<div class="qwrap xp-wrap">${head}${seg}${r2sPaper(x, A, r)}</div>`;
     if (st === 'q') {
       const i = r.i != null ? r.i : Math.max(0, qs.findIndex((q, k) => !A['q' + k])), q = qs[i], a = A['q' + i] || null;
+      if (X.mock && q.type === 'essay' && !a && !r.es && ((A.pp || {}).e || {})[i]) r.es = { v: A.pp.e[i], m: [] };
       if (r.pk !== 'q' + i) { r.pk = 'q' + i; r.es = null; }
       const dots = `<div class="progress-dots">${qs.map((y, k) => `<i class="${A['q' + k] ? (A['q' + k].ok ? 'ok' : 'no') : k === i ? 'cur' : ''}"></i>`).join('')}</div>`;
       return wrap(`${seg}${dots}<div class="r2-qh row between"><div class="q-no">${i + 1}번 · ${esc(q.kind || '')}</div>${i > 0 ? '<button class="btn sm" data-qprev type="button">‹ 이전 문제</button>' : ''}</div>${r2sQHtml(q, a, r)}${a ? `<div style="margin-top:12px">${r2sAfter(q, a)}</div><div class="cta-bar r2-cta">${i > 0 ? '<button class="btn big" id="r2s-prev" type="button">‹ 이전</button>' : ''}<button class="btn primary big block" id="r2s-next" type="button">${i < qs.length - 1 ? '다음 문제 ›' : r.rv ? '돌아가기' : `다음: 핵심 쓰기 ${key.length}개 ›`}</button></div>` : ''}`);
@@ -3683,6 +3720,25 @@
     $$('[data-r2sgo]').forEach((b) => (b.onclick = () => { const k = b.dataset.r2sgo; if (k === 'q' && !r2sGet(x.id).rd) { r2sA(x.id).rd = { at: Date.now() }; save('r2s'); } if (k === 'auto') return auto(); if (k === 'q' && r2sSt(x) !== 'q') return auto(); r.st = k; r.i = null; r.rv = 0; top(); }));
     const st = r.st || r2sSt(x);
     if (st === 'rc') { const ta = $('#r2s-rc'), ok = $('#r2s-rcok'); if (ta && ok) ok.onclick = () => { const v = ta.value.trim(); if (!v) { ta.focus(); toast('한 줄이라도 먼저 써 봐요'); return; } r2sA(x.id).rc = { at: Date.now(), v: v.slice(0, 200) }; save('r2s'); keep(); const g = $('.r2-rc'); if (g) g.classList.add('r2-open'); }; }
+    if (st === 'q' && $('.xp-paper')) {
+      const P = r2sA(x.id).pp = r2sGet(x.id).pp || { t0: Date.now(), p: {}, e: {} }; P.p = P.p || {}; P.e = P.e || {};
+      const cnt = () => { const c = $('#xp-cnt'); if (c) c.textContent = `${qs.filter((q, i) => q.type === 'mc' ? P.p[i] != null : (P.e[i] || '').trim()).length}/${qs.length} · ${Math.floor((Date.now() - P.t0) / 60000)}분`; };
+      clearInterval(window.__xpT); window.__xpT = setInterval(() => { if (!$('#xp-cnt')) return clearInterval(window.__xpT); cnt(); }, 30000);
+      $$('[data-xpp]').forEach((b) => (b.onclick = () => { const [i, k] = b.dataset.xpp.split(':').map(Number); if (P.p[i] === k) delete P.p[i]; else P.p[i] = k; save('r2s');
+        $$(`[data-xpp^="${i}:"]`).forEach((c) => c.classList.toggle('on', +c.dataset.xpp.split(':')[1] === P.p[i])); cnt(); }));
+      $$('[data-xpe]').forEach((t) => (t.oninput = () => { P.e[+t.dataset.xpe] = t.value.slice(0, 600); clearTimeout(t._s); t._s = setTimeout(() => save('r2s'), 600); cnt(); }));
+      const sb = $('#xp-sub'); if (sb) sb.onclick = () => {
+        const blank = qs.map((q, i) => i).filter((i) => qs[i].type === 'mc' ? P.p[i] == null : !(P.e[i] || '').trim());
+        if (!sb.dataset.sure) { sb.dataset.sure = 1; sb.textContent = blank.length ? `안 푼 ${blank.length}문항 · 그래도 제출` : '한 번 더 누르면 제출'; if (blank.length) { const e = $('#xp-q' + blank[0]); if (e) e.scrollIntoView({ block: 'center', behavior: RM() ? 'auto' : 'smooth' }); } return; }
+        const A = r2sA(x.id), at = Date.now();
+        qs.forEach((q, i) => { if (q.type !== 'mc' || A['q' + i]) return; const k = P.p[i], ok = k === q.answer; A['q' + i] = { ok: ok ? 1 : 0, at, p: k == null ? -1 : k };
+          if (!ok) addWrong(wid(i), { src: 'r2s', subj: x.sj, subjName: nm, area: `${nm} 모고`, sub: x.x.title, title: `${x.x.title} · ${q.kind || ''}`, r2s: [x.id, i] }); });
+        A.paper = { at }; save('r2s'); top();
+        if (!RM()) $$('.xp-q.mk-o .xp-n, .xp-q.mk-x .xp-n').forEach((n, k) => n.animate([{ opacity: 0, transform: 'scale(1.8) rotate(-20deg)' }, { opacity: 1, transform: 'scale(1) rotate(0)' }], { duration: 380, delay: 60 + k * 45, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' }));
+        const s2 = $('.xp-score'); if (s2 && !RM()) s2.animate([{ opacity: 0, transform: 'scale(2) rotate(-12deg)' }, { opacity: 1, transform: 'scale(1) rotate(-8deg)' }], { duration: 520, delay: 400, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' });
+        ding(2);
+      };
+    }
     if (st === 'q') {
       const A = r2sGet(x.id), i = r.i != null ? r.i : Math.max(0, qs.findIndex((q, k) => !A['q' + k])), q = qs[i];
       if (!A['q' + i]) r2sQBind(q, r, (ok, ex) => {
@@ -8894,7 +8950,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611171043'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611171057'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
