@@ -5332,3 +5332,4 @@ textarea.inp.bn-ta { min-height: 360px; font-size: 16px; line-height: 1.8; resiz
 .tgrp-sub{padding-left:16px;border-left:2px solid var(--line, #e5e8eb);margin:0 0 8px 20px}
 .tgrp-sub:not([hidden]){animation:tgIn .28s ease}
 @keyframes tgIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.tgrp-h{width:100%;border:0;background:transparent;font:inherit;color:inherit;text-align:left;cursor:pointer;-webkit-appearance:none;appearance:none}

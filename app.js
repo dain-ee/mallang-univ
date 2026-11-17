@@ -2305,9 +2305,10 @@
   function tgRow(g, row) {
     const I = g.items, op = !!(UI.tgOpen || {})[g.k], nm = (x) => String(x.t).split(' · ').slice(1).join(' · '), L = I.filter((x) => !x.done);
     const d = g.done ? '오늘 것 끝' : `${L.slice(0, 2).map(nm).join(', ')}${L.length > 2 ? ` 외 ${L.length - 2}개` : ''}`;
-    return `<div class="tgrp ${op ? 'open' : ''}"><div class="li btnlike ${g.done ? 'is-done' : ''}" data-tgrp="${esc(g.k)}"><div class="ico">${ic(g.done ? 'ok' : g.icon)}</div><div class="body"><div class="t">${g.late ? '<span class="tag red" style="margin-right:6px;vertical-align:2px">밀림</span>' : ''}${esc(g.t)} ${I.length}개${tsTg([g.n && !g.done ? [`${g.n}/${I.length}`, 'blue'] : null, g.dd && !g.done ? g.dd : null])}</div><div class="d">${esc(d)}</div></div><span class="tgrp-car" aria-hidden="true">›</span></div><div class="tgrp-sub"${op ? '' : ' hidden'}>${[...L, ...I.filter((x) => x.done)].map(row).join('')}</div></div>`;
+    return `<div class="tgrp ${op ? 'open' : ''}"><button type="button" class="li btnlike tgrp-h ${g.done ? 'is-done' : ''}" data-tgrp="${esc(g.k)}" onclick="window.__tg(this,event)"><div class="ico">${ic(g.done ? 'ok' : g.icon)}</div><div class="body"><div class="t">${g.late ? '<span class="tag red" style="margin-right:6px;vertical-align:2px">밀림</span>' : ''}${esc(g.t)} ${I.length}개${tsTg([g.n && !g.done ? [`${g.n}/${I.length}`, 'blue'] : null, g.dd && !g.done ? g.dd : null])}</div><div class="d">${esc(d)}</div></div><span class="tgrp-car" aria-hidden="true">›</span></button><div class="tgrp-sub"${op ? '' : ' hidden'}>${[...L, ...I.filter((x) => x.done)].map(row).join('')}</div></div>`;
   }
-  document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-tgrp]'); if (!b) return; e.stopPropagation(); const k = b.dataset.tgrp, w = b.parentNode, sub = w.querySelector('.tgrp-sub'); UI.tgOpen = UI.tgOpen || {}; UI.tgOpen[k] = !UI.tgOpen[k]; w.classList.toggle('open', UI.tgOpen[k]); sub.hidden = !UI.tgOpen[k]; }, true);
+  // 11/18 정윤 iPad «클릭이 안돼» → 머리를 진짜 단추로, 누르면 바로 펼쳐요
+  window.__tg = (b, e) => { if (e) e.stopPropagation(); const k = b.dataset.tgrp, w = b.parentNode, sub = w.querySelector('.tgrp-sub'); UI.tgOpen = UI.tgOpen || {}; UI.tgOpen[k] = !UI.tgOpen[k]; w.classList.toggle('open', UI.tgOpen[k]); sub.hidden = !UI.tgOpen[k]; };
   function hwView() {
     const sd = sciToday(), st = dayStat(sd), ed = engToday();
     const un = CH_UNITS[ed.unit];
@@ -2561,7 +2562,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611180016', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611180742', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3800,7 +3801,10 @@
   //   ① 흐름 보기(핵심 낱말 색) → ② 순서 맞추기(누르면 바로 채점) → ③ 빈칸 쓰기(자동 채점 · 틀리면 첫 글자 → 답 · 그 카드는 맨 뒤로 돌아와 힌트 없이 맞혀야 빠져요)
   //   틀린 카드는 다음 날 첫 판에 먼저 나와요
   // 기록: S.r2s.a['bn:A1'] = { v:{at}, o:{at, miss}, f:{ q:[카드키], ok:{키:1}, bad:{키:n}, at } } · 카드키 'A1:3'
-  const bnCards = (x) => [].concat(((x && x.x.mem) || {}).cards || []);
+  // 11/18 정윤 «역사 백지노트를 년도 위주로 해줘» → 한국사 카드는 연도를 빈칸으로 (첫 낱말 빈칸 하나만 남기고 나머지는 보여 줘요)
+  const bnYrAlts = (w) => { const m = String(w).match(/\d+/g) || []; if (!m.length) return [w]; const [y, mo, d] = m; return [...new Set([w, m.join('.'), m.join(' '), `${y}년${mo ? ` ${mo}월` : ''}${d ? ` ${d}일` : ''}`, `${y}년${mo ? `${mo}월` : ''}${d ? `${d}일` : ''}`, y, `${y}년`])]; };
+  const bnYr = (c) => { if (!c || !/\d{4}/.test(c.when || '')) return c; let j = 0; return { ...c, when: '', yr: 1, s: `[${c.when}] ` + String(c.s).replace(/\[([^\]]+)\]/g, (m, w) => (j++ ? w : m)), ans: [bnYrAlts(c.when), ...(c.ans || []).slice(0, 1)] }; };
+  const bnCards = (x) => [].concat(((x && x.x.mem) || {}).cards || []).map((c) => (x && x.sj === 'hist' ? bnYr(c) : c));
   const bnCard = (key) => { const [id, i] = String(key).split(':'), b = bnOf(id); const c = b && bnCards(b)[+i]; return c ? { b, c } : null; };
   const bnBlankN = (x) => bnCards(x).reduce((n, c) => n + (c.ans || []).length, 0);
   function bnPrevMiss(x) { const G = BN.filter((y) => bnLab(y) === bnLab(x)), i = G.indexOf(x); if (i <= 0) return []; const p = G[i - 1], f = r2sGet(bnK(p.id)).f || {}; return Object.keys(f.bad || {}).filter((k) => k.startsWith(p.id + ':') && bnCard(k)); }
@@ -3826,7 +3830,7 @@
   // 채점: 띄어쓰기·문장 부호·끝 조사는 봐주고, 4글자 넘는 말은 한 글자 틀려도 맞아요
   const bnNorm = (t) => String(t || '').toLowerCase().normalize('NFC').replace(/[\s·.,\-()「」『』'"‘’“”~]/g, '').replace(/(이었다|였다|이다|에서|에게|으로|은|는|이|가|을|를|와|과|에|로|도|만)$/, '');
   const bnLev1 = (a, b) => { if (Math.abs(a.length - b.length) > 1) return false; let i = 0, j = 0, e = 0; while (i < a.length && j < b.length) { if (a[i] === b[j]) { i++; j++; continue; } if (++e > 1) return false; if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; } } return e + (a.length - i) + (b.length - j) <= 1; };
-  const bnOk = (ans, t) => { const v = bnNorm(t); if (!v) return false; return [].concat(ans).some((a) => { const n = bnNorm(a); return n === v || (n.length >= 4 && bnLev1(n, v)); }); };
+  const bnOk = (ans, t) => { const v = bnNorm(t); if (!v) return false; return [].concat(ans).some((a) => { const n = bnNorm(a); return n === v || (n.length >= 4 && !/\d/.test(n) && bnLev1(n, v)); }); };  /* 연도·숫자는 한 글자 틀려도 틀림 */
   // 문장: [낱말] 자리를 굵게(보기) 또는 입력칸(쓰기)으로
   const bnSent = (c, f) => { let j = 0; return esc(c.s).replace(/\[([^\]]+)\]/g, (m, w) => f(j++, w)); };
   const bnShow = (c, bad) => bnSent(c, (j, w) => `<b class="bnm-k${bad ? ' no' : ''}">${w}</b>`);
@@ -5393,6 +5397,9 @@
   // 11/16 «왜 질문이 질문으로 바로 안 나오냐 · 바로바로 넣어야지 그 로직이 있었어야지» → 정윤이 물어본 것은 여기 한 줄만 넣으면 질문 탭에 쌓이고, 7일 동안 배너로도 떠요(gdQ)
   const GD_OR = `<ol class="r2s-rules" style="margin-top:12px"><li style="--i:0"><span class="r2s-rn">1</span><div><b>지문은 이제 교과서 원문 그대로예요</b><span>「춘향전」·「유자소전」·판소리계 소설·한글 맞춤법 글에서 일부러 한 군데 바꿔 싣던 문제 11개를 원문으로 되돌렸어요</span></div></li><li style="--i:1"><span class="r2s-rn">2</span><div><b>정답은 원문과 같은 선지예요</b><span>예전엔 바뀐 지문에 맞는 선지가 정답이었는데, 이제는 원문 그대로인 선지가 정답이에요. 원문을 외운 만큼 바로 맞힐 수 있어요</span></div></li><li style="--i:2"><span class="r2s-rn">3</span><div><b>함정은 선지 쪽에만 있어요</b><span>예방↔승발, 강정↔송편, 팔십만↔칠십만처럼 원문 한 군데만 바꾼 선지를 걸러 내면 돼요</span></div></li></ol>`;
   const QNA = U.who === '정윤' ? [
+    { id: 'hcw', date: '2026-11-18', t: '한국사에서 냉전 체제 부분은 범위 아니야', sub: '한국사 · 66~67쪽 빼기', html: '<p>66~67쪽 「냉전 체제의 형성」 문제를 2회독·3회독·마지막 모의 시험에서 다 뺐어요. 2회독 첫 덩어리는 이제 「광복과 국토의 분단 (68~69쪽)」만 나와요.</p><p>114쪽 「냉전의 해체」는 다른 단원이라 그대로 있어요.</p>', links: [] },
+    { id: 'bny', date: '2026-11-18', t: '역사 백지 노트를 연도 위주로 해 줘', sub: '한국사 백지 노트 · 연도 빈칸', html: '<p>이제 빈칸 쓰기에서 카드마다 <b>연도(와 달)</b>를 먼저 써요. 「1946. 3.」, 「1946년 3월」, 「1946」 모두 맞아요. 숫자는 한 글자만 달라도 틀려요.</p><p>낱말 빈칸은 카드마다 하나만 남겨서 양은 늘지 않았어요.</p>', links: [] },
+    { id: 'tgc', date: '2026-11-18', t: '할 게 너무 많아 · 묶음 줄 클릭이 안 돼', sub: '오늘의 숙제 · 과목별로 한 줄', html: '<p>같은 과목 회독은 한 줄로 묶었어요(올림포스 2회독 ○개처럼). 할 양은 그대로이고 줄만 줄었어요.</p><p>묶음 줄을 누르면 안에 든 지문이 펼쳐져요. iPad 에서 안 눌리던 것도 고쳤어요.</p>', links: [] },
     { id: 'or', date: '2026-11-17', t: '왜 소설 교과서 원문 내용을 바꿔서 내요?', sub: '국어 내용 일치 · 이제 원문 그대로', html: GD_OR, links: [{ k: 'r2s', id: 'K02', t: '변 사또의 생일잔치 문제 다시 보기' }] },
     { id: 'cm', date: '2026-11-15', t: '한류 난류 구분이 어려워요 · 극동풍은 왜 없어요?', sub: '통합과학 해류 · 바람·고리·서한동난', html: GD_CM, links: [{ k: 'r2s', id: 'C1', t: '해류 지도로 외우기' }] },
     { id: 'vc', date: '2026-11-15', t: '왜 능동이고 왜 수동이에요?', sub: '올림포스 문장 분석 · -ing와 p.p. 가르기', html: GD_VC, links: [] },
@@ -9027,7 +9034,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611180016'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611180742'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
