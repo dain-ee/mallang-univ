@@ -2419,7 +2419,7 @@
       ${R.length ? `<div class="list">${R.map(dayRowHtml).join('')}</div>` : `<div class="empty" style="padding:16px 0">${gh('sleepy', 'gh-empty')}<b>이날은 ${fut ? (wk === '일' ? '새 몫이 없어요' : '할 것이 없어요') : '기록이 없어요'}</b>${fut && wk === '일' ? '<span>일요일은 그 주에 밀린 것을 하는 날이에요</span>' : ''}</div>`}</section>`;
   }
   function dayGo(g) {
-    if (g.startsWith('fincid:')) { UI.tab = 'hw'; UI.run = { kind: 'fin', cid: g.slice(7), read: true }; render(); window.scrollTo(0, 0); }
+    if (g.startsWith('fincid:')) { const c0 = FIN_ALL.find((x) => x.id === g.slice(7)); UI.tab = 'hw'; UI.run = { kind: 'fin', cid: g.slice(7), read: !!c0 && (finDone(c0) || !!Object.keys(finS().ans[c0.id] || {}).length) }; render(); window.scrollTo(0, 0); }
     else if (g.startsWith('hwid:')) hwSheet(g.slice(5));
     else if (g.startsWith('perf:')) { UI.tab = 'hw'; UI.run = { kind: 'perf', id: g.slice(5) }; render(); window.scrollTo(0, 0); }
     else startTask(g);
@@ -2547,7 +2547,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611170945', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611170951', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7426,7 +7426,7 @@
         <div class="cta-bar"><button class="btn primary big block" data-nxlearned type="button">다 읽었어요 · ${para ? '빈칸 채우기' : '시작'}</button></div></div>`; }
     const L = s.learn || [], nl = (t) => esc(t).replace(/\n/g, '<br>');
     return `<div class="nx-wrap">${nxTop(s, 0, s.qs.length, '먼저 배워요 · 다 읽고 외우기 시작', 0)}
-      <div class="nx-lrn-bar"><p class="tiny">다 읽으면 아래 단추로 우리말 보고 영어로 쓰기를 시작해요</p></div>
+      <div class="nx-lrn-bar"><p class="tiny">다 읽으면 아래 단추로 ${s.subj === 'eng' ? '우리말 보고 영어로 쓰기' : '뜻 보고 용어 쓰기'}를 시작해요</p></div>
       ${L.map((x) => `<section class="card lrn-sec"><h2>${esc(x.h)}</h2>${x.form ? `<div class="lrn-form">${esc(x.form)}</div>` : ''}${x.point ? `<p class="lrn-pt">${nl(x.point)}</p>` : ''}
         <div class="lrn-rows">${(x.rows || []).map((w) => `<div class="lrn-row"><b>${esc(w.en)}</b><span>${esc(w.ko)}</span>${w.note ? `<i>${nl(w.note)}</i>` : ''}</div>`).join('')}</div>
         ${(x.traps || []).length ? `<div class="lrn-trap"><b>시험 함정</b><ul>${x.traps.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}</section>`).join('')}
@@ -8894,7 +8894,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611170945'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611170951'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
