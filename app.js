@@ -2547,7 +2547,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611171107', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611171116', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3683,7 +3683,7 @@
     if (st === 'rc') {
       const a = A.rc;
       return wrap(`${seg}<section class="card st-sec r2-rc"><div class="st-kick">① 떠올리기</div><h2>${esc(X.recall.q)}</h2><p class="sub" style="margin:0 0 16px">책과 정리를 보지 말고 생각나는 대로 먼저 써요. 쓰고 나서 떠올렸어야 할 것과 맞춰 봐요</p>
-        ${a ? `<div class="explain"><b>내가 쓴 것</b><br>${esc(a.v || '')}</div><div class="ls-box r2-gist" style="margin-top:12px"><b>핵심</b><p>${esc(X.gist || '')}</p></div><p class="tiny" style="margin:16px 0 0">떠올렸어야 할 것</p><ol class="r2-flow">${[].concat(X.recall.must || []).map((t, i) => `<li style="--i:${i}"><span class="ls-n">${i + 1}</span><p>${esc(t)}</p></li>`).join('')}</ol>` : `<textarea class="inp r2-ta" id="r2s-rc" rows="5" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="생각나는 것을 낱말만이라도 써요"></textarea><button class="btn primary big block" id="r2s-rcok" type="button" style="margin-top:12px">다 썼어요 · 떠올렸어야 할 것 보기</button>`}</section>
+        ${a ? `<div class="explain"><b>내가 쓴 것</b><br>${a.v ? esc(a.v) : '<span class="tiny">안 쓰고 넘어갔어요</span>'}</div><div class="ls-box r2-gist" style="margin-top:12px"><b>핵심</b><p>${esc(X.gist || '')}</p></div><p class="tiny" style="margin:16px 0 0">떠올렸어야 할 것</p><ol class="r2-flow">${[].concat(X.recall.must || []).map((t, i) => `<li style="--i:${i}"><span class="ls-n">${i + 1}</span><p>${esc(t)}</p></li>`).join('')}</ol>` : `<textarea class="inp r2-ta" id="r2s-rc" rows="5" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="생각나는 것을 낱말만이라도 써요"></textarea><button class="btn primary big block" id="r2s-rcok" type="button" style="margin-top:12px">다 썼어요 · 떠올렸어야 할 것 보기</button>`}</section>
         ${a ? '<div class="cta-bar"><button class="btn primary big block" data-r2sgo="rd" type="button">다음: 다시 보기 ›</button></div>' : ''}`);
     }
     if (st === 'rd') {
@@ -3729,7 +3729,7 @@
     $$('[data-r2srv]').forEach((b) => (b.onclick = () => { r.st = 'q'; r.rv = 1; r.i = 0; top(); }));
     $$('[data-r2sgo]').forEach((b) => (b.onclick = () => { const k = b.dataset.r2sgo; if (k === 'q' && !r2sGet(x.id).rd) { r2sA(x.id).rd = { at: Date.now() }; save('r2s'); } if (k === 'auto') return auto(); if (k === 'q' && r2sSt(x) !== 'q') return auto(); r.st = k; r.i = null; r.rv = 0; top(); }));
     const st = r.st || r2sSt(x);
-    if (st === 'rc') { const ta = $('#r2s-rc'), ok = $('#r2s-rcok'); if (ta && ok) ok.onclick = () => { const v = ta.value.trim(); if (!v) { ta.focus(); toast('한 줄이라도 먼저 써 봐요'); return; } r2sA(x.id).rc = { at: Date.now(), v: v.slice(0, 200) }; save('r2s'); keep(); const g = $('.r2-rc'); if (g) g.classList.add('r2-open'); }; }
+    if (st === 'rc') { const ta = $('#r2s-rc'), ok = $('#r2s-rcok'); if (ta && ok) ok.onclick = () => { const v = ta.value.trim(); r2sA(x.id).rc = { at: Date.now(), v: v.slice(0, 200) }; save('r2s'); keep(); const g = $('.r2-rc'); if (g) g.classList.add('r2-open'); }; }
     if (st === 'q' && $('.xp-paper')) {
       const P = r2sA(x.id).pp = xpLoad(x).pp || { t0: Date.now(), p: {}, e: {} }; P.p = P.p || {}; P.e = P.e || {};
       const keepP = () => { P.u = P.at = Date.now(); xpPut(x, P); save('r2s'); const k = $('#xp-saved'); if (k) { k.textContent = '자동 저장됨'; k.classList.remove('pop'); void k.offsetWidth; k.classList.add('pop'); } };
@@ -8962,7 +8962,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611171107'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611171116'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

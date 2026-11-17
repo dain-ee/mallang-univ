@@ -5270,7 +5270,7 @@ textarea.inp.bn-ta { min-height: 360px; font-size: 16px; line-height: 1.8; resiz
 .xp-c:disabled { cursor: default; }
 .graded .xp-c.ans i { border-color: #e5484d; box-shadow: 0 0 0 1px #e5484d; color: #e5484d; background: none; }
 .graded .xp-c.on.ans i { background: #111; color: #fff; box-shadow: 0 0 0 2px #e5484d; }
-.xp-score { position: absolute; right: 14px; top: 2px; font-family: 'Bradley Hand', 'Noteworthy', 'Chalkboard SE', cursive; font-size: 40px; font-weight: 700; color: #e0353d; -webkit-text-stroke: 1.1px #e0353d; transform: rotate(-9deg); letter-spacing: 0; filter: url(#xpPencil); }
+.xp-score { position: absolute; left: calc(100% + 6%); right: auto; top: 18px; white-space: nowrap; font-family: 'Bradley Hand', 'Noteworthy', 'Chalkboard SE', cursive; font-size: 40px; font-weight: 700; color: #e0353d; -webkit-text-stroke: 1.1px #e0353d; transform: rotate(-9deg); letter-spacing: 0; filter: url(#xpPencil); }
 .xp-mk { position: absolute; left: -.55em; top: -.42em; width: 2.15em; height: 2em; overflow: visible; pointer-events: none; filter: url(#xpPencil); }
 .xp-mk.x { left: -.25em; top: -.6em; width: 1.9em; height: 2.3em; }
 .xp-mk.x path { stroke-width: 6.5; }
@@ -5295,6 +5295,8 @@ textarea.inp.bn-ta { min-height: 360px; font-size: 16px; line-height: 1.8; resiz
 @media (max-width: 760px) {
   .xp-paper { padding: 16px 14px 12px; }
   .xp-head { width: 100%; }
+  .xp-paper.graded { padding-top: 52px; }
+  .xp-score { left: auto; right: 0; top: -50px; font-size: 34px; }
   .xp-title { font-size: 18px; letter-spacing: .08em; }
   .xp-ht th, .xp-ht td { font-size: 14px; white-space: nowrap; }
   .xp-ht th:last-child { letter-spacing: .05em; }
