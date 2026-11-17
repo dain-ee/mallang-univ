@@ -2547,7 +2547,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611171315', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611171622', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7511,7 +7511,8 @@
   // 11/8 «개념도 없이 하면 어떡해, 아예 배우지 않은 건데»: 외우기 숙제(learn 있는 세트)는 배우는 화면 먼저 → 「다 읽었어요」 뒤 문제
   function nxLearn(s, r) {
     if (!Array.isArray(s.learn)) { const nk = s.learn.nk, para = (s.qs[0] || {}).t === 'para';
-      const N = s.learn.notes || {}, sv = nk === 'reading' && [].concat(N.reading || []).some((r) => (r.paras || []).some((pa) => pa.some((x) => x.note && x.note !== '소제목'))), svOn = sv && !!UI.nxSv;
+      let N = s.learn.notes || {}; if (nk === 'comm' && N.comm && !Array.isArray(N.comm)) { const T = new Set(s.qs.map((q) => String(q.q || ''))), fs = (N.comm.functions || []).filter((f) => [...T].some((t) => t.endsWith('의사소통 · ' + f.name))), ds = (N.comm.dialogs || []).filter((dg) => [...T].some((t) => t.endsWith('대화 · ' + (dg.title || '')))); if (fs.length || ds.length) N = { ...N, comm: { ...N.comm, functions: fs, dialogs: ds } }; }
+      const sv = nk === 'reading' && [].concat(N.reading || []).some((r) => (r.paras || []).some((pa) => pa.some((x) => x.note && x.note !== '소제목'))), svOn = sv && !!UI.nxSv;
       const hint = `${nk === 'reading' ? '파란 칸은 시험에 잘 나오는 문장이에요. ' : ''}다 읽으면 아래 단추로 ${para ? '빈칸 채우기' : nk === 'grammar' ? '문제 풀기' : '외우기'}를 시작해요`;
       return `<div class="nx-wrap">${nxTop(s, 0, s.qs.length, '먼저 읽어요', 0)}<div class="nx-lrn-bar"><p class="tiny">${hint}</p>${sv ? `<button class="btn sm ${svOn ? 'soft' : ''}" data-nxsv type="button" aria-pressed="${svOn}">${svOn ? '문장 구조 숨기기' : '문장 구조 보기'}</button>` : ''}</div>
         <div class="nx-lrn ${svOn ? '' : 'hide-sv'}">${stNotes({ subj: 'eng', notes: N }, { nk, lrn: 1 })}</div>
@@ -7526,7 +7527,7 @@
   }
   function nxRun() {
     const r = UI.run, s = NXSETS[r.id]; if (!s) { UI.run = null; return examView(); }
-    r.inLearn = !!(nxHasL(s) && (r.learn || !((nxS().st[s.id] || {}).learned))); if (r.inLearn) return nxLearn(s, r);
+    r.inLearn = !!(nxHasL(s) && (r.learn || !((nxS().st[s.id] || {}).learned) || (s.learn.nk === 'comm' && !(nxS().st[s.id] || {}).dlg))); if (r.inLearn) return nxLearn(s, r);  // 11/17 대화문 없이 넘긴 읽기 화면은 한 번 더 (푼 칸은 그대로)
     const x = nxS(), store = nxStore(s, r), qs = r.only ? s.qs.filter((q) => r.only.includes(q.i)) : s.qs, n = qs.length;
     let cur = r.cur != null && r.cur < n ? r.cur : qs.findIndex((q) => !store[q.i]);
     const dn = qs.filter((q) => store[q.i]).length, sub = r.only ? '틀린 것만 다시' : s.sub || (s.subj ? NX_SN[s.subj] : '');
@@ -7570,7 +7571,7 @@
     $$('[data-nxexit]').forEach((b) => (b.onclick = () => { const bk = (UI.run && UI.run.back) || 'exam'; if (bk === 'study' && UI.stOnly && UI.stOnly.endsWith(':run')) return go('hw'); if (UI.clRun || bk === 'exam') return go('exam'); UI.run = null; UI.tab = bk; render(); window.scrollTo(0, 0); }));  // 숙제로 연 문제 묶음은 나가면 숙제 목록
     if (!r || (r.kind !== 'nx' && r.kind !== 'nxw')) return;
     const s = NXSETS[r.id]; if (!s) return;
-    { const b = $('[data-nxlearned]'); if (b) b.onclick = () => { const x = nxS(), st = (x.st[s.id] = x.st[s.id] || {}); st.learned = Date.now(); save('nx'); r.learn = false; render(); window.scrollTo(0, 0); }; const a = $('[data-nxlearn]'); if (a) a.onclick = () => { r.learn = true; render(); window.scrollTo(0, 0); }; const sv = $('[data-nxsv]'); if (sv) sv.onclick = () => { UI.nxSv = !UI.nxSv; render(); }; if (r.inLearn) return; }
+    { const b = $('[data-nxlearned]'); if (b) b.onclick = () => { const x = nxS(), st = (x.st[s.id] = x.st[s.id] || {}); st.learned = Date.now(); if (s.learn && s.learn.nk === 'comm') st.dlg = 1; save('nx'); r.learn = false; render(); window.scrollTo(0, 0); }; const a = $('[data-nxlearn]'); if (a) a.onclick = () => { r.learn = true; render(); window.scrollTo(0, 0); }; const sv = $('[data-nxsv]'); if (sv) sv.onclick = () => { UI.nxSv = !UI.nxSv; render(); }; if (r.inLearn) return; }
     if (r.kind === 'nxw') return nxwBind(s);
     const x = nxS(), store = nxStore(s, r), qs = r.only ? s.qs.filter((q) => r.only.includes(q.i)) : s.qs;
     const om = $('[data-nxomr]'); if (om) om.onclick = () => { r.omr = !r.omr; render(); };
@@ -8419,10 +8420,12 @@
         ${key.length ? `<div class="st-chat">${key.map((e) => `<div class="st-bub ${isQ(e) ? 'q' : 'a'}"><i>${isQ(e) ? 'Q' : 'A'}</i><div><b>${esc(e.en)}</b><span>${hk(e.ko)}</span></div></div>`).join('')}</div>` : ''}
         ${q.length || a.length ? `<div class="st-qa">${q.length ? `<div><h3><i class="st-qa-t q">Q</i>이렇게도 물어요</h3>${q.map((e) => line(e)).join('')}</div>` : ''}${a.length ? `<div><h3><i class="st-qa-t a">A</i>이렇게도 답해요</h3>${a.map((e) => line(e)).join('')}</div>` : ''}</div>` : ''}
         ${f.tip ? `<div class="st-tipbox"><h3>${ic('bulb')} 시험 포인트</h3><ul>${pts(f.tip).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}</section>`; }).join('');
+      // 11/17 «앞쪽에 이 대화문이 있어야 뭘 외울 게 있을 거 아냐»: 대화 빈칸 앞 읽기 화면에 대화문 전체(말한 사람·영어·우리말)
+      const DG = [].concat(N.comm || []).flatMap((c) => c.dialogs || []).filter((dg) => (dg.lines || []).length >= 2).map((dg) => `<section class="card st-sec st-read st-dlgs"><div class="st-kick">대화</div><h2>${esc(dg.title || '')}</h2><div class="st-para">${dg.lines.map((x) => `<div class="st-rs"><span class="st-ln num">${esc(x.sp || '')}</span><div><b>${esc(x.en)}</b><span class="st-ko">${hk(x.ko || '')}</span></div></div>`).join('')}</div></section>`).join('');
       let rn = 0;
       const R = [].concat(N.reading || []).map((r) => `<section class="card st-sec st-read"><div class="st-kick">본문</div><h2>${esc(r.title || '')}</h2>${(r.paras || []).map((pa) => `<div class="st-para">${pa.map((x) => L && L.lrn && x.note === '소제목' ? `<h3 class="st-rh">${esc(x.en)}<span>${hk(x.ko)}</span></h3>` : `<div class="st-rs ${x.key ? 'key' : ''}"><span class="st-ln num">${++rn}</span><div><b>${esc(x.en)}</b>${x.key ? '<span class="tag blue">중요</span>' : ''}<span class="st-ko">${hk(x.ko)}</span>${x.note ? `<em>${esc(x.note)}</em>` : ''}</div></div>`).join('')}</div>`).join('')}</section>`).join('');
-      if (L) return L.nk === 'w' ? stTerms(u) : L.nk === 'comm' ? C : L.nk === 'grammar' ? G : R;
-      return `${G}${C}${R}`;
+      if (L) return L.nk === 'w' ? stTerms(u) : L.nk === 'comm' ? C + DG : L.nk === 'grammar' ? G : R;
+      return `${G}${C}${DG}${R}`;
     }
     const F = (N.flows || []).map((f) => `<section class="card st-sec"><h2>흐름 · ${esc(f.title)}</h2><ol class="st-flow">${(f.steps || []).map((s) => `<li><span class="num">${esc(s.y === '→' ? '' : s.y || '')}</span><p>${esc(s.t)}</p></li>`).join('')}</ol></section>`).join('');
     // 11/3 «역사가 굉장히 읽기 싫게 되어 있는데» → 이야기로 먼저 읽고(굵은 말 = 시험 단어), 빈칸 정리는 접어 둬요 · 국어는 교과서 원문 글을 위에
@@ -8988,7 +8991,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611171315'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611171622'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
