@@ -2547,7 +2547,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611171756', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611171956', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7928,8 +7928,8 @@
   // 범위는 S.jwt[날짜] = { units: [천일문 유닛], days: [워드마스터 Day], m3: [매3영 Day], n, wn, mn } · 선생님 말 듣고 바로 바꿔요
   // 11/15 선생님 «윤건이 오늘 매3영 빼고 7과 본문 중하로 20개 … 두 개 넣어 봐 중하 20개 중 20개» → 그날 매3영 시험 빼고, 7과 본문 문제 두 묶음(NXD.rq)을 수업에
   // 11/17 «오늘 윤건이 수업 준비해 봐 저번에 했던 거 보고 · 매3영은 빼야 해, 이제 내신이잖아» → 11/15 틀 그대로: 8과 문법 시험 → 8과 문법 개념 복습·하·중·상 → 8과 본문 분석·필기 → 8과 본문 학교 시험 꼴 20
-  const YG_JWT_FIX = { '2026-11-15': { m3: [], rq: ['e7r2'] }, '2026-11-17': { m3: [], gt: ['e8'], gr: ['e8'], gl: { e8: [1, 2] }, gx: ['e8g2'], tx: ['e8'], rq: ['e8r2'], off: ['lw'], n: 10 }  /* «무슨 문법 상이 1문제야 · 어려워서 중 한 세트 더 하든지 해» → 상 빼고 중 한 세트(e8g2) 더 */ };  // 11/15 «학교 문제 꼴만 해, 중하 없애 줘» → 중 20(e7r2)만
-  const ygPlan = (date) => { const o = { ...(((LS0.tests || {})[date]) || {}), ...(((S.jwt || {})[date]) || {}), ...(YG_JWT_FIX[date] || {}) }; return { units: (o.units || []).length ? o.units.map(Number) : null, days: (o.days || []).length ? o.days.map(Number) : null, m3: (o.m3 || []).length ? o.m3.map(Number) : null, tu: (o.tu || []).length ? o.tu.map(Number) : null, gr: (o.gr || []).length ? o.gr.map(String) : null, gt: (o.gt || []).length ? o.gt.map(String) : null, tx: (o.tx || []).length ? o.tx.map(String) : null, off: o.off || [], rq: (o.rq || []).map(String), gl: o.gl || {}, gx: (o.gx || []).map(String), n: o.n || 15, wn: o.wn || 20, mn: o.mn || 10 }; };
+  const YG_JWT_FIX = { '2026-11-15': { m3: [], rq: ['e7r2'] }, '2026-11-17': { m3: [], lt: ['e7t'], gr: ['e8'], gl: { e8: [1, 2] }, gx: ['e8g2'], tx: ['e8'], rq: ['e8r2'], off: ['lw'], n: 10 }  /* «무슨 문법 상이 1문제야 · 어려워서 중 한 세트 더 하든지 해» → 상 빼고 중 한 세트(e8g2) 더 · «수업 전 시험이 저게 아니라 7과 본문을 해야 할 거 같은데» → 8과 문법 시험 대신 7과 본문 중요 문장(e7t) */ };  // 11/15 «학교 문제 꼴만 해, 중하 없애 줘» → 중 20(e7r2)만
+  const ygPlan = (date) => { const o = { ...(((LS0.tests || {})[date]) || {}), ...(((S.jwt || {})[date]) || {}), ...(YG_JWT_FIX[date] || {}) }; return { units: (o.units || []).length ? o.units.map(Number) : null, days: (o.days || []).length ? o.days.map(Number) : null, m3: (o.m3 || []).length ? o.m3.map(Number) : null, tu: (o.tu || []).length ? o.tu.map(Number) : null, gr: (o.gr || []).length ? o.gr.map(String) : null, gt: (o.gt || []).length ? o.gt.map(String) : null, tx: (o.tx || []).length ? o.tx.map(String) : null, off: o.off || [], rq: (o.rq || []).map(String), gl: o.gl || {}, gx: (o.gx || []).map(String), lt: (o.lt || []).map(String), n: o.n || 15, wn: o.wn || 20, mn: o.mn || 10 }; };
   const M3U = () => ((NXD.subjects || []).find((x) => x.key === 'm3') || {}).units || [];
   // 11/12 «이번엔 천일문 시험이 아니라 지난 수업 7과 문법으로 · 개념 물어보는 거 한 문제 · 한 과에 문법이 2개 있는데 한 판에 있는 걸 한 문제로»
   const YG_GC = {
@@ -7966,14 +7966,25 @@
     return null;
   }
   function ygCls(date, P) {
-    const out = { gr: [], tx: [], rq: [] }, mk = (id, title, sub, qs, learn) => { if (!qs || !qs.length) return null; return (NXSETS[id] = { id, title, sub, subj: 'eng', kind: 'lesson', date, qs, mix: {}, ...(learn ? { learn } : {}) }); };
+    const out = { gr: [], tx: [], rq: [], lt: [] }, mk = (id, title, sub, qs, learn) => { if (!qs || !qs.length) return null; return (NXSETS[id] = { id, title, sub, subj: 'eng', kind: 'lesson', date, qs, mix: {}, ...(learn ? { learn } : {}) }); };
     for (const uid of P.gr || []) { const u = NXU[uid]; if (!u) continue; const nm = u.code || uid, G = NXSETS['pp:mg' + u.no], lr = (G && G.learn) || { nk: 'grammar', notes: u.notes || {} }, all = ygGramQs(uid), lv = (q) => Math.min(3, q.lv || (q.t === 'mc' ? 1 : 2)); let first = true;
       [[1, '하'], [2, '중'], [3, '상']].forEach(([k, nmL]) => { if (P.gl && P.gl[uid] && !P.gl[uid].includes(k)) return; const qs = all.filter((q) => lv(q) === k), x = mk(`lc:${date}:${uid}:g${k}`, `${nm} 문법 · ${first ? '개념 복습 → ' : ''}${nmL} ${qs.length}문제`, first ? '개념을 다시 읽고 쉬운 문제부터' : `${nmL} 단계 문제`, qs, first ? lr : null); if (x) { out.gr.push(x); first = false; } }); }
     for (const uid of P.tx || []) { const u = NXU[uid]; if (!u) continue; const nm = u.code || uid;
       for (let k = 1; k <= 12; k++) { const S0 = NXSETS[`pp:mr${u.no}p${k}`]; if (!S0) break; const x = mk(`lc:${date}:${uid}:r${k}`, `${nm} 본문 ${k}문단 · 필기 → 외우기`, '본문을 읽으며 필기하고 → 빈칸 채우기 (문장마다 Enter)', S0.qs, S0.learn); if (x) out.tx.push(x); } }
+    for (const sid of P.lt || []) { const R = (NXD.rq || []).find((x) => x.id === sid); if (!R) continue; const id = `lc:${date}:${sid}`; for (const q of R.qs) if (!NXQ[q.i]) NXQ[q.i] = { q, set: id }; const x = mk(id, R.title, R.sub, R.qs); if (x) out.lt.push(x); }
     for (const sid of P.gx || []) { const R = (NXD.rq || []).find((x) => x.id === sid); if (!R) continue; const id = `lc:${date}:${sid}`; for (const q of R.qs) if (!NXQ[q.i]) NXQ[q.i] = { q, set: id }; const x = mk(id, R.title, R.sub, R.qs); if (x) out.gr.push(x); }
     for (const sid of P.rq || []) { const R = (NXD.rq || []).find((x) => x.id === sid); if (!R) continue; const id = `lc:${date}:${sid}`; for (const q of R.qs) if (!NXQ[q.i]) NXQ[q.i] = { q, set: id }; const x = mk(id, R.title, R.sub, R.qs); if (x) out.rq.push(x); }
     return out;
+  }
+  // 11/17 «수업도 남은 거 위에 숙제나 오답처럼 띄워 달라는 거야» → 오늘 수업에서 아직 안 끝낸 줄 수를 수업 탭 숫자로
+  function ygLeftN() {
+    if (!YG_CLS) return 0; const sl = nxSlot(); if (!sl || sl.date !== nxDay(nxNow())) return 0;
+    const P = ygPlan(sl.date), fin = (s) => { if (!s) return true; const g = nxProg(s), L = nxLast(s.id); return !!(L && g.d >= g.n); }, CS = ygCls(sl.date, P);
+    let n = [...CS.lt, ...CS.gr, ...CS.rq].filter((x) => !fin(x)).length;
+    if (!P.off.includes('ls') && (P.tu || P.gt)) n += fin(ygTest('ls:' + sl.date)) ? 0 : 1;
+    if (!P.off.includes('lw') && P.days) n += fin(ygTest('lw:' + sl.date)) ? 0 : 1;
+    for (const u of (P.tx || []).map((id) => NXU[id]).filter(Boolean)) n += stLessons(u).filter((L) => L.rd && !nxS().a[stLRead(u, L)]).length;
+    return n;
   }
   function ygClassCard(sl, t, bare) {
     const P = ygPlan(sl.date), when = sl.date === t ? '오늘' : `${md(sl.date)}(${WDK[dowOf(sl.date)]})`;
@@ -8006,7 +8017,7 @@
       return `<div class="li ${canC ? 'btnlike' : 'is-lock'} ${rdOk ? 'is-done' : ''}" ${canC ? `data-task="cl:rd:${esc(u.id)}:${L.k}"` : 'aria-disabled="true"'}><div class="ico">${ic(rdOk ? 'ok' : canC ? 'memo' : '1f512')}</div><div class="body"><div class="t">${esc(u.code || '')} 본문 ${esc(L.m3)} · ${(((u.notes || {}).passages || [])[L.pi] || {}).sents ? u.notes.passages[L.pi].sents.length + '문장 · ' : ''}문장 분석하고 필기</div><div class="d">${n ? `필기 ${n}개 · 다음 숙제로 다시 떠올려요` : '문장마다 구조를 보고, 단어를 끌거나 문장 밑에 필기해요'}</div></div>${canC ? '<span class="chev"></span>' : ''}</div>`; }));
     if (rdRows.length) CS.tx = [];
     const clsRows = CS.gr.length || CS.tx.length || CS.rq.length || rdRows.length ? `${CS.gr.length ? `<div class="eyebrow" style="margin:4px 0 6px">문법 · 개념 복습하고 단계별로 다시 풀기</div>${CS.gr.map((x) => crow(x, 'pencil')).join('')}` : ''}${rdRows.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 문장 분석하고 필기</div>${rdRows.join('')}` : CS.tx.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 필기하고 외우기</div>${CS.tx.map((x) => crow(x, 'eng')).join('')}` : ''}${CS.rq.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 학교 시험 꼴 문제</div>${CS.rq.map((x) => crow(x, 'eng')).join('')}` : ''}` : '';
-    const B = { h1: P.tu || P.gt ? '수업 전 시험' : '단어 시험', tests: `<div class="list">${!P.off.includes('ls') && (P.tu || P.gt || nxS().lq['ls:' + sl.date]) ? row('ls', P.gt ? '문법 시험' : '천일문 시험') : ''}${P.off.includes('lw') ? '' : row('lw', '단어 시험')}</div>`, items: chRows || m3Rows || clsRows || grRows || txRows ? `<div class="list">${chRows}${m3Rows}${clsRows || txRows + grRows}</div>` : '', sub2: '누르면 그 단원이 열려요' };
+    const B = { h1: P.tu || P.gt || P.lt.length ? '수업 전 시험' : '단어 시험', tests: `<div class="list">${CS.lt.map((x) => crow(x, 'books')).join('')}${!P.off.includes('ls') && (P.tu || P.gt || nxS().lq['ls:' + sl.date]) ? row('ls', P.gt ? '문법 시험' : '천일문 시험') : ''}${P.off.includes('lw') ? '' : row('lw', '단어 시험')}</div>`, items: chRows || m3Rows || clsRows || grRows || txRows ? `<div class="list">${chRows}${m3Rows}${clsRows || txRows + grRows}</div>` : '', sub2: '누르면 그 단원이 열려요' };
     if (bare) return B;
     return `<section class="card c6 jw-cl yg-cl"><div class="card-h"><h2>${ic('cal')} ${when} 수업</h2><span class="tag ${sl.open ? 'blue' : ''}">${sl.open ? '수업 중' : `${esc(timeKo(sl.time) || '')} 시작`}</span></div>
       ${B.tests === '<div class="list"></div>' ? '' : step(1, B.h1, '점수는 리포트로 가요', B.tests)}
@@ -8995,7 +9006,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611171756'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611171956'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -10587,7 +10598,7 @@
   const DASH_ONLY = TEACHER && !STU_TAB && ROSTER.length > 1;  // 선생님 첫 탭은 학생 관리만 (학생 화면은 새 탭으로)
   if (DASH_ONLY) TABS.splice(0, TABS.length, ['dash', '홈', 'home'], ['treport', '리포트', 'memo'], ['thw', '숙제', 'hw'], ['tgrade', '성적', 'score'], ['tsched', '수업 일정', 'cal'], ['tprac', '연습', 'pencil'], ['news', '소식', 'news'], ['tstu', '학생', 'trophy']);
   function nav() {
-    const bm = Object.values(bkS().marks), cnt = { hw: leftItems().length, wrong: todayWr().length, book: TEACHER ? bm.filter((m) => m.q && !m.ans).length : bm.filter((m) => m.q && m.ans && !m.ansSeen).length };
+    const bm = Object.values(bkS().marks), cnt = { hw: leftItems().length, wrong: todayWr().length, exam: (() => { try { return ygLeftN(); } catch (e) { return 0; } })(), book: TEACHER ? bm.filter((m) => m.q && !m.ans).length : bm.filter((m) => m.q && m.ans && !m.ansSeen).length };
     const btn = (t, bottom) => `<button type="button" class="${UI.tab === t[0] ? 'on' : ''}" data-go="${t[0]}">${bottom ? `<img src="icons/${IC[t[2]]}.svg" alt="">` : ''}${t[1]}${cnt[t[0]] ? `<span class="cnt">${cnt[t[0]] > 99 ? '99+' : cnt[t[0]]}</span>` : ''}</button>`;
     $('#tabs-top').innerHTML = TABS.map((t) => btn(t, false)).join('');
     const tb = $('#tabs-bottom'), sl = tb.scrollLeft; tb.innerHTML = TABS.map((t) => btn(t, true)).join(''); tb.scrollLeft = sl;
