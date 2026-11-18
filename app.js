@@ -2562,7 +2562,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611180918', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611180920', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -9042,7 +9042,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611180918'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611180920'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -9355,8 +9355,10 @@
     const c = dCls(r, d), lz = r.lesson || {}, prev = lsnSorted(c)[0], units = []; let t = at || today();
     { const J = (d && d.jwt) || {}; if (!at && r.tutor && !J[t]) { const sv = new Set(lsnSorted(c).map((l) => l.date)), pd = Object.keys(J).filter((x) => x < t && x >= addD(t, -2) && !sv.has(x)).sort().pop(); if (pd) t = pd; } }  /* 11/4 자정 넘어 열어도 어제 수업 날짜로 */
     if (prev && (prev.units || []).length) { const mx = Math.max(...prev.units); for (let k = 1; k <= prev.units.length; k++) if (cuByNo(mx + k)) units.push(mx + k); }
-    const book = prev && prev.book ? prev.book.split(' · ') : lz.book ? [lz.book] : [];
+    let book = prev && prev.book ? prev.book.split(' · ') : lz.book ? [lz.book] : [];
     const ja = d !== undefined ? jwAuto(n, t) : null, yd = ygDid(n, t), jd = !ja && !yd && d !== undefined ? juaDid(n, t) : null;
+    // 11/18 «하 윤건 또 왜 … 자동화로 되는 게 그렇게 어렵나» → 지난 수업 교재(천일문)를 따라가지 말고, 그날 한 것으로 교재를 골라요 (내신 했으면 내신, 천일문 유닛도 했으면 둘 다)
+    { const nsB = (lz.books || []).find((x) => /내신/.test(x)), chB = (lz.books || []).find((x) => /천일문/.test(x)); if (yd && nsB && yd.L.length) book = [...(yd.units.length && chB ? [chB] : []), nsB]; }
     if (yd) units.splice(0, units.length, ...yd.units);
     { const Jc = (((d && d.jwt) || {})[t] || {}).cu || []; if (ja && Jc.length) units.splice(0, units.length, ...Jc.map(Number).filter((x) => cuByNo(x))); }  /* 11/8 지원 오늘 Ch.13 부사절 73~80 */
     return (DR[n] = { id: '', date: t, nth: String(dNth(r, c, t)), book: new Set(book), units: new Set(units), ch: units.length ? cuByNo(units[0]).ch : prev && (prev.units || []).length ? cuByNo(prev.units[0]).ch : (CH_UNITS[0] || {}).ch, L: new Set(ja ? ja.L : yd ? yd.L : jd ? jd.L : []), Lx: new Set(), H: new Set([...(units.length && !yd && !ja ? ['@cu'] : []), ...(ja ? ja.H.filter((x) => !(/워드마스터/.test(x) && hwGiven(n, t).some((h) => /워드마스터/.test(h.title || '')))) : [])]), C: new Set(), score: '', scoreTotal: (prev && prev.scoreTotal) || '', progress: '', mt: dTotal(r, c, t), loaded: d !== undefined, touched: false, hw: new Set(), hsj: {}, hwDue: 'next', hwSubj: (r.subjects || [r.tutor ? '영어' : '기타'])[0] });
