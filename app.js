@@ -2562,7 +2562,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611180910', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611180918', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -8806,7 +8806,7 @@
       const list = `<div class="list st-done-l">${rows.filter(Boolean).map(([a, b]) => `<div class="li"><b>${a}</b><span class="tiny num" style="margin-left:auto">${b}</span></div>`).join('')}</div>`;
       const btns = `<button class="btn primary big block" data-go="hw" type="button">숙제 목록으로 ›</button><div class="done-more"><button class="btn sm ghost" data-stagain type="button">다시 보기</button><button class="btn sm ghost" data-go="home" type="button">홈으로</button></div>`;
       return n ? doneCard(ok, n, `${esc(nm)} 숙제를 끝냈어요`, btns, list) : `<div class="done-card card" data-done="2"><div class="done-ic gh-wrap">${gh('yay', 'gh-done')}</div><h1 class="h1">숙제 끝!</h1><p class="sub">${esc(nm)} 숙제를 끝냈어요</p>${list}<div class="done-btns">${btns}</div></div>`; })();
-    const nextBar = UI.stOnly && stOnly && !CL ? `<div class="st-next"><button class="btn primary big block" data-go="hw" type="button">숙제로 돌아가기 ›</button></div>` : CL ? lnext : !nxt ? '' : `<div class="st-next">${tab === 'notes' && !nxS().a[stReadId(u)] ? `<button class="btn primary big block" data-stread type="button">다 읽었어요 · 다음: ${esc(nxt.name)} ›</button>` : `<button class="btn primary big block" ${nxt.k === 'set' ? `data-nx="${esc(nxt.id)}"` : `data-stt="${nxt.k}"`} type="button">다음: ${sti + 2}. ${esc(nxt.name)} ›</button>`}</div>`;
+    const nextBar = UI.stOnly && stOnly && !CL ? (UI.run && UI.run.inLearn ? '' /* 11/18 개념 읽는 중엔 「다 읽었어요」 하나만 */ : `<div class="st-next"><button class="btn primary big block" data-go="hw" type="button">숙제로 돌아가기 ›</button></div>`) : CL ? lnext : !nxt ? '' : `<div class="st-next">${tab === 'notes' && !nxS().a[stReadId(u)] ? `<button class="btn primary big block" data-stread type="button">다 읽었어요 · 다음: ${esc(nxt.name)} ›</button>` : `<button class="btn primary big block" ${nxt.k === 'set' ? `data-nx="${esc(nxt.id)}"` : `data-stt="${nxt.k}"`} type="button">다음: ${sti + 2}. ${esc(nxt.name)} ›</button>`}</div>`;
     // 매3영은 숙제가 지문 하나씩이라 지문 단추를 다 늘어놓지 않고 하나만 고르게 (10/31 «하나만 선택하면 되니까 공간이 줄잖아»)
     // 11/3 숙제에서 연 단계는 그 단계만 (옆 2·3·4 단추는 «없애 주는 게 덜 헷갈리지 않을까») · 「단원 전체 보기」로 다 펴요
     const stPick = () => `<label class="st-pick"><select data-stpick aria-label="지문 고르기">${steps.map((x, i) => { const dn = x.L ? stLDone(u, x.L) : x.k === 'set' ? (() => { const g = nxProg(NXSETS[x.id]); return g.d >= g.n; })() : false; return `<option value="${x.k === 'set' ? 'nx:' + esc(x.id) : esc(x.k)}" ${x === cur ? 'selected' : ''}>${dn ? '✓ ' : ''}${esc(x.name)}</option>`; }).join('')}</select></label>`;
@@ -9042,7 +9042,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611180910'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611180918'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
