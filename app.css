@@ -5333,3 +5333,11 @@ textarea.inp.bn-ta { min-height: 360px; font-size: 16px; line-height: 1.8; resiz
 .tgrp-sub:not([hidden]){animation:tgIn .28s ease}
 @keyframes tgIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 .tgrp-h{width:100%;border:0;background:transparent;font:inherit;color:inherit;text-align:left;cursor:pointer;-webkit-appearance:none;appearance:none}
+/* 11/18 역사 먼저 알고 가기 */
+.st-base{margin:4px 0 16px;padding:14px 16px;border-radius:16px;background:var(--fill)}
+.st-base .st-kick{margin-bottom:8px}
+.st-base-i{padding:8px 0;animation:stBaseIn .35s ease both;animation-delay:calc(var(--i) * 60ms)}
+.st-base-i + .st-base-i{border-top:1px solid var(--line, #e5e8eb)}
+.st-base-i b{font-size:15px;color:var(--t1)}
+.st-base-i p{margin:2px 0 0;font-size:14px;line-height:1.6;color:var(--t2)}
+@keyframes stBaseIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
