@@ -2562,7 +2562,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611190005', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611190049', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5400,6 +5400,7 @@
     { id: 'tmp', date: '2026-11-18', t: '멈추기 하면 시간이 안 멈춰', sub: '시간 재기 · 멈추기', html: '<p>숙제 화면 안에서 멈추기를 누르면, 화면이 다시 그려질 때 저절로 다시 켜지고 있었어요. 이제 직접 멈춘 건 「이어 하기」를 누를 때까지 멈춰 있어요.</p>', links: [] },
     { id: 'hcw', date: '2026-11-18', t: '한국사에서 냉전 체제 부분은 범위 아니야', sub: '한국사 · 66~67쪽 빼기', html: '<p>66~67쪽 「냉전 체제의 형성」 문제를 2회독·3회독·마지막 모의 시험에서 다 뺐어요. 2회독 첫 덩어리는 이제 「광복과 국토의 분단 (68~69쪽)」만 나와요.</p><p>114쪽 「냉전의 해체」는 다른 단원이라 그대로 있어요.</p>', links: [] },
     { id: 'bny', date: '2026-11-18', t: '역사 백지 노트를 연도 위주로 해 줘', sub: '한국사 백지 노트 · 연도 빈칸', html: '<p>이제 빈칸 쓰기에서 카드마다 <b>연도(와 달)</b>를 먼저 써요. 「1946. 3.」, 「1946년 3월」, 「1946」 모두 맞아요. 숫자는 한 글자만 달라도 틀려요.</p><p>낱말 빈칸은 카드마다 하나만 남겨서 양은 늘지 않았어요.</p>', links: [] },
+    { id: 'pfx', date: '2026-11-19', t: '수행평가 두 개는 빼 줘', sub: '오늘의 숙제 · 수행평가 외우기', html: '<p>춘향전 답 외우기와 체육 운동 손상 외우기를 숙제에서 뺐어요. 날짜 넣어 달라는 안내도 같이 없어졌어요.</p><p>다시 필요하면 말해 줘요. 만들어 둔 건 그대로 있어서 바로 다시 넣을 수 있어요.</p>', links: [] },
     { id: 'tgc', date: '2026-11-18', t: '할 게 너무 많아 · 묶음 줄 클릭이 안 돼', sub: '오늘의 숙제 · 과목별로 한 줄', html: '<p>같은 과목 회독은 한 줄로 묶었어요(올림포스 2회독 ○개처럼). 할 양은 그대로이고 줄만 줄었어요.</p><p>묶음 줄을 누르면 안에 든 지문이 펼쳐져요. iPad 에서 안 눌리던 것도 고쳤어요.</p>', links: [] },
     { id: 'or', date: '2026-11-17', t: '왜 소설 교과서 원문 내용을 바꿔서 내요?', sub: '국어 내용 일치 · 이제 원문 그대로', html: GD_OR, links: [{ k: 'r2s', id: 'K02', t: '변 사또의 생일잔치 문제 다시 보기' }] },
     { id: 'cm', date: '2026-11-15', t: '한류 난류 구분이 어려워요 · 극동풍은 왜 없어요?', sub: '통합과학 해류 · 바람·고리·서한동난', html: GD_CM, links: [{ k: 'r2s', id: 'C1', t: '해류 지도로 외우기' }] },
@@ -7993,7 +7994,7 @@
     return null;
   }
   function ygCls(date, P) {
-    const out = { gr: [], tx: [], rq: [], lt: [] }, mk = (id, title, sub, qs, learn) => { if (!qs || !qs.length) return null; return (NXSETS[id] = { id, title, sub, subj: 'eng', kind: 'lesson', date, qs, mix: {}, ...(learn ? { learn } : {}) }); };
+    const out = { gr: [], tx: [], rq: [], lt: [], ws: ((NXD.wscl || {})[date] || []).map((id) => NXSETS['pp:' + id]).filter(Boolean) }, mk = (id, title, sub, qs, learn) => { if (!qs || !qs.length) return null; return (NXSETS[id] = { id, title, sub, subj: 'eng', kind: 'lesson', date, qs, mix: {}, ...(learn ? { learn } : {}) }); };
     for (const uid of P.gr || []) { const u = NXU[uid]; if (!u) continue; const nm = u.code || uid, G = NXSETS['pp:mg' + u.no], lr = (G && G.learn) || { nk: 'grammar', notes: u.notes || {} }, all = ygGramQs(uid), lv = (q) => Math.min(3, q.lv || (q.t === 'mc' ? 1 : 2)); let first = true;
       [[1, '하'], [2, '중'], [3, '상']].forEach(([k, nmL]) => { if (P.gl && P.gl[uid] && !P.gl[uid].includes(k)) return; const qs = all.filter((q) => lv(q) === k), x = mk(`lc:${date}:${uid}:g${k}`, `${nm} 문법 · ${first ? '개념 복습 → ' : ''}${nmL} ${qs.length}문제`, first ? '개념을 다시 읽고 쉬운 문제부터' : `${nmL} 단계 문제`, qs, first ? lr : null); if (x) { out.gr.push(x); first = false; } }); }
     for (const uid of P.tx || []) { const u = NXU[uid]; if (!u) continue; const nm = u.code || uid;
@@ -8007,7 +8008,7 @@
   function ygLeftN() {
     if (!YG_CLS) return 0; const sl = nxSlot(); if (!sl || sl.date !== nxDay(nxNow())) return 0;
     const P = ygPlan(sl.date), fin = (s) => { if (!s) return true; const g = nxProg(s), L = nxLast(s.id); return !!(L && g.d >= g.n); }, CS = ygCls(sl.date, P);
-    let n = [...CS.lt, ...CS.gr, ...CS.rq].filter((x) => !fin(x)).length;
+    let n = [...CS.lt, ...CS.gr, ...CS.rq, ...CS.ws].filter((x) => !fin(x)).length;
     if (!P.off.includes('ls') && (P.tu || P.gt)) n += fin(ygTest('ls:' + sl.date)) ? 0 : 1;
     if (!P.off.includes('lw') && P.days) n += fin(ygTest('lw:' + sl.date)) ? 0 : 1;
     for (const u of (P.tx || []).map((id) => NXU[id]).filter(Boolean)) n += stLessons(u).filter((L) => L.rd && (!P.tp[u.id] || P.tp[u.id].includes(L.pi)) && !nxS().a[stLRead(u, L)]).length;
@@ -8043,7 +8044,7 @@
     const rdRows = (P.tx || []).map((id) => NXU[id]).filter(Boolean).flatMap((u) => stLessons(u).filter((L) => L.rd && (!P.tp[u.id] || P.tp[u.id].includes(L.pi))).map((L) => { const n = m3Memos(u, L.m3).length, rdOk = !!nxS().a[stLRead(u, L)];
       return `<div class="li ${canC ? 'btnlike' : 'is-lock'} ${rdOk ? 'is-done' : ''}" ${canC ? `data-task="cl:rd:${esc(u.id)}:${L.k}"` : 'aria-disabled="true"'}><div class="ico">${ic(rdOk ? 'ok' : canC ? 'memo' : '1f512')}</div><div class="body"><div class="t">${esc(u.code || '')} 본문 ${esc(L.m3)} · ${(((u.notes || {}).passages || [])[L.pi] || {}).sents ? u.notes.passages[L.pi].sents.length + '문장 · ' : ''}문장 분석하고 필기</div><div class="d">${n ? `필기 ${n}개 · 다음 숙제로 다시 떠올려요` : '문장마다 구조를 보고, 단어를 끌거나 문장 밑에 필기해요'}</div></div>${canC ? '<span class="chev"></span>' : ''}</div>`; }));
     if (rdRows.length) CS.tx = [];
-    const clsRows = CS.gr.length || CS.tx.length || CS.rq.length || rdRows.length ? `${CS.gr.length ? `<div class="eyebrow" style="margin:4px 0 6px">문법 · 개념 복습하고 단계별로 다시 풀기</div>${CS.gr.map((x) => crow(x, 'pencil')).join('')}` : ''}${rdRows.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 문장 분석하고 필기</div>${rdRows.join('')}` : CS.tx.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 필기하고 외우기</div>${CS.tx.map((x) => crow(x, 'eng')).join('')}` : ''}${CS.rq.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 학교 시험 꼴 문제</div>${CS.rq.map((x) => crow(x, 'eng')).join('')}` : ''}` : '';
+    const clsRows = CS.gr.length || CS.tx.length || CS.rq.length || CS.ws.length || rdRows.length ? `${CS.ws.length ? `<div class="eyebrow" style="margin:4px 0 6px">학교 학습지 · 수업 시간에 같이 풀어요</div>${CS.ws.map((x) => crow(x, 'memo')).join('')}<div style="height:10px"></div>` : ''}${CS.gr.length ? `<div class="eyebrow" style="margin:4px 0 6px">문법 · 개념 복습하고 단계별로 다시 풀기</div>${CS.gr.map((x) => crow(x, 'pencil')).join('')}` : ''}${rdRows.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 문장 분석하고 필기</div>${rdRows.join('')}` : CS.tx.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 필기하고 외우기</div>${CS.tx.map((x) => crow(x, 'eng')).join('')}` : ''}${CS.rq.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 학교 시험 꼴 문제</div>${CS.rq.map((x) => crow(x, 'eng')).join('')}` : ''}` : '';
     const B = { h1: P.tu || P.gt || P.lt.length ? '수업 전 시험' : '단어 시험', tests: `<div class="list">${CS.lt.map((x) => crow(x, 'books')).join('')}${!P.off.includes('ls') && (P.tu || P.gt || nxS().lq['ls:' + sl.date]) ? row('ls', P.gt ? '문법 시험' : '천일문 시험') : ''}${P.off.includes('lw') ? '' : row('lw', '단어 시험')}</div>`, items: chRows || m3Rows || clsRows || grRows || txRows ? `<div class="list">${chRows}${m3Rows}${clsRows || txRows + grRows}</div>` : '', sub2: '누르면 그 단원이 열려요' };
     if (bare) return B;
     return `<section class="card c6 jw-cl yg-cl"><div class="card-h"><h2>${ic('cal')} ${when} 수업</h2><span class="tag ${sl.open ? 'blue' : ''}">${sl.open ? '수업 중' : `${esc(timeKo(sl.time) || '')} 시작`}</span></div>
@@ -8342,7 +8343,9 @@
     // 11/17 선생님 «학교 학습지 … 오늘부터 내는 숙제 중에 겹치는 부분이 있으면 이걸 우선시해서 교체» → 7과 단어·숙어 / 의사소통·대화 / 문법 2회독 외우기는 내일부터 학습지 세트(pp:ws7…)로
     // 학습지 세트는 계획 나누기가 끝난 뒤 정한 날에 붙여요 (다른 줄 날짜는 그대로)
     const WSI = Object.entries(NXD.wsd || {}).flatMap(([d, L]) => L.map((s0) => NXSETS['pp:' + s0.id]).filter(Boolean).map((S0) => ({ id: S0.id, subj: 'eng', p: 'rv', qs: S0.qs, title: S0.title, sub: S0.sub, day: d })));
-    return OUT.filter((it) => !(it.day > '2026-11-17' && /^pp:(mw7|mc7|mg7b)(?![a-z0-9])/.test(String(it.id)))).concat(WSI);
+    // 11/19 선생님 «윤건이 영어 줄여 · 8과 5·6 단어 의사소통은 내지 마 · 숙제 학습지는 아예 빼, 수업 시간으로» → NXD.ecut 줄은 from 날부터 숙제에서 빼요 (학습지는 토요일 수업 카드 NXD.wscl)
+    const EC = NXD.ecut, ecR = EC ? (EC.drop || []).map((x) => new RegExp(x)) : [], ecA = EC ? (EC.all || []).map((x) => new RegExp(x)) : [], ecOut = (it) => EC && ((it.day >= EC.from && ecR.some((r) => r.test(String(it.id)))) || ecA.some((r) => r.test(String(it.id))));  // all: 지난 날 몫(밀림)까지
+    return OUT.filter((it) => !(it.day > '2026-11-17' && /^pp:(mw7|mc7|mg7b)(?![a-z0-9])/.test(String(it.id)))).concat(WSI).filter((it) => !ecOut(it)).map((it) => { const mv = EC && (EC.move || {})[String(it.id).replace(/^pp:/, '')]; return mv && it.day >= EC.from ? { ...it, day: mv } : it; });
   })();
   // 천일문·매3영 매일 (11/1~11/15, 수업 날 토요일도 숙제): 하루에 천일문 한 유닛 + 매3영 지문 3개(지문마다 단어 → 문제 → 문장 구조)
   //   (10/31 «천일문 매 unit 하고 문제 풀기, 매3영도 하루에 3-4개, 단어 먼저·문제 먼저·문장 하나씩 구조 분석»)
@@ -8390,6 +8393,7 @@
   const YP_ON = YP.length > 0; if (YP_ON) WR_CAP = 5;
   if (SR_TEST) window.__ui = UI, window.__render = () => render();  // 테스트 탭: 날짜 옮겨 보기
   if (SR_TEST) window.__ypq = (id) => { const it = YP.find((x) => x.id === id), st = NXSETS[id]; return JSON.stringify({ it: it && { day: it.day, p: it.p, n: it.qs.length, qs: it.qs.map((q) => [q.i, !!nxS().a[q.i], q.t, String(q.q || '').slice(0, 30)]) }, set: st && { nav: st.nav, n: st.qs.length, unit: st.unit } }); };
+  if (SR_TEST) window.__ypi = (d0) => JSON.stringify(YP.filter((it) => !d0 || it.day >= d0).map((it) => [it.day, it.id, it.title, it.qs.length]));
   if (SR_TEST) window.__yp = () => { const D = {}; for (const it of YP) { const d = (D[it.day] = D[it.day] || { n: 0, s: {} }); d.n += it.qs.length; d.s[it.subj] = (d.s[it.subj] || 0) + it.qs.length; (d.t = d.t || []).push(`${it.title} (${it.qs.length})`); } return JSON.stringify(D); };  // 테스트 탭: 날마다 몫
   // 천일문 유닛은 원래 기록(S.eng.ua)으로 끝났는지 봐요. 끝났으면 계획 칸(nx.a)에도 표시해 두어 진행 숫자가 맞게
   const ppChDone = (i) => { const un = CH_UNITS[i]; if (!un) return false; const st = (S.eng.ua || {})[uKey(un)] || {}, ids = qIds(un); return ids.length > 0 && ids.every((k) => st[k]); };
@@ -9043,7 +9047,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611190005'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611190049'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
