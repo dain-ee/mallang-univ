@@ -1751,7 +1751,7 @@
     const h = (P.held || []).find((x) => tkOf(x) === tk);
     if (P.run && tkOf(P.run) === tk) { if (P.run.paused) pPause(); return; }
     tmHold();
-    if (h) { P.held = P.held.filter((x) => x !== h); h.t0 = Date.now(); h.paused = false; P.run = h; }
+    if (h) { P.held = P.held.filter((x) => x !== h); h.t0 = Date.now(); h.paused = false; h.byMe = 0; P.run = h; }
     else P.run = { mode: 'focus', watch: 1, pick: 'sw', t0: Date.now(), acc: 0, seg: [], paused: false, subj: subj || tmSubj(ti), ti, tk, ...(tk.startsWith('my:') ? { hw: tk.slice(3) } : {}), dur: 0 };
     P.offer = null; pSave(); if (!quiet) { ding(1); if (navigator.vibrate) navigator.vibrate(20); } pLoop();
   }
@@ -2562,7 +2562,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611180920', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611181922', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5397,6 +5397,7 @@
   // 11/16 «왜 질문이 질문으로 바로 안 나오냐 · 바로바로 넣어야지 그 로직이 있었어야지» → 정윤이 물어본 것은 여기 한 줄만 넣으면 질문 탭에 쌓이고, 7일 동안 배너로도 떠요(gdQ)
   const GD_OR = `<ol class="r2s-rules" style="margin-top:12px"><li style="--i:0"><span class="r2s-rn">1</span><div><b>지문은 이제 교과서 원문 그대로예요</b><span>「춘향전」·「유자소전」·판소리계 소설·한글 맞춤법 글에서 일부러 한 군데 바꿔 싣던 문제 11개를 원문으로 되돌렸어요</span></div></li><li style="--i:1"><span class="r2s-rn">2</span><div><b>정답은 원문과 같은 선지예요</b><span>예전엔 바뀐 지문에 맞는 선지가 정답이었는데, 이제는 원문 그대로인 선지가 정답이에요. 원문을 외운 만큼 바로 맞힐 수 있어요</span></div></li><li style="--i:2"><span class="r2s-rn">3</span><div><b>함정은 선지 쪽에만 있어요</b><span>예방↔승발, 강정↔송편, 팔십만↔칠십만처럼 원문 한 군데만 바꾼 선지를 걸러 내면 돼요</span></div></li></ol>`;
   const QNA = U.who === '정윤' ? [
+    { id: 'tmp', date: '2026-11-18', t: '멈추기 하면 시간이 안 멈춰', sub: '시간 재기 · 멈추기', html: '<p>숙제 화면 안에서 멈추기를 누르면, 화면이 다시 그려질 때 저절로 다시 켜지고 있었어요. 이제 직접 멈춘 건 「이어 하기」를 누를 때까지 멈춰 있어요.</p>', links: [] },
     { id: 'hcw', date: '2026-11-18', t: '한국사에서 냉전 체제 부분은 범위 아니야', sub: '한국사 · 66~67쪽 빼기', html: '<p>66~67쪽 「냉전 체제의 형성」 문제를 2회독·3회독·마지막 모의 시험에서 다 뺐어요. 2회독 첫 덩어리는 이제 「광복과 국토의 분단 (68~69쪽)」만 나와요.</p><p>114쪽 「냉전의 해체」는 다른 단원이라 그대로 있어요.</p>', links: [] },
     { id: 'bny', date: '2026-11-18', t: '역사 백지 노트를 연도 위주로 해 줘', sub: '한국사 백지 노트 · 연도 빈칸', html: '<p>이제 빈칸 쓰기에서 카드마다 <b>연도(와 달)</b>를 먼저 써요. 「1946. 3.」, 「1946년 3월」, 「1946」 모두 맞아요. 숫자는 한 글자만 달라도 틀려요.</p><p>낱말 빈칸은 카드마다 하나만 남겨서 양은 늘지 않았어요.</p>', links: [] },
     { id: 'tgc', date: '2026-11-18', t: '할 게 너무 많아 · 묶음 줄 클릭이 안 돼', sub: '오늘의 숙제 · 과목별로 한 줄', html: '<p>같은 과목 회독은 한 줄로 묶었어요(올림포스 2회독 ○개처럼). 할 양은 그대로이고 줄만 줄었어요.</p><p>묶음 줄을 누르면 안에 든 지문이 펼쳐져요. iPad 에서 안 눌리던 것도 고쳤어요.</p>', links: [] },
@@ -5911,7 +5912,7 @@
     pSave(); ding(1); if (navigator.vibrate) navigator.vibrate(20); render(); pLoop();
   }
   function pPause() { const r = P.run; if (!r) return;
-    if (r.watch) { const n = Date.now(); if (r.paused) { r.t0 = n; r.paused = false; } else { r.acc += n - r.t0; r.seg.push([r.t0, n]); r.paused = true; slogPut(r.t0, n, r.subj, 'w', r.ti); save('slog'); } pSave(); render(); pLoop(); return; } if (r.paused) { r.endAt = Date.now() + r.left * 1000; r.paused = false; } else { r.left = pLeft(); r.paused = true; } pSave(); render(); pLoop(); }
+    if (r.watch) { const n = Date.now(); if (r.paused) { r.t0 = n; r.paused = false; r.byMe = 0; } else { r.acc += n - r.t0; r.seg.push([r.t0, n]); r.paused = true; r.byMe = 1; slogPut(r.t0, n, r.subj, 'w', r.ti); save('slog'); } pSave(); render(); pLoop(); return; } if (r.paused) { r.endAt = Date.now() + r.left * 1000; r.paused = false; r.byMe = 0; } else { r.left = pLeft(); r.paused = true; r.byMe = 1; } pSave(); render(); pLoop(); }
   function pStop() { P.run = null; P.offer = null; pSave(); pLoop(); render(); }
   function pStopAsk() {
     const r = P.run; if (!r) return;
@@ -9042,7 +9043,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611180920'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611181922'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -10707,6 +10708,7 @@
     const hw = UI.hwRun && (S.hw || []).find((x) => x.id === UI.hwRun.id);
     const am = autoTmMeta(R), tk = hw ? 'hw:' + hw.id : 'auto:' + (R ? `${R.kind}:${am.id}` : `st:${UI.stU}`);
     if (cur && (!cur.auto || tkOf(cur) === tk)) { if (cur.auto) autoTm.mine = tk; return; }
+    if (P.run && P.run.paused && P.run.byMe && tkOf(P.run) === tk) return;  // 11/18 정윤 «멈추기 하면 시간 안 멈춰» → 직접 멈춘 건 화면이 다시 그려져도 저절로 켜지 않아요 (이어 하기로만)
     const ti = hw ? hw.title : am.ti ? am.ti : R && R.kind === 'news' ? '소식 읽기' : R && R.kind === 'nx' && NXSETS[R.id] ? NXSETS[R.id].title : R && R.kind === 'unit' ? '천일문' : R && R.kind === 'retry' ? '오답 다시 풀기' : R && R.kind === 'words' ? '단어' : (($('main .h1') || {}).textContent || '공부').trim().slice(0, 30);
     tmStart(tk, ti, hw ? undefined : am.subj, true); if (P.run && tkOf(P.run) === tk) { P.run.auto = 1; autoTm.mine = tk; pSave(); }
   }
