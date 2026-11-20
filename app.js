@@ -2566,7 +2566,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611202355', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611202359', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3708,7 +3708,7 @@
     if (st === 'rd') {
       const cards = x.cs.map((c) => { const done = finDone(c); return `<div class="r2s-c"><div class="row between" style="margin:20px 0 8px"><h3 class="r2s-ct">${esc(c.title)}</h3>${done ? '' : '<span class="tag">1회독 전</span>'}</div>${done ? '' : `<div class="ls-box warn" style="margin:0 0 12px"><b>이 개념은 1회독을 아직 안 했어요</b><p>여기서 1회독 내용을 읽는 것으로 대신해요. 천천히 읽고 넘어가요</p></div>${c.sum ? finRead(c) : ''}`}${finSumHtml(c)}${done && c.sum ? `<details class="hw-more"><summary><b>교과서 풀이 다시 읽기</b></summary>${finRead(c)}</details>` : ''}</div>`; }).join('');
       const study = (X.study || []).map((b) => `<section class="card r2s-study" style="margin-top:12px">${b.h ? `<h3 class="r2s-ct" style="margin:0 0 8px">${esc(b.h)}</h3>` : ''}${b.map === 'cur' ? cmHtml() : b.img ? `<img src="${esc(b.img)}" alt="${esc(b.h || '그림')}" loading="lazy" style="width:100%;border-radius:12px;display:block">` : ''}${b.cap && b.map !== 'cur' ? `<p class="tiny" style="margin:6px 0 0">${esc(b.cap)}</p>` : ''}${(b.p || []).map((t) => `<p style="margin:8px 0 0;line-height:1.7">${esc(t)}</p>`).join('')}${(b.pts || []).length ? `<ol class="r2s-rules">${b.pts.map((q, i) => `<li style="--i:${i}"><span class="r2s-rn">${i + 1}</span><div><b>${r2sHl(q.t)}</b>${(q.d || []).map((t) => `<span>${r2sHl(t)}</span>`).join('')}</div></li>`).join('')}</ol>` : ''}${b.table ? `<div class="tbl-wrap" style="margin-top:8px"><table class="q-tbl r2s-tbl">${b.table.map((row, ri) => `<tr>${row.map((c) => (ri ? `<td>${esc(c)}</td>` : `<th>${esc(c)}</th>`)).join('')}</tr>`).join('')}</table></div>` : ''}</section>`).join('');  // 11/15 해류: 교과서 지도 + 외우는 규칙
-      return wrap(`${seg}<p class="sub" style="margin:0">${r2sFirst(x) ? '① 오늘 처음 보는 개념이에요. 그림에서 볼 것과 꼬리표까지 천천히 읽고 문제로 가요' : study ? '② 지도와 규칙을 보면서 떠올리기에서 빠뜨린 것을 찾아봐요' : '② 1회독 때 본 정리를 다시 훑어봐요. 떠올리기에서 빠뜨린 것을 눈으로 찾아봐요'}</p>${study}${cards || (study ? '' : '<section class="card"><p class="sub">이 덩어리의 1회독 카드를 찾지 못했어요</p></section>')}<div class="cta-bar"><button class="btn primary big block" data-r2sgo="q" type="button">${A.rd && auto !== 'q' ? '다음 ›' : `다 봤어요 · 학교 꼴 문제 ${qs.length}개 풀기 ›`}</button></div>`);
+      return wrap(`${seg}<p class="sub" style="margin:0">${r2sFirst(x) ? '① 오늘 처음 보는 개념이에요. 위에서부터 이야기처럼 천천히 읽고, 헷갈리는 것까지 본 다음 문제로 가요' : study ? '② 지도와 규칙을 보면서 떠올리기에서 빠뜨린 것을 찾아봐요' : '② 1회독 때 본 정리를 다시 훑어봐요. 떠올리기에서 빠뜨린 것을 눈으로 찾아봐요'}</p>${study}${cards || (study ? '' : '<section class="card"><p class="sub">이 덩어리의 1회독 카드를 찾지 못했어요</p></section>')}<div class="cta-bar"><button class="btn primary big block" data-r2sgo="q" type="button">${A.rd && auto !== 'q' ? '다음 ›' : `다 봤어요 · 학교 꼴 문제 ${qs.length}개 풀기 ›`}</button></div>`);
     }
     if (st === 'q' && X.mock && !r.xpErr && (!A.paper || qs.every((q, k) => q.type === 'mc' || A['q' + k]))) { try { return `<div class="qwrap xp-wrap">${head}${seg}${r2sPaper(x, xpLoad(x), r)}</div>`; } catch (e) { r.xpErr = 1; console.error('xp', e); } }
     if (st === 'q') {
@@ -5451,8 +5451,8 @@
     const C = FIN_ALL.filter((c) => c.subj === k && !(k === 'hist' && c.title === '냉전 체제의 형성'));  // 11/18 정윤 «냉전 체제는 범위 아니야»
     const con = C.length ? `<section class="card c12"><div class="card-h"><h2>${ic('books')} ${k === 'eng' ? '올림포스 지문' : '단원별 개념 정리'}</h2><span class="tiny">${k === 'eng' ? '지문 · 해석 · 문장 분석' : '요약 · 꼭 외울 것 · 헷갈리는 것'} · ${C.filter(finDone).length}/${C.length} 읽음</span></div>${(units.length ? units : [{ id: null, title: '' }]).map((u) => { const L = C.filter((c) => !u.id || c.unit === u.id); return L.length ? `${u.title ? `<p class="eyebrow" style="margin:14px 0 4px">${esc(u.title)}</p>` : ''}<div class="list">${L.map((c, i) => row('fincid:' + c.id, c.title, `${c.pages ? esc(c.pages) + '쪽 · ' : ''}${finDone(c) ? '1회독 끝 · 눌러서 정리 다시 보기' : '아직 1회독 전'}`, finDone(c), i)).join('')}</div>` : ''; }).join('')}</section>` : '';
     const lab = { sci: '1회독', sci2: '2회독', sci3: '3회독' };
-    const SG = k === 'sci' ? R2S.filter((x) => x.sj === 'sci' && x.day <= today()) : [];  // 통합과학은 1회독 덩어리가 곧 개념 정리예요 (오늘까지 나온 것)
-    const sciCon = SG.length ? `<section class="card c12"><div class="card-h"><h2>${ic('sci')} 개념 정리</h2><span class="tiny">1회독 덩어리 · ${SG.filter(r2sDone).length}/${SG.length} 읽음</span></div><div class="list">${SG.map((x, i) => row('r2s:' + x.id, x.x.title, r2sDone(x) ? '1회독 끝 · 눌러서 다시 보기' : `${md(x.day)} 몫 · 아직 안 했어요`, r2sDone(x), i)).join('')}</div></section>` : '';
+    const SG = k === 'sci' ? R2S.filter((x) => x.sj === 'sci') : [];  // 통합과학은 1회독 덩어리가 곧 개념 정리예요 (11/20 «지금까지 한 것만이 아니라 전체 범위»)
+    const sciCon = SG.length ? `<section class="card c12"><div class="card-h"><h2>${ic('sci')} 개념 정리</h2><span class="tiny">1회독 덩어리 · ${SG.filter(r2sDone).length}/${SG.length} 읽음</span></div><div class="list">${SG.map((x, i) => row('r2s:' + x.id, x.x.title, r2sDone(x) ? '1회독 끝 · 눌러서 다시 보기' : x.day > today() ? `${md(x.day)} 숙제 · 미리 읽어도 돼요` : `${md(x.day)} 몫 · 아직 안 했어요`, r2sDone(x), i)).join('')}</div></section>` : '';
     let H = [];
     if (k === 'eng') H = [...R2.map((x) => ['r2:' + x.id, `2회독 · ${r2Short(x)}`, x.day, r2DoneDay(x)]), ...R3.map((x) => ['r3:' + x.id, `3회독 · ${r2Short(x)}`, x.day, r3DoneDay(x)]), ...R3M.map((z) => ['r3m:' + z.id, `모고 ${z.no}회`, z.day, (mkGet(z.id).fin || {}).at ? atDay(mkGet(z.id).fin.at) : null])];
     else H = [...R2S.filter((x) => rs.includes(x.sj)).map((x) => ['r2s:' + x.id, `${k === 'sci' ? lab[x.sj] || r2sLab(x) : r2sLab(x)} · ${x.x.title}`, x.day, r2sDoneDay(x)]), ...(k === 'hist' ? BN.filter((x) => x.sj !== 'perf').map((x) => ['bn:' + x.id, `백지 노트 · ${x.x.title}`, x.day, bnDoneDay(x)]) : [])];
@@ -9093,7 +9093,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611202355'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611202359'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
