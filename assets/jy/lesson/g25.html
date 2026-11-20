@@ -559,10 +559,10 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
  el('path',{d:'M48,150 L48,96',stroke:'#f04452','stroke-width':4,'marker-end':'url(#mR)',class:'ef'},cl);
  txh(cl,0,30,'상승 · 비 많음',{'font-size':14,fill:'#1971c2'});
  const dry=txh(sv,0,0,'',{'font-size':14,fill:'#e8590c'});
- function draw(){const r=S.r;const xr=135+r*255;cl.setAttribute('transform',`translate(${xr},0)`);
+ function draw(){const r=S.r;const xr=135+r*185;cl.setAttribute('transform',`translate(${xr},0)`);
   warm.setAttribute('d',`M70,160 L530,160 L530,${160+S.thE} C400,${160+S.thE} 250,${160+S.thW} 70,${160+S.thW}Z`);
   warmT.setAttribute('x',r>.5?380:180);warmT.setAttribute('y',160+(r>.5?S.thE:S.thW)/2+5);warmT.setAttribute('x',S.thE>40?300:180);
-  const xs=520,len=360*S.w+40;winds.forEach((p,k)=>{const y=118+k*0;const yy=[112,128,144][k];p.setAttribute('d',`M${xs-k*30},${yy} L${xs-k*30-len*(k===1?1:.8)},${yy}`);p.style.opacity=k===2?Math.max(0,(S.w-.4)/.6):1;p.style.strokeWidth=2+3*S.w;});
+  const xs=525,len=380*S.w+10;winds.forEach((p,k)=>{const y=118+k*0;const yy=[112,128,144][k];p.setAttribute('d',`M${xs-k*20},${yy} L${xs-k*20-len*(k===1?1:.85)},${yy}`);p.style.opacity=k===2?Math.max(0,(S.w-.4)/.6):1;p.style.strokeWidth=2+3*S.w;});
   wT.textContent=S.w>.7?'무역풍 (동 → 서)':'약한 무역풍';wT.setAttribute('x',S.w>.7?300:430);wT.setAttribute('y',S.w>.7?22:100);
   cur.style.opacity=.25+.75*S.c;cur.style.strokeWidth=1.5+3*S.c;cur.setAttribute('d',`M490,${168+Math.min(S.thE,20)/2} L120,${168+Math.min(S.thE,20)/2}`);
   upw.style.opacity=.15+.85*S.u;upw.style.strokeWidth=2+4*S.u;upw.setAttribute('d',`M500,330 C500,280 512,${Math.max(200,160+S.thE+20)} 512,${160+S.thE+6}`);upT.textContent=S.u>.6?'깊은 곳 찬 해수가 올라와요':'찬 해수가 덜 올라와요';

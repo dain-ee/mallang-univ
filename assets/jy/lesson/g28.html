@@ -189,8 +189,8 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 <div class="card"><span class="step">말부터 풀어요</span><h2>영어 약자부터 풀어요</h2>
 <ul class="tag">
 <li><b>스마트 그리드</b><span>스마트(똑똑한) + 그리드(그물처럼 이어진 전력망)</span></li>
-<li><b>ESS 에너지 저장 시스템</b><span>Energy Storage System: 전기를 <b>모아 두는</b> 장치</span></li>
-<li><b>VPP 가상발전소</b><span>Virtual Power Plant: 실제 큰 건물은 없지만 <b>하나의 발전소처럼</b> 움직여요</span></li>
+<li><b>ESS 에너지 저장 시스템</b><span>Energy Storage System: 전기를 <strong>모아 두는</strong> 장치</span></li>
+<li><b>VPP 가상발전소</b><span>Virtual Power Plant: 실제 큰 건물은 없지만 <strong>하나의 발전소처럼</strong> 움직여요</span></li>
 </ul></div>
 <div class="card"><span class="step">한 단계씩</span><h2>ESS: 남을 때 모았다가 모자랄 때 꺼내요</h2>
 <svg id="ess" viewBox="0 0 600 270"></svg>
@@ -232,11 +232,11 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 <section class="pane" data-t="꼬리표" data-out="1">
 <div class="card"><span class="step pp">정윤 꼬리표</span><h2>방향 · 등급 · 근원</h2>
 <ul class="tag">
-<li><b>효율 함정</b><span>100 %인 기구는 없어요. 기술이 발달해도 마찬가지예요.</span><span>에너지는 「사라지는」 게 아니라 「쓸모없는 열로 흩어지는」 것이에요.</span><span>효율은 <b>유용한 쪽</b> 비율: 내연 기관 18 % (82 %는 열).</span></li>
-<li><b>등급</b><span>에너지 소비 효율 <b>1등급 = 가장 좋음</b> (5등급이 가장 낮아요).</span></li>
+<li><b>효율 함정</b><span>100 %인 기구는 없어요. 기술이 발달해도 마찬가지예요.</span><span>에너지는 「사라지는」 게 아니라 「쓸모없는 열로 흩어지는」 것이에요.</span><span>효율은 <strong>유용한 쪽</strong> 비율: 내연 기관 18 % (82 %는 열).</span></li>
+<li><b>등급</b><span>에너지 소비 효율 <strong>1등급 = 가장 좋음</strong> (5등급이 가장 낮아요).</span></li>
 <li><b>신 vs 재생</b><span>연료 전지·수소 에너지 = 새로운 에너지 (재생 아님)</span><span>지열·조력 = 재생 가능한 에너지지만 근원은 태양이 아니에요 (26강)</span></li>
 <li><b>직접 vs 터빈</b><span>태양광, 연료 전지 = 발전기 없이 직접 전기</span><span>풍력, 수력, 조력, 지열 = 터빈 + 발전기 (전자기 유도)</span></li>
-<li><b>방향</b><span>가속 = 전기 → 운동, 회생 제동(감속) = 운동 → 전기</span><span>열병합 발전은 효율을 <b>높여요</b> (51 % → 75 %)</span></li>
+<li><b>방향</b><span>가속 = 전기 → 운동, 회생 제동(감속) = 운동 → 전기</span><span>열병합 발전은 효율을 <strong>높여요</strong> (51 % → 75 %)</span></li>
 </ul></div>
 </section>
 </main>
@@ -515,7 +515,7 @@ inits[1]=()=>{['carA','carB'].forEach(id=>{const ds=$(id).querySelectorAll('div'
  el('rect',{x:460,y:160,width:70,height:80,rx:8,fill:'#fff',stroke:C.t2,'stroke-width':3},sv);el('rect',{x:482,y:150,width:26,height:10,rx:3,fill:C.t2},sv);const lv=el('rect',{x:466,width:58,rx:4,fill:C.grn},sv);tx(sv,495,262,'ESS',{'font-size':16});
  const a1=el('path',{d:'M170,205 L262,205',stroke:C.org,'stroke-width':6,fill:'none','stroke-dasharray':'10 8'},sv);
  const a2=el('path',{d:'M140,186 C200,120 400,120 470,156',stroke:C.org,'stroke-width':6,fill:'none','stroke-dasharray':'10 8'},sv);
- const a3=el('path',{d:'M458,210 L352,210',stroke:C.grn,'stroke-width':6,fill:'none','stroke-dasharray':'10 8'},sv);const lb=tx(sv,300,40,'',{'font-size':18});
+ const a3=el('path',{d:'M458,210 L352,210',stroke:C.grn,'stroke-width':6,fill:'none','stroke-dasharray':'10 8'},sv);const lb=tx(sv,20,34,'',{'font-size':20,'text-anchor':'start'});
  const S=[{sun:[.15,.5],lv:[.2,.85],o:[1,1,0],t:4,lb:'낮'},{sun:[.5,.85],lv:[.85,.6],o:[.5,0,1],t:4,lb:'저녁'},{sun:[.85,1.1],lv:[.6,.2],o:[0,0,1],t:4,lb:'밤'}];
  const T=[['낮: 햇빛이 많아 발전량이 많아요','집에서 쓰고도 <b>남는 전기</b>를 ESS에 <b>저장</b>해요. 초록 칸이 차올라요.'],['저녁: 해가 지며 발전량이 줄어요','쓰는 양이 더 많아져요. 모자란 만큼 ESS에서 <b>꺼내 보태요.</b>'],['밤: 태양광 발전량 0','낮에 모아 둔 전기를 <b>꺼내 써요.</b> 들쭉날쭉한 발전량을 이렇게 <b>보완</b>해요.']];
  function f(now){const dt=Math.min((now-lt)/1000,.05);lt=now;const s=S[st];if(k<1)k=Math.min(1,k+dt/s.t);const e=k<.5?2*k*k:1-(-2*k+2)**2/2;
@@ -529,18 +529,19 @@ inits[1]=()=>{['carA','carB'].forEach(id=>{const ds=$(id).querySelectorAll('div'
  st=0;k=0;requestAnimationFrame(f);$('essN').onclick=()=>{if(k>=1&&st<2){st++;k=0;}};$('essR').onclick=()=>{st=0;k=0;};})();
 /* 7-2 smart grid */
 (function(){const sv=$('sg');const s=el('style',{},sv);s.textContent='.fw{stroke-dasharray:6 22;animation:fw 2.2s linear infinite}.bw{stroke-dasharray:6 22;animation:fw 2.2s linear infinite reverse}@keyframes fw{to{stroke-dashoffset:-56}}';
- el('rect',{width:600,height:240,fill:'#fff'},sv);el('circle',{cx:300,cy:120,r:46,fill:'#e8f3ff',stroke:C.blue,'stroke-width':2},sv);tx(sv,300,116,'전력망',{'font-size':17,fill:C.blue});tx(sv,300,138,'+ 정보 통신',{'font-size':14,fill:C.blue,'font-weight':600});
+ el('rect',{width:600,height:240,fill:'#fff'},sv);const hubG=el('g',{},sv);
  [[90,50,'발전소'],[510,50,'태양광 집'],[90,195,'공장'],[510,195,'우리 집']].forEach(([x,y,n])=>{el('line',{x1:x,y1:y,x2:300,y2:120,stroke:'#e5e8eb','stroke-width':8},sv);
   el('line',{x1:x,y1:y,x2:300,y2:120,stroke:C.org,'stroke-width':6,class:'fw','stroke-linecap':'round'},sv);el('line',{x1:x,y1:y+6,x2:300,y2:126,stroke:C.grn,'stroke-width':4,class:'bw','stroke-linecap':'round'},sv);
   el('rect',{x:x-62,y:y-22,width:124,height:44,rx:10,fill:'#fff',stroke:C.t2,'stroke-width':2},sv);tx(sv,x,y+6,n,{'font-size':16});});
+ el('circle',{cx:300,cy:120,r:50,fill:'#e8f3ff',stroke:C.blue,'stroke-width':2},sv);tx(sv,300,116,'전력망',{'font-size':17,fill:C.blue});tx(sv,300,138,'+ 정보 통신',{'font-size':14,fill:C.blue,'font-weight':600});
  tx(sv,300,226,'주황 = 전기,  초록 = 정보 (양쪽으로 오가요)',{'font-size':15,fill:C.t2,'font-weight':600});})();
 /* 7-3 VPP */
 (function(){const sv=$('vpp');let on=false;const N=[[90,60,'지붕 태양광'],[510,60,'풍력 발전소'],[90,210,'ESS'],[510,210,'공장 태양광'],[300,40,'작은 발전기']];
  function draw(){sv.innerHTML='';el('rect',{width:600,height:270,fill:'#fff'},sv);
   const box=el('rect',{x:20,y:12,width:560,height:240,rx:20,fill:'none',stroke:C.pp,'stroke-width':3,'stroke-dasharray':'10 8',opacity:on?1:0,style:'transition:opacity .8s'},sv);
-  const hub=el('g',{opacity:on?1:0,style:'transition:opacity .8s .5s'},sv);el('circle',{cx:300,cy:140,r:50,fill:'#f1ecff'},hub);tx(hub,300,136,'하나의',{'font-size':16,fill:'#6b4fc8'});tx(hub,300,158,'발전소처럼',{'font-size':16,fill:'#6b4fc8'});
   N.forEach(([x,y,n],i)=>{const ln=el('line',{x1:x,y1:y,x2:300,y2:140,stroke:C.pp,'stroke-width':3,'stroke-dasharray':400,'stroke-dashoffset':on?0:400,style:`transition:stroke-dashoffset 1.2s ${i*.15}s`},sv);
    el('rect',{x:x-66,y:y-20,width:132,height:40,rx:10,fill:'#fff',stroke:C.t2,'stroke-width':2},sv);tx(sv,x,y+6,n,{'font-size':16});});
+  const hub=el('g',{opacity:on?1:0,style:'transition:opacity .8s .5s'},sv);el('circle',{cx:300,cy:140,r:50,fill:'#f1ecff',stroke:C.pp,'stroke-width':2},hub);tx(hub,300,136,'하나의',{'font-size':16,fill:'#6b4fc8'});tx(hub,300,158,'발전소처럼',{'font-size':16,fill:'#6b4fc8'});
   tx(sv,300,240,on?'가상발전소 (VPP)':'따로따로 흩어져 있어요 (분산 전원)',{'font-size':17,fill:on?'#6b4fc8':C.t2});$('vppB').textContent=on?'다시 흩어 놓기':'하나로 묶기';}
  draw();$('vppB').onclick=()=>{on=!on;draw();};})();
 

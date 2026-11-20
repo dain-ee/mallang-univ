@@ -295,7 +295,7 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
 (function(){const sv=$('scn');
  const I=[{n:'햇빛',e:'☀️',x:70,y:58,k:'a',t:'<b>햇빛(빛)</b>은 살아 있지 않아요 → <b>비생물요소</b>. 생산자가 광합성에 써요.'},
   {n:'강물',e:'💧',x:470,y:140,k:'a',t:'<b>강물(물)</b> → <b>비생물요소</b>'},
-  {n:'바위',e:'🪨',x:545,y:232,k:'a',t:'<b>바위</b> → <b>비생물요소</b>'},
+  {n:'바위',e:'🪨',x:538,y:232,k:'a',t:'<b>바위</b> → <b>비생물요소</b>'},
   {n:'흙',e:'',x:470,y:322,k:'a',t:'<b>흙(토양)</b> → <b>비생물요소</b>'},
   {n:'민들레',e:'🌼',x:150,y:232,k:'p',t:'<b>민들레</b>는 햇빛으로 광합성을 해서 유기물을 <b>스스로 만들어요</b> → <b style="color:#03b26c">생산자</b>'},
   {n:'토끼',e:'🐇',x:300,y:232,k:'c',t:'<b>토끼</b>는 민들레(다른 생물)를 먹어서 유기물을 얻어요 → <b style="color:#e67700">소비자</b>'},
@@ -310,8 +310,8 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
    if(o.n==='흙'){el('rect',{x:0,y:300,width:600,height:40,fill:'transparent'},g);}
    else if(o.n==='강물'){el('path',{d:'M330,130 Q420,118 600,128 L600,152 Q430,142 330,156 Z',fill:'transparent'},g);tx(g,o.x,o.y+8,o.e,{'font-size':22});}
    else{el('circle',{cx:o.x,cy:o.y,r:30,fill:'transparent'},g);tx(g,o.x,o.y+14,o.e,{'font-size':38});}
-   const cy=o.n==='흙'?o.y-14:o.n==='햇빛'?o.y+38:o.y-58;const w=o.k==='a'?96:68;
-   const chip=el('g',{opacity:0,style:'transition:opacity .5s'},sv);el('rect',{x:o.x-w/2,y:cy,width:w,height:26,rx:8,fill:C[o.k]},chip);tx(chip,o.x,cy+18,NM[o.k],{fill:'#fff','font-size':14});
+   const cy=o.n==='흙'?o.y-14:o.n==='햇빛'?o.y+38:o.y-58;const w=o.k==='a'?112:80;
+   const chip=el('g',{opacity:0,style:'transition:opacity .5s'},sv);el('rect',{x:o.x-w/2,y:cy,width:w,height:28,rx:8,fill:C[o.k]},chip);tx(chip,o.x,cy+20,NM[o.k],{fill:'#fff','font-size':17});
    o.chip=chip;g.onclick=()=>pick(i);});
   $('scnN').textContent='0 / 8';$('scnTxt').innerHTML='그림 속 것을 하나씩 눌러 보세요. <b id="scnN">0 / 8</b>';}
  function pick(i){const o=I[i];o.chip.setAttribute('opacity',1);seen.add(i);$('scnTxt').innerHTML=o.t+' <b id="scnN" style="color:var(--t3)">'+seen.size+' / 8</b>'+(seen.size===8?'<br><b style="color:#03b26c">다 찾았어요!</b> 비생물요소 4개, 생물요소 4개예요.':'');}
@@ -321,8 +321,8 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
 /* 1-2 유기물 얻는 길 */
 (function(){const sv=$('chn');arrowDefs(sv,'ca','#b0b8c1');
  const N=[['☀️','햇빛',60,'a'],['🌼','민들레',180,'p'],['🐇','토끼',300,'c'],['🦊','여우',420,'c'],['🍄','버섯·세균',540,'d']];
- const nodes=N.map(([e,n,x,k])=>{const g=el('g',{class:'fade',opacity:.2},sv);el('circle',{cx:x,cy:90,r:38,fill:'#fff',stroke:C[k],'stroke-width':3},g);tx(g,x,104,e,{'font-size':36});tx(g,x,152,n,{'font-size':15});return g;});
- const tags=[['비생물요소',60,'a'],['생산자',180,'p'],['소비자',300,'c'],['소비자',420,'c'],['분해자',540,'d']].map(([s,x,k])=>{const g=el('g',{class:'fade',opacity:0},sv);el('rect',{x:x-45,y:170,width:90,height:26,rx:8,fill:C[k]},g);tx(g,x,188,s,{fill:'#fff','font-size':14});return g;});
+ const nodes=N.map(([e,n,x,k])=>{const g=el('g',{class:'fade',opacity:.2},sv);el('circle',{cx:x,cy:90,r:38,fill:'#fff',stroke:C[k],'stroke-width':3},g);tx(g,x,104,e,{'font-size':36});tx(g,x,154,n,{'font-size':20});return g;});
+ const tags=[['비생물요소',60,'a'],['생산자',180,'p'],['소비자',300,'c'],['소비자',420,'c'],['분해자',540,'d']].map(([s,x,k])=>{const g=el('g',{class:'fade',opacity:0},sv);el('rect',{x:x-54,y:170,width:108,height:30,rx:9,fill:C[k]},g);tx(g,x,191,s,{fill:'#fff','font-size':17});return g;});
  const ars=[[100,140],[220,260],[340,380],[460,500]].map(([a,b])=>el('line',{x1:a,y1:90,x2:b,y2:90,stroke:'#b0b8c1','stroke-width':3,'marker-end':'url(#ca)',class:'fade',opacity:0},sv));
  const dot=el('circle',{cx:60,cy:90,r:9,fill:'#fcc419',stroke:'#e67700','stroke-width':2,style:'transition:transform 3s ease-in-out',opacity:0},sv);
  const T=['<b>햇빛</b>에서 시작해요. 햇빛은 생물이 아니라 <b>비생물요소</b>예요.',
@@ -355,14 +355,14 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
  const d=el('defs',{},sv);for(const k in col){const m=el('marker',{id:'m'+k,markerWidth:12,markerHeight:12,refX:9,refY:6,orient:'auto',markerUnits:'userSpaceOnUse'},d);el('path',{d:'M0,0 L12,6 L0,12z',fill:col[k]},m);
   const m2=el('marker',{id:'g'+k,markerWidth:12,markerHeight:12,refX:9,refY:6,orient:'auto',markerUnits:'userSpaceOnUse'},d);el('path',{d:'M0,0 L12,6 L0,12z',fill:'#d1d6db'},m2);}
  el('rect',{x:14,y:50,width:200,height:200,rx:18,fill:'#e8f3ff'},sv);tx(sv,114,82,'비생물요소',{'font-size':17,fill:'#1b64da'});
- ['☀️ 빛','🌡️ 온도','💧 물','💨 공기','🟫 토양'].forEach((s,i)=>tx(sv,114,116+i*27,s,{'font-size':15,'font-weight':600,fill:'#333d4b'}));
+ ['☀️ 빛','🌡️ 온도','💧 물','💨 공기','🟫 토양'].forEach((s,i)=>tx(sv,114,118+i*28,s,{'font-size':18,'font-weight':600,fill:'#333d4b'}));
  el('rect',{x:386,y:50,width:200,height:200,rx:18,fill:'#e9f9f1'},sv);tx(sv,486,82,'생물요소',{'font-size':17,fill:'#028a54'});
  const P=[[430,130,'A'],[542,130,'B'],[486,212,'C']];P.forEach(([x,y,s])=>{el('circle',{cx:x,cy:y,r:22,fill:'#fff',stroke:'#03b26c','stroke-width':2.5},sv);tx(sv,x,y+6,s,{'font-size':16,fill:'#028a54'});});
  const A={ab:[el('path',{d:'M218,118 L382,118',fill:'none'},sv)],ba:[el('path',{d:'M382,184 L218,184',fill:'none'},sv)],
   bb:[el('path',{d:'M455,124 L515,124',fill:'none'},sv),el('path',{d:'M517,136 L457,136',fill:'none'},sv),el('path',{d:'M440,152 L470,192',fill:'none'},sv),el('path',{d:'M532,152 L502,192',fill:'none'},sv)]};
- const L={ab:tx(sv,300,104,'비생물 → 생물',{'font-size':15}),ba:tx(sv,300,174,'생물 → 비생물',{'font-size':15})};
- tx(sv,300,140,'(작용)',{'font-size':12,fill:'#8b95a1','font-weight':400});tx(sv,300,208,'(반작용)',{'font-size':12,fill:'#8b95a1','font-weight':400});
- const lbb=tx(sv,486,272,'생물 ↔ 생물 (상호 작용)',{'font-size':13,fill:'#8b95a1'});
+ const L={ab:tx(sv,300,104,'비생물 → 생물',{'font-size':19}),ba:tx(sv,300,172,'생물 → 비생물',{'font-size':19})};
+ tx(sv,300,142,'(작용)',{'font-size':15,fill:'#8b95a1','font-weight':400});tx(sv,300,210,'(반작용)',{'font-size':15,fill:'#8b95a1','font-weight':400});
+ const lbb=tx(sv,486,274,'생물 ↔ 생물 (상호 작용)',{'font-size':16,fill:'#8b95a1'});
  const dots=el('g',{},sv);
  function hl(k){for(const j in A){A[j].forEach(p=>{p.setAttribute('stroke',k===j?col[j]:'#d1d6db');p.setAttribute('stroke-width',k===j?5:3);p.setAttribute('marker-end',`url(#${k===j?'m':'g'}${j})`);p.style.transition='stroke .6s';});}
   for(const j in L)L[j].setAttribute('fill',k===j?col[j]:'#8b95a1');lbb.setAttribute('fill',k==='bb'?col.bb:'#8b95a1');
@@ -396,7 +396,7 @@ function buildWeb(sv,mid){const d=el('defs',{},sv);for(const [k,c] of [['a','#ad
   const p=el('line',{x1:x1+ux*36,y1:y1+uy*36,x2:x2-ux*38,y2:y2-uy*38,stroke:'#adb5bd','stroke-width':3,'marker-end':`url(#${mid}a)`,style:'transition:stroke .6s,opacity .6s'},eg);E[a+'>'+b]=p;});
  for(const n in WEB.N){const [x,y,e,[lx,ly,an]]=WEB.N[n];const g=el('g',{style:'cursor:pointer;transition:opacity .8s'},sv);
   const c=el('circle',{cx:x,cy:y,r:32,fill:'#fff',stroke:n==='풀'?'#03b26c':'#f59f00','stroke-width':3,style:'transition:stroke .6s,fill .6s'},g);tx(g,x,y+12,e,{'font-size':32});
-  tx(g,lx,ly,n,{'font-size':16,'text-anchor':an});const bd=el('g',{opacity:0,style:'transition:opacity .8s'},sv);N[n]={g,c,bd,x,y};}
+  tx(g,lx,ly,n,{'font-size':19,'text-anchor':an});const bd=el('g',{opacity:0,style:'transition:opacity .8s'},sv);N[n]={g,c,bd,x,y};}
  return{E,N,mid};}
 function badge(w,n,s,col){const o=w.N[n];o.bd.innerHTML='';const off={풀:[-118,8],뱀:[-108,-50],개구리:[-60,-62]}[n]||[18,-46];const bx=o.x+off[0],by=o.y+off[1];const wd=s.length*13+18;el('rect',{x:bx,y:by,width:wd,height:24,rx:8,fill:col},o.bd);tx(o.bd,bx+wd/2,by+17,s,{fill:'#fff','font-size':13});o.bd.setAttribute('opacity',1);}
 

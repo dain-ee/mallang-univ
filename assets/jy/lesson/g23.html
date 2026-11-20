@@ -524,7 +524,7 @@ function quiz(id,items){const box=$(id);let i=0,score=0;
   box.innerHTML=`<div class="qn">${i+1} / ${items.length}</div><div class="qi">${q}</div><div class="btns"><button class="b" data-a="o">방출 · 주변 따뜻</button><button class="b" data-a="i">흡수 · 주변 차가움</button></div><div class="box qw"><span class="hint" style="margin:0">하나를 골라요.</span></div><button class="next" style="opacity:.4" disabled>다음 문제 ›</button>`;
   const nx=box.querySelector('.next');
   box.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{if(!nx.disabled)return;const ok=b.dataset.a===a;if(ok)score++;
-   box.querySelectorAll('[data-a]').forEach(x=>{x.disabled=true;if(x.dataset.a===a)x.style.background=a==='o'?'#fff4e6':'#e7f5ff';if(x===b&&!ok)x.style.background='#fff0f0';});
+   box.querySelectorAll('[data-a]').forEach(x=>{x.disabled=true;if(x.dataset.a===a){x.style.background=a==='o'?'#ffe8cc':'#d0ebff';x.style.opacity=1;}if(x===b&&!ok){x.style.background='#fff0f0';x.style.opacity=1;}});
    box.querySelector('.qw').innerHTML=`<div class="in">${ok?'<b style="color:#03b26c">맞아요.</b> ':'<b style="color:#e8590c">아쉬워요.</b> '}${why}</div>`;
    nx.disabled=false;nx.style.opacity=1;sendH();});
   nx.onclick=()=>{i++;draw();};sendH();}

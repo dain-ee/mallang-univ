@@ -296,8 +296,8 @@ const sel=(attr,b)=>document.querySelectorAll(`[${attr}]`).forEach(x=>x.classLis
   const h=el('g',{transform:`translate(${hx},100)`},G);el('circle',{r:30,fill:lab?'#f76707':'#fff',stroke:'#f76707','stroke-width':3,style:'transition:fill .6s'},h);tx(h,0,7,lab?'H⁺':'H',{'font-size':20,fill:lab?'#fff':'#f76707','font-weight':800});
   const c=el('g',{transform:`translate(${cx},100)`},G);el('circle',{r:40,fill:lab?'#0ca678':'#fff',stroke:'#0ca678','stroke-width':3},c);tx(c,0,7,lab?'Cl⁻':'Cl',{'font-size':20,fill:lab?'#fff':'#0ca678','font-weight':800});
   el('circle',{cx:ex,cy:ey,r:8,fill:'#ffd43b',stroke:'#f59f00','stroke-width':2},G);tx(G,ex,ey-14,'전자',{'font-size':13,fill:'#c77700'});
-  cap.innerHTML='';if(lab){tx(cap,hx,165,'(+) 전기',{'font-size':15,fill:'#f76707'});tx(cap,cx,165,'(−) 전기',{'font-size':15,fill:'#0ca678'});}
-  else{tx(cap,300,170,step===0?'H와 Cl이 붙은 한 덩어리 (전기 없음)':'',{'font-size':15,fill:'#4e5968'});}}
+  cap.innerHTML='';if(lab){tx(cap,hx,168,'(+) 전기',{'font-size':20,fill:'#f76707'});tx(cap,cx,168,'(−) 전기',{'font-size':20,fill:'#0ca678'});}
+  else{tx(cap,300,172,step===0?'H와 Cl이 붙은 한 덩어리 (전기 없음)':'',{'font-size':20,fill:'#4e5968'});}}
  const T=['<b>염화 수소(HCl)</b> 알갱이예요. 수소(H)와 염소(Cl)가 붙어 있고, 전체로는 전기가 없어요.<br><span class="hint">「다음 단계」를 누르면 물속에서 무슨 일이 생기는지 봐요</span>',
   '물에 녹으면 <b>H의 전자 1개를 Cl이 가져가요.</b> 노란 알갱이가 Cl 쪽으로 옮겨 가요.',
   '<b>떨어져 나와요.</b> 전자를 잃은 H는 <b>(+) 전기 = H⁺</b>, 전자를 얻은 Cl은 <b>(−) 전기 = Cl⁻</b>. 이렇게 이온으로 나뉘는 것을 <b>이온화</b>라고 해요.'];
@@ -436,10 +436,10 @@ const IND={lit:['리트머스 종이'],pp:['페놀프탈레인',['#ffffff','#fff
  const base=el('g',{},sv),liq=el('rect',{x:152,y:lvl(0),width:296,height:338-lvl(0),fill:'#f1f3f5',style:'transition:fill 1.2s'},sv),pg=el('g',{},sv),fg=el('g',{},sv),drop=el('g',{},sv);
  // burette
  el('rect',{x:288,y:0,width:24,height:36,fill:'#e7f5ff',stroke:'#8b95a1','stroke-width':2},base);el('path',{d:'M292,36 L300,50 L308,36',fill:'#e7f5ff',stroke:'#8b95a1','stroke-width':2},base);
- tx(base,330,24,'NaOH 수용액',{'font-size':14,'text-anchor':'start',fill:'#3182f6'});
+ tx(base,324,26,'NaOH 수용액',{'font-size':19,'text-anchor':'start',fill:'#3182f6'});
  el('path',{d:'M150,62 L150,330 Q150,340 160,340 L440,340 Q450,340 450,330 L450,62',fill:'none',stroke:'#8b95a1','stroke-width':3},fg);
- const volT=tx(fg,465,90,'',{'font-size':14,'text-anchor':'start',fill:'#4e5968'});const stT=el('text',{x:465,y:120,'font-size':16,'font-weight':800,'text-anchor':'start'},fg);
- tx(fg,145,90,'염산 20 mL',{'font-size':14,'text-anchor':'end',fill:'#4e5968'});
+ const volT=tx(fg,462,90,'',{'font-size':19,'text-anchor':'start',fill:'#4e5968'});const stT=el('text',{x:462,y:124,'font-size':24,'font-weight':800,'text-anchor':'start'},fg);
+ tx(fg,142,90,'염산 20 mL',{'font-size':19,'text-anchor':'end',fill:'#4e5968'});
  const B=Bk(pg,bx,['H','Cl','H','Cl','H','Cl','H','Cl','H','Cl'],5);
  onLoop(sv,(now)=>B.render(now));
  const state=()=>B.count('H')>0?'a':B.count('OH')>0?'b':'n';
@@ -535,7 +535,7 @@ const IND={lit:['리트머스 종이'],pp:['페놀프탈레인',['#ffffff','#fff
 (function(){const sv=$('heat');const X=(v)=>70+v*12.5,TT=(v)=>v<=20?v/20:1-(v-20)/20*.35,Y=(t)=>215-t*165;
  function draw(){const v=+$('hV').value;$('hVo').textContent=v+' mL';sv.innerHTML='';
   el('rect',{x:X(0),y:30,width:X(20)-X(0),height:185,fill:'#fff4e6'},sv);el('rect',{x:X(20),y:30,width:X(40)-X(20),height:185,fill:'#e7f5ff'},sv);
-  tx(sv,(X(0)+X(20))/2,52,'(가) 구간 · 산성',{'font-size':15,fill:'#e8590c'});tx(sv,(X(20)+X(40))/2,52,'(나) 구간 · 염기성',{'font-size':15,fill:'#1c7ed6'});
+  tx(sv,(X(0)+X(20))/2+40,200,'(가) 구간 · 산성',{'font-size':15,fill:'#e8590c'});tx(sv,(X(20)+X(40))/2,200,'(나) 구간 · 염기성',{'font-size':15,fill:'#1c7ed6'});
   el('line',{x1:70,y1:215,x2:575,y2:215,stroke:'#8b95a1','stroke-width':2},sv);el('line',{x1:70,y1:30,x2:70,y2:215,stroke:'#8b95a1','stroke-width':2},sv);
   tx(sv,60,40,'온도',{'font-size':14,fill:'#4e5968','text-anchor':'end'});
   for(let t=0;t<=40;t+=10)tx(sv,X(t),236,t,{'font-size':14,fill:'#4e5968','font-weight':400});tx(sv,320,264,'넣은 NaOH 수용액의 부피 (mL) · 염산 20 mL',{'font-size':14,fill:'#4e5968','font-weight':400});
@@ -577,10 +577,10 @@ const IND={lit:['리트머스 종이'],pp:['페놀프탈레인',['#ffffff','#fff
 
 /* 7 life quiz */
 (function(){const I=[['충치: 입안 세균이 만든 <b>산성</b> 물질','치약',1],['변기의 때 (<b>염기성</b>)','구연산이 든 세제',0],['화석 연료가 탈 때 나오는 황산화물 (<b>산성</b>비의 원인)','산화 칼슘',1],['대량 생산 초기의 <b>산성</b> 종이 (누렇게 변하고 손상)','넣어 주는 약품',1],['생선 비린내 (단백질이 분해된 <b>염기성</b> 물질)','레몬',0],['위산 과다 (위산의 <b>산성</b> 물질)','제산제',1],['산성화된 토양','석회 가루',1]];
- const box=$('life');let ok=0;const got=new Set();
- I.forEach(([q,thing,isB],i)=>{const d=document.createElement('div');d.className='qz';d.innerHTML=`<div style="font-size:16px;line-height:1.6">${q}<br>→ <b>${thing}</b>는?</div><div class="btns"></div><div class="res"></div>`;
+ const box=$('life');let ok=0;const got=new Set();const jo=(w)=>{const c=w.charCodeAt(w.length-1)-0xAC00;return w+(c>=0&&c<11172&&c%28?'은':'는');};
+ I.forEach(([q,thing,isB],i)=>{const d=document.createElement('div');d.className='qz';d.innerHTML=`<div style="font-size:16px;line-height:1.6">${q}<br>→ <b>${thing}</b>${jo(thing).slice(-1)}?</div><div class="btns"></div><div class="res"></div>`;
   ['산성 물질','염기성 물질'].forEach((o,j)=>{const b=document.createElement('button');b.className='b';b.textContent=o;b.onclick=()=>{d.querySelectorAll('button').forEach(x=>x.classList.remove('ok','no'));const r=j===isB;b.classList.add(r?'ok':'no');
-   d.querySelector('.res').innerHTML=r?`<b style="color:#03924f">맞아요.</b> ${thing}${i===5?'에는 약한 염기성 물질이 들어 있어요':isB?'는 염기성':'는 산성'}이라 반대 성질을 중화해요.`:'반대 성질을 넣어야 중화돼요. 다시 골라 봐요.';
+   d.querySelector('.res').innerHTML=r?`<b style="color:#03924f">맞아요.</b> ${i===5?thing+'에는 약한 염기성 물질이 들어 있어서':jo(thing)+(isB?' 염기성이라':' 산성이라')} 반대 성질을 중화해요.`:'반대 성질을 넣어야 중화돼요. 다시 골라 봐요.';
    if(r)got.add(i);$('lifeTxt').innerHTML=got.size===I.length?'<b style="color:#03924f">다 맞혔어요!</b> 생활 속 중화는 늘 「반대 성질 넣기」예요.':`${got.size} / ${I.length} 맞혔어요.`;};d.querySelector('.btns').appendChild(b);});box.appendChild(d);});})();
 
 /* 7 sea */
