@@ -2566,7 +2566,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611210009', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611210025', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3707,7 +3707,7 @@
     }
     if (st === 'rd') {
       const cards = x.cs.map((c) => { const done = finDone(c); return `<div class="r2s-c"><div class="row between" style="margin:20px 0 8px"><h3 class="r2s-ct">${esc(c.title)}</h3>${done ? '' : '<span class="tag">1회독 전</span>'}</div>${done ? '' : `<div class="ls-box warn" style="margin:0 0 12px"><b>이 개념은 1회독을 아직 안 했어요</b><p>여기서 1회독 내용을 읽는 것으로 대신해요. 천천히 읽고 넘어가요</p></div>${c.sum ? finRead(c) : ''}`}${finSumHtml(c)}${done && c.sum ? `<details class="hw-more"><summary><b>교과서 풀이 다시 읽기</b></summary>${finRead(c)}</details>` : ''}</div>`; }).join('');
-      const study = (X.study || []).map((b) => `<section class="card r2s-study" style="margin-top:12px">${b.h ? `<h3 class="r2s-ct" style="margin:0 0 8px">${esc(b.h)}</h3>` : ''}${b.map === 'cur' ? cmHtml() : b.img ? `<img src="${esc(b.img)}" alt="${esc(b.h || '그림')}" loading="lazy" style="width:100%;border-radius:12px;display:block">` : ''}${b.cap && b.map !== 'cur' ? `<p class="tiny" style="margin:6px 0 0">${esc(b.cap)}</p>` : ''}${(b.p || []).map((t) => `<p style="margin:8px 0 0;line-height:1.75">${esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</p>`).join('')}${(b.figs || []).map((f, fi) => `<figure class="r2s-fig" style="--i:${fi}"><img src="${esc(f.img)}" alt="${esc(f.cap || '그림')}" loading="lazy"><figcaption>${esc(f.cap || '')}</figcaption></figure>`).join('')}${(b.pts || []).length ? `<ol class="r2s-rules">${b.pts.map((q, i) => `<li style="--i:${i}"><span class="r2s-rn">${i + 1}</span><div><b>${r2sHl(q.t)}</b>${(q.d || []).map((t) => `<span>${r2sHl(t)}</span>`).join('')}</div></li>`).join('')}</ol>` : ''}${b.table ? `<div class="tbl-wrap" style="margin-top:8px"><table class="q-tbl r2s-tbl">${b.table.map((row, ri) => `<tr>${row.map((c) => (ri ? `<td>${esc(c)}</td>` : `<th>${esc(c)}</th>`)).join('')}</tr>`).join('')}</table></div>` : ''}</section>`).join('');  // 11/15 해류: 교과서 지도 + 외우는 규칙
+      const study = X.lesson ? `<iframe class="r2s-lesson" src="${esc(X.lesson)}" title="개념 보기" style="width:100%;height:1400px;border:0;display:block;margin-top:12px;background:transparent"></iframe>` : (X.study || []).map((b) => `<section class="card r2s-study" style="margin-top:12px">${b.h ? `<h3 class="r2s-ct" style="margin:0 0 8px">${esc(b.h)}</h3>` : ''}${b.map === 'cur' ? cmHtml() : b.img ? `<img src="${esc(b.img)}" alt="${esc(b.h || '그림')}" loading="lazy" style="width:100%;border-radius:12px;display:block">` : ''}${b.cap && b.map !== 'cur' ? `<p class="tiny" style="margin:6px 0 0">${esc(b.cap)}</p>` : ''}${(b.p || []).map((t) => `<p style="margin:8px 0 0;line-height:1.75">${esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</p>`).join('')}${(b.figs || []).map((f, fi) => `<figure class="r2s-fig" style="--i:${fi}"><img src="${esc(f.img)}" alt="${esc(f.cap || '그림')}" loading="lazy"><figcaption>${esc(f.cap || '')}</figcaption></figure>`).join('')}${(b.pts || []).length ? `<ol class="r2s-rules">${b.pts.map((q, i) => `<li style="--i:${i}"><span class="r2s-rn">${i + 1}</span><div><b>${r2sHl(q.t)}</b>${(q.d || []).map((t) => `<span>${r2sHl(t)}</span>`).join('')}</div></li>`).join('')}</ol>` : ''}${b.table ? `<div class="tbl-wrap" style="margin-top:8px"><table class="q-tbl r2s-tbl">${b.table.map((row, ri) => `<tr>${row.map((c) => (ri ? `<td>${esc(c)}</td>` : `<th>${esc(c)}</th>`)).join('')}</tr>`).join('')}</table></div>` : ''}</section>`).join('');  // 11/15 해류: 교과서 지도 + 외우는 규칙 · 11/21 lesson 있으면 탭 화면(iframe)
       return wrap(`${seg}<p class="sub" style="margin:0">${r2sFirst(x) ? '① 오늘 처음 보는 개념이에요. 위에서부터 이야기처럼 천천히 읽고, 헷갈리는 것까지 본 다음 문제로 가요' : study ? '② 지도와 규칙을 보면서 떠올리기에서 빠뜨린 것을 찾아봐요' : '② 1회독 때 본 정리를 다시 훑어봐요. 떠올리기에서 빠뜨린 것을 눈으로 찾아봐요'}</p>${study}${cards || (study ? '' : '<section class="card"><p class="sub">이 덩어리의 1회독 카드를 찾지 못했어요</p></section>')}<div class="cta-bar"><button class="btn primary big block" data-r2sgo="q" type="button">${A.rd && auto !== 'q' ? '다음 ›' : `다 봤어요 · 학교 꼴 문제 ${qs.length}개 풀기 ›`}</button></div>`);
     }
     if (st === 'q' && X.mock && !r.xpErr && (!A.paper || qs.every((q, k) => q.type === 'mc' || A['q' + k]))) { try { return `<div class="qwrap xp-wrap">${head}${seg}${r2sPaper(x, xpLoad(x), r)}</div>`; } catch (e) { r.xpErr = 1; console.error('xp', e); } }
@@ -9093,7 +9093,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611210009'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611210025'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -11313,3 +11313,6 @@
   document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(true); });
   // 선생님 보기에서 테마 확인용: ?theme=dark
 })();
+
+// 11/21 27강 탭 화면: iframe 높이를 내용에 맞추고, 탭을 누르면 위로
+window.addEventListener('message', (e) => { const d = e.data || {}; document.querySelectorAll('iframe.r2s-lesson').forEach((f) => { if (f.contentWindow !== e.source) return; if (d.lessonH) f.style.height = (d.lessonH + 4) + 'px'; if (d.lessonTop) { const y = f.getBoundingClientRect().top + window.scrollY - 70; if (window.scrollY > y) window.scrollTo({ top: y, behavior: 'smooth' }); } }); });
