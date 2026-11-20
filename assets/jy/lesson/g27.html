@@ -164,6 +164,14 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 <p><b>② 전류 방향</b>(위에서 볼 때): 윗면이 <b class="r">N</b>이면 <b>시계 반대</b> ↺, 윗면이 <b class="bl">S</b>면 <b>시계 방향</b> ↻. 오른손 네 손가락을 전류 방향으로 감으면 <b>엄지가 N극</b>을 가리켜요.</p>
 <p><b>③ 전자는 전류와 반대</b>로 돌아요. 전류 방향은 옛날에 「+ → -」로 정한 <b>약속</b>이고, 실제로 움직이는 전자는 반대예요.</p>
 <p class="hint">시험은 거의 「전류 방향이 같은지 반대인지」만 물어요. ①만 확실히 하면 돼요.</p></div>
+<div class="card"><span class="step">끝까지 따라가요</span><h2>코일 끝 ①·② 와 검류계 바늘</h2>
+<p>바늘 방향은 이 순서로 정해져요. <b>❶ 코일 속 전류가 도는 방향</b>(자석이 정함) → <b>❷ 전선을 어느 쪽으로 감았나</b>(그래서 끝 ①·② 중 어디로 나오나) → <b>❸ 그 끝이 검류계 어느 단자에 꽂혔나</b> → 바늘.</p>
+<svg id="ce" viewBox="0 0 600 300"></svg>
+<div class="grid2"><div><p style="margin:0 0 6px;font-weight:700;color:var(--t1)">자석 (N극이 아래)</p><div class="btns" style="margin:0"><button class="b sel" data-cm="in">다가옴</button><button class="b" data-cm="out">멀어짐</button><button class="b" data-cm="0">멈춤</button></div></div>
+<div><p style="margin:0 0 6px;font-weight:700;color:var(--t1)">전선 감은 방향</p><div class="btns" style="margin:0"><button class="b sel" data-cw="1">A 감기</button><button class="b" data-cw="-1">B 감기 (반대로)</button></div></div></div>
+<div class="box" id="ceTxt" style="margin-top:10px"></div>
+<div class="box" style="background:#fff0f0;margin-top:8px"><b>「오른쪽에서 흘러왔다」가 아니에요.</b> 고리 전체의 전류가 <b>동시에</b> 돌아요(자전거 체인처럼). 어디서 먼저 출발하는 게 아니에요. 정해지는 건 「<b>어느 단자로 들어가고 어느 단자로 나오나</b>」뿐이에요.<br><b>호스 비유</b>: 물이 빙글 도는 방향은 같아도, 호스를 어느 쪽으로 감았냐에 따라 물이 <b>위 구멍(끝 ①)</b>으로 나오기도 하고 <b>아래 구멍(끝 ②)</b>으로 나오기도 해요.</div>
+<p class="hint">시험에서는: 그림이 「N극을 넣으면 바늘 왼쪽」처럼 <b>기준 하나</b>를 줘요. 나머지는 바꾼 게 홀수 개면 반대, 짝수 개면 같음만 보면 돼요. 감은 방향은 그림에 그려져 있을 때만 따져요.</p></div>
 <div class="card"><span class="step">직접 해 봐요</span><h2>자석을 위아래로 끌어 보세요: 노란 알갱이가 전자예요</h2>
 <svg id="ind" viewBox="0 0 600 380"></svg>
 <div class="btns"><button class="b" id="iFlip">자석 뒤집기 (아래쪽 극 바꾸기)</button><button class="b" id="iAuto">자동으로 넣었다 빼기</button></div>
@@ -197,6 +205,7 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 <div class="card"><span class="step">막대가 아닌데?</span><h2>동그란 코일은 어디가 N극이에요?</h2>
 <p>코일은 막대가 아니라 <b>고리</b>예요. 그래도 전류가 빙글 돌면 자기장은 <b>고리 구멍을 곧게 뚫고</b> 지나가요. 한쪽 구멍으로 <b>나오는 쪽 = N극</b>, 들어가는 쪽 = S극. 그래서 코일 전체가 <b>막대자석이랑 똑같은 모양</b>의 자기장을 만들어요.</p>
 <svg id="sol" viewBox="0 0 600 280"></svg>
+<p class="hint">파란 점선이 흐르는 건 <b>방향을 보여 주는 표시</b>예요. 자기장 속에서 실제로 무언가가 흘러가는 건 아니에요. 화살표 방향 = 나침반 N극이 가리키는 쪽.</p>
 <div class="box" id="solTxt"></div>
 <div class="btns"><button class="b p" id="solFlip">전류 방향 바꾸기</button></div>
 <div class="box" style="background:#e8f3ff;margin-top:10px"><b>오른손으로 찾기</b>: 오른손 <b>네 손가락을 전류가 도는 방향</b>으로 코일을 감아 쥐면, <b>엄지가 가리키는 쪽이 N극</b>이에요.<br>위에서 볼 때 시계 반대 ↺ → 엄지 위 → <b>윗면 N</b> · 시계 방향 ↻ → 엄지 아래 → <b>윗면 S</b></div>
@@ -701,6 +710,44 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
   $('ledTxt').innerHTML=step?ST[step]:st==='in'?'자석을 <b>넣을 때</b>: 전류(주황 점)가 코일 끝 ①에서 나와요. A는 이 쪽에 <b>긴 다리(+)</b>가 있어서 문이 열려 <b>A만 켜져요</b>. B는 이 쪽에 짧은 다리(−)가 있어서 <b>막혀요(✕)</b>.':st==='out'?'자석을 <b>뺄 때</b>: 전류가 <b>반대로</b> 코일 끝 ②에서 나와요. 이번엔 B의 <b>긴 다리(+)</b>가 이 쪽에 있어서 <b>B만 켜져요</b>. A는 막혀요(✕).':'자석이 <b>멈춰 있으면</b>: 통과하는 자기력선 수가 안 변하니 전류 0 → 둘 다 꺼져요.';}
  $('lIn').onclick=()=>{st='in';step=0;draw();};$('lOut').onclick=()=>{st='out';step=0;draw();};$('lStay').onclick=()=>{st='stay';step=0;draw();};$('lStep').onclick=()=>{st='in';step=step>=4?1:step+1;$('lStep').textContent=step>=4?'처음부터 ›':'한 단계씩 ›';draw();};draw();})();
 
+/* 2-6 coil ends */
+(function(){const sv=$('ce');const cx=150,rx=70,ry=15,y0=112,pt=26,T=4;let mode='in',w=1,lt=performance.now(),u=0,my=0,flow=0;
+ const mg=el('g',{},sv);el('rect',{x:cx-20,y:0,width:40,height:34,rx:4,fill:'#3182f6'},mg);el('rect',{x:cx-20,y:34,width:40,height:34,rx:4,fill:'#f04452'},mg);tx(mg,cx,23,'S',{fill:'#fff','font-size':15,'font-weight':800});tx(mg,cx,57,'N',{fill:'#fff','font-size':15,'font-weight':800});
+ const back=el('g',{},sv),front=el('g',{},sv);const wires=el('g',{},sv);
+ el('rect',{x:380,y:112,width:140,height:82,rx:12,fill:'#f2f4f6',stroke:'#8b95a1','stroke-width':2},sv);
+ el('path',{d:'M405,170 A45,45 0 0 1 495,170',fill:'none',stroke:'#b0b8c1','stroke-width':2},sv);tx(sv,450,130,'0',{'font-size':11,fill:'#8b95a1','font-weight':500});
+ tx(sv,407,188,'왼쪽',{'font-size':10,fill:'#4e5968','font-weight':500});tx(sv,493,188,'오른쪽',{'font-size':10,fill:'#4e5968','font-weight':500});
+ const nd=el('line',{x1:450,y1:178,x2:450,y2:130,stroke:'#f04452','stroke-width':3,'stroke-linecap':'round'},sv);el('circle',{cx:450,cy:178,r:5,fill:'#333d4b'},sv);
+ for(const x of [410,490])el('circle',{cx:x,cy:200,r:6,fill:'#4e5968'},sv);
+ const e1=tx(sv,250,104,'끝 ①',{'font-size':13,fill:'#191f28'}),e2=tx(sv,250,234,'끝 ②',{'font-size':13,fill:'#191f28'});
+ const chev=el('g',{},sv);const nt=tx(sv,450,282,'',{'font-size':14,fill:'#e8590c'});const ct=tx(sv,cx,282,'',{'font-size':12,fill:'#4e5968','font-weight':500});
+ let PTS=[],CL=[],L=0,HN=0;
+ function build(){back.innerHTML='';front.innerHTML='';wires.innerHTML='';const H=[];const N=T*64;
+  for(let k=0;k<=N;k++){const f=k/N*T*2*Math.PI;const a=w*f;H.push([cx+rx*Math.cos(a),y0+pt*f/(2*Math.PI)-ry*Math.sin(a),Math.sin(a)>0]);}
+  for(let k=0;k<N;k++){const p=H[k],q=H[k+1];el('line',{x1:p[0],y1:p[1],x2:q[0],y2:q[1],stroke:p[2]?'#94561c':'#c87f2c','stroke-width':p[2]?5:7,'stroke-linecap':'round',opacity:p[2]?.55:1},p[2]?back:front);}
+  const A=H[N],B=H[0];const bw=[[A[0],A[1]],[260,216],[410,216],[410,200]];const gi=[[410,200],[410,194],[490,194],[490,200]];const tw=[[490,200],[490,250],[560,250],[560,96],[260,96],[B[0],B[1]]];
+  for(const pth of [bw,tw])el('polyline',{points:pth.map(p=>p.join(',')).join(' '),fill:'none',stroke:'#4e5968','stroke-width':3,'stroke-linejoin':'round'},wires);
+  PTS=H.map(p=>[p[0],p[1]]).concat(bw.slice(1),gi.slice(1),tw.slice(1));HN=H.length;CL=[0];for(let i=1;i<PTS.length;i++)CL.push(CL[i-1]+Math.hypot(PTS[i][0]-PTS[i-1][0],PTS[i][1]-PTS[i-1][1]));L=CL[CL.length-1];}
+ function at(d){d=((d%L)+L)%L;let i=1;while(CL[i]<d)i++;const a=PTS[i-1],b=PTS[i],t=(d-CL[i-1])/((CL[i]-CL[i-1])||1);return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,b[0]-a[0],b[1]-a[1]];}
+ function txt(){const cur=mode==='in'?1:mode==='out'?-1:0;const d=w*cur;
+  if(!cur){$('ceTxt').innerHTML='자석이 멈추면 변화가 없어서 <b>전류 0</b>, 바늘은 가운데예요. 감은 방향은 상관없어요.';ct.textContent='전류 0';nt.textContent='바늘 가운데';return;}
+  const out=d>0?'②':'①',term=d>0?'왼쪽':'오른쪽';
+  $('ceTxt').innerHTML=`❶ N극이 ${cur>0?'다가오면 윗면 N(오지 마)':'멀어지면 윗면 S(가지 마)'} → 코일 속 전류 위에서 볼 때 <b>${cur>0?'↺ 시계 반대':'↻ 시계'}</b><br>❷ ${w>0?'A':'B'} 감기라서 이렇게 돌면 전선을 따라 <b>끝 ${out}</b>로 나와요<br>❸ 끝 ${out}는 검류계 <b>${term} 단자</b>에 꽂혀 있어요 → ${term} 단자로 들어감 → <b>바늘 ${term}</b>`;
+  ct.textContent='코일 속 전류 '+(cur>0?'↺':'↻');nt.textContent='바늘 '+term;}
+ document.querySelectorAll('[data-cm]').forEach(b=>b.onclick=()=>{mode=b.dataset.cm;document.querySelectorAll('[data-cm]').forEach(x=>x.classList.toggle('sel',x===b));my=mode==='in'?-30:mode==='out'?20:my;txt();});
+ document.querySelectorAll('[data-cw]').forEach(b=>b.onclick=()=>{w=+b.dataset.cw;document.querySelectorAll('[data-cw]').forEach(x=>x.classList.toggle('sel',x===b));build();txt();});
+ const CH=[];for(let i=0;i<30;i++)CH.push(el('path',{fill:'none',stroke:'#f76707','stroke-width':3,'stroke-linecap':'round','stroke-linejoin':'round'},chev));
+ function loop(now){const dt=Math.min(.05,(now-lt)/1000);lt=now;const cur=mode==='in'?1:mode==='out'?-1:0;
+  if(cur){my+=cur*dt*14;if(cur>0&&my>20)my=-30;if(cur<0&&my>20)my=-30;if(cur<0&&my<-30)my=20;}
+  if(mode==='out'){my-=dt*28;if(my<-30)my=20;}
+  mg.setAttribute('transform',`translate(0,${my+10})`);
+  const want=cur*w;flow+=(want-flow)*Math.min(1,dt*3);u+=flow*dt*60;
+  for(let i=0;i<CH.length;i++){const [x,y,dx,dy]=at(u+i*L/CH.length);const l=Math.hypot(dx,dy)||1,sg=Math.sign(flow)||1;const ux=dx/l*sg,uy=dy/l*sg;
+   CH[i].setAttribute('d',`M${x-ux*6-uy*5},${y-uy*6+ux*5} L${x},${y} L${x-ux*6+uy*5},${y-uy*6-ux*5}`);CH[i].setAttribute('opacity',Math.min(1,Math.abs(flow)*1.2).toFixed(2));}
+  const ang=-35*flow;const r=ang*Math.PI/180;nd.setAttribute('x2',450+48*Math.sin(r));nd.setAttribute('y2',178-48*Math.cos(r));
+  requestAnimationFrame(loop);}
+ build();txt();requestAnimationFrame(loop);})();
+
 /* 3b order */
 (function(){const sv=$('ord');const CX=240,CY=205,RX=130,RY=34;let step=0,my=-40,ty=-40,ph=0,lt=performance.now(),flow=0,cf=0,off=0;
  const bl=[];for(const dx of [-30,0,30]){bl.push(el('line',{x1:CX+dx,y1:80,x2:CX+dx,y2:292,stroke:'#3182f6','stroke-width':2.5,'stroke-dasharray':'7 6'},sv));}
@@ -750,8 +797,7 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
   $('solTxt').innerHTML=up?'전류(주황 점)가 위에서 볼 때 <b>시계 반대</b>로 돌아요 → 자기장이 구멍을 <b>위로</b> 뚫고 나가요 → <b>윗면 N극</b>, 아랫면 S극.':'전류를 <b>반대</b>로 돌리면 → 자기장도 구멍을 <b>아래로</b> 뚫어요 → <b>윗면 S극</b>, 아랫면 N극. 전자석은 전류 방향만 바꾸면 극이 뒤집혀요.';}
  $('solFlip').onclick=()=>{up=1-up;show();};
  function loop(now){const dt=Math.min(.05,(now-lt)/1000);lt=now;const sg=up?1:-1;off+=dt*24*sg;ph+=dt*0.25*sg;
-  for(const p of paths)p.setAttribute('stroke-dashoffset',(-off*-1).toFixed(1)*-1);
-  for(const p of paths.slice(0,3))p.setAttribute('stroke-dashoffset',off.toFixed(1));for(const p of paths.slice(3))p.setAttribute('stroke-dashoffset',(off).toFixed(1));
+  for(const p of paths)p.setAttribute('stroke-dashoffset',(-off).toFixed(1));
   for(const d of dots){const f=(d.i/6+ph)*Math.PI*2;d.c.setAttribute('cx',CX+RX*Math.cos(f));d.c.setAttribute('cy',d.y-RY*Math.sin(f));d.c.setAttribute('opacity',Math.sin(f)>0?.45:1);}
   heads.setAttribute('d',[[CX,62,-1],[CX-30,62,-1],[CX+30,62,-1],[CX-150,140,1],[CX+150,140,1]].map(([x,y0,dd])=>{const d=dd*sg;return `M${x-7},${y0-7*d} L${x},${y0} L${x+7},${y0-7*d}`;}).join(' '));
   const y=190,sx=CX-35,ex=CX+35;ar.setAttribute('d',up?`M${sx},${y} L${ex},${y} M${ex-9},${y-6} L${ex},${y} L${ex-9},${y+6}`:`M${ex},${y} L${sx},${y} M${sx+9},${y-6} L${sx},${y} L${sx+9},${y+6}`);
