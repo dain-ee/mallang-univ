@@ -217,10 +217,11 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 <!-- 6 발전기 -->
 <section class="pane" data-t="⑥ 발전기">
 <div class="card"><span class="step">돌려 봐요</span><h2>자석 사이에서 코일을 빙글빙글</h2>
-<svg id="gen" viewBox="0 0 600 260"></svg>
+<svg id="gen" viewBox="0 0 600 300"></svg>
+<p class="hint" style="text-align:center"><b style="color:#3182f6">파란 점</b> = 자기력선이 코일 구멍을 <b>뚫고 지나가는 자리</b> · 주황 화살표·점 = <b>코일 속 전류 방향</b> (화살표가 클수록 셈) · 코일은 세로 축을 중심으로 돌아요</p>
 <div class="sl"><label>돌리는 빠르기</label><input type="range" min="0" max="3" value="1" step="1" id="gS"><output id="gO">보통</output></div>
 <div class="btns" id="gA"><button class="b" data-ga="0">0°</button><button class="b" data-ga="35">35°</button><button class="b" data-ga="90">90°</button><button class="b" data-ga="145">145°</button><button class="b" data-ga="180">180°</button><button class="b" data-ga="270">270°</button><button class="b p" data-ga="go">다시 돌리기</button></div>
-<p class="hint">코일 한쪽 변을 <b style="color:#03b26c">초록</b>으로 칠했어요. 35°에선 초록 변이 왼쪽, 145°에선 오른쪽에 있어서 코일이 뒤집힌 걸 볼 수 있어요.</p>
+<p class="hint">코일 한쪽 변을 <b style="color:#03b26c">초록</b>으로 칠했어요. 35°에선 초록 변이 <b>앞쪽</b>, 145°에선 <b>뒤쪽</b>에 있어요. 그래도 초록 변의 전류는 둘 다 <b>아래로</b> 흘러요(같은 방향).</p>
 <div class="box" id="gTxt">각도 단추를 누르면 그 자리에 멈춰서, 그때 전류가 어느 방향인지 보여 줘요.</div>
 <table style="margin-top:10px"><tr><th>각도</th><th>통과하는 자기력선 수</th><th>코일의 전류</th></tr>
 <tr><td>0°</td><td>최대 (앞면으로)</td><td><b>0</b></td></tr>
@@ -666,30 +667,53 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
  $('lIn').onclick=()=>{st='in';step=0;draw();};$('lOut').onclick=()=>{st='out';step=0;draw();};$('lStay').onclick=()=>{st='stay';step=0;draw();};$('lStep').onclick=()=>{st='in';step=step>=4?1:step+1;$('lStep').textContent=step>=4?'처음부터 ›':'한 단계씩 ›';draw();};draw();})();
 
 /* 6 generator */
-(function(){const sv=$('gen');const SP=[0,1,2,3.2],LB=['멈춤','느림','보통','빠름'];let th=0,lt=performance.now(),pts=[],hold=null;
- el('rect',{x:30,y:60,width:44,height:120,rx:6,fill:'#f04452'},sv);tx(sv,52,128,'N',{fill:'#fff','font-size':20,'font-weight':800});
- el('rect',{x:226,y:60,width:44,height:120,rx:6,fill:'#3182f6'},sv);tx(sv,248,128,'S',{fill:'#fff','font-size':20,'font-weight':800});
- for(const y of [85,120,155])el('line',{x1:74,y1:y,x2:226,y2:y,stroke:'#3182f6','stroke-width':1.5,'stroke-dasharray':'4 5'},sv);
- const cg=el('g',{},sv);el('rect',{x:110,y:80,width:80,height:80,rx:4,fill:'none',stroke:'#c87f2c','stroke-width':6},cg);el('rect',{x:107,y:80,width:6,height:80,fill:'#03b26c'},cg);const cr=cg;
- const ang=tx(sv,150,40,'',{'font-size':15});const fl=tx(sv,150,212,'',{'font-size':12,fill:'#4e5968','font-weight':400});const cu=tx(sv,150,236,'',{'font-size':13,fill:'#e8590c'});
- el('line',{x1:300,y1:130,x2:590,y2:130,stroke:'#b0b8c1'},sv);el('line',{x1:300,y1:40,x2:300,y2:220,stroke:'#b0b8c1'},sv);
- tx(sv,318,40,'+',{fill:'#8b95a1'});tx(sv,318,222,'-',{fill:'#8b95a1'});tx(sv,310,248,'시간 →',{'font-size':11,fill:'#8b95a1','font-weight':400,'text-anchor':'start'});
+(function(){const sv=$('gen');const SP=[0,1,2,3.2],LB=['멈춤','느림','보통','빠름'];let th=0,lt=performance.now(),pts=[],hold=null,ph=0;
+ const CX=170,CY=140,R=58,H=72;const P=(x,y,z)=>[CX+x-z*0.45,CY-y+z*0.3];
+ const V=[0.45,0.3,1];const dv=(p)=>p[0]*V[0]+p[1]*V[1]+p[2]*V[2];
+ function box3(x0,x1,l,cF,cT,cS){const y0=-72,y1=72,z0=-42,z1=42;const F=[
+  {q:[[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]],c:cF},{q:[[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],c:cT},
+  {q:[[x1,y0,z0],[x1,y1,z0],[x1,y1,z1],[x1,y0,z1]],c:cS},{q:[[x0,y0,z0],[x0,y1,z0],[x0,y1,z1],[x0,y0,z1]],c:cS},
+  {q:[[x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0]],c:cS},{q:[[x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1]],c:cS}];
+  F.sort((a,b)=>dv(a.q.reduce((m,p)=>[m[0]+p[0],m[1]+p[1],m[2]+p[2]],[0,0,0]))-dv(b.q.reduce((m,p)=>[m[0]+p[0],m[1]+p[1],m[2]+p[2]],[0,0,0])));
+  for(const f of F)el('polygon',{points:f.q.map(p=>P(...p).join(',')).join(' '),fill:f.c,stroke:'rgba(0,0,0,.08)','stroke-linejoin':'round'},sv);
+  const [a,b]=P((x0+x1)/2,0,42);tx(sv,a,b+7,l,{fill:'#fff','font-size':22,'font-weight':800});}
+ box3(-146,-118,'N','#f04452','#ff8a94','#c4303d');box3(118,146,'S','#3182f6','#7fb1ff','#1f5fc4');
+ {const [ax,ay]=P(0,-100,0),[bx,by]=P(0,100,0);el('line',{x1:ax,y1:ay,x2:bx,y2:by,stroke:'#8b95a1','stroke-width':1.5,'stroke-dasharray':'3 4'},sv);
+  let d='';for(let i=0;i<=28;i++){const a=i/28*Math.PI*1.6+Math.PI*0.2;const [x,y]=P(Math.cos(a)*24,98,Math.sin(a)*24);d+=(i?' L':'M')+x.toFixed(1)+','+y.toFixed(1);}
+  el('path',{d,fill:'none',stroke:'#4e5968','stroke-width':2},sv);const a2=Math.PI*1.8;const [ex,ey]=P(Math.cos(a2)*24,98,Math.sin(a2)*24),[fx,fy]=P(Math.cos(a2-0.25)*24,98,Math.sin(a2-0.25)*24);
+  const ux=ex-fx,uy=ey-fy,L=Math.hypot(ux,uy)||1;el('path',{d:`M${ex+ux/L*6},${ey+uy/L*6} L${ex-uy/L*5},${ey+ux/L*5} L${ex+uy/L*5},${ey-ux/L*5}z`,fill:'#4e5968'},sv);
+  tx(sv,bx+34,by+4,'회전축',{'font-size':11,fill:'#8b95a1','font-weight':500,'text-anchor':'start'});}
+ const LY=[-45,0,45],LZ=[-40,-20,0,20,40];
+ for(const z of LZ)for(const y of LY){const [a,b]=P(-118,y,z),[c,d]=P(118,y,z);el('line',{x1:a,y1:b,x2:c,y2:d,stroke:'#3182f6','stroke-width':z?1:1.5,'stroke-dasharray':'4 5',opacity:z?.45:1},sv);el('path',{d:`M${c-9},${d-5} L${c-1},${d} L${c-9},${d+5}`,fill:'none',stroke:'#3182f6','stroke-width':1.2,opacity:z?.45:1},sv);}
+ const cg=el('g',{},sv);
+ const ang=tx(sv,CX,26,'',{'font-size':15});const fl=tx(sv,CX,262,'',{'font-size':12,fill:'#4e5968','font-weight':400});const cu=tx(sv,CX,286,'',{'font-size':13,fill:'#e8590c'});
+ el('line',{x1:358,y1:140,x2:592,y2:140,stroke:'#b0b8c1'},sv);el('line',{x1:358,y1:50,x2:358,y2:230,stroke:'#b0b8c1'},sv);
+ tx(sv,372,50,'+',{fill:'#8b95a1'});tx(sv,372,232,'-',{fill:'#8b95a1'});tx(sv,366,258,'시간 →',{'font-size':11,fill:'#8b95a1','font-weight':400,'text-anchor':'start'});
  const wave=el('polyline',{fill:'none',stroke:'#f59f00','stroke-width':3},sv);const dot=el('circle',{r:6,fill:'#f59f00'},sv);
- function info(deg){const c=Math.cos(deg*Math.PI/180),sn=Math.sin(deg*Math.PI/180);const n=Math.round(Math.abs(c)*100);
-  const face=n<3?'':(c>0?' (앞면으로)':' (뒷면으로)');const I=Math.round(Math.abs(sn)*100);
+ function info(deg){const c=Math.cos(deg*Math.PI/180),sn=Math.sin(deg*Math.PI/180);const n=Math.abs(c)<0.02?0:LZ.filter(z=>Math.abs(z/c)<R).length*LY.length;
+  const face=n===0?'':(c>0?' (앞면으로)':' (뒷면으로)');const I=Math.round(Math.abs(sn)*100);
   const dir=I<3?'전류 0':(sn>0?'+ 방향':'− 방향')+' · 세기 '+I+'%';return{n,face,I,dir,sn,c};}
+ function drawCoil(sn,cs){cg.innerHTML='';const t=[-sn,0,cs];
+  const C=(st,y)=>[st*R*t[0],y,st*R*t[2]];const A=C(1,H),B=C(1,-H),Cc=C(-1,-H),D=C(-1,H);
+  const E=[{a:D,b:A,z:0,g:0},{a:A,b:B,z:R*cs,g:1},{a:B,b:Cc,z:0,g:0},{a:Cc,b:D,z:-R*cs,g:0}];
+  const sgn=Math.sign(sn),k=Math.abs(sn);
+  const order=[...E].sort((p,q)=>p.z-q.z);
+  for(const e of order){const [x1,y1]=P(...e.a),[x2,y2]=P(...e.b);el('line',{x1,y1,x2,y2,stroke:e.g?'#08814a':'#94561c','stroke-width':10,'stroke-linecap':'round'},cg);el('line',{x1:x1-1,y1:y1-1.5,x2:x2-1,y2:y2-1.5,stroke:e.g?'#3ddc93':'#e0a25c','stroke-width':4,'stroke-linecap':'round'},cg);}
+  if(Math.abs(cs)>0.02){for(const z of LZ){if(Math.abs(z/cs)>=R)continue;const x=-z*sn/cs;for(const y of LY){const [px,py]=P(x,y,z);el('circle',{cx:px,cy:py,r:5,fill:'#3182f6',stroke:'#fff','stroke-width':1.5},cg);}}}
+  if(k>0.06){for(const e of E){const [x1,y1]=P(...e.a),[x2,y2]=P(...e.b);let dx=(x2-x1)*sgn,dy=(y2-y1)*sgn;const L=Math.hypot(dx,dy);if(L<8)continue;dx/=L;dy/=L;const mx=(x1+x2)/2,my=(y1+y2)/2,sz=7+11*k;
+    el('path',{d:`M${mx+dx*sz},${my+dy*sz} L${mx-dx*sz*.6-dy*sz*.7},${my-dy*sz*.6+dx*sz*.7} L${mx-dx*sz*.6+dy*sz*.7},${my-dy*sz*.6-dx*sz*.7}z`,fill:'#e8590c',stroke:'#fff','stroke-width':1.5},cg);}
+   const pts4=[D,A,B,Cc];for(let q=0;q<8;q++){let u=((ph+q/2)%4+4)%4;const i0=Math.floor(u),f=u-i0,p0=pts4[i0],p1=pts4[(i0+1)%4];const [x,y]=P(p0[0]+(p1[0]-p0[0])*f,p0[1]+(p1[1]-p0[1])*f,p0[2]+(p1[2]-p0[2])*f);el('circle',{cx:x,cy:y,r:4,fill:'#f59f00'},cg);}}}
  $('gA').onclick=(e)=>{const b=e.target.closest('[data-ga]');if(!b)return;if(b.dataset.ga==='go'){hold=null;if(+$('gS').value===0)$('gS').value=1;$('gTxt').innerHTML='돌아가는 중이에요. 각도 단추로 멈춰 보세요.';return;}
   hold=+b.dataset.ga;th=hold*Math.PI/180;const f=info(hold);
-  $('gTxt').innerHTML=`<b>${hold}°</b>: 통과하는 자기력선 수 <b>${f.n}%</b>${f.face} → 코일의 전류 <b>${f.dir}</b>`+(hold===90?'<br>코일이 옆으로 서서 통과하는 선은 0이지만, 이때 수가 <b>가장 빨리</b> 바뀌어서 전류가 가장 세요.':hold===0||hold===180?'<br>통과하는 선은 최대지만 이 순간엔 수가 거의 안 바뀌어서 전류가 0이에요. 여기서 전류 방향이 뒤집혀요.':hold===145?'<br>35°와 방향도 세기도 같아요(90°를 기준으로 대칭).':'');};
- function loop(now){const dt=(now-lt)/1000;lt=now;const w=SP[+$('gS').value];$('gO').textContent=LB[+$('gS').value];
+  $('gTxt').innerHTML=`<b>${hold}°</b>: 통과하는 자기력선 <b>${f.n}개</b>/15${f.face} → 코일의 전류 <b>${f.dir}</b>`+(f.I>=3?`<br>초록 변에서 전류가 <b>${f.sn>0?'아래로':'위로'}</b> 흘러요.`:'')+(hold===90||hold===270?'<br>코일 면이 자기력선과 나란해서 선이 면을 스쳐 지나갈 뿐 구멍을 뚫지 않아요(0개). 그런데, 이때 수가 <b>가장 빨리</b> 바뀌어서 전류가 가장 세요.':hold===0||hold===180?'<br>코일 면이 자석을 정면으로 봐서 통과하는 선은 최대지만, 이 순간엔 수가 거의 안 바뀌어서 전류가 0이에요. 여기서 전류 방향이 뒤집혀요.':hold===145?'<br>35°와 방향도 세기도 같아요(90°를 기준으로 대칭).':'');};
+ function loop(now){const dt=Math.min(.05,(now-lt)/1000);lt=now;const w=SP[+$('gS').value];$('gO').textContent=LB[+$('gS').value];
   if(hold===null)th+=w*dt*2;
-  const c=Math.cos(th);cr.setAttribute('transform',`translate(150,0) scale(${Math.abs(c)<.04?.04*Math.sign(c||1):c},1) translate(-150,0)`);
+  const sn=Math.sin(th),cs=Math.cos(th);const ww=hold!==null?SP[2]:w;ph+=dt*sn*ww*0.9;drawCoil((w||hold!==null)?sn:0,cs);
   const deg=Math.round(((th*180/Math.PI)%360+360)%360);const f=info(deg);ang.textContent='각도 '+deg+'°';
-  const ww=hold!==null?SP[2]:w;const I=Math.sin(th)*ww*24;
-  if(hold===null){pts.push(I);if(pts.length>145)pts.shift();wave.setAttribute('points',pts.map((v,i)=>`${300+i*2},${130-v}`).join(' '));dot.setAttribute('cx',300+(pts.length-1)*2);}
-  else dot.setAttribute('cx',300+Math.max(0,pts.length-1)*2);
-  dot.setAttribute('cy',130-I);
-  fl.textContent=(w||hold!==null)?`통과하는 자기력선 수 ${f.n}%${f.face}`:'안 돌면 변화 없음';cu.textContent=(w||hold!==null)?f.dir:'전류 0';requestAnimationFrame(loop);}
+  const I=sn*ww*22;
+  if(hold===null){pts.push(I);if(pts.length>115)pts.shift();wave.setAttribute('points',pts.map((v,i)=>`${358+i*2},${140-v}`).join(' '));}
+  dot.setAttribute('cx',358+Math.max(0,pts.length-1)*2);dot.setAttribute('cy',140-I);
+  fl.textContent=(w||hold!==null)?`코일 구멍을 통과하는 선(파란 점) ${f.n}개${f.face}`:'안 돌면 변화 없음';cu.textContent=(w||hold!==null)?f.dir:'전류 0';requestAnimationFrame(loop);}
  requestAnimationFrame(loop);})();
 
 /* 7 plants */
