@@ -397,7 +397,7 @@ function buildWeb(sv,mid){const d=el('defs',{},sv);for(const [k,c] of [['a','#ad
   const c=el('circle',{cx:x,cy:y,r:32,fill:'#fff',stroke:n==='풀'?'#03b26c':'#f59f00','stroke-width':3,style:'transition:stroke .6s,fill .6s'},g);tx(g,x,y+12,e,{'font-size':32});
   tx(g,lx,ly,n,{'font-size':16,'text-anchor':an});const bd=el('g',{opacity:0,style:'transition:opacity .8s'},sv);N[n]={g,c,bd,x,y};}
  return{E,N,mid};}
-function badge(w,n,s,col){const o=w.N[n];o.bd.innerHTML='';const off={풀:[-118,8],뱀:[-108,-50]}[n]||[18,-46];const bx=o.x+off[0],by=o.y+off[1];const wd=s.length*13+18;el('rect',{x:bx,y:by,width:wd,height:24,rx:8,fill:col},o.bd);tx(o.bd,bx+wd/2,by+17,s,{fill:'#fff','font-size':13});o.bd.setAttribute('opacity',1);}
+function badge(w,n,s,col){const o=w.N[n];o.bd.innerHTML='';const off={풀:[-118,8],뱀:[-108,-50],개구리:[-60,-62]}[n]||[18,-46];const bx=o.x+off[0],by=o.y+off[1];const wd=s.length*13+18;el('rect',{x:bx,y:by,width:wd,height:24,rx:8,fill:col},o.bd);tx(o.bd,bx+wd/2,by+17,s,{fill:'#fff','font-size':13});o.bd.setAttribute('opacity',1);}
 
 /* 3-1 없애기 */
 (function(){const sv=$('fw');const w=buildWeb(sv,'fa');
@@ -430,19 +430,19 @@ function badge(w,n,s,col){const o=w.N[n];o.bd.innerHTML='';const off={풀:[-118,
   [...c.children].forEach((e,i)=>setTimeout(()=>e.classList.add('in'),200+i*450));$('fw2Txt').innerHTML=t;});})();
 
 /* 3-3 에너지 단계 */
-(function(){const sv=$('en');const st=el('style',{},sv);st.textContent='.ht{animation:ht 3.5s ease-out forwards}@keyframes ht{from{opacity:0;transform:translate(0,0)}25%{opacity:1}to{opacity:0;transform:translate(-40px,-26px)}}';
+(function(){const sv=$('en');const st=el('style',{},sv);st.textContent='.ht{animation:ht 3s ease-out infinite}@keyframes ht{from{opacity:0;transform:translate(0,0)}25%{opacity:1}to{opacity:0;transform:translate(-40px,-26px)}}';
  const Lv=[['생산자','100','#03b26c',380],['1차 소비자','10','#f59f00',270],['2차 소비자','1','#f08c00',170],['3차 소비자','0.1','#e8590c',90]];
  const cx=250,H=56,base=318;tx(sv,cx,30,'☀️',{'font-size':30});const sunT=tx(sv,cx+60,26,'빛에너지',{'font-size':14,fill:'#e67700','text-anchor':'start'});
  const ly=Lv.map(([n,v,c,wd],i)=>{const y=base-(i+1)*H;const g=el('g',{class:'fade',opacity:.15},sv);el('rect',{x:cx-wd/2,y,width:wd,height:H-6,rx:8,fill:c},g);
   tx(g,cx,y+33,n,{fill:'#fff','font-size':15});tx(g,cx+wd/2+12,y+33,v,{'font-size':20,'font-weight':800,'text-anchor':'start',fill:'#191f28'});return{g,y,wd};});
- const heat=el('g',{},sv);const pk=el('circle',{cx,cy:0,r:16,fill:'#fcc419',stroke:'#e67700','stroke-width':2,style:'transition:transform 3s ease-in-out,r 3s',opacity:0},sv);
+ const heat=el('g',{},sv);const pk=el('circle',{cx:0,cy:0,r:16,fill:'#fcc419',stroke:'#e67700','stroke-width':2,style:'transform:translate(250px,30px);transition:transform 3s ease-in-out',opacity:0},sv);
  const T=['<b>햇빛의 빛에너지</b>가 들어와요. <b>생산자</b>가 광합성으로 유기물 속 <b>화학 에너지</b>로 바꿔요. 이 양을 <b>100</b>이라 해요.',
   '<b>1차 소비자</b>가 생산자를 먹어요. 그런데 생산자가 자기 생명활동에 쓰고 <b>열</b>로 나간 몫은 못 받아요 → <b>10</b>만 올라가요.',
   '<b>2차 소비자</b>에게는 <b>1</b>만 가요. 1차 소비자도 생명활동에 쓰고 열이 나갔어요.',
   '<b>3차 소비자</b>에게는 <b>0.1</b>. 생산자가 가진 에너지의 <b>0.1 %</b>예요.',
   '그래서 위로 갈수록 좁은 <b>피라미드</b> 모양. 위로 갈 에너지가 모자라서 영양 단계가 <b>5단계를 넘는 경우는 매우 드물어요.</b>'];
  stepper('en',5,(s)=>{const k=Math.min(s,3);ly.forEach((o,i)=>o.g.setAttribute('opacity',i<=k?1:.15));
-  pk.setAttribute('opacity',s<4?1:0);const y=ly[k].y+(H-6)/2;pk.style.transform=`translateY(${y}px)`;pk.setAttribute('r',[16,11,7,4][k]);
+  pk.setAttribute('opacity',s<4?1:0);const y=ly[k].y+(H-6)/2;pk.style.transform=`translate(${cx+ly[k].wd/2-26}px,${y}px)`;pk.setAttribute('r',[16,11,7,4][k]);
   heat.innerHTML='';if(s>=1&&s<=3){const o=ly[s-1];for(let j=0;j<3;j++){const t=tx(heat,cx-o.wd/2-14,o.y+30,'열',{'font-size':15,fill:'#f04452','text-anchor':'end',class:'ht',style:`animation-delay:${.6+j*.8}s;opacity:0`});}}
   $('enTxt').innerHTML=T[s];});})();
 

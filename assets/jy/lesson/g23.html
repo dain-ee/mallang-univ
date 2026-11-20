@@ -315,7 +315,7 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
   el('path',{d:'M265,120 L265,170 L200,284 Q196,292 206,292 L394,292 Q404,292 400,284 L335,170 L335,120',fill:'none',stroke:'#8b95a1','stroke-width':3},sv);
   tx(sv,226,280,'물',{'font-size':15,fill:'#1c7ed6'});tx(sv,140,70,'질산 암모늄',{'font-size':15,fill:'#4e5968'});
   const ps=dots(sv,[[256,60],[270,54],[282,64],[264,72],[276,78]],{r:5,fill:'#fff',stroke:'#868e96',t:1.5});
-  const h=heat(sv,268,256,'in',18,66,[-175,-140,-100,-60],HOT);
+  const h=heat(sv,268,258,'in',18,54,[-175,-140,-100,-60],HOT);
   const T=thermo(sv,322,60,262);T(.55,false);const r=right('온도 ↓',COLD);
   return[{t:'준비: 삼각 플라스크에 물',d:'흰 알갱이 <b>질산 암모늄</b>을 넣어 녹여 볼게요.'},
    {t:'질산 암모늄을 넣어요',d:'알갱이가 물속으로 내려가 <b>녹기 시작</b>해요.',ms:1800,f(){const tg=[[254,262],[268,270],[280,258],[262,250],[274,246]];ps.forEach((p,i)=>moveTo(p,...tg[i]));}},
@@ -368,7 +368,7 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
   const up=P.map((_,i)=>[150+((i*53)%300),110+((i*37)%80)]);const cg=P.map((_,i)=>[372+(i%4)*22,64+Math.floor(i/4)*12]);
   return[{t:'바닷물이 있어요',d:'파란 점은 물 입자예요. 지금은 바닷물(액체) 속에 있어요.'},
    {t:'열을 흡수해 증발해요',d:'바닷물이 열에너지를 <b class="wi">흡수</b>하면 <b>수증기</b>(기체)가 되어 하늘로 올라가요.',ms:3600,f(){on(hin);on(vl);ps.forEach((p,i)=>moveTo(p,...up[i]));}},
-   {t:'열을 방출해 응결해요',d:'높이 올라간 수증기가 열에너지를 <b class="wo">방출</b>하면 작은 물방울로 <b>응결</b>해 <b>구름</b>이 돼요.',ms:3600,f(){on(hin,0);on(vl,0);on(cl);on(hout);ps.forEach((p,i)=>{moveTo(p,...cg[i]);p.style.opacity=.6;});}}];});})();
+   {t:'열을 방출해 응결해요',d:'높이 올라간 수증기가 열에너지를 <b class="wo">방출</b>하면 작은 물방울로 <b>응결</b>해 <b>구름</b>이 돼요.',ms:3600,f(){on(hin,0);on(vl,0);on(cl);on(hout);ps.forEach((p,i)=>moveTo(p,...cg[i]));later(()=>ps.forEach(p=>p.style.opacity=0),2900);}}];});})();
 
 /* 2-3 광합성 · 호흡 */
 (function(){const sv=$('ps');
@@ -393,10 +393,10 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
   el('path',{d:'M200,60 L210,222 Q211,230 219,230 L381,230 Q389,230 390,222 L400,60',fill:'none',stroke:'#8b95a1','stroke-width':3},sv);
   el('rect',{x:270,y:72,width:44,height:146,rx:8,fill:'#63e6be',stroke:'#20c997','stroke-width':2},sv);tx(sv,292,150,'음료',{'font-size':14,fill:'#fff'});
   [[222,104,10],[330,116,-12],[226,160,6]].forEach(([x,y,a])=>el('rect',{x,y,width:34,height:34,rx:5,fill:'#f1f9ff',stroke:'#a5d8ff','stroke-width':2,transform:`rotate(${a} ${x+17} ${y+17})`},sv));
-  tx(sv,120,140,'얼음물',{'font-size':16,fill:'#1c7ed6'});
+  tx(sv,120,120,'얼음물',{'font-size':16,fill:'#1c7ed6'});
   T=thermo(sv,372,24,206);T(.3,false);
   ps=dots(sv,[[236,24],[250,30],[244,40],[330,26],[344,34]],{r:4,fill:'#fff',stroke:'#495057',t:1.4});ps.forEach(p=>p.style.opacity=0);
-  h=heat(sv,292,180,'in',30,70,[160,20,200,-20],HOT);r=tx(sv,500,140,'',{'font-size':20,fill:COLD});}
+  h=el('g',{style:'opacity:0;transition:opacity .9s'},sv);arrow(h,268,170,246,196,HOT);arrow(h,316,170,336,194,HOT);arrow(h,232,150,240,188,HOT);arrow(h,346,150,344,186,HOT);tx(h,140,200,'음료·물의 열',{'font-size':14,fill:HOT});tx(h,140,218,'→ 소금 쪽으로',{'font-size':14,fill:HOT});r=tx(sv,500,140,'',{'font-size':20,fill:COLD});}
  function go(){if(busy)return;busy=true;$('swGo').disabled=true;build();ps.forEach(p=>p.style.opacity=1);
   later(()=>{const tg=[[238,210],[252,214],[246,200],[332,212],[346,206]];ps.forEach((p,i)=>moveTo(p,...tg[i]));},60);
   later(()=>{on(h);T(.1);ps.forEach(p=>p.style.opacity=.3);say('swT','소금이 물에 녹으면서 둘레(물·음료)의 <b>열을 빼앗아요</b>.');},1500);

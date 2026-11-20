@@ -59,12 +59,12 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.three .box{margin:0;padding:12px 10px}.three .box>b{display:block;font-size:16px}.three span{font-size:13px;color:var(--t2);line-height:1.5;display:block;margin-top:4px}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-<marker id="mY" markerWidth="4" markerHeight="4" refX="2" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4z" fill="#f59f00"/></marker>
-<marker id="mR" markerWidth="4" markerHeight="4" refX="2" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4z" fill="#f04452"/></marker>
-<marker id="mO" markerWidth="4" markerHeight="4" refX="2" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4z" fill="#f76707"/></marker>
-<marker id="mB" markerWidth="4" markerHeight="4" refX="2" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4z" fill="#3182f6"/></marker>
-<marker id="mG" markerWidth="4" markerHeight="4" refX="2" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4z" fill="#6b7684"/></marker>
-<marker id="mP" markerWidth="4" markerHeight="4" refX="2" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4z" fill="#ae3ec9"/></marker>
+<marker id="mY" viewBox="0 0 4 4" markerWidth="2.8" markerHeight="2.8" refX="2" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4z" fill="#f59f00"/></marker>
+<marker id="mR" viewBox="0 0 4 4" markerWidth="2.8" markerHeight="2.8" refX="2" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4z" fill="#f04452"/></marker>
+<marker id="mO" viewBox="0 0 4 4" markerWidth="2.8" markerHeight="2.8" refX="2" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4z" fill="#f76707"/></marker>
+<marker id="mB" viewBox="0 0 4 4" markerWidth="2.8" markerHeight="2.8" refX="2" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4z" fill="#3182f6"/></marker>
+<marker id="mG" viewBox="0 0 4 4" markerWidth="2.8" markerHeight="2.8" refX="2" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4z" fill="#6b7684"/></marker>
+<marker id="mP" viewBox="0 0 4 4" markerWidth="2.8" markerHeight="2.8" refX="2" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4z" fill="#ae3ec9"/></marker>
 </defs></svg>
 <nav class="tabs" id="tabs"></nav>
 <main id="main">
@@ -354,7 +354,7 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
 
 /* 1-4 지구 열수지 */
 (function(){const sv=$('hb');let g=0,ice=0;el('rect',{width:600,height:370,fill:'#fff'},sv);
- el('rect',{x:0,y:0,width:600,height:60,fill:'#1b2a4a'},sv);tx(sv,300,37,'우주',{fill:'#fff','font-size':16});
+ el('rect',{x:0,y:0,width:600,height:60,fill:'#1b2a4a'},sv);tx(sv,585,37,'우주',{fill:'#fff','font-size':16,'text-anchor':'end'});tx(sv,326,37,'← 태양 복사',{fill:'#ffd43b','font-size':14,'text-anchor':'end'});tx(sv,354,37,'지구 복사 →',{fill:'#ffa8a8','font-size':14,'text-anchor':'start'});
  el('rect',{x:0,y:110,width:600,height:110,fill:'#eaf4ff'},sv);tx(sv,300,170,'대기',{fill:'#1971c2','font-size':16});
  el('rect',{x:0,y:290,width:600,height:80,fill:'#d6c2a3'},sv);tx(sv,300,340,'지표',{fill:'#5c4a33','font-size':16});
  const iceR=el('rect',{x:70,y:290,width:110,height:14,rx:3,fill:'#fff',stroke:'#a5d8ff','stroke-width':1.5,style:'transition:width 1.2s,x 1.2s'},sv);
@@ -367,17 +367,14 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
  txh(sv,125,330,'지표 반사',{'font-size':13,fill:'#e67700'});
  txh(sv,190,206,'대기 흡수',{'font-size':13,fill:'#e67700'});
  txh(sv,248,262,'A',{'font-size':22,fill:'#e67700','font-weight':800,'text-anchor':'start'});
- tx(sv,130,88,'태양 복사',{'font-size':14,fill:'#e67700'});
  const e2=P('M340,288 L340,8','#f04452','mR',3);
  const e1=P('M385,288 L385,150','#f04452','mR',8);
  const e3=P('M460,150 L460,8','#ae3ec9','mP',7);
  const B=P('M535,165 L535,284','#ae3ec9','mP',8);
- txh(sv,340,92,'우주로',{'font-size':13,fill:'#f04452'});
+ txh(sv,332,92,'우주로',{'font-size':13,fill:'#f04452','text-anchor':'end'});
  txh(sv,398,262,'지표 방출',{'font-size':13,fill:'#f04452','text-anchor':'start'});
- txh(sv,460,92,'대기 방출',{'font-size':13,fill:'#ae3ec9'});
+ txh(sv,470,92,'대기 방출',{'font-size':13,fill:'#ae3ec9','text-anchor':'start'});
  txh(sv,550,250,'B',{'font-size':22,fill:'#ae3ec9','font-weight':800,'text-anchor':'start'});
- tx(sv,470,88,'',{});tx(sv,470,240,'',{});
- tx(sv,470,82,'지구 복사',{'font-size':14,fill:'#f04452'}).setAttribute('x',400);
  function draw(){e1.style.strokeWidth=g?13:8;B.style.strokeWidth=g?13:8;e2.style.strokeWidth=g?2:3;rG.style.strokeWidth=ice?2:5;
   iceR.setAttribute('width',ice?40:110);iceR.setAttribute('x',ice?105:70);
   let t=[];t.push(g?'온실 기체가 늘면 대기가 지구 복사를 <b>더 많이 흡수</b>하고, 지표로 <b>더 많이 재방출(B ↑)</b>해요. 그래서 지표도 더 데워져 <b>지표 방출도 커져요</b>.':'보통일 때. 왼쪽 노랑 = 태양 복사, 오른쪽 빨강·보라 = 지구 복사예요. <b>B</b> = 대기가 지표로 내려보내는 에너지.');
