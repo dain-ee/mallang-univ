@@ -2566,7 +2566,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611200932', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611202355', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5400,7 +5400,11 @@
   const GD_CM = `<ol class="r2s-rules" style="margin-top:12px"><li style="--i:0"><span class="r2s-rn">1</span><div><b>바람이 미는 쪽으로 흘러요</b><span>적도~30°는 무역풍(동 → 서), 30°~60°는 편서풍(서 → 동), 60° 넘는 극 쪽은 극동풍(동 → 서)이에요</span><span>지도에 빠져 있던 극동풍도 넣었어요</span></div></li><li style="--i:1"><span class="r2s-rn">2</span><div><b>바다마다 큰 고리를 그려요</b><span>북반구는 시계 방향, 남반구는 시계 반대 방향으로 돌아요</span></div></li><li style="--i:2"><span class="r2s-rn">3</span><div><b>서한동난: 대륙 서쪽은 한류, 동쪽은 난류</b><span>적도에서 극으로 올라가면 따뜻한 난류(빨강), 극에서 적도로 내려오면 차가운 한류(파랑)예요</span><span>쿠로시오(동쪽 바다 → 난류), 캘리포니아(서쪽 바다 → 한류)처럼 붙여 외워요</span></div></li></ol>`;
   // 11/16 «왜 질문이 질문으로 바로 안 나오냐 · 바로바로 넣어야지 그 로직이 있었어야지» → 정윤이 물어본 것은 여기 한 줄만 넣으면 질문 탭에 쌓이고, 7일 동안 배너로도 떠요(gdQ)
   const GD_OR = `<ol class="r2s-rules" style="margin-top:12px"><li style="--i:0"><span class="r2s-rn">1</span><div><b>지문은 이제 교과서 원문 그대로예요</b><span>「춘향전」·「유자소전」·판소리계 소설·한글 맞춤법 글에서 일부러 한 군데 바꿔 싣던 문제 11개를 원문으로 되돌렸어요</span></div></li><li style="--i:1"><span class="r2s-rn">2</span><div><b>정답은 원문과 같은 선지예요</b><span>예전엔 바뀐 지문에 맞는 선지가 정답이었는데, 이제는 원문 그대로인 선지가 정답이에요. 원문을 외운 만큼 바로 맞힐 수 있어요</span></div></li><li style="--i:2"><span class="r2s-rn">3</span><div><b>함정은 선지 쪽에만 있어요</b><span>예방↔승발, 강정↔송편, 팔십만↔칠십만처럼 원문 한 군데만 바꾼 선지를 걸러 내면 돼요</span></div></li></ol>`;
+  // 11/20 정윤 «한국 독립당이 우파인가? · 한국 민주당 토지 개혁 방식이 왜 재정 파탄? · 요즘 정치랑 다른데 좌우를 뭘로 나눠? · 김구는 왜 우익?»
+  const GD_LR = `<ol class="r2s-rules"><li style="--i:0"><span class="r2s-rn">1</span><div><b>그때 좌우는 「어떤 나라를 세울지」로 나눠요</b><span><b>좌익</b> = 사회주의·공산주의. 땅과 공장을 모두의 것으로, 친일 지주 땅은 빼앗아 농민에게 (무상 몰수·무상 분배). 소련 쪽 · 예) 조선 공산당, 박헌영</span><span><b>우익</b> = 자본주의·자유 민주주의. 개인 재산 인정, 땅도 돈 주고 사고팔기 (유상). 미국 쪽 · 예) 한국 민주당, 이승만, 김구</span><span><b>중도</b> = 둘을 합치자 · 여운형, 김규식 (좌우 합작 운동)</span><span>요즘 좌우는 같은 민주주의 안에서 정책 차이지만, 그때는 나라 체제 자체가 달랐어요</span></div></li><li style="--i:1"><span class="r2s-rn">2</span><div><b>한국 독립당 = 우익 (김구)</b><span>공산주의에 반대(반공)하고 민족주의 국가를 원했어요. 임시 정부를 이끌었고, 신탁 통치 반대(반탁)에 앞장섰어요</span><span>1948년 남북 협상은 좌익이 돼서가 아니라, 남한만 정부를 세우면 영원히 갈라진다고 봐서 <b>통일 정부</b>를 원했기 때문이에요</span><span>→ 생각은 우익, 방법은 단독 정부 반대 · 이승만(단독 정부)과 갈려요</span></div></li><li style="--i:2"><span class="r2s-rn">3</span><div><b>한국 민주당(한민당) = 우익 · 지주와 자본가</b><span>송진우, 김성수가 중심이고 이승만을 지지했어요</span><span>좌우 합작 7원칙의 토지 개혁은 <b>유상 매수(조건부 몰수)·무상 분배</b> → 나라가 지주에게 돈을 주고 사서 농민에게는 공짜로 줘요. 돈이 나가기만 해서 「재정 파탄」이라며 한민당이 반대했어요</span></div></li></ol>
+  <div class="ls-box" style="margin-top:12px"><b>토지 개혁 한 줄로</b><p>· 좌익(북한): 무상 몰수·무상 분배</p><p>· 좌우 합작 7원칙: 유상 매수(조건부 몰수)·무상 분배 → 한민당 반대(재정 파탄)</p><p>· 남한 농지 개혁(1949): 유상 매수·유상 분배</p></div>`;
   const QNA = U.who === '정윤' ? [
+    { id: 'lr', sj: 'hist', date: '2026-11-20', t: '그때 좌익·우익은 뭘로 나눠요? 한국 독립당·한국 민주당은요?', sub: '한국사 · 광복 직후 좌우 세력', html: GD_LR, links: [] },
     { id: 'tmp', date: '2026-11-18', t: '멈추기 하면 시간이 안 멈춰', sub: '시간 재기 · 멈추기', html: '<p>숙제 화면 안에서 멈추기를 누르면, 화면이 다시 그려질 때 저절로 다시 켜지고 있었어요. 이제 직접 멈춘 건 「이어 하기」를 누를 때까지 멈춰 있어요.</p>', links: [] },
     { id: 'hcw', date: '2026-11-18', t: '한국사에서 냉전 체제 부분은 범위 아니야', sub: '한국사 · 66~67쪽 빼기', html: '<p>66~67쪽 「냉전 체제의 형성」 문제를 2회독·3회독·마지막 모의 시험에서 다 뺐어요. 2회독 첫 덩어리는 이제 「광복과 국토의 분단 (68~69쪽)」만 나와요.</p><p>114쪽 「냉전의 해체」는 다른 단원이라 그대로 있어요.</p>', links: [] },
     { id: 'bny', date: '2026-11-18', t: '역사 백지 노트를 연도 위주로 해 줘', sub: '한국사 백지 노트 · 연도 빈칸', html: '<p>이제 빈칸 쓰기에서 카드마다 <b>연도(와 달)</b>를 먼저 써요. 「1946. 3.」, 「1946년 3월」, 「1946」 모두 맞아요. 숫자는 한 글자만 달라도 틀려요.</p><p>낱말 빈칸은 카드마다 하나만 남겨서 양은 늘지 않았어요.</p>', links: [] },
@@ -5435,6 +5439,43 @@
     render(); window.scrollTo(0, 0);
   }
   const qnaBack = () => { const f = UI.qnaFrom; return f && UI.run && ((UI.run.kind === 'fin' && UI.run.cid === f.cid) || (UI.run.kind === 'unit' && UI.run.back === 'qna')) ? f.id : null; };
+  // 11/20 선생님 «정윤이도 공부 탭, 과목마다 다시 볼 수 있게 · 숙제 했던 거 다시 찾기 어려워 · 요약·개념 설명 파트» → 과목 고르기 → 개념 설명(질문 탭 것) · 단원별 개념 정리(1회독) · 푼 회독 다시 보기
+  const JY_STUDY = U.who === '정윤' && !TUTOR && FIN_ON;
+  const JY_SJ = [['hist', '한국사', 'scroll', ['hist', 'hist3'], '한국사'], ['soc', '통합사회', 'books', ['soc', 'soc3'], '사회'], ['kor', '국어', 'books', ['kor', 'kor3'], '국어'], ['sci', '통합과학', 'sci', ['sci', 'sci2', 'sci3'], '과학'], ['eng', '영어', 'eng', [], '영어']];
+  function jyStudyView() {
+    const sj = JY_SJ.find((x) => x[0] === UI.jyS) || JY_SJ[0], [k, nm, icn, rs, tm] = sj;
+    const row = (go, t, d, done, i, tag) => `<div class="li btnlike" data-jygo="${esc(go)}" style="--k:${i}"><div class="ico">${ic(done ? 'ok' : icn)}</div><div class="body"><div class="t">${esc(t)}</div><div class="d">${d}</div></div><span class="tag">${tag || (done ? '다시 보기' : '보기')}</span></div>`;
+    const QSJ = { cm: 'sci', vc: 'eng', if: 'eng', ec: 'eng', wh: 'eng' }, Q = QNA.filter((q) => (q.sj || QSJ[q.id]) === k);  // 개념을 물어본 것만 (앱 고친 일·숙제 조정은 빼요). 새 질문은 sj 를 달아요
+    const qa = Q.length ? `<section class="card c12"><div class="card-h"><h2>${ic('think')} 개념 설명</h2><span class="tiny">물어본 것 정리 · ${Q.length}개</span></div><div class="list">${Q.map((q, i) => `<div class="li btnlike" data-jyqna="${q.id}" style="--k:${i}"><div class="ico">${ic('think')}</div><div class="body"><div class="t">${esc(q.t)}</div><div class="d">${md(q.date)} · ${esc(q.sub)}</div></div><span class="tag">보기</span></div>`).join('')}</div></section>` : '';
+    const F = FIN.find((f) => f.subj === k), units = F ? (F.units || []) : [];
+    const C = FIN_ALL.filter((c) => c.subj === k && !(k === 'hist' && c.title === '냉전 체제의 형성'));  // 11/18 정윤 «냉전 체제는 범위 아니야»
+    const con = C.length ? `<section class="card c12"><div class="card-h"><h2>${ic('books')} ${k === 'eng' ? '올림포스 지문' : '단원별 개념 정리'}</h2><span class="tiny">${k === 'eng' ? '지문 · 해석 · 문장 분석' : '요약 · 꼭 외울 것 · 헷갈리는 것'} · ${C.filter(finDone).length}/${C.length} 읽음</span></div>${(units.length ? units : [{ id: null, title: '' }]).map((u) => { const L = C.filter((c) => !u.id || c.unit === u.id); return L.length ? `${u.title ? `<p class="eyebrow" style="margin:14px 0 4px">${esc(u.title)}</p>` : ''}<div class="list">${L.map((c, i) => row('fincid:' + c.id, c.title, `${c.pages ? esc(c.pages) + '쪽 · ' : ''}${finDone(c) ? '1회독 끝 · 눌러서 정리 다시 보기' : '아직 1회독 전'}`, finDone(c), i)).join('')}</div>` : ''; }).join('')}</section>` : '';
+    const lab = { sci: '1회독', sci2: '2회독', sci3: '3회독' };
+    const SG = k === 'sci' ? R2S.filter((x) => x.sj === 'sci' && x.day <= today()) : [];  // 통합과학은 1회독 덩어리가 곧 개념 정리예요 (오늘까지 나온 것)
+    const sciCon = SG.length ? `<section class="card c12"><div class="card-h"><h2>${ic('sci')} 개념 정리</h2><span class="tiny">1회독 덩어리 · ${SG.filter(r2sDone).length}/${SG.length} 읽음</span></div><div class="list">${SG.map((x, i) => row('r2s:' + x.id, x.x.title, r2sDone(x) ? '1회독 끝 · 눌러서 다시 보기' : `${md(x.day)} 몫 · 아직 안 했어요`, r2sDone(x), i)).join('')}</div></section>` : '';
+    let H = [];
+    if (k === 'eng') H = [...R2.map((x) => ['r2:' + x.id, `2회독 · ${r2Short(x)}`, x.day, r2DoneDay(x)]), ...R3.map((x) => ['r3:' + x.id, `3회독 · ${r2Short(x)}`, x.day, r3DoneDay(x)]), ...R3M.map((z) => ['r3m:' + z.id, `모고 ${z.no}회`, z.day, (mkGet(z.id).fin || {}).at ? atDay(mkGet(z.id).fin.at) : null])];
+    else H = [...R2S.filter((x) => rs.includes(x.sj)).map((x) => ['r2s:' + x.id, `${k === 'sci' ? lab[x.sj] || r2sLab(x) : r2sLab(x)} · ${x.x.title}`, x.day, r2sDoneDay(x)]), ...(k === 'hist' ? BN.filter((x) => x.sj !== 'perf').map((x) => ['bn:' + x.id, `백지 노트 · ${x.x.title}`, x.day, bnDoneDay(x)]) : [])];
+    const t = today(), done = H.filter((h) => h[3]).sort((a, b) => (b[3] > a[3] ? 1 : b[3] < a[3] ? -1 : 0)), next = H.filter((h) => !h[3] && h[2] > t).length;
+    const hw = `<section class="card c12"><div class="card-h"><h2>${ic('hw')} 푼 숙제 다시 보기</h2><span class="tiny">최근에 푼 것부터 · ${done.length}개</span></div>${done.length ? `<div class="list">${done.map((h, i) => row(h[0], h[1], `${md(h[3])}에 풀었어요 · 눌러서 다시 보기`, 1, i)).join('')}</div>` : `<div class="empty" style="padding:12px 0"><b>아직 푼 회독이 없어요</b><span>숙제를 풀면 여기에 차곡차곡 모여요</span></div>`}${next ? `<p class="tiny" style="margin:10px 0 0">앞으로 할 회독 ${next}개는 그날 숙제에 나와요</p>` : ''}</section>`;
+    const seg = `<div class="seg jy-seg" style="margin:0 0 16px">${JY_SJ.map((x) => `<button type="button" class="${x[0] === k ? 'on' : ''}" data-jys="${x[0]}">${x[1]}</button>`).join('')}</div>`;
+    return `<h1 class="h1">공부</h1><p class="sub">과목마다 개념 설명, 정리, 푼 숙제를 다시 봐요</p>${seg}<div class="grid jy-grid">${qa}${con}${sciCon}${hw}</div>`;
+  }
+  // 개념 다시 보기: 결과 카드 말고 정리부터 (한 판 정리 · 헷갈리는 것 · 교과서 풀이) · 문제는 아래 단추로
+  function jycRun() {
+    const c = FIN_ALL.find((x) => x.id === UI.run.cid); if (!c) return '';
+    return `<div class="qwrap" style="max-width:820px;margin:0 auto"><div class="row between"><button class="btn sm" data-jyback type="button">‹ 공부</button><span class="tiny">${esc(c.sname)} · ${esc(c.pages || '')}쪽</span></div>
+      <p class="eyebrow" style="margin:16px 0 4px">${ic(c.subj === 'hist' ? 'scroll' : 'books')} ${esc(c.sname)} 개념 정리</p><h1 class="h1" style="margin:0 0 16px">${esc(c.title)}</h1>
+      ${finSumHtml(c)}${c.trap ? `<div class="ls-box warn" style="margin-top:12px"><b>시험에서 헷갈리는 것</b><p>${rich(c.trap)}</p></div>` : ''}
+      ${c.sum && (c.read || []).length ? `<details class="hw-more" style="margin-top:12px"><summary><b>교과서 풀이 다시 읽기</b></summary>${finRead(c)}</details>` : ''}
+      <div class="cta-bar"><button class="btn primary big block" data-jygo="fincid:${esc(c.id)}" type="button">${finDone(c) ? '이 개념 문제 다시 보기 ›' : '1회독 하러 가기 ›'}</button></div></div>`;
+  }
+  function bindJyStudy() {
+    $$('[data-jys]').forEach((b) => (b.onclick = () => { UI.jyS = b.dataset.jys; render(); }));
+    $$('[data-jygo]').forEach((b) => (b.onclick = () => { const g = b.dataset.jygo, c = g.startsWith('fincid:') && FIN_ALL.find((x) => x.id === g.slice(7)); if (c && c.subj !== 'eng' && !(UI.run && UI.run.kind === 'jyc')) { UI.run = { kind: 'jyc', cid: c.id }; render(); window.scrollTo(0, 0); return; } UI.jyBack = 1; dayGo(g); }));
+    $$('[data-jyback]').forEach((b) => (b.onclick = () => { UI.run = null; UI.tab = 'study'; render(); window.scrollTo(0, 0); }));
+    $$('[data-jyqna]').forEach((b) => (b.onclick = () => { qnaOpen(b.dataset.jyqna); UI.jyBack = 1; }));
+  }
   const GD = {
     // 11/16 선생님 «국어 4단원 나 몰라, 윤건이가 그런지 아닌지 배너에서 맞다 아니다 선택할 수 있게» → 고른 건 학생 기록 gdi(k4y·k4n)에 남아요
     k4: { tutor: 1, on: () => U.who === '윤건' && !TEACHER && !gdHas('k4y') && !gdHas('k4n'), ic: 'books', cls: 'r2-ban', b: '국어 4단원 「읽고 분석하고」도 기말 범위예요?', d: '맞다 아니다만 눌러 주면 돼요 · 범위면 계획에 넣어 줄게요', go0: '고르기', keep: 1, open: () => sheet(`<h2>국어 4단원도 기말 범위예요?</h2><p class="sub">4단원 「읽고 분석하고」 (점검·조정, 읽기 과정)<br>학교에서 들은 대로 골라 주세요</p><div class="k4-btns" style="display:flex;gap:8px;margin-top:14px"><button class="btn primary big" style="flex:1" type="button" data-k4="y">맞아요, 범위예요</button><button class="btn big" style="flex:1" type="button" data-k4="n">아니에요</button></div><p class="tiny" style="margin-top:10px">잘 모르겠으면 내일 선생님께 여쭤보고 골라도 돼요</p>`, (el, close) => { $$('[data-k4]', el).forEach((b) => (b.onclick = () => { gdMark(b.dataset.k4 === 'y' ? 'k4y' : 'k4n'); close(); toast(b.dataset.k4 === 'y' ? '알려 줘서 고마워요 · 4단원도 계획에 넣을게요' : '알려 줘서 고마워요 · 3단원만 할게요'); setTimeout(() => { const g = document.querySelector('.gd-card[data-gdopen="k4"]'); if (g) cardBye(g, render); else render(); }, 260); })); }) },
@@ -9052,7 +9093,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611200932'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611202355'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -10642,7 +10683,7 @@
       }, 450);
     }));
   }
-  const TABS = [['home', '홈', 'home'], ['iv', '면접', 'mic'], ['ivs', '일정', 'cal'], ['kmla', '민사고', 'target'], ['hw', '숙제', 'hw'], ['study', '공부', 'books'], ['exam', '수업', 'pencil'], ['grade', '성적', 'score'], ['wrong', '오답', 'wrong'], ['qna', '질문', 'think'], ['book', '교재', 'books'], ['report', '리포트', 'up'], ['score', '성적', 'score'], ['uni', '대학', 'school'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']].filter((t) => (t[0] === 'report' ? srOn() : t[0] === 'kmla' ? !!D.kmla : t[0] === 'iv' || t[0] === 'ivs' ? !!D.iv : t[0] === 'score' && SR_TEST ? true : !ST.tabs || ST.tabs.includes(t[0])) && (t[0] !== 'exam' || Object.keys(NXSETS).length || NX_CH.length || NX_JG.length) && (t[0] !== 'qna' || QNA.length) && (t[0] !== 'study' || (NXD.subjects || []).length) && (t[0] !== 'grade' || (ST.tabs || []).includes('grade')));  // 중학생 성적 탭은 켠 학생만 (10/31 정윤에게 성적 탭이 둘 뜸)  // 공부 탭은 단원 자료가 있는 학생만  // 시험 탭은 시험이 있는 학생만
+  const TABS = [['home', '홈', 'home'], ['iv', '면접', 'mic'], ['ivs', '일정', 'cal'], ['kmla', '민사고', 'target'], ['hw', '숙제', 'hw'], ['study', '공부', 'books'], ['exam', '수업', 'pencil'], ['grade', '성적', 'score'], ['wrong', '오답', 'wrong'], ['qna', '질문', 'think'], ['book', '교재', 'books'], ['report', '리포트', 'up'], ['score', '성적', 'score'], ['uni', '대학', 'school'], ['sgb', '생기부', 'sgb'], ['picks', '진로', 'dna'], ['news', '소식', 'news']].filter((t) => (t[0] === 'report' ? srOn() : t[0] === 'kmla' ? !!D.kmla : t[0] === 'iv' || t[0] === 'ivs' ? !!D.iv : t[0] === 'score' && SR_TEST ? true : !ST.tabs || ST.tabs.includes(t[0])) && (t[0] !== 'exam' || Object.keys(NXSETS).length || NX_CH.length || NX_JG.length) && (t[0] !== 'qna' || QNA.length) && (t[0] !== 'study' || (NXD.subjects || []).length || JY_STUDY) && (t[0] !== 'grade' || (ST.tabs || []).includes('grade')));  // 중학생 성적 탭은 켠 학생만 (10/31 정윤에게 성적 탭이 둘 뜸)  // 공부 탭은 단원 자료가 있는 학생만  // 시험 탭은 시험이 있는 학생만
   const DASH_ONLY = TEACHER && !STU_TAB && ROSTER.length > 1;  // 선생님 첫 탭은 학생 관리만 (학생 화면은 새 탭으로)
   if (DASH_ONLY) TABS.splice(0, TABS.length, ['dash', '홈', 'home'], ['treport', '리포트', 'memo'], ['thw', '숙제', 'hw'], ['tgrade', '성적', 'score'], ['tsched', '수업 일정', 'cal'], ['tprac', '연습', 'pencil'], ['news', '소식', 'news'], ['tstu', '학생', 'trophy']);
   function nav() {
@@ -10813,6 +10854,7 @@
     if (PAR) return parRender();
     setTimeout(allDoneCheck, 700); setTimeout(taskDoneCheck, 450);
     finRe();  // 11/8 기말 예습 새 계획 먼저
+    if (UI.jyBack && !UI.run) { if (UI.tab === 'hw' || UI.tab === 'qna') UI.tab = 'study'; UI.jyBack = 0; }  // 11/20 공부 탭에서 연 것은 닫으면 공부 탭으로
     hwRunFin(); setTimeout(autoTm, 0); if (PHONE) setTimeout(ptScan, 900);
     { const k = navAt(), was = render.nav; if (was && k !== was && !render.pop && (k === 'run' || was === 'home')) try { history.pushState({ mu: k }, ''); } catch (e) {} render.nav = k; render.pop = 0; }
     nxReg(); pCloseOld(); leftMark(); appAuto(); if (ROLE_T && pulled && !save.snap) save.snap = pushIds(S);
@@ -10823,11 +10865,11 @@
     let html = '';
     syncGoals();
     redoFix();
-    if (UI.run) html = (UI.run.kind === 'qna' ? qnaRun() : UI.run.kind === 'news' ? newsRun() : UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'lv' ? lvRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'wqd' ? wqDays() : UI.run.kind === 'wq' ? wqPage() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'r2' ? r2Run() : UI.run.kind === 'r3' ? r3Run() : UI.run.kind === 'r3m' ? mkRun() : UI.run.kind === 'r2s' ? r2sRun() : UI.run.kind === 'bn' ? bnRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'qa' ? qaRun() : UI.run.kind === 'nx' ? nxRail(nxRun()) : UI.run.kind === 'nxw' ? nxwRun() : UI.run.kind === 'print' ? printRun() : '') + hwFinBar();
-    else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'tprac' ? tbdView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'qna' ? qnaView() : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'tme' ? tmeView() : UI.tab === 'picks' ? picksView() : UI.tab === 'kmla' ? kmlaView() : UI.tab === 'iv' ? ivView() : UI.tab === 'ivs' ? ivSchedView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'report' ? reportTabView() : UI.tab === 'grade' ? gradeView() : UI.tab === 'study' ? studyView() : UI.tab === 'exam' ? examView() : sgbView();
+    if (UI.run) html = (UI.run.kind === 'jyc' ? jycRun() : UI.run.kind === 'qna' ? qnaRun() : UI.run.kind === 'news' ? newsRun() : UI.run.kind === 'sci' ? sciRun() : UI.run.kind === 'unit' ? unitRun() : UI.run.kind === 'gram' ? gramRun() : UI.run.kind === 'lv' ? lvRun() : UI.run.kind === 'jl' ? jlRun() : UI.run.kind === 'jr' ? jrRun() : UI.run.kind === 'jw' ? jwRun() : UI.run.kind === 'words' ? wordsRun() : UI.run.kind === 'wqd' ? wqDays() : UI.run.kind === 'wq' ? wqPage() : UI.run.kind === 'retry' ? retryRun() : UI.run.kind === 'g3' ? g3Run() : UI.run.kind === 'drill' ? drillRun() : UI.run.kind === 'concept' ? conceptRun() : UI.run.kind === 'fin' ? finRun() : UI.run.kind === 'r2' ? r2Run() : UI.run.kind === 'r3' ? r3Run() : UI.run.kind === 'r3m' ? mkRun() : UI.run.kind === 'r2s' ? r2sRun() : UI.run.kind === 'bn' ? bnRun() : UI.run.kind === 'perf' ? perfRun() : UI.run.kind === 'pomo' ? pomoRun() : UI.run.kind === 'wallet' ? walletRun() : UI.run.kind === 'book' ? bookRun() : UI.run.kind === 'mbw' ? mbwRun() : UI.run.kind === 'qa' ? qaRun() : UI.run.kind === 'nx' ? nxRail(nxRun()) : UI.run.kind === 'nxw' ? nxwRun() : UI.run.kind === 'print' ? printRun() : '') + hwFinBar();
+    else html = UI.tab === 'dash' ? dashView() : UI.tab === 'tsched' ? tschedView() : UI.tab === 'treport' ? treportView() : UI.tab === 'tstu' ? tstuView() : UI.tab === 'tgrade' ? tgradeView() : UI.tab === 'thw' ? thwView() : UI.tab === 'tprac' ? tbdView() : UI.tab === 'home' ? home() : UI.tab === 'hw' ? (UI.lib ? libView() : UI.nxUnit ? nxUnitView() : hwView()) : UI.tab === 'qna' ? qnaView() : UI.tab === 'wrong' ? wrongView() : UI.tab === 'score' ? scoreView() : UI.tab === 'me' ? meView() : UI.tab === 'tme' ? tmeView() : UI.tab === 'picks' ? picksView() : UI.tab === 'kmla' ? kmlaView() : UI.tab === 'iv' ? ivView() : UI.tab === 'ivs' ? ivSchedView() : UI.tab === 'uni' ? uniTabView() : UI.tab === 'news' ? newsView() : UI.tab === 'book' ? bookView() : UI.tab === 'report' ? reportTabView() : UI.tab === 'grade' ? gradeView() : UI.tab === 'study' ? (JY_STUDY ? jyStudyView() : studyView()) : UI.tab === 'exam' ? examView() : sgbView();
     // 화면 이동 방향: 문제·상세로 들어가면 오른쪽에서, 나오면 왼쪽에서, 탭은 탭 순서대로
     const wqv = UI.run && UI.run.kind === 'wq' ? (UI.run.stage === 'list' ? 1 : UI.run.k >= UI.run.Q.length ? 3 : 2) : 0;  // 11/4 «애니메이션 굉장히 중요»: 단어 Day 목록 → 표 → 시험 → 끝도 화면 넘기듯
-    const view = UI.run ? 'run:' + UI.run.kind + (wqv ? ':' + wqv + ':' + UI.run.key : '') : UI.tab + (UI.lib || '') + (UI.tab === 'hw' ? (UI.nxUnit || '') + (UI.nxSubj || '') : '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'study' ? `${UI.stV}${UI.stS}${UI.stU}${UI.stT}` : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '') + (UI.tab === 'tprac' ? (UI.tbSeg || 'q') + (UI.tbI || '') : '');
+    const view = UI.run ? 'run:' + UI.run.kind + (wqv ? ':' + wqv + ':' + UI.run.key : '') : UI.tab + (UI.lib || '') + (UI.tab === 'hw' ? (UI.nxUnit || '') + (UI.nxSubj || '') : '') + (UI.tab === 'picks' ? UI.pkTab || '' : '') + (UI.tab === 'study' ? `${UI.stV}${UI.stS}${UI.stU}${UI.stT}${UI.jyS || ''}` : '') + (UI.tab === 'score' ? UI.scoreSeg + (UI.mockId || '') : '') + (UI.tab === 'tprac' ? (UI.tbSeg || 'q') + (UI.tbI || '') : '');
     const depth = UI.run ? 2 + wqv : UI.lib || (UI.tab === 'score' && UI.mockId) || (UI.tab === 'hw' && UI.nxUnit) || (UI.tab === 'tprac' && UI.tbI) ? 1 : 0, ti = TABS.findIndex((t) => t[0] === UI.tab);
     const qm = html.match(/class="q-no">([\s\S]*?)<\/div>/), qk = UI.run ? (qm ? qm[1] : html.includes('done-card') ? 'done' : html.includes('class="lesson"') ? 'lesson' : '') : '';
     const sub = [UI.wrongSubj, UI.sgbArea, UI.semester, UI.chartSubj, UI.mockSubj, UI.ypDay, UI.hwDay].join('|');
@@ -10939,7 +10981,8 @@
   }
   function bind() {
     if (UI.tab === 'grade' && !UI.run) bindGrade();
-    if (UI.tab === 'study' && (!UI.run || (UI.run.kind === 'nx' && UI.run.back === 'study'))) bindStudy();
+    if (JY_STUDY && ((UI.tab === 'study' && !UI.run) || (UI.run && UI.run.kind === 'jyc'))) bindJyStudy();
+    else if (UI.tab === 'study' && (!UI.run || (UI.run.kind === 'nx' && UI.run.back === 'study'))) bindStudy();
     $$('[data-jgo]').forEach((x) => (x.onclick = () => { const [u, st] = x.dataset.jgo.split('|'); UI.tab = 'hw'; UI.run = { kind: 'gram', unit: +u, step: +st }; render(); window.scrollTo(0, 0); }));
     $$('[data-jlo],[data-jro],[data-jwo]').forEach((x) => (x.onclick = () => { const kind = x.dataset.jlo ? 'jl' : x.dataset.jro ? 'jr' : 'jw', [id, m] = (x.dataset.jlo || x.dataset.jro || x.dataset.jwo).split('|'); UI.tab = 'hw'; UI.run = kind === 'jw' ? { kind, id, m } : { kind, unit: +id, m }; render(); window.scrollTo(0, 0); }));
     $$('[data-calm]').forEach((x) => (x.onclick = () => { UI.calYm = x.dataset.calm; render(); }));
