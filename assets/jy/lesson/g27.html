@@ -85,6 +85,11 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 <p class="hint">파란 테두리 나침반은 손가락으로 끌어 옮길 수 있어요.</p>
 <p>빨간 끝이 가리키는 쪽을 이으면 <b>N극에서 나와 빙 돌아 S극으로 들어가는 선</b>이 돼요. 이게 <b>자기력선</b>, 화살표 방향이 <b>자기장 방향</b>이에요.</p>
 <p>자석 가까이는 선이 <b>빽빽 = 자기장이 세요</b>. 멀수록 듬성듬성 = 약해요.</p></div>
+<div class="card"><span class="step">자기장 = 방향 + 세기</span><h2>점을 끌고 다녀 보세요</h2>
+<svg id="fs" viewBox="0 0 600 340"></svg>
+<div class="grid2"><div class="box"><span class="hint">방향 (화살표)</span><div style="font-weight:700" id="fsD">N극에서 나오는 쪽</div></div><div class="box"><span class="hint">세기</span><div id="fsS" style="height:14px;background:#e5e8eb;border-radius:7px;overflow:hidden;margin-top:6px"><div id="fsB" style="height:100%;width:30%;background:#3182f6;border-radius:7px;transition:width .2s"></div></div></div></div>
+<p style="margin-top:10px"><b>방향</b> = 그 자리에서 나침반 빨간 끝이 가리키는 쪽. <b>세기</b> = 그 자리에서 힘이 얼마나 센지 = 자기력선이 얼마나 <b>빽빽한지</b>.</p>
+<p><b>「자기장이 변한다」</b> = 방향이 바뀌거나, 세기가 바뀌거나, 둘 다. 자석을 코일 쪽으로 내리면 코일 자리의 <b>세기</b>가 커지고(방향은 그대로), 발전기 코일이 돌면 코일을 통과하는 <b>방향</b>까지 바뀌어요.</p></div>
 </section>
 
 <!-- 2 전자기 유도 -->
@@ -365,6 +370,21 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
   c.g.style.cursor='grab';c.g.addEventListener('mousedown',dn);c.g.addEventListener('touchstart',dn,{passive:false});addEventListener('mousemove',mv);addEventListener('touchmove',mv,{passive:false});addEventListener('mouseup',()=>on=false);addEventListener('touchend',()=>on=false);}
  draw();$('cGo').onclick=()=>{comps.forEach((c,i)=>setTimeout(()=>aim(c),i*110));setTimeout(()=>aim(mine),comps.length*110);};
  $('cLn').onclick=()=>{comps.forEach(aim);aim(mine);lines.setAttribute('opacity',1);};$('cRs').onclick=draw;})();
+
+/* 1b field strength */
+(function(){const sv=$('fs');const NP={x:250,y:170},SP={x:350,y:170};
+ el('rect',{width:600,height:340,fill:'#fff'},sv);
+ const L=el('g',{},sv);function Bv(x,y){let bx=0,by=0;for(const [p,q] of [[NP,1],[SP,-1]]){const dx=x-p.x,dy=y-p.y,r=Math.max(Math.hypot(dx,dy),10);bx+=q*dx/r**3;by+=q*dy/r**3;}return[bx,by];}
+ for(const a of [-150,-130,-110,-90,-65,65,90,110,130,150]){const r=a*Math.PI/180;let px=NP.x+10*Math.cos(r),py=NP.y+10*Math.sin(r),d=`M${px},${py}`;for(let i=0;i<5000;i++){const [bx,by]=Bv(px,py),m=Math.hypot(bx,by);px+=bx/m*2;py+=by/m*2;if(i%3==0)d+=` L${px.toFixed(1)},${py.toFixed(1)}`;if(Math.hypot(px-SP.x,py-SP.y)<6||Math.abs(px)>3000||Math.abs(py)>3000)break;}el('path',{d,fill:'none',stroke:'#cfe0fb','stroke-width':1.5},L);}
+ el('rect',{x:210,y:150,width:90,height:40,rx:5,fill:'#f04452'},sv);el('rect',{x:300,y:150,width:90,height:40,rx:5,fill:'#3182f6'},sv);tx(sv,255,178,'N',{fill:'#fff','font-size':20,'font-weight':800});tx(sv,345,178,'S',{fill:'#fff','font-size':20,'font-weight':800});
+ const ar=el('g',{},sv);const pt=el('circle',{r:12,fill:'#fff',stroke:'#191f28','stroke-width':3,style:'cursor:grab'},sv);tx(sv,300,330,'검은 동그라미를 끌어 보세요',{'font-size':12,fill:'#8b95a1','font-weight':400});
+ let P={x:300,y:70};function upd(){pt.setAttribute('cx',P.x);pt.setAttribute('cy',P.y);const [bx,by]=Bv(P.x,P.y),m=Math.hypot(bx,by);const ang=Math.atan2(by,bx);
+  const st=Math.min(1,Math.log10(m*1e6+1)/3.2);const len=24+st*56;ar.innerHTML='';const g=el('g',{transform:`translate(${P.x},${P.y}) rotate(${ang*180/Math.PI})`},ar);
+  el('line',{x1:0,y1:0,x2:len,y2:0,stroke:'#f04452','stroke-width':3+st*5,'stroke-linecap':'round'},g);el('path',{d:`M${len-10},-10 L${len+6},0 L${len-10},10`,fill:'none',stroke:'#f04452','stroke-width':3+st*3},g);
+  $('fsB').style.width=Math.round(st*100)+'%';const deg=((ang*180/Math.PI)+360)%360;const dir=['오른쪽','오른쪽 아래','아래','왼쪽 아래','왼쪽','왼쪽 위','위','오른쪽 위'][Math.round(deg/45)%8];$('fsD').textContent=dir+(st>.7?' · 아주 셈':st>.45?' · 셈':st>.25?' · 보통':' · 약함');}
+ let on=false;const gp=(e)=>{const r=sv.getBoundingClientRect(),t=e.touches?e.touches[0]:e;return{x:Math.max(10,Math.min(590,(t.clientX-r.left)*600/r.width)),y:Math.max(10,Math.min(320,(t.clientY-r.top)*340/r.height))};};
+ const dn=(e)=>{on=true;e.preventDefault();const p=gp(e);P=p;upd();};sv.addEventListener('mousedown',dn);sv.addEventListener('touchstart',dn,{passive:false});
+ addEventListener('mousemove',e=>{if(on){P=gp(e);upd();}});addEventListener('touchmove',e=>{if(on){e.preventDefault();P=gp(e);upd();}},{passive:false});addEventListener('mouseup',()=>on=false);addEventListener('touchend',()=>on=false);upd();})();
 
 /* 2 induction */
 (function(){const sv=$('ind');let pole='N',my=30,last=30,lt=performance.now(),auto=false,t0=0,vel=0;
