@@ -67,7 +67,7 @@ button.b.ok{background:#e9f9f1;color:#03924f}button.b.no{background:#fff6e5;colo
 <div class="card"><span class="step">말부터 풀어요</span><h2>이온이 뭐예요?</h2>
 <p>모든 물질은 아주 작은 알갱이(원자)로 되어 있어요. 원자는 보통 <b>(+)와 (−)가 똑같아서 전기를 안 띠어요.</b></p>
 <p>그런데 물에 녹으면서 <b>전자</b>((−) 전기를 띤 아주 작은 알갱이)를 <b>잃거나 얻으면</b>, 전기를 띤 알갱이가 돼요. 이게 <b>이온</b>이에요.</p>
-<svg id="ionz" viewBox="0 0 600 230"></svg>
+<svg id="ionz" viewBox="0 0 600 200"></svg>
 <div class="box" id="ionzTxt" style="min-height:70px"></div>
 <div class="btns"><button class="b p" id="ionzN">다음 단계 ›</button><button class="b" id="ionzR">처음부터</button><span class="hint" id="ionzS" style="align-self:center"></span></div>
 <div class="grid2" style="margin-top:12px"><div class="box"><b style="font-size:17px">양이온</b><br><span style="color:var(--t2)">(+) 전기를 띤 이온<br>전자를 잃었어요<br>H⁺, Na⁺, K⁺, Ca²⁺</span></div><div class="box"><b style="font-size:17px">음이온</b><br><span style="color:var(--t2)">(−) 전기를 띤 이온<br>전자를 얻었어요<br>Cl⁻, OH⁻, SO₄²⁻</span></div></div>
@@ -254,7 +254,7 @@ function Bk(g,box,init,seed){
     reset(list){P.length=0;R.length=0;sd=seed||11;list.forEach(t=>{const s=spot();P.push({t,x:s.x,y:s.y,a:1,s:1,ph:rnd()*6});});},
     count(t){return P.filter(p=>!p.dead&&p.t===t).length;},
     render(now){g.innerHTML='';for(const r of R){const k=(now-r.t0)/1400;if(k>1)continue;el('circle',{cx:r.x,cy:r.y,r:16+k*40,fill:'none',stroke:'#ff922b','stroke-width':4*(1-k),opacity:1-k},g);}
-      for(const p of P){if(p.dead)continue;const j=p.mv?0:Math.sin(now/900+p.ph)*2.2,k=p.mv?0:Math.cos(now/1000+p.ph*1.3)*2.2;drawP(g,p.t,p.x+j,p.y+k,p.s,p.a);}},
+      for(const p of P){if(p.dead)continue;const j=p.mv?0:Math.sin(now/900+p.ph)*2.2,k=p.mv?0:Math.cos(now/1000+p.ph*1.3)*2.2;drawP(g,p.t,p.x+j,p.y+k,p.s*(box.sc||1),p.a);}},
     add(types,from,cb,ms){ms=ms||[1300,1500,900];o.busy=true;
       const it=types.map(t=>{const s=spot();const p={t,x:from.x,y:from.y,fx:from.x,fy:from.y,tx:s.x,ty:s.y,a:0,s:.6,mv:1,ph:rnd()*6};P.push(p);return p;});
       const pairs=[];it.filter(p=>p.t==='OH').forEach(oh=>{let best=null,bd=1e9;P.forEach(h=>{if(h.t==='H'&&!h.dead&&!h.res){const d=Math.hypot(h.x-oh.tx,h.y-oh.ty);if(d<bd){bd=d;best=h;}}});if(best){best.res=1;pairs.push([best,oh]);}});
@@ -360,7 +360,7 @@ const sel=(attr,b)=>document.querySelectorAll(`[${attr}]`).forEach(x=>x.classLis
 /* 1-4 conductivity */
 (function(){const sv=$('cond');let kind='a',on=false,k=0;const parts=[];
  function setup(){parts.length=0;const pos=kind==='a'?'H':'Na',neg=kind==='a'?'Cl':'OH';
-  const pts=[[220,175],[300,200],[380,170],[260,225],[350,232],[300,150]];pts.forEach((p,i)=>parts.push({t:i%2?neg:pos,x:p[0],y:p[1],bx:p[0]}));on=false;k=0;}
+  [[330,170],[285,212],[310,250]].forEach(p=>parts.push({t:pos,x:p[0],y:p[1],bx:p[0]}));[[270,150],[315,192],[275,234]].forEach(p=>parts.push({t:neg,x:p[0],y:p[1],bx:p[0]}));on=false;k=0;}
  setup();
  onLoop(sv,(now)=>{sv.innerHTML='';
   el('path',{d:'M170,120 L170,250 Q170,262 182,262 L418,262 Q430,262 430,250 L430,120',fill:'none',stroke:'#8b95a1','stroke-width':3},sv);
@@ -371,7 +371,7 @@ const sel=(attr,b)=>document.querySelectorAll(`[${attr}]`).forEach(x=>x.classLis
   el('circle',{cx:300,cy:28,r:20,fill:on?'#ffe066':'#f1f3f5',stroke:on?'#fab005':'#adb5bd','stroke-width':3,style:on?'filter:drop-shadow(0 0 10px #ffd43b)':''},sv);
   tx(sv,300,33,on?'켜짐':'꺼짐',{'font-size':12,fill:on?'#8a6d00':'#868e96'});
   if(on)k=Math.min(1,k+1/240);
-  parts.forEach(p=>{const pos=ION[p.t][1].includes('⁺');const tgt=pos?230:370;const xx=p.bx+(tgt-p.bx)*ease(k)*.7;drawP(sv,p.t,xx+Math.sin(now/800+p.y)*1.5,p.y,.95);});
+  parts.forEach(p=>{const pos=ION[p.t][1].includes('⁺');const tgt=pos?240:360;const xx=p.bx+(tgt-p.bx)*ease(k);drawP(sv,p.t,xx+Math.sin(now/800+p.y)*1.5,p.y,.95);});
   if(on&&k>.3){tx(sv,300,120,kind==='a'?'H⁺ → (−)극,  Cl⁻ → (+)극':'Na⁺ → (−)극,  OH⁻ → (+)극',{'font-size':15,fill:'#191f28'});}});
  $('condGo').onclick=()=>{on=true;};$('condR').onclick=setup;
  document.querySelectorAll('[data-cd]').forEach(b=>b.onclick=()=>{kind=b.dataset.cd;sel('data-cd',b);setup();});})();
@@ -432,14 +432,14 @@ const IND={lit:['리트머스 종이'],pp:['페놀프탈레인',['#ffffff','#fff
 
 /* 4 mixing simulator */
 (function(){const sv=$('mx');let ind='pp',vol=0,temps=[[0,0]];
- const bx={x0:150,x1:450,yb:338,yTop:0};const lvl=(v)=>338-(110+v*3.4);bx.yTop=lvl(0);
+ const bx={x0:150,x1:450,yb:338,yTop:0,sc:.85};const lvl=(v)=>338-(150+v*2.4);bx.yTop=lvl(0);
  const base=el('g',{},sv),liq=el('rect',{x:152,y:lvl(0),width:296,height:338-lvl(0),fill:'#f1f3f5',style:'transition:fill 1.2s'},sv),pg=el('g',{},sv),fg=el('g',{},sv),drop=el('g',{},sv);
  // burette
- el('rect',{x:288,y:0,width:24,height:58,fill:'#e7f5ff',stroke:'#8b95a1','stroke-width':2},base);el('path',{d:'M292,58 L300,76 L308,58',fill:'#e7f5ff',stroke:'#8b95a1','stroke-width':2},base);
+ el('rect',{x:288,y:0,width:24,height:36,fill:'#e7f5ff',stroke:'#8b95a1','stroke-width':2},base);el('path',{d:'M292,36 L300,50 L308,36',fill:'#e7f5ff',stroke:'#8b95a1','stroke-width':2},base);
  tx(base,330,24,'NaOH 수용액',{'font-size':14,'text-anchor':'start',fill:'#3182f6'});
- el('path',{d:'M150,90 L150,330 Q150,340 160,340 L440,340 Q450,340 450,330 L450,90',fill:'none',stroke:'#8b95a1','stroke-width':3},fg);
- const volT=tx(fg,465,110,'',{'font-size':14,'text-anchor':'start',fill:'#4e5968'});const stT=el('text',{x:465,y:140,'font-size':16,'font-weight':800,'text-anchor':'start'},fg);
- tx(fg,145,110,'염산 20 mL',{'font-size':14,'text-anchor':'end',fill:'#4e5968'});
+ el('path',{d:'M150,62 L150,330 Q150,340 160,340 L440,340 Q450,340 450,330 L450,62',fill:'none',stroke:'#8b95a1','stroke-width':3},fg);
+ const volT=tx(fg,465,90,'',{'font-size':14,'text-anchor':'start',fill:'#4e5968'});const stT=el('text',{x:465,y:120,'font-size':16,'font-weight':800,'text-anchor':'start'},fg);
+ tx(fg,145,90,'염산 20 mL',{'font-size':14,'text-anchor':'end',fill:'#4e5968'});
  const B=Bk(pg,bx,['H','Cl','H','Cl','H','Cl','H','Cl','H','Cl'],5);
  onLoop(sv,(now)=>B.render(now));
  const state=()=>B.count('H')>0?'a':B.count('OH')>0?'b':'n';
@@ -466,7 +466,7 @@ const IND={lit:['리트머스 종이'],pp:['페놀프탈레인',['#ffffff','#fff
  function reset(){if(B.busy)return;vol=0;temps=[[0,0]];B.reset(['H','Cl','H','Cl','H','Cl','H','Cl','H','Cl']);bx.yTop=lvl(0);liq.setAttribute('y',lvl(0));liq.setAttribute('height',338-lvl(0));color();bars();tgraph();startText();$('mxAdd').disabled=false;$('mxAdd').style.opacity=1;}
  $('mxAdd').onclick=()=>{if(B.busy||vol>=28)return;const v0=vol;vol+=4;
   tw(1300,(e)=>{const y=lvl(v0+4*e);liq.setAttribute('y',y);liq.setAttribute('height',338-y);bx.yTop=y;});
-  drop.innerHTML='';const dr=el('ellipse',{cx:300,cy:80,rx:5,ry:7,fill:'#74c0fc'},drop);tw(700,(e)=>dr.setAttribute('cy',80+e*(lvl(v0)-80)),()=>drop.innerHTML='');
+  drop.innerHTML='';const dr=el('ellipse',{cx:300,cy:54,rx:5,ry:7,fill:'#74c0fc'},drop);tw(700,(e)=>dr.setAttribute('cy',54+e*(lvl(v0)-54)),()=>drop.innerHTML='');
   B.add(['Na','OH'],{x:300,y:lvl(v0)+6},(ph,n)=>{
    if(ph==='drop')msg('NaOH 4 mL가 들어가요: <b>Na⁺ 1개, OH⁻ 1개</b>');
    if(ph==='meet')msg('OH⁻가 남아 있던 <b>H⁺를 만나러</b> 가요.');
