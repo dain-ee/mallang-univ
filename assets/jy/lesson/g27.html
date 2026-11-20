@@ -119,7 +119,7 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 <div class="btns"><button class="b" data-gv="L">왼쪽 단자로 들어가게</button><button class="b sel" data-gv="0">전류 없음</button><button class="b" data-gv="R">오른쪽 단자로 들어가게</button></div>
 <div class="box" id="gvTxt"></div>
 <div class="box" style="background:#fff0f0;margin-top:10px"><b>헷갈리기 쉬운 것</b>: 전류는 어느 단자에 「먼저 닿는」 게 아니에요. 고리 전체의 전자가 <b>동시에</b> 움직여요(자전거 체인처럼). 바늘 방향은 전류가 검류계를 <b>어느 단자로 들어가서 어느 단자로 나오는지</b>로 정해져요.</div>
-<div class="box" style="margin-top:8px"><b>집게 전선을 바꿔 물리면?</b> 바늘이 <b>반대</b>로 가요. 코일 속 전류는 그대로인데, 검류계로 들어가는 단자가 바뀌니까요.
+<div class="box" style="margin-top:8px"><b>집게 전선을 바꿔 물리면?</b> 바늘이 <b>반대</b>로 가요. 코일 속 전류는 그대로인데, 검류계로 들어가는 단자가 바뀌니까요. 검류계 쪽에서 바꿔 꽂든 코일 쪽 집게를 바꿔 물든 <b>같아요</b>. 단, 양쪽에서 <b>둘 다</b> 바꾸면 처음과 같아져요.
 <table style="margin-top:6px"><tr><th>바꾼 것</th><th>코일 속 전류</th><th>바늘</th></tr>
 <tr><td>집게 전선 두 개 서로 바꿈</td><td>그대로</td><td><b>반대</b></td></tr>
 <tr><td>코일 감은 방향 반대</td><td><b>반대</b></td><td><b>반대</b></td></tr>
@@ -206,7 +206,7 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 <svg id="led" viewBox="0 0 600 300"></svg>
 <div class="btns"><button class="b p" id="lIn">자석 넣기</button><button class="b" id="lStay">멈추기</button><button class="b" id="lOut">자석 빼기</button></div>
 <div class="box" id="ledTxt">버튼을 눌러 보세요.</div>
-<p style="margin-top:12px">발광 다이오드는 <b>(+)극 → (-)극 한 방향</b> 전류에만 켜져요. 두 개를 <b>서로 반대로</b> 달았으니, 어느 쪽이 켜지는지가 곧 전류 방향이에요.</p>
+<div class="box" style="background:#fff8e6;margin-top:12px"><b>발광 다이오드 = 한 방향 문</b><br>다리 두 개 중 <b>긴 다리가 (+)</b>, <b>짧은 다리가 (−)</b>. 전류가 <b>긴 다리로 들어가 짧은 다리로 나갈 때만</b> 문이 열려 빛이 나요. 반대로 오면 문이 잠겨 전류가 아예 못 지나가요.<br>두 개를 <b>서로 거꾸로</b> 달았으니, 전류가 한쪽으로 흐르면 A만, 반대로 흐르면 B만 켜져요. 그래서 <b>어느 것이 켜졌나 = 전류 방향</b>이에요(검류계 바늘 왼쪽·오른쪽과 같은 역할).</div>
 <p>에너지: <b>운동 → 전기 → 빛</b></p>
 <figure><img src="../g27_exp.jpg" alt="탐구"><figcaption>교과서 104쪽 · 네오디뮴 자석, 코일, 발광 다이오드</figcaption></figure></div>
 </section>
@@ -615,16 +615,29 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
 
 /* 5 LED */
 (function(){const sv=$('led');let st='stay';
- function draw(){sv.innerHTML='';const y=st==='in'?60:st==='out'?0:60;const g=el('g',{style:'transition:transform .8s'},sv);
-  magnet(g,150,y,40,90,'N',true);g.style.transform=st==='out'?'translateY(-10px)':'';
+ function led(x,plusTop,on,blocked,lab){const g=el('g',{},sv);
+  el('line',{x1:x,y1:150,x2:x,y2:250,stroke:'#adb5bd','stroke-width':3},g);
+  if(on)el('circle',{cx:x,cy:200,r:34,fill:'#ffe066',opacity:.55,style:'animation:gl .6s ease-in-out infinite alternate'},g);
+  el('rect',{x:x-18,y:180,width:36,height:40,rx:10,fill:on?'#ffd43b':'#e5e8eb',stroke:'#adb5bd','stroke-width':2},g);
+  el('path',{d:plusTop?`M${x-9},192 L${x+9},192 L${x},208z`:`M${x-9},208 L${x+9},208 L${x},192z`,fill:'#4e5968'},g);
+  tx(g,x+30,170,plusTop?'+ 긴 다리':'− 짧은 다리',{'font-size':11,fill:plusTop?'#e8590c':'#4e5968','text-anchor':'start'});
+  tx(g,x+30,240,plusTop?'− 짧은 다리':'+ 긴 다리',{'font-size':11,fill:plusTop?'#4e5968':'#e8590c','text-anchor':'start'});
+  tx(g,x,290,lab,{'font-size':14});
+  if(blocked){const b=el('g',{},g);el('circle',{cx:x,cy:200,r:15,fill:'#fff',stroke:'#f04452','stroke-width':3},b);tx(b,x,206,'✕',{'font-size':16,fill:'#f04452'});}}
+ function draw(){sv.innerHTML='';const y=st==='in'?60:st==='out'?25:60;const g=el('g',{style:'transition:transform .8s'},sv);
+  magnet(g,150,y,40,90,'N',true);g.style.transform=st==='out'?'':'';
   coil(sv,150,190,55,4);const a=st==='in',b=st==='out';
-  for(const [x,on,lab] of [[380,a,'A'],[480,b,'B']]){const lg=el('g',{},sv);if(on)el('circle',{cx:x,cy:110,r:34,fill:'#ffe066',opacity:.55,style:'animation:gl .6s ease-in-out infinite alternate'},lg);
-   el('path',{d:`M${x-16},140 L${x-16},110 A16,16 0 0 1 ${x+16},110 L${x+16},140z`,fill:on?'#ffd43b':'#e5e8eb',stroke:'#adb5bd','stroke-width':2},lg);
-   el('line',{x1:x-8,y1:140,x2:x-8,y2:200,stroke:'#adb5bd','stroke-width':3},lg);el('line',{x1:x+8,y1:140,x2:x+8,y2:210,stroke:'#adb5bd','stroke-width':3},lg);tx(lg,x,240,lab+(lab==='A'?' (한쪽 방향)':' (반대 방향)'),{'font-size':13,fill:'#4e5968'});}
   const s=el('style',{},sv);s.textContent='@keyframes gl{to{opacity:.9}}';
-  el('path',{d:'M205,215 C280,240 330,220 372,210',fill:'none',stroke:'#4e5968','stroke-width':2},sv);el('path',{d:'M205,225 C300,270 420,260 488,220',fill:'none',stroke:'#4e5968','stroke-width':2},sv);
-  if(st!=='stay'){const mv=el('path',{d:st==='in'?'M150,40 v40':'M150,80 v-40',stroke:'#191f28','stroke-width':3,fill:'none'},sv);el('path',{d:st==='in'?'M142,72 l8,10 l8,-10':'M142,48 l8,-10 l8,10',stroke:'#191f28','stroke-width':3,fill:'none'},sv);mv.setAttribute('transform','translate(60,0)');sv.lastChild.setAttribute('transform','translate(60,0)');}
-  $('ledTxt').innerHTML=st==='in'?'자석을 <b>넣을 때</b> → <b>A</b>가 켜져요':st==='out'?'자석을 <b>뺄 때</b> → <b>B</b>가 켜져요 (전류 방향이 반대!)':'자석이 <b>멈춰 있으면</b> → 둘 다 꺼져요 (변화가 없으니 전류 0)';}
+  el('path',{d:'M205,212 L228,150 L470,150',fill:'none',stroke:'#4e5968','stroke-width':2.5},sv);
+  el('path',{d:'M205,228 L228,250 L470,250',fill:'none',stroke:'#4e5968','stroke-width':2.5},sv);
+  tx(sv,250,142,'위 전선',{'font-size':11,fill:'#8b95a1','font-weight':400,'text-anchor':'start'});tx(sv,250,268,'아래 전선',{'font-size':11,fill:'#8b95a1','font-weight':400,'text-anchor':'start'});
+  led(340,true,a,b,'A');led(470,false,b,a,'B');
+  tx(sv,420,40,'▼ 세모 = 전류가 지날 수 있는 방향',{'font-size':12,fill:'#4e5968','font-weight':600});
+  tx(sv,420,60,'(+ 긴 다리 → − 짧은 다리, 한 방향 문)',{'font-size':11,fill:'#8b95a1','font-weight':400});
+  if(st!=='stay'){const d=st==='in'?'M205,212 L228,150 L340,150 L340,250 L228,250 L205,228':'M205,228 L228,250 L470,250 L470,150 L228,150 L205,212';
+   for(let k=0;k<5;k++){const c=el('circle',{r:5,fill:'#f59f00'},sv);const m=el('animateMotion',{dur:'4s',repeatCount:'indefinite',begin:(-k*0.8)+'s',path:d},c);}
+   const mv=el('path',{d:st==='in'?'M150,40 v40':'M150,80 v-40',stroke:'#191f28','stroke-width':3,fill:'none',transform:'translate(60,0)'},sv);el('path',{d:st==='in'?'M142,72 l8,10 l8,-10':'M142,48 l8,-10 l8,10',stroke:'#191f28','stroke-width':3,fill:'none',transform:'translate(60,0)'},sv);}
+  $('ledTxt').innerHTML=st==='in'?'자석을 <b>넣을 때</b>: 전류(주황 점)가 <b>위 전선 → A의 긴 다리(+)</b>로 들어가요 → A의 문이 열려 <b>A만 켜져요</b>. B는 짧은 다리(−)로 들어오려 해서 <b>막혀요(✕)</b>.':st==='out'?'자석을 <b>뺄 때</b>: 전류가 <b>반대로</b> 돌아요. <b>아래 전선 → B의 긴 다리(+)</b>로 들어가서 <b>B만 켜져요</b>. 이번엔 A가 막혀요(✕).':'자석이 <b>멈춰 있으면</b>: 통과하는 자기력선 수가 안 변하니 전류 0 → 둘 다 꺼져요.';}
  $('lIn').onclick=()=>{st='in';draw();};$('lOut').onclick=()=>{st='out';draw();};$('lStay').onclick=()=>{st='stay';draw();};draw();})();
 
 /* 6 generator */
