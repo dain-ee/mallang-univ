@@ -5342,3 +5342,10 @@ textarea.inp.bn-ta { min-height: 360px; font-size: 16px; line-height: 1.8; resiz
 .st-base-i p{margin:2px 0 0;font-size:14px;line-height:1.6;color:var(--t2)}
 @keyframes stBaseIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .hw-done-h{margin:20px 0 4px;color:var(--t3);font-weight:600}
+
+/* 11/20 과학 1회독 교과서 그림 (study.figs) · 차례로 떠올라요 */
+.r2s-fig{margin:14px 0 4px;animation:r2sFig .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*90ms)}
+.r2s-fig img{width:100%;border-radius:12px;display:block;background:#fff;border:1px solid var(--line,#eceef1)}
+.r2s-fig figcaption{font-size:13px;color:var(--t3,#8b95a1);margin-top:6px}
+@keyframes r2sFig{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.r2s-fig{animation:none}}
