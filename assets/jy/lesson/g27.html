@@ -113,9 +113,15 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 <svg id="gv" viewBox="0 0 600 270"></svg>
 <div class="btns"><button class="b" data-gv="L">왼쪽 단자로 들어가게</button><button class="b sel" data-gv="0">전류 없음</button><button class="b" data-gv="R">오른쪽 단자로 들어가게</button></div>
 <div class="box" id="gvTxt"></div>
-<div class="box" style="background:#fff8e6;margin-top:12px"><b>왜 왼쪽·오른쪽으로 갈까?</b> 검류계 속을 열어 볼게요. 위 버튼을 누르면 같이 바뀌어요.</div>
+<div class="box" style="background:#f1ecff;margin-top:12px"><b>먼저 알아 둘 것: 전자석</b> · 코일에 전류를 흘리면 코일이 자석이 돼요.</div>
+<svg id="em" viewBox="0 0 600 260" style="margin-top:8px"></svg>
+<div class="btns"><button class="b sel" data-em="A">전지 끼우기</button><button class="b" data-em="B">전지 뒤집어 끼우기</button><button class="b" data-em="0">전지 빼기</button></div>
+<div class="box" id="emTxt"></div>
+<p style="margin-top:10px"><b>진짜 자석</b>은 N·S가 <b>항상 그대로</b>예요. <b>전자석</b>은 <b>전류가 흐를 때만</b> 자석이고, <b>전류 방향을 바꾸면 N·S가 바뀌어요.</b> 전류가 없으면 그냥 쇳덩이예요.</p>
+<p class="hint">이 전자석이 이 단원의 열쇠예요. 전자기 유도에서 코일이 「오지 마!」 하고 자석이 되는 것도 바로 이 전자석이에요.</p>
+<div class="box" style="background:#fff8e6;margin-top:12px"><b>왜 왼쪽·오른쪽으로 갈까?</b> 검류계 속을 열어 볼게요 <span class="hint">(궁금할 때만 · 시험에는 안 나와요. 시험은 「바늘 방향 = 전류 방향」만)</span></div>
 <svg id="gvIn" viewBox="0 0 600 330" style="margin-top:8px"></svg>
-<p><b>①</b> 바늘 아래쪽 꼬리에 작은 <b>코일</b>이 감겨 있고, 그 밑에 진짜 자석(<b class="r">N</b>·<b class="bl">S</b>)이 붙어 있어요.</p>
+<p><b>①</b> 바늘 꼬리에 코일이 감겨 있어요 = <b>전자석</b>. 그 밑에는 <b>고정 자석</b>(진짜 자석, 절대 안 바뀜)이 있어요.</p>
 <p><b>②</b> 전류가 코일을 지나면 코일이 <b>자석</b>이 돼요(전자석). 같은 극은 밀고 다른 극은 당기니까 꼬리가 한쪽으로 끌려가고, 반대쪽 바늘 끝은 반대로 기울어요.</p>
 <p><b>③</b> 전류가 <b>반대로</b> 들어가면 코일의 N·S가 <b>뒤바뀌어서</b> 꼬리가 반대쪽으로 끌려가요 → 바늘도 <b>반대쪽</b>. 전류가 세면 더 세게 끌려서 더 많이 기울어요.</p>
 <p style="margin-top:10px">보통 전류계는 0이 <b>왼쪽 끝</b>이라 한쪽으로만 움직여요. 검류계는 0이 <b>가운데</b>라서 전류가 <b>들어오는 쪽에 따라 왼쪽·오른쪽</b>으로 움직여요. 바늘이 많이 움직일수록 전류가 세요.</p>
@@ -417,21 +423,43 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
   few.forEach((d,i)=>{d.c.setAttribute('cx',d.x+Math.sin(t/120+i)*2);d.c.setAttribute('cy',d.y+Math.cos(t/100+i)*2);});
   wd.forEach((c,i)=>{const p=wp.getPointAtLength((i*WL/16+off)%WL);c.setAttribute('cx',p.x);c.setAttribute('cy',p.y);});requestAnimationFrame(f);};requestAnimationFrame(f);})();
 
+/* 2-25 electromagnet */
+(function(){const sv=$('em');let m='A',off=0;
+ function draw(){sv.innerHTML='';el('rect',{width:600,height:260,fill:'#fff'},sv);
+  const st=el('style',{},sv);st.textContent='.ef{stroke-dasharray:6 7;animation:ef .9s linear infinite}@keyframes ef{to{stroke-dashoffset:-26}}.efr{stroke-dasharray:6 7;animation:ef .9s linear infinite reverse}';
+  const on=m!=='0',leftN=m==='A';
+  if(on){for(const dy of [-26,0,26]){const d=dy?`M180,${110+dy*.6} C140,${110+dy*2.6} 460,${110+dy*2.6} 420,${110+dy*.6}`:'M110,110 L170,110 M430,110 L490,110';el('path',{d,fill:'none',stroke:'#3182f6','stroke-width':2,class:leftN?'efr':'ef'},sv);}}
+  el('rect',{x:180,y:85,width:240,height:50,rx:10,fill:'#e9ecef',stroke:'#868e96','stroke-width':2},sv);
+  for(let i=0;i<12;i++)el('line',{x1:192+i*19,y1:80,x2:200+i*19,y2:140,stroke:'#c87f2c','stroke-width':5},sv);
+  tx(sv,300,22,on?'전자석 (지금 자석이에요)':'그냥 쇳덩이 (자석 아님)',{'font-size':14,fill:on?'#6b4fc8':'#8b95a1'});
+  if(on){for(const [x,n] of [[150,leftN?'N':'S'],[450,leftN?'S':'N']]){el('circle',{cx:x,cy:110,r:20,fill:n==='N'?'#f04452':'#3182f6'},sv);tx(sv,x,117,n,{fill:'#fff','font-size':18,'font-weight':800});}}
+  const cx=545,cy=110;el('circle',{cx,cy,r:30,fill:'#fff',stroke:'#b0b8c1','stroke-width':2},sv);
+  const nd=el('g',{style:`transition:transform 1s cubic-bezier(.3,1.5,.5,1);transform-origin:${cx}px ${cy}px`},sv);
+  el('polygon',{points:`${cx},${cy-5} ${cx+24},${cy} ${cx},${cy+5}`,fill:'#f04452'},nd);el('polygon',{points:`${cx},${cy-5} ${cx-24},${cy} ${cx},${cy+5}`,fill:'#c5cad0'},nd);el('circle',{cx,cy,r:3,fill:'#4e5968'},sv);
+  tx(sv,cx,160,'나침반',{'font-size':12,fill:'#8b95a1','font-weight':400});
+  requestAnimationFrame(()=>requestAnimationFrame(()=>nd.style.transform=`rotate(${on?(leftN?180:0):-90}deg)`));
+  el('path',{d:'M192,140 L192,215 L260,215 M340,215 L408,215 L408,140',fill:'none',stroke:'#4e5968','stroke-width':3},sv);
+  if(on){el('rect',{x:260,y:200,width:80,height:30,rx:6,fill:'#343a40'},sv);el('rect',{x:leftN?340:252,y:208,width:8,height:14,rx:2,fill:'#343a40'},sv);
+   tx(sv,leftN?280:320,221,'-',{fill:'#fff','font-size':17});tx(sv,leftN?320:280,221,'+',{fill:'#fff','font-size':17});tx(sv,300,250,leftN?'전지':'전지 (뒤집음)',{'font-size':12,fill:'#4e5968','font-weight':400});}
+  else tx(sv,300,222,'전지 없음',{'font-size':13,fill:'#f04452'});
+  $('emTxt').innerHTML=m==='A'?'전류가 흐르니 코일이 자석이 돼요: 왼쪽 <b class="r">N</b> · 오른쪽 <b class="bl">S</b>. 나침반도 끌려가요.':m==='B'?'전지를 뒤집어 <b>전류 방향을 바꾸면</b> 극도 바뀌어요: 왼쪽 <b class="bl">S</b> · 오른쪽 <b class="r">N</b>. 나침반이 반대로 돌아요.':'전류가 없으면 코일은 <b>자석이 아니에요</b>. 나침반은 원래대로(북쪽) 돌아가요.';}
+ document.querySelectorAll('[data-em]').forEach(b=>b.onclick=()=>{m=b.dataset.em;document.querySelectorAll('[data-em]').forEach(x=>x.classList.toggle('sel',x===b));draw();});draw();})();
+
 /* 2-3 galvanometer */
 (function(){const sv=$('gv');let m='0';
  function drawIn(){const g=$('gvIn');g.innerHTML='';el('rect',{width:600,height:330,fill:'#fff'},g);
   const ang=m==='L'?-35:m==='R'?35:0;const tail=m==='L'?'N':m==='R'?'S':'';
   el('rect',{x:150,y:255,width:150,height:50,rx:8,fill:'#f04452'},g);el('rect',{x:300,y:255,width:150,height:50,rx:8,fill:'#3182f6'},g);
   tx(g,225,288,'N',{fill:'#fff','font-size':22,'font-weight':800});tx(g,375,288,'S',{fill:'#fff','font-size':22,'font-weight':800});
-  tx(g,300,324,'검류계 속 진짜 자석',{'font-size':12,fill:'#8b95a1','font-weight':400});
+  tx(g,300,324,'고정 자석 (진짜 자석 · 항상 그대로)',{'font-size':12,fill:'#8b95a1','font-weight':400});
   const rot=el('g',{style:'transition:transform 1s cubic-bezier(.3,1.5,.5,1);transform-origin:300px 120px'},g);
   el('line',{x1:300,y1:120,x2:300,y2:20,stroke:'#f04452','stroke-width':5,'stroke-linecap':'round'},rot);tx(rot,300,14,'바늘 끝',{'font-size':12,fill:'#f04452'});
   el('rect',{x:288,y:120,width:24,height:110,rx:6,fill:'#e9ecef',stroke:'#868e96','stroke-width':2},rot);
   for(let i=0;i<7;i++)el('line',{x1:282,y1:135+i*13,x2:318,y2:131+i*13,stroke:'#c87f2c','stroke-width':4},rot);
   if(tail){el('circle',{cx:300,cy:226,r:15,fill:tail==='N'?'#f04452':'#3182f6'},rot);tx(rot,300,232,tail,{fill:'#fff','font-size':16,'font-weight':800});}
-  el('circle',{cx:300,cy:120,r:8,fill:'#343a40'},g);tx(g,500,120,'(꼬리에 코일)',{'font-size':12,fill:'#4e5968','font-weight':400});
+  el('circle',{cx:300,cy:120,r:8,fill:'#343a40'},g);tx(g,505,110,'꼬리 = 전자석',{'font-size':13,fill:'#6b4fc8'});tx(g,505,130,'(전류 있을 때만 자석)',{'font-size':12,fill:'#4e5968','font-weight':400});
   if(tail){const push=tail==='N';tx(g,push?190:410,215,push?'N끼리 밀어요 →':'← S끼리 밀어요',{'font-size':13,fill:'#4e5968'});tx(g,push?410:190,215,push?'← N·S 당겨요':'N·S 당겨요 →',{'font-size':13,fill:'#4e5968'});}
-  else tx(g,300,215,'전류 없음 → 코일은 그냥 쇳덩이 → 바늘 가운데',{'font-size':13,fill:'#8b95a1','font-weight':400});
+  else tx(g,470,200,'전류 없음 → 자석 아님 → 바늘 가운데',{'font-size':12,fill:'#8b95a1','font-weight':400});
   requestAnimationFrame(()=>requestAnimationFrame(()=>rot.style.transform=`rotate(${ang}deg)`));}
  function draw(){sv.innerHTML='';el('rect',{width:600,height:270,fill:'#fff'},sv);
   el('rect',{x:180,y:40,width:240,height:150,rx:16,fill:'#f8f9fa',stroke:'#343a40','stroke-width':4},sv);
@@ -461,7 +489,7 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
  const own=el('g',{style:'transition:opacity .4s'},sv);const ownT=tx(own,300,224,'',{'font-size':22,'font-weight':800});
  const ownL=el('g',{},own);
  tx(sv,470,300,'코일 (전자가 원래 꽉 참)',{'font-size':12,fill:'#8b95a1','font-weight':400});
- const cap=tx(sv,300,26,'',{'font-size':15});
+ 
  function phase(tt){const c=tt%8.8;if(c<2.2)return['stay0',0];if(c<4.4)return['in',(c-2.2)/2.2];if(c<6.6)return['stay1',0];return['out',(c-6.6)/2.2];}
  function f(now){const dt=(now-lt)/1000;lt=now;if(!paused)t+=dt;const [ph,k]=phase(t);
   const ease=(x)=>x<.5?2*x*x:1-(-2*x+2)**2/2;
@@ -478,7 +506,7 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
    in:['자석이 다가와요: 코일을 꿰뚫는 파란 선이 늘어요','코일이 「오지 마!」 하고 윗면이 <b style="color:#f04452">N극</b>인 자석이 되려고 해요 → 자석이 되려면 전류가 필요 → <b>전자가 떠밀려 돌아요</b>'],
    stay1:['자석이 멈췄어요: 선이 많지만 변하지 않아요','막을 변화가 없어요 → 코일은 자석이 될 필요 없음 → <b>전자 멈춤, 전류 0</b>'],
    out:['자석이 멀어져요: 파란 선이 줄어요','코일이 「가지 마!」 하고 윗면이 <b style="color:#3182f6">S극</b>인 자석이 되려고 해요 → <b>전자가 반대로 돌아요</b>']};
-  cap.textContent=T[ph][0];if($('whyTxt').dataset.ph!==ph){$('whyTxt').dataset.ph=ph;$('whyTxt').innerHTML=T[ph][1];}
+  if($('whyTxt').dataset.ph!==ph){$('whyTxt').dataset.ph=ph;$('whyTxt').innerHTML='<b style="font-size:16px">'+T[ph][0]+'</b><br>'+T[ph][1];}
   requestAnimationFrame(f);}
  requestAnimationFrame(f);$('whyP').onclick=()=>{paused=!paused;$('whyP').textContent=paused?'▶ 다시 움직이기':'⏸ 멈춰 보기';};})();
 
