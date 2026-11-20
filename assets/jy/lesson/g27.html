@@ -92,7 +92,12 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 <div class="card"><span class="step">말부터 풀어요</span><h2>전류가 뭐고, 어디에 흐르는 거예요?</h2>
 <svg id="elc" viewBox="0 0 600 150"></svg>
 <p><b>전류</b> = 전선(구리선) 속에 원래 들어 있는 아주 작은 알갱이 <b>전자</b>들이 <b>한 방향으로 줄지어 이동하는 것</b>이에요. 물이 관을 따라 흐르듯 전기가 전선을 따라 흘러요.</p>
-<p>보통은 전지(건전지)가 전자를 밀어서 전류가 흘러요. 전지가 없으면 전자는 가만히 있어요.</p></div>
+<p>보통은 전지(건전지)가 전자를 밀어서 전류가 흘러요. 전지가 없으면 전자는 가만히 있어요.</p>
+<svg id="bat" viewBox="0 0 600 260" style="margin-top:8px"></svg>
+<div class="btns"><button class="b p" id="bIn">전지 끼우기</button><button class="b" id="bOut">전지 빼기</button></div>
+<div class="box" id="batTxt"></div>
+<p style="margin-top:10px"><b>물로 생각하면</b>: 전선은 물이 꽉 찬 관, 전자는 그 물, <b>전지는 물을 미는 펌프</b>예요. 펌프가 없으면 물이 관에 가득 있어도 안 흘러요. 펌프를 켜야 물이 빙글빙글 돌아요.</p>
+<p>그런데 <b>전자기 유도</b>에서는 전지가 없어요. 대신 <b>자석을 움직이는 것</b>이 펌프 역할을 해서 전자를 밀어요. 이게 다음 카드 이야기예요.</p></div>
 <div class="card"><span class="step">말부터 풀어요</span><h2>「전자기 유도」 = 자석으로 전기를 끌어냈다</h2>
 <div class="grid2"><div class="box"><b style="font-size:17px">전자기</b><br><span style="color:var(--t2)">전기 + 자기(자석)</span></div><div class="box"><b style="font-size:17px">유도</b><br><span style="color:var(--t2)">이끌어 내다, 일으키다</span></div></div>
 <p style="margin-top:10px">코일과 검류계를 전선으로 이어 <b>한 바퀴 고리</b>를 만들어요. <b>전지는 하나도 없어요.</b></p>
@@ -355,6 +360,22 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
  sv.onclick=()=>{on=!on;lab.textContent=on?'전자들이 한 방향으로 이동 → 이게 전류!':'전자들이 그냥 제자리에서 흔들려요 (전류 없음)';};
  tx(sv,560,30,'눌러 보기',{'font-size':12,fill:'#3182f6'});
  const f=(t)=>{ds.forEach((d,i)=>{if(on){d.x+=1.6;if(d.x>545)d.x=55;}const j=Math.sin(t/120+i)*2.5;d.c.setAttribute('cx',d.x+(on?0:j));d.c.setAttribute('cy',d.y+(on?0:Math.cos(t/90+i)*2.5));});requestAnimationFrame(f);};requestAnimationFrame(f);})();
+
+/* 2-1 battery */
+(function(){const sv=$('bat');let on=false;el('rect',{width:600,height:260,fill:'#fff'},sv);
+ const lp=el('path',{d:'M120,60 L480,60 L480,200 L120,200 Z',fill:'none',stroke:'#c87f2c','stroke-width':10,'stroke-linejoin':'round'},sv);
+ const LL=lp.getTotalLength();const ds=[...Array(30)].map(()=>el('circle',{r:5,fill:'#fcc419',stroke:'#e67700','stroke-width':1},sv));
+ const glow=el('circle',{cx:300,cy:60,r:34,fill:'#ffe066',opacity:0,style:'transition:opacity .4s'},sv);
+ el('circle',{cx:300,cy:60,r:20,fill:'#fff',stroke:'#adb5bd','stroke-width':3},sv);const fil=el('path',{d:'M290,64 q5,-14 10,0 q5,-14 10,0',fill:'none',stroke:'#adb5bd','stroke-width':2.5},sv);
+ tx(sv,300,30,'전구',{'font-size':13,fill:'#4e5968','font-weight':400});
+ const bg=el('g',{style:'transition:opacity .4s, transform .4s'},sv);el('rect',{x:260,y:184,width:80,height:32,rx:6,fill:'#343a40'},bg);el('rect',{x:340,y:192,width:8,height:16,rx:2,fill:'#343a40'},bg);
+ tx(bg,282,206,'-',{fill:'#fff','font-size':18});tx(bg,322,206,'+',{fill:'#fff','font-size':18});tx(bg,300,240,'전지 (펌프)',{'font-size':13,fill:'#4e5968','font-weight':400});
+ const gap=el('rect',{x:256,y:192,width:96,height:16,fill:'#fff',opacity:0},sv);const gl=tx(sv,300,240,'',{'font-size':13,fill:'#f04452'});
+ let off=0;const f=(t)=>{if(on)off+=1.4;ds.forEach((c,i)=>{const p=lp.getPointAtLength(((i*LL/30+off)%LL+LL)%LL);const j=on?0:Math.sin(t/110+i*1.7)*2.5;c.setAttribute('cx',p.x+j);c.setAttribute('cy',p.y+(on?0:Math.cos(t/90+i)*2.5));c.style.display=(!on&&p.y>190&&p.x>256&&p.x<352)?'none':'';});requestAnimationFrame(f);};requestAnimationFrame(f);
+ const set=(v)=>{on=v;bg.style.opacity=v?1:0;bg.style.transform=v?'none':'translateY(30px)';gap.setAttribute('opacity',v?0:1);gl.textContent=v?'':'전지 없음 (끊김)';glow.setAttribute('opacity',v?.7:0);fil.setAttribute('stroke',v?'#f59f00':'#adb5bd');
+  $('bIn').classList.toggle('p',!v);$('bOut').classList.toggle('p',v);
+  $('batTxt').innerHTML=v?'전지가 전자를 <b>밀어요</b> → 전자들이 전선을 따라 <b>한 방향으로 빙글빙글</b> → 이게 <b>전류</b> → 전구에 불이 켜져요':'전지가 없으면 전자는 전선 속에 <b>그대로 있지만</b> 제자리에서 꼼지락거리기만 해요 → <b>전류 0</b>, 전구 꺼짐';};
+ $('bIn').onclick=()=>set(true);$('bOut').onclick=()=>set(false);set(false);})();
 
 /* 3 direction */
 (function(){let dp='N',dm='in';const sv=$('dir');
