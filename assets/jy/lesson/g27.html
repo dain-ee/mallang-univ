@@ -129,7 +129,7 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 <div class="card"><span class="step">제일 중요</span><h2>자석에서 뭐가 나와서 코일로 들어가는 거예요?</h2>
 <svg id="why" viewBox="0 0 600 340"></svg>
 <div class="box" id="whyTxt" style="min-height:76px"></div>
-<div class="btns"><button class="b" id="whyP">⏸ 멈춰 보기</button></div>
+<div class="btns"><button class="b p" id="whyN">다음 단계 ›</button><button class="b" id="whyR">처음부터</button><span class="hint" id="whyS" style="align-self:center"></span></div>
 <p style="margin-top:10px"><b>아니에요. 자석에서 코일로 넘어가는 건 없어요.</b> 전자는 처음부터 코일 구리선 속에 꽉 차 있어요. 자석은 「자기장」(보이지 않는 힘)으로 코일 구멍을 꿰뚫고 있을 뿐이에요.</p>
 <p><b>전류가 흐르는 코일은 그 자체가 자석</b>(전자석)이 돼요. 코일을 지나는 자기장이 변하면, 코일은 그 변화를 막는 자석이 되려고 해요. 자석이 되려면 전류가 필요하니까 <b>코일 속 전자들이 떠밀려 돌기 시작</b>해요.</p>
 <p>다가오면 「오지 마」(같은 극), 멀어지면 「가지 마」(반대 극). 막는 방향이 반대라 <b>전류 방향도 반대</b>. 멈추면 막을 게 없으니 <b>전류 0</b>.</p></div>
@@ -479,7 +479,7 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
  document.querySelectorAll('[data-gv]').forEach(b=>b.onclick=()=>{m=b.dataset.gv;document.querySelectorAll('[data-gv]').forEach(x=>x.classList.toggle('sel',x===b));draw();});draw();})();
 
 /* 2-4 why */
-(function(){const sv=$('why');let paused=false,t=0,lt=performance.now(),off=0;
+(function(){const sv=$('why');let step=0,k=0,lt=performance.now(),off=0;const ORDER=['stay0','in','stay1','out'];
  const P=[[0,'stay0'],[2.2,'in'],[4.4,'stay1'],[6.6,'out'],[8.8,'end']];
  el('rect',{width:600,height:340,fill:'#fff'},sv);
  const fl=el('g',{},sv);const mg=el('g',{},sv);
@@ -490,8 +490,8 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
  const ownL=el('g',{},own);
  tx(sv,470,300,'코일 (전자가 원래 꽉 참)',{'font-size':12,fill:'#8b95a1','font-weight':400});
  
- function phase(tt){const c=tt%8.8;if(c<2.2)return['stay0',0];if(c<4.4)return['in',(c-2.2)/2.2];if(c<6.6)return['stay1',0];return['out',(c-6.6)/2.2];}
- function f(now){const dt=(now-lt)/1000;lt=now;if(!paused)t+=dt;const [ph,k]=phase(t);
+ function phase(){return[ORDER[step],k];}
+ function f(now){const dt=(now-lt)/1000;lt=now;let ph=ORDER[step];if(ph==='in'||ph==='out'){k=Math.min(1,k+dt/4);if(k>=1){step=(step+1)%4;k=0;ph=ORDER[step];}}$('whyS').textContent=(step+1)+' / 4';
   const ease=(x)=>x<.5?2*x*x:1-(-2*x+2)**2/2;
   const y=ph==='stay0'?40:ph==='in'?40+ease(k)*80:ph==='stay1'?120:120-ease(k)*80;
   mg.innerHTML='';el('rect',{x:270,y:y-60,width:60,height:50,rx:6,fill:'#3182f6'},mg);el('rect',{x:270,y:y-10,width:60,height:50,rx:6,fill:'#f04452'},mg);
@@ -499,16 +499,16 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
   fl.innerHTML='';const near=(y-40)/80;const n=3+Math.round(near*4);
   for(let i=0;i<n;i++){const dx=(i-(n-1)/2)*(70/Math.max(n-1,1));el('path',{d:`M${300+dx*.4},${y+40} L${300+dx},330`,stroke:'#3182f6','stroke-width':2,'stroke-dasharray':'5 6','stroke-dashoffset':(-now/40)%22,fill:'none'},fl);}
   const moving=ph==='in'||ph==='out';const sp=moving?Math.sin(k*Math.PI):0;const dir=ph==='in'?1:-1;
-  off+=dir*sp*dt*160;es.forEach((c,i)=>{const p=rp.getPointAtLength((((i*RL/18+off)%RL)+RL)%RL);const j=moving?0:Math.sin(now/110+i*1.7)*2.2;c.setAttribute('cx',p.x+j);c.setAttribute('cy',p.y+(moving?0:Math.cos(now/90+i)*2.2));});
+  off+=dir*sp*dt*70;es.forEach((c,i)=>{const p=rp.getPointAtLength((((i*RL/18+off)%RL)+RL)%RL);const j=moving?0:Math.sin(now/110+i*1.7)*2.2;c.setAttribute('cx',p.x+j);c.setAttribute('cy',p.y+(moving?0:Math.cos(now/90+i)*2.2));});
   own.style.opacity=moving?Math.min(1,sp*1.6):0;ownT.textContent=ph==='in'?'N':'S';ownT.setAttribute('fill',ph==='in'?'#f04452':'#3182f6');
   ownL.innerHTML='';if(moving){for(const dx of [-30,0,30])el('path',{d:ph==='in'?`M${300+dx},236 L${300+dx},206`:`M${300+dx},206 L${300+dx},236`,stroke:ph==='in'?'#f04452':'#3182f6','stroke-width':3,fill:'none','marker-end':''},ownL);}
-  const T={stay0:['자석이 멀리서 가만히 있어요','코일 속 전자들은 제자리에서 꼼지락만 해요. 자석에서 코일로 넘어오는 건 없어요 → <b>전류 0</b>'],
+  const T={stay0:['자석이 멀리서 가만히 있어요','코일 속 전자들은 제자리에서 꼼지락만 해요. 자석에서 코일로 넘어오는 건 없어요 → <b>전류 0</b><br><span class="hint">「다음 단계」를 누르면 자석이 천천히 다가와요</span>'],
    in:['자석이 다가와요: 코일을 꿰뚫는 파란 선이 늘어요','코일이 「오지 마!」 하고 윗면이 <b style="color:#f04452">N극</b>인 자석이 되려고 해요 → 자석이 되려면 전류가 필요 → <b>전자가 떠밀려 돌아요</b>'],
-   stay1:['자석이 멈췄어요: 선이 많지만 변하지 않아요','막을 변화가 없어요 → 코일은 자석이 될 필요 없음 → <b>전자 멈춤, 전류 0</b>'],
+   stay1:['자석이 멈췄어요: 선이 많지만 변하지 않아요','막을 변화가 없어요 → 코일은 자석이 될 필요 없음 → <b>전자 멈춤, 전류 0</b><br><span class="hint">「다음 단계」를 누르면 자석이 멀어져요</span>'],
    out:['자석이 멀어져요: 파란 선이 줄어요','코일이 「가지 마!」 하고 윗면이 <b style="color:#3182f6">S극</b>인 자석이 되려고 해요 → <b>전자가 반대로 돌아요</b>']};
   if($('whyTxt').dataset.ph!==ph){$('whyTxt').dataset.ph=ph;$('whyTxt').innerHTML='<b style="font-size:16px">'+T[ph][0]+'</b><br>'+T[ph][1];}
   requestAnimationFrame(f);}
- requestAnimationFrame(f);$('whyP').onclick=()=>{paused=!paused;$('whyP').textContent=paused?'▶ 다시 움직이기':'⏸ 멈춰 보기';};})();
+ requestAnimationFrame(f);$('whyN').onclick=()=>{if(ORDER[step]==='in'||ORDER[step]==='out')return;step=(step+1)%4;k=0;};$('whyR').onclick=()=>{step=0;k=0;};})();
 
 /* 3 direction */
 (function(){let dp='N',dm='in';const sv=$('dir');
