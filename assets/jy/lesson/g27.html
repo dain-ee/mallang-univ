@@ -216,6 +216,10 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 
 <!-- 6 발전기 -->
 <section class="pane" data-t="⑥ 발전기">
+<div class="card"><span class="step">말부터 풀어요</span><h2>회전축이 뭐예요?</h2>
+<p><b>회전축</b> = 코일을 <b>꿰고 있는 막대</b>예요. 자전거 바퀴 가운데 굴대, 선풍기 날개 가운데 막대 같은 거예요. 이 막대를 돌리면 꿰어 있는 코일이 막대를 <b>중심으로 빙글</b> 돌아요.</p>
+<p>누가 막대를 돌리나요? 교과서 실험에선 <b>손잡이</b>를 손으로 돌리고, 발전소에선 물·증기·바람이 <b>터빈</b>을 돌려서 그 막대를 돌려요. 막대는 원래 있던 부품이지, 저절로 생기는 게 아니에요.</p>
+<p class="hint">그림에서 회색 굵은 막대 = 회전축, 앞쪽 끝 꺾인 것 = 손잡이예요.</p></div>
 <div class="card"><span class="step">돌려 봐요</span><h2>자석 사이에서 코일을 빙글빙글</h2>
 <svg id="gen" viewBox="0 0 600 300"></svg>
 <p class="hint" style="text-align:center"><b style="color:#3182f6">파란 점</b> = 자기력선이 코일 구멍을 <b>뚫고 지나가는 자리</b> · 주황 화살표·점 = <b>코일 속 전류 방향</b> (화살표가 클수록 셈) · 코일은 앞뒤로 뻗은 회전축을 중심으로 돌아요</p>
@@ -681,11 +685,11 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
  box3(-146,-116,'N','#f04452','#ff8a94','#c4303d');box3(116,146,'S','#3182f6','#7fb1ff','#1f5fc4');
  const LY=[-44,-22,0,22,44],LZ=[-45,0,45];
  for(const z of LZ)for(const y of LY){const [a,b]=P(-116,y,z),[c,d]=P(116,y,z);el('line',{x1:a,y1:b,x2:c,y2:d,stroke:'#3182f6','stroke-width':z?1:1.5,'stroke-dasharray':'4 5',opacity:z?.45:1},sv);el('path',{d:`M${c-9},${d-5} L${c-1},${d} L${c-9},${d+5}`,fill:'none',stroke:'#3182f6','stroke-width':1.2,opacity:z?.45:1},sv);}
- {const [ax,ay]=P(0,0,-110),[bx,by]=P(0,0,110);el('line',{x1:ax,y1:ay,x2:bx,y2:by,stroke:'#8b95a1','stroke-width':2,'stroke-dasharray':'3 4'},sv);
+ {const [ax,ay]=P(0,0,-110),[bx,by]=P(0,0,110);const rod=el('g',{},sv);rod.id='rodBack';el('line',{x1:ax,y1:ay,x2:bx,y2:by,stroke:'#868e96','stroke-width':6,'stroke-linecap':'round'},sv);el('line',{x1:ax,y1:ay-1.5,x2:bx,y2:by-1.5,stroke:'#dee2e6','stroke-width':2,'stroke-linecap':'round'},sv);{const [hx,hy]=P(0,-30,110),[kx,ky]=P(0,-30,135);el('line',{x1:bx,y1:by,x2:hx,y2:hy,stroke:'#868e96','stroke-width':5,'stroke-linecap':'round'},sv);el('line',{x1:hx,y1:hy,x2:kx,y2:ky,stroke:'#495057','stroke-width':8,'stroke-linecap':'round'},sv);}
   let d='';for(let i=0;i<=28;i++){const a=i/28*Math.PI*1.6+Math.PI*0.3;const [x,y]=P(Math.cos(a)*20,Math.sin(a)*20,110);d+=(i?' L':'M')+x.toFixed(1)+','+y.toFixed(1);}
   el('path',{d,fill:'none',stroke:'#4e5968','stroke-width':2},sv);const a2=Math.PI*1.9;const [ex,ey]=P(Math.cos(a2)*20,Math.sin(a2)*20,110),[fx,fy]=P(Math.cos(a2-0.25)*20,Math.sin(a2-0.25)*20,110);
   const ux=ex-fx,uy=ey-fy,L=Math.hypot(ux,uy)||1;el('path',{d:`M${ex+ux/L*6},${ey+uy/L*6} L${ex-uy/L*5},${ey+ux/L*5} L${ex+uy/L*5},${ey-ux/L*5}z`,fill:'#4e5968'},sv);
-  tx(sv,bx,by+38,'회전축',{'font-size':11,fill:'#8b95a1','font-weight':500});}
+  tx(sv,90,250,'회색 막대 = 회전축 (끝은 손잡이)',{'font-size':11,fill:'#4e5968','font-weight':600});}
  const cg=el('g',{},sv);
  const ang=tx(sv,CX,24,'',{'font-size':15});const fl=tx(sv,CX,268,'',{'font-size':12,fill:'#4e5968','font-weight':400});const cu=tx(sv,CX,290,'',{'font-size':13,fill:'#e8590c'});
  el('line',{x1:368,y1:140,x2:594,y2:140,stroke:'#b0b8c1'},sv);el('line',{x1:368,y1:50,x2:368,y2:230,stroke:'#b0b8c1'},sv);
@@ -702,13 +706,16 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
   const order=[...E].sort((p,q)=>dv(cen([p.a,p.b]))-dv(cen([q.a,q.b])));
   for(const e of order){const [x1,y1]=P(...e.a),[x2,y2]=P(...e.b);el('line',{x1,y1,x2,y2,stroke:e.g?'#08814a':'#94561c','stroke-width':10,'stroke-linecap':'round'},cg);el('line',{x1:x1-1,y1:y1-1.5,x2:x2-1,y2:y2-1.5,stroke:e.g?'#3ddc93':'#e0a25c','stroke-width':4,'stroke-linecap':'round'},cg);}
   if(Math.abs(sn)>0.02){for(const y of LY){if(Math.abs(y/sn)>=R)continue;const x=y*cs/sn;for(const z of LZ){const [px,py]=P(x,y,z);el('circle',{cx:px,cy:py,r:5,fill:'#3182f6',stroke:'#fff','stroke-width':1.5},cg);}}}
-  if(k>0.06){for(const e of E){const [x1,y1]=P(...e.a),[x2,y2]=P(...e.b);let dx=(x2-x1)*sgn,dy=(y2-y1)*sgn;const L=Math.hypot(dx,dy);if(L<8)continue;dx/=L;dy/=L;const mx=(x1+x2)/2,my=(y1+y2)/2,sz=7+11*k;
-    el('path',{d:`M${mx+dx*sz},${my+dy*sz} L${mx-dx*sz*.6-dy*sz*.7},${my-dy*sz*.6+dx*sz*.7} L${mx-dx*sz*.6+dy*sz*.7},${my-dy*sz*.6-dx*sz*.7}z`,fill:'#e8590c',stroke:'#fff','stroke-width':1.5},cg);}
+  if(k>0.06){const fd=[-sn*sgn,cs*sgn,0];const [ox,oy]=P(0,0,0),[fx2,fy2]=P(fd[0]*85,fd[1]*85,0);const fdx=fx2-ox,fdy=fy2-oy,fl2=Math.hypot(fdx,fdy)||1;
+   el('line',{x1:ox,y1:oy,x2:fx2,y2:fy2,stroke:'#f59f00','stroke-width':3,'stroke-dasharray':'6 4',opacity:.9},cg);el('path',{d:`M${fx2-fdx/fl2*12-fdy/fl2*7},${fy2-fdy/fl2*12+fdx/fl2*7} L${fx2},${fy2} L${fx2-fdx/fl2*12+fdy/fl2*7},${fy2-fdy/fl2*12-fdx/fl2*7}`,fill:'none',stroke:'#f59f00','stroke-width':3,'stroke-linecap':'round','stroke-linejoin':'round'},cg);
+   tx(cg,fx2+fdx/fl2*14,fy2+fdy/fl2*14+4,'코일의 자기장',{'font-size':11,fill:'#e8590c','font-weight':700});
+   for(const e of E){const [x1,y1]=P(...e.a),[x2,y2]=P(...e.b);let dx=(x2-x1)*sgn,dy=(y2-y1)*sgn;const L=Math.hypot(dx,dy);if(L<8)continue;dx/=L;dy/=L;
+    for(const t of [0.32,0.68]){const mx=x1+(x2-x1)*t,my=y1+(y2-y1)*t,sz=7;el('path',{d:`M${mx-dx*sz-dy*sz*.8},${my-dy*sz+dx*sz*.8} L${mx},${my} L${mx-dx*sz+dy*sz*.8},${my-dy*sz-dx*sz*.8}`,fill:'none',stroke:'#fff','stroke-width':6,'stroke-linecap':'round','stroke-linejoin':'round'},cg);el('path',{d:`M${mx-dx*sz-dy*sz*.8},${my-dy*sz+dx*sz*.8} L${mx},${my} L${mx-dx*sz+dy*sz*.8},${my-dy*sz-dx*sz*.8}`,fill:'none',stroke:'#e8590c','stroke-width':3,'stroke-linecap':'round','stroke-linejoin':'round'},cg);}}
    const pts4=[D,A,B,Cc];for(let q=0;q<8;q++){let uu=((ph+q/2)%4+4)%4;const i0=Math.floor(uu),f=uu-i0,p0=pts4[i0],p1=pts4[(i0+1)%4];const [x,y]=P(p0[0]+(p1[0]-p0[0])*f,p0[1]+(p1[1]-p0[1])*f,p0[2]+(p1[2]-p0[2])*f);el('circle',{cx:x,cy:y,r:4,fill:'#f59f00'},cg);}}}
  $('gA').onclick=(e)=>{const b=e.target.closest('[data-ga]');if(!b)return;if(b.dataset.ga==='go'){hold=null;if(+$('gS').value===0)$('gS').value=1;$('gTxt').innerHTML='돌아가는 중이에요. 각도 단추로 멈춰 보세요.';return;}
   hold=+b.dataset.ga;th=hold*Math.PI/180;const f=info(hold);
   $('gTxt').innerHTML=`<b>${hold}°</b>: 코일을 통과하는 자기력선 <b>${f.n}개</b>/15${f.face} → 코일의 전류 <b>${f.dir}</b>`+
-   (hold===0||hold===180?'<br>코일이 누워서 자기력선과 나란해요. 통과하는 선은 0개지만, 이 순간 수가 <b>가장 빨리</b> 바뀌어서 전류가 가장 세요.':hold===90||hold===270?'<br>코일이 서서 자석을 정면으로 봐요. 통과하는 선은 최대지만, 이 순간엔 수가 거의 안 바뀌어서 전류가 0이에요. <b>여기서 전류 방향이 뒤집혀요.</b>':hold===45?'<br>통과하는 선이 <b>늘어나는</b> 중이에요 → + 방향.':hold===135?'<br>통과하는 선이 <b>줄어드는</b> 중이에요 → 45°와 세기는 같고 <b>방향은 반대(−)</b>예요.':'');};
+   (hold===0||hold===180?'<br>코일이 누워서 자기력선과 나란해요. 통과하는 선은 0개지만, 이 순간 수가 <b>가장 빨리</b> 바뀌어서 전류가 가장 세요. 코일의 자기장(주황 점선)은 다가올 변화를 막는 쪽이에요.':hold===90||hold===270?'<br>코일이 서서 자석을 정면으로 봐요. 통과하는 선은 최대지만, 이 순간엔 수가 거의 안 바뀌어서 전류가 0이에요. <b>여기서 전류 방향이 뒤집혀요.</b>':hold===45?'<br>왜 이 방향? 통과하는 선이 <b>늘어나는</b> 중이라, 코일은 그걸 <b>막으려고</b> 자석과 <b>반대쪽(←)</b>을 향하는 자기장(주황 점선)을 만들어요. 그런 자기장이 생기도록 전류가 화살표 방향으로 흘러요.':hold===135?'<br>왜 반대? 이번엔 통과하는 선이 <b>줄어드는</b> 중이라, 코일은 <b>붙잡으려고</b> 자석과 <b>같은 쪽(→)</b> 자기장(주황 점선)을 만들어요. 코일의 자기장이 뒤집혔으니 전류도 반대로 흘러요. 45°와 세기는 같아요.':'');};
  function loop(now){const dt=Math.min(.05,(now-lt)/1000);lt=now;const w=SP[+$('gS').value];$('gO').textContent=LB[+$('gS').value];
   if(hold===null)th+=w*dt*2;
   const sn=Math.sin(th),cs=Math.cos(th);const ww=hold!==null?SP[2]:w;const on=!!(w||hold!==null);ph+=dt*cs*ww*0.9;drawCoil(sn,cs,on);
