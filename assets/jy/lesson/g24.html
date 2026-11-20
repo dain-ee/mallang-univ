@@ -171,7 +171,7 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 
 <div class="card"><span class="step">골라 봐요</span><h2>에너지는 흐르고, 물질은 돌아요</h2>
 <div class="btns"><button class="b sel" data-em="e">에너지</button><button class="b" data-em="m">물질 (탄소 등)</button></div>
-<svg id="emv" viewBox="0 0 600 260" style="margin-top:10px"></svg>
+<svg id="emv" viewBox="0 20 600 200" style="margin-top:10px"></svg>
 <div class="box" id="emTxt"></div></div>
 </section>
 
@@ -336,7 +336,7 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
 /* 1-3 개체→생태계 */
 (function(){const sv=$('zm');
  const env=el('g',{class:'fade',opacity:0},sv);el('rect',{x:6,y:6,width:588,height:248,rx:18,fill:'#eaf4ff'},env);el('rect',{x:6,y:206,width:588,height:48,rx:0,fill:'#d9c3a5'},env);
- tx(env,560,32,'☀️',{'font-size':30});tx(env,40,240,'흙',{'font-size':14,fill:'#6b4a2b'});tx(env,520,236,'💧 물 · 공기',{'font-size':14,fill:'#1b64da'});
+ tx(env,560,32,'☀️',{'font-size':30});tx(env,40,240,'흙',{'font-size':17,fill:'#6b4a2b'});tx(env,520,236,'💧 물 · 공기',{'font-size':17,fill:'#1b64da'});
  const com=el('g',{class:'fade',opacity:0},sv);el('rect',{x:24,y:40,width:552,height:156,rx:18,fill:'none',stroke:'#8b6bd8','stroke-width':2.5,'stroke-dasharray':'8 6'},com);
  const one=el('g',{},sv);tx(one,300,138,'🐇',{'font-size':40});
  const pop=el('g',{class:'fade',opacity:0},sv);[[255,100],[345,100],[250,165],[350,165],[300,182]].forEach(([x,y])=>tx(pop,x,y,'🐇',{'font-size':30}));
@@ -432,10 +432,10 @@ function badge(w,n,s,col){const o=w.N[n];o.bd.innerHTML='';const off={풀:[-118,
 
 /* 3-3 에너지 단계 */
 (function(){const sv=$('en');const st=el('style',{},sv);st.textContent='.ht{animation:ht 3s ease-out infinite}@keyframes ht{from{opacity:0;transform:translate(0,0)}25%{opacity:1}to{opacity:0;transform:translate(-40px,-26px)}}';
- const Lv=[['생산자','100','#03b26c',380],['1차 소비자','10','#f59f00',270],['2차 소비자','1','#f08c00',170],['3차 소비자','0.1','#e8590c',90]];
- const cx=250,H=56,base=318;tx(sv,cx,30,'☀️',{'font-size':30});const sunT=tx(sv,cx+60,26,'빛에너지',{'font-size':14,fill:'#e67700','text-anchor':'start'});
+ const Lv=[['생산자','100','#03b26c',380],['1차 소비자','10','#f59f00',280],['2차 소비자','1','#f08c00',190],['3차 소비자','0.1','#e8590c',120]];
+ const cx=250,H=56,base=318;tx(sv,cx,34,'☀️',{'font-size':30});const sunT=tx(sv,cx+30,30,'빛에너지',{'font-size':17,fill:'#e67700','text-anchor':'start'});
  const ly=Lv.map(([n,v,c,wd],i)=>{const y=base-(i+1)*H;const g=el('g',{class:'fade',opacity:.15},sv);el('rect',{x:cx-wd/2,y,width:wd,height:H-6,rx:8,fill:c},g);
-  tx(g,cx,y+33,n,{fill:'#fff','font-size':15});tx(g,cx+wd/2+12,y+33,v,{'font-size':20,'font-weight':800,'text-anchor':'start',fill:'#191f28'});return{g,y,wd};});
+  tx(g,cx,y+33,n,{fill:'#fff','font-size':18});tx(g,cx+wd/2+44,y+35,v,{'font-size':24,'font-weight':800,'text-anchor':'start',fill:'#191f28'});return{g,y,wd};});
  const heat=el('g',{},sv);const pk=el('circle',{cx:0,cy:0,r:16,fill:'#fcc419',stroke:'#e67700','stroke-width':2,style:'transform:translate(250px,30px);transition:transform 3s ease-in-out',opacity:0},sv);
  const T=['<b>햇빛의 빛에너지</b>가 들어와요. <b>생산자</b>가 광합성으로 유기물 속 <b>화학 에너지</b>로 바꿔요. 이 양을 <b>100</b>이라 해요.',
   '<b>1차 소비자</b>가 생산자를 먹어요. 그런데 생산자가 자기 생명활동에 쓰고 <b>열</b>로 나간 몫은 못 받아요 → <b>10</b>만 올라가요.',
@@ -443,20 +443,20 @@ function badge(w,n,s,col){const o=w.N[n];o.bd.innerHTML='';const off={풀:[-118,
   '<b>3차 소비자</b>에게는 <b>0.1</b>. 생산자가 가진 에너지의 <b>0.1 %</b>예요.',
   '그래서 위로 갈수록 좁은 <b>피라미드</b> 모양. 위로 갈 에너지가 모자라서 영양 단계가 <b>5단계를 넘는 경우는 매우 드물어요.</b>'];
  stepper('en',5,(s)=>{const k=Math.min(s,3);ly.forEach((o,i)=>o.g.setAttribute('opacity',i<=k?1:.15));
-  pk.setAttribute('opacity',s<4?1:0);const y=ly[k].y+(H-6)/2;pk.style.transform=`translate(${cx+ly[k].wd/2-26}px,${y}px)`;pk.setAttribute('r',[16,11,7,4][k]);
-  heat.innerHTML='';if(s>=1&&s<=3){const o=ly[s-1];for(let j=0;j<3;j++){const t=tx(heat,cx-o.wd/2-14,o.y+30,'열',{'font-size':15,fill:'#f04452','text-anchor':'end',class:'ht',style:`animation-delay:${.6+j*.8}s;opacity:0`});}}
+  pk.setAttribute('opacity',s<4?1:0);const y=ly[k].y+(H-6)/2;pk.style.transform=`translate(${cx+ly[k].wd/2+22}px,${y}px)`;pk.setAttribute('r',[16,11,7,4][k]);
+  heat.innerHTML='';if(s>=1&&s<=3){const o=ly[s-1];for(let j=0;j<3;j++){const t=tx(heat,cx-o.wd/2-14,o.y+32,'열',{'font-size':18,fill:'#f04452','text-anchor':'end',class:'ht',style:`animation-delay:${.6+j*.8}s;opacity:0`});}}
   $('enTxt').innerHTML=T[s];});})();
 
 /* 3-4 피라미드 셋 */
 (function(){const sv=$('py');const D={e:[['생산자','100 %','#03b26c'],['1차 소비자','10 %','#f59f00'],['2차 소비자','1 %','#f08c00'],['3차 소비자','0.1 %','#e8590c']],
   m:[['생산자','벼 5000','#03b26c'],['1차 소비자','닭 500','#f59f00'],['2차 소비자','사람의 신체 조직 50','#f08c00']],
   n:[['생산자','해조류(다시마)','#03b26c'],['1차 소비자','성게·게','#f59f00'],['2차 소비자','해달','#f08c00']]};
- const W={4:[340,240,150,80],3:[340,220,110]};
+ const W={4:[360,260,170,110],3:[360,240,130]};
  const T={e:'<b>에너지피라미드</b>: 각 단계 옆으로 <b>열이 발생</b>해서 위로 갈수록 줄어요.',m:'<b>생물량피라미드</b>(g/m²): 사람 몸이 닭보다 크지만 <b>개체수가 훨씬 적어서</b> 생물량은 위로 갈수록 작아요.<br><span class="hint">「몸이 크니까 생물량이 많아진다」는 틀린 보기예요.</span>',n:'<b>개체수피라미드</b>: 다시마가 가장 많고, 해달이 가장 적어요.'};
- function draw(k){sv.innerHTML='';const L=D[k],cx=210,H=54,base=246;const st=el('style',{},sv);st.textContent='.gr{animation:gr .9s cubic-bezier(.2,.8,.2,1) both;transform-box:fill-box;transform-origin:center}@keyframes gr{from{transform:scaleX(0)}to{transform:none}}';
+ function draw(k){sv.innerHTML='';const L=D[k],cx=230,H=54,base=246;const st=el('style',{},sv);st.textContent='.gr{animation:gr .9s cubic-bezier(.2,.8,.2,1) both;transform-box:fill-box;transform-origin:center}@keyframes gr{from{transform:scaleX(0)}to{transform:none}}';
   L.forEach(([n,v,c],i)=>{const wd=W[L.length][i],y=base-(i+1)*H;el('rect',{x:cx-wd/2,y,width:wd,height:H-6,rx:8,fill:c,class:'gr',style:`animation-delay:${i*.35}s`},sv);
-   tx(sv,cx,y+31,n,{fill:'#fff','font-size':14});const t=tx(sv,cx+wd/2+12,y+31,v,{'font-size':15,'text-anchor':'start',opacity:0,style:`transition:opacity .6s ${.4+i*.35}s`});requestAnimationFrame(()=>requestAnimationFrame(()=>t.setAttribute('opacity',1)));
-   if(k==='e'&&i<3)tx(sv,cx-wd/2-10,y+31,'열',{'font-size':14,fill:'#f04452','text-anchor':'end'});});
+   tx(sv,cx,y+32,n,{fill:'#fff','font-size':17});const t=tx(sv,cx+wd/2+12,y+32,v,{'font-size':18,'text-anchor':'start',opacity:0,style:`transition:opacity .6s ${.4+i*.35}s`});requestAnimationFrame(()=>requestAnimationFrame(()=>t.setAttribute('opacity',1)));
+   if(k==='e'&&i<3)tx(sv,cx-wd/2-10,y+32,'열',{'font-size':17,fill:'#f04452','text-anchor':'end'});});
   $('pyTxt').innerHTML=T[k];}
  document.querySelectorAll('[data-py]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-py]').forEach(x=>x.classList.toggle('sel',x===b));draw(b.dataset.py);});
  inits[2]=()=>draw(document.querySelector('[data-py].sel').dataset.py);draw('e');})();
@@ -474,14 +474,13 @@ function badge(w,n,s,col){const o=w.N[n];o.bd.innerHTML='';const off={풀:[-118,
   const col=k==='e'?'#f59f00':'#3182f6';const paths=[];
   if(k==='e'){tx(sv,40,118,'☀️',{'font-size':30});paths.push('M70,110 L112,110','M188,110 L262,110','M338,110 L412,110');
    [150,300,450].forEach(x=>{paths.push(`M${x},70 L${x},30`);tx(sv,x+16,40,'열',{'font-size':14,fill:'#f04452','text-anchor':'start'});});
-   paths.push('M170,142 Q300,250 430,142','M325,140 Q385,180 425,142');tx(sv,300,222,'죽은 몸·배설물에 든 에너지도 분해자에게 가요',{'font-size':13,fill:'#8b95a1','font-weight':400});
-   tx(sv,300,248,'한 방향으로만 가다가 열로 빠져나가요 → 순환하지 않아요',{'font-size':14,fill:'#e67700'});}
+   paths.push('M170,142 Q300,250 430,142','M325,140 Q385,180 425,142');}
   else{el('rect',{x:225,y:176,width:150,height:40,rx:10,fill:'#e8f3ff'},sv);tx(sv,300,202,'공기·토양',{'font-size':15,fill:'#1b64da'});
-   paths.push('M188,110 L262,110','M338,110 L412,110','M478,135 Q490,200 378,200','M222,200 Q110,200 122,135');
-   tx(sv,300,248,'분해자를 거쳐 다시 생산자가 써요 → 빙글빙글 순환해요',{'font-size':14,fill:'#1b64da'});}
+   paths.push('M188,110 L262,110','M338,110 L412,110','M484,134 Q512,214 378,206','M222,206 Q88,214 116,134');
+}
   paths.forEach(p=>{el('path',{d:p,fill:'none',stroke:col,'stroke-width':3,'marker-end':'url(#ea)',opacity:.55},sv);for(let r=0;r<2;r++){const c=el('circle',{r:5,fill:col},sv);el('animateMotion',{dur:'4s',repeatCount:'indefinite',begin:(r*2)+'s',path:p},c);}});
-  nd.forEach(([n,e,x,y,c])=>{el('circle',{cx:x,cy:y,r:34,fill:'#fff',stroke:c,'stroke-width':3},sv);tx(sv,x,y+11,e,{'font-size':30});tx(sv,x,y+56,n,{'font-size':14});});
-  $('emTxt').innerHTML=k==='e'?'<b>에너지</b>는 <b>흐르기만</b> 해요. 단계마다 생명활동에 쓰이며 열로 나가요. 「에너지는 순환한다」는 <b>틀린</b> 보기예요.':'<b>탄소 같은 물질</b>은 분해자가 사체·배설물을 분해해 공기·토양으로 돌려보내면, 생산자가 다시 써요. <b>물질 = 순환</b>. 고래 배설물이 바다의 물질순환을 돕는 것도 같은 이야기예요.';}
+  nd.forEach(([n,e,x,y,c])=>{el('circle',{cx:x,cy:y,r:34,fill:'#fff',stroke:c,'stroke-width':3},sv);tx(sv,x,y+11,e,{'font-size':30});tx(sv,x,y+58,n,{'font-size':17});});
+  $('emTxt').innerHTML=k==='e'?'<b style="color:#e67700">한 방향으로 가다가 열로 빠져나가요 → 순환하지 않아요</b><br>죽은 몸·배설물에 든 에너지도 분해자에게 가서 결국 열로 나가요. <b>에너지</b>는 <b>흐르기만</b> 해요. 단계마다 생명활동에 쓰이며 열로 나가요. 「에너지는 순환한다」는 <b>틀린</b> 보기예요.':'<b style="color:#1b64da">분해자를 거쳐 다시 생산자가 써요 → 빙글빙글 순환해요</b><br><b>탄소 같은 물질</b>은 분해자가 사체·배설물을 분해해 공기·토양으로 돌려보내면, 생산자가 다시 써요. <b>물질 = 순환</b>. 고래 배설물이 바다의 물질순환을 돕는 것도 같은 이야기예요.';}
  document.querySelectorAll('[data-em]').forEach(b=>b.onclick=()=>{k=b.dataset.em;document.querySelectorAll('[data-em]').forEach(x=>x.classList.toggle('sel',x===b));draw();});draw();})();
 
 /* 4-1 평형 회복 */
@@ -496,18 +495,19 @@ function badge(w,n,s,col){const o=w.N[n];o.bd.innerHTML='';const off={풀:[-118,
   '<b>⑤ 2차 소비자 ↓, 생산자 ↑ → 평형 회복</b><br>1차 소비자가 줄어 <b>생산자는 덜 먹혀 늘고</b>, 먹이가 모자란 <b>2차 소비자는 줄어요.</b> 원래 평형으로 돌아왔어요.'];
  function set(w,a){rows.forEach((r,i)=>{r.bar.style.width=w[i]+'%';r.ar.textContent=a[i];r.ar.style.color=a[i]==='↑'?'#3182f6':'#e67700';r.ar.classList.toggle('in',!!a[i]);});}
  stepper('eq',5,(s)=>{set(...S[s]);$('eqTxt').innerHTML=T[s];});
- $('eqX').onclick=()=>{set([32,96,92],['','↑','']);$('eqTxt').innerHTML='1차 소비자가 <b>오랫동안 너무 많이</b> 늘면…';$('eqS').textContent='';
-  setTimeout(()=>{set([20,96,8],['↓','','↓']);$('eqTxt').innerHTML='1차 소비자가 <b>오랫동안 너무 많이</b> 늘면 바탕인 <b>생산자가 사라져</b> 생태계가 <b>파괴될 수도 있어요.</b> 평형으로 못 돌아와요.<br><span class="hint">「처음부터」를 누르면 다시 볼 수 있어요.</span>';},3200);};})();
+ let eqT;['eqN','eqR'].forEach(id=>$(id).addEventListener('click',()=>clearTimeout(eqT)));
+ $('eqX').onclick=()=>{clearTimeout(eqT);set([32,96,92],['','↑','']);$('eqTxt').innerHTML='1차 소비자가 <b>오랫동안 너무 많이</b> 늘면…';$('eqS').textContent='';
+  eqT=setTimeout(()=>{set([20,96,8],['↓','','↓']);$('eqTxt').innerHTML='1차 소비자가 <b>오랫동안 너무 많이</b> 늘면 바탕인 <b>생산자가 사라져</b> 생태계가 <b>파괴될 수도 있어요.</b> 평형으로 못 돌아와요.<br><span class="hint">「처음부터」를 누르면 다시 볼 수 있어요.</span>';},3200);};})();
 
 /* 4-2 카이바브 */
 (function(){const sv=$('kb');const X=(y)=>70+(y-1905)/35*500,Y=(v)=>250-v/110000*200;
  el('line',{x1:60,y1:250,x2:580,y2:250,stroke:'#d1d6db','stroke-width':2},sv);el('line',{x1:60,y1:40,x2:60,y2:250,stroke:'#d1d6db','stroke-width':2},sv);
- [[0,'0'],[50000,'5만'],[100000,'10만']].forEach(([v,s])=>{tx(sv,52,Y(v)+5,s,{'font-size':13,fill:'#8b95a1','font-weight':400,'text-anchor':'end'});if(v)el('line',{x1:60,y1:Y(v),x2:580,y2:Y(v),stroke:'#f2f4f6','stroke-width':1},sv);});
- tx(sv,60,26,'사슴 수(마리)',{'font-size':13,fill:'#8b95a1','font-weight':400,'text-anchor':'start'});
+ [[0,'0'],[50000,'5만'],[100000,'10만']].forEach(([v,s])=>{tx(sv,52,Y(v)+5,s,{'font-size':15,fill:'#8b95a1','font-weight':400,'text-anchor':'end'});if(v)el('line',{x1:60,y1:Y(v),x2:580,y2:Y(v),stroke:'#f2f4f6','stroke-width':1},sv);});
+ tx(sv,60,26,'사슴 수(마리)',{'font-size':15,fill:'#8b95a1','font-weight':400,'text-anchor':'start'});
  const P=[[1907,4000,'4천',0,-14,'middle'],[1924,100000,'10만',0,-14,'middle'],[1926,40000,'4만',14,5,'start'],[1939,10000,'1만',0,-14,'middle']];
- const segs=[],pts=[];P.forEach(([y,v,s,dx,dy,an],i)=>{if(i){const [y0,v0]=P[i-1];const L=Math.hypot(X(y)-X(y0),Y(v)-Y(v0));const l=el('line',{x1:X(y0),y1:Y(v0),x2:X(y),y2:Y(v),stroke:'#3182f6','stroke-width':4,'stroke-linecap':'round','stroke-dasharray':L,'stroke-dashoffset':L,style:'transition:stroke-dashoffset 3s ease-in-out'},sv);l.L=L;segs.push(l);}
-  const g=el('g',{class:'fade',opacity:0},sv);el('circle',{cx:X(y),cy:Y(v),r:7,fill:'#fff',stroke:'#3182f6','stroke-width':3},g);tx(g,X(y)+dx,Y(v)+dy,s,{'font-size':16,'text-anchor':an});
-  tx(g,X(y),i===2?292:272,y+'',{'font-size':13,fill:'#4e5968','font-weight':400});pts.push(g);});
+ const segs=[],pts=[];P.forEach(([y,v,s,dx,dy,an],i)=>{if(i){const [y0,v0]=P[i-1];const L=Math.hypot(X(y)-X(y0),Y(v)-Y(v0));const l=el('line',{x1:X(y0),y1:Y(v0),x2:X(y),y2:Y(v),stroke:'#3182f6','stroke-width':4,'stroke-dasharray':L,'stroke-dashoffset':L,style:'transition:stroke-dashoffset 3s ease-in-out'},sv);l.L=L;segs.push(l);}
+  const g=el('g',{class:'fade',opacity:0},sv);el('circle',{cx:X(y),cy:Y(v),r:7,fill:'#fff',stroke:'#3182f6','stroke-width':3},g);tx(g,X(y)+dx,Y(v)+dy,s,{'font-size':19,'text-anchor':an});
+  tx(g,X(y),i===2?292:272,y+'',{'font-size':15,fill:'#4e5968','font-weight':400});pts.push(g);});
  const T=['<b>1907년 4천 마리</b><br>사슴을 지키려고 사슴 사냥을 금지하고, 포식자인 <b>퓨마·늑대를 마구 사냥</b>했어요.',
   '<b>1924년 10만 마리</b><br>잡아먹히지 않으니 급증했어요. 100000 ÷ 4000 = <b>25배</b>',
   '<b>1926년 4만 마리</b><br>사슴이 너무 많아 <b>먹이 식물이 모자라</b> 급격히 줄었어요.<br><span class="hint">포식자는 사람이 사냥해서 줄어든 상태예요. 「포식자가 늘어서 줄었다」는 틀린 보기!</span>',
@@ -517,11 +517,11 @@ function badge(w,n,s,col){const o=w.N[n];o.bd.innerHTML='';const off={풀:[-118,
 /* 4-3 레밍 */
 (function(){const sv=$('lm');const X=(t)=>50+t/12*520;
  el('line',{x1:50,y1:200,x2:575,y2:200,stroke:'#d1d6db','stroke-width':2},sv);el('line',{x1:50,y1:30,x2:50,y2:200,stroke:'#d1d6db','stroke-width':2},sv);
- for(let t=0;t<=12;t+=4)tx(sv,X(t),222,t+'년',{'font-size':13,fill:'#8b95a1','font-weight':400});tx(sv,58,24,'개체수',{'font-size':13,fill:'#8b95a1','font-weight':400,'text-anchor':'start'});
+ for(let t=0;t<=12;t+=4)tx(sv,X(t),222,t+'년',{'font-size':15,fill:'#8b95a1','font-weight':400});tx(sv,58,24,'개체수',{'font-size':15,fill:'#8b95a1','font-weight':400,'text-anchor':'start'});
  const curve=(lag,amp,mid)=>{let d='';for(let i=0;i<=240;i++){const t=i/20;const y=mid-amp*Math.sin((t-lag)/4*2*Math.PI);d+=(i?' L':'M')+X(t).toFixed(1)+','+y.toFixed(1);}return d;};
  const a=el('path',{d:curve(0,60,110),fill:'none',stroke:'#f59f00','stroke-width':4},sv),b=el('path',{d:curve(1,38,140),fill:'none',stroke:'#e8590c','stroke-width':4},sv);
- const lg=el('g',{},sv);el('rect',{x:420,y:238,width:14,height:6,fill:'#f59f00'},lg);tx(lg,440,246,'레밍',{'font-size':13,'text-anchor':'start'});el('rect',{x:490,y:238,width:14,height:6,fill:'#e8590c'},lg);tx(lg,510,246,'쇠족제비',{'font-size':13,'text-anchor':'start'});
- const lag=el('g',{class:'fade',opacity:0},sv);el('line',{x1:X(1),y1:44,x2:X(2),y2:44,stroke:'#4e5968','stroke-width':2},lag);tx(lag,X(2)+8,70,'약 1년 늦게',{'font-size':13,fill:'#4e5968','text-anchor':'start'});
+ const lg=el('g',{},sv);el('rect',{x:420,y:238,width:14,height:6,fill:'#f59f00'},lg);tx(lg,440,246,'레밍',{'font-size':15,'text-anchor':'start'});el('rect',{x:490,y:238,width:14,height:6,fill:'#e8590c'},lg);tx(lg,510,246,'쇠족제비',{'font-size':15,'text-anchor':'start'});
+ const lag=el('g',{class:'fade',opacity:0},sv);el('line',{x1:X(1),y1:44,x2:X(2),y2:44,stroke:'#4e5968','stroke-width':2},lag);tx(lag,X(2)+8,70,'약 1년 늦게',{'font-size':15,fill:'#4e5968','text-anchor':'start'});
  el('line',{x1:X(1),y1:50,x2:X(1),y2:58,stroke:'#4e5968','stroke-width':2},lag);el('line',{x1:X(2),y1:50,x2:X(2),y2:100,stroke:'#4e5968','stroke-width':2,'stroke-dasharray':'3 3'},lag);
  tx(sv,300,246,'',{});
  function go(){for(const p of [a,b]){const L=p.getTotalLength();p.style.transition='none';p.setAttribute('stroke-dasharray',L);p.setAttribute('stroke-dashoffset',L);p.getBoundingClientRect();p.style.transition='stroke-dashoffset 7s linear';p.setAttribute('stroke-dashoffset',0);}
@@ -541,12 +541,12 @@ function badge(w,n,s,col){const o=w.N[n];o.bd.innerHTML='';const off={풀:[-118,
 
 /* 5-1 기후 */
 (function(){const sv=$('cl');
- el('rect',{x:60,y:40,width:210,height:250,rx:16,fill:'#eef6e8'},sv);tx(sv,165,30,'땅',{'font-size':14,fill:'#4e5968'});
- el('rect',{x:330,y:40,width:210,height:250,rx:16,fill:'#e3f0ff'},sv);tx(sv,435,30,'바다',{'font-size':14,fill:'#4e5968'});
+ el('rect',{x:60,y:40,width:210,height:250,rx:16,fill:'#eef6e8'},sv);tx(sv,165,30,'땅',{'font-size':17,fill:'#4e5968'});
+ el('rect',{x:330,y:40,width:210,height:250,rx:16,fill:'#e3f0ff'},sv);tx(sv,435,30,'바다',{'font-size':17,fill:'#4e5968'});
  tx(sv,300,62,'북',{'font-size':18,fill:'#191f28'});tx(sv,300,282,'남',{'font-size':18,fill:'#191f28'});
  el('line',{x1:300,y1:80,x2:300,y2:255,stroke:'#d1d6db','stroke-width':2,'stroke-dasharray':'4 5'},sv);
- const g1=el('g',{style:'transition:transform 3.5s ease-in-out'},sv);el('rect',{x:76,y:200,width:178,height:70,rx:12,fill:'#ff8a8a',opacity:.85},g1);tx(g1,165,232,'🍎 🍊',{'font-size':22});tx(g1,165,258,'사과·귤 재배 지역',{'font-size':14,fill:'#fff'});
- const g2=el('g',{style:'transition:transform 3.5s ease-in-out'},sv);el('rect',{x:346,y:200,width:178,height:70,rx:12,fill:'#4593fc',opacity:.85},g2);tx(g2,435,232,'🐟',{'font-size':22});tx(g2,435,258,'고등어 출몰 지역',{'font-size':14,fill:'#fff'});
+ const g1=el('g',{style:'transition:transform 3.5s ease-in-out'},sv);el('rect',{x:76,y:200,width:178,height:70,rx:12,fill:'#ff8a8a',opacity:.85},g1);tx(g1,165,232,'🍎 🍊',{'font-size':22});tx(g1,165,258,'사과·귤 재배 지역',{'font-size':17,fill:'#fff'});
+ const g2=el('g',{style:'transition:transform 3.5s ease-in-out'},sv);el('rect',{x:346,y:200,width:178,height:70,rx:12,fill:'#4593fc',opacity:.85},g2);tx(g2,435,232,'🐟',{'font-size':22});tx(g2,435,258,'고등어 출몰 지역',{'font-size':17,fill:'#fff'});
  const th=el('g',{},sv);el('rect',{x:568,y:70,width:14,height:190,rx:7,fill:'#f2f4f6',stroke:'#d1d6db'},th);const mer=el('rect',{x:571,y:200,width:8,height:57,rx:4,fill:'#f04452',style:'transition:all 3.5s ease-in-out'},th);
  $('clGo').onclick=()=>{g1.style.transform='translateY(-130px)';g2.style.transform='translateY(-130px)';mer.setAttribute('y',90);mer.setAttribute('height',167);
   $('clTxt').innerHTML='기온·수온이 오르면 따뜻한 곳에 살던 작물과 물고기가 <b>더 북쪽에서도</b> 살 수 있어요.<br>사과·귤 재배 지역, 고등어 출몰 지역 모두 <b>북쪽으로 올라가요.</b>';};
@@ -554,10 +554,10 @@ function badge(w,n,s,col){const o=w.N[n];o.bd.innerHTML='';const off={풀:[-118,
 
 /* 5-2 갯벌 */
 (function(){const sv=$('tf');
- el('rect',{x:0,y:0,width:600,height:200,rx:14,fill:'#e3f0ff'},sv);el('rect',{x:0,y:0,width:200,height:200,fill:'#e3f5dc'},sv);tx(sv,100,104,'땅',{'font-size':16,fill:'#4e5968'});
- const mud=el('rect',{x:200,y:0,width:200,height:200,fill:'#c9a27a',style:'transition:fill 3s'},sv);const mudT=tx(sv,300,96,'갯벌',{'font-size':16,fill:'#fff'});const crab=tx(sv,300,130,'🦀 🐚 🪱',{'font-size':22,class:'fade'});
- tx(sv,500,104,'바다',{'font-size':16,fill:'#1b64da'});
- const dam=el('rect',{x:396,y:-200,width:14,height:200,fill:'#6b7684',style:'transition:transform 2.5s ease-in-out'},sv);const damT=tx(sv,418,190,'방조제',{'font-size':13,fill:'#4e5968','text-anchor':'start',class:'fade',opacity:0});
+ el('rect',{x:0,y:0,width:600,height:200,rx:14,fill:'#e3f0ff'},sv);el('rect',{x:0,y:0,width:200,height:200,fill:'#e3f5dc'},sv);tx(sv,100,104,'땅',{'font-size':19,fill:'#4e5968'});
+ const mud=el('rect',{x:200,y:0,width:200,height:200,fill:'#c9a27a',style:'transition:fill 3s'},sv);const mudT=tx(sv,300,96,'갯벌',{'font-size':19,fill:'#fff'});const crab=tx(sv,300,130,'🦀 🐚 🪱',{'font-size':22,class:'fade'});
+ tx(sv,500,104,'바다',{'font-size':19,fill:'#1b64da'});
+ const dam=el('rect',{x:396,y:-200,width:14,height:200,fill:'#6b7684',style:'transition:transform 2.5s ease-in-out'},sv);const damT=tx(sv,418,190,'방조제',{'font-size':16,fill:'#4e5968','text-anchor':'start',class:'fade',opacity:0});
  $('tfGo').onclick=()=>{dam.style.transform='translateY(200px)';damT.setAttribute('opacity',1);setTimeout(()=>{mud.setAttribute('fill','#d8e8c8');mudT.textContent='메운 땅';mudT.setAttribute('fill','#4e5968');crab.setAttribute('opacity',0);},2600);};
  $('tfR').onclick=()=>{dam.style.transform='';damT.setAttribute('opacity',0);mud.setAttribute('fill','#c9a27a');mudT.textContent='갯벌';mudT.setAttribute('fill','#fff');crab.setAttribute('opacity',1);};})();
 
@@ -569,13 +569,13 @@ function badge(w,n,s,col){const o=w.N[n];o.bd.innerHTML='';const off={풀:[-118,
 
 /* 5-4 카카오 */
 (function(){const sv=$('cc');
- const t1=el('g',{class:'fade'},sv);tx(t1,110,130,'🌳',{'font-size':70});tx(t1,110,168,'카카오나무',{'font-size':14});
- const t2=el('g',{class:'fade'},sv);tx(t2,490,130,'🌳',{'font-size':70});tx(t2,490,168,'카카오나무',{'font-size':14});
- const pod=el('g',{class:'fade',opacity:0},sv);tx(pod,490,200,'열매·씨가 생겨요',{'font-size':13,fill:'#03b26c'});
+ const t1=el('g',{class:'fade'},sv);tx(t1,110,130,'🌳',{'font-size':70});tx(t1,110,168,'카카오나무',{'font-size':17});
+ const t2=el('g',{class:'fade'},sv);tx(t2,490,130,'🌳',{'font-size':70});tx(t2,490,168,'카카오나무',{'font-size':17});
+ const pod=el('g',{class:'fade',opacity:0},sv);tx(pod,490,200,'열매·씨가 생겨요',{'font-size':16,fill:'#03b26c'});
  const fl=el('path',{d:'M140,70 Q300,10 460,70',fill:'none',stroke:'#d1d6db','stroke-width':2,'stroke-dasharray':'5 6'},sv);
  const mq=el('g',{class:'fade'},sv);const bug=tx(mq,0,0,'🦟',{'font-size':30});const pol=el('circle',{cx:14,cy:6,r:5,fill:'#fcc419'},mq);
  const mv=el('animateMotion',{dur:'4s',repeatCount:'indefinite',path:'M140,70 Q300,10 460,70'},mq);
- const no=el('g',{class:'fade',opacity:0},sv);tx(no,300,110,'✕',{'font-size':40,fill:'#e8590c'});tx(no,300,140,'꽃가루를 못 옮겨요',{'font-size':14,fill:'#e8590c'});
+ const no=el('g',{class:'fade',opacity:0},sv);tx(no,300,110,'✕',{'font-size':40,fill:'#e8590c'});tx(no,300,140,'꽃가루를 못 옮겨요',{'font-size':17,fill:'#e8590c'});
  const T=['<b>좀모기</b>가 카카오나무 꽃의 <b>꽃가루</b>(노란 점)를 다른 꽃으로 옮겨 줘요. 그래야 열매와 씨가 생겨요.',
   '그런데 환경이 바뀌어 <b>좀모기가 사라지면</b>…',
   '꽃가루를 옮겨 줄 동물이 없으니 열매·씨가 안 생겨요 → 번식 수단을 잃은 <b>카카오나무도 멸종될 수 있어요.</b><br>생물은 서로 이어져 있어서 하나가 사라지면 연결된 생물도 위험해요.'];
