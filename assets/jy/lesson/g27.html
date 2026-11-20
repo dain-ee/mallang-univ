@@ -334,14 +334,14 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
 /* 2 induction */
 (function(){const sv=$('ind');let pole='N',my=30,last=30,lt=performance.now(),auto=false,t0=0,vel=0;
  el('rect',{width:600,height:380,fill:'#fff'},sv);
- const fg=el('g',{},sv);const mg=el('g',{style:'cursor:grab'},sv);const cg=el('g',{},sv);coil(cg,170,250,70,4);tx(cg,70,320,'코일',{'font-size':13,fill:'#8b95a1','font-weight':400});
+ const fst=el('style',{},sv);fst.textContent='.fdn{animation:fd .8s linear infinite}.fup{animation:fd .8s linear infinite reverse}@keyframes fd{to{stroke-dashoffset:-18}}';const fg=el('g',{},sv);const mg=el('g',{style:'cursor:grab'},sv);const cg=el('g',{},sv);coil(cg,170,250,70,4);tx(cg,70,320,'코일',{'font-size':13,fill:'#8b95a1','font-weight':400});
  el('path',{d:'M240,286 C300,300 340,300 400,290',fill:'none',stroke:'#4e5968','stroke-width':2},sv);const lp=el('path',{d:'M240,262 A70,12 0 0 1 100,262 L100,350 L540,350 L540,285 L405,285 L240,262',fill:'none',stroke:'#4e5968','stroke-width':2},sv);
  const setN=galv(sv,460,280);const LL=lp.getTotalLength();const ed=[...Array(22)].map((_,i)=>el('circle',{r:4.5,fill:'#fcc419',stroke:'#e67700','stroke-width':1},sv));let off=0;
  const cnt=tx(sv,460,60,'',{'font-size':15});const st=tx(sv,460,88,'',{'font-size':15});
  tx(sv,460,30,'코일을 지나는 선',{'font-size':12,fill:'#8b95a1','font-weight':400});
  function drawM(){mg.innerHTML='';magnet(mg,170,my,46,96,pole,true);
   fg.innerHTML='';const n=flux(my);const k=Math.round(n*9);
-  for(let i=0;i<9;i++){const x=170+(i-4)*15;el('line',{x1:x,y1:my+96,x2:x+(i-4)*6,y2:330,stroke:i<k?'#3182f6':'#e5e8eb','stroke-width':i<k?2:1,'stroke-dasharray':'4 5'},fg);}
+  const ORD=[4,3,5,2,6,1,7,0,8],lit=new Set(ORD.slice(0,k));for(let i=0;i<9;i++){const x=170+(i-4)*9,on=lit.has(i);el('path',{d:`M${x},${my+96} Q${170+(i-4)*16},${(my+96+330)/2} ${170+(i-4)*24},330`,fill:'none',stroke:on?'#3182f6':'#e5e8eb','stroke-width':on?2.2:1,'stroke-dasharray':'4 5','stroke-dashoffset':on?((pole==='N'?-1:1)*performance.now()/45)%18:0},fg);}
   cnt.textContent=`${k}개`;}
  const flux=(y)=>{const d=(250-(y+96))/60;return 1/(1+Math.max(d,0)**2)**1.5;};
  function loop(now){const dt=Math.max(now-lt,1)/1000;lt=now;
