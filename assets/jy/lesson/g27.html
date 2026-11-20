@@ -241,6 +241,18 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 <p>전류가 <b>+ 와 - 로 번갈아</b> 나와요. 방향이 주기적으로 바뀌는 이 전기가 <b>교류</b>예요. 빠르기를 0으로 하면 전류도 0이에요.</p>
 <p>발전기 = <b>운동 에너지 → 전기 에너지</b></p>
 <figure><img src="../g27_ii20.jpg" alt="그림 Ⅱ-20"><figcaption>교과서 그림 Ⅱ-20 · 발전기의 원리 (107쪽)</figcaption></figure></div>
+<div class="card"><span class="step">발전소의 발전기</span><h2>발전소에선 코일 대신 자석이 돌아요</h2>
+<svg id="pg" viewBox="0 0 600 300"></svg>
+<div class="btns"><button class="b p" id="pgGo">터빈 돌리기</button><button class="b" id="pgStop">터빈 멈추기</button><button class="b" id="pgLoad">전기 많이 쓰기 (전구 더 켜기)</button></div>
+<div class="box" id="pgTxt">「터빈 돌리기」를 눌러 보세요.</div>
+<p style="margin-top:10px"><b>왜 자석이 돌아도 돼요?</b> 전기가 생기는 조건은 「코일을 통과하는 자기력선 수가 변하는 것」뿐이에요. 코일이 돌든 자석이 돌든, <b>둘이 서로 움직이기만</b> 하면 수가 변해요. 발전소는 무거운 코일을 고정하고 가운데 자석을 돌려요.</p>
+<p><b>그림 읽기</b>: 바깥 주황 덩어리 6개 = <b>고정된 코일</b>, 가운데 빨강·파랑 = <b>돌아가는 자석</b>, 가운데 막대 = <b>회전축</b>(터빈과 이어져 있어요). 자석 극이 코일 앞을 지나가는 순간 그 코일이 빛나요(전류).</p>
+<div class="box" style="background:#fff8e6;margin-top:8px"><b>왜 터빈을 계속 돌려야 해요?</b> 코일에 흐르는 유도 전류는 <b>변화를 방해하는 방향</b>으로 흐르죠. 그래서 코일이 전자석이 되어 다가오는 자석 극을 밀고, 멀어지는 극을 붙잡아요 → <b>자석이 도는 걸 방해</b>해요(브레이크처럼). 전기를 많이 쓸수록 전류가 세서 브레이크도 세져요. 그래서 터빈이 계속 <b>운동 에너지를 넣어 줘야</b> 해요. 멈추면 자석이 서고 전기도 끊겨요.</div>
+<p class="hint">에너지 흐름: 증기·물·바람 → 터빈 회전(운동 에너지) → 자석 회전 → 코일에 유도 전류(전기 에너지)</p></div>
+<div class="card"><span class="step">생활 속 간이 발전기</span><h2>자전거 발전기와 발광 바퀴</h2>
+<div class="grid2"><div class="box"><b>자전거 발전기</b><br>페달 → 바퀴가 돌며 발전기 머리(회전자)를 돌려요 → 안의 <b>자석이 코일 속에서 회전</b> → 전조등이 켜져요.<br><span class="hint">돌아가는 것: 자석 · 가만히: 코일</span></div>
+<div class="box"><b>발광 바퀴</b><br><b>자석은 바퀴축에 고정</b>, <b>코일은 바퀴와 함께</b> 돌아요 → 코일이 자석 옆을 지나가며 유도 전류 → LED가 켜져요.<br><span class="hint">돌아가는 것: 코일 · 가만히: 자석</span></div></div>
+<p style="margin-top:10px">셋 다 같은 원리예요: <b>자석과 코일이 서로 움직여서</b> 코일을 통과하는 자기력선 수가 변하면 → 유도 전류. 운동 에너지 → 전기 에너지 → 빛 에너지.</p></div>
 </section>
 
 <!-- 7 발전소 -->
@@ -725,6 +737,31 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
   if(hold===null){pts.push(I);if(pts.length>112)pts.shift();wave.setAttribute('points',pts.map((v,i)=>`${368+i*2},${140-v}`).join(' '));}
   dot.setAttribute('cx',368+Math.max(0,pts.length-1)*2);dot.setAttribute('cy',140-I);
   fl.textContent=on?`코일을 통과하는 선(파란 점) ${f.n}개${f.face}`:'안 돌면 변화 없음';cu.textContent=on?f.dir:'전류 0';requestAnimationFrame(loop);}
+ requestAnimationFrame(loop);})();
+
+/* 6b power-plant generator */
+(function(){const sv=$('pg');const C={x:160,y:150};let th=0,w=0,target=0,load=1,lt=performance.now();
+ el('circle',{cx:C.x,cy:C.y,r:138,fill:'#e9ecef'},sv);el('circle',{cx:C.x,cy:C.y,r:120,fill:'#fff'},sv);
+ const coils=[];for(let k=0;k<6;k++){const a=k*Math.PI/3;const g=el('g',{transform:`translate(${C.x+Math.cos(a)*100},${C.y+Math.sin(a)*100}) rotate(${a*180/Math.PI})`},sv);
+  const glow=el('rect',{x:-24,y:-30,width:48,height:60,rx:10,fill:'#ffd43b',opacity:0},g);el('rect',{x:-15,y:-22,width:30,height:44,rx:5,fill:'#c87f2c'},g);for(let q=-18;q<=18;q+=6)el('line',{x1:-15,y1:q,x2:15,y2:q,stroke:'#94561c','stroke-width':1.5},g);coils.push({a,glow});}
+ const rot=el('g',{},sv);el('path',{d:`M${C.x},${C.y-62} A62,62 0 0 1 ${C.x},${C.y+62}z`,fill:'#f04452'},rot);el('path',{d:`M${C.x},${C.y+62} A62,62 0 0 1 ${C.x},${C.y-62}z`,fill:'#3182f6'},rot);
+ tx(rot,C.x+32,C.y+7,'N',{fill:'#fff','font-size':20,'font-weight':800});tx(rot,C.x-32,C.y+7,'S',{fill:'#fff','font-size':20,'font-weight':800});
+ el('circle',{cx:C.x,cy:C.y,r:10,fill:'#868e96',stroke:'#fff','stroke-width':2},sv);
+ tx(sv,C.x,C.y+165-12,'',{});
+ tx(sv,440,40,'바깥 = 고정된 코일 6개',{'font-size':13,fill:'#94561c'});tx(sv,440,62,'가운데 = 돌아가는 자석',{'font-size':13,fill:'#4e5968'});
+ const sp=tx(sv,440,110,'',{'font-size':15});const el2=tx(sv,440,140,'',{'font-size':13,fill:'#e8590c'});
+ const barBg=el('rect',{x:350,y:160,width:180,height:14,rx:7,fill:'#e5e8eb'},sv);const bar=el('rect',{x:350,y:160,width:0,height:14,rx:7,fill:'#f59f00'},sv);tx(sv,440,195,'만드는 전기',{'font-size':11,fill:'#8b95a1','font-weight':400});
+ const brk=tx(sv,440,232,'',{'font-size':12,fill:'#4e5968','font-weight':500});const brk2=tx(sv,440,252,'',{'font-size':12,fill:'#4e5968','font-weight':500});
+ function loop(now){const dt=Math.min(.05,(now-lt)/1000);lt=now;
+  const drag=0.25*load*w;const push=target? (target-w)*1.2 + drag : 0; w+= (push - drag - 0.05*w)*dt; if(w<0.003)w=0; th+=w*dt;
+  rot.setAttribute('transform',`rotate(${th*180/Math.PI} ${C.x} ${C.y})`);
+  let tot=0;for(const c of coils){const I=Math.sin(th-c.a)*w;c.glow.setAttribute('opacity',Math.min(.9,Math.abs(I)*0.5).toFixed(2));tot+=Math.abs(I);}
+  sp.textContent=w<0.01?'자석 멈춤':'자석 회전 중';el2.textContent=w<0.01?'전기 0':'코일마다 번갈아 전류';bar.setAttribute('width',Math.min(180,tot*22*load**0.5).toFixed(1));
+  const BT=w<0.01?['','']:(target?(load>1?['전기를 많이 써서 브레이크가 세요','터빈이 더 세게 밀어야 해요']:['터빈이 계속 밀어 줘서','일정하게 돌아요']):['터빈 멈춤 → 코일이 브레이크처럼','막아서 자석이 점점 느려져요']);brk.textContent=BT[0];brk2.textContent=BT[1];
+  requestAnimationFrame(loop);}
+ $('pgGo').onclick=()=>{target=2.2;$('pgTxt').innerHTML='터빈이 회전축을 돌려 <b>자석이 돌아요</b>. 자석 극이 코일 앞을 지날 때마다 그 코일에 전류가 흘러 <b>빛나요</b>. 코일은 가만히 있어도 돼요.';};
+ $('pgStop').onclick=()=>{target=0;$('pgTxt').innerHTML='터빈을 멈추면 자석은 <b>점점 느려지다 멈춰요</b>. 유도 전류가 회전을 <b>방해</b>하기 때문이에요. 멈추면 전기도 0.';};
+ $('pgLoad').onclick=()=>{load=load>1?1:3;$('pgLoad').textContent=load>1?'전기 조금 쓰기':'전기 많이 쓰기 (전구 더 켜기)';$('pgTxt').innerHTML=load>1?'전기를 <b>많이</b> 쓰면 전류가 세지고, 회전을 방해하는 힘도 <b>세져요</b>. 터빈이 더 많은 에너지를 넣어야 같은 빠르기로 돌아요.':'전기를 조금 쓰면 방해하는 힘도 약해요.';};
  requestAnimationFrame(loop);})();
 
 /* 7 plants */
