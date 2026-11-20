@@ -184,9 +184,16 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 <svg id="dir" viewBox="0 0 600 330" style="margin-top:10px"></svg>
 <div class="box" id="dirTxt"></div></div>
 <div class="card"><span class="step">왜 그럴까</span><h2>코일은 「변화」가 싫어요</h2>
-<p>코일은 변화를 막는 쪽으로 스스로 자석이 돼요. <b>다가오면 같은 극</b>이 돼서 밀어내고(오지 마!), <b>멀어지면 반대 극</b>이 돼서 당겨요(가지 마!).</p>
+<p>코일에 <b>전류가 흘러서</b> 변화를 막는 쪽 자석(전자석)이 돼요. <b>다가오면 같은 극</b>이 돼서 밀어내고(오지 마!), <b>멀어지면 반대 극</b>이 돼서 당겨요(가지 마!).</p>
 <p>코일이 되는 극이 반대면 <b>전류 방향도 반대</b>. 그래서 가까이 ↔ 멀리, N극 ↔ S극을 바꾸면 바늘이 반대로 가요.</p>
 <p>시험에는 「방향이 반대」라는 결론만 나와요.</p></div>
+<div class="card"><span class="step">순서가 거꾸로예요</span><h2>N극이 「되어서」 전류가 흐르는 게 아니에요</h2>
+<p>코일은 그냥 <b>구리선 뭉치</b>예요. 혼자서는 N극도 S극도 못 돼요. 코일이 자석이 되는 방법은 딱 하나, <b>전류가 빙글 도는 것</b>이에요(전자석).</p>
+<p>그러니까 「N극이 된다」와 「전류가 흐른다」는 <b>같은 일을 두 가지로 부른 것</b>이에요. 순서로 보면 <b>전류가 먼저</b>예요.</p>
+<svg id="ord" viewBox="0 0 600 260"></svg>
+<div class="box" id="ordTxt"></div>
+<div class="btns"><button class="b" id="ordBack">‹ 처음부터</button><button class="b p" id="ordNext">한 단계씩 ›</button></div>
+<div class="box" style="background:#fff8e6;margin-top:10px"><b>그럼 전자는 왜 밀려요?</b> 「자기장이 변하면 그 둘레 전선 속 전자가 밀린다」는 게 <b>자연의 규칙</b>이에요. 패러데이가 실험으로 처음 발견했어요. 고등학교에선 「왜 그런 규칙이 있냐」까지는 안 묻고, <b>변하면 전류가 생긴다</b>는 것만 써요.<br>「변화를 막는 쪽」은 그 밀리는 <b>방향</b>을 알려 주는 규칙이에요. 막으려고 코일이 마음먹는 게 아니라, 늘 그 방향으로 밀린다는 뜻이에요.</div></div>
 </section>
 
 <!-- 4 세기 -->
@@ -683,6 +690,29 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
   const ST=['','<b>1단계</b>: N극이 내려오면 코일 윗면이 N극이 되도록 코일 속 전류가 <b>↺</b>로 돌아요. 그 ↺가 전선을 따라 <b>끝 ①로 밀려 나와요</b>(펌프가 물을 출구로 밀어내듯). <b>LED가 고르는 게 아니라 자석이 정해요.</b> LED의 「+」는 입구 이름표일 뿐, 전류를 당기지 않아요.','<b>2단계</b>: 밀려 나온 전류는 <b>두 길로 다 가 보려고</b> 해요. A로 가는 빨간 선, B로 가는 빨간 선.','<b>3단계</b>: 전류는 긴 다리를 <b>고르는 게 아니라</b> 전선을 <b>따라가기만</b> 해요(기차 선로처럼). A로 가는 빨간 선은 사람이 <b>A의 긴 다리</b>에 물려 놨고, B로 가는 빨간 선은 <b>B의 짧은 다리</b>에 물려 놨어요(B는 일부러 거꾸로). LED는 <b>개찰구</b>처럼 긴 다리로 도착해야 열려요 → A <b>켜짐</b>, B <b>막힘(✕)</b>. 막힌 B 쪽 선 안의 전자는 갔다 돌아오는 게 아니라 <b>제자리에 가만히</b> 있어요(잠긴 수도관 속 물처럼).','<b>4단계</b>: A를 통과한 전류는 검은 선을 따라 <b>끝 ②로 돌아와요</b>. 한 바퀴 끝! 자석을 빼면 전류가 반대로 돌아서 이번엔 B만 켜져요.'];
   $('ledTxt').innerHTML=step?ST[step]:st==='in'?'자석을 <b>넣을 때</b>: 전류(주황 점)가 코일 끝 ①에서 나와요. A는 이 쪽에 <b>긴 다리(+)</b>가 있어서 문이 열려 <b>A만 켜져요</b>. B는 이 쪽에 짧은 다리(−)가 있어서 <b>막혀요(✕)</b>.':st==='out'?'자석을 <b>뺄 때</b>: 전류가 <b>반대로</b> 코일 끝 ②에서 나와요. 이번엔 B의 <b>긴 다리(+)</b>가 이 쪽에 있어서 <b>B만 켜져요</b>. A는 막혀요(✕).':'자석이 <b>멈춰 있으면</b>: 통과하는 자기력선 수가 안 변하니 전류 0 → 둘 다 꺼져요.';}
  $('lIn').onclick=()=>{st='in';step=0;draw();};$('lOut').onclick=()=>{st='out';step=0;draw();};$('lStay').onclick=()=>{st='stay';step=0;draw();};$('lStep').onclick=()=>{st='in';step=step>=4?1:step+1;$('lStep').textContent=step>=4?'처음부터 ›':'한 단계씩 ›';draw();};draw();})();
+
+/* 3b order */
+(function(){const sv=$('ord');const CX=240,CY=190,RX=130,RY=34;let step=0,my=-40,ty=-40,ph=0,lt=performance.now(),flow=0;
+ el('ellipse',{cx:CX,cy:CY,rx:RX,ry:RY,fill:'none',stroke:'#94561c','stroke-width':12},sv);el('ellipse',{cx:CX,cy:CY-2,rx:RX,ry:RY,fill:'none',stroke:'#e0a25c','stroke-width':4},sv);
+ const dots=[];for(let i=0;i<14;i++)dots.push(el('circle',{r:5,fill:'#f59f00',stroke:'#fff','stroke-width':1.5},sv));
+ const mg=el('g',{},sv);el('rect',{x:CX-22,y:0,width:44,height:60,rx:4,fill:'#3182f6'},mg);el('rect',{x:CX-22,y:60,width:44,height:60,rx:4,fill:'#f04452'},mg);
+ tx(mg,CX,36,'S',{fill:'#fff','font-size':18,'font-weight':800});tx(mg,CX,98,'N',{fill:'#fff','font-size':18,'font-weight':800});
+ const cn=el('g',{opacity:0},sv);el('rect',{x:400,y:150,width:150,height:34,rx:17,fill:'#fff0f1',stroke:'#f04452'},cn);tx(cn,475,173,'코일 위쪽 = N극',{'font-size':14,fill:'#f04452'});
+ el('path',{d:`M${CX+RX+8},${CY} L398,167`,stroke:'#f04452','stroke-width':1.5,'stroke-dasharray':'4 3',fill:'none'},cn);
+ const lab=tx(sv,475,232,'',{'font-size':13,fill:'#e8590c'});const tag=tx(sv,475,120,'',{'font-size':13,fill:'#4e5968','font-weight':500});
+ const ST=[
+  ['<b>1. 처음</b>: 코일 = 구리선. 전선 속에 전자(노란 점)는 <b>원래 가득</b> 있어요. 그냥 가만히 있어요. 전류 0, 그래서 자석도 아니에요.',-40,0,'전자: 가만히','전류 0'],
+  ['<b>2. 자석이 다가와요</b>: 코일을 통과하는 자기력선 수가 <b>늘어나요</b>(변화!). 변하는 자기장이 전선 속 전자를 <b>옆으로 밀어요</b>. 전자가 줄지어 빙글 돌기 시작 = <b>전류</b>.',15,1,'전자: 밀려서 빙글','전류 흐름'],
+  ['<b>3. 그 결과</b>: 전류가 빙글 도는 코일은 <b>전자석</b>이에요. 이 방향으로 돌면 <b>위쪽이 N극</b>이 돼서 다가오는 N극을 밀어요. N극이 된 건 전류가 흐른 <b>결과</b>예요.',15,1,'전자: 빙글','전류 → 전자석'],
+  ['<b>4. 자석이 멈추면</b>: 선 수가 그대로 → 변화 없음 → 미는 힘 없음 → 전자 멈춤 → <b>전류 0</b> → N극도 <b>사라져요</b>. 전류가 없으면 자석도 아니에요.',15,0,'전자: 다시 가만히','전류 0 → 자석 아님']];
+ function show(){const t=ST[step];$('ordTxt').innerHTML=t[0];ty=t[1];tag.textContent=t[3];lab.textContent=t[4];$('ordNext').disabled=step===3;}
+ $('ordNext').onclick=()=>{if(step<3){step++;show();}};$('ordBack').onclick=()=>{step=0;my=-40;show();};
+ function loop(now){const dt=Math.min(.05,(now-lt)/1000);lt=now;const moving=Math.abs(ty-my)>0.5;my+= (ty-my)*Math.min(1,dt*0.9);
+  const want=(step===1||step===2)?1:0;flow+=(want-flow)*Math.min(1,dt*2);ph+=dt*flow*0.6;
+  mg.setAttribute('transform',`translate(0,${my})`);cn.setAttribute('opacity',(step===2?1:step===1?Math.min(1,flow)*0.0:0));
+  dots.forEach((d,i)=>{const f=(i/14+ph)*Math.PI*2;d.setAttribute('cx',CX+RX*Math.cos(f));d.setAttribute('cy',CY-RY*Math.sin(f));});
+  requestAnimationFrame(loop);}
+ show();requestAnimationFrame(loop);})();
 
 /* 6 generator */
 (function(){const sv=$('gen');const SP=[0,1,2,3.2],LB=['멈춤','느림','보통','빠름'];let th=0,lt=performance.now(),pts=[],hold=null,ph=0;
