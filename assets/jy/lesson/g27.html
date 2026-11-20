@@ -216,6 +216,17 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 <div class="card"><span class="step">돌려 봐요</span><h2>자석 사이에서 코일을 빙글빙글</h2>
 <svg id="gen" viewBox="0 0 600 260"></svg>
 <div class="sl"><label>돌리는 빠르기</label><input type="range" min="0" max="3" value="1" step="1" id="gS"><output id="gO">보통</output></div>
+<div class="btns" id="gA"><button class="b" data-ga="0">0°</button><button class="b" data-ga="35">35°</button><button class="b" data-ga="90">90°</button><button class="b" data-ga="145">145°</button><button class="b" data-ga="180">180°</button><button class="b" data-ga="270">270°</button><button class="b p" data-ga="go">다시 돌리기</button></div>
+<p class="hint">코일 한쪽 변을 <b style="color:#03b26c">초록</b>으로 칠했어요. 35°에선 초록 변이 왼쪽, 145°에선 오른쪽에 있어서 코일이 뒤집힌 걸 볼 수 있어요.</p>
+<div class="box" id="gTxt">각도 단추를 누르면 그 자리에 멈춰서, 그때 전류가 어느 방향인지 보여 줘요.</div>
+<table style="margin-top:10px"><tr><th>각도</th><th>통과하는 자기력선 수</th><th>코일의 전류</th></tr>
+<tr><td>0°</td><td>최대 (앞면으로)</td><td><b>0</b></td></tr>
+<tr><td>0°~90°</td><td>줄어요</td><td><b>+ 방향</b>, 점점 셈</td></tr>
+<tr><td>90°</td><td>0 (옆으로 섬)</td><td><b>+ 최대</b> (가장 빨리 변함)</td></tr>
+<tr><td>90°~180°</td><td>뒷면으로 늘어나요</td><td><b>여전히 + 방향</b>, 점점 약함</td></tr>
+<tr><td>180°</td><td>최대 (뒷면으로)</td><td><b>0</b></td></tr>
+<tr><td>180°~360°</td><td>위와 반대</td><td><b>− 방향</b></td></tr></table>
+<div class="box" style="background:#fff8e6;margin-top:8px"><b>35°와 145°는 전류 방향도 세기도 같아요.</b> 방향이 바뀌는 곳은 90°가 아니라 <b>0°와 180°</b>(코일이 자석을 정면으로 볼 때)예요. 「앞면으로 통과하던 게 줄어드는 것」과 「뒷면으로 통과하는 게 늘어나는 것」은 코일 입장에서 같은 쪽 변화라서요(N극이 멀어짐 = S극이 다가옴과 같은 원리).</div>
 <p>손으로 넣었다 뺐다 하면 금방 지치죠. 그래서 <b>코일을 돌려요</b>. 도는 동안 코일을 통과하는 자기력선의 수가 계속 변하니까 전류가 계속 나와요.</p>
 <p>전류가 <b>+ 와 - 로 번갈아</b> 나와요. 방향이 주기적으로 바뀌는 이 전기가 <b>교류</b>예요. 빠르기를 0으로 하면 전류도 0이에요.</p>
 <p>발전기 = <b>운동 에너지 → 전기 에너지</b></p>
@@ -646,20 +657,30 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
  $('lIn').onclick=()=>{st='in';draw();};$('lOut').onclick=()=>{st='out';draw();};$('lStay').onclick=()=>{st='stay';draw();};draw();})();
 
 /* 6 generator */
-(function(){const sv=$('gen');const SP=[0,1,2,3.2],LB=['멈춤','느림','보통','빠름'];let th=0,lt=performance.now(),pts=[];
+(function(){const sv=$('gen');const SP=[0,1,2,3.2],LB=['멈춤','느림','보통','빠름'];let th=0,lt=performance.now(),pts=[],hold=null;
  el('rect',{x:30,y:60,width:44,height:120,rx:6,fill:'#f04452'},sv);tx(sv,52,128,'N',{fill:'#fff','font-size':20,'font-weight':800});
  el('rect',{x:226,y:60,width:44,height:120,rx:6,fill:'#3182f6'},sv);tx(sv,248,128,'S',{fill:'#fff','font-size':20,'font-weight':800});
  for(const y of [85,120,155])el('line',{x1:74,y1:y,x2:226,y2:y,stroke:'#3182f6','stroke-width':1.5,'stroke-dasharray':'4 5'},sv);
- const cr=el('rect',{x:110,y:80,width:80,height:80,rx:4,fill:'none',stroke:'#c87f2c','stroke-width':6},sv);
- tx(sv,150,40,'코일이 돌아요',{'font-size':14});const fl=tx(sv,150,215,'',{'font-size':13,fill:'#4e5968','font-weight':400});
+ const cg=el('g',{},sv);el('rect',{x:110,y:80,width:80,height:80,rx:4,fill:'none',stroke:'#c87f2c','stroke-width':6},cg);el('rect',{x:107,y:80,width:6,height:80,fill:'#03b26c'},cg);const cr=cg;
+ const ang=tx(sv,150,40,'',{'font-size':15});const fl=tx(sv,150,212,'',{'font-size':12,fill:'#4e5968','font-weight':400});const cu=tx(sv,150,236,'',{'font-size':13,fill:'#e8590c'});
  el('line',{x1:300,y1:130,x2:590,y2:130,stroke:'#b0b8c1'},sv);el('line',{x1:300,y1:40,x2:300,y2:220,stroke:'#b0b8c1'},sv);
- tx(sv,318,40,'+',{fill:'#8b95a1'});tx(sv,318,222,'-',{fill:'#8b95a1'});tx(sv,575,148,'시간',{'font-size':11,fill:'#8b95a1','font-weight':400});
+ tx(sv,318,40,'+',{fill:'#8b95a1'});tx(sv,318,222,'-',{fill:'#8b95a1'});tx(sv,310,248,'시간 →',{'font-size':11,fill:'#8b95a1','font-weight':400,'text-anchor':'start'});
  const wave=el('polyline',{fill:'none',stroke:'#f59f00','stroke-width':3},sv);const dot=el('circle',{r:6,fill:'#f59f00'},sv);
- function loop(now){const dt=(now-lt)/1000;lt=now;const w=SP[+$('gS').value];$('gO').textContent=LB[+$('gS').value];th+=w*dt*2;
+ function info(deg){const c=Math.cos(deg*Math.PI/180),sn=Math.sin(deg*Math.PI/180);const n=Math.round(Math.abs(c)*100);
+  const face=n<3?'':(c>0?' (앞면으로)':' (뒷면으로)');const I=Math.round(Math.abs(sn)*100);
+  const dir=I<3?'전류 0':(sn>0?'+ 방향':'− 방향')+' · 세기 '+I+'%';return{n,face,I,dir,sn,c};}
+ $('gA').onclick=(e)=>{const b=e.target.closest('[data-ga]');if(!b)return;if(b.dataset.ga==='go'){hold=null;if(+$('gS').value===0)$('gS').value=1;$('gTxt').innerHTML='돌아가는 중이에요. 각도 단추로 멈춰 보세요.';return;}
+  hold=+b.dataset.ga;th=hold*Math.PI/180;const f=info(hold);
+  $('gTxt').innerHTML=`<b>${hold}°</b>: 통과하는 자기력선 수 <b>${f.n}%</b>${f.face} → 코일의 전류 <b>${f.dir}</b>`+(hold===90?'<br>코일이 옆으로 서서 통과하는 선은 0이지만, 이때 수가 <b>가장 빨리</b> 바뀌어서 전류가 가장 세요.':hold===0||hold===180?'<br>통과하는 선은 최대지만 이 순간엔 수가 거의 안 바뀌어서 전류가 0이에요. 여기서 전류 방향이 뒤집혀요.':hold===145?'<br>35°와 방향도 세기도 같아요(90°를 기준으로 대칭).':'');};
+ function loop(now){const dt=(now-lt)/1000;lt=now;const w=SP[+$('gS').value];$('gO').textContent=LB[+$('gS').value];
+  if(hold===null)th+=w*dt*2;
   const c=Math.cos(th);cr.setAttribute('transform',`translate(150,0) scale(${Math.abs(c)<.04?.04*Math.sign(c||1):c},1) translate(-150,0)`);
-  const I=Math.sin(th)*w*24;pts.push(I);if(pts.length>145)pts.shift();
-  wave.setAttribute('points',pts.map((v,i)=>`${300+i*2},${130-v}`).join(' '));dot.setAttribute('cx',300+(pts.length-1)*2);dot.setAttribute('cy',130-I);
-  fl.textContent=w?`지나는 자기장 ${Math.round(Math.abs(c)*100)}% (계속 변해요)`:'안 돌면 변화 없음 → 전류 0';requestAnimationFrame(loop);}
+  const deg=Math.round(((th*180/Math.PI)%360+360)%360);const f=info(deg);ang.textContent='각도 '+deg+'°';
+  const ww=hold!==null?SP[2]:w;const I=Math.sin(th)*ww*24;
+  if(hold===null){pts.push(I);if(pts.length>145)pts.shift();wave.setAttribute('points',pts.map((v,i)=>`${300+i*2},${130-v}`).join(' '));dot.setAttribute('cx',300+(pts.length-1)*2);}
+  else dot.setAttribute('cx',300+Math.max(0,pts.length-1)*2);
+  dot.setAttribute('cy',130-I);
+  fl.textContent=(w||hold!==null)?`통과하는 자기력선 수 ${f.n}%${f.face}`:'안 돌면 변화 없음';cu.textContent=(w||hold!==null)?f.dir:'전류 0';requestAnimationFrame(loop);}
  requestAnimationFrame(loop);})();
 
 /* 7 plants */
