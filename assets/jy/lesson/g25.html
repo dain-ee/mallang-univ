@@ -149,7 +149,7 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 <p>같은 굵기의 햇빛 다발이 <b>적도</b>에서는 좁은 땅에 몰려서 많이 데워요. <b>극지방</b>에서는 비스듬히 넓게 퍼져서 덜 데워요.</p></div>
 
 <div class="card"><span class="step">움직여 봐요</span><h2>위도 38°에서 남고 모자람이 바뀌어요</h2>
-<svg id="eb" viewBox="0 0 600 290"></svg>
+<svg id="eb" viewBox="0 0 600 298"></svg>
 <div class="sl"><label>위도</label><input type="range" min="0" max="90" value="10" id="ebR"><output id="ebO"></output></div>
 <div class="box" id="ebTxt"></div>
 <p style="margin-top:10px">저위도는 <b>에너지 과잉</b>, 고위도는 <b>에너지 부족</b>. 남는 에너지는 <b>대기와 해수의 순환</b>이 <b>저위도 → 고위도</b>로 옮겨요.</p>
@@ -404,7 +404,7 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
  const line=el('polyline',{points:D.map(([y,p])=>`${X(y)},${Y(p)}`).join(' '),fill:'none',stroke:'#191f28','stroke-width':3,'stroke-linejoin':'round'},sv);
  const L=line.getTotalLength();line.style.strokeDasharray=L;line.style.strokeDashoffset=L;
  const dots=D.map(([y,p])=>el('circle',{cx:X(y),cy:Y(p),r:5,fill:'#191f28',style:'opacity:0;transition:opacity .5s'},sv));
- const vals=D.map(([y,p])=>txh(sv,X(y),Y(p)-12,p,{'font-size':13,style:'opacity:0;transition:opacity .5s'}));
+ const vals=D.map(([y,p],i)=>txh(sv,X(y)+(i===0?10:i===4?-22:0),Y(p)-(i===0?10:12),p,{'font-size':13,'text-anchor':i===0?'start':'middle',style:'opacity:0;transition:opacity .5s'}));
  const sg=el('g',{class:'fade',style:'opacity:0'},sv);
  el('line',{x1:X(1880),y1:Y(290),x2:X(1980),y2:Y(340),stroke:'#3182f6','stroke-width':6,'stroke-linecap':'round',opacity:.6},sg);
  el('line',{x1:X(1980),y1:Y(340),x2:X(2021),y2:Y(415),stroke:'#f76707','stroke-width':6,'stroke-linecap':'round',opacity:.7},sg);
@@ -474,8 +474,8 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
  for(const [p,s] of [[0,'0° 적도'],[38,'38°'],[90,'90° 극']])tx(sv,X(p),262,s,{'font-size':13,fill:'#4e5968',...(p===0?{'text-anchor':'start'}:p===90?{'text-anchor':'end'}:{})});
  el('line',{x1:X(38),x2:X(38),y1:60,y2:240,stroke:'#191f28','stroke-dasharray':'4 4'},sv);
  txh(sv,X(16),Yv(.9)+38,'남아요 (과잉)',{'font-size':14,fill:'#e8590c'});txh(sv,X(70),Yv(.55)+10,'모자라요 (부족)',{'font-size':14,fill:'#1971c2'});
- tx(sv,X(2),30,'흡수 (태양 복사)',{'text-anchor':'start','font-size':14,fill:'#e67700'});tx(sv,X(2),50,'방출 (지구 복사)',{'text-anchor':'start','font-size':14,fill:'#ae3ec9'});
- const ar=el('path',{d:`M${X(25)},284 L${X(65)},284`,stroke:'#f76707','stroke-width':4,class:'fl','marker-end':'url(#mO)'},sv);tx(sv,X(45),278,'',{});
+ tx(sv,X(90),30,'주황 = 흡수 (태양 복사)',{'text-anchor':'end','font-size':14,fill:'#e67700'});tx(sv,X(90),50,'보라 = 방출 (지구 복사)',{'text-anchor':'end','font-size':14,fill:'#ae3ec9'});
+ const ar=el('path',{d:`M${X(25)},284 L${X(65)},284`,stroke:'#f76707','stroke-width':4,class:'fl','marker-end':'url(#mO)'},sv);tx(sv,X(25)-8,289,'남는 에너지 이동',{'text-anchor':'end','font-size':13,fill:'#e8590c'});
  const mk=el('line',{y1:60,y2:240,stroke:'#191f28','stroke-width':2},sv);const da=el('circle',{r:6,fill:'#f59f00'},sv);const de=el('circle',{r:6,fill:'#ae3ec9'},sv);
  function f(){const p=+$('ebR').value;$('ebO').textContent=p+'°';mk.setAttribute('x1',X(p));mk.setAttribute('x2',X(p));da.setAttribute('cx',X(p));da.setAttribute('cy',Yv(A(p)));de.setAttribute('cx',X(p));de.setAttribute('cy',Yv(E(p)));
   $('ebTxt').innerHTML=Math.abs(p-38)<=1?'위도 약 38°: <b>흡수 = 방출</b>. 여기가 경계예요.':p<38?`위도 ${p}°: <b>흡수 &gt; 방출</b> → 에너지가 <b style="color:#e8590c">남아요</b>`:`위도 ${p}°: <b>흡수 &lt; 방출</b> → 에너지가 <b style="color:#1971c2">모자라요</b>`;}
@@ -523,7 +523,7 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
  el('path',{d:'M0,0 L70,0 L80,60 L60,130 L75,200 L50,330 L0,330Z',fill:'#c3b091'},sv);el('path',{d:'M600,0 L520,0 L505,80 L540,150 L520,230 L545,330 L600,330Z',fill:'#c3b091'},sv);
  tx(sv,10,20,'아시아',{'text-anchor':'start','font-size':13,fill:'#4e3f2a'});tx(sv,590,20,'아메리카',{'text-anchor':'end','font-size':13,fill:'#4e3f2a'});
  tx(sv,10,250,'오스트레일리아',{'text-anchor':'start','font-size':12,fill:'#4e3f2a'}).setAttribute('y',320);
- el('line',{x1:70,x2:520,y1:165,y2:165,stroke:'#1971c2','stroke-dasharray':'6 5'},sv);tx(sv,300,160,'적도',{'font-size':12,fill:'#1971c2','font-weight':400});
+ el('line',{x1:70,x2:520,y1:165,y2:165,stroke:'#1971c2','stroke-dasharray':'6 5'},sv);tx(sv,140,160,'적도',{'font-size':12,fill:'#1971c2','font-weight':400});
  const N=[[110,130],[110,45],[470,45],[470,130]],S2=[[110,200],[110,290],[470,290],[470,200]];
  const seg=(a,b,col,lab,lx,ly)=>{el('path',{d:`M${a[0]},${a[1]} L${b[0]},${b[1]}`,stroke:col,'stroke-width':8,'stroke-linecap':'round',class:'fl','marker-end':`url(#${col==='#f04452'?'mR':'mB'})`,fill:'none'},sv);txh(sv,lx,ly,lab,{'font-size':14,fill:col==='#f04452'?'#c92a2a':'#1864ab'});};
  // 북반구: 시계 방향 (아래 서쪽 → 왼쪽 북쪽 → 위 동쪽 → 오른쪽 남쪽)

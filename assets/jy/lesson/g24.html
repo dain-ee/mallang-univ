@@ -63,6 +63,7 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 .efb button.sel{border-color:var(--blue);background:#e8f3ff}
 .efb small{display:block;font-weight:400;color:var(--t3);font-size:12px}
 .fade{transition:opacity 1s}
+.tag li span b{display:inline;margin:0}
 </style></head><body>
 <nav class="tabs" id="tabs"></nav>
 <main id="main">
@@ -520,7 +521,7 @@ function badge(w,n,s,col){const o=w.N[n];o.bd.innerHTML='';const off={풀:[-118,
  const curve=(lag,amp,mid)=>{let d='';for(let i=0;i<=240;i++){const t=i/20;const y=mid-amp*Math.sin((t-lag)/4*2*Math.PI);d+=(i?' L':'M')+X(t).toFixed(1)+','+y.toFixed(1);}return d;};
  const a=el('path',{d:curve(0,60,110),fill:'none',stroke:'#f59f00','stroke-width':4},sv),b=el('path',{d:curve(1,38,140),fill:'none',stroke:'#e8590c','stroke-width':4},sv);
  const lg=el('g',{},sv);el('rect',{x:420,y:238,width:14,height:6,fill:'#f59f00'},lg);tx(lg,440,246,'레밍',{'font-size':13,'text-anchor':'start'});el('rect',{x:490,y:238,width:14,height:6,fill:'#e8590c'},lg);tx(lg,510,246,'쇠족제비',{'font-size':13,'text-anchor':'start'});
- const lag=el('g',{class:'fade',opacity:0},sv);el('line',{x1:X(1),y1:44,x2:X(2),y2:44,stroke:'#4e5968','stroke-width':2},lag);tx(lag,X(1.5),36,'약 1년 늦게',{'font-size':13,fill:'#4e5968'});
+ const lag=el('g',{class:'fade',opacity:0},sv);el('line',{x1:X(1),y1:44,x2:X(2),y2:44,stroke:'#4e5968','stroke-width':2},lag);tx(lag,X(2)+8,70,'약 1년 늦게',{'font-size':13,fill:'#4e5968','text-anchor':'start'});
  el('line',{x1:X(1),y1:50,x2:X(1),y2:58,stroke:'#4e5968','stroke-width':2},lag);el('line',{x1:X(2),y1:50,x2:X(2),y2:100,stroke:'#4e5968','stroke-width':2,'stroke-dasharray':'3 3'},lag);
  tx(sv,300,246,'',{});
  function go(){for(const p of [a,b]){const L=p.getTotalLength();p.style.transition='none';p.setAttribute('stroke-dasharray',L);p.setAttribute('stroke-dashoffset',L);p.getBoundingClientRect();p.style.transition='stroke-dashoffset 7s linear';p.setAttribute('stroke-dashoffset',0);}
@@ -556,7 +557,7 @@ function badge(w,n,s,col){const o=w.N[n];o.bd.innerHTML='';const off={풀:[-118,
  el('rect',{x:0,y:0,width:600,height:200,rx:14,fill:'#e3f0ff'},sv);el('rect',{x:0,y:0,width:200,height:200,fill:'#e3f5dc'},sv);tx(sv,100,104,'땅',{'font-size':16,fill:'#4e5968'});
  const mud=el('rect',{x:200,y:0,width:200,height:200,fill:'#c9a27a',style:'transition:fill 3s'},sv);const mudT=tx(sv,300,96,'갯벌',{'font-size':16,fill:'#fff'});const crab=tx(sv,300,130,'🦀 🐚 🪱',{'font-size':22,class:'fade'});
  tx(sv,500,104,'바다',{'font-size':16,fill:'#1b64da'});
- const dam=el('rect',{x:396,y:-200,width:14,height:200,fill:'#6b7684',style:'transition:transform 2.5s ease-in-out'},sv);const damT=tx(sv,403,190,'방조제',{'font-size':13,fill:'#4e5968',class:'fade',opacity:0});
+ const dam=el('rect',{x:396,y:-200,width:14,height:200,fill:'#6b7684',style:'transition:transform 2.5s ease-in-out'},sv);const damT=tx(sv,418,190,'방조제',{'font-size':13,fill:'#4e5968','text-anchor':'start',class:'fade',opacity:0});
  $('tfGo').onclick=()=>{dam.style.transform='translateY(200px)';damT.setAttribute('opacity',1);setTimeout(()=>{mud.setAttribute('fill','#d8e8c8');mudT.textContent='메운 땅';mudT.setAttribute('fill','#4e5968');crab.setAttribute('opacity',0);},2600);};
  $('tfR').onclick=()=>{dam.style.transform='';damT.setAttribute('opacity',0);mud.setAttribute('fill','#c9a27a');mudT.textContent='갯벌';mudT.setAttribute('fill','#fff');crab.setAttribute('opacity',1);};})();
 

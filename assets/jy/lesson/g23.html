@@ -467,7 +467,7 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
   const sl=tx(sv,300,192,'눈',{'font-size':17,fill:'#74c0fc',style:'transition:opacity 1.5s'});tx(sv,300,276,'도로',{'font-size':15,fill:'#fff'});
   tx(sv,40,26,'염화 칼슘 (CaCl₂)',{'font-size':15,fill:'#4e5968','text-anchor':'start'});
   const X=[110,150,190,260,300,340,410,450,490];const ps=dots(sv,X.map((x,i)=>[x,44+(i%3)*8]),{r:6,fill:'#fff',stroke:'#495057',t:1.5});
-  const h=el('g',{style:'opacity:0;transition:opacity .9s'},sv);[150,300,450].forEach(x=>{arrow(h,x-14,152,x-40,108,HOT);arrow(h,x,150,x,100,HOT);arrow(h,x+14,152,x+40,108,HOT);});
+  const h=el('g',{style:'opacity:0;transition:opacity .9s'},sv);[150,300,450].forEach(x=>{arrow(h,x-14,186,x-44,128,HOT);arrow(h,x,184,x,120,HOT);arrow(h,x+14,186,x+44,128,HOT);});
   const im=el('g',{style:'opacity:0;transition:opacity 1.2s'},sv);for(let i=0;i<14;i++)el('circle',{cx:60+i*36,cy:203+(i%2)*4,r:3,fill:'#8d6e63'},im);
   const il=tx(sv,300,150,'불순물과 섞여 잘 얼지 않는 물',{'font-size':16,fill:'#1c7ed6',style:'opacity:0;transition:opacity 1s'});
   return[{t:'도로에 눈이 쌓였어요',d:'흰 알갱이 <b>염화 칼슘</b>을 뿌려 볼게요.'},

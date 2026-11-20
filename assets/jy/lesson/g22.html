@@ -460,7 +460,7 @@ const IND={lit:['리트머스 종이'],pp:['페놀프탈레인',['#ffffff','#fff
   el('line',{x1:X(20),y1:30,x2:X(20),y2:200,stroke:'#adb5bd','stroke-width':1.5,'stroke-dasharray':'5 5'},tsv);tx(tsv,X(20),22,'완전 중화',{'font-size':13,fill:'#8b95a1'});
   if(temps.length>1){let d='';temps.forEach(([v,t],i)=>d+=(i?' L':'M')+X(v)+','+Y(t));el('path',{d,fill:'none',stroke:'#f76707','stroke-width':3},tsv);}
   temps.forEach(([v,t],i)=>{const c=el('circle',{cx:X(v),cy:Y(t),r:6,fill:v<=20?'#f76707':'#3182f6'},tsv);});
-  if(vol>=8)tx(tsv,X(8),Y(TT(8))-18,'(가) 올라가요',{'font-size':14,fill:'#f76707'});if(vol>=24)tx(tsv,X(26),Y(TT(26))-18,'(나) 내려가요',{'font-size':14,fill:'#3182f6'});}
+  if(vol>=8)tx(tsv,X(13),Y(TT(13))+45,'(가) 올라가요',{'font-size':14,fill:'#f76707'});if(vol>=24)tx(tsv,X(26),Y(TT(26))-18,'(나) 내려가요',{'font-size':14,fill:'#3182f6'});}
  function msg(h){$('mxTxt').innerHTML=h;}
  function startText(){const [s,c]=color();msg(`염산만 있어요. H⁺ 5개, Cl⁻ 5개 → <b>${SN[s]}</b>, ${IND[ind][0]} <b>${c}</b>.<br><span class="hint">「NaOH 4 mL 넣기」를 눌러요</span>`);}
  function reset(){if(B.busy)return;vol=0;temps=[[0,0]];B.reset(['H','Cl','H','Cl','H','Cl','H','Cl','H','Cl']);bx.yTop=lvl(0);liq.setAttribute('y',lvl(0));liq.setAttribute('height',338-lvl(0));color();bars();tgraph();startText();$('mxAdd').disabled=false;$('mxAdd').style.opacity=1;}
@@ -500,7 +500,7 @@ const IND={lit:['리트머스 종이'],pp:['페놀프탈레인',['#ffffff','#fff
   let h='';R.forEach((r,i)=>{h+='<tr>';for(let j=0;j<5;j++){const v=i===0?r[j]:j===0?r[0]:(j-1<=step?(i<=5?D[j-1][i-1]:D[j-1][0]+D[j-1][1]+D[j-1][2]+D[j-1][3]):'');const tag=i===0||j===0?'th':'td';h+=`<${tag} class="${j-1===step&&j>0?'on':''}">${v}</${tag}>`;}h+='</tr>';});$('m18T').innerHTML=h;}
  function upd(){lab.textContent=['①','②','③','④'][step];lab2.textContent=SN[step];lab2.setAttribute('fill',step<2?'#e8590c':step===2?'#2b8a3e':'#1c7ed6');lab3.textContent=CL[step];
   lq.setAttribute('fill',step===3?'#f8bbd0':'#f8f9fa');table();$('m18S').textContent=(step+1)+' / 4';
-  const T=['<b>① 묽은 염산만</b>: H⁺ 2, Cl⁻ 2 → 산성, 무색<br><span class="hint">「다음 단계」를 누르면 NaOH(Na⁺ 1, OH⁻ 1)를 넣어요</span>','<b>②</b> OH⁻ 1개가 H⁺ 1개와 만나 물 1개. H⁺가 <b>1개 남아</b> 아직 산성, 무색','<b>③</b> 남은 H⁺도 물이 됐어요. H⁺ 0, OH⁻ 0 → <b>중성</b>, 무색 (완전 중화)','<b>④</b> 만날 H⁺가 없어 <b>OH⁻가 남아요</b> → 염기성, <b>붉은색</b>. 전체 이온 수가 4 → <b>5</b>로 늘었어요.'];
+  const T=['<b>① 묽은 염산만</b>: H⁺ 2, Cl⁻ 2 → 산성, 무색<br><span class="hint">「다음 단계」를 누르면 NaOH(Na⁺ 1, OH⁻ 1)를 넣어요</span>','<b>②</b> OH⁻ 1개가 H⁺ 1개와 만나 물 1개. H⁺가 <b>1개 남아</b> 아직 산성, 무색','<b>③</b> 남은 H⁺도 물이 됐어요. H⁺ 0, OH⁻ 0 → <b>중성</b>, 무색 (완전 중화)','<b>④</b> 만날 H⁺가 없어 <b>OH⁻가 남아요</b> → 염기성, <b>붉은색</b>. 전체 이온 수가 4 → <b>6</b>으로 늘었어요(Na⁺ 1개, OH⁻ 1개가 그대로 더해져요).'];
   $('m18Txt').innerHTML=T[step];}
  $('m18N').onclick=()=>{if(B.busy||step>=3)return;B.add(['Na','OH'],{x:300,y:40},(ph)=>{if(ph==='drop')$('m18Txt').innerHTML='Na⁺ 1개, OH⁻ 1개를 넣어요...';if(ph==='end'){step++;upd();}});};
  $('m18R').onclick=()=>{if(B.busy)return;step=0;B.reset(['H','Cl','H','Cl']);upd();};upd();
