@@ -535,7 +535,11 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
  function draw(){sv.innerHTML='';el('rect',{width:600,height:260,fill:'#fff'},sv);
   const st=el('style',{},sv);st.textContent='.ef{stroke-dasharray:6 7;animation:ef .9s linear infinite}@keyframes ef{to{stroke-dashoffset:-26}}.efr{stroke-dasharray:6 7;animation:ef .9s linear infinite reverse}';
   const on=m!=='0',leftN=m==='A';
-  if(on){for(const dy of [-26,0,26]){const d=dy?`M180,${110+dy*.6} C140,${110+dy*2.6} 460,${110+dy*2.6} 420,${110+dy*.6}`:'M110,110 L170,110 M430,110 L490,110';el('path',{d,fill:'none',stroke:'#3182f6','stroke-width':2,class:leftN?'efr':'ef'},sv);}}
+  if(on){for(const dy of [-26,0,26]){const d=dy?`M180,${110+dy*.6} C140,${110+dy*2.6} 460,${110+dy*2.6} 420,${110+dy*.6}`:'M110,110 L170,110 M430,110 L490,110';
+   /* 바깥 고리: N→S (왼N이면 왼→오), 축 위 바깥 선: N에서 나가고 S로 들어감 (왼N이면 오→왼) */
+   el('path',{d,fill:'none',stroke:'#3182f6','stroke-width':2,class:dy?(leftN?'ef':'efr'):(leftN?'efr':'ef')},sv);}
+   for(const y of [55,165]){const k=leftN?1:-1;el('path',{d:`M${300-7*k},${y-8} L${300+7*k},${y} L${300-7*k},${y+8}`,fill:'none',stroke:'#3182f6','stroke-width':3,'stroke-linecap':'round','stroke-linejoin':'round'},sv);}
+   tx(sv,300,190,'바깥 자기력선: N에서 나와 S로',{'font-size':12,fill:'#3182f6','font-weight':600});}
   el('rect',{x:180,y:85,width:240,height:50,rx:10,fill:'#e9ecef',stroke:'#868e96','stroke-width':2},sv);
   for(let i=0;i<12;i++)el('line',{x1:192+i*19,y1:80,x2:200+i*19,y2:140,stroke:'#c87f2c','stroke-width':5},sv);
   tx(sv,300,22,on?'전자석 (지금 자석이에요)':'그냥 쇳덩이 (자석 아님)',{'font-size':14,fill:on?'#6b4fc8':'#8b95a1'});
