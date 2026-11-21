@@ -5349,3 +5349,10 @@ textarea.inp.bn-ta { min-height: 360px; font-size: 16px; line-height: 1.8; resiz
 .r2s-fig figcaption{font-size:13px;color:var(--t3,#8b95a1);margin-top:6px}
 @keyframes r2sFig{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.r2s-fig{animation:none}}
+
+/* 11/21 떠 있는 시간에 ✕ (누르면 시간 재기 끝) */
+.hw-float { padding-right: 6px; }
+.hw-float .hf-x { flex: none; display: grid; place-items: center; width: 28px; height: 28px; margin-left: 2px; border: 0; border-radius: 50%; background: rgba(255,255,255,.16); color: #fff; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; transition: background .2s, transform .15s; }
+.hw-float .hf-x:hover { background: rgba(255,255,255,.28); }
+.hw-float .hf-x:active { transform: scale(.9); }
+.hw-float.corner .hf-x { width: 32px; height: 32px; }
