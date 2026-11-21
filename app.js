@@ -1754,7 +1754,7 @@
   function tmStart(tk, ti, subj, quiet) {
     const h = (P.held || []).find((x) => tkOf(x) === tk);
     if (P.run && tkOf(P.run) === tk) { if (P.run.paused) pPause(); return; }
-    tmHold();
+    if (P.run && P.run.auto) tmEndQuiet(P.run); else tmHold();
     if (h) { P.held = P.held.filter((x) => x !== h); h.t0 = Date.now(); h.paused = false; h.byMe = 0; P.run = h; }
     else P.run = { mode: 'focus', watch: 1, pick: 'sw', t0: Date.now(), acc: 0, seg: [], paused: false, subj: subj || tmSubj(ti), ti, tk, ...(tk.startsWith('my:') ? { hw: tk.slice(3) } : {}), dur: 0 };
     P.offer = null; pSave(); if (!quiet) { ding(1); if (navigator.vibrate) navigator.vibrate(20); } pLoop();
@@ -2566,7 +2566,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611211751', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611211756', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5969,6 +5969,13 @@
   }
   // 학생이 고치거나 지운 칸은 다시 안 덮어써요 (11/3)
   const slogPut = (s0, e0, subj, k, ti) => { if (e0 - s0 < 60000) return; S.slog = S.slog || {}; const o = S.slog[k + s0]; if (o && (o.ed || o.del)) return; S.slog[k + s0] = { s: s0, e: e0, subj, k, at: Date.now(), ...(ti ? { ti } : {}) }; };
+  // 11/21 «다 했는데 자꾸 끝을 안 내고 멈춘 숙제 2개 더에 포함시켜, 한 번도 겹쳐서 숙제한 적 없어» → 저절로 켠 시간은 화면을 나가면 조용히 끝내요 (멈춤으로 쌓지 않아요)
+  function tmEndQuiet(r) {
+    if (!r) return; const n = Date.now(), seg = r.paused ? r.seg : [...r.seg, [r.t0, n]], m = Math.round(pWatchSec(r) / 60);
+    if (r === P.run) { P.run = null; P.offer = null; } P.held = (P.held || []).filter((x) => x !== r);
+    if (m >= 1) { for (const [a, b] of seg) slogPut(a, b, r.subj, 'w', r.ti); const po = pomo(), d = today(), x = po.days[d] = po.days[d] || { n: 0, min: 0, subj: {} }; x.min = (x.min || 0) + m; save('pomo', 'slog'); }
+    pSave(); pLoop();
+  }
   function pWatchEnd(r = P.run, inSheet) {
     if (!r) return; const n = Date.now();
     const seg = r.paused ? r.seg : [...r.seg, [r.t0, n]], sec = pWatchSec(r), m = Math.round(sec / 60);
@@ -9108,7 +9115,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611211751'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611211756'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -10767,9 +10774,9 @@
     if (TEACHER || PEEK || ROLE_T) return;
     const R = UI.run, inApp = (R && !TM_SKIP.has(R.kind)) || (UI.tab === 'study' && UI.stU && UI.stV === 'unit');
     if (document.hidden) return;
-    if (!autoTm.swept) { autoTm.swept = 1; const h0 = (P.held || []).length; P.held = (P.held || []).filter((x) => !(x.auto && (pWatchSec(x) < 60 || /^auto:[a-z0-9]+:$/.test(tkOf(x)))));  /* 11/15 예전 묶인 열쇠(auto:fin: 등)는 칸이 이미 slog 에 있어 치워요 */ if (P.held.length !== h0) pSave(); }  // 켜졌다 바로 멈춘 자투리(1분 안 됨)는 치워요
+    if (!autoTm.swept) { autoTm.swept = 1; const h0 = (P.held || []).length; for (const x of (P.held || []).filter((y) => y.auto && pWatchSec(y) >= 60 && !/^auto:[a-z0-9]+:$/.test(tkOf(y)))) tmEndQuiet(x); P.held = (P.held || []).filter((x) => !x.auto);  /* 11/15 예전 묶인 열쇠(auto:fin: 등)는 칸이 이미 slog 에 있어 치워요 */ if (P.held.length !== h0) pSave(); }  // 켜졌다 바로 멈춘 자투리(1분 안 됨)는 치워요
     const cur = P.run && !P.run.paused ? P.run : null;
-    if (!inApp) { if (cur && cur.auto && autoTm.mine === tkOf(cur)) { autoTm.mine = null; tmHold(); pSave(); } return; }
+    if (!inApp) { if (P.run && P.run.auto) { autoTm.mine = null; tmEndQuiet(P.run); } return; }
     const hw = UI.hwRun && (S.hw || []).find((x) => x.id === UI.hwRun.id);
     const am = autoTmMeta(R), tk = hw ? 'hw:' + hw.id : 'auto:' + (R ? `${R.kind}:${am.id}` : `st:${UI.stU}`);
     if (cur && (!cur.auto || tkOf(cur) === tk)) { if (cur.auto) autoTm.mine = tk; return; }
