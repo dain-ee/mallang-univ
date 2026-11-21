@@ -5356,3 +5356,7 @@ textarea.inp.bn-ta { min-height: 360px; font-size: 16px; line-height: 1.8; resiz
 .hw-float .hf-x:hover { background: rgba(255,255,255,.28); }
 .hw-float .hf-x:active { transform: scale(.9); }
 .hw-float.corner .hf-x { width: 32px; height: 32px; }
+/* 11/21 «멈춘 숙제 1개 더 줄바꿈» → 한 줄로, 알약 높이에 맞춰 */
+.hw-float em { flex: none; white-space: nowrap; line-height: 1; height: 22px; display: inline-flex; align-items: center; padding: 0 8px; font-size: 12px; }
+.hw-float.corner em { height: 24px; }
+.hw-float span { min-width: 0; }
