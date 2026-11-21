@@ -2566,7 +2566,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611211839', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611211842', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7829,7 +7829,9 @@
   const nxRng = (s) => { let h = 1779033703 ^ s.length; for (let i = 0; i < s.length; i++) { h = Math.imul(h ^ s.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); } return () => { h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; }; };
   const nxShuf = (a, rnd) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const nxSubjOf = (i) => (NXSETS[(NXQ[i] || {}).set] || {}).subj || 'eng';
-  const nxPerm = (q, perm, g) => ({ ...q, ...(perm && q.t === 'mc' && perm.length === q.ch.length ? { ch: perm.map((k) => q.ch[k]), a: perm.indexOf(q.a) } : {}), perm: perm || null, g: g || '', subj: nxSubjOf(q.i) });
+  // 11/21 «7번에 ⓔ가 5번이어야지 무슨 3번이야»: 보기가 ⓐ~ⓔ·①~⑤·(A)~(E)·A~E 같은 기호(또는 그 조합)뿐이면 섞지 않고 차례대로
+  const nxOrdCh = (ch) => Array.isArray(ch) && ch.length > 1 && ch.every((c) => String(c).trim() && /^[\s,·~\-]*$/.test(String(c).replace(/[ⓐ-ⓔⒶ-Ⓔ①-⑤]/g, '').replace(/\(([A-Ea-e1-5])\)/g, '').replace(/\b[A-Ea-e1-5]\b/g, '')));
+  const nxPerm = (q, perm, g) => ({ ...q, ...(perm && q.t === 'mc' && perm.length === q.ch.length && !nxOrdCh(q.ch) ? { ch: perm.map((k) => q.ch[k]), a: perm.indexOf(q.a) } : {}), perm: perm || null, g: g || '', subj: nxSubjOf(q.i) });
   // 천일문(지원) · 그래머 책 덮고(주아) 문제도 시험 문항 꼴로 (오답 노트에서 다시 풀 수 있게 NXQ 에 넣어 둬요)
   const NX_CH = !NXD.words && TUTOR ? CH_UNITS.flatMap((u) => (u.questions || []).map((z, k) => [u, k, z]).filter(([, , z]) => z && Array.isArray(z.choices) && z.choices.length > 1 && z.answer != null).map(([u, k, z]) => ({ i: `${u.v2 ? 'ch2' : 'ch'}:${u.unit}:${k}`, t: 'mc', q: z.q, p: z.passage || '', ch: z.choices, a: +z.answer, exp: z.exp || '', cat: `Unit ${u.unit} ${z.type || ''}`.trim(), ty: z.type, unit: u.unit }))) : [];
   const NX_JG = NXD.words ? JG.flatMap((u) => jgQs(u, 4).map((z) => { const a = z.choices ? z.choices.findIndex((c) => jgNorm(c) === jgNorm((z.answers || [])[0])) : -1; return { i: `jg4:${u.no}:${z.id}`, t: a >= 0 ? 'mc' : 'short', q: z.prompt, ch: a >= 0 ? z.choices : undefined, a: a >= 0 ? a : z.answers || [], exp: z.why || '', cat: `Unit ${u.no}${z.tag ? ' ' + z.tag : ''}`, jg: z, unit: u.no }; })) : [];
@@ -9119,7 +9121,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611211839'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611211842'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
