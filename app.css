@@ -5370,3 +5370,6 @@ main.lv-calm .lv-star.bump, main.lv-calm .lv-combo.bump { animation: tapPop .42s
 /* 11/21 «(A) 양쪽이 칠해져 있어 빈칸 두 개인 줄 알아» → 한 칸 안에 (A) */
 .nx-gap.lab { min-width: 96px; height: auto; padding: 0 10px; text-align: center; vertical-align: baseline; line-height: 1.4; }
 .nx-gap.lab i { font-style: normal; font-weight: 700; color: var(--blue); }
+/* 11/21 «밑줄 위 가운데에 (A)» → 칠한 바탕 없이 밑줄 하나, 그 위 가운데에 (A) */
+.nx-gap.lab { background: none; border-radius: 0; min-width: 120px; padding: 0 14px; border-bottom: 2px solid var(--t1, #191f28); }
+.nx-gap.lab i { color: var(--t1, #191f28); }
