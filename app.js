@@ -2566,7 +2566,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611211741', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611211751', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -9108,7 +9108,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611211741'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611211751'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -10889,7 +10889,7 @@
     const qm = html.match(/class="q-no">([\s\S]*?)<\/div>/), qk = UI.run ? (qm ? qm[1] : html.includes('done-card') ? 'done' : html.includes('class="lesson"') ? 'lesson' : '') : '';
     const sub = [UI.wrongSubj, UI.sgbArea, UI.semester, UI.chartSubj, UI.mockSubj, UI.ypDay, UI.hwDay].join('|');
     // 11/9 «버튼 넘어갈 때 애니메이션이 없어»: 같은 문제 화면 안에서 단계(소개 → ① → ② · 개념 → 문제 · 지문 바꾸기)가 바뀌어도 넘기듯
-    const rsk = UI.run ? ['cid', 'map', 'st', 'step', 'stage', 'read', 'introSeen', 'unit', 'set', 'id'].map((k) => String(UI.run[k] == null ? '' : UI.run[k])).join('|') : '';
+    const rsk = UI.run && UI.run.kind === 'lv' && UI.run.stage === 'play' ? 'lvplay' : UI.run ? ['cid', 'map', 'st', 'step', 'stage', 'read', 'introSeen', 'unit', 'set', 'id'].map((k) => String(UI.run[k] == null ? '' : UI.run[k])).join('|') : '';
     let dir = '';
     if (view !== render.view) dir = render.view == null ? 'boot' : depth > render.depth ? 'push' : depth < render.depth ? 'pop' : ti !== render.ti ? ((ti < 0 ? 9 : ti) > (render.ti < 0 ? 9 : render.ti) ? 'tabR' : 'tabL') : 'side';
     else if (qk && render.qk && qk !== render.qk) dir = 'push';
@@ -10900,6 +10900,11 @@
     // 11/4 윤건 «국어에서 원문 보기 누르면 1초만 보여 주고 다시 사라져요»: 동기화로 다시 그리면 펼친 칸이 닫혔어요 → 같은 화면이면 펼친 칸을 다시 펼쳐 둬요
     const dKey = (d) => (d.className || '') + '|' + ((d.querySelector(':scope > summary') || {}).textContent || '').trim();
     const dOpenK = view === render.view ? new Set($$('main details[open]').map(dKey)) : null;
+    // 11/21 «주아 퀴즈 맞출 때 계속 깜빡인다, 두 번씩»: 답하면 한 번, 다음 문제로 한 번 화면 전체를 다시 그려서 단계 칸·번호·그림이 매번 다시 튀어나왔어요
+    //   → 같은 단어 게임 안에서는 위쪽 틀은 가만히, 같은 문제면 문제 칸도 가만히. 새 문제의 보기·정답 카드만 움직여요
+    { const R = UI.run, lk = R && R.kind === 'lv' && R.stage === 'play' ? R : null, ck = lk && lk.cur ? lk.cur.en + ':' + lk.cur.s + ':' + (lk.view || '') : '';
+      main.classList.toggle('lv-calm', !!lk && render.lvR === lk && view === render.view); main.classList.toggle('lv-calm2', !!ck && render.lvR === lk && render.lvC === ck);
+      render.lvR = lk; render.lvC = ck; }
     main.innerHTML = (TEACHER && !DASH_ONLY ? teacherBand() : '') + html;
     if (dOpenK && dOpenK.size) $$('main details').forEach((d) => { if (dOpenK.has(dKey(d))) d.open = true; });
     if (SR_TEST && window.__tstBox) main.insertAdjacentHTML('afterbegin', window.__tstBox());  // 오프라인 시험 탭에서만: 시험 줄을 앱이 같이 그려요
