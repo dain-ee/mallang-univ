@@ -2566,7 +2566,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611211727', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611211729', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5922,7 +5922,7 @@
       if (!hf) { hf = document.createElement('div'); hf.id = 'hw-float'; hf.className = 'hw-float'; hf.setAttribute('role', 'button'); hf.tabIndex = 0; document.body.appendChild(hf); }
       hf.classList.add('corner');  // 11/15 윤건 «위에 떠 있는 시간 때문에 제목이 안 보여» → 넓은 화면에서는 오른쪽 아래로 · 11/21 모든 학생
       // 11/21 «주아 시간 닫기 좀 누르게, 옆에 X 를 하게 해 주든지, 어떻게 멈추는지도 모르겠어» → ✕ = 이 숙제 시간 재기 끝 (잰 시간은 시간표에 남아요)
-      hf.onclick = (e) => { if (e.target.closest('.hf-x')) { e.stopPropagation(); pWatchEnd(fr); toast(`${fr.ti || '숙제'} 시간 재기를 끝냈어요 · 다시 「시작」을 누르면 또 재요`); return; } tmSheet(tkOf(fr)); };
+      hf.onclick = (e) => { if (e.target.closest('.hf-x')) { e.stopPropagation(); const all = [...new Set([P.run, ...(P.held || [])].filter((x) => x && tkOf(x)))]; for (const x of all) pWatchEnd(x); hf.remove(); toast(`시간 재기 ${all.length}개를 모두 끝냈어요 · 다시 「시작」을 누르면 또 재요`); return; }  /* 11/21 «시간이 겹치고 겹쳐서 멈출 수가 없어» → 쌓인 것까지 한 번에 */ tmSheet(tkOf(fr)); };
       const ps = fr.paused || fr !== r, k = tkOf(fr) + (ps ? 'p' : '') + (P.held || []).length;
       if (hf.dataset.k !== k) { hf.dataset.k = k; hf.classList.toggle('paused', ps); hf.innerHTML = `<i></i><span>${esc(fr.ti || '숙제')} ${ps ? '멈춤' : '진행 중'}</span><b class="num"></b>${(P.held || []).length > (fr === r ? 0 : 1) ? `<em>+${(P.held || []).length - (fr === r ? 0 : 1)}</em>` : ''}<button type="button" class="hf-x" aria-label="시간 재기 끝내기">✕</button>`; }
       $('b', hf).textContent = tmShow(fr);
@@ -9108,7 +9108,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611211727'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611211729'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
