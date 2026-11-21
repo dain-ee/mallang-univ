@@ -5366,3 +5366,7 @@ main.lv-calm .lv-step, main.lv-calm .lv-hud, main.lv-calm .lv-hud *, main.lv-cal
 main.lv-calm2 .lv-q, main.lv-calm2 .lv-q *, main.lv-calm2 .lv-chs .choice, main.lv-calm2 .lv-solo, main.lv-calm2 .lv-solo .lv-pic, main.lv-calm2 .lv-tile { animation: none !important; }
 main.lv-calm .lv-star.bump, main.lv-calm .lv-combo.bump { animation: tapPop .42s var(--spring) !important; }
 .lv-combo:not(.bump) { animation: none; }
+
+/* 11/21 «(A) 양쪽이 칠해져 있어 빈칸 두 개인 줄 알아» → 한 칸 안에 (A) */
+.nx-gap.lab { min-width: 96px; height: auto; padding: 0 10px; text-align: center; vertical-align: baseline; line-height: 1.4; }
+.nx-gap.lab i { font-style: normal; font-weight: 700; color: var(--blue); }

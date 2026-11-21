@@ -2566,7 +2566,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611211956', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611212002', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7469,7 +7469,7 @@
   // 지문·문제 글: 밑줄(<u>)·굵게는 살리고, 빈칸(___)과 (가)·㉠·(A) 표시는 눈에 띄게
   const nxDlg = (c) => { const P = String(c).split(/\s+\/\s+|\n/).map((x) => x.trim()).filter(Boolean); if (P.length < 2 || !P.every((x) => /^[A-Z][A-Za-z]{0,7}:\s/.test(x))) return nxRich(c);
     return `<span class="nx-dlg">${P.map((x) => { const m = x.match(/^([A-Za-z]+):\s*([\s\S]*)$/); return `<span class="nx-dl"><b>${esc(m[1])}</b><span>${nxRich(m[2])}</span></span>`; }).join('')}</span>`; };
-  const nxRich = (t) => rich(t).replace(/\[\[box\]\]/g, '<span class="nx-given">').replace(/\[\[\/box\]\]\s*/g, '</span>').replace(/_{3,}/g, '<span class="nx-gap"></span>').replace(/\(\s*[가나다라마바사아자차카타파하A-E]\s*\)|[㉠-㉭]/g, '<b class="nx-mk">$&</b>');
+  const nxRich = (t) => rich(t).replace(/\[\[box\]\]/g, '<span class="nx-given">').replace(/\[\[\/box\]\]\s*/g, '</span>').replace(/_{3,}\s*(\(\s*[가나다라마바사아자차카타파하A-E]\s*\))\s*_{3,}|_{3,}\s*(\(\s*[가나다라마바사아자차카타파하A-E]\s*\))|(\(\s*[가나다라마바사아자차카타파하A-E]\s*\))\s*_{3,}/g, (m, a, b, c) => `<span class="nx-gap lab"><i>${(a || b || c).replace(/\s/g, '')}</i></span>`).replace(/_{3,}/g, '<span class="nx-gap"></span>').replace(/\(\s*[가나다라마바사아자차카타파하A-E]\s*\)|[㉠-㉭]/g, '<b class="nx-mk">$&</b>');
   const nxKey = (s) => String(s || '').toLowerCase().replace(/[’‘`]/g, "'").replace(/\([^)]*\)/g, '').replace(/[^a-z0-9'가-힣]/g, '');
   const nxAlts = (a) => [...new Set([a, ...String(a).split(/\s*\/\s*/)].map(nxKey).filter(Boolean))];
   const nxParts = (q) => { const a = String((q.a || [])[0] || ''); if (!/\(1\)/.test(a)) return null; const ps = a.split(/\(\d\)/).map((t) => t.trim().replace(/[,\s]+$/, '')).filter(Boolean); return ps.length > 1 ? ps : null; };
@@ -9128,7 +9128,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611211956'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611212002'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
