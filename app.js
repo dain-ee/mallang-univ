@@ -2566,7 +2566,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611211810', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611211832', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6958,7 +6958,9 @@
     r.starShown = r.star; r.comboShown = r.combo;
     const lab = `<div class="row between lv-lab"><span class="lv-stg ${c.lap ? 'lap' : ''}">${LV_NO[c.lap ? 7 : s]} ${esc(c.lap ? '마지막 한 바퀴 · ' + LV_ST[s] : LV_ST[s])}</span>${c.lap ? '' : lvLadder(r.W[c.en].s >= 7 ? 7 : Math.min(s, 6))}</div>`;
     const picQ = (s === 1 || s === 2) && r.nth && r.nth <= 2 && !c.lap ? lvPic(w, 'lv-pic-q') : '';  // 11/15 «처음 2단계까지 아이콘을 띄워 줘, 아이콘을 보고 맞출 수 있게»
-    const showEn = s === 1 || s === 5, prompt = showEn ? `<div class="lv-pr">${picQ}${lvChunks(w, 'big')}${lvSay(w)}</div><p class="tiny lv-ask">${s === 1 ? '뜻을 골라요' : '우리말 뜻을 써요'}</p>` : `<div class="lv-pr">${picQ}<b class="lv-ko">${esc(w.k)}</b>${s >= 3 && s <= 4 ? lvSay(w) : ''}</div><p class="tiny lv-ask">${s === 2 ? '영어 단어를 골라요' : s === 3 ? '소리 조각을 차례대로 눌러요' : s === 4 ? '글자를 차례대로 눌러요' : '영어로 써요'}</p>`;
+    // 11/21 «2·3·4단계는 소리를 처음에 들을 수 없게, 답 결과가 나왔을 때만 바로 나오거나 눌러서 더 듣게» → 풀기 전 문제 칸에는 🔊 없음 (결과 카드에는 있어요)
+    const say0 = (ww) => (r.nth >= 2 && !V ? '' : lvSay(ww));
+    const showEn = s === 1 || s === 5, prompt = showEn ? `<div class="lv-pr">${picQ}${lvChunks(w, 'big')}${say0(w)}</div><p class="tiny lv-ask">${s === 1 ? '뜻을 골라요' : '우리말 뜻을 써요'}</p>` : `<div class="lv-pr">${picQ}<b class="lv-ko">${esc(w.k)}</b>${s >= 3 && s <= 4 ? say0(w) : ''}</div><p class="tiny lv-ask">${s === 2 ? '영어 단어를 골라요' : s === 3 ? '소리 조각을 차례대로 눌러요' : s === 4 ? '글자를 차례대로 눌러요' : '영어로 써요'}</p>`;
     let body = '';
     if (s === 1 || s === 2) { const right = s === 1 ? w.k : lvSp(w)[0];
       body = `<div class="choices lv-chs">${c.ch.map((o, k) => `<button class="choice ${fb ? (o === right ? 'right' : o === fb.typed ? 'wrong' : '') : ''}" style="--i:${k}" data-lvch="${k}" type="button" ${fb ? 'disabled' : ''}><span class="n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div>`; }
@@ -9115,7 +9117,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611211810'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611211832'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
