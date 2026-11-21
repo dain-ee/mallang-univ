@@ -2566,7 +2566,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611212004', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611212049', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7567,7 +7567,7 @@
   const nxDoneFix = (x, a) => { const S0 = NXSETS[x.id]; const b = S0 && a ? nxBl(S0.qs, a) : null; return b ? { ...x, ok: b[0], n: b[1] } : x; };
   const nxProg = (s) => { const a = nxStore(s), n = s.qs.length, d = s.qs.filter((q) => a[q.i]).length; return { n, d, ok: s.qs.filter((q) => (a[q.i] || {}).ok).length, fx: s.qs.filter((q) => nxFx(q.i, a[q.i])).length, ps: nxBl(s.qs, a) || nxPs(s.qs, a) }; };
   const nxWdGot = (m, id) => { const r = nxS().wd[`${m}:${id}`]; return !!r && r.s >= (r.w ? 2 : 1); };
-  const nxTime = (ms) => { if (!ms || ms > 3 * 3600e3) return ''; const m = Math.floor(ms / 60000), s = Math.round((ms % 60000) / 1000); return m ? `${m}분 ${s}초` : `${s}초`; };
+  const nxTime = (ms) => { if (!ms || ms > 3 * 3600e3) return ''; const t = Math.round(ms / 1000), m = Math.floor(t / 60), s = t % 60; return m ? `${m}분${s ? ` ${s}초` : ''}` : `${s}초`; };  // 11/21 «7분 60초» 고침
   function nxStart(id, back, keep) { if (!NXSETS[id] && /^ls:/.test(id)) nxLesson(id.slice(3)); if (!NXSETS[id] && /^lw:/.test(id)) nxWord(id.slice(3)); if (/^l[smw]:/.test(id) && YG_CLS && !nxS().lq[id]) ygTest(id);  // 윤건: 열기 전엔 범위가 바뀌었을 수 있어요
     const s0 = NXSETS[id]; if (!s0) return toast('이 시험은 아직 준비 중이에요');
     if (s0.kind === 'lesson') { const x = nxS(); if (!ROLE_T && s0.date !== nxDay(nxNow()) && !nxLast(id)) return toast(s0.date > nxDay(nxNow()) ? '수업 시간에 열려요' : '이 수업은 닫혔어요'); if (!x.lq[id]) { x.lq[id] = s0.qs.map((q) => [q.i, q.perm, q.g]); const ks = Object.keys(x.lq).sort(); for (const k of ks.slice(0, -30)) { delete x.lq[k]; delete x.la[k]; } save('nx'); } }
@@ -8016,11 +8016,12 @@
   const YG_JWT_FIX = { '2026-11-15': { m3: [], rq: ['e7r2'] }, '2026-11-17': { m3: [], lt: ['e7t'], gr: ['e8'], gl: { e8: [1, 2] }, gx: ['e8g2'], tx: ['e8'], rq: ['e8r2'], off: ['lw'], n: 10 }  /* «무슨 문법 상이 1문제야 · 어려워서 중 한 세트 더 하든지 해» → 상 빼고 중 한 세트(e8g2) 더 · 수업 중 «중 한 번 더 10개 상으로 바꿔» → e8g2 를 상 10문제(고르기 6·쓰기 4)로 · «수업 전 시험이 저게 아니라 7과 본문을 해야 할 거 같은데» → 8과 문법 시험 대신 7과 본문 중요 문장(e7t) */ };  // 11/15 «학교 문제 꼴만 해, 중하 없애 줘» → 중 20(e7r2)만
   // 11/21 «저번처럼 · 저번에 못 했던 지점부터» → 수업 전 8과 문법 시험(11/17에 배운 것) → 11/17에 못 한 8과 본문 학교 시험 꼴을 1~4문단 13문제로(5·6문단은 학교 범위 밖, 11/19) 먼저 → 7과 학습지 1회독(WSCL)
   // 11/21 수업 중 «5·6도 안 했잖아, 그건(11/19) 숙제 말한 거지 수업에서는 해야지» → 8과 본문 5·6문단 분석·필기 → 본문 시험 꼴 20문제 전부 → 7과 학습지(뒤로)
-  YG_JWT_FIX['2026-11-21'] = { m3: [], gt: ['e8'], off: ['lw'], n: 10, tx: ['e8'], tp: { e8: [4, 5] }, rq: ['e8r2'], wsLast: 1, noWs: 1,
+  // 11/21 수업 중 다시 «8과 윤건이 거 빼 · 학습지 한 거 있으면 띄우고» → 8과 본문 5·6·시험 20 은 빼고, 학습지는 손댄 세트만 맨 뒤에
+  YG_JWT_FIX['2026-11-21'] = { m3: [], gt: ['e8'], off: ['lw'], n: 10, wsLast: 1, wsDone: 1,
     // 11/21 수업 중 «7과 학습지는 한 만큼만, 쓸데없는 게 많고 문법 쪽은 사진도 없어서 못 해 → 빼고 7과 본문 문제 중·상 학교 스타일로» → 선생님 스타일 실전 1·2회·심화에서 본문 지문 문제만
     qx: [{ id: 'e7xm', title: '7과 본문 · 학교 스타일 중 15문제', sub: '선생님 스타일 실전 1·2회 본문 지문 문제 · 중', from: ['e7:t1', 'e7:t2'], lv: [2], k: 15 },
       { id: 'e7xh', title: '7과 본문 · 학교 스타일 상 15문제', sub: '선생님 스타일 실전·심화 본문 지문 문제 · 상', from: ['e7:t1', 'e7:t2', 'e7:t7'], lv: [3], k: 15 }] };
-  const ygPlan = (date) => { const o = { ...(((LS0.tests || {})[date]) || {}), ...(((S.jwt || {})[date]) || {}), ...(YG_JWT_FIX[date] || {}) }; return { units: (o.units || []).length ? o.units.map(Number) : null, days: (o.days || []).length ? o.days.map(Number) : null, m3: (o.m3 || []).length ? o.m3.map(Number) : null, tu: (o.tu || []).length ? o.tu.map(Number) : null, gr: (o.gr || []).length ? o.gr.map(String) : null, gt: (o.gt || []).length ? o.gt.map(String) : null, tx: (o.tx || []).length ? o.tx.map(String) : null, off: o.off || [], rq: (o.rq || []).map(String), gl: o.gl || {}, gx: (o.gx || []).map(String), lt: (o.lt || []).map(String), rqa: o.rqa || [], wsLast: !!o.wsLast, noWs: !!o.noWs, qx: o.qx || [], tp: o.tp || {}, n: o.n || 15, wn: o.wn || 20, mn: o.mn || 10 }; };
+  const ygPlan = (date) => { const o = { ...(((LS0.tests || {})[date]) || {}), ...(((S.jwt || {})[date]) || {}), ...(YG_JWT_FIX[date] || {}) }; return { units: (o.units || []).length ? o.units.map(Number) : null, days: (o.days || []).length ? o.days.map(Number) : null, m3: (o.m3 || []).length ? o.m3.map(Number) : null, tu: (o.tu || []).length ? o.tu.map(Number) : null, gr: (o.gr || []).length ? o.gr.map(String) : null, gt: (o.gt || []).length ? o.gt.map(String) : null, tx: (o.tx || []).length ? o.tx.map(String) : null, off: o.off || [], rq: (o.rq || []).map(String), gl: o.gl || {}, gx: (o.gx || []).map(String), lt: (o.lt || []).map(String), rqa: o.rqa || [], wsLast: !!o.wsLast, noWs: !!o.noWs, wsDone: !!o.wsDone, qx: o.qx || [], tp: o.tp || {}, n: o.n || 15, wn: o.wn || 20, mn: o.mn || 10 }; };
   const M3U = () => ((NXD.subjects || []).find((x) => x.key === 'm3') || {}).units || [];
   // 11/12 «이번엔 천일문 시험이 아니라 지난 수업 7과 문법으로 · 개념 물어보는 거 한 문제 · 한 과에 문법이 2개 있는데 한 판에 있는 걸 한 문제로»
   const YG_GC = {
@@ -8068,7 +8069,7 @@
     return null;
   }
   function ygCls(date, P) {
-    const out = { rqa: [], gr: [], tx: [], rq: [], lt: [], ws: P.noWs ? [] : ((NXD.wscl || {})[date] || []).map((id) => NXSETS['pp:' + id]).filter(Boolean) }, mk = (id, title, sub, qs, learn) => { if (!qs || !qs.length) return null; return (NXSETS[id] = { id, title, sub, subj: 'eng', kind: 'lesson', date, qs, mix: {}, ...(learn ? { learn } : {}) }); };
+    const out = { rqa: [], gr: [], tx: [], rq: [], lt: [], ws: P.noWs ? [] : ((NXD.wscl || {})[date] || []).map((id) => NXSETS['pp:' + id]).filter(Boolean).filter((x) => !P.wsDone || nxLast(x.id) || nxProg(x).d) }, mk = (id, title, sub, qs, learn) => { if (!qs || !qs.length) return null; return (NXSETS[id] = { id, title, sub, subj: 'eng', kind: 'lesson', date, qs, mix: {}, ...(learn ? { learn } : {}) }); };
     for (const uid of P.gr || []) { const u = NXU[uid]; if (!u) continue; const nm = u.code || uid, G = NXSETS['pp:mg' + u.no], lr = (G && G.learn) || { nk: 'grammar', notes: u.notes || {} }, all = ygGramQs(uid), lv = (q) => Math.min(3, q.lv || (q.t === 'mc' ? 1 : 2)); let first = true;
       [[1, '하'], [2, '중'], [3, '상']].forEach(([k, nmL]) => { if (P.gl && P.gl[uid] && !P.gl[uid].includes(k)) return; const qs = all.filter((q) => lv(q) === k), x = mk(`lc:${date}:${uid}:g${k}`, `${nm} 문법 · ${first ? '개념 복습 → ' : ''}${nmL} ${qs.length}문제`, first ? '개념을 다시 읽고 쉬운 문제부터' : `${nmL} 단계 문제`, qs, first ? lr : null); if (x) { out.gr.push(x); first = false; } }); }
     for (const uid of P.tx || []) { const u = NXU[uid]; if (!u) continue; const nm = u.code || uid;
@@ -9128,7 +9129,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611212004'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611212049'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
