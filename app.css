@@ -5364,4 +5364,5 @@ textarea.inp.bn-ta { min-height: 360px; font-size: 16px; line-height: 1.8; resiz
 /* 11/21 단어 게임: 답할 때마다 다시 그려도 그대로 있던 것은 다시 튀어나오지 않게 */
 main.lv-calm .lv-step, main.lv-calm .lv-hud, main.lv-calm .lv-hud *, main.lv-calm .lv-nums button, main.lv-calm .lv-lab, main.lv-calm .lv-lab *, main.lv-calm .qwrap.lv > .row, main.lv-calm .lv > .card:not(.lv-q) { animation: none !important; }
 main.lv-calm2 .lv-q, main.lv-calm2 .lv-q *, main.lv-calm2 .lv-chs .choice, main.lv-calm2 .lv-solo, main.lv-calm2 .lv-solo .lv-pic, main.lv-calm2 .lv-tile { animation: none !important; }
-main.lv-calm .lv-star.bump, main.lv-calm .lv-combo { animation: tapPop .42s var(--spring) !important; }
+main.lv-calm .lv-star.bump, main.lv-calm .lv-combo.bump { animation: tapPop .42s var(--spring) !important; }
+.lv-combo:not(.bump) { animation: none; }
