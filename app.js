@@ -2566,7 +2566,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611211935', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611211956', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -8424,7 +8424,8 @@
     const WSI = Object.entries(NXD.wsd || {}).flatMap(([d, L]) => L.map((s0) => NXSETS['pp:' + s0.id]).filter(Boolean).map((S0) => ({ id: S0.id, subj: 'eng', p: 'rv', qs: S0.qs, title: S0.title, sub: S0.sub, day: d })));
     // 11/19 선생님 «윤건이 영어 줄여 · 8과 5·6 단어 의사소통은 내지 마 · 숙제 학습지는 아예 빼, 수업 시간으로» → NXD.ecut 줄은 from 날부터 숙제에서 빼요 (학습지는 토요일 수업 카드 NXD.wscl)
     const EC = NXD.ecut, ecR = EC ? (EC.drop || []).map((x) => new RegExp(x)) : [], ecA = EC ? (EC.all || []).map((x) => new RegExp(x)) : [], ecOut = (it) => EC && ((it.day >= EC.from && ecR.some((r) => r.test(String(it.id)))) || ecA.some((r) => r.test(String(it.id))));  // all: 지난 날 몫(밀림)까지
-    return OUT.filter((it) => !(it.day > '2026-11-17' && /^pp:(mw7|mc7|mg7b)(?![a-z0-9])/.test(String(it.id)))).concat(WSI).filter((it) => !ecOut(it)).map((it) => { const mv = EC && (EC.move || {})[String(it.id).replace(/^pp:/, '')]; return mv && it.day >= EC.from ? { ...it, day: mv } : it; });
+    return OUT.filter((it) => !(it.day > '2026-11-17' && /^pp:(mw7|mc7|mg7b)(?![a-z0-9])/.test(String(it.id)))).concat(WSI).filter((it) => !ecOut(it)).map((it) => { const mv = EC && (EC.move || {})[String(it.id).replace(/^pp:/, '')]; return mv && it.day >= EC.from ? { ...it, day: mv } : it; })
+      .map((it) => (EC && EC.satSun && it.day >= EC.satSun && dowOf(it.day) === 6 ? { ...it, day: addD(it.day, 1) } : it));  // 11/21 윤건 토요일(수업 날)은 밀린 것만, 그 몫은 일요일로
   })();
   // 천일문·매3영 매일 (11/1~11/15, 수업 날 토요일도 숙제): 하루에 천일문 한 유닛 + 매3영 지문 3개(지문마다 단어 → 문제 → 문장 구조)
   //   (10/31 «천일문 매 unit 하고 문제 풀기, 매3영도 하루에 3-4개, 단어 먼저·문제 먼저·문장 하나씩 구조 분석»)
@@ -9127,7 +9128,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611211935'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611211956'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
