@@ -2566,7 +2566,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611220059', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611221036', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6722,7 +6722,7 @@
 
   // ───────── 📒 주아 DYB 단어 외우기 (11/10 선생님 «금요일 시험 범위를 확인하고 그 전까지 몇 번을 반복해서 외울 정도로 · 처음엔 리스트 먼저 · 한 번씩만 넣으면 안 돼, 이걸로만 했을 때 완벽하게 외울 만큼») ─────────
   // 내용 D.jua.lv (content/jua_lv.json: tests[].plan 날마다 Day · days[Day] 단어 {en, ko, k 짧은 뜻, ch 소리 조각 'scr|ea|m' · 단어 사이 '/', alt 더 받아 줄 뜻, cf 헷갈리는 짝})
-  // 기록 S.lv (칸마다 jMerge): 'w:<영어>' 단어마다 {st 다음에 풀 단계 1~6 · 7 = 여섯 단계 끝(마지막 한 바퀴 남음), sd 단계 바꾼 날, dn 그 몫에서 끝냄, ds 마지막 한 바퀴를 맞힌 날들, lst 마지막 한 바퀴 맞힘, m 틀린 수, lm [날, 그날 틀린 수], c 맞힌 수}
+  // 기록 S.lv (칸마다 jMerge): 'w:<영어>' 단어마다 {st 다음에 풀 단계 1~6 · 7 = 여섯 단계 끝(마지막 한 바퀴 남음), sd 단계 바꾼 날, dn 그 몫에서 끝냄, ds 마지막 한 바퀴를 맞힌 날들, lst 마지막 한 바퀴 맞힘, m 틀린 수, lm [날, 그날 틀린 수], c 맞힌 수, bt 그 몫(tag)에서 틀리거나 도움 받음(11/22)}
   //   'd:<시험날>:<날>' 그날 몫 {seen 카드 다 봄, done 끝, fa 끝낸 때, n, ok, star, cb} · 'mk:<시험날>:<날>' 모의시험 {sc, n, wr 틀린 단어, a 쓴 답, re 다시 시험 {sc, n, wr}}
   // 규칙: 카드 다 넘기기 → 단어마다 ① 뜻 고르기 ② 영어 고르기 ③ 소리 조각 ④ 글자 ⑤ 뜻 쓰기 ⑥ 영어 쓰기 → 마지막 한 바퀴. 틀리면 한 단계 내려가 두 번 연속 맞혀야 올라가고 두 문제 뒤에 다시 나와요
   //   다음 날은 ⑤부터(전날 틀린 단어는 ③·④부터). 외운 단어 = 마지막 한 바퀴를 서로 다른 이틀 이상 맞히고 마지막에도 맞힌 것
@@ -6813,20 +6813,22 @@
   const lvDay = (r) => lvS()['d:' + lvKey(r)] || {};
   // 같은 Day 를 몇 번째 하는 날인지 (계획에서 그 Day 가 나온 차례). 첫날 = 고르기만, 둘째 날 = 조각·글자 맞추기, 셋째 날부터 = 뜻 고르기 + 영어 쓰기
   const lvNth = (r) => { if (r.st) return r.st; const T = lvTest(r.test), P = T && lvPlan(T, r.date, r.part); if (!T || !P || P.mock || !P.days || !P.days.length) return 0; const d0 = P.days[0], L = T.plan.filter((x) => !x.mock && x.days && x.days[0] === d0).map((x) => x.date + '#' + (x.part || '')).sort(); return L.indexOf(r.date + '#' + (r.part || '')) + 1; };
-  const LV_SEQ = { 1: [1, 2], 2: [3, 4] }, LV_SEQ2 = { 1: [0, 1], 2: [1, 2], 3: [3, 4], 4: [6] }, LV_NEW_FROM = '2026-11-17';
+  const LV_SEQ = { 1: [1, 2], 2: [3, 4] }, LV_SEQ2 = { 1: [0, 5], 2: [5, 6], 3: [6, 5], 4: [6] }, LV_NEW_FROM = '2026-11-17';  // 11/22 날마다 두 방향 다 써요: 0 카드 · 5 뜻 쓰기(영어 → 우리말) · 6 영어 쓰기(우리말 → 영어)
   const lvNew = (r) => !!r.st || String(r.test || '') >= LV_NEW_FROM;
+  // 11/22 «소리나 그림만 보고 맞혀서 단어와 뜻이 안 이어져요» → 새 라운드(수업 한 번 보기 빼고)는 먼저 혼자 떠올려 써요. 보기·타일은 「생각이 안 나요」 뒤에만
+  const lvRc = (r) => lvNew(r) && !r.once;
   const LV_STEP = ['외우기', '복습', '마지막 복습', '쓰기'];
-  const lvStepGoal = (r, n) => (lvNew(r) ? ['카드를 한 장씩 뒤집어 외우고, 바로 그 단어 뜻 문제 · 20개', '뜻 고르기 → 영어 고르기', '소리 조각 → 글자 맞추기', '뜻 보고 영어로 한 번씩 쓰기 · 20개'] : ['뜻 고르기 → 영어 고르기', '소리 조각 → 글자 맞추기', '뜻 고르기 → 영어 쓰기'])[n - 1] || '';
+  const lvStepGoal = (r, n) => (lvNew(r) ? ['카드를 한 장씩 뒤집어 외우고, 바로 뜻을 혼자 써요 · 20개', '뜻 쓰기 → 영어 쓰기', '영어 쓰기 → 뜻 쓰기', '뜻 보고 영어로 쓰기 · 20개'] : ['뜻 고르기 → 영어 고르기', '소리 조각 → 글자 맞추기', '뜻 고르기 → 영어 쓰기'])[n - 1] || '';
   // 1·2·3단계 띠: 무엇이 먼저인지 보이게
   function lvSteps(r) { const n = lvNth(r); if (!n || r.once) return ''; return `<div class="lv-steps" role="list">${LV_STEP.slice(0, lvNew(r) ? 4 : 3).map((t, i) => `<span class="lv-step ${i + 1 < n ? 'ok' : i + 1 === n ? 'on' : ''}" role="listitem" style="--i:${i}"><b>${i + 1}단계</b>${esc(t)}</span>`).join('<i class="lv-step-ar" aria-hidden="true">›</i>')}</div>`; }
   // 숙제 줄 앞 작은 이름표: 「1단계」·「2단계」·「3단계」, 모의시험은 「3단계 뒤」
   function lvStepTag(h) { const g = h && h.go; if (!g || g.kind !== 'lv' || /\d단계/.test(h.title || '')) return ''; const T = lvTest(g.test) || lvTestOf(g.date), P = T && lvPlan(T, g.date, g.part); if (!P) return ''; if (P.mock) return `<span class="lv-stag mk">${String(T.date) >= LV_NEW_FROM || (S.hw || []).some((x) => x.go && x.go.kind === 'lv' && x.go.st && x.go.test === T.date) ? 4 : 3}단계 뒤</span>`; const n = lvNth({ test: T.date, date: g.date, part: g.part || '', st: g.st }); return n && n <= 4 ? `<span class="lv-stag">${n}단계</span>` : ''; }
   function lvBuild(r, words, mode) {
-    r.nth = mode === 'study' ? lvNth(r) : 0; r.seq = r.once && mode === 'study' ? [1] : r.nth ? (lvNew(r) ? LV_SEQ2 : LV_SEQ)[r.nth] || [1, 6] : null; r.learn = !!(r.seq && r.seq[0] === 0); if (r.once && mode === 'study' && !r.nth) r.nth = 1;
+    r.nth = mode === 'study' ? lvNth(r) : 0; r.seq = r.once && mode === 'study' ? [1] : r.nth ? (lvNew(r) ? LV_SEQ2[r.nth] || [6, 5] : LV_SEQ[r.nth] || [1, 6]) : null; r.learn = !!(r.seq && r.seq[0] === 0); if (r.once && mode === 'study' && !r.nth) r.nth = 1;
     const td = today(), tag = `${r.date}${r.st ? '~' + r.st : ''}@${td}${mode === 'drill' ? ':d' + (r.drillN || 1) : ''}`, W = {};
     for (const w of words) { const rec = lvW(w.en); if (rec.dn === tag) continue; let s;
       if (r.seq) s = rec.sd === td && rec.tg === tag && r.seq.includes(rec.st) ? rec.st : r.seq[0];  // 그날 단계만 (하던 데서 이어서)
-      else if (mode === 'drill') s = 4;  // 모의시험에서 틀린 단어는 글자 맞추기부터 다시
+      else if (mode === 'drill') s = lvRc(r) ? 5 : 4;  // 모의시험에서 틀린 단어는 글자 맞추기부터 다시
       else if (!rec.st) s = 1;
       else if (rec.sd === td) s = rec.st;  // 오늘 하던 데서 이어서
       else if (rec.st >= 6) s = rec.lm && rec.lm[0] !== td && rec.lm[1] >= 2 ? 3 : rec.lm && rec.lm[0] !== td && rec.lm[1] ? 4 : 5;  // 다음 날 복습: 바로 쓰기부터 (전날 틀린 건 조각부터)
@@ -6849,34 +6851,37 @@
     const c = r.cur; if (!c || r.fb) return;
     const w = r.words.find((x) => x.en === c.en), x = r.W[c.en], td = today(), rec = lvW(c.en);
     // 뜻 쓰기에서 틀리면 정하기 전에 한 번 물어요 (뜻이 여러 개라 맞게 쓰고도 틀릴 수 있어요)
-    if (!ok && c.s === 5 && typed && typed.trim()) { r.fb = { ok: false, typed, ask: 1 }; return render(); }
-    if (c.s === 0) { x.s = 1; x.nx = 0; x.re = 0; r.last = null; lvPick(r, c.en); render(); window.scrollTo(0, 0); return; }  // 카드를 봤으면 바로 그 단어 문제
-    lvCommit(r, ok, typed, w, x, td, rec);
+    // 11/22 뜻 쓰기도 저절로 채점해요 (「틀렸어요 · 같은 뜻이에요」 버튼 없앰. 채점은 lvKoOk 가 너그럽게)
+    if (c.s === 0) { x.s = (r.seq && r.seq[r.seq.indexOf(0) + 1]) || 1; x.k = x.s === 6 ? 2 : 0; x.nx = 0; x.re = 0; r.last = null; lvPick(r, c.en); render(); window.scrollTo(0, 0); return; }  // 카드를 봤으면 바로 그 단어 문제
+    lvCommit(r, ok, typed, w, x, td, rec, c.help ? { help: 1 } : {});
   }
-  function lvCommit(r, ok, typed, w, x, td, rec) {
+  function lvCommit(r, ok, typed, w, x, td, rec, o = {}) {
     const c = r.cur; r.n++;
+    // 11/22 「생각이 안 나요」로 도움을 받았거나 풀기 전에 그 단어 카드를 봤으면, 맞혀도 모르는 단어로 쳐요 (조금 뒤에 혼자 다시)
+    const rc = lvRc(r), right = ok, pk = !!x.pk, helped = rc && !!(o.help || pk); x.pk = 0; if (helped) ok = false;
     if (ok) {
       r.ok++; r.combo++; r.best = Math.max(r.best, r.combo); r.star += 1 + (r.combo >= 5 ? 1 : 0);
       if (x.s >= 7) { r.lap = r.lap.filter((e) => e !== c.en); x.s = 8; const ds = [...new Set([...(rec.ds || []), td])].slice(-6); lvPut('w:' + c.en, { st: 7, sd: td, dn: r.tag, ds, lst: 1, c: (rec.c || 0) + 1, ...(rec.lm && rec.lm[0] !== td ? { lm: null } : {}) }); }  // 지난날 틀린 표시는 오늘 다 맞히면 지워요
       else if (r.seq) { const nx = r.seq[r.seq.indexOf(x.s) + 1];  // 그날 단계만 하고 끝. 마지막 한 바퀴 없음
         if (nx) { x.s = nx; x.k = nx === 6 ? 2 : 0; x.nx = r.step + 3; lvPut('w:' + c.en, { st: x.s, sd: td, tg: r.tag, c: (rec.c || 0) + 1 }); r.up = c.en; }
-        else { r.q = r.q.filter((e) => e !== c.en); const ds = [...new Set([...(rec.ds || []), td])].slice(-6); x.s = 8; lvPut('w:' + c.en, { st: Math.max(rec.st || 0, r.seq[r.seq.length - 1]), sd: td, dn: r.tag, ds, c: (rec.c || 0) + 1, ...(rec.lm && rec.lm[0] !== td ? { lm: null } : {}) }); r.up = null; } }
+        else { r.q = r.q.filter((e) => e !== c.en); const bad = rc && (x.bad || rec.bt === r.tag), ds = bad ? rec.ds || [] : [...new Set([...(rec.ds || []), td])].slice(-6); x.s = 8; lvPut('w:' + c.en, { st: Math.max(rec.st || 0, r.seq[r.seq.length - 1]), sd: td, dn: r.tag, ds, c: (rec.c || 0) + 1, ...(rc ? { lst: bad ? 0 : 1 } : {}), ...(!bad && rec.lm && rec.lm[0] !== td ? { lm: null } : {}) }); r.up = null; } }  // 11/22 이번 몫에서 틀리거나 도움 받은 단어는 끝내도 외운 날로 안 세요
       else { x.k++; const up = x.k >= (x.s === 6 ? Math.max(3, x.need) : x.s === 5 ? Math.max(2, x.need) : x.need); if (up) { x.s++; if (x.s === 2 || x.s === 4) x.s++; x.k = 0; x.need = 1; } x.nx = r.step + 3;  // 11/10 «다 고르기만 해 놨어, 시험지처럼 쓰는 게 포인트» → 고르기는 ① 한 번, 소리 조각 ③ 뒤 바로 쓰기
         if (x.s >= 7) { r.q = r.q.filter((e) => e !== c.en); r.lap.push(c.en); x.nx = r.step + 2; }
         lvPut('w:' + c.en, { st: Math.min(x.s, 7), sd: td, c: (rec.c || 0) + 1 }); r.up = up ? c.en : null; }
     } else {
-      r.miss++; r.combo = 0; buzz();
+      r.miss++; r.combo = 0; if (!right) buzz(); if (rc) x.bad = 1;
       if (r.learn) { x.s = 0; x.re = 1; x.nx = r.step + 2; }  // 외우기에서 틀리면 다른 단어 하나 뒤에 카드부터 다시
       else if (r.seq) { const nx = r.seq[r.seq.indexOf(x.s) + 1], lm = rec.lm && rec.lm[0] === td ? rec.lm[1] + 1 : 1;
-        if (nx) { x.s = nx; x.k = nx === 6 ? 2 : 0; x.nx = r.step + 3; lvPut('w:' + c.en, { st: x.s, sd: td, tg: r.tag, m: (rec.m || 0) + 1, lm: [td, lm] }); }
+        if (rc) { if (x.s === 6) x.k = Math.max(0, (x.k || 0) - 1); x.nx = r.step + 3; lvPut('w:' + c.en, { st: x.s, sd: td, tg: r.tag, m: (rec.m || 0) + 1, lm: [td, lm], bt: r.tag }); }  // 11/22 혼자 맞힐 때까지: 단계는 그대로, 다른 단어 두셋 뒤에 다시 (영어 쓰기는 틀릴수록 힌트가 하나씩 늘어요)
+        else if (nx) { x.s = nx; x.k = nx === 6 ? 2 : 0; x.nx = r.step + 3; lvPut('w:' + c.en, { st: x.s, sd: td, tg: r.tag, m: (rec.m || 0) + 1, lm: [td, lm] }); }
         else { r.q = r.q.filter((e) => e !== c.en); x.s = 8; lvPut('w:' + c.en, { st: Math.max(rec.st || 0, r.seq[r.seq.length - 1]), sd: td, dn: r.tag, m: (rec.m || 0) + 1, lm: [td, lm] }); } }
       else if (x.s >= 7) { r.lap = r.lap.filter((e) => e !== c.en); x.s = 6; x.k = 2; x.need = 1; }  // 마지막 한 바퀴에서 틀리면 힌트 없이 한 번만 더 써요
       if (!r.seq) x.nx = r.step + 3;  // 11/10 밤 «틀릴 때마다 다시 해야 한대, 애가 중간에 포기했잖아» → 단계도 쌓은 횟수도 그대로, 그 단어만 조금 뒤에 다시 if (!r.seq && !r.q.includes(c.en)) r.q.splice(Math.min(1, r.q.length), 0, c.en);
       const lm = rec.lm && rec.lm[0] === td ? rec.lm[1] + 1 : 1;
-      lvPut('w:' + c.en, { st: x.s, sd: td, m: (rec.m || 0) + 1, lm: [td, lm], ...(c.lap ? { lst: 0 } : {}) });
+      lvPut('w:' + c.en, { st: x.s, sd: td, m: (rec.m || 0) + 1, lm: [td, lm], ...(c.lap ? { lst: 0 } : {}), ...(rc ? { bt: r.tag } : {}) });
     }
     const d = lvDay(r); lvPut('d:' + lvKey(r), { n: (d.n || 0) + 1, ok: (d.ok || 0) + (ok ? 1 : 0), star: Math.max(d.star || 0, r.star), cb: Math.max(d.cb || 0, r.best) });
-    r.fb = { ok, typed }; (r.hist = r.hist || {})[c.en] = { cur: { ...c }, fb: { ok, typed }, n: r.n }; render();
+    const fb0 = { ok, typed, ...(helped ? { help: 1, right, pk } : {}) }; r.fb = fb0; (r.hist = r.hist || {})[c.en] = { cur: { ...c }, fb: { ...fb0 }, n: r.n }; render();
     jSay(lvSp(w)[0]);  // 누른 그 순간에 불러야 아이폰·아이패드도 소리가 나요  // 11/15 «맞추고 나서 바로 발음이 나오게»
     if (ok) { const f = r.fb; setTimeout(() => { if (UI.run === r && r.fb === f) lvNextQ(r); }, c.s >= 5 || c.lap ? 1300 : 950); }
   }
@@ -6902,6 +6907,8 @@
     r.stage = 'mres'; render(); window.scrollTo(0, 0);
   }
   function lvDrill(r) { const mk = lvS()['mk:' + lvKey(r)] || {}, wr = (mk.re ? mk.re.wr : mk.wr) || []; r.drillN = ((mk.re && mk.re.k) || 0) + 1; lvBuild(r, wr.map(lvByEn).filter(Boolean), 'drill'); render(); window.scrollTo(0, 0); lvFocus(); }
+  // 11/22 풀다가 번호·카드 다시 보기로 아직 안 끝난 단어의 뜻을 보면, 그 단어는 이번에 맞혀도 모르는 단어로 쳐요
+  function lvPeek(r, en) { const W = r.W && r.W[en]; if (!lvRc(r) || !W || W.s === 0 || W.pk || !((r.q || []).includes(en) || (r.lap || []).includes(en))) return; W.pk = 1; toast('카드를 봤으니 이 단어는 조금 뒤에 한 번 더 나와요'); }
   function lvFocus() { setTimeout(() => { const i = $('main .lv-in'); if (i && !i.disabled) i.focus({ preventScroll: true }); }, 60); }
   // DYB 시험지 모양: Day 하나에 20문제, 홀수는 뜻 → 영어, 짝수는 영어 → 뜻
   const lvSheetItems = (r) => { const T = lvTest(r.test), P = lvPlan(T, r.date, r.part); return lvAll(P.days).map((w, i) => ({ w, no: i + 1, en: i % 2 === 0 })); };
@@ -6956,10 +6963,10 @@
     const back = `<button type="button" class="btn sm lv-relist" data-lvtolist>‹ 카드 다시 보기</button>`;
     const hud = `<div class="lv-hud"><div class="nx-bar lv-pbar"><i style="width:${Math.round((fin / Math.max(1, r.tot)) * 100)}%"></i></div><div class="row between"><span class="tiny"><b class="num">${fin}</b> / ${r.tot} 단어 끝</span><span class="lv-stat"><span class="lv-star ${r.star !== r.starShown ? 'bump' : ''}">⭐ <b class="num">${r.star}</b></span>${r.combo >= 2 ? `<span class="lv-combo ${r.combo !== r.comboShown ? 'bump' : ''}">🔥 ${r.combo} 콤보</span>` : ''}</span></div></div>`;
     r.starShown = r.star; r.comboShown = r.combo;
-    const lab = `<div class="row between lv-lab"><span class="lv-stg ${c.lap ? 'lap' : ''}">${LV_NO[c.lap ? 7 : s]} ${esc(c.lap ? '마지막 한 바퀴 · ' + LV_ST[s] : LV_ST[s])}</span>${c.lap ? '' : lvLadder(r.W[c.en].s >= 7 ? 7 : Math.min(s, 6))}</div>`;
-    const picQ = (s === 1 || s === 2) && r.nth && r.nth <= 2 && !c.lap ? lvPic(w, 'lv-pic-q') : '';  // 11/15 «처음 2단계까지 아이콘을 띄워 줘, 아이콘을 보고 맞출 수 있게»
+    const lab = `<div class="row between lv-lab"><span class="lv-stg ${c.lap ? 'lap' : ''}">${LV_NO[c.lap ? 7 : s]} ${esc(c.lap ? '마지막 한 바퀴 · ' + LV_ST[s] : (c.help ? '도움 · ' : '') + LV_ST[s])}</span>${c.lap ? '' : lvLadder(r.W[c.en].s >= 7 ? 7 : Math.min(c.s0 || s, 6))}</div>`;
+    const picQ = !lvNew(r) && (s === 1 || s === 2) && r.nth && r.nth <= 2 && !c.lap ? lvPic(w, 'lv-pic-q') : '';  // 11/22 새 라운드는 그림을 답한 뒤 결과 카드에서만  // 11/15 «처음 2단계까지 아이콘을 띄워 줘, 아이콘을 보고 맞출 수 있게»
     // 11/21 «2·3·4단계는 소리를 처음에 들을 수 없게, 답 결과가 나왔을 때만 바로 나오거나 눌러서 더 듣게» → 풀기 전 문제 칸에는 🔊 없음 (결과 카드에는 있어요)
-    const say0 = (ww) => (r.nth >= 2 && !V ? '' : lvSay(ww));
+    const say0 = (ww) => ((r.nth >= 2 || lvNew(r)) && !V ? '' : lvSay(ww));  // 11/22 새 라운드는 1단계도 풀기 전 소리 없음
     const showEn = s === 1 || s === 5, prompt = showEn ? `<div class="lv-pr">${picQ}${lvChunks(w, 'big')}${say0(w)}</div><p class="tiny lv-ask">${s === 1 ? '뜻을 골라요' : '우리말 뜻을 써요'}</p>` : `<div class="lv-pr">${picQ}<b class="lv-ko">${esc(w.k)}</b>${s >= 3 && s <= 4 ? say0(w) : ''}</div><p class="tiny lv-ask">${s === 2 ? '영어 단어를 골라요' : s === 3 ? '소리 조각을 차례대로 눌러요' : s === 4 ? '글자를 차례대로 눌러요' : '영어로 써요'}</p>`;
     let body = '';
     if (s === 1 || s === 2) { const right = s === 1 ? w.k : lvSp(w)[0];
@@ -6974,11 +6981,12 @@
       if (s === 6) body = fb ? '' : `<div class="lv-usw"><div class="lv-us" aria-hidden="true">${lvSp(w)[0].split(' ').map((wd) => `<span class="lv-uw">${wd.split('').map((ch) => (/[a-zA-Z]/.test(ch) ? '<span class="lv-u" data-lvu></span>' : `<span class="lv-u fx">${esc(ch)}</span>`)).join('')}</span>`).join('')}</div><input class="inp lv-in lv-in-h" lang="en" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" enterkeyhint="done" aria-label="영어로 써요"></div><p class="tiny lv-hl">자판으로 치면 칸이 채워져요 · 띄어쓰기는 안 해도 돼요</p><div class="lv-type"><button class="btn primary big block" data-lvok type="button">확인</button></div>`;
       else body = fb ? '' : `<div class="lv-type"><input class="inp lv-in" ${s === 6 ? 'lang="en" autocapitalize="off" spellcheck="false" placeholder="영어로 써요"' : 'placeholder="뜻을 써요 (하나만 써도 돼요)"'} autocomplete="off" autocorrect="off" enterkeyhint="done"><button class="btn primary big" data-lvok type="button">확인</button></div>`;
     }
+    if (!fb && lvRc(r) && (s === 5 || s === 6)) body += '<button class="btn big block lv-helpb" data-lvhelp type="button">생각이 안 나요</button>';
     let fbh = '';
     if (fb) {
-      const mine = fb.typed && (s >= 3) && (!fb.ok || V) ? `<p class="lv-mine">내 답 ${fb.ok ? `<b>${esc(fb.typed)}</b>` : `<s>${esc(fb.typed)}</s>`}</p>` : '';
-      fbh = `<div class="lv-fb">${fb.ask ? `<div class="verdict no">${ic('think')}<span>정답과 달라요. 같은 뜻으로 썼나요?</span></div>` : verdict(fb.ok)}<div class="lv-rev card">${lvPic(w, 'lv-pic-rev')}${lvChunks(w, 'big')}${lvSay(w)}<b class="lv-ko2">${esc(w.k)}</b><span class="tiny">${esc(w.ko)}</span>${mine}${!V && r.up === c.en && !c.lap ? `<span class="lv-upt">${LV_NO[Math.min(r.W[c.en].s, 7)]} ${r.W[c.en].s >= 7 ? '여섯 단계 끝! 마지막 한 바퀴에서 또 나와요' : '다음 단계로 올라가요'}</span>` : ''}${!V && !fb.ok && !fb.ask ? `<span class="lv-upt no">${r.learn ? '다음 단어 하나 뒤에 카드로 다시 보고 풀어요' : '조금 뒤에 다시 나와요 · 두 번 연속 맞히면 올라가요'}</span>` : ''}</div>
-        ${V ? '<button class="btn primary big block" data-lvview="" type="button">지금 문제로 돌아가기 ›</button>' : fb.ask ? `<div class="pm-btns"><button class="btn big" data-lvself="0" type="button">틀렸어요</button><button class="btn primary big" data-lvself="1" type="button">같은 뜻이에요</button></div>` : `<button class="btn ${fb.ok ? '' : 'primary'} big block" data-lvnext type="button">${fb.ok ? '다음' : '알겠어요 · 다음'}</button>`}</div>`;
+      const mine = fb.typed && (s >= 3) && (!fb.ok || V) ? `<p class="lv-mine">내 답 ${fb.ok || fb.right ? `<b>${esc(fb.typed)}</b>` : `<s>${esc(fb.typed)}</s>`}</p>` : '';
+      fbh = `<div class="lv-fb">${fb.help ? `<div class="verdict no">${ic('think')}<span>${fb.right ? (fb.pk ? '카드를 보고 맞혔어요' : '도움 받아 맞혔어요') : '정답을 확인해요'}</span></div>` : verdict(fb.ok)}<div class="lv-rev card">${lvPic(w, 'lv-pic-rev')}${lvChunks(w, 'big')}${lvSay(w)}<b class="lv-ko2">${esc(w.k)}</b><span class="tiny">${esc(w.ko)}</span>${mine}${!V && r.up === c.en && !c.lap ? `<span class="lv-upt">${LV_NO[Math.min(r.W[c.en].s, 7)]} ${r.W[c.en].s >= 7 ? '여섯 단계 끝! 마지막 한 바퀴에서 또 나와요' : '다음 단계로 올라가요'}</span>` : ''}${!V && !fb.ok ? `<span class="lv-upt no">${r.learn ? '다음 단어 하나 뒤에 카드로 다시 보고 풀어요' : fb.help ? '조금 뒤에 혼자 힘으로 다시 써요' : lvRc(r) && r.seq ? '조금 뒤에 다시 나와요 · 혼자 맞힐 때까지 나와요' : '조금 뒤에 다시 나와요 · 두 번 연속 맞히면 올라가요'}</span>` : ''}</div>
+        ${V ? '<button class="btn primary big block" data-lvview="" type="button">지금 문제로 돌아가기 ›</button>' : `<button class="btn ${fb.ok ? '' : 'primary'} big block" data-lvnext type="button">${fb.ok ? '다음' : '알겠어요 · 다음'}</button>`}</div>`;
     }
     const done = (en) => !r.q.includes(en) && !r.lap.includes(en);
     const nums = `<div class="lv-nums" role="list">${r.words.map((x, k) => { const W = r.W[x.en], lv = W ? Math.min(7, W.s) : 7;
@@ -7040,14 +7048,14 @@
         if (go) { const on = r.flip === r.cur.en; go.classList.toggle('ready', on); if (on) { go.removeAttribute('aria-disabled'); go.textContent = '외웠어요 · 바로 문제'; bump(go, 'tap-pop'); } } const t = $('.lv-solo-t'); if (t && r.flip === r.cur.en) t.textContent = '소리 내어 두 번 읽고, 뜻을 머릿속으로 말해 봐요'; };
       if (cd) { cd.onclick = flip; cd.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } }; }
       if (go) go.onclick = () => { if (go.getAttribute('aria-disabled')) { if (cd) { bump(cd, 'tap-pop'); } return; } r.flip = null; lvAnswer(r, true, ''); }; }
-    $$('[data-lvtolist]').forEach((b) => (b.onclick = () => { r.paused = 1; r.stage = 'list'; render(); window.scrollTo(0, 0); }));
+    $$('[data-lvtolist]').forEach((b) => (b.onclick = () => { if (r.cur && !r.fb) lvPeek(r, r.cur.en); r.paused = 1; r.stage = 'list'; render(); window.scrollTo(0, 0); }));
     // 번호: 누르면 그 단어 카드를 잠깐 봐요 (문제 순서는 그대로)
     $$('[data-lvview]').forEach((b) => (b.onclick = () => { r.view = null; render(); window.scrollTo(0, 0); lvFocus(); }));
     $$('[data-lvnum]').forEach((b) => (b.onclick = () => { const w0 = r.words[+b.dataset.lvnum];
       if (r.cur && w0.en === r.cur.en) { if (r.view) { r.view = null; render(); lvFocus(); } return; }
-      if ((r.hist || {})[w0.en]) { r.view = w0.en; render(); return; }
+      if ((r.hist || {})[w0.en]) { lvPeek(r, w0.en); r.view = w0.en; render(); return; }
       const w = w0, W = r.W[w.en], st = !W || W.s >= 8 || (!r.q.includes(w.en) && !r.lap.includes(w.en)) ? '오늘 끝냈어요' : W.s >= 7 ? '마지막 한 바퀴 남았어요' : `${W.s}단계 하는 중이에요`;
-      sheet(`<div class="app-sh lv-peek"><span class="tiny">${+b.dataset.lvnum + 1}번 · ${esc(st)}</span><div class="lv-pr" style="margin:12px 0 4px">${lvChunks(w, 'big')}${lvSay(w)}</div><b class="lv-peek-k">${esc(w.k)}</b><p class="tiny" style="margin:4px 0 0">${esc(w.ko)}</p>${r.q.includes(w.en) || r.lap.includes(w.en) ? (w.en === (r.cur || {}).en ? '<p class="tiny" style="margin:16px 0 0">지금 풀고 있는 단어예요</p>' : '<button class="btn primary big block" type="button" id="lvpk-go" style="margin-top:20px">이 단어 지금 풀기</button>') : ''}<button class="btn ${r.q.includes(w.en) || r.lap.includes(w.en) ? '' : 'primary '}big block" type="button" id="lvpk-ok" style="margin-top:8px">닫기</button></div>`, (el, close) => { $('#lvpk-ok', el).onclick = close; const g = $('#lvpk-go', el); if (g) g.onclick = () => { close(); r.fb = null; r.step--; lvPick(r, w.en); render(); window.scrollTo(0, 0); lvFocus(); }; });
+      lvPeek(r, w.en); sheet(`<div class="app-sh lv-peek"><span class="tiny">${+b.dataset.lvnum + 1}번 · ${esc(st)}</span><div class="lv-pr" style="margin:12px 0 4px">${lvChunks(w, 'big')}${lvSay(w)}</div><b class="lv-peek-k">${esc(w.k)}</b><p class="tiny" style="margin:4px 0 0">${esc(w.ko)}</p>${r.q.includes(w.en) || r.lap.includes(w.en) ? (w.en === (r.cur || {}).en ? '<p class="tiny" style="margin:16px 0 0">지금 풀고 있는 단어예요</p>' : '<button class="btn primary big block" type="button" id="lvpk-go" style="margin-top:20px">이 단어 지금 풀기</button>') : ''}<button class="btn ${r.q.includes(w.en) || r.lap.includes(w.en) ? '' : 'primary '}big block" type="button" id="lvpk-ok" style="margin-top:8px">닫기</button></div>`, (el, close) => { $('#lvpk-ok', el).onclick = close; const g = $('#lvpk-go', el); if (g) g.onclick = () => { close(); r.fb = null; r.step--; lvPick(r, w.en); render(); window.scrollTo(0, 0); lvFocus(); }; });
     }));
     { const on = $('.lv-nums button.on'), box = $('.lv-nums'); if (on && box) { const d = on.getBoundingClientRect().left - box.getBoundingClientRect().left - (box.clientWidth - on.offsetWidth) / 2; box.scrollLeft = Math.max(0, box.scrollLeft + d); } }
     $$('[data-lvch]').forEach((b) => (b.onclick = () => { const c = r.cur, w = r.words.find((x) => x.en === c.en), o = c.ch[+b.dataset.lvch]; lvAnswer(r, c.s === 1 ? o === w.k : o === lvSp(w)[0], o); }));
@@ -7067,7 +7075,9 @@
     if (inp && US.length) { inp.oninput = () => usFill(1); usFill(0); const bx = $('.lv-usw'); if (bx) bx.onclick = () => inp.focus({ preventScroll: true }); }
     const sub = () => { const c = r.cur, w = r.words.find((x) => x.en === c.en), t = US.length ? (inp.value ? usVal() : '') : inp.value; if (!t.trim()) { bump(US.length ? $('.lv-us') : inp, 'shake-x'); return; } lvAnswer(r, c.s === 6 ? lvEnOk(w, t) : lvKoOk(w, t), t); };
     if (inp) { inp.onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); sub(); } }; if (ok) ok.onclick = sub; }
-    $$('[data-lvself]').forEach((b) => (b.onclick = () => { const c = r.cur, w = r.words.find((x) => x.en === c.en), typed = r.fb.typed; r.fb = null; lvCommit(r, b.dataset.lvself === '1', typed, w, r.W[c.en], today(), lvW(c.en)); }));
+    // 11/22 「생각이 안 나요」: 뜻 쓰기는 뜻 고르기로, 영어 쓰기는 글자 타일(몇 글자 채워 줌)로 바꿔 줘요. 맞혀도 모르는 단어로 쳐요
+    $$('[data-lvhelp]').forEach((b) => (b.onclick = () => { const c = r.cur; if (!c || r.fb || c.help || r.view) return; const w = r.words.find((x) => x.en === c.en); c.help = 1; c.s0 = c.s;
+      if (c.s === 5) { c.s = 1; c.ch = lvKoCh(w); } else { c.s = 4; c.giv = lvGiv(w); c.bank = lvLetterBank(w, c.giv); c.put = []; } tick(); render(); }));
     const nx = $('[data-lvnext]'); if (nx) nx.onclick = () => lvNextQ(r);
     // 시험지: 적는 대로 기억해요 (다시 그려도 안 지워져요)
     $$('[data-lvm]').forEach((i, k, A) => { i.oninput = () => { (r.ma = r.ma || {})[i.dataset.lvm] = i.value; const b = $('.lv-blank'); if (b) b.textContent = A.filter((x) => !x.value.trim()).length; }; i.onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); const n = A[k + 1]; if (n) n.focus(); else i.blur(); } }; });
@@ -7605,10 +7615,60 @@
     const L = s.learn || [], nl = (t) => esc(t).replace(/\n/g, '<br>');
     return `<div class="nx-wrap">${nxTop(s, 0, s.qs.length, '먼저 배워요 · 다 읽고 외우기 시작', 0)}
       <div class="nx-lrn-bar"><p class="tiny">${s.ws ? '학교 학습지 그대로예요. 답과 학교 선생님 필기까지 읽고 아래 단추로 문제를 풀어요' : `다 읽으면 아래 단추로 ${s.subj === 'eng' ? '우리말 보고 영어로 쓰기' : '뜻 보고 용어 쓰기'}를 시작해요`}</p></div>
-      ${L.map((x) => `<section class="card lrn-sec${x.sch ? ' lrn-sch' : ''}"><h2>${esc(x.h)}</h2>${x.form ? `<div class="lrn-form">${esc(x.form)}</div>` : ''}${x.point ? `<p class="lrn-pt">${nl(x.point)}</p>` : ''}
-        <div class="lrn-rows">${(x.rows || []).map((w) => `<div class="lrn-row"><b>${esc(w.en)}</b><span>${esc(w.ko)}</span>${w.note ? `<i>${nl(w.note)}</i>` : ''}</div>`).join('')}</div>
-        ${(x.traps || []).length ? `<div class="lrn-trap"><b>시험 함정</b><ul>${x.traps.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}</section>`).join('')}
+      ${(s.ws && nxWsRead(L)) || L.map(nxLrnSec).join('')}
       <div class="cta-bar"><button class="btn primary big block" data-nxlearned type="button">다 읽었어요 · 외우기 시작</button></div></div>`;
+  }
+  const nxLrnSec = (x) => { const nl = (t) => esc(t).replace(/\n/g, '<br>'); return `<section class="card lrn-sec${x.sch ? ' lrn-sch' : ''}"><h2>${esc(x.h)}</h2>${x.form ? `<div class="lrn-form">${esc(x.form)}</div>` : ''}${x.point ? `<p class="lrn-pt">${nl(x.point)}</p>` : ''}
+        <div class="lrn-rows">${(x.rows || []).map((w) => `<div class="lrn-row"><b>${esc(w.en)}</b><span>${esc(w.ko)}</span>${w.note ? `<i>${nl(w.note)}</i>` : ''}</div>`).join('')}</div>
+        ${(x.traps || []).length ? `<div class="lrn-trap"><b>시험 함정</b><ul>${x.traps.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}</section>`; };
+  // 11/22 선생님 «위쪽에 본문을 예시로 들면 더 이쁘게 · 단어 리스트나 필기는 본문에 이미 넣을 수 있는데 왜 맨 아래에» → 학습지 본문은 지문 한 장에 단어 뜻(낱말 위)·학교 선생님 필기(그 문장 밑)를 바로
+  function nxWsRead(L) {
+    const P = L[0], N = L.find((x) => x.sch), V = L.find((x) => x !== P && !x.sch && /단어/.test(x.h || ''));
+    if (!P || !N || !(P.rows || []).length || !P.rows.some((r) => (N.rows || []).some((n) => n.en === r.en))) return '';
+    const isH = (t) => !/[.!?]["”’]?$/.test(String(t).trim()), rx = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const notes = {}; for (const r of N.rows || []) (notes[r.en] = notes[r.en] || []).push(r.ko);
+    const vw = ((V && V.rows) || []).map((w) => ({ ...w, used: 0, re: new RegExp('\\b(' + String(w.en).trim().split(/\s+/).map((t) => rx(t.length > 3 && /e$/i.test(t) ? t.slice(0, -1) : t) + '\\w*').join('\\s+') + ')', 'i') }));
+    const deco = (txt) => { let out = '', t = txt;
+      while (t) { let b = null; for (const w of vw) { if (w.used) continue; const m = w.re.exec(t); if (m && (!b || m.index < b.m.index)) b = { w, m }; }
+        if (!b) { out += esc(t); break; }
+        out += `${esc(t.slice(0, b.m.index))}<ruby class="wsr-w">${esc(b.m[1])}<rt>${esc(b.w.ko)}</rt></ruby>`; b.w.used = 1; t = t.slice(b.m.index + b.m[1].length); }
+      return out; };
+    const used = new Set(), sent = (r, k) => { const ns = notes[r.en] || []; if (ns.length) used.add(r.en);
+      let segs = [[r.en, 0]]; for (const mk of ns.map((n) => (n.match(/^(.+?) 밑줄/) || [])[1]).filter(Boolean)) segs = segs.flatMap(([t, u]) => { if (u) return [[t, u]]; const i = t.indexOf(mk); return i < 0 ? [[t, 0]] : [[t.slice(0, i), 0], [mk, 1], [t.slice(i + mk.length), 0]].filter((x) => x[0]); });
+      return `<div class="wsr-s" style="--d:${Math.min(k, 12) * 40}ms"><p class="wsr-en">${segs.map(([t, u]) => (u ? `<u class="wsr-u">${deco(t)}</u>` : deco(t))).join('')}</p><p class="wsr-ko">${esc(r.ko)}</p>${ns.map((n) => `<div class="wsr-n"><b>필기</b><span>${esc(n.replace(/^.+? 밑줄 · /, ''))}</span></div>`).join('')}</div>`; };
+    const rows = P.rows.slice(), hd = []; while (rows.length && isH(rows[0].en)) hd.push(rows.shift());
+    const body = rows.map((r, k) => (isH(r.en) ? `<h3 class="wsr-h3">${esc(r.en)}<small>${esc(r.ko)}</small></h3>` : sent(r, k))).join('');
+    const left = (N.rows || []).filter((r) => !used.has(r.en)), lw = vw.filter((w) => !w.used), src = V ? String(V.h).replace(/\s*·\s*단어$/, '') : '';
+    const rest = L.filter((x) => x !== P && x !== N && x !== V);
+    return `<section class="card wsr">${src ? `<div class="wsr-src">${esc(src)}</div>` : ''}${hd.map((r, i) => (i ? `<h3 class="wsr-h3">${esc(r.en)}<small>${esc(r.ko)}</small></h3>` : `<h2 class="wsr-t">${esc(r.en)}</h2><p class="wsr-tk">${esc(r.ko)}</p>`)).join('')}
+      <div class="wsr-key"><span><ruby class="wsr-w">word<rt>뜻</rt></ruby> 외울 단어</span><span><u class="wsr-u">밑줄</u> 학교 선생님 필기</span></div>${body}
+      ${left.length ? `<div class="wsr-more"><b>필기 더</b>${left.map((r) => `<div class="wsr-n"><b>필기</b><span>${esc(r.en)} · ${esc(r.ko)}</span></div>`).join('')}</div>` : ''}
+      ${lw.length ? `<div class="wsr-more"><b>그 밖의 단어</b><div class="wsr-chips">${lw.map((w) => `<span><b>${esc(w.en)}</b>${esc(w.ko)}</span>`).join('')}</div></div>` : ''}</section>${rest.map(nxLrnSec).join('')}`;
+  }
+  // 11/22 선생님 «샘플로 볼 수 있는 부분을 보여줘 · 본문 1 하나, 의사소통 하나 이런 식으로 · 나는 답을 안 맞추고 넘어갔으면» → 학교 학습지 종류마다 한 세트, 읽기 화면과 문제·정답을 펼쳐 보기만 (기록 안 남음)
+  const WS_KIND = [['w1', '단어'], ['w3', '영영풀이'], ['c1', '의사소통'], ['g1', '문법'], ['r1', '본문']];
+  function wsSamples() {
+    const by = {}; for (const L of Object.values(NXD.wsd || {})) for (const s0 of L) { const m = String(s0.id).match(/^ws(\d+)(\w\d)r(\d)$/), S0 = NXSETS['pp:' + s0.id]; if (!m || !S0) continue; const k = m[2], o = by[k]; if (!o || (o.r === '1' && m[3] !== '1')) by[k] = { s: S0, r: m[3], no: m[1] }; }
+    return by;
+  }
+  function wsSmpQ(q, k) {
+    const A = (x) => `<b class="smp-a">${esc(x)}</b>`;
+    let body = '';
+    if (q.t === 'para') body = `<div class="smp-ps">${(q.ps || []).map((p) => `<p><span>${esc(String(p.s)).replace(/\{([^}]*)\}/g, (m, a) => A(a))}</span>${p.ko ? `<small>${esc(p.ko)}</small>` : ''}</p>`).join('')}</div>`;
+    else if (q.t === 'mc') body = `<div class="smp-ch">${(q.ch || []).map((c, i) => `<div class="${i === q.a ? 'on' : ''}"><i>${'①②③④⑤⑥'[i] || i + 1}</i>${esc(c)}</div>`).join('')}</div>`;
+    else { const a = [].concat(q.a || []); body = `<div class="smp-ans">정답 ${A(a[0] || '')}${a.length > 1 ? `<span>${a.slice(1).map(esc).join(', ')} 도 정답</span>` : ''}</div>`; }
+    return `<div class="smp-q" style="--d:${Math.min(k, 10) * 35}ms"><div class="smp-qh"><b class="num">${k + 1}</b><span>${nxRich(String(q.q || ''))}</span></div>${body}${q.exp ? `<p class="smp-exp">${esc(q.exp)}</p>` : ''}</div>`;
+  }
+  function wsSampleSheet() {
+    const by = wsSamples(), ks = WS_KIND.filter(([k]) => by[k]); if (!ks.length) return toast('볼 학습지가 없어요');
+    let cur = ks.some(([k]) => k === UI.smpK) ? UI.smpK : ks[0][0];
+    const pane = (k) => { const o = by[k], s0 = o.s, L = Array.isArray(s0.learn) ? s0.learn : null, same = Object.keys(by).filter((x) => x[0] === k[0] && x !== k && !WS_KIND.some(([y]) => y === x)).sort();
+      return `<div class="smp-pane"><div class="smp-hd"><b>${esc(s0.title.replace(/^학교 학습지 · /, ''))}</b><small>${esc(s0.sub || '')} · ${s0.qs.length}문제${same.length ? ` · 같은 꼴 ${same.map((x) => esc(x.toUpperCase())).join('·')} 은 생략` : ''}</small></div>
+        ${L ? `<div class="smp-lab">① 문제 전에 읽는 화면</div><div class="smp-lrn">${nxWsRead(L) || L.map(nxLrnSec).join('')}</div>` : ''}
+        <div class="smp-lab">${L ? '②' : '①'} 문제와 정답 · 풀지 않고 보기만 해요</div>${s0.qs.map(wsSmpQ).join('')}</div>`; };
+    const html = `<div class="smp-top"><h2>학교 학습지 샘플</h2><p class="sub">종류마다 한 세트만 골라 정답까지 펼쳐 놨어요. 눌러 봐도 기록은 안 남아요</p></div>
+      <div class="seg smp-seg">${ks.map(([k, t]) => `<button type="button" class="${k === cur ? 'on' : ''}" data-smpk="${k}">${t}</button>`).join('')}</div><div class="smp-body">${pane(cur)}</div>`;
+    sheet(html, () => { const el = $('#sheet-root'); $$('[data-smpk]', el).forEach((b) => (b.onclick = () => { if (b.dataset.smpk === cur) return; cur = UI.smpK = b.dataset.smpk; $$('[data-smpk]', el).forEach((x) => x.classList.toggle('on', x === b)); const bd = $('.smp-body', el); bd.innerHTML = pane(cur); bd.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'cubic-bezier(.2,.8,.2,1)' }); const sh = $('.sheet', el); if (sh) sh.scrollTop = 0; })); });
   }
   function nxRun() {
     const r = UI.run, s = NXSETS[r.id]; if (!s) { UI.run = null; return examView(); }
@@ -9129,7 +9189,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611220059'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611221036'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -10048,7 +10108,7 @@
       <div class="st-who">${sAv(r)}<div><b>${esc(r.name)}</b> <span class="tag">${esc(r.level || '')}</span>${r.edition === 'english' ? ' <span class="tag">말랑영어</span>' : ''}<small>${[`코드 ${esc(r.alias || '-')}`, x.lz.parent ? `리포트 ${esc(x.lz.parent)}` : '', loading(x) ? '불러오는 중' : '접속 ' + agoTxt(x.last)].filter(Boolean).join(' · ')}</small></div></div>
       <div class="st-c st-w"><small>${x.tutor ? '수업' : r.iv ? '준비' : '목표'}</small><b>${r.iv ? '수시 2차 면접 · 세종대 11/21' : sub(x)}</b></div>
       <div class="st-c st-n"><small>이번 주</small><b>${loading(x) ? '…' : x.week + '문제'}</b></div>
-      <div class="st-act">${hasRep(x) ? `<button class="btn sm primary" data-dl="${esc(r.name)}" type="button">리포트</button>` : '<button class="btn sm primary" type="button" tabindex="-1" aria-hidden="true" style="visibility:hidden">리포트</button>'}<button class="btn sm soft" data-dh="${esc(r.name)}" type="button">숙제</button><button class="btn sm" data-dgo="${esc(r.name)}|peek" type="button">화면 보기</button></div></div>`; };
+      <div class="st-act">${hasRep(x) ? `<button class="btn sm primary" data-dl="${esc(r.name)}" type="button">리포트</button>` : '<button class="btn sm primary" type="button" tabindex="-1" aria-hidden="true" style="visibility:hidden">리포트</button>'}<button class="btn sm soft" data-dh="${esc(r.name)}" type="button">숙제</button><button class="btn sm" data-dgo="${esc(r.name)}|peek" type="button">화면 보기</button>${r.name === '윤건' && Object.keys(NXD.wsd || {}).length ? '<button class="btn sm soft" data-dsmp type="button">학습지 샘플</button>' : ''}</div></div>`; };
     return `<h1 class="h1">학생</h1><p class="sub">코드는 학생이 처음 들어올 때 넣는 번호예요</p><section class="card st-l">${info.map(row).join('')}</section>`;
   }
   // 선생님 화면에서 학생 탭을 새로 열며 할 일(수업 적기 · 리포트 · 기록 고치기)을 이어서 열어요
@@ -11039,6 +11099,7 @@
     $$('[data-dl]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); const [n, id] = x.dataset.dl.split('|'); if (!n) { UI.tab = 'treport'; return render(); } dOpen(n, id); }));
     $$('[data-ds]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); const [n, id] = x.dataset.ds.split('|'); const l = dCls(rOf(n), dRowD(n)).list.find((y) => y.id === id); if (l) { drFrom(n, l); dRepShow(n, l); } }));
     $$('[data-dst]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); dOpen(x.dataset.dst); }));
+    $$('[data-dsmp]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); wsSampleSheet(); }));
     $$('[data-dh]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); UI.hStu = x.dataset.dh; UI.tab = 'thw'; render(); scrollTo(0, 0); }));
     $$('[data-hgo]').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); UI.hStu = x.dataset.hgo; UI.tab = 'thw'; render(); scrollTo(0, 0); }));  // 리포트 「숙제 내러 가기」 (10/26 안 눌리던 것)
     dashBind();
