@@ -2566,7 +2566,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611221036', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611221052', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7615,7 +7615,7 @@
     const L = s.learn || [], nl = (t) => esc(t).replace(/\n/g, '<br>');
     return `<div class="nx-wrap">${nxTop(s, 0, s.qs.length, '먼저 배워요 · 다 읽고 외우기 시작', 0)}
       <div class="nx-lrn-bar"><p class="tiny">${s.ws ? '학교 학습지 그대로예요. 답과 학교 선생님 필기까지 읽고 아래 단추로 문제를 풀어요' : `다 읽으면 아래 단추로 ${s.subj === 'eng' ? '우리말 보고 영어로 쓰기' : '뜻 보고 용어 쓰기'}를 시작해요`}</p></div>
-      ${(s.ws && nxWsRead(L)) || L.map(nxLrnSec).join('')}
+      ${(s.ws && (nxWsRead(L) || nxWsNotes(L))) || L.map(nxLrnSec).join('')}
       <div class="cta-bar"><button class="btn primary big block" data-nxlearned type="button">다 읽었어요 · 외우기 시작</button></div></div>`;
   }
   const nxLrnSec = (x) => { const nl = (t) => esc(t).replace(/\n/g, '<br>'); return `<section class="card lrn-sec${x.sch ? ' lrn-sch' : ''}"><h2>${esc(x.h)}</h2>${x.form ? `<div class="lrn-form">${esc(x.form)}</div>` : ''}${x.point ? `<p class="lrn-pt">${nl(x.point)}</p>` : ''}
@@ -7645,6 +7645,23 @@
       ${left.length ? `<div class="wsr-more"><b>필기 더</b>${left.map((r) => `<div class="wsr-n"><b>필기</b><span>${esc(r.en)} · ${esc(r.ko)}</span></div>`).join('')}</div>` : ''}
       ${lw.length ? `<div class="wsr-more"><b>그 밖의 단어</b><div class="wsr-chips">${lw.map((w) => `<span><b>${esc(w.en)}</b>${esc(w.ko)}</span>`).join('')}</div></div>` : ''}</section>${rest.map(nxLrnSec).join('')}`;
   }
+  // 11/22 선생님 «(학교 선생님 필기) 왜 여기다 하냐고 · 처음에 위쪽에 했으면 됐잖아» → 의사소통·문법·단어 학습지도 필기를 맨 아래 카드로 모으지 않고, 그 문장 바로 밑에 (짚은 구절은 밑줄). 맞는 문장이 없는 필기만 맨 위에
+  function nxWsNotes(L) {
+    const N = L.find((x) => x.sch); if (!N || !(N.rows || []).length) return '';
+    const norm = (t) => String(t || '').split(' / ')[0].replace(/^[A-Z][a-z]*:\s*/, '').replace(/^\.\.\.\s*/, '').replace(/\s*\(본문 Part \d+\)\s*$/, '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const markOf = (ko) => { const m = String(ko).match(/^(.+?)\s*(?:빨간 동그라미|동그라미|형광펜·밑줄|밑줄)/); return m && !/^문장 전체/.test(m[1]) ? m[1].split('↔')[0].trim() : ''; };
+    const text = (ko) => { const t = String(ko).replace(/^.+?\s*(?:빨간 동그라미|동그라미|형광펜·밑줄|밑줄)\s*(?:·\s*)?/, '').trim(); return t || String(ko); };
+    const used = new Set(), rest = L.filter((x) => x !== N);
+    const rowH = (w) => { const k = norm(w.en), ns = k ? N.rows.filter((n) => { const q = norm(n.en); return q.length > 3 && (k.includes(q) || q.includes(k)); }) : [];
+      let en = esc(w.en); for (const n of ns) { used.add(n); const mk = markOf(n.ko); if (mk && en.includes(esc(mk))) en = en.replace(esc(mk), `<u class="wsr-u">${esc(mk)}</u>`); }
+      return `<div class="lrn-row"><b>${en}</b><span>${esc(w.ko)}</span>${w.note ? `<i>${esc(w.note).replace(/\n/g, '<br>')}</i>` : ''}${ns.map((n) => `<div class="wsr-n"><b>필기</b><span>${esc(text(n.ko))}</span></div>`).join('')}</div>`; };
+    const nl = (t) => esc(t).replace(/\n/g, '<br>');
+    const body = rest.map((x) => `<section class="card lrn-sec"><h2>${esc(x.h)}</h2>${x.form ? `<div class="lrn-form">${esc(x.form)}</div>` : ''}${x.point ? `<p class="lrn-pt">${nl(x.point)}</p>` : ''}
+        <div class="lrn-rows">${(x.rows || []).map(rowH).join('')}</div>${(x.traps || []).length ? `<div class="lrn-trap"><b>시험 함정</b><ul>${x.traps.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}</section>`).join('');
+    const left = N.rows.filter((n) => !used.has(n));
+    const top = left.length ? `<section class="card lrn-sec lrn-sch"><h2>📌 학교 선생님 필기</h2><p class="lrn-pt">수업 때 짚어 준 것이에요. 시험에 그대로 나와요${used.size ? ' · 문장에 붙은 필기는 아래 그 문장 밑에 있어요' : ''}</p><div class="lrn-rows">${left.map((r) => `<div class="lrn-row"><b>${esc(r.en)}</b><span>${esc(r.ko)}</span></div>`).join('')}</div></section>` : '';
+    return top + body;
+  }
   // 11/22 선생님 «샘플로 볼 수 있는 부분을 보여줘 · 본문 1 하나, 의사소통 하나 이런 식으로 · 나는 답을 안 맞추고 넘어갔으면» → 학교 학습지 종류마다 한 세트, 읽기 화면과 문제·정답을 펼쳐 보기만 (기록 안 남음)
   const WS_KIND = [['w1', '단어'], ['w3', '영영풀이'], ['c1', '의사소통'], ['g1', '문법'], ['r1', '본문']];
   function wsSamples() {
@@ -7664,7 +7681,7 @@
     let cur = ks.some(([k]) => k === UI.smpK) ? UI.smpK : ks[0][0];
     const pane = (k) => { const o = by[k], s0 = o.s, L = Array.isArray(s0.learn) ? s0.learn : null, same = Object.keys(by).filter((x) => x[0] === k[0] && x !== k && !WS_KIND.some(([y]) => y === x)).sort();
       return `<div class="smp-pane"><div class="smp-hd"><b>${esc(s0.title.replace(/^학교 학습지 · /, ''))}</b><small>${esc(s0.sub || '')} · ${s0.qs.length}문제${same.length ? ` · 같은 꼴 ${same.map((x) => esc(x.toUpperCase())).join('·')} 은 생략` : ''}</small></div>
-        ${L ? `<div class="smp-lab">① 문제 전에 읽는 화면</div><div class="smp-lrn">${nxWsRead(L) || L.map(nxLrnSec).join('')}</div>` : ''}
+        ${L ? `<div class="smp-lab">① 문제 전에 읽는 화면</div><div class="smp-lrn">${nxWsRead(L) || nxWsNotes(L) || L.map(nxLrnSec).join('')}</div>` : ''}
         <div class="smp-lab">${L ? '②' : '①'} 문제와 정답 · 풀지 않고 보기만 해요</div>${s0.qs.map(wsSmpQ).join('')}</div>`; };
     const html = `<div class="smp-top"><h2>학교 학습지 샘플</h2><p class="sub">종류마다 한 세트만 골라 정답까지 펼쳐 놨어요. 눌러 봐도 기록은 안 남아요</p></div>
       <div class="seg smp-seg">${ks.map(([k, t]) => `<button type="button" class="${k === cur ? 'on' : ''}" data-smpk="${k}">${t}</button>`).join('')}</div><div class="smp-body">${pane(cur)}</div>`;
@@ -9189,7 +9206,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611221036'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611221052'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
