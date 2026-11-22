@@ -2463,7 +2463,7 @@
     if (g.kind === 'jl') { const u = jlV({ ...g, only: 1 }), T = u && u.tracks[0]; if (!T) return false; const [a, b] = jlTally(u, 'words'), qs = (T.qs || []).map((q, i) => [q, i]).filter(([q]) => jlQOk(q)); return a >= b && qs.every(([, i]) => jGet('jl', jlK(u, T, 'q', i))); }
     return false;
   }
-  function hwGoStart(h) { const g = h.go; if (g && g.kind === 'url') { window.open(g.url, '_blank', 'noopener'); return true; } if (g && g.kind === 'rep') { juaRepOpen(g.id); return true; } if (g && g.kind === 'gcon') { const u = jgU(g.unit); if (!u || !(u.lessons || {})[2]) return false; UI.hwRun = { id: h.id, from: UI.tab === 'exam' ? 'exam' : 'hw', was: hwDone(h) }; UI.tab = 'hw'; UI.lib = null; UI.run = { kind: 'gram', unit: g.unit, step: 2, con: 1 }; render(); window.scrollTo(0, 0); return true; }  /* 11/12 «수업인데 왜 모달로 띄워, 이미 틀이 있잖아»: 그래머 페이지 틀 그대로, 설명만 */ if (g && g.kind === 'wmd') { wmDaySheet(g.days); return true; } if (g && g.kind === 'lv') { const was = hwDone(h), from = UI.tab === 'exam' ? 'exam' : 'hw', old = UI.hwRun; UI.hwRun = { id: h.id, from, was }; if (!lvOpen(g)) { UI.hwRun = old; return false; } return true; }  /* 11/12 그리기 전에 넣어야 뒤로 가기가 수업으로 가요 */  /* 11/10 주아 DYB 단어 외우기 */  /* 11/8 지원 단어 외우기 숙제: 그 Day 단어장 */  /* 11/8 선생님 리포트 열기 */ if (!g || !(g.kind === 'gram' ? jgU(g.unit) : g.kind === 'jw' ? jwU(g.id) : jlU(g.unit))) return false; UI.hwRun = { id: h.id, from: UI.tab === 'exam' ? 'exam' : 'hw', was: hwDone(h) }; UI.tab = 'hw'; UI.lib = null; UI.run = { ...g, only: g.kind === 'jl' ? (g.m === 'dict' ? 0 : 1) : g.only }; render(); window.scrollTo(0, 0); return true; }
+  function hwGoStart(h) { const g = h.go; if (g && g.kind === 'url') { window.open(g.url, '_blank', 'noopener'); return true; } if (g && g.kind === 'rep') { juaRepOpen(g.id); return true; } if (g && g.kind === 'gcon') { const u = jgU(g.unit); if (!u || !(u.lessons || {})[2]) return false; UI.hwRun = { id: h.id, from: UI.tab === 'exam' ? 'exam' : 'hw', was: hwDone(h) }; UI.tab = 'hw'; UI.lib = null; UI.run = { kind: 'gram', unit: g.unit, step: 2, con: 1 }; render(); window.scrollTo(0, 0); return true; }  /* 11/12 «수업인데 왜 모달로 띄워, 이미 틀이 있잖아»: 그래머 페이지 틀 그대로, 설명만 */ if (g && g.kind === 'wmd') { wmDaySheet(g.days, h.id); return true; } if (g && g.kind === 'lv') { const was = hwDone(h), from = UI.tab === 'exam' ? 'exam' : 'hw', old = UI.hwRun; UI.hwRun = { id: h.id, from, was }; if (!lvOpen(g)) { UI.hwRun = old; return false; } return true; }  /* 11/12 그리기 전에 넣어야 뒤로 가기가 수업으로 가요 */  /* 11/10 주아 DYB 단어 외우기 */  /* 11/8 지원 단어 외우기 숙제: 그 Day 단어장 */  /* 11/8 선생님 리포트 열기 */ if (!g || !(g.kind === 'gram' ? jgU(g.unit) : g.kind === 'jw' ? jwU(g.id) : jlU(g.unit))) return false; UI.hwRun = { id: h.id, from: UI.tab === 'exam' ? 'exam' : 'hw', was: hwDone(h) }; UI.tab = 'hw'; UI.lib = null; UI.run = { ...g, only: g.kind === 'jl' ? (g.m === 'dict' ? 0 : 1) : g.only }; render(); window.scrollTo(0, 0); return true; }
   function hwSheet(id) {
     const h = (S.hw || []).find((x) => x.id === id); if (!h) return;
     const key = Object.keys(SUBJ_NAMES).find((k) => SUBJ_NAMES[k] === h.subj || (h.subj === '한국사' && k === 'hist'));
@@ -2566,7 +2566,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611221229', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611222224', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -8279,10 +8279,13 @@
       ${step(B.tests === '<div class="list"></div>' ? 1 : 2, clDoH(sl.date, t), B.sub2, B.items || clEmpty(sl.date, t))}
     </section>`;
   }
-  function wmDaySheet(d) {
+  function wmDaySheet(d, hid) {  // 11/22 지원 «워드마스터 아무리 해도 종료가 안 되고 완료가 안 돼서» → 숙제로 열면 바닥에 「다 외웠어요」 (두 번 눌러 끝내요)
     // 11/8 여러 Day를 한 번에 (숙제), 「뜻 가리기」로 떠올려 보고 누르면 그 뜻만 보여요
     const DS = (Array.isArray(d) ? d : String(d).split(',')).map(Number), W = WMW.filter((w) => DS.includes(+w.day));
-    sheet(`<h2>${WM_BOOK} Day ${DS.join('·')} <span class="tiny">${W.length}개</span></h2><button class="btn sm" data-wmhide type="button" style="margin-bottom:8px">뜻 가리기</button><div class="list wm-l">${W.map((w, k) => `<div class="li btnlike" data-wmrow><div class="ico num">${k + 1}</div><div class="body"><div class="t">${esc(w.en)} <span class="tiny">${esc(w.pos || '')}</span></div><div class="d">${esc(w.ko)}</div></div></div>`).join('')}</div><button class="btn big block" style="margin-top:16px" data-close type="button">닫기</button>`, (el) => { $('[data-close]', el).onclick = closeSheet;
+    sheet(`<h2>${WM_BOOK} Day ${DS.join('·')} <span class="tiny">${W.length}개</span></h2><button class="btn sm" data-wmhide type="button" style="margin-bottom:8px">뜻 가리기</button><div class="list wm-l">${W.map((w, k) => `<div class="li btnlike" data-wmrow><div class="ico num">${k + 1}</div><div class="body"><div class="t">${esc(w.en)} <span class="tiny">${esc(w.pos || '')}</span></div><div class="d">${esc(w.ko)}</div></div></div>`).join('')}</div>${(() => { const H = hid && (S.hw || []).find((x) => x.id === hid); return H ? `<div class="row wm-fin" style="margin-top:16px;gap:8px"><button class="btn big" style="flex:1" data-close type="button">닫기</button><button class="btn big ${H.done ? '' : 'primary'}" style="flex:1" data-wmfin type="button">${H.done ? '안 한 걸로 되돌리기' : '다 외웠어요'}</button></div>` : '<button class="btn big block" style="margin-top:16px" data-close type="button">닫기</button>'; })()}`, (el) => { $('[data-close]', el).onclick = closeSheet;
+      const fb = $('[data-wmfin]', el); if (fb) { let arm = 0; fb.onclick = () => { const H = (S.hw || []).find((x) => x.id === hid); if (!H) return closeSheet();
+        if (!H.done && !arm) { arm = 1; fb.textContent = '한 번 더 누르면 끝내요'; fb.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.04)' }, { transform: 'scale(1)' }], { duration: 260, easing: 'cubic-bezier(.2,.8,.2,1)' }); setTimeout(() => { if (arm === 1 && fb.isConnected) { arm = 0; fb.textContent = '다 외웠어요'; } }, 3500); return; }
+        H.done = !H.done; H.doneAt = Date.now(); save('hw'); closeSheet(); render(); if (H.done) toast('잘했어요'); }; }
       const L = $('.wm-l', el), hb = $('[data-wmhide]', el); hb.onclick = () => { const on = L.classList.toggle('wm-hide'); hb.textContent = on ? '뜻 다 보기' : '뜻 가리기'; $$('[data-wmrow]', el).forEach((r) => r.classList.remove('wm-see')); };
       $$('[data-wmrow]', el).forEach((r) => (r.onclick = () => r.classList.toggle('wm-see'))); });
   }
@@ -9206,7 +9209,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611221229'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611222224'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
