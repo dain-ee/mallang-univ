@@ -2334,7 +2334,7 @@
           ${(() => { const lt = real.filter((t) => t.late && !t.done).length; return lt ? `<p class="td-late"><span class="tag red">밀림</span> 지난 날 못 한 것 ${lt}개가 오늘로 넘어왔어요. 먼저 끝내 봐요</p>` : ''; })()}
           ${real.length ? `<div class="list">${[...real.filter((t) => !t.done), ...real.filter((t) => t.done)].map(row).join('')}</div>${dn === real.length ? `<div class="td-all">${gh('yay', 'gh-td')}<span>오늘 할 것을 다 끝냈어요</span></div>` : ''}` : `<div class="empty" style="padding:16px 0">${gh('sleepy', 'gh-empty')}<b>오늘은 쉬는 날이에요</b></div>`}
           ${later.length ? `<div class="hw-tog">${tog('later', '앞으로 낼 숙제', later.length)}</div><div class="hw-pane list" data-pane="later" hidden>${later.map((h) => hrow(h, true)).join('')}</div>` : ''}
-          ${done.length ? `<div class="hw-done-h tiny">끝낸 숙제 ${done.length}</div><div class="list hw-done-l">${done.map((h) => hrow(h)).join('')}</div>` : ''}</section>`;  // 11/18 «접지 마» → 끝낸 숙제는 접기 단추 없이 그대로
+          ${(() => { const inR = new Set(real.flatMap((t) => t.grp ? (t.items || t.list || []).map((x) => x.hw) : [t.hw]).filter(Boolean)), td = done.filter((h) => !inR.has(h.id) && atDay(hwDoneAt(h) || 0) === today()); return td.length ? `<div class="hw-done-h tiny">오늘 끝낸 숙제 ${td.length}</div><div class="list hw-done-l">${td.map((h) => hrow(h)).join('')}</div>` : ''; })()}</section>`;  // 11/22 «원래 달력에 나와서 각각 그날 한 걸 보여주기로 했고 오늘 없으면 없는 거지» → 지난 날 끝낸 숙제는 아래 달력 그날 칸에서만, 여기엔 오늘 끝낸 것만
       })()}
       ${hwCal()}
       ${TUTOR ? '' : myCard('c12')}
@@ -2566,7 +2566,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611221052', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611221225', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -9206,7 +9206,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611221052'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611221225'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
