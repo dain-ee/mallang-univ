@@ -945,6 +945,7 @@
     $$('[data-dropen]').forEach((b) => (b.onclick = () => drOpen()));
     $$('[data-appopen]').forEach((b) => (b.onclick = appOpen));
     $$('[data-gdopen]').forEach((b) => (b.onclick = gdOpen));
+    $$('[data-gdx]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); const k = b.dataset.gdx; gdMark(k); toast('배너를 지웠어요 · 질문 탭에는 남아 있어요'); cardBye(b.closest('.gd-card'), render); }));
     $$('[data-inkpast]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); inkPast(); }));
     $$('[data-appinst]').forEach((b) => (b.onclick = appInstall));
     $$('[data-pushon]').forEach((b) => (b.onclick = pushOn));
@@ -2571,7 +2572,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611240005', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611240050', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5412,6 +5413,7 @@
   const GD_LR = `<ol class="r2s-rules"><li style="--i:0"><span class="r2s-rn">1</span><div><b>그때 좌우는 「어떤 나라를 세울지」로 나눠요</b><span><b>좌익</b> = 사회주의·공산주의. 땅과 공장을 모두의 것으로, 친일 지주 땅은 빼앗아 농민에게 (무상 몰수·무상 분배). 소련 쪽 · 예) 조선 공산당, 박헌영</span><span><b>우익</b> = 자본주의·자유 민주주의. 개인 재산 인정, 땅도 돈 주고 사고팔기 (유상). 미국 쪽 · 예) 한국 민주당, 이승만, 김구</span><span><b>중도</b> = 둘을 합치자 · 여운형, 김규식 (좌우 합작 운동)</span><span>요즘 좌우는 같은 민주주의 안에서 정책 차이지만, 그때는 나라 체제 자체가 달랐어요</span></div></li><li style="--i:1"><span class="r2s-rn">2</span><div><b>한국 독립당 = 우익 (김구)</b><span>공산주의에 반대(반공)하고 민족주의 국가를 원했어요. 임시 정부를 이끌었고, 신탁 통치 반대(반탁)에 앞장섰어요</span><span>1948년 남북 협상은 좌익이 돼서가 아니라, 남한만 정부를 세우면 영원히 갈라진다고 봐서 <b>통일 정부</b>를 원했기 때문이에요</span><span>→ 생각은 우익, 방법은 단독 정부 반대 · 이승만(단독 정부)과 갈려요</span></div></li><li style="--i:2"><span class="r2s-rn">3</span><div><b>한국 민주당(한민당) = 우익 · 지주와 자본가</b><span>송진우, 김성수가 중심이고 이승만을 지지했어요</span><span>좌우 합작 7원칙의 토지 개혁은 <b>유상 매수(조건부 몰수)·무상 분배</b> → 나라가 지주에게 돈을 주고 사서 농민에게는 공짜로 줘요. 돈이 나가기만 해서 「재정 파탄」이라며 한민당이 반대했어요</span></div></li></ol>
   <div class="ls-box" style="margin-top:12px"><b>토지 개혁 한 줄로</b><p>· 좌익(북한): 무상 몰수·무상 분배</p><p>· 좌우 합작 7원칙: 유상 매수(조건부 몰수)·무상 분배 → 한민당 반대(재정 파탄)</p><p>· 남한 농지 개혁(1949): 유상 매수·유상 분배</p></div>`;
   const QNA = U.who === '정윤' ? [
+    { id: 'k1123', date: '2026-11-24', t: '어제 카톡으로 부탁한 것, 다 만들었어요', ban: '카톡으로 부탁한 것 다 만들었어요', sub: '과학 · 사회 · 국어 · 영어', html: '<p><b>과학</b> 작년 2학기 1차 기출 20~23번(표시한 문제)을 오늘 숙제로 넣었어요. 다른 학교 기출 3문제와 개념완성 1문제는 3회독에 더했어요.</p><p><b>통합사회</b> 2회독·3회독 문제를 개념완성 문제 그대로이거나 조금 더 어렵게 바꿨어요. 10월 학평 통합사회 기출 4문항도 넣었어요.</p><p><b>국어</b> 범위를 11/18 공지대로 고쳤어요. 맞춤법 문제는 마더텅 수준의 학평·모평 기출로 바꿨고, 직접 낸 문제는 국어사전 예문으로 만들었어요. 10월 학평 독서 지문 4개를 원문 그대로 오늘부터 하나씩 풀어요.</p><p><b>영어</b> 올림포스 2회독·3회독·모고 화면 아래에 「내 필기」 칸이 생겼어요. 쓰면 바로 저장돼요.</p><p>올림포스 국어 기출 65~66, 95~97, 157~158쪽은 책 사진이 없어서 아직 못 넣었어요. 그 쪽 사진을 보내 주면 넣을게요.</p>', links: [{ k: 'r2s', id: 'P7', t: '과학 작년 기출 20~23번 풀기' }, { k: 'r2s', id: 'D1', t: '국어 10월 학평 독서 지문 풀기' }] },
     { id: 'lr', sj: 'hist', date: '2026-11-20', t: '그때 좌익·우익은 뭘로 나눠요? 한국 독립당·한국 민주당은요?', sub: '한국사 · 광복 직후 좌우 세력', html: GD_LR, links: [] },
     { id: 'tmp', date: '2026-11-18', t: '멈추기 하면 시간이 안 멈춰', sub: '시간 재기 · 멈추기', html: '<p>숙제 화면 안에서 멈추기를 누르면, 화면이 다시 그려질 때 저절로 다시 켜지고 있었어요. 이제 직접 멈춘 건 「이어 하기」를 누를 때까지 멈춰 있어요.</p>', links: [] },
     { id: 'hcw', date: '2026-11-18', t: '한국사에서 냉전 체제 부분은 범위 아니야', sub: '한국사 · 66~67쪽 빼기', html: '<p>66~67쪽 「냉전 체제의 형성」 문제를 2회독·3회독·마지막 모의 시험에서 다 뺐어요. 2회독 첫 덩어리는 이제 「광복과 국토의 분단 (68~69쪽)」만 나와요.</p><p>114쪽 「냉전의 해체」는 다른 단원이라 그대로 있어요.</p>', links: [] },
@@ -5512,7 +5514,7 @@
       steps: [['위쪽 토마토 단추를 눌러요', '토마토 타이머 화면이 열려요'], ['아래 「공부 시간」 칸으로 내려가요'], ['오늘 · 어제 · 그저께 중 날짜를 골라요', '어제 것도 넣을 수 있어요', '오늘'], ['몇 시간 몇 분 했는지 적고 「적기」를 눌러요', '하루 전체 시간을 적어요. 틀리면 다시 적으면 고쳐져요', '적기']] },
   };
   const GD_QOLD = { if: 'iq', vc: 'vc' };
-  for (const q of QNA) GD['q_' + q.id] = { on: () => !TEACHER && q.date >= addD(today(), -7) && !(GD_QOLD[q.id] && gdHas(GD_QOLD[q.id])), ic: 'think', cls: 'r2-ban', b: q.ban || `물어본 것 정리했어요: ${q.t}`, d: `${q.sub} · 질문 탭에 차곡차곡 모여요`, go0: '보기', open: () => qnaOpen(q.id) };
+  for (const q of QNA) GD['q_' + q.id] = { on: () => !TEACHER && q.date >= addD(today(), -7) && !(GD_QOLD[q.id] && gdHas(GD_QOLD[q.id])), ic: 'think', cls: 'r2-ban', del: 1, b: q.ban || `물어본 것 정리했어요: ${q.t}`, d: `${q.sub} · 질문 탭에 차곡차곡 모여요`, go0: '보기', open: () => qnaOpen(q.id) };  // 11/24 «삭제하라는 말을 써 주든지» → 지우기 단추
   delete GD.iq; delete GD.vc;
   const gdList = () => (ROLE_T && !PEEK) ? [] : Object.keys(GD).filter((k) => (!TUTOR || GD[k].tutor) && !gdHas(k) && GD[k].on());  // 11/16 과외 학생(윤건)은 tutor 표시한 배너만
   const gdNext = () => gdList()[0];
@@ -5525,7 +5527,7 @@
   function gdCard() {
     // 11/10 새로 만든 안내(정리·가이드)는 둘 다 보여요. 예전 안내는 하나씩
     const L = gdList(), ks = L.filter((k) => k.startsWith('q_') || k === 'scr' || k === 'k4' || k === 'pfd' || k === 'vc' || k === 'tm' || k === 'sci' || k === 'iq' || k === 'add' || k === 'r2a' || k === 'r2q'); const show = ks.length ? ks : L.slice(0, 1);
-    return show.map((k) => { const g = GD[k]; return `<button type="button" class="c12 ts-band gd-card ${g.cls || ''}" data-gdopen="${k}"><span class="ts-band-ic">${ic(g.ic)}</span><span class="ts-band-t"><b>${esc(g.b)}</b><span>${esc(g.d)}</span></span><span class="ts-band-go">${esc(g.go0 || '방법 보기')}</span></button>`; }).join('');  // 11/8 «이 부분이 너무 정신없어» → 토스 띠 배너
+    return show.map((k) => { const g = GD[k]; return `<button type="button" class="c12 ts-band gd-card ${g.cls || ''}" data-gdopen="${k}"><span class="ts-band-ic">${ic(g.ic)}</span><span class="ts-band-t"><b>${esc(g.b)}</b><span>${esc(g.d)}</span>${g.del ? `<i class="gd-row"><em class="gd-hint">다 봤으면 꼭 지워 주세요</em><em class="gd-x" role="button" tabindex="0" data-gdx="${k}">지우기</em></i>` : ''}</span><span class="ts-band-go">${esc(g.go0 || '방법 보기')}</span></button>`; }).join('');  // 11/8 «이 부분이 너무 정신없어» → 토스 띠 배너
   }
   function gdOpen(e) {
     const k = (e && e.currentTarget && e.currentTarget.dataset.gdopen) || gdNext() || 'ink', g = GD[k];
@@ -9217,7 +9219,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611240005'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611240050'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
