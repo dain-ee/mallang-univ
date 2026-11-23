@@ -318,7 +318,7 @@
   const FIN = (D.finals || []).filter((f) => f && (f.concepts || []).length);
   const FIN_ON = !TUTOR && U.who === '정윤' && FIN.length > 0;
   const FIN_START = '2026-10-26', FIN_END = '2026-11-22', FIN_DUE = { hist: '2026-11-12', eng: '2026-11-22' }, FIN_FROM = { eng: '2026-10-27' };  // eng = 올림포스 지문 하루 한두 개
-  const FIN_ALL = FIN.flatMap((f) => f.concepts.map((c) => ({ ...c, subj: f.subj, sname: f.name, book: f.book })));
+  const FIN_ALL = FIN.flatMap((f) => f.concepts.filter((c) => !c.fix).map((c) => ({ ...c, subj: f.subj, sname: f.name, book: f.book })));  // fix: 날을 박은 개념(11/23 한국사 범위 바뀌어 새로 들어온 Ⅰ-05-2)은 계산 뒤에 넣어요
   // 날마다: 마감 있는 과목(한국사 11/12 · 올림포스 지문 10/27부터 11/22)은 「남은 것 ÷ 남은 날」만큼 먼저,
   // 나머지 과목은 하루 합이 4~5개를 넘지 않게 「지금쯤 했어야 할 만큼보다 덜 한」 과목부터 (10/26)
   const FIN_ORDER = (() => {
@@ -337,6 +337,11 @@
     for (const c of out) c.fday = cal[c.fday];
     return out;
   })();
+  // 11/23 정윤 «한국사 범위가 확 줄었네, 2단원까지래» → 범위 Ⅰ-05-2 ~ Ⅱ-04 (58~109쪽). 범위 밖(out) 개념은 빼고, 새 개념(fix)은 박은 날에 넣어요. 다른 과목 날짜가 안 흔들리게 계산은 예전 그대로 한 뒤에 고쳐요
+  { const ix = (d) => Math.round((new Date(d + 'T00:00:00') - new Date(FIN_START + 'T00:00:00')) / 864e5);
+    for (const f of FIN) for (const c0 of f.concepts.filter((c) => c.fix)) { const c = { ...c0, subj: f.subj, sname: f.name, book: f.book, fday: ix(c0.fix) }, i = FIN_ALL.findIndex((y) => y.subj === f.subj); FIN_ALL.splice(i < 0 ? FIN_ALL.length : i, 0, c); FIN_ORDER.push(c); }
+    for (const A of [FIN_ALL, FIN_ORDER]) for (let i = A.length - 1; i >= 0; i--) if (A[i].out) A.splice(i, 1);
+    FIN_ORDER.sort((a, b) => a.fday - b.fday); }
   // 11/8 «정윤이가 앞으로 계속 한국사를 해도 얘는 과거에 7개 밀린 전적이 있으니 영원히 없어지지 않는 거잖아. 어차피 아마 얘 디데이 보면서 안 한 걸 테니까 좀 어떻게 고려해서 고쳐 놔»: 새 계획(finReplan)이 끝나는 날을 다시 매겨요
   // 11/14 정윤 올림포스 2회독: 책 순서대로 하루 2지문. 11/15(일) 한 번만 일요일에 시작하고 그 뒤는 월~토 (11/22·11/29 일요일은 새 몫 없음) → 12/2 에 끝나요. 11/15 «너무 느린데, 양을 늘려서 시험 14일 전에 끝내고 7일 동안 3회독» → 하루 3지문, 11/26 에 끝나요
   // 문제 파일(D.olp2, source/jy_olp2)이 아직 없는 지문은 숙제에 안 떠요. 날짜는 지문 자리로 정해져서 파일이 늦게 와도 안 흔들려요
@@ -432,7 +437,7 @@
   const r2sEnd = (sj) => R2S.reduce((m, x) => (x.sj === sj && x.day > m ? x.day : m), '');
   // 11/15 한국사 백지 노트: 정윤 «한국사는 애들 다 백지 노트 하는 게 제일 도움 된다는데, 컴터에서 백지 노트를 할 수 있나» · 선생님 «1부터 겹쳐서 해도 돼, 어차피 복습이니까» → 2회독과 따로 A1부터 하루 하나
   const BN_START = '2026-11-16', BN_MAX = 4000;
-  const BN = !R2_ON ? [] : [...((D.r2s || {}).hist || []).filter((x) => x && x.id && x.mem && (x.mem.cards || []).length).map((x) => { const d = new Date(BN_START + 'T00:00:00'); d.setDate(d.getDate() + Math.max(0, (parseInt(String(x.id).replace(/\D/g, ''), 10) || 1) - 1)); return { id: x.id, sj: 'hist', x, day: fmtDay(d) }; }), ...((D.r2s || {}).perf || []).filter((x) => x && x.id && x.day && x.mem && (x.mem.cards || []).length).map((x) => ({ id: x.id, sj: 'perf', x, get day() { return pfDay(this); } }))];  // 11/16 수행평가 외우기(춘향전 답 통암기·체육 빈칸)도 같은 외우기 판 (source/jy_r2s/perf, 파일마다 day·lab·ic)
+  const BN = !R2_ON ? [] : [...((D.r2s || {}).hist || []).filter((x) => x && x.id && x.mem && (x.mem.cards || []).length).map((x) => { const d = new Date(BN_START + 'T00:00:00'); d.setDate(d.getDate() + Math.max(0, (parseInt(String(x.id).replace(/\D/g, ''), 10) || 1) - 1)); return { id: x.id, sj: 'hist', x, day: /^\d{4}-\d\d-\d\d$/.test(x.day || '') ? x.day : fmtDay(d) }; }), ...((D.r2s || {}).perf || []).filter((x) => x && x.id && x.day && x.mem && (x.mem.cards || []).length).map((x) => ({ id: x.id, sj: 'perf', x, get day() { return pfDay(this); } }))];  // 11/16 수행평가 외우기(춘향전 답 통암기·체육 빈칸)도 같은 외우기 판 (source/jy_r2s/perf, 파일마다 day·lab·ic)
   // 11/16 선생님 «며칠까진데 이렇게 해? 그냥 하나로 해, D-day 정해 달라 하고, 넌 모르잖아» → 수행평가마다 숙제 한 줄: 단계를 하나 끝내면 다음 날 다음 단계 (날짜가 빠듯하면 바로 이어서)
   //   날짜는 정윤이가 배너에서 넣어요 (S.r2s.a.pfd = { chj, pe })
   const pfG = (x) => (String(x.id).startsWith('PC') ? 'chj' : 'pe'), PF_NM = { chj: '춘향전(국어)', pe: '체육 운동 손상' };
@@ -2566,7 +2571,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611230006', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611231344', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2838,7 +2843,7 @@
     for (const sj of [...new Set(FIN_ORDER.map((c) => c.subj))]) {
       const L = FIN_ORDER.filter((c) => c.subj === sj).sort((a, b) => a.fi - b.fi);
       if (!L.some((c) => c.fday0 < r0 && !P.get(c))) continue;  // 제때 하던 과목은 원래 계획 그대로
-      const R = L.filter((c) => !P.get(c)), last = FIN_REDUE[sj] ? ix(FIN_REDUE[sj]) : Math.max(...L.map((c) => c.fday0)), days = [];
+      const R = L.filter((c) => !P.get(c) && !c.fix), last = FIN_REDUE[sj] ? ix(FIN_REDUE[sj]) : Math.max(...L.map((c) => c.fday0)), days = [];
       for (let d = r0; (d <= last || days.length * FIN_REMAX < R.length) && d < r0 + 400; d++) if (finStudy(addD(FIN_START, d))) days.push(d);
       let k = 0; days.forEach((d, i) => { const n = Math.ceil((R.length - k) / (days.length - i)); for (let x = 0; x < n && k < R.length; x++, k++) { R[k].fday = d; R[k].re = 1; } });
     }
@@ -9209,7 +9214,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611230006'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611231344'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
