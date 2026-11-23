@@ -155,7 +155,7 @@
     fin: (r, l) => { const ans = { ...(r.ans || {}) }; for (const [c, v] of Object.entries(l.ans || {})) ans[c] = jMerge(ans[c] || {}, v); return { ...r, ...l, ans }; },  // 기말 개념: 문제마다 나중에 푼 쪽
     jl: jMerge, jr: jMerge, jw: jMerge, lv: jMerge, sxo: (r, l) => ({ ...r, ...l }),
     // 기기 둘이 엇갈려도 서로 안 지우게 (11/1 정윤 저장 실패 뒤 «신문 글쓰기 저장됐다는데 하나도 없어»): 내 생각·담기는 칸마다 더 새것, 오답은 키마다, 용돈은 내역 id별로 합쳐요
-    notes: jMerge, keep: jMerge, kmi: jMerge, ivp: jMerge, nread: jMerge, slog: jMerge, cuMan: jMerge,  // kmi: 지원 민사고 면접 연습 답 (질문마다 더 새것)
+    notes: jMerge, qnote: jMerge, keep: jMerge, kmi: jMerge, ivp: jMerge, nread: jMerge, slog: jMerge, cuMan: jMerge,  // kmi: 지원 민사고 면접 연습 답 (질문마다 더 새것)
     wrong: (r, l, rNew) => { const [o, n] = rNew ? [l, r] : [r, l]; return { ...o, ...n }; },
     wallet: (r, l, rNew) => { const [o, n] = rNew ? [l, r] : [r, l], ids = new Set((n.log || []).map((x) => x.id)); return { ...o, ...n, log: [...(n.log || []), ...(o.log || []).filter((x) => !ids.has(x.id))].sort((a, b) => (a.at || 0) - (b.at || 0)), seen: { ...(o.seen || {}), ...(n.seen || {}) } }; },
     // 테마 선물: 두 기기 것을 테마마다 합쳐요. 연 기록이 있으면 그걸, 아니면 나중에 보내거나(at) 취소한(x) 쪽을 써요 (10/27 보낸 쿠로미가 정윤이 기기 옛 기록에 덮여 사라짐)
@@ -2571,7 +2571,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611231344', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611232011', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3210,12 +3210,15 @@
     inp.oninput = () => { const t = r.kt[j]; if (t && t.show) { t.show = 0; const p = $('.r2-peek'); if (p) p.remove(); } };
     const sh = $('#r2-kshow'); if (sh) sh.onclick = () => { r.kt[j] = { ...(r.kt[j] || { n: 0 }), show: 1 }; keep(); const n2 = $('#r2-kin'); if (n2) n2.focus({ preventScroll: true }); };
   }
+  // 11/23 정윤 «영어 문제 풀 때 내가 필기하고 싶은 부분 있어서 필기 적을 수 있는 공간 만들어줘» → 올림포스 2회독·3회독·모고 화면 아래 「내 필기」 칸. 지문마다 하나, 적으면 바로 저장 (S.qnote)
+  const qNote = (k) => { const v = ((S.qnote || {})[k] || {}).t || ''; return `<details class="card qn-box" ${v ? 'open' : ''}><summary>${ic('write')} 내 필기${v ? ' <span class="tiny">적어 둔 것 있어요</span>' : ' <span class="tiny">눌러서 열어요</span>'}</summary><textarea class="inp qn-t" data-qnote="${esc(k)}" rows="5" placeholder="문제 풀면서 적고 싶은 것을 자유롭게 써요. 쓰면 바로 저장돼요">${esc(v)}</textarea><p class="tiny qn-st"></p></details>`; };
+  if (!window.__qnOn) { window.__qnOn = 1; document.addEventListener('input', (e) => { const t = e.target && e.target.closest && e.target.closest('[data-qnote]'); if (!t) return; S.qnote = S.qnote || {}; S.qnote[t.dataset.qnote] = { t: t.value, at: Date.now() }; save('qnote'); const st = t.parentNode.querySelector('.qn-st'); if (st) st.textContent = '저장했어요'; }); }
   function r2Run() {
     const r = UI.run, x = r2Of(r.cid); if (!x) { UI.run = null; UI.tab = 'hw'; return hwView(); }
     const c = x.c, X = x.x, A = r2Get(x.id), auto = r2St(x), qs = X.qs, key = X.key || [], st = r.st || auto, wr = r2Wrong(x);
     const ORD = key.length ? ['rc', 'rd', 'q', 'k', 'x'] : ['rc', 'rd', 'q', 'x'], reach = auto === 'fin' ? ORD.length : ORD.indexOf(auto), olp = !!((c.sx || {}).sents || []).length, ou = olp ? olpU(c) : null;
     const head = `<div class="row between"><button class="btn sm" data-r2back type="button">‹ 숙제</button><span class="tiny">올림포스 ${esc(c.pages)}쪽 · ${md(x.day)} 몫 · 2회독 끝 ${md(R2.reduce((m, y) => (y.day > m ? y.day : m), ''))}까지 ${ddTxt(R2.reduce((m, y) => (y.day > m ? y.day : m), ''))}</span></div><p class="eyebrow" style="margin:16px 0 4px">${ic('eng')} 올림포스 2회독</p><h1 class="h1" style="margin:0 0 8px">${esc(c.title)}</h1>`;
-    const wrap = (b) => `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${b}</div>`;
+    const wrap = (b) => `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${b}${qNote('r2:' + x.id)}</div>`;
     const seg = `<div class="seg r2-seg" style="margin:0 0 16px">${[['rc', '① 떠올리기'], ['rd', '② 원문'], ['q', '③ 변형 문제'], ['k', '④ 핵심 문장'], ['x', key.length ? '⑤ 틀린 문제' : '④ 틀린 문제']].filter(([k]) => k !== 'k' || key.length).map(([k, t], i) => `<button type="button" class="${st === k ? 'on' : ''}" data-r2st="${k}" ${i <= reach && !(k === 'x' && !wr.length) ? '' : 'disabled'}>${t}${i < reach && !(k === 'x' && auto !== 'fin') ? ' ✓' : ''}</button>`).join('')}</div>`;
     const r1Btn = `<button class="btn sm" data-r2r1 type="button">${ic('books')} 1회독 때 본 것</button>`;
     const { tools, orig, old } = r1Parts(c);
@@ -3423,7 +3426,7 @@
     const c = x.c, X = x.x, X2 = x.x2, qs = X.qs, A = r3Get(x.id), auto = r3St(x), st = r.st || auto, rd = r3Redo(x), xl = A.xl || {}, xn = (xl.q || []).length + (xl.k || []).length;
     const ORD = ['rc', 'sp', 'q', 'x'], reach = auto === 'fin' ? 4 : ORD.indexOf(auto);
     const head = `<div class="row between"><button class="btn sm" data-r3back type="button">‹ 숙제</button><span class="tiny">올림포스 ${esc(c.pages)}쪽 · ${md(x.day)} 몫 · 3회독 끝 ${md(R3_END)}까지 ${ddTxt(R3_END)}</span></div><p class="eyebrow" style="margin:16px 0 4px">${ic('eng')} 올림포스 3회독</p><h1 class="h1" style="margin:0 0 8px">${esc(c.title)}</h1>`;
-    const wrap = (b) => `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${b}</div>`;
+    const wrap = (b) => `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${b}${qNote('r3:' + x.id)}</div>`;
     const seg = `<div class="seg r2-seg" style="margin:0 0 16px">${[['rc', '① 떠올리기'], ['sp', '② 달라진 곳'], ['q', '③ 새 문제'], ['x', '④ 틀렸던 것']].map(([k, t], i) => `<button type="button" class="${st === k ? 'on' : ''}" data-r3st="${k}" ${i <= reach && !(k === 'x' && !rd.length) ? '' : 'disabled'}>${t}${i < reach && !(k === 'x' && auto !== 'fin') ? ' ✓' : ''}</button>`).join('')}</div>`;
     const r1Btn = `<button class="btn sm" data-r2r1 type="button">${ic('books')} 1회독 때 본 것</button>`;
     if (r.read) { const P = r1Parts(c); return wrap(`<div class="row between" style="margin:0 0 12px"><span class="tag blue">1회독 때 본 것</span><button class="btn sm" data-r2r1x type="button">닫기</button></div>${P.tools}${P.orig}${P.old}<div class="cta-bar"><button class="btn primary big block" data-r2r1x type="button">‹ 3회독으로 돌아가기</button></div>`); }
@@ -3519,7 +3522,7 @@
     const r = UI.run, z = mkOf(r.mid); if (!z) { UI.run = null; UI.tab = 'hw'; return hwView(); }
     const M = mkGet(z.id), qs = z.m.qs, A = M.a || {}, n = qs.length, lim = z.m.min || 50;
     const head = `<div class="row between"><button class="btn sm" data-mkback type="button">‹ 숙제</button><span class="tiny">${md(z.day)} 몫 · 3회독 끝 ${md(R3_END)}까지 ${ddTxt(R3_END)}</span></div><p class="eyebrow" style="margin:16px 0 4px">${ic('score')} 올림포스 모고 ${z.no}회</p><h1 class="h1" style="margin:0 0 8px">${esc(z.m.title || `올림포스 모고 ${z.no}회`)}</h1>`;
-    const wrap = (b) => `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${b}</div>`;
+    const wrap = (b) => `<div class="qwrap" style="max-width:760px;margin:0 auto">${head}${b}${qNote('r3m:' + z.id)}</div>`;
     if (M.fin) {
       const G = qs.map((q, i) => mkOk(q, A[i])), bad = qs.map((q, i) => i).filter((i) => !G[i]);
       if (r.read && r.see != null) { const c = FIN_ALL.find((y) => y.id === qs[r.see].cid); if (c) { const P = r1Parts(c); return wrap(`<div class="row between" style="margin:0 0 12px"><span class="tag blue">1회독 때 본 것</span><button class="btn sm" data-r2r1x type="button">닫기</button></div>${P.tools}${P.orig}${P.old}<div class="cta-bar"><button class="btn primary big block" data-r2r1x type="button">‹ 문제로 돌아가기</button></div>`); } }
@@ -9214,7 +9217,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611231344'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611232011'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
