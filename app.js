@@ -432,6 +432,8 @@
     }));
   }
   const r2sRd = (sj) => (R2S_SUBJ[sj] || {}).rd || '2회독';
+  // 11/25 회독 내용 순서 점검용(읽기만): 1회독 개념 날짜와 2·3회독 묶음이 다루는 개념
+  window.__r2a = () => ({ fin: FIN_ALL.map((c) => ({ id: c.id, sj: c.subj, t: c.title || c.name || '', f: fmtDay(new Date(new Date(FIN_START + 'T00:00:00').getTime() + c.fday * 864e5)), done: finDoneDay(c) })), r2s: R2S.map((x) => ({ id: x.id, sj: x.sj, day: x.day, done: r2sDoneDay(x), t: x.x.title, cids: x.x.cids || [] })) });
   const r2sLab = (x) => (x.x && x.x.mock ? '모고' : r2sRd(x.sj));  // 11/15 «예습·실전 말고 1회독 2회독 3회독 모고로 다 해»  // 11/15 한국사 A1~A6 (11/16~11/21)
   const R2S_ON = true;  // 11/15 올해 시험지 꼴로 고친 국어 K·통합사회 S·한국사 A 를 켜요
   // 11/15 선생님 «실제 시험에 서술형이 없으면 안 하는 거야 · 있는데 또 막 빼지 말고»: 실제 시험지로 확인된 것만 빼요
@@ -2584,7 +2586,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611250521', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611250527', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -9396,7 +9398,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611250521'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611250527'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
