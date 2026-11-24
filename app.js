@@ -2590,7 +2590,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611250814', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611250840', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3058,6 +3058,7 @@
       const A = finS().ans[c.id] || {}, a = A.q, u = (t) => esc(t).replace(/&lt;u&gt;/g, '<u>').replace(/&lt;\/u&gt;/g, '</u>');
       // 11/9 «매3영처럼 첫 스텝(단어+문제), 다음 스텝이 한 문장씩 분석» · 분석 데이터(c.sx)가 있는 지문만 ② 가 생겨요
       const olp = !!((c.sx || {}).sents || []).length, ost = olp && r.st === 'sx' ? 'sx' : 'q';
+      const gd = c.guide, guideCard = (open) => !gd ? '' : `<details class="hw-more card ol-guide" ${open ? 'open' : ''} style="margin-top:12px"><summary><b>${ic('bulb')} 이해 돕기</b> <span class="tiny">해석만으로 막힐 때</span></summary>${(gd.keys || []).length ? `<h4>헷갈리기 쉬운 말</h4>${gd.keys.map(([w, d]) => `<p><b>${esc(w)}</b> ${esc(d)}</p>`).join('')}` : ''}${(gd.flow || []).length ? `<h4>글 흐름 한 줄씩</h4><ol>${gd.flow.map((t) => `<li>${esc(t)}</li>`).join('')}</ol>` : ''}${gd.why ? `<h4>정답 근거</h4><p>${esc(gd.why)}</p>` : ''}</details>`;  // 11/25
       const nxBtn = a ? doneCard(a.ok ? 1 : 0, 1, `올림포스 1회독 끝! 저장됐어요. 숙제 목록에서 ✓ 로 보여요${olp ? '' : ''}`, '<button class="btn primary big block" data-finback type="button">숙제 목록으로 ›</button>') : '';
       const ohd = `<div class="row between"><button class="btn sm" data-finback type="button">‹ 숙제</button><span class="tiny">올림포스 ${esc(c.pages)}쪽</span></div>
         <p class="eyebrow" style="margin:16px 0 4px">${ic('books')} 올림포스 · ${esc(c.type || '')}</p><h1 class="h1" style="margin:0 0 ${olp ? 8 : 16}px">${esc(c.title)}</h1>${olp ? `<div class="seg" style="margin:0 0 16px">${[['q', `① 단어·문제${a ? ' ✓' : ''}`], ['sx', '② 문장 분석']].map(([k, nm]) => `<button type="button" class="${ost === k ? 'on' : ''}" data-olst="${k}">${nm}</button>`).join('')}</div>` : ''}`;
@@ -3076,6 +3077,7 @@
           <section class="card oly-p" style="margin-top:12px"><p class="oly-q"><b>${esc(c.q)}</b></p>${c.given ? `<div class="oly-given">${u(c.given)}</div>` : ''}${c.text.map((t) => `<p>${u(t)}</p>`).join('')}${(c.notes || []).length ? `<p class="tiny">${c.notes.map((x) => '* ' + esc(x)).join('  ')}</p>` : ''}</section>
           ${(c.ko || []).length ? `<section class="card und-ko" style="margin-top:12px"><h3>해석</h3>${c.ko.map((t, k) => `<p style="--k:${k}">${esc(t)}</p>`).join('')}</section>` : ''}
           <section class="card und-ans" style="margin-top:12px"><h3>정답 ${'①②③④⑤'[c.answer] || ''}</h3><p class="und-ch">${u(c.choices[c.answer] || '')}</p><p>${esc(c.exp || '')}</p></section>
+          ${guideCard(true)}
           ${olp ? '<button class="btn soft big block" data-olst="sx" type="button" style="margin-top:12px">② 문장 분석도 보기 (안 해도 돼요)</button>' : ''}
           ${a ? doneCard(1, 1, '이해 끝! 2회독 때 문제로 다시 만나요', '<button class="btn primary big block" data-finback type="button">숙제 목록으로 ›</button>') : '<div class="cta-bar"><button class="btn primary big block" id="und-ok" type="button">다 이해했어요</button></div>'}</div>`;
       }
@@ -3083,7 +3085,7 @@
         ${(c.words || []).length ? `<details class="hw-more card" ${a ? '' : 'open'}><summary><b>먼저 단어 ${c.words.length}개</b> <span class="tiny">눌러서 접기</span></summary><div class="oly-w">${c.words.map(([en, ko]) => `<div><b>${esc(en)}</b><span>${esc(ko)}</span></div>`).join('')}</div></details>` : ''}
         <section class="card oly-p" style="margin-top:12px"><p class="oly-q"><b>${esc(c.q)}</b></p>${c.given ? `<div class="oly-given">${u(c.given)}</div>` : ''}${c.text.map((t) => `<p>${u(t)}</p>`).join('')}${(c.notes || []).length ? `<p class="tiny">${c.notes.map((x) => '* ' + esc(x)).join('  ')}</p>` : ''}</section>
         <div class="choices" style="margin-top:12px">${c.choices.map((ch, k) => `<button class="choice ${!a ? '' : k === c.answer ? 'right' : k === a.p ? 'wrong' : ''}" data-olyp="${k}" type="button" ${a ? 'disabled' : ''}><span class="ct">${u(ch)}</span></button>`).join('')}</div>
-        ${a ? `<section class="card ol-res" id="ol-res"><div class="ol-res-h ${a.ok ? 'ok' : 'no'}">${ic(a.ok ? 'hundred' : 'think')}<div><b>${a.ok ? '정답이에요!' : `아쉬워요, 정답은 ${'①②③④⑤'[c.answer]}번`}</b><span>① 문제 끝 · 저장됐어요${olp ? '. 이제 한 문장씩 분석해요' : ''}</span></div></div><div class="ol-res-b"><b>해설</b><p>${esc(c.exp || '')}</p></div>${(c.ko || []).length ? `<details class="hw-more"><summary><b>전체 해석 보기</b></summary>${c.ko.map((t) => `<p style="line-height:1.8">${esc(t)}</p>`).join('')}</details>` : ''}</section><div class="cta-bar ol-cta">${olp ? '<button class="btn primary big block" data-olst="sx" type="button">② 분석 및 나만의 필기 하러 가기 ›</button>' : ''}<button class="btn big block ${olp ? '' : 'primary'}" data-finback type="button">숙제 목록으로</button></div>` : ''}</div>`;
+        ${a ? `<section class="card ol-res" id="ol-res"><div class="ol-res-h ${a.ok ? 'ok' : 'no'}">${ic(a.ok ? 'hundred' : 'think')}<div><b>${a.ok ? '정답이에요!' : `아쉬워요, 정답은 ${'①②③④⑤'[c.answer]}번`}</b><span>① 문제 끝 · 저장됐어요${olp ? '. 이제 한 문장씩 분석해요' : ''}</span></div></div><div class="ol-res-b"><b>해설</b><p>${esc(c.exp || '')}</p></div>${(c.ko || []).length ? `<details class="hw-more"><summary><b>전체 해석 보기</b></summary>${c.ko.map((t) => `<p style="line-height:1.8">${esc(t)}</p>`).join('')}</details>` : ''}</section>${guideCard(!a.ok)}<div class="cta-bar ol-cta">${olp ? '<button class="btn primary big block" data-olst="sx" type="button">② 분석 및 나만의 필기 하러 가기 ›</button>' : ''}<button class="btn big block ${olp ? '' : 'primary'}" data-finback type="button">숙제 목록으로</button></div>` : ''}</div>`;
     }
     if (c.page) {  // 올림포스 지문: 책에서 풀고 체크
       const dn = finDone(c);
@@ -9403,7 +9405,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611250814'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611250840'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

@@ -5585,3 +5585,8 @@ mark.mk.mk-out { transition: opacity .2s, background-size .2s; opacity: .2; }
 @keyframes fixOut { to { outline-color: rgba(49,130,246,0); } }
 @keyframes fixChip { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 @keyframes fixChipOut { to { opacity: 0; } }
+
+/* 11/25 올림포스 이해 돕기 */
+.ol-guide h4 { margin: 14px 0 6px; font-size: 14px; color: var(--t2); }
+.ol-guide p { margin: 0 0 8px; font-size: 15px; line-height: 1.75; word-break: keep-all; }
+.ol-guide ol { margin: 0; padding-left: 20px; } .ol-guide li { margin: 0 0 6px; font-size: 15px; line-height: 1.7; word-break: keep-all; }
