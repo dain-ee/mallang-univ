@@ -2578,7 +2578,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611241556', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611241607', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3164,6 +3164,8 @@
   function r2U(t) { return esc(t).replace(/&lt;(\/?)u&gt;/g, '<$1u>'); }
   // 채점 비교: 문장부호(쉼표·마침표·따옴표·쌍점·줄표)는 다 빼고 낱말만, 대소문자 무시. 굽은 아포스트로피(don’t)와 곧은 것(don't)은 같게 쳐요
   function r2Norm(t) { return String(t || '').replace(/[‘’`´]/g, "'").toLowerCase().replace(/[^a-z0-9' ]+/g, ' ').replace(/(^|\s)'+|'+(?=\s|$)/g, '$1').replace(/\s+/g, ' ').trim(); }
+  // 11/24 괄호 두 개 어형 문항은 안내 글도 두 낱말로
+  const r2Ph = (q) => ((q.q || '').split('(').length > 2 ? '알맞은 꼴로 고쳐 차례대로 써요 (쉼표로 나눠도 돼요)' : '알맞은 꼴로 고쳐 한 낱말로 써요');
   function r2Ok(q, v) { const n = r2Norm(v); return !!n && [q.answer, ...(q.alts || [])].some((a) => r2Norm(a) === n); }
   // 핵심 문장: 내 답과 정답을 낱말로 맞춰 봐요. 틀린 낱말은 빨간 줄, 빠진 자리는 파란 칸 (정답 낱말은 안 보여 줘요)
   function r2Diff(en, v) {
@@ -3193,7 +3195,7 @@
       return `${psg}${a ? mine : `<section class="card r2-arr" style="margin-top:12px"><p class="tiny" style="margin:0 0 8px">조각을 순서대로 눌러요. 놓은 조각을 누르면 다시 빠져요</p><div class="r2-line">${put.length ? put.map((i, n) => `<button type="button" class="chip jg-op on" data-r2un="${n}">${esc(q.chunks[i])}</button>`).join('') : '<span class="tiny">여기에 문장이 만들어져요</span>'}</div><div class="jg-ops j-ops sm">${rest.map((i) => `<button type="button" class="chip jg-op" data-r2ch="${i}">${esc(q.chunks[i])}</button>`).join('')}</div><button class="btn primary big block" id="r2-ok" type="button" style="margin-top:16px" ${rest.length ? 'disabled' : ''}>확인</button></section>`}`;
     }
     const one = q.kind === '어형';
-    return `${psg}${a ? mine : `<section class="card" style="margin-top:12px">${one ? '<input class="inp" id="r2-in" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="알맞은 꼴로 고쳐 한 낱말로 써요">' : '<textarea class="inp r2-ta" id="r2-in" rows="3" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="영어 문장으로 써요"></textarea>'}<button class="btn primary big block" id="r2-ok" type="button" style="margin-top:12px">확인</button></section>`}`;
+    return `${psg}${a ? mine : `<section class="card" style="margin-top:12px">${one ? '<input class="inp" id="r2-in" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="' + r2Ph(q) + '">' : '<textarea class="inp r2-ta" id="r2-in" rows="3" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="영어 문장으로 써요"></textarea>'}<button class="btn primary big block" id="r2-ok" type="button" style="margin-top:12px">확인</button></section>`}`;
   }
   function r2QBind(q, r, done) {
     const re = () => { const y = window.scrollY; render(); window.scrollTo(0, y); };
@@ -3544,7 +3546,7 @@
       return `${r2Psg(q)}<section class="card r2-arr" style="margin-top:12px"><p class="tiny" style="margin:0 0 8px">조각을 순서대로 눌러요. 놓은 조각을 누르면 다시 빠져요</p><div class="r2-line">${put.length ? put.map((i, n) => `<button type="button" class="chip jg-op on" data-mkun="${n}">${esc(q.chunks[i])}</button>`).join('') : '<span class="tiny">여기에 문장이 만들어져요</span>'}</div><div class="jg-ops j-ops sm">${rest.map((i) => `<button type="button" class="chip jg-op" data-mkch="${i}">${esc(q.chunks[i])}</button>`).join('')}</div></section>`;
     }
     const v = esc((a && a.v) || '');
-    return `${r2Psg(q)}<section class="card" style="margin-top:12px">${q.kind === '어형' ? `<input class="inp" id="mk-in" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="알맞은 꼴로 고쳐 한 낱말로 써요" value="${v}">` : `<textarea class="inp r2-ta" id="mk-in" rows="3" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="영어 문장으로 써요">${v}</textarea>`}<p class="tiny" style="margin:8px 0 0">쓴 답은 저절로 저장돼요</p></section>`;
+    return `${r2Psg(q)}<section class="card" style="margin-top:12px">${q.kind === '어형' ? `<input class="inp" id="mk-in" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${r2Ph(q)}" value="${v}">` : `<textarea class="inp r2-ta" id="mk-in" rows="3" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="영어 문장으로 써요">${v}</textarea>`}<p class="tiny" style="margin:8px 0 0">쓴 답은 저절로 저장돼요</p></section>`;
   }
   function mkRun() {
     const r = UI.run, z = mkOf(r.mid); if (!z) { UI.run = null; UI.tab = 'hw'; return hwView(); }
@@ -9369,7 +9371,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241556'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241607'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
