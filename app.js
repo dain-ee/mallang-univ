@@ -2590,7 +2590,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611250810', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611250812', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5484,7 +5484,7 @@
   function qnaOpen(id) { UI.qnaFrom = null; UI.tab = 'qna'; UI.run = { kind: 'qna', id }; render(); window.scrollTo(0, 0); }
   function qnaView() {
     const AK = S.ask || [];
-    const mine = AK.length ? `<section class="card c12 ask-card"><div class="row between"><h3 style="margin:0">내 질문·필기</h3><span class="tiny">${AK.length}개 · 글자를 끌면 남길 수 있어요</span></div><div class="ask-list">${AK.map((e, k) => `<div class="ask-it" style="--k:${k}"><div class="row between"><span class="tag ${e.k === 'q' ? 'blue' : ''}">${e.k === 'q' ? '질문' : '필기'}</span><span class="tiny">${md(dateOf(e.at))}${e.title ? ' · ' + esc(e.title) : ''}</span></div><p class="ask-sel">${esc(e.sel)}</p><p class="ask-b">${esc(e.body)}</p>${e.k === 'q' ? `<div class="ask-a">${e.a ? esc(e.a).replace(/\n/g, '<br>') : '<span class="tiny">아직 답이 없어요. 선생님이 보고 답해 줄게요</span>'}</div>` : ''}<div class="ask-f"><button class="btn sm" type="button" data-askdel="${e.id}">지우기</button><button class="btn sm primary" type="button" data-askgo="${e.id}">그 화면으로 돌아가기 ›</button></div></div>`).join('')}</div></section>` : `<section class="card c12 ask-card"><h3 style="margin:0 0 4px">내 질문·필기</h3><p class="tiny" style="margin:0">공부하다가 글자를 끌면 형광펜 옆에 「질문」「메모」가 떠요. 남긴 것은 여기에 모여요</p></section>`;
+    const mine = AK.length ? `<section class="card c12 ask-card"><div class="row between"><h3 style="margin:0">내 질문·필기</h3><span class="tiny">${AK.length}개 · 글자를 끌면 남길 수 있어요</span></div><div class="ask-list">${AK.map((e, k) => `<div class="ask-it" style="--k:${k}"><div class="row between"><span class="tag ${e.k === 'q' ? 'blue' : ''}">${e.k === 'q' ? '질문' : '필기'}</span><span class="tiny">${md(dateOf(e.at))}${e.title ? ' · ' + esc(e.title) : ''}</span></div><p class="ask-sel">${esc(e.sel)}</p><p class="ask-b">${esc(e.body)}</p>${e.k === 'q' ? `<div class="ask-a">${e.a ? esc(e.a).replace(/\n/g, '<br>') : '<span class="tiny">아직 답이 없어요. 선생님이 보고 답해 줄게요</span>'}</div>` : ''}<div class="ask-f"><button class="btn sm" type="button" data-askdel="${e.id}">지우기</button><button class="btn sm primary" type="button" data-askgo="${e.id}">그 화면으로 돌아가기 ›</button></div></div>`).join('')}</div></section>` : `<section class="card c12 ask-card"><h3 style="margin:0 0 4px">내 질문·필기</h3><p class="tiny" style="margin:0">공부하다가 글자를 끌면 형광펜 옆에 「질문」「필기」가 떠요. 남긴 것은 여기에 모여요</p></section>`;
     return `<h1 class="h1">질문</h1><p class="sub">선생님께 물어본 것을 정리해서 차곡차곡 모아 둬요 · ${QNA.length}개</p>
       <div class="grid">${mine}<section class="card c12"><div class="list">${QNA.map((q, k) => `<div class="li btnlike" data-qna="${q.id}" style="--k:${k}"><div class="ico">${ic('think')}</div><div class="body"><div class="t">${esc(q.t)}</div><div class="d">${md(q.date)} · ${esc(q.sub)}</div></div><span class="tag">${k === 0 && q.date >= addD(today(), -1) ? '새 질문' : '보기'}</span></div>`).join('')}</div></section></div>`;
   }
@@ -9403,7 +9403,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611250810'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611250812'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
