@@ -1172,7 +1172,7 @@
   // ───────── 기말 교과서 e-book: 쪽 그림 위에 단어 위치를 겹쳐 형광펜·밑줄·질문·나중에 보기 ─────────
   const EB = D.ebook || { books: [] };
   const MANS = D.mathans || {};
-  const EB_EXAM = ((D.events || []).find((e) => /기말/.test(e.title || '') && e.date >= '2026-11-01') || {}).date || '2026-12-10';
+  const EB_EXAM = ((D.events || []).find((e) => /기말/.test(e.title || '') && e.date >= '2026-11-01') || {}).date || '2026-12-14';  // 11/24 학교 공지(경기 광주 경화여고 교육통신): 1학년 2학기 2차 정기시험 12/14~12/18. 12/10은 다른 학교(대구) 계획서에서 온 잘못된 날짜
   // ───────── 인강: 정윤이가 고른 강의를 요일·하루 몇 강으로 나눠 오늘 할 일에 넣어요 (2026-10-25) ─────────
   // 강의 상태는 사이트에서 읽어 온 진도로 시작하고, 앱에서 「들었어요 / 안 들을래요」로 바꿔요. 순서대로 안 들어도 돼요
   const INK = (D.inkang && D.inkang.courses) || [];
@@ -2109,8 +2109,8 @@
   }
   function examCard() {
     const x = exS();
-    const row = (u) => `<div class="li btnlike ex-row" data-exsub="${esc(u.id)}"><div class="ico">${ic(EX_IC[u.id] || 'books')}</div><div class="body"><div class="t">${esc(u.name)}${u.pub ? ` <span class="tiny">${esc(u.pub)}</span>` : ''}</div><div class="d ${u.range ? 'ex-rg' : ''}">${u.range ? esc(u.range) : '범위를 아직 몰라요 · 눌러서 적어요'}</div></div>${u.by === 's' ? `<span class="tag blue">${TEACHER ? '학생이 적음' : '내가 적음'}</span>` : u.range ? '<span class="tag">맞는지 확인</span>' : ''}</div>`;
-    return `<section class="card c12"><div class="card-h"><h2>${ic('cal')} 기말 범위</h2><span class="tiny">기말고사 <b class="blue">D-${dday(EB_EXAM)}</b></span></div>
+    const row = (u) => `<div class="li btnlike ex-row" data-exsub="${esc(u.id)}"><div class="ico">${ic(EX_IC[u.id] || 'books')}</div><div class="body"><div class="t">${esc(u.name)}${u.pub ? ` <span class="tiny">${esc(u.pub)}</span>` : ''}</div><div class="d ${u.range ? 'ex-rg' : ''}">${u.range ? esc(u.range) : '범위를 아직 몰라요 · 눌러서 적어요'}</div></div>${u.date && dday(u.date) >= 0 ? `<span class="tag ${dday(u.date) <= 7 ? 'red' : 'blue'}">${md(u.date)} ${dday(u.date) ? 'D-' + dday(u.date) : '오늘'}</span>` : ''}${u.by === 's' ? `<span class="tag blue">${TEACHER ? '학생이 적음' : '내가 적음'}</span>` : u.range ? '<span class="tag">맞는지 확인</span>' : ''}</div>`;
+    return `<section class="card c12"><div class="card-h"><h2>${ic('cal')} 기말 범위</h2><span class="tiny">기말고사 <b class="blue">D-${dday(EB_EXAM)}</b> · ${md(EB_EXAM)}~12월 18일</span></div>
       <p class="sub" style="margin:0 0 8px">${TEACHER ? '「학생이 적음」 과목을 보고 교과서·문제를 맞춰요. 선생님이 고치면 학생에게 「맞는지 확인」으로 보여요' : '선생님이 말한 범위를 들은 대로 적어 주세요. 대충 줄글로 써도 돼요'}</p>
       <div class="list">${x.subs.map(row).join('')}</div>
       <div class="ex-memo li btnlike" data-exmemo><div class="ico">${ic('memo')}</div><div class="body"><div class="t">그 밖에 들은 것</div><div class="d ${x.memo ? 'ex-rg' : ''}">${x.memo ? esc(x.memo) : '수행평가, 서술형, 프린트처럼 과목에 안 맞는 것도 여기 적어요'}</div></div></div>
@@ -2575,7 +2575,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611240958', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611241048', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -9238,7 +9238,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611240958'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241048'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
