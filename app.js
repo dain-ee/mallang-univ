@@ -355,8 +355,8 @@
   // 11/19 «정윤 영어 좀 줄이거나 늦춰»: 2회독 8개가 밀려 하루 영어가 2시간 넘었어요. 핵심 문장 쓰기(7지문 모두 0/2, 3회독에서 또 다시 쓰기)는 빼고,
   //   안 끝낸 2회독은 오늘부터 하루 2~3개로, 3회독은 11/19부터 사이사이에 넣어 12/1 에 끝나요 (1회독 → 2회독 → 3회독 사이 사흘 넘게). 3회독 새 문제는 3개 → 1개. 실전 12/2·12/3 은 그대로
   // 11/24 «10강부터 밀린 2회독·3회독·모고를 같은 날(12/9) 끝나게 다시» → 하루 4지문 (2회독 11/24~12/3, 3회독 11/24~12/7, 모고 12/8·12/9, 3회독은 그 지문 2회독 4일 뒤부터, 일요일 비움)
-  const OLP_NOKEY = true, R2_DAY = { 'eng-p072': '2026-11-19', 'eng-p074': '2026-11-19', 'eng-p076': '2026-11-20', 'eng-p077': '2026-11-20', 'eng-p078': '2026-11-21', 'eng-p080': '2026-11-24', 'eng-p082': '2026-11-24', 'eng-p083': '2026-11-24', 'eng-p084': '2026-11-25', 'eng-p088': '2026-11-25', 'eng-p090': '2026-11-25', 'eng-p091': '2026-11-26', 'eng-p092': '2026-11-26', 'eng-p094': '2026-11-27', 'eng-p096': '2026-11-27', 'eng-p097': '2026-11-28', 'eng-p098': '2026-11-28', 'eng-p100': '2026-11-30', 'eng-p102': '2026-11-30', 'eng-p103': '2026-12-01', 'eng-p104': '2026-12-01', 'eng-p106': '2026-12-02', 'eng-p108': '2026-12-02', 'eng-p109': '2026-12-03', 'eng-p110': '2026-12-03' },
-    R3_DAY = { 'eng-p060': '2026-11-19', 'eng-p062': '2026-11-20', 'eng-p063': '2026-11-21', 'eng-p064': '2026-11-23', 'eng-p068': '2026-11-23', 'eng-p070': '2026-11-24', 'eng-p071': '2026-11-25', 'eng-p072': '2026-11-26', 'eng-p074': '2026-11-26', 'eng-p076': '2026-11-27', 'eng-p077': '2026-11-27', 'eng-p078': '2026-11-28', 'eng-p080': '2026-11-28', 'eng-p082': '2026-11-30', 'eng-p083': '2026-11-30', 'eng-p084': '2026-12-01', 'eng-p088': '2026-12-01', 'eng-p090': '2026-12-02', 'eng-p091': '2026-12-02', 'eng-p092': '2026-12-03', 'eng-p094': '2026-12-03', 'eng-p096': '2026-12-04', 'eng-p097': '2026-12-04', 'eng-p098': '2026-12-04', 'eng-p100': '2026-12-04', 'eng-p102': '2026-12-05', 'eng-p103': '2026-12-05', 'eng-p104': '2026-12-05', 'eng-p106': '2026-12-07', 'eng-p108': '2026-12-07', 'eng-p109': '2026-12-07', 'eng-p110': '2026-12-07' };
+  const OLP_NOKEY = true, R2_DAY = { 'eng-p072': '2026-11-19', 'eng-p074': '2026-11-19', 'eng-p076': '2026-11-20', 'eng-p077': '2026-11-20', 'eng-p078': '2026-11-21', 'eng-p080': '2026-11-24', 'eng-p082': '2026-11-24', 'eng-p083': '2026-11-25', 'eng-p084': '2026-11-25', 'eng-p088': '2026-11-26', 'eng-p090': '2026-11-26', 'eng-p091': '2026-11-27', 'eng-p092': '2026-11-27', 'eng-p094': '2026-11-28', 'eng-p096': '2026-11-28', 'eng-p097': '2026-11-30', 'eng-p098': '2026-11-30', 'eng-p100': '2026-12-01', 'eng-p102': '2026-12-01', 'eng-p103': '2026-12-02', 'eng-p104': '2026-12-02', 'eng-p106': '2026-12-03', 'eng-p108': '2026-12-03', 'eng-p109': '2026-12-04', 'eng-p110': '2026-12-04' },
+    R3_DAY = { 'eng-p060': '2026-11-19', 'eng-p062': '2026-11-20', 'eng-p063': '2026-11-21', 'eng-p064': '2026-11-23', 'eng-p068': '2026-11-23', 'eng-p070': '2026-11-24', 'eng-p071': '2026-11-24', 'eng-p072': '2026-11-25', 'eng-p074': '2026-11-25', 'eng-p076': '2026-11-26', 'eng-p077': '2026-11-26', 'eng-p078': '2026-11-27', 'eng-p080': '2026-11-27', 'eng-p082': '2026-11-28', 'eng-p083': '2026-11-28', 'eng-p084': '2026-11-30', 'eng-p088': '2026-11-30', 'eng-p090': '2026-12-01', 'eng-p091': '2026-12-01', 'eng-p092': '2026-12-02', 'eng-p094': '2026-12-02', 'eng-p096': '2026-12-03', 'eng-p097': '2026-12-03', 'eng-p098': '2026-12-04', 'eng-p100': '2026-12-04', 'eng-p102': '2026-12-05', 'eng-p103': '2026-12-05', 'eng-p104': '2026-12-07', 'eng-p106': '2026-12-07', 'eng-p108': '2026-12-08', 'eng-p109': '2026-12-08', 'eng-p110': '2026-12-09' };
   const R2 = (() => {
     if (!R2_ON) return [];
     const src = D.olp2 || {}, L = FIN_ALL.filter((c) => c.subj === 'eng' && c.text), days = [], d = new Date('2026-11-15T00:00:00');
@@ -372,7 +372,7 @@
     [7, 7, 6, 6, 6].forEach((n, k) => { const d = new Date('2026-11-27T00:00:00'); d.setDate(d.getDate() + k); for (let i = 0; i < n; i++) days.push(fmtDay(d)); });
     return L.map((c, i) => ({ id: c.id, c, day: R3_DAY[c.id] || days[i] || '2026-12-01', x: src[c.id] && OLP_NOKEY && Array.isArray(src[c.id].qs) ? { ...src[c.id], qs: src[c.id].qs.slice(0, 1) } : src[c.id], x2: OLP_NOKEY ? { ...(s2[c.id] || {}), key: [] } : s2[c.id] || {} })).filter((x) => x.x && x.x.spot && Array.isArray(x.x.spot.answers) && Array.isArray(x.x.qs) && x.x.qs.length);
   })();
-  const R3M = !R2_ON ? [] : (D.olp3m || []).filter((m) => m && Array.isArray(m.qs) && m.qs.length).map((m) => ({ id: m.id, m, no: m.id === 'mock2' ? 2 : 1, day: m.id === 'mock2' ? '2026-12-09' : '2026-12-08' }));
+  const R3M = !R2_ON ? [] : (D.olp3m || []).filter((m) => m && Array.isArray(m.qs) && m.qs.length).map((m) => ({ id: m.id, m, no: m.id === 'mock2' ? 2 : 1, day: m.id === 'mock2' ? '2026-12-11' : '2026-12-10' }));
   // 11/15 국어·통합사회 2회독 (덩어리 방식): 과목마다 하루 한 덩어리, 11/16(월)부터 날마다(일요일 11/22 포함) → 11/26 에 끝나요. 과목을 더 붙이려면 이 표에 한 줄 (한국사·과학 예정)
   // 날짜는 덩어리 번호(K01 → 첫날)로 정해져요. 문제 파일(D.r2s, source/jy_r2s/<과목>/)이 없는 덩어리는 숙제에 안 떠요
   const R2S_SUBJ = { kor: { name: '국어', ic: 'books', start: '2026-11-16' }, soc: { name: '통합사회', ic: 'books', start: '2026-11-16' }, hist: { name: '한국사', ic: 'scroll', start: '2026-11-16' }, sci: { name: '통합과학', ic: 'sci', start: '2026-11-15', rd: '1회독' },
@@ -2578,7 +2578,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611241149', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611241153', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -9242,7 +9242,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241149'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241153'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
