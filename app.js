@@ -2580,7 +2580,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611241746', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611242054', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -8169,8 +8169,8 @@
     qx: [{ id: 'e7xm', title: '7과 본문 · 학교 스타일 중 15문제', sub: '선생님 스타일 실전 1·2회 본문 지문 문제 · 중', from: ['e7:t1', 'e7:t2'], lv: [2], k: 15 },
       { id: 'e7xh', title: '7과 본문 · 학교 스타일 상 15문제', sub: '선생님 스타일 실전·심화 본문 지문 문제 · 상', from: ['e7:t1', 'e7:t2', 'e7:t7'], lv: [3], k: 15 }] };
   // 11/24 «이건 학습지 꼴이 아니라 학습지를 줬잖아» → 7과 의사소통은 진짜 학교 학습지(의사소통 ①② 2회독)로 · «오늘 다 넣어, 못 한 건 토요일로» → 8과 본문 중요 문장 시험 + 학교 스타일 중·상까지
-  YG_JWT_FIX['2026-11-24'] = { m3: [], off: ['lw'], lt: ['e8t'],
-    sq: [{ h: '7과 의사소통 · 학교 학습지 ①② → 기출비·선생님 스타일', ids: ['ws7c1r2', 'ws7c2r2', 'e7cx'] }, { h: '8과 문법 · 학교 학습지 꼴 → 기출비 상·중상', ids: ['e8gw', 'e8gx'] }, { h: '8과 본문 · 학교 학습지 꼴 → 기출비 상·중상', ids: ['e8rw', 'e8rx'] }],
+  YG_JWT_FIX['2026-11-24'] = { m3: [], off: ['lw'], lt: [],  // 수업 중 «시험 빼고 현재완료 경험·계속·완료·결과 개념 + 중상 문제로» → e8t 대신 e8pp
+    sq: [{ h: '수업 전 · 현재완료 4가지 용법', ids: ['e8pp'] }, { h: '7과 의사소통 · 학교 학습지 ①② → 기출비·선생님 스타일', ids: ['ws7c1r2', 'ws7c2r2', 'e7cx'] }, { h: '8과 문법 · 학교 학습지 꼴 → 기출비 상·중상', ids: ['e8gw', 'e8gx'] }, { h: '8과 본문 · 학교 학습지 꼴 → 기출비 상·중상', ids: ['e8rw', 'e8rx'] }],
     qx: [{ id: 'e8xm', title: '8과 본문 · 학교 스타일 중 15문제', sub: '선생님 스타일 실전 1·2회 본문 지문 문제 · 중', from: ['e8:t1', 'e8:t2'], lv: [2], k: 15 },
       { id: 'e8xh', title: '8과 본문 · 학교 스타일 상 15문제', sub: '선생님 스타일 실전·심화 본문 지문 문제 · 상', from: ['e8:t1', 'e8:t2', 'e8:t7'], lv: [3], k: 15 }] };
   const ygPlan = (date) => { const o = { ...(((LS0.tests || {})[date]) || {}), ...(((S.jwt || {})[date]) || {}), ...(YG_JWT_FIX[date] || {}) }; return { units: (o.units || []).length ? o.units.map(Number) : null, days: (o.days || []).length ? o.days.map(Number) : null, m3: (o.m3 || []).length ? o.m3.map(Number) : null, tu: (o.tu || []).length ? o.tu.map(Number) : null, gr: (o.gr || []).length ? o.gr.map(String) : null, gt: (o.gt || []).length ? o.gt.map(String) : null, tx: (o.tx || []).length ? o.tx.map(String) : null, off: o.off || [], rq: (o.rq || []).map(String), gl: o.gl || {}, gx: (o.gx || []).map(String), lt: (o.lt || []).map(String), rqa: o.rqa || [], wsLast: !!o.wsLast, noWs: !!o.noWs, wsDone: !!o.wsDone, qx: o.qx || [], sq: o.sq || [], tp: o.tp || {}, n: o.n || 15, wn: o.wn || 20, mn: o.mn || 10 }; };
@@ -9382,7 +9382,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241746'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611242054'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
