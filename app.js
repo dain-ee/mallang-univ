@@ -2578,7 +2578,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611241416', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611241454', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3154,6 +3154,12 @@
       const d = dn ? `${okn}/${n} 맞힘 · 끝냈어요` : st === 'rc' ? `떠올리기 → 원문 → 변형 문제 ${n}개${(x.x.key || []).length ? ' → 핵심 문장' : ''}` : st === 'rd' ? (FIN_SKIP1.has(x.id) ? '처음 보는 지문 · ② 원문 읽기부터' : '② 원문 다시 읽기 차례예요') : st === 'q' ? `③ 변형 문제 ${qn}/${n}` : st === 'k' ? '④ 핵심 문장 쓰기 차례예요' : `${OLP_NOKEY ? '④' : '⑤'} 틀린 문제 ${r2Wrong(x).length}개 다시 풀기`;
       return { k: 'r2:' + x.id, id: 'r2:' + x.id, icon: 'eng', t: `올림포스 2회독 · ${r2Short(x)}`, d, tg: [!dn && st !== 'rc' ? [`${NO[st]}/${OLP_NOKEY ? 4 : 5}단계`, 'blue'] : null, !dn ? [`2회독 끝 ${ddTxt(R2.reduce((m, y) => (y.day > m ? y.day : m), ''))}`, ''] : null], done: dn, late: x.day < t };
     });
+  }
+  // 11/24 «왜 이렇게 하기 싫게 만들어 놨어, 읽기 싫게» → 맞춤법 규칙은 한 줄 요약 + 예를 낱말 칩으로, 된소리·바른 말만 색으로 콕
+  const spTense = (w, k) => [...w].map((ch) => { const c = ch.charCodeAt(0) - 0xAC00; return c >= 0 && c < 11172 && (k === 's' ? c % 28 === 19 : [1, 4, 8, 10, 13].includes(Math.floor(c / 588))) ? `<em>${ch}</em>` : esc(ch); }).join('');
+  const spChip = (x, r) => Array.isArray(x) ? (r.k === 'arrow' ? `<span class="sp-c">${esc(x[0])}<i>→</i><b>${esc(x[1])}</b></span>` : `<span class="sp-c sp-ox"><b>${esc(x[0])}</b><s>${esc(x[1])}</s></span>`) : `<span class="sp-c${r.k === 'no' ? ' sp-plain' : ''}"><span>${r.hl ? spTense(x, r.hl) : esc(x)}</span></span>`;
+  function spCard(b) {
+    return `${b.easy ? `<p class="sp-easy">${r2U(b.easy).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</p>` : ''}${b.rows.map((r) => `<div class="sp-row"><div class="sp-lab">${esc(r.lab)}${r.sub ? `<span>${esc(r.sub)}</span>` : ''}</div>${r.cols ? `<div class="sp-cols">${r.cols.map((c) => `<div><span class="sp-ct">${esc(c.t)}</span><div class="sp-cs">${c.ex.map((x) => spChip(x, c)).join('')}</div></div>`).join('')}</div>` : `<div class="sp-cs">${r.ex.map((x) => spChip(x, r)).join('')}</div>`}</div>`).join('')}${b.orig ? `<details class="sp-orig"><summary>프린트 원문 보기</summary>${b.orig.map((t) => `<p>${r2U(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</p>`).join('')}</details>` : ''}`;
   }
   function r2U(t) { return esc(t).replace(/&lt;(\/?)u&gt;/g, '<$1u>'); }
   // 채점 비교: 문장부호(쉼표·마침표·따옴표·쌍점·줄표)는 다 빼고 낱말만, 대소문자 무시. 굽은 아포스트로피(don’t)와 곧은 것(don't)은 같게 쳐요
@@ -3737,7 +3743,7 @@
     }
     if (st === 'rd') {
       const cards = x.cs.map((c) => { const done = finDone(c); return `<div class="r2s-c"><div class="row between" style="margin:20px 0 8px"><h3 class="r2s-ct">${esc(c.title)}</h3>${done ? '' : '<span class="tag">1회독 전</span>'}</div>${done ? '' : `<div class="ls-box warn" style="margin:0 0 12px"><b>이 개념은 1회독을 아직 안 했어요</b><p>여기서 1회독 내용을 읽는 것으로 대신해요. 천천히 읽고 넘어가요</p></div>${c.sum && !(/^hist/.test(x.sj) && (X.study || []).length) ? finRead(c) : ''}`}${finSumHtml(c)}${(done || (/^hist/.test(x.sj) && (X.study || []).length)) && c.sum ? `<details class="hw-more"><summary><b>교과서 풀이 다시 읽기</b></summary>${finRead(c)}</details>` : ''}</div>`; }).join('');
-      const study = X.lesson ? `<iframe class="r2s-lesson" src="${esc(X.lesson)}" title="개념 보기" style="width:100%;height:1400px;border:0;display:block;margin-top:12px;background:transparent"></iframe>` : (X.study || []).map((b) => `<section class="card r2s-study" style="margin-top:12px">${b.h ? `<h3 class="r2s-ct" style="margin:0 0 8px">${esc(b.h)}</h3>` : ''}${b.map === 'cur' ? cmHtml() : b.img ? `<img src="${esc(b.img)}" alt="${esc(b.h || '그림')}" loading="lazy" style="width:100%;border-radius:12px;display:block">` : ''}${b.cap && b.map !== 'cur' ? `<p class="tiny" style="margin:6px 0 0">${esc(b.cap)}</p>` : ''}${(b.p || []).map((t) => `<p style="margin:8px 0 0;line-height:1.75">${esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</p>`).join('')}${(b.figs || []).map((f, fi) => `<figure class="r2s-fig" style="--i:${fi}"><img src="${esc(f.img)}" alt="${esc(f.cap || '그림')}" loading="lazy"><figcaption>${esc(f.cap || '')}</figcaption></figure>`).join('')}${(b.pts || []).length ? `<ol class="r2s-rules">${b.pts.map((q, i) => `<li style="--i:${i}"><span class="r2s-rn">${i + 1}</span><div><b>${r2sHl(q.t)}</b>${(q.d || []).map((t) => `<span>${r2sHl(t)}</span>`).join('')}</div></li>`).join('')}</ol>` : ''}${b.table ? `<div class="tbl-wrap" style="margin-top:8px"><table class="q-tbl r2s-tbl">${b.table.map((row, ri) => `<tr>${row.map((c) => (ri ? `<td>${esc(c)}</td>` : `<th>${esc(c)}</th>`)).join('')}</tr>`).join('')}</table></div>` : ''}</section>`).join('');  // 11/15 해류: 교과서 지도 + 외우는 규칙 · 11/21 lesson 있으면 탭 화면(iframe)
+      const study = X.lesson ? `<iframe class="r2s-lesson" src="${esc(X.lesson)}" title="개념 보기" style="width:100%;height:1400px;border:0;display:block;margin-top:12px;background:transparent"></iframe>` : (X.study || []).map((b) => `<section class="card r2s-study" style="margin-top:12px">${b.h ? `<h3 class="r2s-ct" style="margin:0 0 8px">${esc(b.h)}</h3>` : ''}${b.rows ? spCard(b) : ''}${b.map === 'cur' ? cmHtml() : b.img ? `<img src="${esc(b.img)}" alt="${esc(b.h || '그림')}" loading="lazy" style="width:100%;border-radius:12px;display:block">` : ''}${b.cap && b.map !== 'cur' ? `<p class="tiny" style="margin:6px 0 0">${esc(b.cap)}</p>` : ''}${(b.p || []).map((t) => `<p style="margin:8px 0 0;line-height:1.75">${r2U(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</p>`).join('')}${(b.figs || []).map((f, fi) => `<figure class="r2s-fig" style="--i:${fi}"><img src="${esc(f.img)}" alt="${esc(f.cap || '그림')}" loading="lazy"><figcaption>${esc(f.cap || '')}</figcaption></figure>`).join('')}${(b.pts || []).length ? `<ol class="r2s-rules">${b.pts.map((q, i) => `<li style="--i:${i}"><span class="r2s-rn">${i + 1}</span><div><b>${r2sHl(q.t)}</b>${(q.d || []).map((t) => `<span>${r2sHl(t)}</span>`).join('')}</div></li>`).join('')}</ol>` : ''}${b.table ? `<div class="tbl-wrap" style="margin-top:8px"><table class="q-tbl r2s-tbl">${b.table.map((row, ri) => `<tr>${row.map((c) => (ri ? `<td>${esc(c)}</td>` : `<th>${esc(c)}</th>`)).join('')}</tr>`).join('')}</table></div>` : ''}</section>`).join('');  // 11/15 해류: 교과서 지도 + 외우는 규칙 · 11/21 lesson 있으면 탭 화면(iframe)
       return wrap(`${seg}<p class="sub" style="margin:0">${r2sFirst(x) ? (X.rdSub || (/^eng[tn]/.test(x.sj) ? '① 오늘 처음 읽는 글이에요. 어디서 나오는 글인지 보고, 한 문장씩 읽으며 해석과 맞춰 본 다음 문제로 가요' : '① 오늘 처음 보는 개념이에요. 위에서부터 이야기처럼 천천히 읽고, 헷갈리는 것까지 본 다음 문제로 가요')) : study ? (X.rdSub || (/^(eng[tn]|math)/.test(x.sj) ? '② 원문과 정리를 다시 보면서 떠올리기에서 빠뜨린 것을 찾아봐요' : (/^hist/.test(x.sj) ? '② 왜 일어났고 어떻게 됐는지 카드 순서대로 다시 봐요. 떠올리기에서 빠뜨린 것을 찾아봐요' : '② 지도와 규칙을 보면서 떠올리기에서 빠뜨린 것을 찾아봐요'))) : '② 1회독 때 본 정리를 다시 훑어봐요. 떠올리기에서 빠뜨린 것을 눈으로 찾아봐요'}</p>${study}${cards || (study ? '' : '<section class="card"><p class="sub">이 덩어리의 1회독 카드를 찾지 못했어요</p></section>')}<div class="cta-bar"><button class="btn primary big block" data-r2sgo="q" type="button">${A.rd && auto !== 'q' ? '다음 ›' : `다 봤어요 · 학교 꼴 문제 ${qs.length}개 풀기 ›`}</button></div>`);
     }
     if (st === 'q' && X.mock && !r.xpErr && (!A.paper || qs.every((q, k) => q.type === 'mc' || A['q' + k]))) { try { return `<div class="qwrap xp-wrap">${head}${seg}${r2sPaper(x, xpLoad(x), r)}</div>`; } catch (e) { r.xpErr = 1; console.error('xp', e); } }
@@ -4330,6 +4336,7 @@
   const SR_TEST = (() => { try { return localStorage.getItem('mu:offline') === '1' && localStorage.getItem('mu:sr') === '1'; } catch (e) { return false; } })();  // 테스트: 과외 학생 오프라인 탭에서도 리포트를 열어 봐요
   if (SR_TEST) window.__myRow = (id) => { const L = myTasks().filter((t) => t.k === 'my:' + id); return L.map((t) => `<div class="li btnlike" data-task="${esc(t.k)}"><div class="ico">${ic(t.icon)}</div><div class="body"><div class="t">${esc(t.t)}</div><div class="d">${esc(t.d)}</div></div>${myRowTm(t.k, t.done)}</div>`).join(''); };
   if (SR_TEST) window.__myGo = (id) => myGoAsk(id);
+  if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) { window.__go = (k) => startTask(k); window.__fin = (id) => dayGo('fincid:' + id); window.__ui = UI; window.__render = () => render(); window.__pf = () => pfAsk(); window.__gd = () => gdModal(); }  // 11/24 내 컴퓨터에서만: 오늘 바뀐 화면을 탭마다 바로 띄워 보여 주려고
   if (SR_TEST) window.__rowTm = (k, ti) => myRowTm(k, false, ti);
   if (SR_TEST) window.__inkTest = () => { const c = INK[0]; inkLec(c.id, c.lectures[0].no); return c.id + ':' + c.lectures[0].no; };
   if (SR_TEST) window.__hwTest = (h) => { S.hw = S.hw || []; if (!S.hw.some((x) => x.id === h.id)) S.hw.push(h); hwSheet(h.id); };
@@ -5443,7 +5450,7 @@
     { id: 'r1124', date: '2026-11-24', t: '시험 범위랑 날짜가 학교 공지랑 맞아?', ban: '시험 날짜·범위를 학교 공지대로 고쳤어요', sub: '기말 12/14~12/18 · 전 과목', html: '<p>학교 홈페이지 11/23 공지 「2학기 2차 정기시험 일정 및 출제 범위」대로 다시 맞췄어요.</p><p><b>시간표</b><br>12/14(월) 공통수학2, 한국사2<br>12/15(화) 통합사회2 (논술형 있음)<br>12/16(수) 공통영어2 (논술형 있음)<br>12/17(목) 공통국어2<br>12/18(금) 통합과학2</p><p><b>새로 넣은 것</b><br>· 통합사회: Ⅳ·Ⅴ단원(교과서 98~151쪽, 개념완성 108~169쪽)이 빠져 있어서 새로 넣었어요. 따로 1회독 없이 2회독에서 교과서 내용을 먼저 읽고 바로 문제를 풀어요<br>· 영어: 교과서 Unit 4 본문(89~93쪽)과 올림포스 서술형·논술형 Practice<br>· 국어: 교과서 90~91쪽, 168~169쪽과 올림포스 기출 지문<br>· 한국사: 110~111쪽 단원 마무리와 개념완성 종합 문제<br>· 통합과학: 부교재에만 있는 개념 보충 3개</p><p>범위 밖이라 뺀 것도 있어요. 한국사 「냉전 체제의 형성」(66~67쪽), 국어 「박씨전」(92~93쪽), 과학 송전·변압기 계산이에요.</p><p>과목마다 시험 7일 전에 끝나게 날짜를 다시 나눴어요. 양이 많은 날은 과목 시험 순서대로(수학·한국사 → 사회 → 영어 → 국어 → 과학) 먼저 해요.</p>', links: [] },
     { id: 'pe24', date: '2026-11-24', t: '체육 어디 갔지? 저번에 만들어 준 수행평가', ban: '체육 수행평가 외우기 다시 넣었어요', sub: '체육 운동 손상 · 숙제 탭', html: '<p>11/19에 수행평가 두 개를 숙제에서 빼면서 체육도 같이 빠졌어요. <b>체육 운동 손상 외우기를 다시 넣었어요.</b> 숙제 탭에 있어요.</p><p>수행평가 날짜를 알게 되면 꼭 넣어 주세요. 그날까지 외우기 단계를 나눠 줄게요. 아직 모르면 「아직 날짜를 몰라요」를 누르면 돼요.</p>', links: [] },
     { id: 'e14', date: '2026-11-24', t: '학교는 13강인데 14강부터 예습이 너무 빡빡해', ban: '올림포스 일정 새로 짰어요 · 하루 4지문', sub: '올림포스 2회독·3회독·모고 · 12/9에 끝', html: '<p>남은 예습 9개(14강 Practice 03부터 16강까지)는 <b>숙제에서 뺐어요</b>. 이 지문들은 2회독에서 처음 보고, 「떠올리기」 없이 <b>원문 읽기부터</b> 해요.</p><p>밀려 있던 것까지 다시 나눴어요. <b>하루 4지문</b>이면 돼요(일요일은 쉬어요).</p><p>· 2회독 남은 20개: 11/24~12/3, 하루 2~3개<br>· 3회독 남은 27개: 11/24~12/7, 그 지문 2회독 4일 뒤부터<br>· 모고: 12/8, 12/9</p><p>영어 시험(12/16) 일주일 전에 다 끝나요.</p>', links: [] },
-    { id: 'k1123', date: '2026-11-24', t: '어제 카톡으로 부탁한 것, 다 만들었어요', ban: '카톡으로 부탁한 것 다 만들었어요', sub: '과학 · 사회 · 국어 · 영어', html: '<p><b>과학</b> 작년 2학기 1차 기출 20~23번(표시한 문제)을 오늘 숙제로 넣었어요. 다른 학교 기출 3문제와 개념완성 1문제는 3회독에 더했어요.</p><p><b>통합사회</b> 2회독·3회독 문제를 개념완성 문제 그대로이거나 조금 더 어렵게 바꿨어요. 10월 학평 통합사회 기출 4문항도 넣었어요.</p><p><b>국어</b> 범위를 11/18 공지대로 고쳤어요. 맞춤법 문제는 마더텅 수준의 학평·모평 기출로 바꿨고, 직접 낸 문제는 국어사전 예문으로 만들었어요. 10월 학평 독서 지문 4개를 원문 그대로 오늘부터 하나씩 풀어요.</p><p><b>영어</b> 올림포스 2회독·3회독·모고 화면 아래에 「내 필기」 칸이 생겼어요. 쓰면 바로 저장돼요.</p><p>올림포스 국어 기출 65~66, 95~97, 157~158쪽은 책 사진이 없어서 아직 못 넣었어요. 그 쪽 사진을 보내 주면 넣을게요.</p>', links: [{ k: 'r2s', id: 'P7', t: '과학 작년 기출 20~23번 풀기' }, { k: 'r2s', id: 'D1', t: '국어 10월 학평 독서 지문 풀기' }] },
+    { id: 'k1123', date: '2026-11-24', t: '어제 카톡으로 부탁한 것, 다 만들었어요', ban: '카톡으로 부탁한 것 다 만들었어요', sub: '과학 · 사회 · 국어 · 영어', html: '<p><b>과학</b> 작년 2학기 1차 기출 20~23번(표시한 문제)을 오늘 숙제로 넣었어요. 다른 학교 기출 3문제와 개념완성 1문제는 3회독에 더했어요.</p><p><b>통합사회</b> 2회독·3회독 문제를 개념완성 문제 그대로이거나 조금 더 어렵게 바꿨어요. 10월 학평 통합사회 기출 4문항도 넣었어요.</p><p><b>국어</b> 범위를 11/18 공지대로 고쳤어요. 맞춤법 문제는 마더텅 수준의 학평·모평 기출로 바꿨고, 직접 낸 문제는 국어사전 예문으로 만들었어요. 10월 학평 독서 지문 4개를 원문 그대로 오늘부터 하나씩 풀어요.</p><p><b>영어</b> 올림포스 2회독·3회독·모고 화면 아래에 「내 필기」 칸이 생겼어요. 쓰면 바로 저장돼요.</p><p>올림포스 국어 기출 65·95·157쪽(이춘풍전, 강호사시가·상춘곡·입춘, 유동성과 통화 정책)은 보내 준 책 사진대로 지문 띄어쓰기와 밑줄, 해설을 다시 맞췄어요. 해설은 책 정답과 해설 그대로예요.</p>', links: [{ k: 'r2s', id: 'P7', t: '과학 작년 기출 20~23번 풀기' }, { k: 'r2s', id: 'D1', t: '국어 10월 학평 독서 지문 풀기' }] },
     { id: 'lr', sj: 'hist', date: '2026-11-20', t: '그때 좌익·우익은 뭘로 나눠요? 한국 독립당·한국 민주당은요?', sub: '한국사 · 광복 직후 좌우 세력', html: GD_LR, links: [] },
     { id: 'tmp', date: '2026-11-18', t: '멈추기 하면 시간이 안 멈춰', sub: '시간 재기 · 멈추기', html: '<p>숙제 화면 안에서 멈추기를 누르면, 화면이 다시 그려질 때 저절로 다시 켜지고 있었어요. 이제 직접 멈춘 건 「이어 하기」를 누를 때까지 멈춰 있어요.</p>', links: [] },
     { id: 'hcw', date: '2026-11-18', t: '한국사에서 냉전 체제 부분은 범위 아니야', sub: '한국사 · 66~67쪽 빼기', html: '<p>66~67쪽 「냉전 체제의 형성」 문제를 2회독·3회독·마지막 모의 시험에서 다 뺐어요. 2회독 첫 덩어리는 이제 「광복과 국토의 분단 (68~69쪽)」만 나와요.</p><p>114쪽 「냉전의 해체」는 다른 단원이라 그대로 있어요.</p>', links: [] },
@@ -8951,7 +8958,7 @@
       const last = ms[ms.length - 1], blk = last.closest(MK_BL) || last.parentNode; n++;
       const sup = document.createElement('sup'); sup.className = 'mk-n'; sup.textContent = n; last.after(sup);
       const d = document.createElement('span'); d.className = 'mk-note' + (e.k === 'q' ? ' mk-note-q' : ''); d.dataset.n = e.id;
-      d.innerHTML = `<b>${n}</b><span>${e.k === 'q' ? '<em>질문</em> ' : ''}${esc(e.body)}${e.k === 'q' ? `<i>${e.a ? esc(e.a).replace(/\n/g, '<br>') : '아직 답이 없어요'}</i>` : ''}</span>`;
+      d.innerHTML = `<button type="button" class="mk-nx" data-mknx="${e.id}" aria-label="필기 지우기">×</button><b>${n}</b><span>${e.k === 'q' ? '<em>질문</em> ' : ''}${esc(e.body)}${e.k === 'q' ? `<i>${e.a ? esc(e.a).replace(/\n/g, '<br>') : '아직 답이 없어요'}</i>` : ''}</span>`;
       blk.appendChild(d); rows.push([n, e, ms[0]]);
     }
     if (!rows.length) return;
@@ -8964,7 +8971,9 @@
     const bar = document.createElement('div'); bar.className = 'mk-bar'; bar.hidden = true; document.body.appendChild(bar);
     let cur = null, ul = false;
     const hide = () => { bar.hidden = true; cur = null; };
-    const draw = () => { bar.innerHTML = `${MK_C.map((c, i) => `<button type="button" class="mk-sw mk-${c}${ul ? ' mk-u' : ''}" data-mkc="${c}" style="--i:${i}" aria-label="색 ${i + 1}"><i>가</i></button>`).join('')}<button type="button" class="mk-md" data-mkm>${ul ? '밑줄' : '형광펜'}</button>${cur && cur.id ? '<button type="button" class="mk-md" data-mkdel>지우기</button>' : '<button type="button" class="mk-md mk-ask" data-mka="q">질문</button><button type="button" class="mk-md" data-mka="m">필기</button>'}`; bar.dataset.mode = ''; };
+    // 11/24 «밑줄 하이라이트 두 개 있게, 밑줄 누르면 하이라이트로 바뀌지 말고» → 형광펜 줄과 밑줄 줄을 따로
+    const draw = () => { const row = (u, lb) => `<div class="mk-row"><span class="mk-lb">${lb}</span>${MK_C.map((c, i) => `<button type="button" class="mk-sw mk-${c}${u ? ' mk-u' : ''}" data-mkc="${c}" data-mku="${u}" aria-label="${lb} 색 ${i + 1}"><i>가</i></button>`).join('')}</div>`;
+      bar.innerHTML = `${row(0, '형광펜')}${row(1, '밑줄')}<div class="mk-row mk-acts"><button type="button" class="mk-md mk-ask" data-mka="q">질문</button><button type="button" class="mk-md" data-mka="m">필기</button></div>`; bar.dataset.mode = ''; };
     const form = (k) => { bar.dataset.mode = 'form'; bar.innerHTML = `<div class="mk-form"><p class="mk-sel">${esc(cur.sel.slice(0, 80))}${cur.sel.length > 80 ? '…' : ''}</p><textarea id="mk-ta" rows="3" placeholder="${k === 'q' ? '이 부분에서 궁금한 것을 적어요' : '이 문장 옆에 적을 필기를 써요'}"></textarea><div class="mk-fb"><button type="button" class="mk-md" data-mkx>취소</button><button type="button" class="mk-md mk-go" data-mksend="${k}">${k === 'q' ? '질문 보내기' : '필기 붙이기'}</button></div></div>`; place(cur.rect); setTimeout(() => { const t = $('#mk-ta', bar); if (t) t.focus(); }, 50); };
     const addMark = (c, nid) => { const key = mkKey(); S.mk = S.mk || {}; const L = (S.mk[key] || []).slice(), rg = cur.rg, G = new Map(), root = rg.commonAncestorContainer.nodeType === 1 ? rg.commonAncestorContainer : rg.commonAncestorContainer.parentElement, w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n;
       while ((n = w.nextNode())) { if (!rg.intersectsNode(n)) continue; const blk = mkBlk(n); if (!blk) continue; const a = n === rg.startContainer ? rg.startOffset : 0, z = n === rg.endContainer ? rg.endOffset : n.nodeValue.length; if (z <= a) continue; if (!G.has(blk)) G.set(blk, { t: '', first: n, a }); G.get(blk).t += n.nodeValue.slice(a, z); }
@@ -8995,19 +9004,23 @@
     bar.addEventListener('pointerdown', (e) => { if (!e.target.closest('textarea')) e.preventDefault(); });
     bar.addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b || !cur) return;
-      if (b.dataset.mkm != null) { ul = !ul; draw(); return; }
       if (b.dataset.mka) { form(b.dataset.mka); return; }
       if (b.dataset.mkx != null) { bar.dataset.mode = ''; hide(); return; }
       if (b.dataset.mksend) { send(b.dataset.mksend); return; }
       if (b.dataset.mkqna != null) { bar.dataset.mode = ''; hide(); UI.run = null; UI.tab = 'qna'; render(); scrollTo(0, 0); return; }
       const key = mkKey(); S.mk = S.mk || {}; let L = (S.mk[key] || []).slice();
-      if (b.dataset.mkdel != null) { L = L.filter((m) => m.id !== cur.id); $$(`mark.mk[data-mk="${cur.id}"]`).forEach((x) => x.replaceWith(...x.childNodes)); }
-      else if (cur.id) { const m = L.find((x) => x.id === cur.id); if (m) { m.c = b.dataset.mkc; m.u = ul ? 1 : 0; $$(`mark.mk[data-mk="${cur.id}"]`).forEach((x) => (x.className = `mk mk-${m.c}${m.u ? ' mk-u' : ''} mk-new`)); } }
-      else { S.mk[key] = L; addMark(b.dataset.mkc); L = (S.mk[key] || []).slice(); }
+      if (!b.dataset.mkc) return; ul = b.dataset.mku === '1'; S.mk[key] = L; addMark(b.dataset.mkc); L = (S.mk[key] || []).slice();
       if (L.length) S.mk[key] = L; else delete S.mk[key];
       save('mk'); window.getSelection().removeAllRanges(); hide();
     });
-    document.addEventListener('click', (e) => { const m = e.target.closest && e.target.closest('mark.mk'); if (!m) { if (!bar.contains(e.target) && cur && cur.id && bar.dataset.mode !== 'form') hide(); return; } if (String(window.getSelection()).trim()) return; cur = { id: m.dataset.mk }; ul = m.classList.contains('mk-u'); draw(); place(m.getBoundingClientRect()); });
+    // 11/24 «이거 다시 누르면 삭제» · «필기는 오른쪽 위에 삭제»
+    const mkDrop = (ids) => { const key = mkKey(), L = ((S.mk || {})[key] || []).filter((m) => !ids.includes(m.id)); if (L.length) S.mk[key] = L; else if (S.mk) delete S.mk[key]; for (const id of ids) $$(`mark.mk[data-mk="${id}"]`).forEach((x) => { x.classList.add('mk-out'); setTimeout(() => { if (x.parentNode) x.replaceWith(...x.childNodes); }, 220); }); };
+    document.addEventListener('click', (e) => {
+      const nx = e.target.closest && e.target.closest('[data-mknx]');
+      if (nx) { const id = nx.dataset.mknx, L = ((S.mk || {})[mkKey()] || []).filter((m) => m.n === id).map((m) => m.id); S.ask = (S.ask || []).filter((x) => x.id !== id); const box = nx.closest('.mk-note'); if (box) box.classList.add('mk-out'); mkDrop(L); save('ask', 'mk'); setTimeout(mkApply, 240); toast('필기를 지웠어요'); return; }
+      const m = e.target.closest && e.target.closest('mark.mk'); if (!m) { if (!bar.contains(e.target) && bar.dataset.mode !== 'form' && !String(window.getSelection()).trim()) hide(); return; } if (String(window.getSelection()).trim()) return;
+      const mm = ((S.mk || {})[mkKey()] || []).find((x) => x.id === m.dataset.mk); if (mm && mm.n) { toast('필기가 달린 줄은 필기 칸 오른쪽 위 ×로 지워요'); return; }
+      mkDrop([m.dataset.mk]); save('mk'); });
     addEventListener('scroll', () => { if (!bar.hidden && bar.dataset.mode !== 'form' && !(String(window.getSelection()).trim())) hide(); }, { passive: true });
     const mkR0 = render; render = function () { const r = mkR0.apply(this, arguments); setTimeout(mkApply, 30); return r; };
     setTimeout(mkApply, 600);
@@ -9356,7 +9369,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241416'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241454'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
