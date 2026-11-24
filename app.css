@@ -5479,7 +5479,7 @@ main.lv-calm2 .lv-helpb { animation: none !important; }
 .gdm-b .q-tbl { width: 100%; font-size: 14px; }
 .gdm-b .q-tbl th, .gdm-b .q-tbl td { padding: 8px 6px; text-align: left; white-space: nowrap; }
 .gdm-f { margin: 10px 0 0; text-align: center; }
-.gdm .cta-bar { position: sticky; bottom: 0; margin-top: 8px; padding-top: 8px; background: var(--card); }
+.gdm .cta-bar { position: sticky; bottom: 0; margin-top: 8px; padding-top: 8px; background: var(--card); box-shadow: 0 -14px 14px -4px var(--card), 0 40px 0 var(--card); }  /* 11/25 긴 알림 글이 단추 밑으로 비치던 것 */
 @keyframes gdmIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .sheet:has(.gdm) .sh-back { visibility: hidden; }
 

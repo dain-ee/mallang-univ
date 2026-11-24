@@ -2590,7 +2590,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611250803', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611250810', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -9403,7 +9403,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611250803'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611250810'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -9607,7 +9607,7 @@
         ${cal()}
         <div class="explain" style="margin:12px 0"><b>${A === B ? esc(mdw(A)) : `${esc(mdw(A))} ~ ${esc(mdw(B))} · ${R.days.length}일`}</b><br>${ls.map(esc).join('<br>')}</div>
         <button class="btn primary big block" id="pr-go" type="button">리포트 만들기</button>`; };
-    sheet(`<h2>${esc(who)}께 보낼 공부 리포트</h2><p class="sub">기간만 고르면 그동안 ${esc(name)}가 앱에서 한 공부로 그림 한 장을 만들어요</p><div id="pr-body"></div>`, (el) => {
+    sheet(`<h2>${esc(who)}께 보낼 공부 리포트</h2><p class="sub">기간만 고르면 그동안 ${esc(name + (jongOf(name) ? '이' : ''))}가 앱에서 한 공부로 그림 한 장을 만들어요</p><div id="pr-body"></div>`, (el) => {
       const draw = () => {
         $('#pr-body', el).innerHTML = body();
         $$('[data-prp]', el).forEach((b) => (b.onclick = () => { sel = UI.prSel = b.dataset.prp; half = false; range(); cm = UI.prM = B.slice(0, 7); draw(); }));
@@ -9867,7 +9867,8 @@
     if (!UI.mStu || !info.some((x) => x.r.name === UI.mStu)) UI.mStu = info[0].r.name;
     const x = info.find((y) => y.r.name === UI.mStu), d = x.d || {}, n = d.note || {}, nm = x.r.name;
     const own = (d.profile && d.profile.skins) || [], gl = [...(d.gifts || []), ...(d.gift && d.gift.skin ? [d.gift] : [])];
-    const st = n.at ? (n.thx ? `${esc(nm)}가 「고마워요」 했어요` : n.seen ? `${esc(nm)}가 봤어요` : '아직 안 봤어요') : '';
+    const nmi = nm + (jongOf(nm) ? '이' : '');  // 11/25 「정윤가 봤어요」 → 「정윤이가」
+    const st = n.at ? (n.thx ? `${esc(nmi)}가 「고마워요」 했어요` : n.seen ? `${esc(nmi)}가 봤어요` : '아직 안 봤어요') : '';
     return `<section class="card c12 dm-card"><div class="card-h"><h2>${ic('mega')} 학생에게</h2>${st ? `<span class="tiny">${st}</span>` : ''}</div>
       <div class="chips" style="margin-bottom:12px">${info.map((y) => `<button class="chip sm ${y.r.name === nm ? 'on' : ''}" data-mst="${esc(y.r.name)}" type="button"><i class="sv-dot" style="--sc:${esc(sColor(y.r))}"></i>${esc(y.r.name)}</button>`).join('')}</div>
       ${loading(x) ? '<p class="tiny">불러오는 중이에요</p>' : `<div class="eyebrow" style="margin-bottom:6px">한마디 · 학생 홈 맨 위에 떠요</div><textarea id="dm-t" class="inp" rows="2" style="min-height:72px" placeholder="오늘 ${esc(nm)}에게 하고 싶은 말">${esc(n.text || '')}</textarea>
