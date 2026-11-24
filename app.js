@@ -350,8 +350,8 @@
   const R2_MOVE = { 'eng-p109': '2026-11-27', 'eng-p110': '2026-11-28' };
   // 11/19 «정윤 영어 좀 줄이거나 늦춰»: 2회독 8개가 밀려 하루 영어가 2시간 넘었어요. 핵심 문장 쓰기(7지문 모두 0/2, 3회독에서 또 다시 쓰기)는 빼고,
   //   안 끝낸 2회독은 오늘부터 하루 2~3개로, 3회독은 11/19부터 사이사이에 넣어 12/1 에 끝나요 (1회독 → 2회독 → 3회독 사이 사흘 넘게). 3회독 새 문제는 3개 → 1개. 실전 12/2·12/3 은 그대로
-  const OLP_NOKEY = true, R2_DAY = { 'eng-p072': '2026-11-19', 'eng-p074': '2026-11-19', 'eng-p076': '2026-11-20', 'eng-p077': '2026-11-20', 'eng-p078': '2026-11-21', 'eng-p080': '2026-11-21', 'eng-p082': '2026-11-23', 'eng-p083': '2026-11-23', 'eng-p084': '2026-11-23', 'eng-p088': '2026-11-24', 'eng-p090': '2026-11-24', 'eng-p091': '2026-11-24', 'eng-p092': '2026-11-25', 'eng-p094': '2026-11-25', 'eng-p096': '2026-11-25', 'eng-p097': '2026-11-26', 'eng-p098': '2026-11-26', 'eng-p100': '2026-11-26', 'eng-p102': '2026-11-27', 'eng-p103': '2026-11-27', 'eng-p104': '2026-11-27', 'eng-p106': '2026-11-28', 'eng-p108': '2026-11-28', 'eng-p109': '2026-11-28', 'eng-p110': '2026-11-28' },
-    R3_DAY = { 'eng-p060': '2026-11-19', 'eng-p062': '2026-11-20', 'eng-p063': '2026-11-21', 'eng-p064': '2026-11-23', 'eng-p068': '2026-11-23', 'eng-p070': '2026-11-24', 'eng-p071': '2026-11-24', 'eng-p072': '2026-11-25', 'eng-p074': '2026-11-25', 'eng-p076': '2026-11-26', 'eng-p077': '2026-11-26', 'eng-p078': '2026-11-27', 'eng-p080': '2026-11-27', 'eng-p082': '2026-11-29', 'eng-p083': '2026-11-29', 'eng-p084': '2026-11-29', 'eng-p088': '2026-11-29', 'eng-p090': '2026-11-29', 'eng-p091': '2026-11-30', 'eng-p092': '2026-11-30', 'eng-p094': '2026-11-30', 'eng-p096': '2026-11-30', 'eng-p097': '2026-11-30', 'eng-p098': '2026-11-30', 'eng-p100': '2026-11-30', 'eng-p102': '2026-12-01', 'eng-p103': '2026-12-01', 'eng-p104': '2026-12-01', 'eng-p106': '2026-12-01', 'eng-p108': '2026-12-01', 'eng-p109': '2026-12-01', 'eng-p110': '2026-12-01' };
+  const OLP_NOKEY = true, R2_DAY = { 'eng-p072': '2026-11-19', 'eng-p074': '2026-11-19', 'eng-p076': '2026-11-20', 'eng-p077': '2026-11-20', 'eng-p078': '2026-11-21', 'eng-p080': '2026-11-21', 'eng-p082': '2026-11-23', 'eng-p083': '2026-11-23', 'eng-p084': '2026-11-23', 'eng-p088': '2026-11-24', 'eng-p090': '2026-11-24', 'eng-p091': '2026-11-24', 'eng-p092': '2026-11-25', 'eng-p094': '2026-11-25', 'eng-p096': '2026-11-25', 'eng-p097': '2026-11-26', 'eng-p098': '2026-11-30', 'eng-p100': '2026-11-30', 'eng-p102': '2026-12-01', 'eng-p103': '2026-12-01', 'eng-p104': '2026-12-02', 'eng-p106': '2026-12-02', 'eng-p108': '2026-12-03', 'eng-p109': '2026-12-03', 'eng-p110': '2026-12-04' },
+    R3_DAY = { 'eng-p060': '2026-11-19', 'eng-p062': '2026-11-20', 'eng-p063': '2026-11-21', 'eng-p064': '2026-11-23', 'eng-p068': '2026-11-23', 'eng-p070': '2026-11-24', 'eng-p071': '2026-11-24', 'eng-p072': '2026-11-25', 'eng-p074': '2026-11-25', 'eng-p076': '2026-11-26', 'eng-p077': '2026-11-26', 'eng-p078': '2026-11-27', 'eng-p080': '2026-11-27', 'eng-p082': '2026-11-29', 'eng-p083': '2026-11-29', 'eng-p084': '2026-11-29', 'eng-p088': '2026-11-29', 'eng-p090': '2026-11-29', 'eng-p091': '2026-11-30', 'eng-p092': '2026-11-30', 'eng-p094': '2026-11-30', 'eng-p096': '2026-11-30', 'eng-p097': '2026-11-30', 'eng-p098': '2026-12-04', 'eng-p100': '2026-12-04', 'eng-p102': '2026-12-05', 'eng-p103': '2026-12-05', 'eng-p104': '2026-12-07', 'eng-p106': '2026-12-07', 'eng-p108': '2026-12-07', 'eng-p109': '2026-12-07', 'eng-p110': '2026-12-08' };
   const R2 = (() => {
     if (!R2_ON) return [];
     const src = D.olp2 || {}, L = FIN_ALL.filter((c) => c.subj === 'eng' && c.text), days = [], d = new Date('2026-11-15T00:00:00');
@@ -360,14 +360,14 @@
   })();
   // 11/15 올림포스 3회독: 11/27(금) 7 · 11/28(토) 7 · 11/29(일) 6 · 11/30(월) 6 · 12/1(화) 6 지문(책 순서, 이 주는 일요일에도 새 몫) → 12/2 실전 1회, 12/3 실전 2회. «지문 다 돌아야 해», 시험 7일 전에 끝나요
   // 문제 파일(D.olp3·D.olp3m, source/jy_olp3)이 아직 없는 지문·실전은 숙제에 안 떠요
-  const R3_END = '2026-12-03';
+  const R3_END = '2026-12-09';  // 11/24 14~16강을 학교 진도에 맞춰 늦춰서 12/3 → 12/9 (영어 시험 12/16의 7일 전)
   const R3 = (() => {
     if (!R2_ON) return [];
     const src = D.olp3 || {}, s2 = D.olp2 || {}, L = FIN_ALL.filter((c) => c.subj === 'eng' && c.text), days = [];
     [7, 7, 6, 6, 6].forEach((n, k) => { const d = new Date('2026-11-27T00:00:00'); d.setDate(d.getDate() + k); for (let i = 0; i < n; i++) days.push(fmtDay(d)); });
     return L.map((c, i) => ({ id: c.id, c, day: R3_DAY[c.id] || days[i] || '2026-12-01', x: src[c.id] && OLP_NOKEY && Array.isArray(src[c.id].qs) ? { ...src[c.id], qs: src[c.id].qs.slice(0, 1) } : src[c.id], x2: OLP_NOKEY ? { ...(s2[c.id] || {}), key: [] } : s2[c.id] || {} })).filter((x) => x.x && x.x.spot && Array.isArray(x.x.spot.answers) && Array.isArray(x.x.qs) && x.x.qs.length);
   })();
-  const R3M = !R2_ON ? [] : (D.olp3m || []).filter((m) => m && Array.isArray(m.qs) && m.qs.length).map((m) => ({ id: m.id, m, no: m.id === 'mock2' ? 2 : 1, day: m.id === 'mock2' ? '2026-12-03' : '2026-12-02' }));
+  const R3M = !R2_ON ? [] : (D.olp3m || []).filter((m) => m && Array.isArray(m.qs) && m.qs.length).map((m) => ({ id: m.id, m, no: m.id === 'mock2' ? 2 : 1, day: m.id === 'mock2' ? '2026-12-09' : '2026-12-08' }));
   // 11/15 국어·통합사회 2회독 (덩어리 방식): 과목마다 하루 한 덩어리, 11/16(월)부터 날마다(일요일 11/22 포함) → 11/26 에 끝나요. 과목을 더 붙이려면 이 표에 한 줄 (한국사·과학 예정)
   // 날짜는 덩어리 번호(K01 → 첫날)로 정해져요. 문제 파일(D.r2s, source/jy_r2s/<과목>/)이 없는 덩어리는 숙제에 안 떠요
   const R2S_SUBJ = { kor: { name: '국어', ic: 'books', start: '2026-11-16' }, soc: { name: '통합사회', ic: 'books', start: '2026-11-16' }, hist: { name: '한국사', ic: 'scroll', start: '2026-11-16' }, sci: { name: '통합과학', ic: 'sci', start: '2026-11-15', rd: '1회독' },
@@ -2572,7 +2572,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611240050', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611240900', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2834,18 +2834,21 @@
   // 한국사는 11/12 마감이면 하루 5개가 넘어서 11/21(토)까지로 늦췄어요: 남은 20개면 하루 2개 → 1개, 기말(12/10) 19일 전에 한 바퀴. 다른 과목은 하루 2개를 넘지 않게만 늘려요
   // 11/9 전에 끝낸 개념은 원래 날 그대로, 11/9부터 한 것은 새 계획 안에서 세서 날마다 같은 계획이 나와요
   const FIN_RE = '2026-11-09', FIN_REDUE = { hist: '2026-11-21' }, FIN_REMAX = 2; let finRK = '';
+  // 11/24 정윤 «학교는 수요일부터 13강인데 14강부터 예습이 너무 빡빡해» → 남은 올림포스 1회독(14강 P03~16강)은 11/25부터 하루 2개, 문제 대신 이해 먼저(FIN_UND)
+  const FIN_RE_SJ = { eng: '2026-11-25' }, FIN_UND = new Set(['eng-p098', 'eng-p100', 'eng-p102', 'eng-p103', 'eng-p104', 'eng-p106', 'eng-p108', 'eng-p109', 'eng-p110']);
   function finReplan() {
     if (!FIN_ON || !FIN_ORDER.length) return;
     const ix = (d) => Math.round((new Date(d + 'T00:00:00') - new Date(FIN_START + 'T00:00:00')) / 864e5), r0 = ix(FIN_RE);
     FIN_ORDER.forEach((c, i) => { if (c.fday0 == null) { c.fday0 = c.fday; c.fi = i; } });
-    const pre = (c) => { const d = finDoneDay(c); return !!d && d < FIN_RE; }, P = new Map(FIN_ORDER.map((c) => [c, pre(c)]));
+    const pre = (c) => { const d = finDoneDay(c); return !!d && d < (FIN_RE_SJ[c.subj] || FIN_RE); }, P = new Map(FIN_ORDER.map((c) => [c, pre(c)]));
     const key = FIN_ORDER.map((c) => c.id + (P.get(c) ? 1 : 0)).join(); if (key === finRK) return; finRK = key;
     for (const c of FIN_ORDER) { c.fday = c.fday0; c.re = 0; }
     for (const sj of [...new Set(FIN_ORDER.map((c) => c.subj))]) {
       const L = FIN_ORDER.filter((c) => c.subj === sj).sort((a, b) => a.fi - b.fi);
-      if (!L.some((c) => c.fday0 < r0 && !P.get(c))) continue;  // 제때 하던 과목은 원래 계획 그대로
-      const R = L.filter((c) => !P.get(c) && !c.fix), last = FIN_REDUE[sj] ? ix(FIN_REDUE[sj]) : Math.max(...L.map((c) => c.fday0)), days = [];
-      for (let d = r0; (d <= last || days.length * FIN_REMAX < R.length) && d < r0 + 400; d++) if (finStudy(addD(FIN_START, d))) days.push(d);
+      const rs = FIN_RE_SJ[sj] ? ix(FIN_RE_SJ[sj]) : r0;
+      if (!FIN_RE_SJ[sj] && !L.some((c) => c.fday0 < rs && !P.get(c))) continue;  // 제때 하던 과목은 원래 계획 그대로
+      const R = L.filter((c) => !P.get(c) && !c.fix), last = FIN_REDUE[sj] ? ix(FIN_REDUE[sj]) : FIN_RE_SJ[sj] ? rs : Math.max(...L.map((c) => c.fday0)), days = [];
+      for (let d = rs; (d <= last || days.length * FIN_REMAX < R.length) && d < r0 + 400; d++) if (finStudy(addD(FIN_START, d))) days.push(d);
       let k = 0; days.forEach((d, i) => { const n = Math.ceil((R.length - k) / (days.length - i)); for (let x = 0; x < n && k < R.length; x++, k++) { R[k].fday = d; R[k].re = 1; } });
     }
     FIN_ORDER.sort((a, b) => a.fday - b.fday || a.fi - b.fi);
@@ -3047,6 +3050,17 @@
       }
       if (ost === 'sx') { const ou = olpU(c);
         return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd}<div class="row between st-tools" style="margin:0 0 12px"><span class="tiny">${UI.sxAll ? '구조와 해석이 다 보여요' : '문장마다 혼자 읽어 보고 구조 보기 → 해석 스티커 차례로 열어요'}</span><button type="button" class="btn sm ${UI.sxAll ? 'primary' : ''}" data-sxall aria-pressed="${!!UI.sxAll}">${UI.sxAll ? '다시 가리기' : '다 펼치기'}</button></div>${m3Struct(ou, ou.notes.passages[0])}${a ? `<div class="cta-bar"><button class="btn primary big block" data-olfin type="button">다 했어요 · 숙제 목록으로 ›</button></div>` : '<div class="cta-bar"><button class="btn primary big block" data-olst="q" type="button">① 단어·문제 먼저 풀기</button></div>'}</div>`; }
+      if (FIN_UND.has(c.id) && (!a || a.und)) {  // 11/24 이해 먼저: 해석·정답·해설을 다 보여 주고 읽으면 끝
+        const uh = ohd.replace('① 단어·문제', '① 이해하기');
+        return `<div class="qwrap" style="max-width:760px;margin:0 auto">${uh}
+          <section class="card und-tip"><b>학교 진도보다 앞선 지문이라 이해부터 해요</b><p>해석과 정답을 다 보여 줄게요. 문제는 2회독 때 풀어요. 천천히 읽고 무슨 내용인지만 알면 끝이에요</p></section>
+          ${(c.words || []).length ? `<details class="hw-more card" open><summary><b>단어 ${c.words.length}개</b> <span class="tiny">눌러서 접기</span></summary><div class="oly-w">${c.words.map(([en, ko]) => `<div><b>${esc(en)}</b><span>${esc(ko)}</span></div>`).join('')}</div></details>` : ''}
+          <section class="card oly-p" style="margin-top:12px"><p class="oly-q"><b>${esc(c.q)}</b></p>${c.given ? `<div class="oly-given">${u(c.given)}</div>` : ''}${c.text.map((t) => `<p>${u(t)}</p>`).join('')}${(c.notes || []).length ? `<p class="tiny">${c.notes.map((x) => '* ' + esc(x)).join('  ')}</p>` : ''}</section>
+          ${(c.ko || []).length ? `<section class="card und-ko" style="margin-top:12px"><h3>해석</h3>${c.ko.map((t, k) => `<p style="--k:${k}">${esc(t)}</p>`).join('')}</section>` : ''}
+          <section class="card und-ans" style="margin-top:12px"><h3>정답 ${'①②③④⑤'[c.answer] || ''}</h3><p class="und-ch">${u(c.choices[c.answer] || '')}</p><p>${esc(c.exp || '')}</p></section>
+          ${olp ? '<button class="btn soft big block" data-olst="sx" type="button" style="margin-top:12px">② 문장 분석도 보기 (안 해도 돼요)</button>' : ''}
+          ${a ? doneCard(1, 1, '이해 끝! 2회독 때 문제로 다시 만나요', '<button class="btn primary big block" data-finback type="button">숙제 목록으로 ›</button>') : '<div class="cta-bar"><button class="btn primary big block" id="und-ok" type="button">다 이해했어요</button></div>'}</div>`;
+      }
       return `<div class="qwrap" style="max-width:760px;margin:0 auto">${ohd}
         ${(c.words || []).length ? `<details class="hw-more card" ${a ? '' : 'open'}><summary><b>먼저 단어 ${c.words.length}개</b> <span class="tiny">눌러서 접기</span></summary><div class="oly-w">${c.words.map(([en, ko]) => `<div><b>${esc(en)}</b><span>${esc(ko)}</span></div>`).join('')}</div></details>` : ''}
         <section class="card oly-p" style="margin-top:12px"><p class="oly-q"><b>${esc(c.q)}</b></p>${c.given ? `<div class="oly-given">${u(c.given)}</div>` : ''}${c.text.map((t) => `<p>${u(t)}</p>`).join('')}${(c.notes || []).length ? `<p class="tiny">${c.notes.map((x) => '* ' + esc(x)).join('  ')}</p>` : ''}</section>
@@ -3090,6 +3104,7 @@
     $$('[data-olst]').forEach((b) => (b.onclick = () => { r.st = b.dataset.olst; top(); }));  // 올림포스 ① 단어·문제 / ② 문장 분석
     $$('[data-olyp]').forEach((b) => (b.onclick = () => { const A = finA(c.id); if (A.q) return; const k = +b.dataset.olyp; A.q = { p: k, ok: k === c.answer, at: Date.now() }; earn('fin:' + c.id, 100, '올림포스 지문'); save('fin'); render(); boom(innerWidth / 2, innerHeight * 0.4, 4); fanfare(); [500, 1100].forEach((ms, i) => setTimeout(() => boom(innerWidth * [0.25, 0.75][i], innerHeight * 0.35, 4), ms)); toast('지문 하나 끝! 저장했어요'); setTimeout(() => { const el = $('#ol-res'); if (el) el.scrollIntoView({ block: 'center', behavior: RM() ? 'auto' : 'smooth' }); }, 250); }));
     const fb = $('#fp-book'); if (fb) fb.onclick = () => bookOpen('eng2', null, c.page);
+    const uo = $('#und-ok'); if (uo) uo.onclick = () => { const A = finA(c.id); if (A.q) return; A.q = { und: 1, at: Date.now() }; earn('fin:' + c.id, 100, '올림포스 지문'); save('fin'); render(); boom(innerWidth / 2, innerHeight * 0.4, 2); };
     const fd = $('#fp-done'); if (fd) fd.onclick = () => { const A = finA(c.id); if (finDone(c)) A.undone = { at: Date.now() }; else { A.done = { ok: 1, at: Date.now() }; earn('fin:' + c.id, 100, '올림포스 지문'); const nx = finToday().find((x) => !finDone(x)); toast('잘했어요'); toast('지문 하나 끝! 저장했어요'); } save('fin'); UI.run = null; UI.tab = 'hw'; top(); };  // 다음 지문으로 끌고 가지 않고 목록으로 (11/9)
     $$('[data-fb]').forEach((b) => (b.onclick = () => { const bk = finBlanks(c).find((x) => x.k === b.dataset.fb), A = finA(c.id); if (!bk || A[bk.k]) return; const p = b.dataset.o, ok = p === bk.t; A[bk.k] = { p, ok, at: Date.now() }; save('fin'); const y = window.scrollY; render(); window.scrollTo(0, y); }));
     rvBind(r, 'i', (c.qs || []).length);
@@ -3184,7 +3199,7 @@
     const tools = `<div class="row between st-tools" style="margin:0 0 12px"><span class="tiny">${UI.sxAll ? '구조와 해석이 다 보여요' : '문장마다 구조 보기 → 해석 스티커 차례로 열어요'}</span><button type="button" class="btn sm ${UI.sxAll ? 'primary' : ''}" data-sxall aria-pressed="${!!UI.sxAll}">${UI.sxAll ? '다시 가리기' : '다 펼치기'}</button></div>`;
     const orig = olp ? m3Struct(ou, ou.notes.passages[0]) : `<section class="card oly-p">${[].concat(c.text || []).map((t) => `<p>${r2U(t)}</p>`).join('')}${(c.ko || []).length ? `<details class="hw-more"><summary><b>전체 해석 보기</b></summary>${c.ko.map((t) => `<p style="line-height:1.8">${esc(t)}</p>`).join('')}</details>` : ''}</section>`;
     const fa = (((S.fin || {}).ans || {})[c.id] || {}).q;
-    const old = `<details class="hw-more card r2-old"><summary><b>그때 푼 책 문제</b> <span class="tiny">${fa ? (fa.ok ? '맞혔어요' : '틀렸어요') : '아직 안 풀었어요'}</span></summary><div class="oly-p" style="margin-top:12px"><p class="oly-q"><b>${esc(c.q || '')}</b></p>${c.given ? `<div class="oly-given">${r2U(c.given)}</div>` : ''}${[].concat(c.text || []).map((t) => `<p>${r2U(t)}</p>`).join('')}</div>${fa ? `<div class="choices" style="margin-top:12px">${(c.choices || []).map((ch, k) => `<button class="choice ${k === c.answer ? 'right' : k === fa.p ? 'wrong' : ''}" type="button" disabled><span class="ct">${r2U(ch)}</span></button>`).join('')}</div><div class="explain" style="margin-top:12px"><b>해설</b><br>${esc(c.exp || '')}</div>` : '<p class="tiny" style="margin-top:12px">1회독 문제를 풀면 여기에 내가 고른 답과 해설이 보여요</p>'}</details>`;
+    const old = `<details class="hw-more card r2-old"><summary><b>그때 푼 책 문제</b> <span class="tiny">${fa ? (fa.und ? '이해만 했어요' : fa.ok ? '맞혔어요' : '틀렸어요') : '아직 안 풀었어요'}</span></summary><div class="oly-p" style="margin-top:12px"><p class="oly-q"><b>${esc(c.q || '')}</b></p>${c.given ? `<div class="oly-given">${r2U(c.given)}</div>` : ''}${[].concat(c.text || []).map((t) => `<p>${r2U(t)}</p>`).join('')}</div>${fa ? `<div class="choices" style="margin-top:12px">${(c.choices || []).map((ch, k) => `<button class="choice ${k === c.answer ? 'right' : k === fa.p ? 'wrong' : ''}" type="button" disabled><span class="ct">${r2U(ch)}</span></button>`).join('')}</div><div class="explain" style="margin-top:12px"><b>해설</b><br>${esc(c.exp || '')}</div>` : '<p class="tiny" style="margin-top:12px">1회독 문제를 풀면 여기에 내가 고른 답과 해설이 보여요</p>'}</details>`;
     return { tools, orig, old };
   }
   // 핵심 문장 한 개 쓰기: 세 번까지. fin({ ok: 한 번에 맞힘, n: 쓴 횟수, gu: 세 번 틀려 정답 보고 넘어감 })
@@ -5413,6 +5428,7 @@
   const GD_LR = `<ol class="r2s-rules"><li style="--i:0"><span class="r2s-rn">1</span><div><b>그때 좌우는 「어떤 나라를 세울지」로 나눠요</b><span><b>좌익</b> = 사회주의·공산주의. 땅과 공장을 모두의 것으로, 친일 지주 땅은 빼앗아 농민에게 (무상 몰수·무상 분배). 소련 쪽 · 예) 조선 공산당, 박헌영</span><span><b>우익</b> = 자본주의·자유 민주주의. 개인 재산 인정, 땅도 돈 주고 사고팔기 (유상). 미국 쪽 · 예) 한국 민주당, 이승만, 김구</span><span><b>중도</b> = 둘을 합치자 · 여운형, 김규식 (좌우 합작 운동)</span><span>요즘 좌우는 같은 민주주의 안에서 정책 차이지만, 그때는 나라 체제 자체가 달랐어요</span></div></li><li style="--i:1"><span class="r2s-rn">2</span><div><b>한국 독립당 = 우익 (김구)</b><span>공산주의에 반대(반공)하고 민족주의 국가를 원했어요. 임시 정부를 이끌었고, 신탁 통치 반대(반탁)에 앞장섰어요</span><span>1948년 남북 협상은 좌익이 돼서가 아니라, 남한만 정부를 세우면 영원히 갈라진다고 봐서 <b>통일 정부</b>를 원했기 때문이에요</span><span>→ 생각은 우익, 방법은 단독 정부 반대 · 이승만(단독 정부)과 갈려요</span></div></li><li style="--i:2"><span class="r2s-rn">3</span><div><b>한국 민주당(한민당) = 우익 · 지주와 자본가</b><span>송진우, 김성수가 중심이고 이승만을 지지했어요</span><span>좌우 합작 7원칙의 토지 개혁은 <b>유상 매수(조건부 몰수)·무상 분배</b> → 나라가 지주에게 돈을 주고 사서 농민에게는 공짜로 줘요. 돈이 나가기만 해서 「재정 파탄」이라며 한민당이 반대했어요</span></div></li></ol>
   <div class="ls-box" style="margin-top:12px"><b>토지 개혁 한 줄로</b><p>· 좌익(북한): 무상 몰수·무상 분배</p><p>· 좌우 합작 7원칙: 유상 매수(조건부 몰수)·무상 분배 → 한민당 반대(재정 파탄)</p><p>· 남한 농지 개혁(1949): 유상 매수·유상 분배</p></div>`;
   const QNA = U.who === '정윤' ? [
+    { id: 'e14', date: '2026-11-24', t: '학교는 13강인데 14강부터 예습이 너무 빡빡해', ban: '올림포스 예습, 학교 진도에 맞춰 늦췄어요', sub: '올림포스 14~16강 · 이해 먼저', html: '<p>남은 예습 9개(14강 Practice 03부터 16강까지)는 이제 <b>문제를 풀지 않고 이해만</b> 해요. 단어, 지문, 해석, 정답과 해설이 한 화면에 다 나와요. 다 읽고 「다 이해했어요」를 누르면 끝이에요.</p><p>11/25부터 하루 2개씩, 11/30에 끝나요. 문제는 2회독(11/30~12/4)에서 처음 풀고, 3회독은 12/4~12/8, 모고는 12/8·12/9예요. 영어 시험 일주일 전에 다 끝나요.</p><p>밀려 있던 14강 예습은 지웠어요.</p>', links: [] },
     { id: 'k1123', date: '2026-11-24', t: '어제 카톡으로 부탁한 것, 다 만들었어요', ban: '카톡으로 부탁한 것 다 만들었어요', sub: '과학 · 사회 · 국어 · 영어', html: '<p><b>과학</b> 작년 2학기 1차 기출 20~23번(표시한 문제)을 오늘 숙제로 넣었어요. 다른 학교 기출 3문제와 개념완성 1문제는 3회독에 더했어요.</p><p><b>통합사회</b> 2회독·3회독 문제를 개념완성 문제 그대로이거나 조금 더 어렵게 바꿨어요. 10월 학평 통합사회 기출 4문항도 넣었어요.</p><p><b>국어</b> 범위를 11/18 공지대로 고쳤어요. 맞춤법 문제는 마더텅 수준의 학평·모평 기출로 바꿨고, 직접 낸 문제는 국어사전 예문으로 만들었어요. 10월 학평 독서 지문 4개를 원문 그대로 오늘부터 하나씩 풀어요.</p><p><b>영어</b> 올림포스 2회독·3회독·모고 화면 아래에 「내 필기」 칸이 생겼어요. 쓰면 바로 저장돼요.</p><p>올림포스 국어 기출 65~66, 95~97, 157~158쪽은 책 사진이 없어서 아직 못 넣었어요. 그 쪽 사진을 보내 주면 넣을게요.</p>', links: [{ k: 'r2s', id: 'P7', t: '과학 작년 기출 20~23번 풀기' }, { k: 'r2s', id: 'D1', t: '국어 10월 학평 독서 지문 풀기' }] },
     { id: 'lr', sj: 'hist', date: '2026-11-20', t: '그때 좌익·우익은 뭘로 나눠요? 한국 독립당·한국 민주당은요?', sub: '한국사 · 광복 직후 좌우 세력', html: GD_LR, links: [] },
     { id: 'tmp', date: '2026-11-18', t: '멈추기 하면 시간이 안 멈춰', sub: '시간 재기 · 멈추기', html: '<p>숙제 화면 안에서 멈추기를 누르면, 화면이 다시 그려질 때 저절로 다시 켜지고 있었어요. 이제 직접 멈춘 건 「이어 하기」를 누를 때까지 멈춰 있어요.</p>', links: [] },
@@ -9219,7 +9235,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611240050'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611240900'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
