@@ -2580,7 +2580,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611241718', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611241746', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -9382,7 +9382,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241718'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241746'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -10301,7 +10301,7 @@
       <div class="st-who">${sAv(r)}<div><b>${esc(r.name)}</b> <span class="tag">${esc(r.level || '')}</span>${r.edition === 'english' ? ' <span class="tag">말랑영어</span>' : ''}<small>${[`코드 ${esc(r.alias || '-')}`, x.lz.parent ? `리포트 ${esc(x.lz.parent)}` : '', loading(x) ? '불러오는 중' : '접속 ' + agoTxt(x.last)].filter(Boolean).join(' · ')}</small></div></div>
       <div class="st-c st-w"><small>${x.tutor ? '수업' : r.iv ? '준비' : '목표'}</small><b>${r.iv ? '수시 2차 면접 · 세종대 11/21' : sub(x)}</b></div>
       <div class="st-c st-n"><small>이번 주</small><b>${loading(x) ? '…' : x.week + '문제'}</b></div>
-      <div class="st-act">${hasRep(x) ? `<button class="btn sm primary" data-dl="${esc(r.name)}" type="button">리포트</button>` : '<button class="btn sm primary" type="button" tabindex="-1" aria-hidden="true" style="visibility:hidden">리포트</button>'}<button class="btn sm soft" data-dh="${esc(r.name)}" type="button">숙제</button><button class="btn sm" data-dgo="${esc(r.name)}|peek" type="button">화면 보기</button>${r.name === '윤건' && Object.keys(NXD.wsd || {}).length ? '<button class="btn sm soft" data-dsmp type="button">학습지 샘플</button>' : ''}</div></div>`; };
+      <div class="st-act">${hasRep(x) ? `<button class="btn sm primary" data-dl="${esc(r.name)}" type="button">리포트</button>` : '<button class="btn sm primary" type="button" tabindex="-1" aria-hidden="true" style="visibility:hidden">리포트</button>'}<button class="btn sm soft" data-dh="${esc(r.name)}" type="button">숙제</button><button class="btn sm" data-dgo="${esc(r.name)}|peek" type="button">화면 보기</button></div></div>`; };
     return `<h1 class="h1">학생</h1><p class="sub">코드는 학생이 처음 들어올 때 넣는 번호예요</p><section class="card st-l">${info.map(row).join('')}</section>`;
   }
   // 선생님 화면에서 학생 탭을 새로 열며 할 일(수업 적기 · 리포트 · 기록 고치기)을 이어서 열어요
