@@ -2578,7 +2578,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611241158', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611241208', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5538,7 +5538,7 @@
       steps: [['위쪽 토마토 단추를 눌러요', '토마토 타이머 화면이 열려요'], ['아래 「공부 시간」 칸으로 내려가요'], ['오늘 · 어제 · 그저께 중 날짜를 골라요', '어제 것도 넣을 수 있어요', '오늘'], ['몇 시간 몇 분 했는지 적고 「적기」를 눌러요', '하루 전체 시간을 적어요. 틀리면 다시 적으면 고쳐져요', '적기']] },
   };
   const GD_QOLD = { if: 'iq', vc: 'vc' };
-  for (const q of QNA) GD['q_' + q.id] = { on: () => !TEACHER && q.date >= addD(today(), -7) && !(GD_QOLD[q.id] && gdHas(GD_QOLD[q.id])), ic: 'think', cls: 'r2-ban', del: 1, b: q.ban || `물어본 것 정리했어요: ${q.t}`, d: `${q.sub} · 질문 탭에 차곡차곡 모여요`, go0: '보기', open: () => qnaOpen(q.id) };  // 11/24 «삭제하라는 말을 써 주든지» → 지우기 단추
+  for (const q of QNA) GD['q_' + q.id] = { on: () => !TEACHER && q.date >= addD(today(), -7) && !(GD_QOLD[q.id] && gdHas(GD_QOLD[q.id])), ic: 'think', cls: 'r2-ban', del: 1, q, b: q.ban || `물어본 것 정리했어요: ${q.t}`, d: `${q.sub} · 질문 탭에 차곡차곡 모여요`, go0: '보기', open: () => qnaOpen(q.id) };  // 11/24 «삭제하라는 말을 써 주든지» → 지우기 단추
   delete GD.iq; delete GD.vc;
   const gdList = () => (ROLE_T && !PEEK) ? [] : Object.keys(GD).filter((k) => (!TUTOR || GD[k].tutor) && !gdHas(k) && GD[k].on());  // 11/16 과외 학생(윤건)은 tutor 표시한 배너만
   const gdNext = () => gdList()[0];
@@ -5548,10 +5548,21 @@
     if (U.who !== '정윤' || TUTOR) return '';
     return `<a class="c12 ts-band dy-ban" href="${DIARY_URL}"><span class="ts-band-ic dy-ic"><img src="assets/diary/ribbon.webp" alt=""></span><span class="ts-band-t"><b>나만 여는 다이어리가 생겼어요</b><span>고민은 선생님도 못 보게 잠겨 있고, 오늘 한 공부는 저절로 적혀요</span></span><span class="ts-band-go">열어 보기</span></a>`;
   }
+  function gdModal() {
+    const L = gdList().filter((k) => GD[k].del && GD[k].q); if (!L.length || UI.run || UI.tab !== 'home') { gdModal.on = false; return; }
+    const k = L[0], q = GD[k].q, n = (gdModal.n = Math.max(gdModal.n || 0, L.length)), i = n - L.length + 1; gdModal.on = true;
+    sheet(`<div class="gdm"><span class="gdm-n">알림 ${i} / ${n}</span><h2>${esc(q.ban || q.t)}</h2><p class="sub">${esc(q.sub || '')}</p><div class="gdm-b">${q.html}</div><div class="cta-bar"><button class="btn primary big block" id="gdm-ok" type="button">${L.length > 1 ? '확인했어요 · 다음 알림 보기' : '확인했어요'}</button></div><p class="tiny gdm-f">확인한 알림은 질문 탭에 모여 있어요</p></div>`, (el, close) => {
+      $('#gdm-ok', el).onclick = () => { gdMark(k); const more = gdList().some((x) => GD[x].del && GD[x].q); if (more) gdModal(); else { gdModal.on = false; close(); render(); } };
+      $('.sh-x', el).addEventListener('click', () => { gdModal.skip = true; gdModal.on = false; });
+      const bg = $('.sheet-bg'); if (bg) bg.addEventListener('click', () => { gdModal.skip = true; gdModal.on = false; });
+    });
+  }
   function gdCard() {
     // 11/10 새로 만든 안내(정리·가이드)는 둘 다 보여요. 예전 안내는 하나씩
-    const L = gdList(), ks = L.filter((k) => k.startsWith('q_') || k === 'scr' || k === 'k4' || k === 'pfd' || k === 'vc' || k === 'tm' || k === 'sci' || k === 'iq' || k === 'add' || k === 'r2a' || k === 'r2q'); const show = ks.length ? ks : L.slice(0, 1);
-    return show.map((k) => { const g = GD[k]; return `<button type="button" class="c12 ts-band gd-card ${g.cls || ''}" data-gdopen="${k}"><span class="ts-band-ic">${ic(g.ic)}</span><span class="ts-band-t"><b>${esc(g.b)}</b><span>${esc(g.d)}</span>${g.del ? `<i class="gd-row"><em class="gd-hint">다 봤으면 꼭 지워 주세요</em><em class="gd-x" role="button" tabindex="0" data-gdx="${k}">지우기</em></i>` : ''}</span><span class="ts-band-go">${esc(g.go0 || '방법 보기')}</span></button>`; }).join('');  // 11/8 «이 부분이 너무 정신없어» → 토스 띠 배너
+    // 11/24 «배너가 아니라 처음 들어왔을 때 모달로, 확인하면 다음 모달» → 알림(q_)은 배너 대신 차례로 뜨는 창으로. 질문 탭에는 그대로 남아요
+    const NQ = gdList().filter((k) => GD[k].del && GD[k].q); if (NQ.length && !gdModal.skip && !gdModal.on && !UI.run) setTimeout(gdModal, 500);
+    const L = gdList().filter((k) => !(GD[k].del && GD[k].q)), ks = L.filter((k) => k.startsWith('q_') || k === 'scr' || k === 'k4' || k === 'pfd' || k === 'vc' || k === 'tm' || k === 'sci' || k === 'iq' || k === 'add' || k === 'r2a' || k === 'r2q'); const show = ks.length ? ks : L.slice(0, 1);
+    return show.map((k) => { const g = GD[k]; return `<button type="button" class="c12 ts-band gd-card ${g.del ? 'gd-del' : ''} ${g.cls || ''}" data-gdopen="${k}"><span class="ts-band-ic">${ic(g.ic)}</span><span class="ts-band-t"><b>${esc(g.b)}</b><span>${esc(g.d)}</span></span><span class="ts-band-go">${esc(g.go0 || '방법 보기')}</span>${g.del ? `<i class="gd-row"><em class="gd-x" role="button" tabindex="0" data-gdx="${k}">확인했어요 · 지우기</em></i>` : ''}</button>`; }).join('');  // 11/8 «이 부분이 너무 정신없어» → 토스 띠 배너
   }
   function gdOpen(e) {
     const k = (e && e.currentTarget && e.currentTarget.dataset.gdopen) || gdNext() || 'ink', g = GD[k];
@@ -9243,7 +9254,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241158'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241208'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

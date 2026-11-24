@@ -5459,3 +5459,23 @@ main.lv-calm2 .lv-helpb { animation: none !important; }
 .und-ans .und-ch { font-weight: 600; margin: 0 0 8px; }
 .und-ans p { line-height: 1.75; }
 @keyframes undIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* 11/24 «지우기를 아래쪽에» → 알림 배너: 지우기 단추는 카드 바닥에 한 줄로 (좁은 화면에서 안 깨지게) */
+.ts-band.gd-del { flex-wrap: wrap; align-items: flex-start; row-gap: 12px; }
+.ts-band.gd-del .ts-band-t b, .ts-band.gd-del .ts-band-t span { white-space: normal; overflow: visible; word-break: keep-all; }
+.ts-band.gd-del .ts-band-go { align-self: center; }
+.ts-band.gd-del .gd-row { display: block; flex: 0 0 100%; margin: 0; font-style: normal; }
+.ts-band.gd-del .gd-x { display: block; width: 100%; padding: 12px; border-radius: 12px; text-align: center; font-size: 14px; }
+
+/* 11/24 알림 창: 들어오면 하나씩 뜨고, 확인하면 다음 것 */
+.gdm-n { display: inline-block; padding: 4px 10px; border-radius: 8px; background: var(--blue-soft); color: var(--blue); font-size: 12px; font-weight: 700; animation: gdmIn .35s both; }
+.gdm h2 { margin: 12px 0 4px; font-size: 20px; line-height: 1.4; word-break: keep-all; animation: gdmIn .35s .05s both; }
+.gdm .sub { margin-bottom: 12px; animation: gdmIn .35s .1s both; }
+.gdm-b { font-size: 15px; line-height: 1.75; word-break: keep-all; animation: gdmIn .4s .15s both; }
+.gdm-b p { margin: 0 0 12px; }
+.gdm-b .q-tbl { width: 100%; font-size: 14px; }
+.gdm-b .q-tbl th, .gdm-b .q-tbl td { padding: 8px 6px; text-align: left; white-space: nowrap; }
+.gdm-f { margin: 10px 0 0; text-align: center; }
+.gdm .cta-bar { position: sticky; bottom: 0; margin-top: 8px; padding-top: 8px; background: var(--card); }
+@keyframes gdmIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.sheet:has(.gdm) .sh-back { visibility: hidden; }
