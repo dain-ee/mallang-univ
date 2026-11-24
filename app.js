@@ -2580,7 +2580,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611242056', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611242059', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7683,8 +7683,8 @@
         <div class="nx-lrn ${svOn ? '' : 'hide-sv'}">${stNotes({ subj: 'eng', notes: N }, { nk, lrn: 1 })}${(s.learn.sch || []).length ? `<section class="card lrn-sec lrn-sch"><h2>📌 학교 선생님 필기</h2><p class="lrn-pt">학교 선생님이 수업 때 짚어 준 것이에요. 시험에 그대로 나와요</p><div class="lrn-rows">${s.learn.sch.map((it) => `<div class="lrn-row"><b>${esc(it[0])}</b><span>${esc(it[1])}</span></div>`).join('')}</div></section>` : ''}</div>
         <div class="cta-bar"><button class="btn primary big block" data-nxlearned type="button">다 읽었어요 · ${para ? '빈칸 채우기' : '시작'}</button></div></div>`; }
     const L = s.learn || [], nl = (t) => esc(t).replace(/\n/g, '<br>'), W = s.ws || L.some((x) => x && x.sch);  // 11/24 «학습지 또 줄글처럼» → 필기 카드(sch) 있는 수업 묶음도 학교 학습지 꼴로
-    return `<div class="nx-wrap">${nxTop(s, 0, s.qs.length, W && !s.ws ? '먼저 읽어요 · 다 읽고 문제 풀기' : '먼저 배워요 · 다 읽고 외우기 시작', 0)}
-      <div class="nx-lrn-bar"><p class="tiny">${W && !s.ws ? '밑줄 친 곳과 그 문장 바로 밑 설명까지 읽고 아래 단추로 문제를 풀어요' : s.ws ? '학교 학습지 그대로예요. 답과 학교 선생님 필기까지 읽고 아래 단추로 문제를 풀어요' : `다 읽으면 아래 단추로 ${s.subj === 'eng' ? '우리말 보고 영어로 쓰기' : '뜻 보고 용어 쓰기'}를 시작해요`}</p></div>
+    return `<div class="nx-wrap">${nxTop(s, 0, s.qs.length, (W && !s.ws) || s.qs.every((q) => q.t === 'mc') ? '먼저 읽어요 · 다 읽고 문제 풀기' : '먼저 배워요 · 다 읽고 외우기 시작', 0)}
+      <div class="nx-lrn-bar"><p class="tiny">${W && !s.ws ? '밑줄 친 곳과 그 문장 바로 밑 설명까지 읽고 아래 단추로 문제를 풀어요' : s.ws ? '학교 학습지 그대로예요. 답과 학교 선생님 필기까지 읽고 아래 단추로 문제를 풀어요' : `다 읽으면 아래 단추로 ${s.qs.every((q) => q.t === 'mc') ? '문제 풀기' : s.subj === 'eng' ? '우리말 보고 영어로 쓰기' : '뜻 보고 용어 쓰기'}를 시작해요`}</p></div>
       ${(W && (nxWsRead(L) || nxWsNotes(L))) || L.map(nxLrnSec).join('')}
       <div class="cta-bar"><button class="btn primary big block" data-nxlearned type="button">다 읽었어요 · ${W && !s.ws ? '문제 풀기' : '외우기 시작'}</button></div></div>`;
   }
@@ -9382,7 +9382,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611242056'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611242059'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
