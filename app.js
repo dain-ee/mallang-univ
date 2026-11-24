@@ -469,6 +469,8 @@
   const unitOf = (id) => SCI.units.find((u) => u.id === id) || { title: '' };
   function sciToday(force) {
     const t = today(); S.sci = S.sci || { days: {} }; S.sci.days = S.sci.days || {};
+    { const o = S.sci.days[t], prev = Object.keys(S.sci.days).filter((d) => d < t).sort().slice(-2).map((d) => S.sci.days[d].c);  // 11/25 예전 앱이 오늘 몫을 또 산·염기로 만들어 두면, 손 안 댄 것만 다시 골라요
+      if (o && o.one && !o.read && !Object.keys(o.ans || {}).length && prev.includes(o.c)) delete S.sci.days[t]; }
     if (!S.sci.days[t] && SCI.concepts.length && (onDay('sci') || force)) {
       const seen = new Set(Object.values(S.sci.days).filter((d) => d.one).map((d) => d.c));
       const ord = (c) => (c.lesson && c.lesson.order) || 999;
@@ -2586,7 +2588,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611250534', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611250539', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5584,7 +5586,7 @@
   // 11/25 선생님 «들어오자마자 모달 띄워서 바로 들어가서 어디가 고쳐졌는지 살짝 불빛·라인» → 알림에 fix: { tab, txt:[찾을 글자] } 를 달면 그 화면으로 가서 옅은 점선 + 「바뀐 곳」 칩을 6초 보여 주고 사라져요
   function fixGo(f) {
     UI.run = null; UI.tab = f.tab || 'hw'; render(); window.scrollTo(0, 0);
-    let n = 0; const find = () => { const T = [].concat(f.txt || []); const els = $$('main .li, main .card, main section').filter((e) => e.offsetParent && T.some((x) => e.innerText.includes(x))); const leaf = els.filter((e) => !els.some((o) => o !== e && e.contains(o))); if (!leaf.length) { if (n++ < 10) setTimeout(find, 300); return; }
+    let n = 0; const find = () => { const T = [].concat(f.txt || []); const els = $$('main .li').filter((e) => { const h = $('.t', e); return e.offsetParent && h && T.some((x) => h.innerText.trim().startsWith(x)); }); const leaf = els.filter((e) => !els.some((o) => o !== e && e.contains(o))); if (!leaf.length) { if (n++ < 10) setTimeout(find, 300); return; }
       leaf.forEach((e, i) => { e.classList.remove('fix-hl'); void e.offsetWidth; e.classList.add('fix-hl'); if (!$('.fix-chip', e)) { const c = document.createElement('span'); c.className = 'fix-chip'; c.textContent = '바뀐 곳'; e.appendChild(c); } setTimeout(() => { e.classList.remove('fix-hl'); const c = $('.fix-chip', e); if (c) c.remove(); }, 7600); if (!i) e.scrollIntoView({ block: 'center', behavior: 'smooth' }); }); };
     setTimeout(find, 350);
   }
@@ -9398,7 +9400,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611250534'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611250539'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
