@@ -2578,7 +2578,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611241408', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611241416', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3842,10 +3842,15 @@
   const bnCard = (key) => { const [id, i] = String(key).split(':'), b = bnOf(id); const c = b && bnCards(b)[+i]; return c ? { b, c } : null; };
   const bnBlankN = (x) => bnCards(x).reduce((n, c) => n + (c.ans || []).length, 0);
   function bnPrevMiss(x) { const G = BN.filter((y) => bnLab(y) === bnLab(x)), i = G.indexOf(x); if (i <= 0) return []; const p = G[i - 1], f = r2sGet(bnK(p.id)).f || {}; return Object.keys(f.bad || {}).filter((k) => k.startsWith(p.id + ':') && bnCard(k)); }
+  // 11/24 정윤 «체육 어디 갔지» → 체육 운동 손상 외우기를 다시 넣고, 날짜는 들어오면 바로 창으로 물어봐요(선생님 «날짜 입력하라고 모달로 바로 받으라 해»)
+  const pfGs = () => ['chj', 'pe'].filter((g) => BN.some((x) => x.sj === 'perf' && pfG(x) === g));
+  const pfNeed = () => U.who === '정윤' && !TEACHER && pfGs().some((g) => !pfD(g));
+  function pfAuto() { if (pfAuto.on || UI.run || UI.tab !== 'home' || !pfNeed()) return; let k = ''; try { k = localStorage.getItem('mu:pfask') || ''; } catch (e) {} if (k === today()) return; pfAuto.on = true; pfAsk(); }
   function pfAsk() {
     const v = (g) => pfD(g) || '';
-    sheet(`<h2>수행평가 날짜를 넣어 주세요</h2><p class="sub">그날까지 외우기 단계를 맞춰 줄게요 · 나중에 바뀌면 다시 넣어도 돼요</p>${['chj', 'pe'].map((g) => `<label class="pf-row" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px"><b>${PF_NM[g]}</b><input class="inp" type="date" data-pfd="${g}" value="${v(g)}" min="${today()}" style="width:180px"></label>`).join('')}<button class="btn primary big block" style="margin-top:20px" type="button" data-pfok>저장</button>`, (el, close) => {
-      $('[data-pfok]', el).onclick = () => { const a = r2sA('pfd'); $$('[data-pfd]', el).forEach((i) => { if (i.value) a[i.dataset.pfd] = i.value; }); save('r2s'); close(); toast('고마워요 · 그날까지 맞춰 둘게요'); render(); };
+    sheet(`<h2>수행평가 날짜를 넣어 주세요</h2><p class="sub">그날까지 외우기 단계를 맞춰 줄게요 · 나중에 바뀌면 다시 넣어도 돼요</p>${pfGs().map((g) => `<label class="pf-row" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px"><b>${PF_NM[g]}</b><input class="inp" type="date" data-pfd="${g}" value="${v(g)}" min="${today()}" style="width:180px"></label>`).join('')}<button class="btn primary big block" style="margin-top:20px" type="button" data-pfok>저장</button><button class="btn soft big block" style="margin-top:8px" type="button" data-pfno>아직 날짜를 몰라요</button>`, (el, close) => {
+      $('[data-pfok]', el).onclick = () => { const a = r2sA('pfd'); $$('[data-pfd]', el).forEach((i) => { if (i.value) a[i.dataset.pfd] = i.value; }); save('r2s'); pfAuto.on = false; close(); toast('고마워요 · 그날까지 맞춰 둘게요'); render(); };
+      const nk = $('[data-pfno]', el); if (nk) nk.onclick = () => { try { localStorage.setItem('mu:pfask', today()); } catch (e) {} pfAuto.on = false; close(); toast('알게 되면 넣어 주세요 · 내일 다시 물어볼게요'); };
     });
   }
   function bnSt(x) { const A = r2sGet(bnK(x.id)); if (!A.v) return 'v'; if (!A.o && !x.x.noOrd) return 'o'; if (!(A.f && A.f.at)) return 'f'; return 'fin'; }
@@ -5436,6 +5441,7 @@
   const QNA = U.who === '정윤' ? [
     { id: 'p1124', date: '2026-11-24', t: '기말 계획이 어떻게 바뀌었어?', ban: '오늘부터 계획을 새로 짰어요 · 3회독은 시험 7일 전에 끝나요', sub: '기말 12/14~12/18 · 밀린 것은 다 없앴어요', html: '<p>밀려 있던 것은 다 없애고, <b>오늘(11/24)부터 새로 나눴어요.</b> 지난 것을 걱정하지 말고 오늘 몫만 하면 돼요.</p><p><b>3회독은 과목마다 시험 7일 전에 끝나요.</b> 그 뒤에는 모의고사만 풀어요.</p><div class="tbl-wrap"><table class="q-tbl"><tr><th>과목</th><th>시험</th><th>3회독 끝</th><th>모의고사</th></tr><tr><td>한국사</td><td>12/14(월)</td><td>12/7</td><td>12/8</td></tr><tr><td>통합사회</td><td>12/15(화)</td><td>12/8</td><td>12/9, 12/10</td></tr><tr><td>영어</td><td>12/16(수)</td><td>12/9</td><td>12/10, 12/11</td></tr><tr><td>국어</td><td>12/17(목)</td><td>12/10</td><td>12/11</td></tr><tr><td>통합과학</td><td>12/18(금)</td><td>12/11</td><td>12/12, 12/14</td></tr></table></div><p>일요일에는 새 몫이 없어요. 수학은 학원 숙제만 해요. 매일 기사 읽기는 시험이 끝날 때까지 쉬어요.</p>', links: [] },
     { id: 'r1124', date: '2026-11-24', t: '시험 범위랑 날짜가 학교 공지랑 맞아?', ban: '시험 날짜·범위를 학교 공지대로 고쳤어요', sub: '기말 12/14~12/18 · 전 과목', html: '<p>학교 홈페이지 11/23 공지 「2학기 2차 정기시험 일정 및 출제 범위」대로 다시 맞췄어요.</p><p><b>시간표</b><br>12/14(월) 공통수학2, 한국사2<br>12/15(화) 통합사회2 (논술형 있음)<br>12/16(수) 공통영어2 (논술형 있음)<br>12/17(목) 공통국어2<br>12/18(금) 통합과학2</p><p><b>새로 넣은 것</b><br>· 통합사회: Ⅳ·Ⅴ단원(교과서 98~151쪽, 개념완성 108~169쪽)이 빠져 있어서 새로 넣었어요. 따로 1회독 없이 2회독에서 교과서 내용을 먼저 읽고 바로 문제를 풀어요<br>· 영어: 교과서 Unit 4 본문(89~93쪽)과 올림포스 서술형·논술형 Practice<br>· 국어: 교과서 90~91쪽, 168~169쪽과 올림포스 기출 지문<br>· 한국사: 110~111쪽 단원 마무리와 개념완성 종합 문제<br>· 통합과학: 부교재에만 있는 개념 보충 3개</p><p>범위 밖이라 뺀 것도 있어요. 한국사 「냉전 체제의 형성」(66~67쪽), 국어 「박씨전」(92~93쪽), 과학 송전·변압기 계산이에요.</p><p>과목마다 시험 7일 전에 끝나게 날짜를 다시 나눴어요. 양이 많은 날은 과목 시험 순서대로(수학·한국사 → 사회 → 영어 → 국어 → 과학) 먼저 해요.</p>', links: [] },
+    { id: 'pe24', date: '2026-11-24', t: '체육 어디 갔지? 저번에 만들어 준 수행평가', ban: '체육 수행평가 외우기 다시 넣었어요', sub: '체육 운동 손상 · 숙제 탭', html: '<p>11/19에 수행평가 두 개를 숙제에서 빼면서 체육도 같이 빠졌어요. <b>체육 운동 손상 외우기를 다시 넣었어요.</b> 숙제 탭에 있어요.</p><p>수행평가 날짜를 알게 되면 꼭 넣어 주세요. 그날까지 외우기 단계를 나눠 줄게요. 아직 모르면 「아직 날짜를 몰라요」를 누르면 돼요.</p>', links: [] },
     { id: 'e14', date: '2026-11-24', t: '학교는 13강인데 14강부터 예습이 너무 빡빡해', ban: '올림포스 일정 새로 짰어요 · 하루 4지문', sub: '올림포스 2회독·3회독·모고 · 12/9에 끝', html: '<p>남은 예습 9개(14강 Practice 03부터 16강까지)는 <b>숙제에서 뺐어요</b>. 이 지문들은 2회독에서 처음 보고, 「떠올리기」 없이 <b>원문 읽기부터</b> 해요.</p><p>밀려 있던 것까지 다시 나눴어요. <b>하루 4지문</b>이면 돼요(일요일은 쉬어요).</p><p>· 2회독 남은 20개: 11/24~12/3, 하루 2~3개<br>· 3회독 남은 27개: 11/24~12/7, 그 지문 2회독 4일 뒤부터<br>· 모고: 12/8, 12/9</p><p>영어 시험(12/16) 일주일 전에 다 끝나요.</p>', links: [] },
     { id: 'k1123', date: '2026-11-24', t: '어제 카톡으로 부탁한 것, 다 만들었어요', ban: '카톡으로 부탁한 것 다 만들었어요', sub: '과학 · 사회 · 국어 · 영어', html: '<p><b>과학</b> 작년 2학기 1차 기출 20~23번(표시한 문제)을 오늘 숙제로 넣었어요. 다른 학교 기출 3문제와 개념완성 1문제는 3회독에 더했어요.</p><p><b>통합사회</b> 2회독·3회독 문제를 개념완성 문제 그대로이거나 조금 더 어렵게 바꿨어요. 10월 학평 통합사회 기출 4문항도 넣었어요.</p><p><b>국어</b> 범위를 11/18 공지대로 고쳤어요. 맞춤법 문제는 마더텅 수준의 학평·모평 기출로 바꿨고, 직접 낸 문제는 국어사전 예문으로 만들었어요. 10월 학평 독서 지문 4개를 원문 그대로 오늘부터 하나씩 풀어요.</p><p><b>영어</b> 올림포스 2회독·3회독·모고 화면 아래에 「내 필기」 칸이 생겼어요. 쓰면 바로 저장돼요.</p><p>올림포스 국어 기출 65~66, 95~97, 157~158쪽은 책 사진이 없어서 아직 못 넣었어요. 그 쪽 사진을 보내 주면 넣을게요.</p>', links: [{ k: 'r2s', id: 'P7', t: '과학 작년 기출 20~23번 풀기' }, { k: 'r2s', id: 'D1', t: '국어 10월 학평 독서 지문 풀기' }] },
     { id: 'lr', sj: 'hist', date: '2026-11-20', t: '그때 좌익·우익은 뭘로 나눠요? 한국 독립당·한국 민주당은요?', sub: '한국사 · 광복 직후 좌우 세력', html: GD_LR, links: [] },
@@ -5522,7 +5528,7 @@
     // 11/16 선생님 «국어 4단원 나 몰라, 윤건이가 그런지 아닌지 배너에서 맞다 아니다 선택할 수 있게» → 고른 건 학생 기록 gdi(k4y·k4n)에 남아요
     k4: { tutor: 1, on: () => U.who === '윤건' && !TEACHER && !gdHas('k4y') && !gdHas('k4n'), ic: 'books', cls: 'r2-ban', b: '국어 4단원 「읽고 분석하고」도 기말 범위예요?', d: '맞다 아니다만 눌러 주면 돼요 · 범위면 계획에 넣어 줄게요', go0: '고르기', keep: 1, open: () => sheet(`<h2>국어 4단원도 기말 범위예요?</h2><p class="sub">4단원 「읽고 분석하고」 (점검·조정, 읽기 과정)<br>학교에서 들은 대로 골라 주세요</p><div class="k4-btns" style="display:flex;gap:8px;margin-top:14px"><button class="btn primary big" style="flex:1" type="button" data-k4="y">맞아요, 범위예요</button><button class="btn big" style="flex:1" type="button" data-k4="n">아니에요</button></div><p class="tiny" style="margin-top:10px">잘 모르겠으면 내일 선생님께 여쭤보고 골라도 돼요</p>`, (el, close) => { $$('[data-k4]', el).forEach((b) => (b.onclick = () => { gdMark(b.dataset.k4 === 'y' ? 'k4y' : 'k4n'); close(); toast(b.dataset.k4 === 'y' ? '알려 줘서 고마워요 · 4단원도 계획에 넣을게요' : '알려 줘서 고마워요 · 3단원만 할게요'); setTimeout(() => { const g = document.querySelector('.gd-card[data-gdopen="k4"]'); if (g) cardBye(g, render); else render(); }, 260); })); }) },
     // 11/16 정윤 카톡 «이거 답 통암기 해야 되는데 어떻게 할 수 있을까» · «이거는 빈칸» → 선생님 «배너에 하고 숙제로 넣어 놔, 어제 해류처럼»
-    pfd: { keep: 1, on: () => U.who === '정윤' && !TEACHER && BN.some((x) => x.sj === 'perf') && (!pfD('chj') || !pfD('pe')), ic: 'books', cls: 'r2-ban', b: '수행평가 날짜를 알려 줄래요?', d: '춘향전 답 통암기 · 체육 운동 손상 빈칸 외우기를 넣었어요 · 날짜를 넣으면 그날까지 맞춰 줄게요', go0: '날짜 넣기', open: () => pfAsk() },
+    pfd: { keep: 1, on: () => pfNeed(), ic: 'books', cls: 'r2-ban', b: '수행평가 날짜를 알려 줄래요?', d: `${pfGs().map((g) => PF_NM[g]).join(' · ')} 외우기를 넣었어요 · 날짜를 넣으면 그날까지 맞춰 줄게요`, go0: '날짜 넣기', open: () => pfAsk() },
   // (pfAsk 는 아래 함수)
     scr: { on: () => U.who === '정윤' && !TEACHER && !(exS().sciAsk || {}).at, ic: 'sci', cls: 'r2-ban', b: '과학 기말 범위, 이게 맞는지 봐 줄래요?', d: '인강 들은 걸로 짐작했어요 · 맞는 것만 남기면 과학 계획을 짜 줄게요', go0: '확인', keep: 1, open: () => sciAskSheet() },
     // 11/15 정윤 카톡 «능수동 좀 약해서 이거 왜 능동이고 수동인지 설명 좀 더 자세히» → 문장 분석 포인트 97개를 「왜」까지 고치고 배너로 알려요
@@ -5568,7 +5574,7 @@
   function gdCard() {
     // 11/10 새로 만든 안내(정리·가이드)는 둘 다 보여요. 예전 안내는 하나씩
     // 11/24 «배너가 아니라 처음 들어왔을 때 모달로, 확인하면 다음 모달» → 알림(q_)은 배너 대신 차례로 뜨는 창으로. 질문 탭에는 그대로 남아요
-    const NQ = gdList().filter((k) => GD[k].del && GD[k].q); if (NQ.length && !gdModal.skip && !gdModal.on && !UI.run) setTimeout(gdModal, 500);
+    const NQ = gdList().filter((k) => GD[k].del && GD[k].q); if (NQ.length && !gdModal.skip && !gdModal.on && !UI.run) setTimeout(gdModal, 500); else if (!gdModal.on && !UI.run) setTimeout(pfAuto, 600);
     const L = gdList().filter((k) => !(GD[k].del && GD[k].q)), ks = L.filter((k) => k.startsWith('q_') || k === 'scr' || k === 'k4' || k === 'pfd' || k === 'vc' || k === 'tm' || k === 'sci' || k === 'iq' || k === 'add' || k === 'r2a' || k === 'r2q'); const show = ks.length ? ks : L.slice(0, 1);
     return show.map((k) => { const g = GD[k]; return `<button type="button" class="c12 ts-band gd-card ${g.del ? 'gd-del' : ''} ${g.cls || ''}" data-gdopen="${k}"><span class="ts-band-ic">${ic(g.ic)}</span><span class="ts-band-t"><b>${esc(g.b)}</b><span>${esc(g.d)}</span></span><span class="ts-band-go">${esc(g.go0 || '방법 보기')}</span>${g.del ? `<i class="gd-row"><em class="gd-x" role="button" tabindex="0" data-gdx="${k}">확인했어요 · 지우기</em></i>` : ''}</button>`; }).join('');  // 11/8 «이 부분이 너무 정신없어» → 토스 띠 배너
   }
@@ -9350,7 +9356,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241408'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241416'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
