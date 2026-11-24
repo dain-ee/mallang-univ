@@ -2578,7 +2578,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611241210', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611241220', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3736,9 +3736,9 @@
         ${a ? '<div class="cta-bar"><button class="btn primary big block" data-r2sgo="rd" type="button">다음: 다시 보기 ›</button></div>' : ''}`);
     }
     if (st === 'rd') {
-      const cards = x.cs.map((c) => { const done = finDone(c); return `<div class="r2s-c"><div class="row between" style="margin:20px 0 8px"><h3 class="r2s-ct">${esc(c.title)}</h3>${done ? '' : '<span class="tag">1회독 전</span>'}</div>${done ? '' : `<div class="ls-box warn" style="margin:0 0 12px"><b>이 개념은 1회독을 아직 안 했어요</b><p>여기서 1회독 내용을 읽는 것으로 대신해요. 천천히 읽고 넘어가요</p></div>${c.sum ? finRead(c) : ''}`}${finSumHtml(c)}${done && c.sum ? `<details class="hw-more"><summary><b>교과서 풀이 다시 읽기</b></summary>${finRead(c)}</details>` : ''}</div>`; }).join('');
+      const cards = x.cs.map((c) => { const done = finDone(c); return `<div class="r2s-c"><div class="row between" style="margin:20px 0 8px"><h3 class="r2s-ct">${esc(c.title)}</h3>${done ? '' : '<span class="tag">1회독 전</span>'}</div>${done ? '' : `<div class="ls-box warn" style="margin:0 0 12px"><b>이 개념은 1회독을 아직 안 했어요</b><p>여기서 1회독 내용을 읽는 것으로 대신해요. 천천히 읽고 넘어가요</p></div>${c.sum && !(/^hist/.test(x.sj) && (X.study || []).length) ? finRead(c) : ''}`}${finSumHtml(c)}${(done || (/^hist/.test(x.sj) && (X.study || []).length)) && c.sum ? `<details class="hw-more"><summary><b>교과서 풀이 다시 읽기</b></summary>${finRead(c)}</details>` : ''}</div>`; }).join('');
       const study = X.lesson ? `<iframe class="r2s-lesson" src="${esc(X.lesson)}" title="개념 보기" style="width:100%;height:1400px;border:0;display:block;margin-top:12px;background:transparent"></iframe>` : (X.study || []).map((b) => `<section class="card r2s-study" style="margin-top:12px">${b.h ? `<h3 class="r2s-ct" style="margin:0 0 8px">${esc(b.h)}</h3>` : ''}${b.map === 'cur' ? cmHtml() : b.img ? `<img src="${esc(b.img)}" alt="${esc(b.h || '그림')}" loading="lazy" style="width:100%;border-radius:12px;display:block">` : ''}${b.cap && b.map !== 'cur' ? `<p class="tiny" style="margin:6px 0 0">${esc(b.cap)}</p>` : ''}${(b.p || []).map((t) => `<p style="margin:8px 0 0;line-height:1.75">${esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</p>`).join('')}${(b.figs || []).map((f, fi) => `<figure class="r2s-fig" style="--i:${fi}"><img src="${esc(f.img)}" alt="${esc(f.cap || '그림')}" loading="lazy"><figcaption>${esc(f.cap || '')}</figcaption></figure>`).join('')}${(b.pts || []).length ? `<ol class="r2s-rules">${b.pts.map((q, i) => `<li style="--i:${i}"><span class="r2s-rn">${i + 1}</span><div><b>${r2sHl(q.t)}</b>${(q.d || []).map((t) => `<span>${r2sHl(t)}</span>`).join('')}</div></li>`).join('')}</ol>` : ''}${b.table ? `<div class="tbl-wrap" style="margin-top:8px"><table class="q-tbl r2s-tbl">${b.table.map((row, ri) => `<tr>${row.map((c) => (ri ? `<td>${esc(c)}</td>` : `<th>${esc(c)}</th>`)).join('')}</tr>`).join('')}</table></div>` : ''}</section>`).join('');  // 11/15 해류: 교과서 지도 + 외우는 규칙 · 11/21 lesson 있으면 탭 화면(iframe)
-      return wrap(`${seg}<p class="sub" style="margin:0">${r2sFirst(x) ? (X.rdSub || (/^eng[tn]/.test(x.sj) ? '① 오늘 처음 읽는 글이에요. 어디서 나오는 글인지 보고, 한 문장씩 읽으며 해석과 맞춰 본 다음 문제로 가요' : '① 오늘 처음 보는 개념이에요. 위에서부터 이야기처럼 천천히 읽고, 헷갈리는 것까지 본 다음 문제로 가요')) : study ? (X.rdSub || (/^(eng[tn]|math)/.test(x.sj) ? '② 원문과 정리를 다시 보면서 떠올리기에서 빠뜨린 것을 찾아봐요' : '② 지도와 규칙을 보면서 떠올리기에서 빠뜨린 것을 찾아봐요')) : '② 1회독 때 본 정리를 다시 훑어봐요. 떠올리기에서 빠뜨린 것을 눈으로 찾아봐요'}</p>${study}${cards || (study ? '' : '<section class="card"><p class="sub">이 덩어리의 1회독 카드를 찾지 못했어요</p></section>')}<div class="cta-bar"><button class="btn primary big block" data-r2sgo="q" type="button">${A.rd && auto !== 'q' ? '다음 ›' : `다 봤어요 · 학교 꼴 문제 ${qs.length}개 풀기 ›`}</button></div>`);
+      return wrap(`${seg}<p class="sub" style="margin:0">${r2sFirst(x) ? (X.rdSub || (/^eng[tn]/.test(x.sj) ? '① 오늘 처음 읽는 글이에요. 어디서 나오는 글인지 보고, 한 문장씩 읽으며 해석과 맞춰 본 다음 문제로 가요' : '① 오늘 처음 보는 개념이에요. 위에서부터 이야기처럼 천천히 읽고, 헷갈리는 것까지 본 다음 문제로 가요')) : study ? (X.rdSub || (/^(eng[tn]|math)/.test(x.sj) ? '② 원문과 정리를 다시 보면서 떠올리기에서 빠뜨린 것을 찾아봐요' : (/^hist/.test(x.sj) ? '② 왜 일어났고 어떻게 됐는지 카드 순서대로 다시 봐요. 떠올리기에서 빠뜨린 것을 찾아봐요' : '② 지도와 규칙을 보면서 떠올리기에서 빠뜨린 것을 찾아봐요'))) : '② 1회독 때 본 정리를 다시 훑어봐요. 떠올리기에서 빠뜨린 것을 눈으로 찾아봐요'}</p>${study}${cards || (study ? '' : '<section class="card"><p class="sub">이 덩어리의 1회독 카드를 찾지 못했어요</p></section>')}<div class="cta-bar"><button class="btn primary big block" data-r2sgo="q" type="button">${A.rd && auto !== 'q' ? '다음 ›' : `다 봤어요 · 학교 꼴 문제 ${qs.length}개 풀기 ›`}</button></div>`);
     }
     if (st === 'q' && X.mock && !r.xpErr && (!A.paper || qs.every((q, k) => q.type === 'mc' || A['q' + k]))) { try { return `<div class="qwrap xp-wrap">${head}${seg}${r2sPaper(x, xpLoad(x), r)}</div>`; } catch (e) { r.xpErr = 1; console.error('xp', e); } }
     if (st === 'q') {
@@ -5453,9 +5453,17 @@
   ] : [];
   function qnaOpen(id) { UI.qnaFrom = null; UI.tab = 'qna'; UI.run = { kind: 'qna', id }; render(); window.scrollTo(0, 0); }
   function qnaView() {
+    const AK = S.ask || [];
+    const mine = AK.length ? `<section class="card c12 ask-card"><div class="row between"><h3 style="margin:0">내 질문·메모</h3><span class="tiny">${AK.length}개 · 글자를 끌면 남길 수 있어요</span></div><div class="ask-list">${AK.map((e, k) => `<div class="ask-it" style="--k:${k}"><div class="row between"><span class="tag ${e.k === 'q' ? 'blue' : ''}">${e.k === 'q' ? '질문' : '메모'}</span><span class="tiny">${md(dateOf(e.at))}${e.title ? ' · ' + esc(e.title) : ''}</span></div><p class="ask-sel">${esc(e.sel)}</p><p class="ask-b">${esc(e.body)}</p>${e.k === 'q' ? `<div class="ask-a">${e.a ? esc(e.a).replace(/\n/g, '<br>') : '<span class="tiny">아직 답이 없어요. 선생님이 보고 답해 줄게요</span>'}</div>` : ''}<div class="ask-f"><button class="btn sm" type="button" data-askdel="${e.id}">지우기</button><button class="btn sm primary" type="button" data-askgo="${e.id}">그 화면으로 돌아가기 ›</button></div></div>`).join('')}</div></section>` : `<section class="card c12 ask-card"><h3 style="margin:0 0 4px">내 질문·메모</h3><p class="tiny" style="margin:0">공부하다가 글자를 끌면 형광펜 옆에 「질문」「메모」가 떠요. 남긴 것은 여기에 모여요</p></section>`;
     return `<h1 class="h1">질문</h1><p class="sub">선생님께 물어본 것을 정리해서 차곡차곡 모아 둬요 · ${QNA.length}개</p>
-      <div class="grid"><section class="card c12"><div class="list">${QNA.map((q, k) => `<div class="li btnlike" data-qna="${q.id}" style="--k:${k}"><div class="ico">${ic('think')}</div><div class="body"><div class="t">${esc(q.t)}</div><div class="d">${md(q.date)} · ${esc(q.sub)}</div></div><span class="tag">${k === 0 && q.date >= addD(today(), -1) ? '새 질문' : '보기'}</span></div>`).join('')}</div></section></div>`;
+      <div class="grid">${mine}<section class="card c12"><div class="list">${QNA.map((q, k) => `<div class="li btnlike" data-qna="${q.id}" style="--k:${k}"><div class="ico">${ic('think')}</div><div class="body"><div class="t">${esc(q.t)}</div><div class="d">${md(q.date)} · ${esc(q.sub)}</div></div><span class="tag">${k === 0 && q.date >= addD(today(), -1) ? '새 질문' : '보기'}</span></div>`).join('')}</div></section></div>`;
   }
+  document.addEventListener('click', (e) => {
+    const g = e.target.closest && e.target.closest('[data-askgo],[data-askdel]'); if (!g) return;
+    if (g.dataset.askdel) { S.ask = (S.ask || []).filter((x) => x.id !== g.dataset.askdel); save('ask'); render(); return; }
+    const a = (S.ask || []).find((x) => x.id === g.dataset.askgo); if (!a) return; UI.tab = a.tab || 'hw'; UI.run = a.run ? JSON.parse(JSON.stringify(a.run)) : null; render(); scrollTo(0, 0);
+    setTimeout(() => { const m = [...document.querySelectorAll('mark.mk')].find((x) => a.sel && a.sel.includes(x.textContent.trim().slice(0, 12))); if (m) { m.scrollIntoView({ block: 'center', behavior: 'smooth' }); m.classList.add('mk-new'); } }, 500);
+  });
   function qnaLinkOk(l) { return l.k === 'r2s' ? !!r2sOf(l.id) : l.k === 'fin' ? FIN_ALL.some((c) => c.id === l.cid) : unitIdx(l.ch, l.unit) >= 0; }
   function qnaRun() {
     const q = QNA.find((x) => x.id === UI.run.id) || QNA[0];
@@ -8910,6 +8918,75 @@
     const cu = CH_UNITS.find((x) => +x.unit === +n); if (!cu) return;
     sheet(`<div class="m3-gs">${cu.lesson ? chLesson(cu) : `<div class="card"><div class="q-no">Unit ${esc(cu.unit)}</div><h1 class="h1">${esc(cu.title)}</h1><p>${esc(cu.concept || '')}</p></div>`}</div><button class="btn primary big block" data-chgo type="button">이 유닛 문제 풀러 가기 ›</button>`, (el, close) => { $('[data-chgo]', el).onclick = () => { close(); startTask('cl:ch:' + n); }; });
   }
+  // 11/24 «드래그하면 마일드 형광펜 색깔로 줄이나 형광펜 그을 수 있게» → 글자를 끌면 색 고르는 띠가 뜨고, 형광펜·밑줄이 남아요 (S.mk, 화면마다)
+  const MK_C = ['y', 'p', 'b', 'g', 'v'], MK_BL = 'p, li, td, th, h1, h2, h3, figcaption, summary, .oly-given, .t, .d';
+  const mkKey = () => [UI.tab || '', (UI.run && UI.run.kind) || '', (UI.run && (UI.run.id || UI.run.k)) || ''].join('|');
+  const mkBlk = (n) => { const e = n.nodeType === 1 ? n : n.parentElement; return e && e.closest('main') && !e.closest('textarea, input, button, nav, .sx[data-lt], [contenteditable]') ? e.closest(MK_BL) : null; };
+  const mkTexts = (blk) => { const w = document.createTreeWalker(blk, NodeFilter.SHOW_TEXT), o = []; let n; while ((n = w.nextNode())) o.push(n); return o; };
+  function mkWrap(blk, m) {
+    const T = mkTexts(blk), full = T.map((n) => n.nodeValue).join(''); let at = -1; for (let k = 0; k <= (m.o || 0); k++) { at = full.indexOf(m.t, at + 1); if (at < 0) return false; }
+    let pos = 0; const end = at + m.t.length;
+    for (const n of T) { const a = pos, b = pos + n.nodeValue.length; pos = b; if (b <= at || a >= end) continue; if (n.parentElement.closest('mark.mk')) continue;
+      const r = document.createRange(); r.setStart(n, Math.max(0, at - a)); r.setEnd(n, Math.min(n.nodeValue.length, end - a)); const mk = document.createElement('mark'); mk.className = `mk mk-${m.c}${m.u ? ' mk-u' : ''}`; mk.dataset.mk = m.id; try { r.surroundContents(mk); } catch (e) { /* 겹친 표시는 건너뛰어요 */ } }
+    return true;
+  }
+  function mkApply() {
+    const L = ((S.mk || {})[mkKey()]) || []; if (!L.length) return; const main = $('main'); if (!main) return;
+    const B = $$(MK_BL, main);
+    for (const m of L) { if ($(`mark.mk[data-mk="${m.id}"]`, main)) continue; for (const blk of B) { const tx = blk.textContent; if (m.h && !tx.replace(/\s+/g, ' ').trim().startsWith(m.h)) continue; if (tx.includes(m.t) && mkWrap(blk, m)) break; } }
+  }
+  (() => {
+    const bar = document.createElement('div'); bar.className = 'mk-bar'; bar.hidden = true; document.body.appendChild(bar);
+    let cur = null, ul = false;
+    const hide = () => { bar.hidden = true; cur = null; };
+    const draw = () => { bar.innerHTML = `${MK_C.map((c, i) => `<button type="button" class="mk-sw mk-${c}${ul ? ' mk-u' : ''}" data-mkc="${c}" style="--i:${i}" aria-label="색 ${i + 1}"><i>가</i></button>`).join('')}<button type="button" class="mk-md" data-mkm>${ul ? '밑줄' : '형광펜'}</button>${cur && cur.id ? '<button type="button" class="mk-md" data-mkdel>지우기</button>' : '<button type="button" class="mk-md mk-ask" data-mka="q">질문</button><button type="button" class="mk-md" data-mka="m">메모</button>'}`; bar.dataset.mode = ''; };
+    const form = (k) => { bar.dataset.mode = 'form'; bar.innerHTML = `<div class="mk-form"><p class="mk-sel">${esc(cur.sel.slice(0, 80))}${cur.sel.length > 80 ? '…' : ''}</p><textarea id="mk-ta" rows="3" placeholder="${k === 'q' ? '이 부분에서 궁금한 것을 적어요' : '이 부분에 남길 메모를 적어요'}"></textarea><div class="mk-fb"><button type="button" class="mk-md" data-mkx>취소</button><button type="button" class="mk-md mk-go" data-mksend="${k}">${k === 'q' ? '질문 보내기' : '메모 저장'}</button></div></div>`; place(cur.rect); setTimeout(() => { const t = $('#mk-ta', bar); if (t) t.focus(); }, 50); };
+    const addMark = (c) => { const key = mkKey(); S.mk = S.mk || {}; const L = (S.mk[key] || []).slice(), rg = cur.rg, G = new Map(), root = rg.commonAncestorContainer.nodeType === 1 ? rg.commonAncestorContainer : rg.commonAncestorContainer.parentElement, w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n;
+      while ((n = w.nextNode())) { if (!rg.intersectsNode(n)) continue; const blk = mkBlk(n); if (!blk) continue; const a = n === rg.startContainer ? rg.startOffset : 0, z = n === rg.endContainer ? rg.endOffset : n.nodeValue.length; if (z <= a) continue; if (!G.has(blk)) G.set(blk, { t: '', first: n, a }); G.get(blk).t += n.nodeValue.slice(a, z); }
+      for (const [blk, g] of G) { if (!g.t.trim()) continue; const T = mkTexts(blk); let off = 0; for (const x of T) { if (x === g.first) break; off += x.nodeValue.length; } off += g.a; const full = T.map((x) => x.nodeValue).join(''); let o = 0, at = full.indexOf(g.t); while (at >= 0 && at < off) { o++; at = full.indexOf(g.t, at + 1); }
+        const m = { id: 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), t: g.t.slice(0, 400), o, c, u: ul ? 1 : 0, h: blk.textContent.replace(/\s+/g, ' ').trim().slice(0, 20) }; L.push(m); if (mkWrap(blk, m)) $$(`mark.mk[data-mk="${m.id}"]`).forEach((x) => x.classList.add('mk-new')); }
+      const all = Object.values(S.mk).reduce((n2, x) => n2 + x.length, 0); if (all > 200) { const k0 = Object.keys(S.mk).find((k) => k !== key && S.mk[k].length); if (k0) delete S.mk[k0]; }
+      if (L.length) S.mk[key] = L; };
+    const scrTitle = () => { const h = $('main h1, main h2, main .r2s-ct, main h3'); return h ? h.textContent.trim().slice(0, 80) : ''; };
+    async function send(k) {
+      const body = ($('#mk-ta', bar).value || '').trim(); if (!body) { toast(k === 'q' ? '궁금한 것을 적어 주세요' : '메모를 적어 주세요'); return; }
+      const blk = mkBlk(cur.rg.startContainer), ctx = blk ? ((blk.closest('section, .card, .qwrap') || blk).textContent || '').replace(/\s+/g, ' ').trim().slice(0, 3000) : '';
+      const e = { id: 'a' + Date.now().toString(36), at: Date.now(), k, sel: cur.sel.slice(0, 300), body: body.slice(0, 600), title: scrTitle(), tab: UI.tab, run: UI.run ? JSON.parse(JSON.stringify(UI.run)) : null };
+      addMark(k === 'q' ? 'b' : 'y'); S.ask = [e, ...(S.ask || [])].slice(0, 60); save('ask', 'mk'); window.getSelection().removeAllRanges();
+      if (k === 'm') { bar.dataset.mode = ''; hide(); toast('메모를 저장했어요 · 질문 탭에 모여요'); return; }
+      bar.dataset.mode = 'form'; bar.innerHTML = `<div class="mk-form"><p class="mk-sel">${esc(e.body)}</p><p class="mk-wait"><i></i><i></i><i></i> 답을 쓰고 있어요</p></div>`;
+      let a = '', why = '';
+      try { if (localStorage.getItem('mu:offline') === '1' || !U.sync) throw new Error('off'); const r = await fetch(`${U.sync.url}/functions/v1/univ-ask`, { method: 'POST', headers: { apikey: U.sync.key, Authorization: `Bearer ${U.sync.key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ student: U.who, code: U.key, q: e.body, sel: e.sel, ctx, title: e.title }) }); const j = await r.json().catch(() => ({})); a = j.a || ''; why = j.error || ''; } catch (x) { why = 'net'; }
+      if (a) { const L = (S.ask || []).slice(), i = L.findIndex((x) => x.id === e.id); if (i >= 0) { L[i] = { ...L[i], a: a.slice(0, 1500), aat: Date.now() }; S.ask = L; save('ask'); } }
+      bar.innerHTML = `<div class="mk-form"><p class="mk-sel">${esc(e.body)}</p><div class="mk-ans">${a ? esc(a).replace(/\n/g, '<br>') : '지금은 바로 답을 못 받았어요. 질문은 질문 탭에 남겨 뒀고, 선생님이 보고 답해 줄게요.'}</div><div class="mk-fb"><button type="button" class="mk-md" data-mkx>닫기</button><button type="button" class="mk-md mk-go" data-mkqna>질문 탭에서 보기</button></div></div>`; if (cur && cur.rect) place(cur.rect);
+    }
+    const place = (r) => { bar.hidden = false; const w = bar.offsetWidth || 280; bar.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px'; bar.style.top = Math.min(innerHeight - 64, r.bottom + 12) + 'px'; };
+    document.addEventListener('selectionchange', () => { clearTimeout(bar.t); bar.t = setTimeout(() => {
+      const sel = window.getSelection(), t = sel && String(sel).trim(); if (!t || !sel.rangeCount || sel.isCollapsed) { if (!(cur && cur.id) && bar.dataset.mode !== 'form') hide(); return; }
+      const rg = sel.getRangeAt(0); if (!mkBlk(rg.startContainer) || !mkBlk(rg.endContainer)) return hide();
+      if (bar.dataset.mode === 'form') return;
+      cur = { rg: rg.cloneRange(), sel: t, rect: rg.getBoundingClientRect() }; draw(); place(cur.rect);
+    }, 180); });
+    bar.addEventListener('pointerdown', (e) => { if (!e.target.closest('textarea')) e.preventDefault(); });
+    bar.addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b || !cur) return;
+      if (b.dataset.mkm != null) { ul = !ul; draw(); return; }
+      if (b.dataset.mka) { form(b.dataset.mka); return; }
+      if (b.dataset.mkx != null) { bar.dataset.mode = ''; hide(); return; }
+      if (b.dataset.mksend) { send(b.dataset.mksend); return; }
+      if (b.dataset.mkqna != null) { bar.dataset.mode = ''; hide(); UI.run = null; UI.tab = 'qna'; render(); scrollTo(0, 0); return; }
+      const key = mkKey(); S.mk = S.mk || {}; let L = (S.mk[key] || []).slice();
+      if (b.dataset.mkdel != null) { L = L.filter((m) => m.id !== cur.id); $$(`mark.mk[data-mk="${cur.id}"]`).forEach((x) => x.replaceWith(...x.childNodes)); }
+      else if (cur.id) { const m = L.find((x) => x.id === cur.id); if (m) { m.c = b.dataset.mkc; m.u = ul ? 1 : 0; $$(`mark.mk[data-mk="${cur.id}"]`).forEach((x) => (x.className = `mk mk-${m.c}${m.u ? ' mk-u' : ''} mk-new`)); } }
+      else { S.mk[key] = L; addMark(b.dataset.mkc); L = (S.mk[key] || []).slice(); }
+      if (L.length) S.mk[key] = L; else delete S.mk[key];
+      save('mk'); window.getSelection().removeAllRanges(); hide();
+    });
+    document.addEventListener('click', (e) => { const m = e.target.closest && e.target.closest('mark.mk'); if (!m) { if (!bar.contains(e.target) && cur && cur.id && bar.dataset.mode !== 'form') hide(); return; } if (String(window.getSelection()).trim()) return; cur = { id: m.dataset.mk }; ul = m.classList.contains('mk-u'); draw(); place(m.getBoundingClientRect()); });
+    addEventListener('scroll', () => { if (!bar.hidden && bar.dataset.mode !== 'form' && !(String(window.getSelection()).trim())) hide(); }, { passive: true });
+    const mkR0 = render; render = function () { const r = mkR0.apply(this, arguments); setTimeout(mkApply, 30); return r; };
+    setTimeout(mkApply, 600);
+  })();
   // 매3영 화면: 끌어서 고른 글자 → 떠 있는 「담기」 단추
   (() => {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'm3-sel'; b.textContent = '+ 담기'; b.hidden = true; document.body.appendChild(b);
@@ -9254,7 +9331,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241210'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241220'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
