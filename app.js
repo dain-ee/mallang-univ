@@ -2578,7 +2578,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611241256', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611241327', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3233,7 +3233,7 @@
     const sh = $('#r2-kshow'); if (sh) sh.onclick = () => { r.kt[j] = { ...(r.kt[j] || { n: 0 }), show: 1 }; keep(); const n2 = $('#r2-kin'); if (n2) n2.focus({ preventScroll: true }); };
   }
   // 11/23 정윤 «영어 문제 풀 때 내가 필기하고 싶은 부분 있어서 필기 적을 수 있는 공간 만들어줘» → 올림포스 2회독·3회독·모고 화면 아래 「내 필기」 칸. 지문마다 하나, 적으면 바로 저장 (S.qnote)
-  const qNote = (k) => { const v = ((S.qnote || {})[k] || {}).t || ''; return `<details class="card qn-box" ${v ? 'open' : ''}><summary>${ic('write')} 내 필기${v ? ' <span class="tiny">적어 둔 것 있어요</span>' : ' <span class="tiny">눌러서 열어요</span>'}</summary><textarea class="inp qn-t" data-qnote="${esc(k)}" rows="5" placeholder="문제 풀면서 적고 싶은 것을 자유롭게 써요. 쓰면 바로 저장돼요">${esc(v)}</textarea><p class="tiny qn-st"></p></details>`; };
+  const qNote = (k) => { const v = ((S.qnote || {})[k] || {}).t || ''; if (!v) return ''; return `<details class="card qn-box" ${v ? 'open' : ''}><summary>${ic('write')} 내 필기${v ? ' <span class="tiny">적어 둔 것 있어요</span>' : ' <span class="tiny">눌러서 열어요</span>'}</summary><textarea class="inp qn-t" data-qnote="${esc(k)}" rows="5" placeholder="문제 풀면서 적고 싶은 것을 자유롭게 써요. 쓰면 바로 저장돼요">${esc(v)}</textarea><p class="tiny qn-st"></p></details>`; };
   if (!window.__qnOn) { window.__qnOn = 1; document.addEventListener('input', (e) => { const t = e.target && e.target.closest && e.target.closest('[data-qnote]'); if (!t) return; S.qnote = S.qnote || {}; S.qnote[t.dataset.qnote] = { t: t.value, at: Date.now() }; save('qnote'); const st = t.parentNode.querySelector('.qn-st'); if (st) st.textContent = '저장했어요'; }); }
   function r2Run() {
     const r = UI.run, x = r2Of(r.cid); if (!x) { UI.run = null; UI.tab = 'hw'; return hwView(); }
@@ -3648,7 +3648,7 @@
   // 발문 카드: 발문([문장]·[자료]·[대화]는 줄을 바꿔요) + 지문 + 표 + <보기>
   function r2sStem(q) {
     const L = (v) => [].concat(v || []), ln = String(q.q || '').replace(/\s*(\[(?:문장|자료|대화)\])\s*/g, '\n$1 ').split('\n');
-    return `<section class="card r2s-q"><p class="r2s-qq"><b>${r2U(ln[0])}</b></p>${ln.slice(1).map((t) => `<p class="r2s-blk">${r2U(t)}</p>`).join('')}${L(q.text).map((t) => `<p>${r2U(t)}</p>`).join('')}${L(q.table).length ? `<div class="tbl-wrap" style="margin-top:12px"><table class="q-tbl ls-tbl r2s-tbl">${q.table.map((row, k) => `<tr>${[].concat(row).map((v) => (k ? `<td>${r2U(v)}</td>` : `<th>${r2U(v)}</th>`)).join('')}</tr>`).join('')}</table></div>` : ''}${L(q.box).length ? `<div class="ls-box r2s-box"><b>보기</b>${q.box.map((t) => `<p>${r2U(t)}</p>`).join('')}</div>` : ''}</section>`;
+    return `<section class="card r2s-q"><p class="r2s-qq"><b>${r2U(ln[0])}</b></p>${ln.slice(1).map((t) => `<p class="r2s-blk">${r2U(t)}</p>`).join('')}${L(q.text).map((t) => `<p>${r2U(t)}</p>`).join('')}${L(q.img).map((src) => `<img class="q-img r2s-img" style="margin-top:12px" src="${esc(src)}" alt="문제 그림" loading="lazy">`).join('')}${L(q.table).length ? `<div class="tbl-wrap" style="margin-top:12px"><table class="q-tbl ls-tbl r2s-tbl">${q.table.map((row, k) => `<tr>${[].concat(row).map((v) => (k ? `<td>${r2U(v)}</td>` : `<th>${r2U(v)}</th>`)).join('')}</tr>`).join('')}</table></div>` : ''}${L(q.box).length ? `<div class="ls-box r2s-box"><b>보기</b>${q.box.map((t) => `<p>${r2U(t)}</p>`).join('')}</div>` : ''}</section>`;
   }
   // 쓰고 → 모범 답 보기 → 채점 요소 스스로 체크 (서술형·핵심 쓰기). a = 저장된 결과, es = 지금 체크 중인 것 { v, m }
   function r2sEsHtml(q, a, es, ph) {
@@ -5454,7 +5454,7 @@
   function qnaOpen(id) { UI.qnaFrom = null; UI.tab = 'qna'; UI.run = { kind: 'qna', id }; render(); window.scrollTo(0, 0); }
   function qnaView() {
     const AK = S.ask || [];
-    const mine = AK.length ? `<section class="card c12 ask-card"><div class="row between"><h3 style="margin:0">내 질문·메모</h3><span class="tiny">${AK.length}개 · 글자를 끌면 남길 수 있어요</span></div><div class="ask-list">${AK.map((e, k) => `<div class="ask-it" style="--k:${k}"><div class="row between"><span class="tag ${e.k === 'q' ? 'blue' : ''}">${e.k === 'q' ? '질문' : '메모'}</span><span class="tiny">${md(dateOf(e.at))}${e.title ? ' · ' + esc(e.title) : ''}</span></div><p class="ask-sel">${esc(e.sel)}</p><p class="ask-b">${esc(e.body)}</p>${e.k === 'q' ? `<div class="ask-a">${e.a ? esc(e.a).replace(/\n/g, '<br>') : '<span class="tiny">아직 답이 없어요. 선생님이 보고 답해 줄게요</span>'}</div>` : ''}<div class="ask-f"><button class="btn sm" type="button" data-askdel="${e.id}">지우기</button><button class="btn sm primary" type="button" data-askgo="${e.id}">그 화면으로 돌아가기 ›</button></div></div>`).join('')}</div></section>` : `<section class="card c12 ask-card"><h3 style="margin:0 0 4px">내 질문·메모</h3><p class="tiny" style="margin:0">공부하다가 글자를 끌면 형광펜 옆에 「질문」「메모」가 떠요. 남긴 것은 여기에 모여요</p></section>`;
+    const mine = AK.length ? `<section class="card c12 ask-card"><div class="row between"><h3 style="margin:0">내 질문·필기</h3><span class="tiny">${AK.length}개 · 글자를 끌면 남길 수 있어요</span></div><div class="ask-list">${AK.map((e, k) => `<div class="ask-it" style="--k:${k}"><div class="row between"><span class="tag ${e.k === 'q' ? 'blue' : ''}">${e.k === 'q' ? '질문' : '필기'}</span><span class="tiny">${md(dateOf(e.at))}${e.title ? ' · ' + esc(e.title) : ''}</span></div><p class="ask-sel">${esc(e.sel)}</p><p class="ask-b">${esc(e.body)}</p>${e.k === 'q' ? `<div class="ask-a">${e.a ? esc(e.a).replace(/\n/g, '<br>') : '<span class="tiny">아직 답이 없어요. 선생님이 보고 답해 줄게요</span>'}</div>` : ''}<div class="ask-f"><button class="btn sm" type="button" data-askdel="${e.id}">지우기</button><button class="btn sm primary" type="button" data-askgo="${e.id}">그 화면으로 돌아가기 ›</button></div></div>`).join('')}</div></section>` : `<section class="card c12 ask-card"><h3 style="margin:0 0 4px">내 질문·필기</h3><p class="tiny" style="margin:0">공부하다가 글자를 끌면 형광펜 옆에 「질문」「메모」가 떠요. 남긴 것은 여기에 모여요</p></section>`;
     return `<h1 class="h1">질문</h1><p class="sub">선생님께 물어본 것을 정리해서 차곡차곡 모아 둬요 · ${QNA.length}개</p>
       <div class="grid">${mine}<section class="card c12"><div class="list">${QNA.map((q, k) => `<div class="li btnlike" data-qna="${q.id}" style="--k:${k}"><div class="ico">${ic('think')}</div><div class="body"><div class="t">${esc(q.t)}</div><div class="d">${md(q.date)} · ${esc(q.sub)}</div></div><span class="tag">${k === 0 && q.date >= addD(today(), -1) ? '새 질문' : '보기'}</span></div>`).join('')}</div></section></div>`;
   }
@@ -8931,33 +8931,52 @@
     return true;
   }
   function mkApply() {
-    const L = ((S.mk || {})[mkKey()]) || []; if (!L.length) return; const main = $('main'); if (!main) return;
+    const L = ((S.mk || {})[mkKey()]) || []; const main = $('main'); if (!main) return; if (!L.length) { for (const x of $$('.mk-note, .mk-n, .mk-sum', main)) x.parentNode.removeChild(x); return; }
     const B = $$(MK_BL, main);
     for (const m of L) { if ($(`mark.mk[data-mk="${m.id}"]`, main)) continue; for (const blk of B) { const tx = blk.textContent; if (m.h && !tx.replace(/\s+/g, ' ').trim().startsWith(m.h)) continue; if (tx.includes(m.t) && mkWrap(blk, m)) break; } }
+    mkNotes(main, L);
+  }
+  // 11/24 «필기를 왜 아래에다가 해놔 … 본문에 연결돼서 한눈에» → 필기·질문은 끌어 놓은 문장 바로 밑에 번호와 함께 붙고, 화면 끝에 번호 목록
+  function mkNotes(main, L) {
+    for (const x of $$('.mk-note, .mk-n, .mk-sum', main)) x.parentNode.removeChild(x);
+    const A = S.ask || [], rows = []; let n = 0;
+    for (const e of A.slice().reverse()) {
+      const ms = L.filter((m) => m.n === e.id).map((m) => [...$$(`mark.mk[data-mk="${m.id}"]`, main)]).flat(); if (!ms.length) continue;
+      const last = ms[ms.length - 1], blk = last.closest(MK_BL) || last.parentNode; n++;
+      const sup = document.createElement('sup'); sup.className = 'mk-n'; sup.textContent = n; last.after(sup);
+      const d = document.createElement('span'); d.className = 'mk-note' + (e.k === 'q' ? ' mk-note-q' : ''); d.dataset.n = e.id;
+      d.innerHTML = `<b>${n}</b><span>${e.k === 'q' ? '<em>질문</em> ' : ''}${esc(e.body)}${e.k === 'q' ? `<i>${e.a ? esc(e.a).replace(/\n/g, '<br>') : '아직 답이 없어요'}</i>` : ''}</span>`;
+      blk.appendChild(d); rows.push([n, e, ms[0]]);
+    }
+    if (!rows.length) return;
+    const sec = document.createElement('section'); sec.className = 'card mk-sum';
+    sec.innerHTML = `<h3>내 필기 ${rows.length}개</h3><p class="tiny">번호를 누르면 그 문장으로 가요</p>${rows.map(([k, e]) => `<button type="button" class="mk-sum-r" data-mksum="${k - 1}"><b>${k}</b><span><u>${esc(e.sel.slice(0, 60))}</u>${esc(e.body)}</span></button>`).join('')}`;
+    (main.querySelector('.qwrap') || main).appendChild(sec);
+    for (const b of $$('[data-mksum]', sec)) b.onclick = () => { const t = rows[+b.dataset.mksum][2]; t.scrollIntoView({ block: 'center', behavior: 'smooth' }); t.classList.remove('mk-new'); void t.offsetWidth; t.classList.add('mk-new'); };
   }
   (() => {
     const bar = document.createElement('div'); bar.className = 'mk-bar'; bar.hidden = true; document.body.appendChild(bar);
     let cur = null, ul = false;
     const hide = () => { bar.hidden = true; cur = null; };
-    const draw = () => { bar.innerHTML = `${MK_C.map((c, i) => `<button type="button" class="mk-sw mk-${c}${ul ? ' mk-u' : ''}" data-mkc="${c}" style="--i:${i}" aria-label="색 ${i + 1}"><i>가</i></button>`).join('')}<button type="button" class="mk-md" data-mkm>${ul ? '밑줄' : '형광펜'}</button>${cur && cur.id ? '<button type="button" class="mk-md" data-mkdel>지우기</button>' : '<button type="button" class="mk-md mk-ask" data-mka="q">질문</button><button type="button" class="mk-md" data-mka="m">메모</button>'}`; bar.dataset.mode = ''; };
-    const form = (k) => { bar.dataset.mode = 'form'; bar.innerHTML = `<div class="mk-form"><p class="mk-sel">${esc(cur.sel.slice(0, 80))}${cur.sel.length > 80 ? '…' : ''}</p><textarea id="mk-ta" rows="3" placeholder="${k === 'q' ? '이 부분에서 궁금한 것을 적어요' : '이 부분에 남길 메모를 적어요'}"></textarea><div class="mk-fb"><button type="button" class="mk-md" data-mkx>취소</button><button type="button" class="mk-md mk-go" data-mksend="${k}">${k === 'q' ? '질문 보내기' : '메모 저장'}</button></div></div>`; place(cur.rect); setTimeout(() => { const t = $('#mk-ta', bar); if (t) t.focus(); }, 50); };
-    const addMark = (c) => { const key = mkKey(); S.mk = S.mk || {}; const L = (S.mk[key] || []).slice(), rg = cur.rg, G = new Map(), root = rg.commonAncestorContainer.nodeType === 1 ? rg.commonAncestorContainer : rg.commonAncestorContainer.parentElement, w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n;
+    const draw = () => { bar.innerHTML = `${MK_C.map((c, i) => `<button type="button" class="mk-sw mk-${c}${ul ? ' mk-u' : ''}" data-mkc="${c}" style="--i:${i}" aria-label="색 ${i + 1}"><i>가</i></button>`).join('')}<button type="button" class="mk-md" data-mkm>${ul ? '밑줄' : '형광펜'}</button>${cur && cur.id ? '<button type="button" class="mk-md" data-mkdel>지우기</button>' : '<button type="button" class="mk-md mk-ask" data-mka="q">질문</button><button type="button" class="mk-md" data-mka="m">필기</button>'}`; bar.dataset.mode = ''; };
+    const form = (k) => { bar.dataset.mode = 'form'; bar.innerHTML = `<div class="mk-form"><p class="mk-sel">${esc(cur.sel.slice(0, 80))}${cur.sel.length > 80 ? '…' : ''}</p><textarea id="mk-ta" rows="3" placeholder="${k === 'q' ? '이 부분에서 궁금한 것을 적어요' : '이 문장 옆에 적을 필기를 써요'}"></textarea><div class="mk-fb"><button type="button" class="mk-md" data-mkx>취소</button><button type="button" class="mk-md mk-go" data-mksend="${k}">${k === 'q' ? '질문 보내기' : '필기 붙이기'}</button></div></div>`; place(cur.rect); setTimeout(() => { const t = $('#mk-ta', bar); if (t) t.focus(); }, 50); };
+    const addMark = (c, nid) => { const key = mkKey(); S.mk = S.mk || {}; const L = (S.mk[key] || []).slice(), rg = cur.rg, G = new Map(), root = rg.commonAncestorContainer.nodeType === 1 ? rg.commonAncestorContainer : rg.commonAncestorContainer.parentElement, w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n;
       while ((n = w.nextNode())) { if (!rg.intersectsNode(n)) continue; const blk = mkBlk(n); if (!blk) continue; const a = n === rg.startContainer ? rg.startOffset : 0, z = n === rg.endContainer ? rg.endOffset : n.nodeValue.length; if (z <= a) continue; if (!G.has(blk)) G.set(blk, { t: '', first: n, a }); G.get(blk).t += n.nodeValue.slice(a, z); }
       for (const [blk, g] of G) { if (!g.t.trim()) continue; const T = mkTexts(blk); let off = 0; for (const x of T) { if (x === g.first) break; off += x.nodeValue.length; } off += g.a; const full = T.map((x) => x.nodeValue).join(''); let o = 0, at = full.indexOf(g.t); while (at >= 0 && at < off) { o++; at = full.indexOf(g.t, at + 1); }
-        const m = { id: 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), t: g.t.slice(0, 400), o, c, u: ul ? 1 : 0, h: blk.textContent.replace(/\s+/g, ' ').trim().slice(0, 20) }; L.push(m); if (mkWrap(blk, m)) $$(`mark.mk[data-mk="${m.id}"]`).forEach((x) => x.classList.add('mk-new')); }
+        const m = { id: 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), t: g.t.slice(0, 400), o, c, u: ul ? 1 : 0, h: blk.textContent.replace(/\s+/g, ' ').trim().slice(0, 20) }; if (nid) m.n = nid; L.push(m); if (mkWrap(blk, m)) $$(`mark.mk[data-mk="${m.id}"]`).forEach((x) => x.classList.add('mk-new')); }
       const all = Object.values(S.mk).reduce((n2, x) => n2 + x.length, 0); if (all > 200) { const k0 = Object.keys(S.mk).find((k) => k !== key && S.mk[k].length); if (k0) delete S.mk[k0]; }
       if (L.length) S.mk[key] = L; };
     const scrTitle = () => { const h = $('main h1, main h2, main .r2s-ct, main h3'); return h ? h.textContent.trim().slice(0, 80) : ''; };
     async function send(k) {
-      const body = ($('#mk-ta', bar).value || '').trim(); if (!body) { toast(k === 'q' ? '궁금한 것을 적어 주세요' : '메모를 적어 주세요'); return; }
+      const body = ($('#mk-ta', bar).value || '').trim(); if (!body) { toast(k === 'q' ? '궁금한 것을 적어 주세요' : '필기를 적어 주세요'); return; }
       const blk = mkBlk(cur.rg.startContainer), ctx = blk ? ((blk.closest('section, .card, .qwrap') || blk).textContent || '').replace(/\s+/g, ' ').trim().slice(0, 3000) : '';
       const e = { id: 'a' + Date.now().toString(36), at: Date.now(), k, sel: cur.sel.slice(0, 300), body: body.slice(0, 600), title: scrTitle(), tab: UI.tab, run: UI.run ? JSON.parse(JSON.stringify(UI.run)) : null };
-      addMark(k === 'q' ? 'b' : 'y'); S.ask = [e, ...(S.ask || [])].slice(0, 60); save('ask', 'mk'); window.getSelection().removeAllRanges();
-      if (k === 'm') { bar.dataset.mode = ''; hide(); toast('메모를 저장했어요 · 질문 탭에 모여요'); return; }
+      S.ask = [e, ...(S.ask || [])].slice(0, 60); addMark(k === 'q' ? 'b' : 'y', e.id); save('ask', 'mk'); mkApply(); window.getSelection().removeAllRanges();
+      if (k === 'm') { bar.dataset.mode = ''; hide(); toast('필기를 문장 아래에 붙였어요'); return; }
       bar.dataset.mode = 'form'; bar.innerHTML = `<div class="mk-form"><p class="mk-sel">${esc(e.body)}</p><p class="mk-wait"><i></i><i></i><i></i> 답을 쓰고 있어요</p></div>`;
       let a = '', why = '';
       try { if (localStorage.getItem('mu:offline') === '1' || !U.sync) throw new Error('off'); const r = await fetch(`${U.sync.url}/functions/v1/univ-ask`, { method: 'POST', headers: { apikey: U.sync.key, Authorization: `Bearer ${U.sync.key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ student: U.who, code: U.key, q: e.body, sel: e.sel, ctx, title: e.title }) }); const j = await r.json().catch(() => ({})); a = j.a || ''; why = j.error || ''; } catch (x) { why = 'net'; }
-      if (a) { const L = (S.ask || []).slice(), i = L.findIndex((x) => x.id === e.id); if (i >= 0) { L[i] = { ...L[i], a: a.slice(0, 1500), aat: Date.now() }; S.ask = L; save('ask'); } }
+      if (a) { const L = (S.ask || []).slice(), i = L.findIndex((x) => x.id === e.id); if (i >= 0) { L[i] = { ...L[i], a: a.slice(0, 1500), aat: Date.now() }; S.ask = L; save('ask'); mkApply(); } }
       bar.innerHTML = `<div class="mk-form"><p class="mk-sel">${esc(e.body)}</p><div class="mk-ans">${a ? esc(a).replace(/\n/g, '<br>') : '지금은 바로 답을 못 받았어요. 질문은 질문 탭에 남겨 뒀고, 선생님이 보고 답해 줄게요.'}</div><div class="mk-fb"><button type="button" class="mk-md" data-mkx>닫기</button><button type="button" class="mk-md mk-go" data-mkqna>질문 탭에서 보기</button></div></div>`; if (cur && cur.rect) place(cur.rect);
     }
     const place = (r) => { bar.hidden = false; const w = bar.offsetWidth || 280; bar.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px'; bar.style.top = Math.min(innerHeight - 64, r.bottom + 12) + 'px'; };
@@ -9331,7 +9350,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241256'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241327'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

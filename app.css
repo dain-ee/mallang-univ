@@ -1,4 +1,6 @@
 /* 말랑대학 — 토스 앱 결: 회색 바탕 · 흰 카드 · 파랑 하나 */
+/* 11/24 옛한글(중세 국어): Pretendard 는 옛 글자를 못 모아 써서 Noto Sans KR 에서 옛한글만 잘라 넣음 */
+@font-face { font-family: "Yet"; font-weight: 100 900; src: url("fonts/YetHangul.woff2") format("woff2"); unicode-range: U+1100-11FF, U+A960-A97F, U+D7B0-D7FF, U+302E-302F; font-display: swap; }
 @font-face { font-family: "Pretendard"; font-weight: 400; src: url("fonts/Pretendard-Regular.woff2") format("woff2"); font-display: swap; }
 @font-face { font-family: "Pretendard"; font-weight: 500; src: url("fonts/Pretendard-Medium.woff2") format("woff2"); font-display: swap; }
 @font-face { font-family: "Pretendard"; font-weight: 600; src: url("fonts/Pretendard-SemiBold.woff2") format("woff2"); font-display: swap; }
@@ -26,7 +28,7 @@
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; }
-body { min-height: 100vh; background: var(--bg); color: var(--t1); font-family: "Pretendard", -apple-system, "Apple SD Gothic Neo", system-ui, sans-serif; font-size: 15px; line-height: 1.5; letter-spacing: -0.01em; word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
+body { min-height: 100vh; background: var(--bg); color: var(--t1); font-family: "Yet", "Pretendard", -apple-system, "Apple SD Gothic Neo", system-ui, sans-serif; font-size: 15px; line-height: 1.5; letter-spacing: -0.01em; word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
 button { font: inherit; color: inherit; cursor: pointer; }
 input, textarea, select { font: inherit; color: var(--t1); }
 img.ic { width: 1.25em; height: 1.25em; vertical-align: -0.25em; }
@@ -5521,3 +5523,19 @@ mark.mk.mk-u.mk-new { animation: mkFade .4s both; }
 .ask-f { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
 
 .mk-bar[hidden] { display: none !important; }
+
+/* 11/24 필기를 문장 바로 밑에 */
+.mk-n { margin-left: 2px; font-size: 11px; font-weight: 700; color: var(--blue); }
+.mk-note { display: flex; gap: 8px; align-items: flex-start; margin: 6px 0 2px; padding: 8px 10px; border-left: 3px solid #ffe58a; border-radius: 0 10px 10px 0; background: #fffbea; font-size: 14px; font-weight: 500; line-height: 1.6; color: #4e5968; text-align: left; white-space: normal; word-break: keep-all; animation: mkPop .3s both; }
+.mk-note b { flex: none; min-width: 20px; height: 20px; border-radius: 10px; background: #ffd84d; color: #333d4b; font-size: 12px; line-height: 20px; text-align: center; }
+.mk-note-q { border-left-color: #9fd0ff; background: #f2f8ff; } .mk-note-q b { background: #9fd0ff; }
+.mk-note em { font-style: normal; font-weight: 700; color: var(--blue); }
+.mk-note i { display: block; margin-top: 4px; font-style: normal; font-weight: 400; color: #333d4b; }
+.mk-sum { margin-top: 16px; } .mk-sum h3 { margin: 0; font-size: 16px; } .mk-sum .tiny { margin: 2px 0 10px; }
+.mk-sum-r { display: flex; gap: 10px; align-items: flex-start; width: 100%; padding: 10px 0; border: 0; border-top: 1px solid var(--line); background: none; font: inherit; text-align: left; cursor: pointer; transition: transform .15s; }
+.mk-sum-r:active { transform: scale(.98); }
+.mk-sum-r b { flex: none; min-width: 22px; height: 22px; border-radius: 11px; background: #ffd84d; font-size: 12px; line-height: 22px; text-align: center; }
+.mk-sum-r span { font-size: 14px; line-height: 1.6; word-break: keep-all; } .mk-sum-r u { display: block; text-decoration: none; color: var(--t3); font-size: 13px; }
+
+/* 11/24 타이머가 도는 숙제 줄: 좁은 화면에서 제목이 한 글자씩 줄바꿈되던 것 → 단추를 아래 줄로 */
+@media (max-width: 560px) { .li:has(> .my-runs) { flex-wrap: wrap; } .li:has(> .my-runs) > .body { flex: 1 1 0; min-width: 0; } .li > .my-runs { flex: 1 1 100%; justify-content: flex-end; margin-top: 8px; } }
