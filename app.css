@@ -5539,3 +5539,4 @@ mark.mk.mk-u.mk-new { animation: mkFade .4s both; }
 
 /* 11/24 타이머가 도는 숙제 줄: 좁은 화면에서 제목이 한 글자씩 줄바꿈되던 것 → 단추를 아래 줄로 */
 @media (max-width: 560px) { .li:has(> .my-runs) { flex-wrap: wrap; } .li:has(> .my-runs) > .body { flex: 1 1 0; min-width: 0; } .li > .my-runs { flex: 1 1 100%; justify-content: flex-end; margin-top: 8px; } }
+
