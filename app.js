@@ -2578,7 +2578,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611241454', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611241543', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3708,7 +3708,7 @@
       const ch = q.type === 'mc' ? `<div class="xp-ch ${L(q.choices).every((c) => String(c).length <= 14) ? 'row' : ''}">${L(q.choices).map((c, k) => { const m = String(c).match(/^([①②③④⑤])\s*(.*)$/) || [0, '①②③④⑤'[k], c];
           const me = done ? (a && a.p === k) : pk[i] === k; return `<button type="button" class="xp-c ${me ? 'on' : ''} ${done && k === q.answer ? 'ans' : ''}" data-xpp="${i}:${k}" ${done ? 'disabled' : ''}><i>${('①②③④⑤'.indexOf(m[1]) + 1) || k + 1}</i><span>${r2U(m[2])}</span></button>`; }).join('')}</div>`
         : `<div class="xp-es"><p class="xp-es-h">서답형</p><textarea class="xp-ta" data-xpe="${i}" rows="5" ${done ? 'disabled' : ''} placeholder="조건을 지켜서 써요">${esc(es[i] || '')}</textarea></div>`;
-      return `<div class="xp-q ${mk ? 'mk-' + mk : ''}" id="xp-q${i}"><p class="xp-stem"><b class="xp-n">${mk ? xpMk(mk === 'o') : ''}${i + 1}.</b> ${r2U(ln[0])}</p>${ln.slice(1).map((t) => `<p class="xp-line">${r2U(t)}</p>`).join('')}${shared ? '' : L(q.text).length ? `<div class="xp-text">${L(q.text).map((t) => `<p>${r2U(t)}</p>`).join('')}</div>` : ''}${tbl(q)}${box(q)}${ch}
+      return `<div class="xp-q ${mk ? 'mk-' + mk : ''}" id="xp-q${i}"><p class="xp-stem"><b class="xp-n">${mk ? xpMk(mk === 'o') : ''}${i + 1}.</b> ${r2U(ln[0])}</p>${ln.slice(1).map((t) => `<p class="xp-line">${r2U(t)}</p>`).join('')}${shared ? '' : L(q.text).length ? `<div class="xp-text">${L(q.text).map((t) => `<p>${r2U(t)}</p>`).join('')}</div>` : ''}${L(q.img).map((src) => `<img class="q-img xp-img" style="margin:6px 0 8px" src="${esc(src)}" alt="문제 그림" loading="lazy">`).join('')}${tbl(q)}${box(q)}${ch}
         ${done && q.type === 'mc' && !(a && a.ok) && q.exp ? `<details class="xp-exp"><summary>해설 보기 · 정답 ${'①②③④⑤'[q.answer]}</summary><p>${r2U(q.exp)}</p>${q.trap ? `<p class="tiny">함정: ${r2U(q.trap)}</p>` : ''}</details>` : ''}</div>`; };
     const wq = (i) => { const q = qs[i]; return 90 + String(q.q || '').length + L(q.box).join('').length + L(q.choices).join('').length + L(q.table).flat().join('').length * 1.4 + L(q.table).length * 30 + (q.type === 'mc' ? 0 : 260); };
     const wg = (g) => g.reduce((t, i) => t + wq(i), g.length > 1 ? L(qs[g[0]].text).join('').length : L(qs[g[0]].text).join('').length);
@@ -9369,7 +9369,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241454'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241543'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
