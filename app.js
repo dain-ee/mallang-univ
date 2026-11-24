@@ -1005,7 +1005,8 @@
     if (has('unit') && CH_UNITS.length && !(TUTOR && ppOn())) { const un = CH_UNITS[ed.unit] || CH_UNITS[CH_UNITS.length - 1]; tasks.push({ k: 'unit', icon: 'eng', t: `천일문 ${un.unit ? 'Unit ' + un.unit : ''} ${un.title || ''}`.trim(), d: unitDone ? '다 했어요' : cdesc('unit', '개념 · 문장 · 문제'), done: !!unitDone }); }
     if (has('words') && WORDS.length && !(WQ && today() < WQ.test)) tasks.push({ k: 'words', icon: 'books', t: '워드마스터 단어 10개 시험', d: wordsDone ? `${Object.values(ed.wans).filter((x) => x.ok).length}/10 맞힘` : cdesc('words', wordsLabel(ed.words)), done: !!wordsDone });
     // 매일 기사 하나: 오늘 읽은 기사가 있으면 그게 오늘 것(끝), 없으면 안 읽은 대이슈 → 안 읽은 최신 기사
-    if (WALLET || U.who === '윤건') { const N = ((D.news && D.news.items) || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date))), t = today();
+    if ((WALLET || U.who === '윤건') && !(U.who === '정윤' && today() <= '2026-12-18')) {  // 11/24 «뉴스 이런 건 빼» → 정윤은 기말(12/18)까지 매일 기사 숙제 없음
+      const N = ((D.news && D.news.items) || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date))), t = today();
       const rd = WALLET ? (W().log.find((x) => x.date === t && String(x.key).startsWith('news:')) || (() => { const e = Object.entries(S.nread || {}).find(([, v]) => v && dateOf(v.at) === t); return e ? { key: 'news:' + e[0] } : null; })()) : (() => { const e = Object.entries(S.nr || {}).find(([, at]) => dateOf(at) === t); return e ? { key: 'news:' + e[0] } : null; })(), un = N.filter((n) => !wHas('news:' + n.id));
       const n = rd ? N.find((x) => 'news:' + x.id === rd.key) : (un.find((x) => x.must) || un[0]);
       if (n) tasks.push({ k: 'news:' + n.id, icon: n.must ? 'fire' : 'news', t: `${n.must ? '꼭 읽기' : '오늘의 기사'}: ${n.title}`, d: rd ? '읽었어요' : `${n.must ? '요즘 대이슈 · ' : ''}${WALLET ? '읽으면 50원' : '읽으면 🔥 불꽃 +1'}`, done: !!rd }); }
@@ -2577,7 +2578,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611241135', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611241148', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -9241,7 +9242,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241135'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241148'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
