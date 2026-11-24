@@ -2580,7 +2580,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611241704', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611241711', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7688,7 +7688,7 @@
       ${(W && (nxWsRead(L) || nxWsNotes(L))) || L.map(nxLrnSec).join('')}
       <div class="cta-bar"><button class="btn primary big block" data-nxlearned type="button">다 읽었어요 · ${W && !s.ws ? '문제 풀기' : '외우기 시작'}</button></div></div>`;
   }
-  const nxLrnSec = (x) => { const nl = (t) => esc(t).replace(/\n/g, '<br>'); return `<section class="card lrn-sec${x.sch ? ' lrn-sch' : ''}"><h2>${esc(x.h)}</h2>${x.form ? `<div class="lrn-form">${esc(x.form)}</div>` : ''}${x.point ? `<p class="lrn-pt">${nl(x.point)}</p>` : ''}
+  const nxLrnSec = (x) => { const nl = (t) => esc(t).replace(/\n/g, '<br>'); return `<section class="card lrn-sec${x.sch ? ' lrn-sch' : ''}"><h2>${esc(x.h)}</h2>${x.form ? `<div class="lrn-form">${esc(x.form).split(/\s+·\s+|\n/).join('<br>')}</div>` : ''}${x.point ? `<p class="lrn-pt">${nl(x.point)}</p>` : ''}
         <div class="lrn-rows">${(x.rows || []).map((w) => `<div class="lrn-row"><b>${esc(w.en)}</b><span>${esc(w.ko)}</span>${w.note ? `<i>${nl(w.note)}</i>` : ''}</div>`).join('')}</div>
         ${(x.traps || []).length ? `<div class="lrn-trap"><b>시험 함정</b><ul>${x.traps.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}</section>`; };
   // 11/22 선생님 «위쪽에 본문을 예시로 들면 더 이쁘게 · 단어 리스트나 필기는 본문에 이미 넣을 수 있는데 왜 맨 아래에» → 학습지 본문은 지문 한 장에 단어 뜻(낱말 위)·학교 선생님 필기(그 문장 밑)를 바로
@@ -7724,9 +7724,9 @@
     const used = new Set(), rest = L.filter((x) => x !== N);
     const rowH = (w) => { const k = norm(w.en), ns = k ? N.rows.filter((n) => { const q = norm(n.en); return q.length > 3 && (k.includes(q) || q.includes(k)); }) : [];
       let en = esc(w.en); for (const n of ns) { used.add(n); const mk = markOf(n.ko); if (mk && en.includes(esc(mk))) en = en.replace(esc(mk), `<u class="wsr-u">${esc(mk)}</u>`); }
-      return `<div class="lrn-row"><b>${en}</b><span>${esc(w.ko)}</span>${w.note ? `<i>${esc(w.note).replace(/\n/g, '<br>')}</i>` : ''}${ns.map((n) => `<div class="wsr-n"><b>${esc(N.tag || '필기')}</b><span>${esc(text(n.ko))}</span></div>`).join('')}</div>`; };
+      return `<div class="lrn-row"><b>${en}</b><span>${esc(w.ko)}</span>${w.note && !ns.length ? `<i>${esc(w.note).replace(/\n/g, '<br>')}</i>` : ''}${ns.map((n) => `<div class="wsr-n"><b>${esc(N.tag || '필기')}</b><span>${esc(text(n.ko))}</span></div>`).join('')}</div>`; };
     const nl = (t) => esc(t).replace(/\n/g, '<br>');
-    const body = rest.map((x) => `<section class="card lrn-sec"><h2>${esc(x.h)}</h2>${x.form ? `<div class="lrn-form">${esc(x.form)}</div>` : ''}${x.point ? `<p class="lrn-pt">${nl(x.point)}</p>` : ''}
+    const body = rest.map((x) => `<section class="card lrn-sec"><h2>${esc(x.h)}</h2>${x.form ? `<div class="lrn-form">${esc(x.form).split(/\s+·\s+|\n/).join('<br>')}</div>` : ''}${x.point ? `<p class="lrn-pt">${nl(x.point)}</p>` : ''}
         <div class="lrn-rows">${(x.rows || []).map(rowH).join('')}</div>${(x.traps || []).length ? `<div class="lrn-trap"><b>시험 함정</b><ul>${x.traps.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}</section>`).join('');
     const left = N.rows.filter((n) => !used.has(n));
     const top = left.length ? `<section class="card lrn-sec lrn-sch"><h2>📌 학교 선생님 필기</h2><p class="lrn-pt">수업 때 짚어 준 것이에요. 시험에 그대로 나와요${used.size ? ' · 문장에 붙은 필기는 아래 그 문장 밑에 있어요' : ''}</p><div class="lrn-rows">${left.map((r) => `<div class="lrn-row"><b>${esc(r.en)}</b><span>${esc(r.ko)}</span></div>`).join('')}</div></section>` : '';
@@ -8168,6 +8168,11 @@
     // 11/21 수업 중 «7과 학습지는 한 만큼만, 쓸데없는 게 많고 문법 쪽은 사진도 없어서 못 해 → 빼고 7과 본문 문제 중·상 학교 스타일로» → 선생님 스타일 실전 1·2회·심화에서 본문 지문 문제만
     qx: [{ id: 'e7xm', title: '7과 본문 · 학교 스타일 중 15문제', sub: '선생님 스타일 실전 1·2회 본문 지문 문제 · 중', from: ['e7:t1', 'e7:t2'], lv: [2], k: 15 },
       { id: 'e7xh', title: '7과 본문 · 학교 스타일 상 15문제', sub: '선생님 스타일 실전·심화 본문 지문 문제 · 상', from: ['e7:t1', 'e7:t2', 'e7:t7'], lv: [3], k: 15 }] };
+  // 11/24 «이건 학습지 꼴이 아니라 학습지를 줬잖아» → 7과 의사소통은 진짜 학교 학습지(의사소통 ①② 2회독)로 · «오늘 다 넣어, 못 한 건 토요일로» → 8과 본문 중요 문장 시험 + 학교 스타일 중·상까지
+  YG_JWT_FIX['2026-11-24'] = { m3: [], off: ['lw'], lt: ['e8t'],
+    sq: [{ h: '7과 의사소통 · 학교 학습지 ①② → 기출비·선생님 스타일', ids: ['ws7c1r2', 'ws7c2r2', 'e7cx'] }, { h: '8과 문법 · 학교 학습지 꼴 → 기출비 상·중상', ids: ['e8gw', 'e8gx'] }, { h: '8과 본문 · 학교 학습지 꼴 → 기출비 상·중상', ids: ['e8rw', 'e8rx'] }],
+    qx: [{ id: 'e8xm', title: '8과 본문 · 학교 스타일 중 15문제', sub: '선생님 스타일 실전 1·2회 본문 지문 문제 · 중', from: ['e8:t1', 'e8:t2'], lv: [2], k: 15 },
+      { id: 'e8xh', title: '8과 본문 · 학교 스타일 상 15문제', sub: '선생님 스타일 실전·심화 본문 지문 문제 · 상', from: ['e8:t1', 'e8:t2', 'e8:t7'], lv: [3], k: 15 }] };
   const ygPlan = (date) => { const o = { ...(((LS0.tests || {})[date]) || {}), ...(((S.jwt || {})[date]) || {}), ...(YG_JWT_FIX[date] || {}) }; return { units: (o.units || []).length ? o.units.map(Number) : null, days: (o.days || []).length ? o.days.map(Number) : null, m3: (o.m3 || []).length ? o.m3.map(Number) : null, tu: (o.tu || []).length ? o.tu.map(Number) : null, gr: (o.gr || []).length ? o.gr.map(String) : null, gt: (o.gt || []).length ? o.gt.map(String) : null, tx: (o.tx || []).length ? o.tx.map(String) : null, off: o.off || [], rq: (o.rq || []).map(String), gl: o.gl || {}, gx: (o.gx || []).map(String), lt: (o.lt || []).map(String), rqa: o.rqa || [], wsLast: !!o.wsLast, noWs: !!o.noWs, wsDone: !!o.wsDone, qx: o.qx || [], sq: o.sq || [], tp: o.tp || {}, n: o.n || 15, wn: o.wn || 20, mn: o.mn || 10 }; };
   const M3U = () => ((NXD.subjects || []).find((x) => x.key === 'm3') || {}).units || [];
   // 11/12 «이번엔 천일문 시험이 아니라 지난 수업 7과 문법으로 · 개념 물어보는 거 한 문제 · 한 과에 문법이 2개 있는데 한 판에 있는 걸 한 문제로»
@@ -8230,7 +8235,7 @@
       const qs = pool.slice(0, A.k); for (const q of qs) if (!NXQ[q.i]) NXQ[q.i] = { q, set: id }; const x = mk(id, A.title, A.sub, qs); if (x) out.rq.push(x); }
     // 11/24 «안 한 것들 하면서 · 의사소통 8단원 뒤에 문제 여러 개 문법 학습지 꼴 그대로 하고, 뒤에 기출비에서 갖고 온 문제 상·중상 · 본문도 마찬가지»
     //   → jwt[날짜].sq = [{ h: 소제목, ids: [NXD.rq 묶음 id …] }] 를 적힌 순서대로 (학습지 꼴 묶음은 읽기 화면 learn 부터)
-    out.sq = (P.sq || []).map((G) => ({ h: G.h || '', xs: (G.ids || []).map((sid) => { const R = (NXD.rq || []).find((x) => x.id === sid); if (!R) return null; const id = `lc:${date}:${sid}`; for (const q of R.qs) if (!NXQ[q.i]) NXQ[q.i] = { q, set: id }; return mk(id, R.title, R.sub, R.qs, R.learn); }).filter(Boolean) })).filter((G) => G.xs.length);
+    out.sq = (P.sq || []).map((G) => ({ h: G.h || '', xs: (G.ids || []).map((sid) => { const R = (NXD.rq || []).find((x) => x.id === sid); if (!R) return NXSETS['pp:' + sid] || null; const id = `lc:${date}:${sid}`; for (const q of R.qs) if (!NXQ[q.i]) NXQ[q.i] = { q, set: id }; return mk(id, R.title, R.sub, R.qs, R.learn); }).filter(Boolean) })).filter((G) => G.xs.length);
     return out;
   }
   // 11/17 «수업도 남은 거 위에 숙제나 오답처럼 띄워 달라는 거야» → 오늘 수업에서 아직 안 끝낸 줄 수를 수업 탭 숫자로
@@ -9377,7 +9382,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241704'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241711'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
