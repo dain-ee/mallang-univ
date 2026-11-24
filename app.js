@@ -2578,7 +2578,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611241615', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611241640', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7680,11 +7680,11 @@
       return `<div class="nx-wrap">${nxTop(s, 0, s.qs.length, '먼저 읽어요', 0)}<div class="nx-lrn-bar"><p class="tiny">${hint}</p>${sv ? `<button class="btn sm ${svOn ? 'soft' : ''}" data-nxsv type="button" aria-pressed="${svOn}">${svOn ? '문장 구조 숨기기' : '문장 구조 보기'}</button>` : ''}</div>
         <div class="nx-lrn ${svOn ? '' : 'hide-sv'}">${stNotes({ subj: 'eng', notes: N }, { nk, lrn: 1 })}${(s.learn.sch || []).length ? `<section class="card lrn-sec lrn-sch"><h2>📌 학교 선생님 필기</h2><p class="lrn-pt">학교 선생님이 수업 때 짚어 준 것이에요. 시험에 그대로 나와요</p><div class="lrn-rows">${s.learn.sch.map((it) => `<div class="lrn-row"><b>${esc(it[0])}</b><span>${esc(it[1])}</span></div>`).join('')}</div></section>` : ''}</div>
         <div class="cta-bar"><button class="btn primary big block" data-nxlearned type="button">다 읽었어요 · ${para ? '빈칸 채우기' : '시작'}</button></div></div>`; }
-    const L = s.learn || [], nl = (t) => esc(t).replace(/\n/g, '<br>');
-    return `<div class="nx-wrap">${nxTop(s, 0, s.qs.length, '먼저 배워요 · 다 읽고 외우기 시작', 0)}
-      <div class="nx-lrn-bar"><p class="tiny">${s.ws ? '학교 학습지 그대로예요. 답과 학교 선생님 필기까지 읽고 아래 단추로 문제를 풀어요' : `다 읽으면 아래 단추로 ${s.subj === 'eng' ? '우리말 보고 영어로 쓰기' : '뜻 보고 용어 쓰기'}를 시작해요`}</p></div>
-      ${(s.ws && (nxWsRead(L) || nxWsNotes(L))) || L.map(nxLrnSec).join('')}
-      <div class="cta-bar"><button class="btn primary big block" data-nxlearned type="button">다 읽었어요 · 외우기 시작</button></div></div>`;
+    const L = s.learn || [], nl = (t) => esc(t).replace(/\n/g, '<br>'), W = s.ws || L.some((x) => x && x.sch);  // 11/24 «학습지 또 줄글처럼» → 필기 카드(sch) 있는 수업 묶음도 학교 학습지 꼴로
+    return `<div class="nx-wrap">${nxTop(s, 0, s.qs.length, W && !s.ws ? '먼저 읽어요 · 다 읽고 문제 풀기' : '먼저 배워요 · 다 읽고 외우기 시작', 0)}
+      <div class="nx-lrn-bar"><p class="tiny">${W && !s.ws ? '밑줄 친 곳과 그 문장 바로 밑 설명까지 읽고 아래 단추로 문제를 풀어요' : s.ws ? '학교 학습지 그대로예요. 답과 학교 선생님 필기까지 읽고 아래 단추로 문제를 풀어요' : `다 읽으면 아래 단추로 ${s.subj === 'eng' ? '우리말 보고 영어로 쓰기' : '뜻 보고 용어 쓰기'}를 시작해요`}</p></div>
+      ${(W && (nxWsRead(L) || nxWsNotes(L))) || L.map(nxLrnSec).join('')}
+      <div class="cta-bar"><button class="btn primary big block" data-nxlearned type="button">다 읽었어요 · ${W && !s.ws ? '문제 풀기' : '외우기 시작'}</button></div></div>`;
   }
   const nxLrnSec = (x) => { const nl = (t) => esc(t).replace(/\n/g, '<br>'); return `<section class="card lrn-sec${x.sch ? ' lrn-sch' : ''}"><h2>${esc(x.h)}</h2>${x.form ? `<div class="lrn-form">${esc(x.form)}</div>` : ''}${x.point ? `<p class="lrn-pt">${nl(x.point)}</p>` : ''}
         <div class="lrn-rows">${(x.rows || []).map((w) => `<div class="lrn-row"><b>${esc(w.en)}</b><span>${esc(w.ko)}</span>${w.note ? `<i>${nl(w.note)}</i>` : ''}</div>`).join('')}</div>
@@ -7703,14 +7703,14 @@
       return out; };
     const used = new Set(), sent = (r, k) => { const ns = notes[r.en] || []; if (ns.length) used.add(r.en);
       let segs = [[r.en, 0]]; for (const mk of ns.map((n) => (n.match(/^(.+?) 밑줄/) || [])[1]).filter(Boolean)) segs = segs.flatMap(([t, u]) => { if (u) return [[t, u]]; const i = t.indexOf(mk); return i < 0 ? [[t, 0]] : [[t.slice(0, i), 0], [mk, 1], [t.slice(i + mk.length), 0]].filter((x) => x[0]); });
-      return `<div class="wsr-s" style="--d:${Math.min(k, 12) * 40}ms"><p class="wsr-en">${segs.map(([t, u]) => (u ? `<u class="wsr-u">${deco(t)}</u>` : deco(t))).join('')}</p><p class="wsr-ko">${esc(r.ko)}</p>${ns.map((n) => `<div class="wsr-n"><b>필기</b><span>${esc(n.replace(/^.+? 밑줄 · /, ''))}</span></div>`).join('')}</div>`; };
+      return `<div class="wsr-s" style="--d:${Math.min(k, 12) * 40}ms"><p class="wsr-en">${segs.map(([t, u]) => (u ? `<u class="wsr-u">${deco(t)}</u>` : deco(t))).join('')}</p><p class="wsr-ko">${esc(r.ko)}</p>${ns.map((n) => `<div class="wsr-n"><b>${esc(N.tag || '필기')}</b><span>${esc(n.replace(/^.+? 밑줄 · /, ''))}</span></div>`).join('')}</div>`; };
     const rows = P.rows.slice(), hd = []; while (rows.length && isH(rows[0].en)) hd.push(rows.shift());
     const body = rows.map((r, k) => (isH(r.en) ? `<h3 class="wsr-h3">${esc(r.en)}<small>${esc(r.ko)}</small></h3>` : sent(r, k))).join('');
     const left = (N.rows || []).filter((r) => !used.has(r.en)), lw = vw.filter((w) => !w.used), src = V ? String(V.h).replace(/\s*·\s*단어$/, '') : '';
     const rest = L.filter((x) => x !== P && x !== N && x !== V);
     return `<section class="card wsr">${src ? `<div class="wsr-src">${esc(src)}</div>` : ''}${hd.map((r, i) => (i ? `<h3 class="wsr-h3">${esc(r.en)}<small>${esc(r.ko)}</small></h3>` : `<h2 class="wsr-t">${esc(r.en)}</h2><p class="wsr-tk">${esc(r.ko)}</p>`)).join('')}
-      <div class="wsr-key"><span><ruby class="wsr-w">word<rt>뜻</rt></ruby> 외울 단어</span><span><u class="wsr-u">밑줄</u> 학교 선생님 필기</span></div>${body}
-      ${left.length ? `<div class="wsr-more"><b>필기 더</b>${left.map((r) => `<div class="wsr-n"><b>필기</b><span>${esc(r.en)} · ${esc(r.ko)}</span></div>`).join('')}</div>` : ''}
+      <div class="wsr-key"><span><ruby class="wsr-w">word<rt>뜻</rt></ruby> 외울 단어</span><span><u class="wsr-u">밑줄</u> ${esc(N.key || '학교 선생님 필기')}</span></div>${body}
+      ${left.length ? `<div class="wsr-more"><b>필기 더</b>${left.map((r) => `<div class="wsr-n"><b>${esc(N.tag || '필기')}</b><span>${esc(r.en)} · ${esc(r.ko)}</span></div>`).join('')}</div>` : ''}
       ${lw.length ? `<div class="wsr-more"><b>그 밖의 단어</b><div class="wsr-chips">${lw.map((w) => `<span><b>${esc(w.en)}</b>${esc(w.ko)}</span>`).join('')}</div></div>` : ''}</section>${rest.map(nxLrnSec).join('')}`;
   }
   // 11/22 선생님 «(학교 선생님 필기) 왜 여기다 하냐고 · 처음에 위쪽에 했으면 됐잖아» → 의사소통·문법·단어 학습지도 필기를 맨 아래 카드로 모으지 않고, 그 문장 바로 밑에 (짚은 구절은 밑줄). 맞는 문장이 없는 필기만 맨 위에
@@ -7722,7 +7722,7 @@
     const used = new Set(), rest = L.filter((x) => x !== N);
     const rowH = (w) => { const k = norm(w.en), ns = k ? N.rows.filter((n) => { const q = norm(n.en); return q.length > 3 && (k.includes(q) || q.includes(k)); }) : [];
       let en = esc(w.en); for (const n of ns) { used.add(n); const mk = markOf(n.ko); if (mk && en.includes(esc(mk))) en = en.replace(esc(mk), `<u class="wsr-u">${esc(mk)}</u>`); }
-      return `<div class="lrn-row"><b>${en}</b><span>${esc(w.ko)}</span>${w.note ? `<i>${esc(w.note).replace(/\n/g, '<br>')}</i>` : ''}${ns.map((n) => `<div class="wsr-n"><b>필기</b><span>${esc(text(n.ko))}</span></div>`).join('')}</div>`; };
+      return `<div class="lrn-row"><b>${en}</b><span>${esc(w.ko)}</span>${w.note ? `<i>${esc(w.note).replace(/\n/g, '<br>')}</i>` : ''}${ns.map((n) => `<div class="wsr-n"><b>${esc(N.tag || '필기')}</b><span>${esc(text(n.ko))}</span></div>`).join('')}</div>`; };
     const nl = (t) => esc(t).replace(/\n/g, '<br>');
     const body = rest.map((x) => `<section class="card lrn-sec"><h2>${esc(x.h)}</h2>${x.form ? `<div class="lrn-form">${esc(x.form)}</div>` : ''}${x.point ? `<p class="lrn-pt">${nl(x.point)}</p>` : ''}
         <div class="lrn-rows">${(x.rows || []).map(rowH).join('')}</div>${(x.traps || []).length ? `<div class="lrn-trap"><b>시험 함정</b><ul>${x.traps.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}</section>`).join('');
@@ -9375,7 +9375,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241615'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611241640'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
