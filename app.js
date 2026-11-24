@@ -472,7 +472,11 @@
       const ord = (c) => (c.lesson && c.lesson.order) || 999;
       const exam = SCI.concepts.filter((c) => c.exam).sort((a, b) => ord(a) - ord(b));
       const weak = SCI.concepts.filter((c) => openWrong().some((w) => w.src === 'sci' && w.concept === c.id));
-      const c = exam.find((x) => !seen.has(x.id)) || weak[0] || exam.find((x) => (x.base || []).length) || SCI.concepts[0];
+      // 11/25 다 한 번씩 본 뒤 늘 첫 개념(산·염기)만 다시 나오던 것 고침 (정윤 «중화 반응 계속 나와») → 가장 오래전에 본 것부터, 틀린 게 있으면 먼저, 어제·그제 본 건 빼요
+      const last = {}; for (const [d, v] of Object.entries(S.sci.days)) if (v.one && d < t && (!last[v.c] || d > last[v.c])) last[v.c] = d;
+      const recent = new Set(Object.keys(S.sci.days).filter((d) => d < t).sort().slice(-2).map((d) => S.sci.days[d].c));
+      const pool = exam.filter((x) => (x.base || []).length && !recent.has(x.id)).sort((a, b) => (last[a.id] || '').localeCompare(last[b.id] || '') || ord(a) - ord(b));
+      const c = exam.find((x) => !seen.has(x.id)) || weak.find((x) => !recent.has(x.id)) || pool[0] || exam.find((x) => (x.base || []).length) || SCI.concepts[0];
       S.sci.days[t] = { one: true, c: c.id, read: false, list: (c.base || []).map((q) => ({ c: c.id, q: q.id, kind: 'base' })), ans: {} };
       save('sci');
     }
@@ -2580,7 +2584,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611242349', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611250521', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2809,7 +2813,7 @@
   // 과학 풀기
   function lessonHtml(c) {
     const L = c.lesson;
-    if (!L) return `<div class="card lesson"><p class="ls-body">${esc(c.summary || '')}</p></div>`;
+    if (!L || !(L.intro || (L.points || []).length)) return `<div class="card lesson"><p class="ls-body">${esc(c.summary || '')}</p></div>`;  // 11/25 순서(order)만 단 개념은 요약으로
     return `<div class="card lesson">
       ${L.intro ? `<p class="ls-intro">${esc(L.intro)}</p>` : ''}
       ${(L.points || []).map((p, k) => `<div class="ls-pt"><span class="ls-n">${k + 1}</span><div><b>${esc(p.t)}</b><p>${esc(p.d)}</p></div></div>`).join('')}
@@ -5450,6 +5454,7 @@
   const GD_LR = `<ol class="r2s-rules"><li style="--i:0"><span class="r2s-rn">1</span><div><b>그때 좌우는 「어떤 나라를 세울지」로 나눠요</b><span><b>좌익</b> = 사회주의·공산주의. 땅과 공장을 모두의 것으로, 친일 지주 땅은 빼앗아 농민에게 (무상 몰수·무상 분배). 소련 쪽 · 예) 조선 공산당, 박헌영</span><span><b>우익</b> = 자본주의·자유 민주주의. 개인 재산 인정, 땅도 돈 주고 사고팔기 (유상). 미국 쪽 · 예) 한국 민주당, 이승만, 김구</span><span><b>중도</b> = 둘을 합치자 · 여운형, 김규식 (좌우 합작 운동)</span><span>요즘 좌우는 같은 민주주의 안에서 정책 차이지만, 그때는 나라 체제 자체가 달랐어요</span></div></li><li style="--i:1"><span class="r2s-rn">2</span><div><b>한국 독립당 = 우익 (김구)</b><span>공산주의에 반대(반공)하고 민족주의 국가를 원했어요. 임시 정부를 이끌었고, 신탁 통치 반대(반탁)에 앞장섰어요</span><span>1948년 남북 협상은 좌익이 돼서가 아니라, 남한만 정부를 세우면 영원히 갈라진다고 봐서 <b>통일 정부</b>를 원했기 때문이에요</span><span>→ 생각은 우익, 방법은 단독 정부 반대 · 이승만(단독 정부)과 갈려요</span></div></li><li style="--i:2"><span class="r2s-rn">3</span><div><b>한국 민주당(한민당) = 우익 · 지주와 자본가</b><span>송진우, 김성수가 중심이고 이승만을 지지했어요</span><span>좌우 합작 7원칙의 토지 개혁은 <b>유상 매수(조건부 몰수)·무상 분배</b> → 나라가 지주에게 돈을 주고 사서 농민에게는 공짜로 줘요. 돈이 나가기만 해서 「재정 파탄」이라며 한민당이 반대했어요</span></div></li></ol>
   <div class="ls-box" style="margin-top:12px"><b>토지 개혁 한 줄로</b><p>· 좌익(북한): 무상 몰수·무상 분배</p><p>· 좌우 합작 7원칙: 유상 매수(조건부 몰수)·무상 분배 → 한민당 반대(재정 파탄)</p><p>· 남한 농지 개혁(1949): 유상 매수·유상 분배</p></div>`;
   const QNA = U.who === '정윤' ? [
+    { id: 'sc25', date: '2026-11-25', t: '오늘의 과학에 중화 반응(산·염기)만 계속 나와', ban: '오늘의 과학, 같은 개념만 나오던 것 고쳤어요', sub: '오늘의 과학 · 통합과학 3회독 날짜', fix: { tab: 'hw', txt: ['과학 개념'] }, html: '<p>기말 범위 개념을 한 바퀴 다 본 뒤로는 <b>첫 개념(산·염기)만 매일 다시</b> 나오고 있었어요. 제 잘못이에요.</p><p>이제는 <b>가장 오래전에 본 개념부터</b> 나오고, 어제·그제 본 건 안 나와요. 틀린 게 있으면 그걸 먼저 내요. 기말 범위인데 빠져 있던 산화·환원, 생태계, 온실 효과·엘니뇨도 넣었어요.</p><p>3회독 물리 함정이 2회독 마지막 날(12/9)과 겹쳐 있어서 2회독 부교재 ⑦은 12/5로, 3회독 생명·지구는 12/9, 물리는 12/10으로 바꿨어요. 이미 한 숙제는 그대로 끝난 걸로 남아요.</p>', links: [] },
     { id: 'p1124', date: '2026-11-24', t: '기말 계획이 어떻게 바뀌었어?', ban: '오늘부터 계획을 새로 짰어요 · 3회독은 시험 7일 전에 끝나요', sub: '기말 12/14~12/18 · 밀린 것은 다 없앴어요', html: '<p>밀려 있던 것은 다 없애고, <b>오늘(11/24)부터 새로 나눴어요.</b> 지난 것을 걱정하지 말고 오늘 몫만 하면 돼요.</p><p><b>3회독은 과목마다 시험 7일 전에 끝나요.</b> 그 뒤에는 모의고사만 풀어요.</p><div class="tbl-wrap"><table class="q-tbl"><tr><th>과목</th><th>시험</th><th>3회독 끝</th><th>모의고사</th></tr><tr><td>한국사</td><td>12/14(월)</td><td>12/7</td><td>12/8</td></tr><tr><td>통합사회</td><td>12/15(화)</td><td>12/8</td><td>12/9, 12/10</td></tr><tr><td>영어</td><td>12/16(수)</td><td>12/9</td><td>12/10, 12/11</td></tr><tr><td>국어</td><td>12/17(목)</td><td>12/10</td><td>12/11</td></tr><tr><td>통합과학</td><td>12/18(금)</td><td>12/11</td><td>12/12, 12/14</td></tr></table></div><p>일요일에는 새 몫이 없어요. 수학은 학원 숙제만 해요. 매일 기사 읽기는 시험이 끝날 때까지 쉬어요.</p>', links: [] },
     { id: 'r1124', date: '2026-11-24', t: '시험 범위랑 날짜가 학교 공지랑 맞아?', ban: '시험 날짜·범위를 학교 공지대로 고쳤어요', sub: '기말 12/14~12/18 · 전 과목', html: '<p>학교 홈페이지 11/23 공지 「2학기 2차 정기시험 일정 및 출제 범위」대로 다시 맞췄어요.</p><p><b>시간표</b><br>12/14(월) 공통수학2, 한국사2<br>12/15(화) 통합사회2 (논술형 있음)<br>12/16(수) 공통영어2 (논술형 있음)<br>12/17(목) 공통국어2<br>12/18(금) 통합과학2</p><p><b>새로 넣은 것</b><br>· 통합사회: Ⅳ·Ⅴ단원(교과서 98~151쪽, 개념완성 108~169쪽)이 빠져 있어서 새로 넣었어요. 따로 1회독 없이 2회독에서 교과서 내용을 먼저 읽고 바로 문제를 풀어요<br>· 영어: 교과서 Unit 4 본문(89~93쪽)과 올림포스 서술형·논술형 Practice<br>· 국어: 교과서 90~91쪽, 168~169쪽과 올림포스 기출 지문<br>· 한국사: 110~111쪽 단원 마무리와 개념완성 종합 문제<br>· 통합과학: 부교재에만 있는 개념 보충 3개</p><p>범위 밖이라 뺀 것도 있어요. 한국사 「냉전 체제의 형성」(66~67쪽), 국어 「박씨전」(92~93쪽), 과학 송전·변압기 계산이에요.</p><p>과목마다 시험 7일 전에 끝나게 날짜를 다시 나눴어요. 양이 많은 날은 과목 시험 순서대로(수학·한국사 → 사회 → 영어 → 국어 → 과학) 먼저 해요.</p>', links: [] },
     { id: 'pe24x', date: '2026-11-24', t: '체육 수행평가는 빼 줘', ban: '체육 수행평가 외우기 뺐어요', sub: '체육 운동 손상 · 숙제 탭', html: '<p>체육 운동 손상 외우기를 숙제에서 뺐어요. 날짜 넣어 달라는 창도 이제 안 떠요.</p><p>만들어 둔 카드는 그대로 있어서, 다시 필요하면 말해 줘요.</p>', links: [] },
@@ -5574,10 +5579,18 @@
     if (U.who !== '정윤' || TUTOR) return '';
     return `<a class="c12 ts-band dy-ban" href="${DIARY_URL}"><span class="ts-band-ic dy-ic"><img src="assets/diary/ribbon.webp" alt=""></span><span class="ts-band-t"><b>나만 여는 다이어리가 생겼어요</b><span>고민은 선생님도 못 보게 잠겨 있고, 오늘 한 공부는 저절로 적혀요</span></span><span class="ts-band-go">열어 보기</span></a>`;
   }
+  // 11/25 선생님 «들어오자마자 모달 띄워서 바로 들어가서 어디가 고쳐졌는지 살짝 불빛·라인» → 알림에 fix: { tab, txt:[찾을 글자] } 를 달면 그 화면으로 가서 옅은 점선 + 「바뀐 곳」 칩을 6초 보여 주고 사라져요
+  function fixGo(f) {
+    UI.run = null; UI.tab = f.tab || 'hw'; render(); window.scrollTo(0, 0);
+    let n = 0; const find = () => { const T = [].concat(f.txt || []); const els = $$('main .li, main .card, main section').filter((e) => e.offsetParent && T.some((x) => e.innerText.includes(x))); const leaf = els.filter((e) => !els.some((o) => o !== e && e.contains(o))); if (!leaf.length) { if (n++ < 10) setTimeout(find, 300); return; }
+      leaf.forEach((e, i) => { e.classList.remove('fix-hl'); void e.offsetWidth; e.classList.add('fix-hl'); if (!$('.fix-chip', e)) { const c = document.createElement('span'); c.className = 'fix-chip'; c.textContent = '바뀐 곳'; e.appendChild(c); } setTimeout(() => { e.classList.remove('fix-hl'); const c = $('.fix-chip', e); if (c) c.remove(); }, 7600); if (!i) e.scrollIntoView({ block: 'center', behavior: 'smooth' }); }); };
+    setTimeout(find, 350);
+  }
   function gdModal() {
     const L = gdList().filter((k) => GD[k].del && GD[k].q); if (!L.length || UI.run || UI.tab !== 'home') { gdModal.on = false; return; }
     const k = L[0], q = GD[k].q, n = (gdModal.n = Math.max(gdModal.n || 0, L.length)), i = n - L.length + 1; gdModal.on = true;
-    sheet(`<div class="gdm"><span class="gdm-n">알림 ${i} / ${n}</span><h2>${esc(q.ban || q.t)}</h2><p class="sub">${esc(q.sub || '')}</p><div class="gdm-b">${q.html}</div><div class="cta-bar"><button class="btn primary big block" id="gdm-ok" type="button">${L.length > 1 ? '확인했어요 · 다음 알림 보기' : '확인했어요'}</button></div><p class="tiny gdm-f">확인한 알림은 질문 탭에 모여 있어요</p></div>`, (el, close) => {
+    sheet(`<div class="gdm"><span class="gdm-n">알림 ${i} / ${n}</span><h2>${esc(q.ban || q.t)}</h2><p class="sub">${esc(q.sub || '')}</p><div class="gdm-b">${q.html}</div><div class="cta-bar">${q.fix ? '<button class="btn primary big block" id="gdm-go" type="button">고친 곳 바로 보기</button>' : ''}<button class="btn ${q.fix ? 'soft' : 'primary'} big block" id="gdm-ok" type="button"${q.fix ? ' style="margin-top:8px"' : ''}>${L.length > 1 ? '확인했어요 · 다음 알림 보기' : '확인했어요'}</button></div><p class="tiny gdm-f">확인한 알림은 질문 탭에 모여 있어요</p></div>`, (el, close) => {
+      const go = $('#gdm-go', el); if (go) go.onclick = () => { gdMark(k); gdModal.skip = true; gdModal.on = false; close(); fixGo(q.fix); };
       $('#gdm-ok', el).onclick = () => { gdMark(k); const more = gdList().some((x) => GD[x].del && GD[x].q); if (more) gdModal(); else { gdModal.on = false; close(); render(); } };
       $('.sh-x', el).addEventListener('click', () => { gdModal.skip = true; gdModal.on = false; });
       const bg = $('.sheet-bg'); if (bg) bg.addEventListener('click', () => { gdModal.skip = true; gdModal.on = false; });
@@ -9383,7 +9396,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611242349'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611250521'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

@@ -5577,3 +5577,11 @@ mark.mk.mk-out { transition: opacity .2s, background-size .2s; opacity: .2; }
 .sp-ct { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 700; color: var(--t3); }
 .sp-cols .sp-c { background: #fff; font-size: 14px; }
 @media (max-width: 560px) { .sp-cols { grid-template-columns: 1fr; } }
+
+/* 11/25 고친 곳 표시: 옅은 연파랑 점선 + 「바뀐 곳」 칩, 6초 뒤 1.5초에 걸쳐 사라짐 */
+.fix-hl { position: relative; outline: 1.5px dashed rgba(49,130,246,.7); outline-offset: 5px; border-radius: 20px; animation: fixGlow 1.2s ease-out 2, fixOut 1.5s ease 6s forwards; }
+.fix-chip { position: absolute; top: -11px; right: 12px; z-index: 3; padding: 2px 8px; border-radius: 8px; background: rgba(51,61,75,.85); color: #fff; font-size: 12px; font-weight: 600; line-height: 18px; pointer-events: none; animation: fixChip .3s both, fixChipOut 1.5s ease 6s forwards; }
+@keyframes fixGlow { 0% { box-shadow: 0 0 0 0 rgba(49,130,246,.28); } 100% { box-shadow: 0 0 0 12px rgba(49,130,246,0); } }
+@keyframes fixOut { to { outline-color: rgba(49,130,246,0); } }
+@keyframes fixChip { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes fixChipOut { to { opacity: 0; } }
