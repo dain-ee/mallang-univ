@@ -5666,3 +5666,15 @@ a.dy-home .pm-h-t { color: var(--t1, #191f28); }
   .arch-wb { flex: 1; height: 10px; border-radius: 99px; background: var(--fill); overflow: hidden; }
   .arch-wb i { display: block; height: 100%; border-radius: 99px; background: var(--blue); transition: width .6s cubic-bezier(.2,.8,.2,1); }
 }
+/* 11/25 «어느 지점에서 깨지는 게 있어» → 달력 칸이 좁으면 글씨가 칸 밖으로 넘쳤어요. 한 줄로 두고, 좁을 땐 시간 줄을 접어요 */
+.hcal-card { container-type: inline-size; }
+.hcal-d .hc-n, .hcal-d .hc-c, .hcal-d .hc-h { white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: clip; }
+@container (max-width: 520px) {
+  .hcal-d .hc-h { display: none; }
+  .hcal-d .hc-c { font-size: 11px; letter-spacing: -.3px; }
+  .hcal-d .hc-p { font-size: 10px; text-align: center; line-height: 1.25; }
+}
+@container (max-width: 380px) {
+  .hcal-d .hc-c { font-size: 10px; letter-spacing: -.5px; }
+  .hcal-d .hc-n { font-size: 12px; }
+}
