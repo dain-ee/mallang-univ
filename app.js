@@ -706,7 +706,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${ptCard('c12')}${TUTOR ? lessonHero() : ''}${appCard()}${gdCard()}${jyRepBand()}${diaryCard()}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${juaRepCard()}${juaLinks()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${qlogCard()}${railCards(true)}${winCard()}${perfCard()}${rngCard()}${finCard()}${admitCard('c12')}${lagCard()}${pomoCard('c12 rail-inline')}${growCard('c12')}${walletCard('c12')}${hotCard('c12 rail-inline')}${insightCard('c7')}${schedCard('c5')}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${ptCard('c12')}${TUTOR ? lessonHero() : ''}${TUTOR ? `${appCard()}${gdCard()}` : `${chkCard()}${jyRepBand()}${gnBand()}`}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${juaRepCard()}${juaLinks()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${qlogCard()}${railCards(true)}${winCard()}${perfCard()}${rngCard()}${finCard()}${appCard()}${gdCard()}${admitCard('c12')}${lagCard()}${pomoCard('c12 rail-inline')}${diaryCard()}${growCard('c12')}${walletCard('c12')}${hotCard('c12 rail-inline')}${insightCard('c7')}${schedCard('c5')}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 11/8 «정윤이 너무 홈이 너무 지저분해»
@@ -1399,10 +1399,16 @@
     }
     return out.slice(0, 4);
   }
-  function chkCard() {
+  function chkCard() {  // 11/25 «푼 것 확인은 한 덩어리 배너로, 누르면 ○~○번 다 맞았나요»
     if (TUTOR || DAY_OFF()) return ''; const L = myChecks(); if (!L.length) return '';
+    return `<button type="button" class="c12 ts-band chk-ban" data-chkopen><span class="ts-band-ic">${ic('ok')}</span><span class="ts-band-t"><b>푼 것 확인 ${L.length}개</b><span>${esc(L[0].it.book)}${L.length > 1 ? ` 외 ${L.length - 1}개` : ''} · 다 맞았는지 알려 줘요</span></span><span class="ts-band-go">확인하기</span></button>`;
+  }
+  function chkSheet() { const h = chkList(); if (!h) return; sheet(`<div id="chk-sh">${h}</div>`); }
+  document.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-chkopen]')) chkSheet(); });
+  function chkList() {
+    const L = myChecks(); if (!L.length) return '';
     const U = UI.chk || {};
-    return `<section class="card c12 chk-card"><div class="card-h"><h2>${ic('ok')} 푼 것 확인</h2><span class="tag">${L.length}개</span></div><p class="tiny" style="margin:-8px 0 4px">어제 푼 것 중 틀린 번호가 있으면 알려 줘요</p><div class="list">${L.map((c) => { const key = `${c.it.id}|${c.d || 'r'}`, o = U[key] || {}, wr = new Set(o.w || []);
+    return `<section class="chk-card"><div class="card-h"><h2>${ic('ok')} 푼 것 확인</h2><span class="tag">${L.length}개</span></div><p class="tiny" style="margin:-8px 0 4px">어제 푼 것 중 틀린 번호가 있으면 알려 줘요</p><div class="list">${L.map((c) => { const key = `${c.it.id}|${c.d || 'r'}`, o = U[key] || {}, wr = new Set(o.w || []);
       if (c.k === 'range') { const z = o.z != null ? o.z : c.z;
         return `<div class="li chk-it" data-chk="${esc(key)}"><div class="body"><div class="t">${esc(c.it.book)}${c.gone ? ' <span class="tag">지운 숙제</span>' : ''}</div>
           ${o.step === 'w' ? `<div class="d">${c.a}~${z}번 중 틀린 번호를 눌러요</div><div class="my-wc">${Array.from({ length: Math.min(80, z - c.a + 1) }, (_, i) => c.a + i).map((v) => `<button type="button" class="${wr.has(v) ? 'on' : ''}" data-chkw="${v}">${v}</button>`).join('')}</div><div class="chk-b"><button class="btn sm primary" type="button" data-chkdo="save">틀린 ${wr.size}개 저장</button></div></div>`
@@ -1415,7 +1421,7 @@
     const b = e.target.closest && e.target.closest('[data-chkw],[data-chkdo],[data-chked]'), row = b && b.closest('[data-chk]'); if (!row) return;
     const key = row.dataset.chk, c = myChecks().find((x) => `${x.it.id}|${x.d || 'r'}` === key); if (!c) return;
     const U = (UI.chk = UI.chk || {}), o = (U[key] = U[key] || {}), zi = $('[data-chkz]', row); if (zi) o.z = Math.max(c.a, Math.min(c.it.to, +zi.value || c.z));
-    const y = scrollY, again = () => { render(); scrollTo(0, y); };
+    const y = scrollY, again = () => { const sh = $('#chk-sh'); if (sh) { const h = chkList(); if (h) sh.innerHTML = h; else closeSheet(); render(); return; } render(); scrollTo(0, y); };
     if (b.dataset.chked != null) { o.ed = 1; again(); const z = $(`[data-chk="${CSS.escape(key)}"] [data-chkz]`); if (z) { z.focus(); z.select(); } return; }
     if (b.dataset.chkw) { const v = +b.dataset.chkw, W = new Set(o.w || []); W.has(v) ? W.delete(v) : W.add(v); o.w = [...W].sort((p, q) => p - q); return again(); }
     const k = b.dataset.chkdo, it = c.it, inList = myS().items.includes(it), tr = myS().trash || [];
@@ -2607,7 +2613,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611251950', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611252035', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5568,6 +5574,74 @@
       wx: [['6~11번', '시험지 2쪽에 몰려 <b>연속으로 틀렸어요.</b> 실수가 아니라 1920~40년대 단체와 연도를 아직 덜 외운 거예요.'], ['6번', '공출(1930~40년대) 시기에 1919년 위임 통치 청원을 넣었어요.'], ['7번', '국민 징용령(1939)과 학도 지원병제(1943) 사이 연도를 몰랐어요.'], ['8번', '이륭양행 경영자를 바꿔 쓴 함정을 못 봤어요.'], ['9번', '신간회 보기를 하나만 골랐어요. 「있는 대로」인데 확실한 것만 골랐어요.'], ['10번', '조선 청년 총동맹(1924)과 조선 농민 총동맹(1927) 순서를 바꿨어요.'], ['11번', '강우규를 의열단으로 착각했어요. 강우규는 대한 국민 노인 동맹단이에요.']],
       do: ['<b>연표 한 장</b>을 만들고 사건마다 연도를 붙여 외워요.', '단체는 <b>누가, 언제, 무엇을</b> 세 칸으로 정리해요.', '앱의 한국사 모고 2회(12/9)에 이 꼴 문제를 많이 넣었어요.'] },
   ];
+  // 11/25 굿노트 문제집 (D.gn: 정윤 묶음에만 · PDF는 dist/g/ 에 암호화). 배너 + 처음 들어오면 창으로 팡, 과목·회독마다 받기 + 한 번에 받기(ZIP)
+  const GN = D.gn && Array.isArray(D.gn.books) && D.gn.books.length ? D.gn : null;
+  const GN_SJ = ['국어', '영어', '통합사회', '한국사', '통합과학'];
+  const gnSt = new Map(), gnFile = new Map(); let gnKeyP = null, gnZ = null;
+  const gnKey = () => gnKeyP || (gnKeyP = crypto.subtle.importKey('raw', new Uint8Array(GN.key.match(/../g).map((x) => parseInt(x, 16))), 'AES-CTR', false, ['decrypt']));
+  async function gnGet(b) {
+    if (gnFile.has(b.f)) return gnFile.get(b.f);
+    const r = await fetch(b.f); if (!r.ok) throw new Error(b.f); const buf = new Uint8Array(await r.arrayBuffer());
+    const out = await crypto.subtle.decrypt({ name: 'AES-CTR', counter: buf.slice(0, 16), length: 64 }, await gnKey(), buf.slice(16));
+    const f = new File([out], '정윤_' + b.name, { type: 'application/pdf' }); gnFile.set(b.f, f); return f;
+  }
+  // 아이패드: 공유 창(굿노트 고르기) · 컴퓨터: 바로 내려받기. 공유는 누른 그 순간에만 돼서, 받은 다음 한 번 더 눌러요
+  function gnGive(file) {
+    try { if (navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: file.name }).catch(() => {}); return; } } catch (e) {}
+    const u = URL.createObjectURL(file), a = document.createElement('a'); a.href = u; a.download = file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000);
+  }
+  const gnShare = () => { try { return !!(navigator.canShare && navigator.canShare({ files: [new File(['x'], 'a.pdf', { type: 'application/pdf' })] })); } catch (e) { return false; } };
+  const GN_CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  const gnCrc = (u) => { let c = 0xffffffff; for (let i = 0; i < u.length; i++) c = GN_CRC[(c ^ u[i]) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+  async function gnZip(files) {  // 압축 없이 묶기만 (PDF는 이미 압축돼 있어요)
+    const te = new TextEncoder(), parts = [], cen = []; let off = 0;
+    for (const f of files) {
+      const data = new Uint8Array(await f.arrayBuffer()), nm = te.encode(f.name), crc = gnCrc(data);
+      const h = new DataView(new ArrayBuffer(30)); h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(12, 0x21, true); h.setUint32(14, crc, true); h.setUint32(18, data.length, true); h.setUint32(22, data.length, true); h.setUint16(26, nm.length, true);
+      parts.push(h.buffer, nm, data);
+      const c = new DataView(new ArrayBuffer(46)); c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(14, 0x21, true); c.setUint32(16, crc, true); c.setUint32(20, data.length, true); c.setUint32(24, data.length, true); c.setUint16(28, nm.length, true); c.setUint32(42, off, true);
+      cen.push(c.buffer, nm); off += 30 + nm.length + data.length;
+    }
+    const cs = cen.reduce((t, x) => t + x.byteLength, 0), e = new DataView(new ArrayBuffer(22)); e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true); e.setUint32(12, cs, true); e.setUint32(16, off, true);
+    return new File([...parts, ...cen, e.buffer], '정윤_굿노트_문제집.zip', { type: 'application/zip' });
+  }
+  function gnBand() {
+    if (!GN || TUTOR) return '';
+    return `<button type="button" class="c12 ts-band gn-ban" data-gnopen><span class="ts-band-ic">${ic('books')}</span><span class="ts-band-t"><b>굿노트 문제집이 생겼어요</b><span>과목마다 2회독·3회독 ${GN.books.length}권 · 날짜마다 그날 숙제가 그대로 있어요</span></span><span class="ts-band-go">받기</span></button>`;
+  }
+  function gnBtn(b) { const s = gnSt.get(b.f); return `<button type="button" class="gn-b ${s || ''}" data-gnb="${esc(b.f)}"><b>${esc(b.rd)}</b><small>${s === 'ing' ? '받는 중…' : s === 'ok' ? (gnShare() ? '굿노트로 열기 ›' : '다시 받기') : s === 'err' ? '다시 눌러요' : `${b.pg}쪽 · ${b.mb}MB`}</small></button>`; }
+  function gnHtml(first) {
+    const mb = Math.round(GN.books.reduce((t, b) => t + b.mb, 0)), z = gnZ;
+    const zl = z === 'ing' ? `모두 받는 중… ${gnFile.size}/${GN.books.length}` : z instanceof File ? (gnShare() ? '다 받았어요 · ZIP 열기 ›' : 'ZIP 다시 받기') : `한 번에 받기 · ZIP ${mb}MB`;
+    return `<div class="gdm gnm">${first ? '<span class="gdm-n">새로 나왔어요</span>' : ''}<h2>굿노트 문제집이 생겼어요</h2><p class="sub">과목마다 2회독·3회독 책이에요. 날짜마다 그날 숙제가 그대로 있고 손으로 풀 칸이 있어요. 답은 앱 같은 숙제에서 눌러요</p>
+      <div class="gn-list">${GN_SJ.map((sj) => { const B = GN.books.filter((b) => b.sj === sj); return B.length ? `<div class="gn-row"><span class="gn-sj">${esc(sj)}</span><div class="gn-bs">${B.map(gnBtn).join('')}</div></div>` : ''; }).join('')}</div>
+      <div class="cta-bar"><button class="btn primary big block" type="button" data-gnall${z === 'ing' ? ' disabled' : ''}>${zl}</button></div>
+      <p class="tiny gn-tip">${gnShare() ? '받은 뒤 한 번 더 누르면 공유 창이 떠요. 거기서 「굿노트」를 고르면 바로 들어가요' : '누르면 PDF가 내려받아져요. 아이패드에서는 공유 창에서 굿노트를 골라요'}</p></div>`;
+  }
+  function gnSheet(first) {
+    sheet(gnHtml(first), (el) => {
+      const redraw = () => { const m = $('.gnm', el); if (m) m.outerHTML = gnHtml(first); };
+      el.addEventListener('click', async (e) => {
+        const bb = e.target.closest('[data-gnb]'), all = e.target.closest('[data-gnall]');
+        if (bb) { const b = GN.books.find((x) => x.f === bb.dataset.gnb); if (!b || gnSt.get(b.f) === 'ing') return;
+          if (gnFile.has(b.f)) return gnGive(gnFile.get(b.f));
+          gnSt.set(b.f, 'ing'); redraw();
+          try { const f = await gnGet(b); gnSt.set(b.f, 'ok'); redraw(); if (!gnShare()) gnGive(f); else toast('다 받았어요 · 한 번 더 누르면 굿노트로 열어요'); } catch (er) { gnSt.set(b.f, 'err'); redraw(); toast('못 받았어요 · 인터넷을 보고 다시 눌러요'); } }
+        if (all) { if (gnZ === 'ing') return; if (gnZ instanceof File) return gnGive(gnZ);
+          gnZ = 'ing'; redraw();
+          try { const F = []; for (const b of GN.books) { gnSt.set(b.f, 'ing'); redraw(); F.push(await gnGet(b)); gnSt.set(b.f, 'ok'); redraw(); } gnZ = await gnZip(F); redraw(); if (!gnShare()) gnGive(gnZ); else toast('다 받았어요 · 한 번 더 누르면 열어요'); }
+          catch (er) { gnZ = null; GN.books.forEach((b) => gnSt.get(b.f) === 'ing' && gnSt.set(b.f, 'err')); redraw(); toast('못 받았어요 · 인터넷을 보고 다시 눌러요'); } }
+      });
+    });
+  }
+  document.addEventListener('click', (e) => { if (GN && e.target.closest && e.target.closest('[data-gnopen]')) gnSheet(false); });
+  const pang = () => setTimeout(() => { try { boom(innerWidth / 2, innerHeight * 0.3, 2); fanfare(); } catch (e) {} }, 320);
+  function gnNeed() { return !!GN && !TUTOR && !TEACHER && !PEEK && S.gnSeen !== GN.v && !gnModal.skip && !UI.run && UI.tab === 'home' && !sheetOn(); }
+  function gnModal() { if (!gnNeed()) return; S.gnSeen = GN.v; save('gnSeen'); gnSheet(true); pang(); }
+  // 11/25 «리포트도 배너에서 하지 말고 처음에 가자마자 모달로 팡, 거기서 확인하면 더 이상 안 뜨게» → 어제 공부 리포트(drOpen)는 배너 없이 창으로 한 번
+  const sheetOn = () => { const r = $('#sheet-root'); return !!(r && r.firstChild && !r.classList.contains('out')); };
+  function jrNeed() { if (TUTOR || TEACHER || PEEK || UI.run || UI.tab !== 'home' || sheetOn()) return false; const d = drDay(), st = drStat(d); return (st.tot >= 10 || st.n) && drSeen() !== drMark(d); }
+  function jrModal() { if (!jrNeed()) return; drOpen(); pang(); setTimeout(() => [$('.sheet .sh-x'), $('.sheet-bg')].forEach((x) => x && x.addEventListener('click', () => setTimeout(render, 450))), 60); }  // 닫으면 다음 창(굿노트)이 이어서 떠요
   function jyRepBand() {
     if (U.who !== '정윤' || TUTOR || today() > '2026-12-18') return '';
     return `<button type="button" class="c12 ts-band jr-ban" data-jyrep="kor"><span class="ts-band-ic jr-ic">${ic('bulb')}</span><span class="ts-band-t"><b>경화여고 과목 선생님 출제 스타일 완벽 분석</b><span>2학기 1차 시험지로 과목마다 선생님이 내는 꼴과 내가 틀린 곳을 정리했어요</span></span><span class="ts-band-go">보기</span></button>`;
@@ -5718,9 +5792,9 @@
   const gdNext = () => gdList()[0];
   // 11/13 «배너도 아주 사랑스럽게 이 컨셉으로 만들어서 들어가고 싶게 해 정윤이한테만» → 다이어리(my-diary)로 가는 배너. 표지의 십자수 리본·레이스 그대로
   const DIARY_URL = /github\.io$/.test(location.hostname) ? '/my-diary/' : 'https://dain-ee.github.io/my-diary/';
-  function diaryCard() {
+  function diaryCard() {  // 11/25 «배너가 아니라 토마토 타이머처럼, 아래에다가»
     if (U.who !== '정윤' || TUTOR) return '';
-    return `<a class="c12 ts-band dy-ban" href="${DIARY_URL}"><span class="ts-band-ic dy-ic"><img src="assets/diary/ribbon.webp" alt=""></span><span class="ts-band-t"><b>나만 여는 다이어리가 생겼어요</b><span>고민은 선생님도 못 보게 잠겨 있고, 오늘 한 공부는 저절로 적혀요</span></span><span class="ts-band-go">열어 보기</span></a>`;
+    return `<a class="card c12 rail-inline pm-home link dy-home" href="${DIARY_URL}"><div class="pm-h-ic dy-ic"><img src="assets/diary/ribbon.webp" alt=""></div><div class="pm-h-b"><div class="eyebrow">나만 여는 다이어리</div><b class="pm-h-t">오늘 있었던 일을 적어 봐요</b><p class="tiny" style="margin:2px 0 0">고민은 선생님도 못 보게 잠겨 있고, 오늘 한 공부는 저절로 적혀요</p></div></a>`;
   }
   // 11/25 선생님 «들어오자마자 모달 띄워서 바로 들어가서 어디가 고쳐졌는지 살짝 불빛·라인» → 알림에 fix: { tab, txt:[찾을 글자] } 를 달면 그 화면으로 가서 옅은 점선 + 「바뀐 곳」 칩을 6초 보여 주고 사라져요
   function fixGo(f) {
@@ -5744,7 +5818,7 @@
   function gdCard() {
     // 11/10 새로 만든 안내(정리·가이드)는 둘 다 보여요. 예전 안내는 하나씩
     // 11/24 «배너가 아니라 처음 들어왔을 때 모달로, 확인하면 다음 모달» → 알림(q_)은 배너 대신 차례로 뜨는 창으로. 질문 탭에는 그대로 남아요
-    if (rngOpen().length && !rngModal.skip && !rngModal.on && !gdModal.on && !UI.run) { setTimeout(rngModal, 500); } else {
+    if (rngOpen().length && !rngModal.skip && !rngModal.on && !gdModal.on && !UI.run) { setTimeout(rngModal, 500); } else if (!gdModal.on && !rngModal.on && jrNeed()) { setTimeout(jrModal, 500); } else if (!gdModal.on && !rngModal.on && gnNeed()) { setTimeout(gnModal, 500); } else {
     const NQ = gdList().filter((k) => GD[k].del && GD[k].q); if (NQ.length && !gdModal.skip && !gdModal.on && !UI.run) setTimeout(gdModal, 500); else if (!gdModal.on && !UI.run) setTimeout(pfAuto, 600); }
     const L = gdList().filter((k) => !(GD[k].del && GD[k].q)), ks = L.filter((k) => k.startsWith('q_') || k === 'scr' || k === 'k4' || k === 'pfd' || k === 'vc' || k === 'tm' || k === 'sci' || k === 'iq' || k === 'add' || k === 'r2a' || k === 'r2q'); const show = ks.length ? ks : L.slice(0, 1);
     return show.map((k) => { const g = GD[k]; return `<button type="button" class="c12 ts-band gd-card ${g.del ? 'gd-del' : ''} ${g.cls || ''}" data-gdopen="${k}"><span class="ts-band-ic">${ic(g.ic)}</span><span class="ts-band-t"><b>${esc(g.b)}</b><span>${esc(g.d)}</span></span><span class="ts-band-go">${esc(g.go0 || '방법 보기')}</span>${g.del ? `<i class="gd-row"><em class="gd-x" role="button" tabindex="0" data-gdx="${k}">확인했어요 · 지우기</em></i>` : ''}</button>`; }).join('');  // 11/8 «이 부분이 너무 정신없어» → 토스 띠 배너
@@ -9552,7 +9626,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251950'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611252035'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

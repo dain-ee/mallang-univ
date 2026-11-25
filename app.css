@@ -5633,3 +5633,19 @@ mark.mk.mk-out { transition: opacity .2s, background-size .2s; opacity: .2; }
 .lv-tag { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; vertical-align: 1px; background: var(--fill); color: var(--t2); }
 .lv-tag.lv1 { background: rgba(49,130,246,.1); color: #1b64da; }
 .lv-tag.lv2 { background: rgba(49,130,246,.16); color: #1957c2; }
+/* 11/25 굿노트 문제집 받기 창 */
+.gnm h2 { margin: 8px 0 6px; }
+.gn-list { display: flex; flex-direction: column; gap: 10px; margin: 18px 0 4px; }
+.gn-row { display: flex; align-items: center; gap: 12px; }
+.gn-sj { flex: none; width: 64px; font-weight: 700; font-size: 15px; color: var(--t1, #191f28); }
+.gn-bs { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gn-b { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 11px 14px; border: 0; border-radius: 14px; background: var(--fill, #f2f4f6); font: inherit; text-align: left; cursor: pointer; transition: transform .15s, background .2s; }
+.gn-b:active { transform: scale(.97); }
+.gn-b b { font-size: 15px; }
+.gn-b small { font-size: 12px; color: var(--t3, #8b95a1); }
+.gn-b.ing small { color: var(--blue, #3182f6); }
+.gn-b.ok { background: #e8f3ff; }
+.gn-b.ok small { color: #3182f6; font-weight: 600; }
+.gn-b.err small { color: #f04452; }
+.gn-tip { margin: 10px 0 0; text-align: center; }
+.dy-home .pm-h-ic { background: #fdeef3; }
