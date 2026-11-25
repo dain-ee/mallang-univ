@@ -5655,3 +5655,14 @@ mark.mk.mk-out { transition: opacity .2s, background-size .2s; opacity: .2; }
 .gnm .gn-h img { width: 34px; height: 34px; border-radius: 9px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); flex: none; }
 a.dy-home, a.dy-home:visited { text-decoration: none; color: inherit; }
 a.dy-home .pm-h-t { color: var(--t1, #191f28); }
+/* 11/25 «넓은 화면 비율일 때 이상해» → 넓으면 반원 대신 가로 막대 한 줄 */
+.todo-card { container-type: inline-size; }
+.arch-w { display: none; }
+@container (min-width: 640px) {
+  .todo-card .arch { display: none; }
+  .todo-card .arch-w { display: flex; align-items: center; gap: 12px; margin: 4px 0 14px; }
+  .arch-w b { font-size: 24px; font-weight: 800; flex: none; }
+  .arch-w .muted { flex: none; font-size: 14px; }
+  .arch-wb { flex: 1; height: 10px; border-radius: 99px; background: var(--fill); overflow: hidden; }
+  .arch-wb i { display: block; height: 100%; border-radius: 99px; background: var(--blue); transition: width .6s cubic-bezier(.2,.8,.2,1); }
+}

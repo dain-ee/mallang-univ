@@ -1053,8 +1053,8 @@
     const { tasks, off } = todayTasks();
     const real = tasks.filter((t) => t.icon !== 'party' && !t.memo); const doneN = real.filter((t) => t.done).length, frac = real.length ? doneN / real.length : (off ? 1 : 0);
     const R = 80, L = Math.PI * R;
-    const todo = `<section class="card tight ${cls}"><div class="card-h"><h3>${DAY_OFF() ? `${DAY_OFF() === -1 ? '어제' : md(today())} 할 일` : '오늘 할 일'}</h3>${DAY_OFF() ? '<button class="more" data-dayoff="0">오늘로</button>' : ''}<button class="more" data-go="hw">숙제</button></div>
-      <div class="arch"><svg viewBox="0 0 200 100"><path d="M20 92 A80 80 0 0 1 180 92" fill="none" stroke="var(--fill)" stroke-width="12" stroke-linecap="round"/><path class="ring-arc" d="M20 92 A80 80 0 0 1 180 92" fill="none" stroke="var(--blue)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L * (1 - frac)}"/></svg><div class="c"><span class="tiny">오늘</span><br><b class="num">${Math.round(frac * 100)}%</b> <span class="muted">완료</span></div></div>
+    const todo = `<section class="card tight todo-card ${cls}"><div class="card-h"><h3>${DAY_OFF() ? `${DAY_OFF() === -1 ? '어제' : md(today())} 할 일` : '오늘 할 일'}</h3>${DAY_OFF() ? '<button class="more" data-dayoff="0">오늘로</button>' : ''}<button class="more" data-go="hw">숙제</button></div>
+      <div class="arch"><svg viewBox="0 0 200 100"><path d="M20 92 A80 80 0 0 1 180 92" fill="none" stroke="var(--fill)" stroke-width="12" stroke-linecap="round"/><path class="ring-arc" d="M20 92 A80 80 0 0 1 180 92" fill="none" stroke="var(--blue)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L * (1 - frac)}"/></svg><div class="c"><span class="tiny">오늘</span><br><b class="num">${Math.round(frac * 100)}%</b> <span class="muted">완료</span></div></div><div class="arch-w"><b class="num">${Math.round(frac * 100)}%</b><span class="muted">오늘 완료 · ${doneN}/${real.length}</span><div class="arch-wb"><i style="width:${Math.round(frac * 100)}%"></i></div></div>
       <div class="list">${tasks.length ? tasks.map((t) => `<div class="li btnlike" ${t.hw ? `data-hwopen="${esc(t.hw)}"` : `data-task="${t.k}"`}><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${t.hw && LVJ ? lvStepTag((S.hw || []).find((h) => h.id === t.hw)) : ''}${esc(t.t)}${tsTg([t.late && !t.done ? ['밀림', 'red'] : null, ...(t.tg || [])])}</div><div class="d">${esc(t.d)}</div></div>${myRowTm(t.hw ? 'hw:' + t.hw : t.k, t.done, t.t)}</div>`).join('') : `<div class="empty">${ic('party')}<b>오늘 할 일이 없어요</b></div>`}</div></section>`;
     return inline ? todo : clockWidget() + pomoCard('pm-rail') + hotCard('') + todo + ddayWidget();
   }
@@ -2614,7 +2614,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611252205', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611252210', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -9635,7 +9635,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611252205'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611252210'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
