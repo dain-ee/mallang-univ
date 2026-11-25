@@ -2614,7 +2614,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611252200', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611252203', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2962,6 +2962,7 @@
     const R = S.rng || {}, L = RNG_ASK.filter((a) => R2S.some((x) => x.id === a.id));
     if (!L.length) return '';
     const open = L.filter((a) => !R[a.id]);
+    if (!open.length) return '';  // 11/25 «이미 한 건데 왜 아직 있어» → 다 답하면 카드도 사라져요
     if (!TEACHER && !PEEK) return '';  // 11/25 «차라리 모달로 처음에 띄워» → 정윤이에겐 창(rngModal)으로, 카드는 선생님 보기에서 답 확인용
     return `<section class="card c12 rng-card"><h3>범위 확인해 주세요</h3><p class="sub">애매해서 일단 넣어 둔 것이에요. 범위가 아니면 빼 줄게요.</p><div class="list">${L.map((a) => { const v = R[a.id]; return `<div class="li"><div class="body"><div class="t">${esc(a.sj)} · ${esc(a.t)}</div><div class="d">${esc(a.w)}</div>${v ? `<div class="d" style="margin-top:4px"><b>${v.v === 'yes' ? '범위 맞아요' : '범위 아니에요 · 뺐어요'}</b> · ${md(dateOf(v.at))}</div>` : ''}</div>${v || TEACHER ? '' : `<div style="display:flex;gap:6px;flex-shrink:0"><button type="button" class="btn sm primary" data-rng="${a.id}" data-rv="yes">맞아요</button><button type="button" class="btn sm soft" data-rng="${a.id}" data-rv="no">아니에요</button></div>`}</div>`; }).join('')}</div></section>`;
   }
@@ -9627,7 +9628,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611252200'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611252203'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
