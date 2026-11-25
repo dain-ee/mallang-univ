@@ -2614,7 +2614,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611252047', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611252156', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5641,8 +5641,8 @@
   function gnModal() { if (!gnNeed()) return; S.gnSeen = GN.v; save('gnSeen'); gnSheet(true); pang(); }
   // 11/25 «리포트도 배너에서 하지 말고 처음에 가자마자 모달로 팡, 거기서 확인하면 더 이상 안 뜨게» → 어제 공부 리포트(drOpen)는 배너 없이 창으로 한 번
   const sheetOn = () => { const r = $('#sheet-root'); return !!(r && r.firstChild && !r.classList.contains('out')); };
-  function jrNeed() { if (TUTOR || TEACHER || UI.run || UI.tab !== 'home' || sheetOn()) return false; const d = drDay(), st = drStat(d); return (st.tot >= 10 || st.n) && drSeen() !== drMark(d); }
-  function jrModal() { if (!jrNeed()) return; drOpen(); pang(); setTimeout(() => [$('.sheet .sh-x'), $('.sheet-bg')].forEach((x) => x && x.addEventListener('click', () => setTimeout(render, 450))), 60); }  // 닫으면 다음 창(굿노트)이 이어서 떠요
+  function jrNeed() { if (TUTOR || TEACHER || UI.run || UI.tab !== 'home' || sheetOn()) return false; const d = drDay(), st = drStat(d); return (st.tot >= 10 || st.n) && drSeen() !== drMark(d) && !S.drPop && !(() => { try { return PST.getItem('mu:drpop'); } catch (e) { return 0; } })(); }  // 11/25 «리포트는 한 번 봤으면 다시 안 떠도 돼» → 창은 처음 한 번만, 그 뒤엔 리포트 탭에서
+  function jrModal() { if (!jrNeed()) return; S.drPop = Date.now(); save('drPop'); try { PST.setItem('mu:drpop', '1'); } catch (e) {} drOpen(); pang(); setTimeout(() => [$('.sheet .sh-x'), $('.sheet-bg')].forEach((x) => x && x.addEventListener('click', () => setTimeout(render, 450))), 60); }  // 닫으면 다음 창(굿노트)이 이어서 떠요
   function jyRepBand() {
     if (U.who !== '정윤' || TUTOR || today() > '2026-12-18') return '';
     return `<button type="button" class="c12 ts-band jr-ban" data-jyrep="kor"><span class="ts-band-ic jr-ic">${ic('bulb')}</span><span class="ts-band-t"><b>경화여고 과목 선생님 출제 스타일 완벽 분석</b><span>2학기 1차 시험지로 과목마다 선생님이 내는 꼴과 내가 틀린 곳을 정리했어요</span></span><span class="ts-band-go">보기</span></button>`;
@@ -9627,7 +9627,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611252047'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611252156'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
