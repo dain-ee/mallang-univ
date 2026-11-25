@@ -470,11 +470,11 @@
   function sciToday(force) {
     const t = today(); S.sci = S.sci || { days: {} }; S.sci.days = S.sci.days || {};
     { const o = S.sci.days[t], prev = Object.keys(S.sci.days).filter((d) => d < t).sort().slice(-2).map((d) => S.sci.days[d].c);  // 11/25 예전 앱이 오늘 몫을 또 산·염기로 만들어 두면, 손 안 댄 것만 다시 골라요
-      if (o && o.one && !o.read && !Object.keys(o.ans || {}).length && (prev.includes(o.c) || /^c-redox/.test(o.c))) delete S.sci.days[t]; }  // 11/25 산화·환원은 범위 밖 → 오늘 몫이 그거면 다시 골라요
+      if (o && o.one && !o.read && !Object.keys(o.ans || {}).length && (prev.includes(o.c) || /^c-(redox|solar)/.test(o.c))) delete S.sci.days[t]; }  // 11/25 산화·환원은 범위 밖 → 오늘 몫이 그거면 다시 골라요
     if (!S.sci.days[t] && SCI.concepts.length && (onDay('sci') || force)) {
       const seen = new Set(Object.values(S.sci.days).filter((d) => d.one).map((d) => d.c));
       const ord = (c) => (c.lesson && c.lesson.order) || 999;
-      const exam = SCI.concepts.filter((c) => c.exam && !/^c-redox/.test(c.id)).sort((a, b) => ord(a) - ord(b));
+      const exam = SCI.concepts.filter((c) => c.exam && !/^c-(redox|solar)/.test(c.id)).sort((a, b) => ord(a) - ord(b));
       const weak = SCI.concepts.filter((c) => openWrong().some((w) => w.src === 'sci' && w.concept === c.id));
       // 11/25 다 한 번씩 본 뒤 늘 첫 개념(산·염기)만 다시 나오던 것 고침 (정윤 «중화 반응 계속 나와») → 가장 오래전에 본 것부터, 틀린 게 있으면 먼저, 어제·그제 본 건 빼요
       const last = {}; for (const [d, v] of Object.entries(S.sci.days)) if (v.one && d < t && (!last[v.c] || d > last[v.c])) last[v.c] = d;
@@ -2607,7 +2607,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611251849', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611251857', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3305,7 +3305,7 @@
       const i = r.i != null ? r.i : Math.max(0, qs.findIndex((q, k) => !A['q' + k])), q = qs[i], a = A['q' + i] || null;
       if (r.pk !== 'q' + i) { r.pk = 'q' + i; r.put = []; }
       const dots = `<div class="progress-dots">${qs.map((y, k) => `<i class="${A['q' + k] ? (A['q' + k].ok ? 'ok' : 'no') : k === i ? 'cur' : ''}"></i>`).join('')}</div>`;
-      return wrap(`${seg}${dots}<div class="r2-qh row between"><div class="q-no">${i + 1}번 · ${esc(q.kind || '')}</div>${i > 0 ? '<button class="btn sm" data-qprev type="button">‹ 이전 문제</button>' : ''}</div>${r2QHtml(q, a, r)}${a ? `<div style="margin-top:12px">${r2After(q, a)}</div><div class="row" style="margin-top:12px">${r1Btn}</div><div class="cta-bar r2-cta">${i > 0 ? '<button class="btn big" id="r2-prev" type="button">‹ 이전</button>' : ''}<button class="btn primary big block" id="r2-next" type="button">${i < qs.length - 1 ? '다음 문제 ›' : r.rv ? '돌아가기' : `다음: 핵심 문장 ${key.length}개 쓰기 ›`}</button></div>` : '<p class="tiny" style="margin:12px 0 0;text-align:center">1회독 때 본 것은 문제를 풀고 나서 볼 수 있어요</p>'}`);
+      return wrap(`${seg}${dots}<div class="r2-qh row between"><div class="q-no">${i + 1}번 · ${esc(q.kind || '')}${lvTag(q)}</div>${i > 0 ? '<button class="btn sm" data-qprev type="button">‹ 이전 문제</button>' : ''}</div>${r2QHtml(q, a, r)}${a ? `<div style="margin-top:12px">${r2After(q, a)}</div><div class="row" style="margin-top:12px">${r1Btn}</div><div class="cta-bar r2-cta">${i > 0 ? '<button class="btn big" id="r2-prev" type="button">‹ 이전</button>' : ''}<button class="btn primary big block" id="r2-next" type="button">${i < qs.length - 1 ? '다음 문제 ›' : r.rv ? '돌아가기' : `다음: 핵심 문장 ${key.length}개 쓰기 ›`}</button></div>` : '<p class="tiny" style="margin:12px 0 0;text-align:center">1회독 때 본 것은 문제를 풀고 나서 볼 수 있어요</p>'}`);
     }
     if (st === 'k') {
       const j = key.findIndex((k, n) => !A['k' + n]);
@@ -3512,7 +3512,7 @@
       const i = r.i != null ? r.i : Math.max(0, qs.findIndex((q, k) => !A['q' + k])), q = qs[i], a = A['q' + i] || null;
       if (r.pk !== 'q' + i) { r.pk = 'q' + i; r.put = []; }
       const dots = `<div class="progress-dots">${qs.map((y, k) => `<i class="${A['q' + k] ? (A['q' + k].ok ? 'ok' : 'no') : k === i ? 'cur' : ''}"></i>`).join('')}</div>`;
-      return wrap(`${seg}${dots}<div class="r2-qh row between"><div class="q-no">${i + 1}번 · ${esc(q.kind || '')}</div>${i > 0 ? '<button class="btn sm" data-qprev type="button">‹ 이전 문제</button>' : ''}</div>${r2QHtml(q, a, r)}${a ? `<div style="margin-top:12px">${r2After(q, a)}</div><div class="row" style="margin-top:12px">${r1Btn}</div><div class="cta-bar r2-cta">${i > 0 ? '<button class="btn big" id="r3-prev" type="button">‹ 이전</button>' : ''}<button class="btn primary big block" id="r3-next" type="button">${i < qs.length - 1 ? '다음 문제 ›' : r.rv ? '돌아가기' : rd.length ? `다음: 2회독에서 틀렸던 것 ${rd.length}개 ›` : '결과 보기 ›'}</button></div>` : '<p class="tiny" style="margin:12px 0 0;text-align:center">1회독 때 본 것은 문제를 풀고 나서 볼 수 있어요</p>'}`);
+      return wrap(`${seg}${dots}<div class="r2-qh row between"><div class="q-no">${i + 1}번 · ${esc(q.kind || '')}${lvTag(q)}</div>${i > 0 ? '<button class="btn sm" data-qprev type="button">‹ 이전 문제</button>' : ''}</div>${r2QHtml(q, a, r)}${a ? `<div style="margin-top:12px">${r2After(q, a)}</div><div class="row" style="margin-top:12px">${r1Btn}</div><div class="cta-bar r2-cta">${i > 0 ? '<button class="btn big" id="r3-prev" type="button">‹ 이전</button>' : ''}<button class="btn primary big block" id="r3-next" type="button">${i < qs.length - 1 ? '다음 문제 ›' : r.rv ? '돌아가기' : rd.length ? `다음: 2회독에서 틀렸던 것 ${rd.length}개 ›` : '결과 보기 ›'}</button></div>` : '<p class="tiny" style="margin:12px 0 0;text-align:center">1회독 때 본 것은 문제를 풀고 나서 볼 수 있어요</p>'}`);
     }
     if (st === 'x' && (rd.length || r.xa)) {
       const cur = r.xa && r.xc ? r.xc : rd.find((y) => r.xc && y[0] === r.xc[0] && y[1] === r.xc[1]) || rd[0]; r.xc = cur;
@@ -3585,6 +3585,8 @@
     const v = esc((a && a.v) || '');
     return `${r2Psg(q)}<section class="card" style="margin-top:12px">${q.kind === '어형' ? `<input class="inp" id="mk-in" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${r2Ph(q)}" value="${v}">` : `<textarea class="inp r2-ta" id="mk-in" rows="3" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="영어 문장으로 써요">${v}</textarea>`}<p class="tiny" style="margin:8px 0 0">쓴 답은 저절로 저장돼요</p></section>`;
   }
+  // 11/25 «올해 2026 선생님 기준으로 같은 난이도인지 조금 높게 한 건지 라벨링» → 문제 머리에 작은 꼬리표 (lv: b 닮은 올해 문항, d 0 같게 · 1 조금 어렵게 · 2 더 어렵게 · -1 쉬움)
+  function lvTag(q) { const v = q && q.lv; if (!v || U.who !== '정윤') return ''; const t = v.d === 2 ? '올해보다 더 어렵게' : v.d === 1 ? '올해보다 조금 어렵게' : v.d === 0 ? '올해와 같은 난이도' : v.d === -1 ? '올해보다 쉬워요' : ''; const b = v.b ? `${esc(String(v.b).replace(/^2026\s*/, ''))} 꼴` : '올해 시험엔 없던 꼴'; return ` <span class="lv-tag lv${v.d == null ? 'n' : v.d < 0 ? 'm' : v.d}" title="${esc(v.w || '')}">${b}${t ? ' · ' + t : ''}</span>`; }
   function mkRun() {
     const r = UI.run, z = mkOf(r.mid); if (!z) { UI.run = null; UI.tab = 'hw'; return hwView(); }
     const M = mkGet(z.id), qs = z.m.qs, A = M.a || {}, n = qs.length, lim = z.m.min || 50;
@@ -3595,7 +3597,7 @@
       if (r.read && r.see != null) { const c = FIN_ALL.find((y) => y.id === qs[r.see].cid); if (c) { const P = r1Parts(c); return wrap(`<div class="row between" style="margin:0 0 12px"><span class="tag blue">1회독 때 본 것</span><button class="btn sm" data-r2r1x type="button">닫기</button></div>${P.tools}${P.orig}${P.old}<div class="cta-bar"><button class="btn primary big block" data-r2r1x type="button">‹ 문제로 돌아가기</button></div>`); } }
       if (r.see != null && qs[r.see]) {
         const i = r.see, q = qs[i], a = { ok: G[i], ...(A[i] || {}) }, c = FIN_ALL.find((y) => y.id === q.cid);
-        return wrap(`<div class="r2-qh"><div class="q-no">${i + 1}번 · ${esc(q.kind || '')} · ${+q.pt || 0}점</div><span class="tiny">${mkHas(A[i]) ? '' : '안 푼 문제예요'}</span></div>${r2QHtml(q, a, { put: [] })}<div style="margin-top:12px">${r2After(q, a)}</div>${c ? `<div class="row" style="margin-top:12px"><button class="btn sm" data-r2r1 type="button">${ic('books')} 1회독 때 본 것</button></div>` : ''}<div class="cta-bar r2-cta"><button class="btn big" data-mksee="" type="button">‹ 결과</button>${bad.some((k) => k > i) ? `<button class="btn primary big block" data-mksee="${bad.find((k) => k > i)}" type="button">다음 틀린 문제 ›</button>` : '<button class="btn primary big block" data-mksee="" type="button">결과로 돌아가기</button>'}</div>`);
+        return wrap(`<div class="r2-qh"><div class="q-no">${i + 1}번 · ${esc(q.kind || '')} · ${+q.pt || 0}점${lvTag(q)}</div><span class="tiny">${mkHas(A[i]) ? '' : '안 푼 문제예요'}</span></div>${r2QHtml(q, a, { put: [] })}<div style="margin-top:12px">${r2After(q, a)}</div>${c ? `<div class="row" style="margin-top:12px"><button class="btn sm" data-r2r1 type="button">${ic('books')} 1회독 때 본 것</button></div>` : ''}<div class="cta-bar r2-cta"><button class="btn big" data-mksee="" type="button">‹ 결과</button>${bad.some((k) => k > i) ? `<button class="btn primary big block" data-mksee="${bad.find((k) => k > i)}" type="button">다음 틀린 문제 ›</button>` : '<button class="btn primary big block" data-mksee="" type="button">결과로 돌아가기</button>'}</div>`);
       }
       const ms = M.fin.ms || 0, over = ms - lim * 60000, kinds = [...new Set(qs.map((q) => q.kind || '기타'))];
       const tbl = `<div class="tbl-wrap" style="margin-top:16px"><table class="q-tbl ls-tbl r2-tbl"><tr><th>유형</th><th>맞힘</th></tr>${kinds.map((k) => { const I = qs.map((q, i) => i).filter((i) => (qs[i].kind || '기타') === k), o = I.filter((i) => G[i]).length; return `<tr><td>${esc(k)}</td><td><b class="num ${o < I.length ? 'red' : ''}">${o}</b>/${I.length}</td></tr>`; }).join('')}</table></div>`;
@@ -3606,7 +3608,7 @@
     const i = Math.min(n - 1, Math.max(0, r.i != null ? r.i : Math.max(0, qs.findIndex((q, k) => !mkHas(A[k]))))), q = qs[i], kN = qs.filter((y, k) => mkHas(A[k])).length;
     return wrap(`<div class="mk-bar"><span class="tag ${kN === n ? 'blue' : ''}">${kN}/${n} 풀었어요</span><b class="num mk-clock ${lim * 60000 < mkMs(z) ? 'over' : ''}" data-mkclock>${mkClock(z)}</b></div>
       <section class="card tight mk-omr"><div class="omr">${qs.map((y, k) => `<button type="button" class="${mkHas(A[k]) ? 'ok' : ''} ${k === i ? 'cur' : ''}" data-mkq="${k}" aria-current="${k === i}">${k + 1}</button>`).join('')}</div><p class="tiny" style="margin:8px 0 0">번호를 눌러 오가며 고칠 수 있어요. 채점과 해설은 다 풀고 나서 보여요</p></section>
-      <div class="r2-qh"><div class="q-no">${i + 1}번</div><span class="tiny">${+q.pt || 0}점</span></div>${mkQHtml(q, A[i] || null, r)}
+      <div class="r2-qh"><div class="q-no">${i + 1}번${lvTag(q)}</div><span class="tiny">${+q.pt || 0}점</span></div>${mkQHtml(q, A[i] || null, r)}
       <div class="cta-bar r2-cta">${i > 0 ? '<button class="btn big" id="mk-prev" type="button">‹ 이전</button>' : ''}${i < n - 1 ? '<button class="btn primary big block" id="mk-next" type="button">다음 ›</button>' : '<button class="btn primary big block" data-mkfin type="button">다 풀었어요</button>'}</div>
       ${i < n - 1 ? '<div class="done-more" style="margin-top:12px"><button class="btn sm ghost" data-mkfin type="button">다 풀었어요</button></div>' : ''}`);
   }
@@ -3691,9 +3693,17 @@
   function r2sNorm(t, sp) { const s = String(t || '').replace(/[‘’`´]/g, "'").toLowerCase().replace(/[.,!?"“”']/g, '').replace(/\s+/g, ' ').trim(); return sp ? s : s.replace(/ /g, ''); }
   function r2sOk(q, v) { const sp = /띄어쓰기/.test(q.q || ''), n = r2sNorm(v, sp); return !!n && [q.answer, ...(q.alts || [])].some((a) => r2sNorm(a, sp) === n); }
   // 발문 카드: 발문([문장]·[자료]·[대화]는 줄을 바꿔요) + 지문 + 표 + <보기>
+  // 11/25 정윤 «공식 설명을 앞에 해주고 그 문제를 내주면 좋을듯» → 전력·전력량 계산 문제 앞에 공식 카드 (2회독은 펼쳐서, 모고는 접어서)
+  function r2sPre(q) {
+    if (U.who !== '정윤' || !/전력량/.test(String(q.kind || '') + String(q.q || '') + [].concat(q.box || []).join(' '))) return '';
+    const mock = /\[\d+(\.\d+)?점\]/.test(String(q.q || ''));
+    const body = `<p><b>전력 P = 전압 V × 전류 I</b> (단위 W)<br>1초 동안 쓰는 전기 에너지예요. 전압이 같으면(집은 모두 220 V) <b>전력이 클수록 전류도 커요.</b> 오래 켜 두는 것과 전류는 상관없어요.</p><p><b>전력량 W = 전력 P × 시간 t</b> (단위 Wh, kWh, J)<br>시간 동안 쓴 전기 에너지 전체예요. 1000 W를 2시간 쓰면 2000 Wh = 2 kWh예요.</p><p><b>단위 바꾸기</b><br>1 kWh = 1000 Wh · 1 h = 3600 s · 1 Wh = 3600 J · 1 kWh = 3.6×10⁶ J</p><p class="tiny">자주 틀리는 곳: 소비 전력(W)만 보고 전력량(Wh)을 비교하면 안 돼요. 시간을 꼭 곱해요.</p>`;
+    return `<details class="card r2-pred" ${mock ? '' : 'open'} style="margin-bottom:12px"><summary><b>먼저 공식</b> <span class="tiny">${mock ? '기억 안 나면 펴 봐요' : '전력과 전력량'}</span></summary>${body}</details>`;
+  }
   function r2sStem(q) {
+    const PRE = r2sPre(q);
     const L = (v) => [].concat(v || []), ln = String(q.q || '').replace(/\s*(\[(?:문장|자료|대화)\])\s*/g, '\n$1 ').split('\n');
-    return `<section class="card r2s-q"><p class="r2s-qq"><b>${r2U(ln[0])}</b></p>${ln.slice(1).map((t) => `<p class="r2s-blk">${r2U(t)}</p>`).join('')}${L(q.text).map((t) => `<p>${r2U(t)}</p>`).join('')}${L(q.img).map((src) => `<img class="q-img r2s-img" style="margin-top:12px" src="${esc(src)}" alt="문제 그림" loading="lazy">`).join('')}${L(q.table).length ? `<div class="tbl-wrap" style="margin-top:12px"><table class="q-tbl ls-tbl r2s-tbl">${q.table.map((row, k) => `<tr>${[].concat(row).map((v) => (k ? `<td>${r2U(v)}</td>` : `<th>${r2U(v)}</th>`)).join('')}</tr>`).join('')}</table></div>` : ''}${L(q.box).length ? `<div class="ls-box r2s-box"><b>보기</b>${q.box.map((t) => `<p>${r2U(t)}</p>`).join('')}</div>` : ''}</section>`;
+    return `${PRE}<section class="card r2s-q"><p class="r2s-qq"><b>${r2U(ln[0])}</b></p>${ln.slice(1).map((t) => `<p class="r2s-blk">${r2U(t)}</p>`).join('')}${L(q.text).map((t) => `<p>${r2U(t)}</p>`).join('')}${L(q.img).map((src) => `<img class="q-img r2s-img" style="margin-top:12px" src="${esc(src)}" alt="문제 그림" loading="lazy">`).join('')}${L(q.table).length ? `<div class="tbl-wrap" style="margin-top:12px"><table class="q-tbl ls-tbl r2s-tbl">${q.table.map((row, k) => `<tr>${[].concat(row).map((v) => (k ? `<td>${r2U(v)}</td>` : `<th>${r2U(v)}</th>`)).join('')}</tr>`).join('')}</table></div>` : ''}${L(q.box).length ? `<div class="ls-box r2s-box"><b>보기</b>${q.box.map((t) => `<p>${r2U(t)}</p>`).join('')}</div>` : ''}</section>`;
   }
   // 쓰고 → 모범 답 보기 → 채점 요소 스스로 체크 (서술형·핵심 쓰기). a = 저장된 결과, es = 지금 체크 중인 것 { v, m }
   function r2sEsHtml(q, a, es, ph) {
@@ -3794,7 +3804,7 @@
       if (r.pk !== 'q' + i) { r.pk = 'q' + i; r.es = null; }
       if (X.mock && q.type === 'essay' && !a && !r.es && ((A.pp || {}).e || {})[i]) r.es = { v: A.pp.e[i], m: [] };
       const dots = `<div class="progress-dots">${qs.map((y, k) => `<i class="${A['q' + k] ? (A['q' + k].ok ? 'ok' : 'no') : k === i ? 'cur' : ''}"></i>`).join('')}</div>`;
-      return wrap(`${seg}${dots}<div class="r2-qh row between"><div class="q-no">${i + 1}번 · ${esc(q.kind || '')}</div>${i > 0 ? '<button class="btn sm" data-qprev type="button">‹ 이전 문제</button>' : ''}</div>${r2sQHtml(q, a, r)}${a ? `<div style="margin-top:12px">${r2sAfter(q, a)}</div><div class="cta-bar r2-cta">${i > 0 ? '<button class="btn big" id="r2s-prev" type="button">‹ 이전</button>' : ''}<button class="btn primary big block" id="r2s-next" type="button">${i < qs.length - 1 ? '다음 문제 ›' : r.rv ? '돌아가기' : `다음: 핵심 쓰기 ${key.length}개 ›`}</button></div>` : ''}`);
+      return wrap(`${seg}${dots}<div class="r2-qh row between"><div class="q-no">${i + 1}번 · ${esc(q.kind || '')}${lvTag(q)}</div>${i > 0 ? '<button class="btn sm" data-qprev type="button">‹ 이전 문제</button>' : ''}</div>${r2sQHtml(q, a, r)}${a ? `<div style="margin-top:12px">${r2sAfter(q, a)}</div><div class="cta-bar r2-cta">${i > 0 ? '<button class="btn big" id="r2s-prev" type="button">‹ 이전</button>' : ''}<button class="btn primary big block" id="r2s-next" type="button">${i < qs.length - 1 ? '다음 문제 ›' : r.rv ? '돌아가기' : `다음: 핵심 쓰기 ${key.length}개 ›`}</button></div>` : ''}`);
     }
     if (st === 'k') {
       const j = key.findIndex((k, n) => !A['k' + n]);
@@ -4045,7 +4055,7 @@
     if (k === 'sci') {
       const done = (c) => { const a = (S.sci.cans || {})[c.id] || {}; const inDay = Object.values(S.sci.days || {}).some((d) => d.one && d.c === c.id && d.read); return Object.keys(a).length || inDay; };
       const ord = (c) => (c.lesson && c.lesson.order) || 999;
-      const exam = SCI.concepts.filter((c) => c.exam && !/^c-redox/.test(c.id)).sort((a, b) => ord(a) - ord(b)), rest = SCI.concepts.filter((c) => !c.exam || /^c-redox/.test(c.id));  // 11/25 산화·환원은 기말 범위 밖
+      const exam = SCI.concepts.filter((c) => c.exam && !/^c-(redox|solar)/.test(c.id)).sort((a, b) => ord(a) - ord(b)), rest = SCI.concepts.filter((c) => !c.exam || /^c-(redox|solar)/.test(c.id));  // 11/25 산화·환원은 기말 범위 밖
       const row = (c) => `<div class="li btnlike" data-lc="${esc(c.id)}"><div class="ico">${ic(done(c) ? 'ok' : 'sci')}</div><div class="body"><div class="t">${esc(c.title)}</div><div class="d">${esc(c.lesson && c.lesson.src ? c.lesson.src : c.sub || '')} · 문제 ${(c.base || []).length + (c.deep || []).length}개</div></div><span class="chev"></span></div>`;
       const byUnit = (L) => [...new Set(L.map((c) => c.unit))].map((u) => `<section class="card c6"><div class="card-h"><h3>${esc(unitOf(u).title)}</h3></div><div class="list">${L.filter((c) => c.unit === u).map(row).join('')}</div></section>`).join('');
       return head + `<p class="sub">개념을 먼저 보고 그 개념 문제를 풀어요. 기말 범위는 경화여고 교과서(비상) 순서예요</p><h2 class="h2" style="margin:8px 0 12px">2학기 기말 범위 ${exam.length}개</h2><div class="grid">${byUnit(exam)}</div><h2 class="h2" style="margin:24px 0 12px">1학기 · 그 밖의 개념 ${rest.length}개</h2><div class="grid">${byUnit(rest)}</div>`;
@@ -9500,7 +9510,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251849'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251857'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

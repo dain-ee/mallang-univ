@@ -5628,3 +5628,8 @@ mark.mk.mk-out { transition: opacity .2s, background-size .2s; opacity: .2; }
 .r2-pred summary .tiny { color: var(--t3); margin-left: 6px; }
 .r2-pred ul { margin: 12px 0 0; padding-left: 18px; }
 .r2-pred li { margin: 0 0 8px; font-size: 15px; line-height: 1.7; color: var(--t1); word-break: keep-all; animation: viewIn .3s ease both; animation-delay: calc(var(--i) * 40ms); }
+
+/* 11/25 올해 선생님 기준 난이도 꼬리표 */
+.lv-tag { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; vertical-align: 1px; background: var(--fill); color: var(--t2); }
+.lv-tag.lv1 { background: rgba(49,130,246,.1); color: #1b64da; }
+.lv-tag.lv2 { background: rgba(49,130,246,.16); color: #1957c2; }
