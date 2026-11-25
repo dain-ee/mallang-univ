@@ -2590,7 +2590,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611251126', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611251135', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7605,6 +7605,7 @@
   (() => {
     const add = (s) => { NXSETS[s.id] = s; for (const q of s.qs) if (!NXQ[q.i]) NXQ[q.i] = { q, set: s.id }; };
     for (const m of NXD.mocks || []) add({ ...m, kind: 'mock' });
+    for (const r of NXD.rq || []) if (r.unit) add({ ...r, id: 'cf:' + r.id, subj: 'eng', kind: 'x' });  // 11/25 기출비 7·8과 영역별 (content/english/yg_cafe78.json) → 공부 탭 단원 화면에만, 기말 계획(숙제)엔 안 넣어요
     for (const r of Object.values(NXD.rv || {})) for (const s of r.sets || []) add({ ...s, id: 'pp:' + s.id });
     for (const L of Object.values(NXD.wsd || {})) for (const s of L) add({ ...s, id: 'pp:' + s.id });  // 11/17 학교 학습지 숙제  // 11/3 수업 복습 문제 (안 본 문제 + 틀린 문제 새 번호로)
     for (const sb of NXD.subjects || []) for (const u of sb.units) {
@@ -7619,6 +7620,7 @@
   // 선생님 숙제가 문제 목록을 직접 담으면(h.nxq) 그 숙제만의 묶음으로 열어요 (예: 어제 틀린 것만, 단원 문제 중 진짜 문제만)
   function nxReg() { for (const h of S.hw || []) if (h.nx && h.nxq && !NXSETS[h.nx]) { const qs = h.nxq.map((i) => (NXQ[i] || {}).q).filter(Boolean); if (!qs.length) continue; const u = (NXSETS[(NXQ[h.nxq[0]] || {}).set] || {}).unit; NXSETS[h.nx] = { id: h.nx, title: h.title, sub: '선생님 숙제', subj: (NXU[u] || {}).subj || 'eng', kind: 'q', unit: u, qs }; } }
   const NXPG = {};  // 11/8 문단 빈칸(para): 문장마다 채점한 것 (다 끝나면 지워요)
+  const cfSec = (u, cls) => { const L = (NXD.rq || []).filter((r) => r.unit === u.id && NXSETS['cf:' + r.id]); return L.length ? `<section class="card ${cls}"><div class="card-h"><h2>기출비 · 영역별</h2><span class="tiny">학교 시험 꼴 객관식 · ${L.length}세트</span></div><div class="list">${L.map((r) => nxRow(NXSETS['cf:' + r.id], { icon: 'target' })).join('')}</div></section>` : ''; };
   const nxHasL = (s) => !!(s && s.learn && (Array.isArray(s.learn) ? s.learn.length : s.learn.nk));
   const nxS = () => { const x = (S.nx = S.nx || {}); x.a = x.a || {}; x.done = x.done || []; x.st = x.st || {}; x.wd = x.wd || {}; x.la = x.la || {}; x.lq = x.lq || {}; return x; };
   const plain = (h) => String(h || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -8039,7 +8041,7 @@
     return `<div class="row between"><button class="btn sm" data-nxu="" type="button">‹ 숙제</button><span class="tiny">${esc(NX_SN[u.subj])} ${esc(u.code)}</span></div>
       <h1 class="h1">${esc(u.code)} ${esc(u.title)}</h1><p class="sub">${esc(u.sub || '')}</p>
       <div class="grid"><section class="card c12"><div class="card-h"><h2>단원 공부</h2><span class="tiny">개념부터 기출까지 차례로 풀어요</span></div><div class="list">${printRow}${rows.map((s) => nxRow(s, { title: nxPartName(u, s.kind), icon: s.kind === 'c' ? 'bulb' : s.kind === 'q' ? 'pencil' : s.kind === 'x' ? 'target' : s.kind === 'w' ? 'memo' : 'eng', d: `${pd[s.kind]} · ${(() => { const g = nxProg(s); return g.d ? `${g.d} / ${g.n} 풀었어요` : `${g.n}문제`; })()}` })).join('')}</div></section>
-      ${u.papers.length ? `<section class="card c12"><div class="card-h"><h2>기출 시험지별로</h2><span class="tiny">${u.papers.length}개</span></div><div class="list">${u.papers.map((pp) => nxRow(NXSETS[`${u.id}:x:${pp.id}`], { icon: 'memo' })).join('')}</div></section>` : ''}</div>`;
+      ${u.papers.length ? `<section class="card c12"><div class="card-h"><h2>기출 시험지별로</h2><span class="tiny">${u.papers.length}개</span></div><div class="list">${u.papers.map((pp) => nxRow(NXSETS[`${u.id}:x:${pp.id}`], { icon: 'memo' })).join('')}</div></section>` : ''}${cfSec(u, 'c12')}</div>`;
   }
   function nxRecent() {
     const L = nxS().done.slice(-5).reverse().map((x) => nxDoneFix(x, nxS().a)); if (!L.length) return '';
@@ -9182,7 +9184,7 @@
     const pd = u.subj === 'm3' ? { c: '단어·숙어 뜻 고르기', q: '학평 지문 7개 문제', x: '두 개 중 맞는 구문 고르기' } : { c: u.subj === 'eng' ? '단어·숙어 뜻 고르기' : '교과서 핵심 문장의 빈칸 채우기', q: '단원 개념 문제', x: '학교 기출 · 변형 문제', e: '영영 풀이 보고 영어 단어 쓰기', v: '우리말 뜻 보고 영어로 쓰기', s: '프린트 문장 영작', d: '조건에 맞게 문장 쓰기', w: '프린트 문제 그대로' };
     const printRow = (u.print || []).length ? `<div class="li btnlike" data-task="print:${esc(u.id)}"><div class="ico">${ic('memo')}</div><div class="body"><div class="t">학교 프린트 보기</div><div class="d">${u.print.length}쪽</div></div><span class="chev"></span></div>` : '';
     return `<section class="card st-sec"><div class="card-h"><h2>문제 풀기</h2><span class="tiny">한 문제씩 바로 채점, 틀린 건 오답 노트로</span></div><div class="list">${printRow}${rows.map((s) => nxRow(s, { title: nxPartName(u, s.kind), icon: s.kind === 'c' ? 'bulb' : s.kind === 'q' ? 'pencil' : s.kind === 'x' ? 'target' : 'eng', d: `${pd[s.kind]} · ${(() => { const g = nxProg(s); return g.d ? `${g.d} / ${g.n} 풀었어요` : `${g.n}문제`; })()}` })).join('') || '<p class="tiny">아직 문제가 없어요</p>'}</div></section>
-      ${u.papers.length ? `<section class="card st-sec"><div class="card-h"><h2>기출 시험지별로</h2><span class="tiny">${u.papers.length}개</span></div><div class="list">${u.papers.map((pp) => nxRow(NXSETS[`${u.id}:x:${pp.id}`], { icon: 'memo' })).join('')}</div></section>` : ''}`;
+      ${u.papers.length ? `<section class="card st-sec"><div class="card-h"><h2>기출 시험지별로</h2><span class="tiny">${u.papers.length}개</span></div><div class="list">${u.papers.map((pp) => nxRow(NXSETS[`${u.id}:x:${pp.id}`], { icon: 'memo' })).join('')}</div></section>` : ''}${cfSec(u, 'st-sec')}`;
   }
   function studyView(inner) {
     const SB = NXD.subjects || [];
@@ -9458,7 +9460,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251126'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251135'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
