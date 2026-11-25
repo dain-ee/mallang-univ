@@ -2607,7 +2607,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611251704', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611251707', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5515,7 +5515,7 @@
     if (U.who !== '정윤' || TUTOR || today() > '2026-12-18') return '';
     return `<button type="button" class="c12 ts-band jr-ban" data-jyrep="kor"><span class="ts-band-ic jr-ic">${ic('bulb')}</span><span class="ts-band-t"><b>경화여고 과목 선생님 출제 스타일 완벽 분석</b><span>2학기 1차 시험지로 과목마다 선생님이 내는 꼴과 내가 틀린 곳을 정리했어요</span></span><span class="ts-band-go">보기</span></button>`;
   }
-  const jrSc = (x) => /^\d/.test(x.sc) ? x.sc + '점' : x.sc;
+  const jrSc = (x) => /^\d+(\.\d+)?$/.test(x.sc) ? x.sc + '점' : x.sc;
   function jyRepTable() {
     return `<div class="jr-tbl">${JY_REP.map((x) => `<button type="button" class="jr-row" data-jyrep="${x.k}"><b>${x.n}</b><span class="jr-sc">${jrSc(x)}</span><span class="jr-wr">${x.wx.length ? '틀린 문제 ' + x.wr : '다 맞았어요'}</span><span class="jr-go">›</span></button>`).join('')}</div>`;
   }
@@ -5523,7 +5523,7 @@
     const draw = (k) => { const x = JY_REP.find((y) => y.k === k) || JY_REP[0];
       return `<div class="jr"><h2 class="jr-h">선생님 출제 스타일 분석</h2><p class="sub">${x.src || '경화여고 1학년 2학기 1차 시험지와 학교 정답표로 정리했어요'}</p>
         <div class="jr-tabs">${JY_REP.map((y) => `<button type="button" class="${y.k === x.k ? 'on' : ''}" data-jrk="${y.k}">${y.n}</button>`).join('')}</div>
-        <section class="jr-top"><span>${x.full}</span><b>${/^\d/.test(x.sc) ? `${x.sc}<small>점</small>` : `<small>${x.sc}</small>`}</b><em>${x.wx.length ? '틀린 문제 ' + x.wr : '다 맞았어요'}</em></section>
+        <section class="jr-top"><span>${x.full}</span><b>${/^\d+(\.\d+)?$/.test(x.sc) ? `${x.sc}<small>점</small>` : `<small>${x.sc}</small>`}</b><em>${x.wx.length ? '틀린 문제 ' + x.wr : '다 맞았어요'}</em></section>
         <section class="jr-sec"><h3>선생님은 이렇게 내요</h3><ul>${x.st.map((t) => `<li>${t}</li>`).join('')}</ul></section>
         ${x.wx.length ? `<section class="jr-sec"><h3>내가 틀린 곳</h3>${x.wx.map(([a, t]) => `<div class="jr-w"><span>${a}</span><p>${t}</p></div>`).join('')}</section>` : ''}
         <section class="jr-sec jr-do"><h3>기말엔 이렇게</h3><ul>${x.do.map((t) => `<li>${t}</li>`).join('')}</ul></section>
@@ -9493,7 +9493,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251704'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251707'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
