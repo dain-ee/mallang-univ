@@ -2614,7 +2614,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611252044', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611252047', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5608,13 +5608,13 @@
   }
   function gnBand() {
     if (!GN || TUTOR) return '';
-    return `<button type="button" class="c12 ts-band gn-ban" data-gnopen><span class="ts-band-ic">${ic('books')}</span><span class="ts-band-t"><b>굿노트 문제집이 생겼어요</b><span>과목마다 2회독·3회독 ${GN.books.length}권 · 날짜마다 그날 숙제가 그대로 있어요</span></span><span class="ts-band-go">받기</span></button>`;
+    return `<button type="button" class="c12 ts-band gn-ban" data-gnopen><span class="ts-band-ic gn-ic"><img src="assets/goodnotes.png" alt="Goodnotes"></span><span class="ts-band-t"><b>굿노트 문제집이 생겼어요</b><span>과목마다 2회독·3회독 ${GN.books.length}권 · 날짜마다 그날 숙제가 그대로 있어요</span></span><span class="ts-band-go">받기</span></button>`;
   }
   function gnBtn(b) { const s = gnSt.get(b.f); return `<button type="button" class="gn-b ${s || ''}" data-gnb="${esc(b.f)}"><b>${esc(b.rd)}</b><small>${s === 'ing' ? '받는 중…' : s === 'ok' ? (gnShare() ? '굿노트로 열기 ›' : '다시 받기') : s === 'err' ? '다시 눌러요' : `${b.pg}쪽 · ${b.mb}MB`}</small></button>`; }
   function gnHtml(first) {
     const mb = Math.round(GN.books.reduce((t, b) => t + b.mb, 0)), z = gnZ;
     const zl = z === 'ing' ? `모두 받는 중… ${gnFile.size}/${GN.books.length}` : z instanceof File ? (gnShare() ? '다 받았어요 · ZIP 열기 ›' : 'ZIP 다시 받기') : `한 번에 받기 · ZIP ${mb}MB`;
-    return `<div class="gdm gnm">${first ? '<span class="gdm-n">새로 나왔어요</span>' : ''}<h2>굿노트 문제집이 생겼어요</h2><p class="sub">과목마다 2회독·3회독 책이에요. 날짜마다 그날 숙제가 그대로 있고 손으로 풀 칸이 있어요. 답은 앱 같은 숙제에서 눌러요</p>
+    return `<div class="gdm gnm">${first ? '<span class="gdm-n">새로 나왔어요</span>' : ''}<h2 class="gn-h"><img src="assets/goodnotes.png" alt="Goodnotes">굿노트 문제집이 생겼어요</h2><p class="sub">과목마다 2회독·3회독 책이에요. 날짜마다 그날 숙제가 그대로 있고 손으로 풀 칸이 있어요. 답은 앱 같은 숙제에서 눌러요</p>
       <div class="gn-list">${GN_SJ.map((sj) => { const B = GN.books.filter((b) => b.sj === sj); return B.length ? `<div class="gn-row"><span class="gn-sj">${esc(sj)}</span><div class="gn-bs">${B.map(gnBtn).join('')}</div></div>` : ''; }).join('')}</div>
       <div class="cta-bar"><button class="btn primary big block" type="button" data-gnall${z === 'ing' ? ' disabled' : ''}>${zl}</button></div>
       <p class="tiny gn-tip">${gnShare() ? '받은 뒤 한 번 더 누르면 공유 창이 떠요. 거기서 「굿노트」를 고르면 바로 들어가요' : '누르면 PDF가 내려받아져요. 아이패드에서는 공유 창에서 굿노트를 골라요'}</p></div>`;
@@ -9627,7 +9627,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611252044'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611252047'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
