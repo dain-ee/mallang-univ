@@ -2607,7 +2607,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611251721', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611251724', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5492,7 +5492,7 @@
       do: ['「적절하지 않은 것」은 선지마다 <b>누가, 무엇을</b> 했는지 지문에서 다시 찾아 맞춰 봐요.', '시에 「님」이 나오면 사람인지 자연인지부터 확인해요.', '비문학은 개념 두 개를 실험·그래프에 대입하는 문제를 하루 한 세트씩 풀어요.'] },
     { k: 'eng', n: '영어', full: '공통영어2', sc: '2학기 점수 없음', src: '올해 2학기 1차 정답표 · 작년 2학기 1차 기출 · 1학기 1차·2차 내 시험지로 정리했어요', wr: '1학기 2차 15번 · 논술형 4·5번',
       st: ['올해 2학기 1차는 <b>선택형 25문제(80점)와 서답형 5문제(20점, 4점씩)</b>였어요. 작년 2학기 1차는 선택형 30문제와 논술형 5문제였는데, 올해는 선택형이 25문제로 줄었어요. 서답형 답은 <b>요약문 (A)(B) 채우기와 영작</b>이었어요.', '작년 2학기 1차 순서예요. 단어 1~5, 내용 일치 6~7(영어 선지), 불일치 8, 도표 9, 제목 10~12, <b>어법 13~17</b>, 어휘 18~20, 빈칸 21~23, 무관한 문장 24~25, 순서 26, 문장 넣기 27~28, 요약 29~30. 함축 의미는 2학기엔 안 나왔어요(1학기엔 나왔어요).', '<b>올림포스 지문이 많이 나와요.</b> 작년엔 6·8·15·17·23·26·28번과 논술형 2·4·5번이 올림포스 지문이었어요.', '지문을 그대로 내지 않고 조금 바꿔요. 책의 무관한 문장 빼기, 낱말 하나 바꿔치기(to produce → producing), 주어진 문장에 연결어 붙이기(Lastly), 빈칸 문장 고쳐 쓰기예요.', '어법은 <b>밑줄 5개 중 틀린 것</b>으로 4~6문제 연달아 나와요(작년 2학기 5문제, 1학기 1차 6문제). 수 일치, 관계사(that·what), 준동사, 수동태, 도치(Hardly did he know)를 물어요.', '어휘는 반대말로 바꾼 낱말 하나를 찾게 해요(independence ↔ dependence). 빈칸엔 <b>정답을 뒤집은 선지</b>(A rather than B ↔ B rather than A)를 꼭 넣어요.', '논술형 조건 꼴은 「보기를 한 번씩 모두」, 「n개 변형」, 「n단어 추가」, 밑줄 우리말 영작, unless → if 같은 전환, 질문에 영어 문장으로 답하기, 강조 구문(It was ~ that)이에요.'],
-      wx: [['1학기 2차 15번', '빈칸에 a performance rather than an act of communication을 골랐어요. 정답은 반대인 an act of communication rather than a performance예요. 뒤집은 선지 함정이에요.'], ['1학기 2차 논술형 4번', '「It was among the dense seaweed forests <b>where</b> I met an octopus」로 썼어요. 강조 구문은 <b>It was ~ that</b>이라 where가 아니라 that이에요.'], ['1학기 2차 논술형 5번', '(B)를 지문 문장(bring more hardship than the inflation)으로 옮겨 썼어요. 정답은 cause hardship for borrowers였어요. 요약문은 지문 말을 그대로 쓰기보다 <b>누구에게 어떤 일이</b> 생기는지 줄여 써요.']],
+      wx: [['1학기 2차 15번', '책 원문은 「they <b>view</b> speechmaking as a performance rather than an act of communication」이에요. 선생님이 <b>fail to</b> 를 넣어 뜻을 뒤집어서 답이 ④ an act of communication rather than a performance가 됐어요. 정윤이는 <b>원문 표현 그대로인 ⑤</b>를 골랐어요. 「본 적 있는 표현」을 믿게 만드는 함정이에요.'], ['1학기 2차 논술형 4번', '「It was among the dense seaweed forests <b>where</b> I met an octopus」로 썼어요. 강조 구문은 <b>It was ~ that</b>이라 where가 아니라 that이에요.'], ['1학기 2차 논술형 5번', '(B)를 지문 문장(bring more hardship than the inflation)으로 옮겨 썼어요. 정답은 cause hardship for borrowers였어요. 요약문은 지문 말을 그대로 쓰기보다 <b>누구에게 어떤 일이</b> 생기는지 줄여 써요.']],
       do: ['올림포스 9~16강은 <b>무관한 문장이 빠지고 낱말 하나가 바뀐 꼴</b>로 다시 읽어 봐요. 바뀐 자리가 어법·어휘 정답이 돼요.', '빈칸은 고르기 전에 정답과 반대로 뒤집은 선지가 있는지 먼저 찾아요.', '어법은 밑줄마다 동사인지 준동사인지, 주어가 단수인지 복수인지 적어 가며 풀어요.', '강조 구문(It is ~ that), 도치(Hardly did ~), Neither A nor B, unless ↔ if 전환은 교과서·올림포스 문장으로 직접 써 봐요.', '서답형은 조건(단어 수, 꼭 넣을 말, 몇 개 변형)에 먼저 밑줄 긋고, 다 쓴 뒤 하나씩 체크해요.', '요약문은 지문 말을 2~6단어로 줄여 쓰는 연습을 해요. 앱의 교과서 3회독(12/4~12/8)이 시험지 꼴 서답형이에요.'] },
     { k: 'sci', n: '통합과학', full: '통합과학2', sc: '88.08', wr: '15번 · 22번 · 27번',
       st: ['28문제 모두 객관식이에요. 그중 <b>23문제가 「옳은 것만 있는 대로」 ㄱㄴㄷ 고르기</b>예요.', '「옳지 않은 것」 문제는 없어요. 함정은 보기 문장 속 <b>한 군데(시대, 원인, 변인)</b>만 바꾸는 방식이에요.', '거의 모든 문제에 그림, 그래프, 표가 붙어요.', '배점이 가장 높은 건 <b>이온 수 그래프 계산</b>, 항생제 내성, 실험 변인 문제예요.', '다른 단원 지식을 끼워 넣어요. 에너지 문제에 지질 시대가 나왔어요.'],
@@ -9493,7 +9493,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251721'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251724'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
