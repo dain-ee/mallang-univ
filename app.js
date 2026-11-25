@@ -470,11 +470,11 @@
   function sciToday(force) {
     const t = today(); S.sci = S.sci || { days: {} }; S.sci.days = S.sci.days || {};
     { const o = S.sci.days[t], prev = Object.keys(S.sci.days).filter((d) => d < t).sort().slice(-2).map((d) => S.sci.days[d].c);  // 11/25 예전 앱이 오늘 몫을 또 산·염기로 만들어 두면, 손 안 댄 것만 다시 골라요
-      if (o && o.one && !o.read && !Object.keys(o.ans || {}).length && (prev.includes(o.c) || /^c-(redox|solar)/.test(o.c))) delete S.sci.days[t]; }  // 11/25 산화·환원은 범위 밖 → 오늘 몫이 그거면 다시 골라요
+      if (o && o.one && !o.read && !Object.keys(o.ans || {}).length && (prev.includes(o.c) || /^c-redox/.test(o.c))) delete S.sci.days[t]; }  // 11/25 산화·환원은 범위 밖 → 오늘 몫이 그거면 다시 골라요
     if (!S.sci.days[t] && SCI.concepts.length && (onDay('sci') || force)) {
       const seen = new Set(Object.values(S.sci.days).filter((d) => d.one).map((d) => d.c));
       const ord = (c) => (c.lesson && c.lesson.order) || 999;
-      const exam = SCI.concepts.filter((c) => c.exam && !/^c-(redox|solar)/.test(c.id)).sort((a, b) => ord(a) - ord(b));
+      const exam = SCI.concepts.filter((c) => c.exam && !/^c-redox/.test(c.id)).sort((a, b) => ord(a) - ord(b));
       const weak = SCI.concepts.filter((c) => openWrong().some((w) => w.src === 'sci' && w.concept === c.id));
       // 11/25 다 한 번씩 본 뒤 늘 첫 개념(산·염기)만 다시 나오던 것 고침 (정윤 «중화 반응 계속 나와») → 가장 오래전에 본 것부터, 틀린 게 있으면 먼저, 어제·그제 본 건 빼요
       const last = {}; for (const [d, v] of Object.entries(S.sci.days)) if (v.one && d < t && (!last[v.c] || d > last[v.c])) last[v.c] = d;
@@ -2607,7 +2607,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611251857', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611251911', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3380,7 +3380,7 @@
   function r2AskDone() { const x = S.exam || {}, a = x.ask || {}, e = (x.subs || []).find((u) => u.id === 'eng'); return !!(a.date && a.rangeAt && e && e.range && (a.perf === 'y' || a.perf === 'n') && a.miss); }
   function r2AskLine() { const a = (S.exam || {}).ask || {}; return [a.date ? `시험 ${md(a.date)}` : '', a.perf ? `서술형·논술형 Practice ${a.perf === 'y' ? '범위예요' : a.perf === 'n' ? '범위 아니에요' : '아직 몰라요'}` : '', a.miss ? `중간 틀린 번호 ${a.miss}` : ''].filter(Boolean).join(' · '); }
   // 11/15 선생님 «과학 범위 물어봐, 배너에. 아마 인강 가면 알 걸, 걔가 들은 거 있잖아» → 인강에서 고른 강의로 짐작한 단원을 보여 주고 맞는 것만 남기게 해요
-  const SCI_U = [['22강', '산, 염기와 중화 반응', 1], ['23강', '물질 변화에서 에너지의 출입', 1], ['24강', '생물과 환경, 생태계 평형', 0], ['25강', '지구 환경 변화와 인간 생활 (해류·엘니뇨)', 1], ['26강', '태양 에너지의 생성과 전환', 1], ['27강', '발전과 에너지원 (발전기·전력)', 1], ['28강', '에너지 효율과 신재생 에너지', 1], ['29강', '과학 기술의 활용', 0]];
+  const SCI_U = [['22강', '산, 염기와 중화 반응', 1], ['23강', '물질 변화에서 에너지의 출입', 1], ['24강', '생물과 환경, 생태계 평형', 1], ['25강', '지구 환경 변화와 인간 생활 (해류·엘니뇨)', 1], ['26강', '태양 에너지의 생성과 전환', 0], ['27강', '발전과 에너지원 (발전기·전력)', 1], ['28강', '에너지 효율과 신재생 에너지', 1], ['29강', '과학 기술의 활용', 0]];
   function sciAskSheet() {
     const x = exS(), A = { ...((x.sciAsk || {}).u || Object.fromEntries(SCI_U.map(([k, , on]) => [k, on]))) }, u = x.subs.find((y) => y.id === 'sci');
     sheet(`<h2>과학 기말 범위, 이게 맞나요?</h2><p class="sub">인강에서 들은 강의로 짐작했어요. 시험 범위인 것만 켜 두고, 아니면 눌러서 꺼 주세요</p>
@@ -4055,7 +4055,7 @@
     if (k === 'sci') {
       const done = (c) => { const a = (S.sci.cans || {})[c.id] || {}; const inDay = Object.values(S.sci.days || {}).some((d) => d.one && d.c === c.id && d.read); return Object.keys(a).length || inDay; };
       const ord = (c) => (c.lesson && c.lesson.order) || 999;
-      const exam = SCI.concepts.filter((c) => c.exam && !/^c-(redox|solar)/.test(c.id)).sort((a, b) => ord(a) - ord(b)), rest = SCI.concepts.filter((c) => !c.exam || /^c-(redox|solar)/.test(c.id));  // 11/25 산화·환원은 기말 범위 밖
+      const exam = SCI.concepts.filter((c) => c.exam && !/^c-redox/.test(c.id)).sort((a, b) => ord(a) - ord(b)), rest = SCI.concepts.filter((c) => !c.exam || /^c-redox/.test(c.id));  // 11/25 산화·환원은 기말 범위 밖
       const row = (c) => `<div class="li btnlike" data-lc="${esc(c.id)}"><div class="ico">${ic(done(c) ? 'ok' : 'sci')}</div><div class="body"><div class="t">${esc(c.title)}</div><div class="d">${esc(c.lesson && c.lesson.src ? c.lesson.src : c.sub || '')} · 문제 ${(c.base || []).length + (c.deep || []).length}개</div></div><span class="chev"></span></div>`;
       const byUnit = (L) => [...new Set(L.map((c) => c.unit))].map((u) => `<section class="card c6"><div class="card-h"><h3>${esc(unitOf(u).title)}</h3></div><div class="list">${L.filter((c) => c.unit === u).map(row).join('')}</div></section>`).join('');
       return head + `<p class="sub">개념을 먼저 보고 그 개념 문제를 풀어요. 기말 범위는 경화여고 교과서(비상) 순서예요</p><h2 class="h2" style="margin:8px 0 12px">2학기 기말 범위 ${exam.length}개</h2><div class="grid">${byUnit(exam)}</div><h2 class="h2" style="margin:24px 0 12px">1학기 · 그 밖의 개념 ${rest.length}개</h2><div class="grid">${byUnit(rest)}</div>`;
@@ -9510,7 +9510,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251857'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251911'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
