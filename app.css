@@ -5620,3 +5620,11 @@ mark.mk.mk-out { transition: opacity .2s, background-size .2s; opacity: .2; }
 .td-drop { flex: none; margin-left: 6px; padding: 6px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--t3); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s, color .15s; }
 .td-drop:hover, .td-drop:active { background: var(--fill); color: var(--t2); }
 .td-dropped { margin-top: 12px; }
+
+/* 11/25 정윤 2·3회독 「선생님이 낼 것 같은 곳」 */
+.r2-pred { margin: 12px 0 16px; padding: 16px 18px; }
+.r2-pred summary { cursor: pointer; list-style: none; font-size: 15px; }
+.r2-pred summary::-webkit-details-marker { display: none; }
+.r2-pred summary .tiny { color: var(--t3); margin-left: 6px; }
+.r2-pred ul { margin: 12px 0 0; padding-left: 18px; }
+.r2-pred li { margin: 0 0 8px; font-size: 15px; line-height: 1.7; color: var(--t1); word-break: keep-all; animation: viewIn .3s ease both; animation-delay: calc(var(--i) * 40ms); }
