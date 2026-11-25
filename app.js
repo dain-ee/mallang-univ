@@ -706,7 +706,7 @@
     const sn = seasonNow(), hi = sn && sn.day === today() ? sn.hi : '';
     const main = `<h1 class="h1">${hi ? ic(sn.i) + ' ' : ''}<mark class="hl-g">${nameCall()}</mark>,<br class="br-m"> ${hi || greet()}</h1>
       <div class="row between wrap" style="gap:8px;margin-bottom:16px;min-height:36px"><p class="sub" style="margin:0">${homeLine()}</p></div>
-      <div class="grid">${ptCard('c12')}${TUTOR ? lessonHero() : ''}${appCard()}${gdCard()}${diaryCard()}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${juaRepCard()}${juaLinks()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${qlogCard()}${railCards(true)}${winCard()}${perfCard()}${finCard()}${admitCard('c12')}${lagCard()}${pomoCard('c12 rail-inline')}${growCard('c12')}${walletCard('c12')}${hotCard('c12 rail-inline')}${insightCard('c7')}${schedCard('c5')}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
+      <div class="grid">${ptCard('c12')}${TUTOR ? lessonHero() : ''}${appCard()}${gdCard()}${jyRepBand()}${diaryCard()}${TUTOR ? `${ygFront()}${ygFinCard()}${giftHome()}${upCard()}${fireNews()}${juaRepCard()}${juaLinks()}${kmlaCard()}${midCard()}${lagCard()}${careerCard()}${noteCard()}${giftCard()}${growCard('c12')}${pomoCard('c12 rail-inline')}${tNewsCard('c12')}${railCards(true)}` : `${careerCard()}${missCard()}${drHome()}${chkCard()}${giftHome()}${upCard()}${seasonCard()}${noteCard()}${giftCard()}${hero}${pos}${hwGo}${qlogCard()}${railCards(true)}${winCard()}${perfCard()}${finCard()}${admitCard('c12')}${lagCard()}${pomoCard('c12 rail-inline')}${growCard('c12')}${walletCard('c12')}${hotCard('c12 rail-inline')}${insightCard('c7')}${schedCard('c5')}`}</div>${owned().length ? '<div class="home-set"><button type="button" data-homeset><svg class="gear" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#8b95a1" stroke="#8b95a1" stroke-width="1.8" stroke-linejoin="round" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6 1.6.7 2.2-1.5 2.4 2.4-1.5 2.2.7 1.6 2.6.5v3.4l-2.6.5-.7 1.6 1.5 2.2-2.4 2.4-2.2-1.5-1.6.7-.5 2.6h-3.4l-.5-2.6-1.6-.7-2.2 1.5-2.4-2.4 1.5-2.2-.7-1.6L2 13.7v-3.4l2.6-.5.7-1.6-1.5-2.2 2.4-2.4 2.2 1.5 1.6-.7zM12 15.9a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8z"/></svg>홈 화면 설정</button></div>' : ''}`;
     return `<div class="layout has-rail"><div>${main}</div><aside class="rail">${railCards(false)}</aside></div>`;
   }
   // 11/8 «정윤이 너무 홈이 너무 지저분해»
@@ -2590,7 +2590,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611251005', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611251123', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5463,7 +5463,53 @@
   // 11/20 정윤 «한국 독립당이 우파인가? · 한국 민주당 토지 개혁 방식이 왜 재정 파탄? · 요즘 정치랑 다른데 좌우를 뭘로 나눠? · 김구는 왜 우익?»
   const GD_LR = `<ol class="r2s-rules"><li style="--i:0"><span class="r2s-rn">1</span><div><b>그때 좌우는 「어떤 나라를 세울지」로 나눠요</b><span><b>좌익</b> = 사회주의·공산주의. 땅과 공장을 모두의 것으로, 친일 지주 땅은 빼앗아 농민에게 (무상 몰수·무상 분배). 소련 쪽 · 예) 조선 공산당, 박헌영</span><span><b>우익</b> = 자본주의·자유 민주주의. 개인 재산 인정, 땅도 돈 주고 사고팔기 (유상). 미국 쪽 · 예) 한국 민주당, 이승만, 김구</span><span><b>중도</b> = 둘을 합치자 · 여운형, 김규식 (좌우 합작 운동)</span><span>요즘 좌우는 같은 민주주의 안에서 정책 차이지만, 그때는 나라 체제 자체가 달랐어요</span></div></li><li style="--i:1"><span class="r2s-rn">2</span><div><b>한국 독립당 = 우익 (김구)</b><span>공산주의에 반대(반공)하고 민족주의 국가를 원했어요. 임시 정부를 이끌었고, 신탁 통치 반대(반탁)에 앞장섰어요</span><span>1948년 남북 협상은 좌익이 돼서가 아니라, 남한만 정부를 세우면 영원히 갈라진다고 봐서 <b>통일 정부</b>를 원했기 때문이에요</span><span>→ 생각은 우익, 방법은 단독 정부 반대 · 이승만(단독 정부)과 갈려요</span></div></li><li style="--i:2"><span class="r2s-rn">3</span><div><b>한국 민주당(한민당) = 우익 · 지주와 자본가</b><span>송진우, 김성수가 중심이고 이승만을 지지했어요</span><span>좌우 합작 7원칙의 토지 개혁은 <b>유상 매수(조건부 몰수)·무상 분배</b> → 나라가 지주에게 돈을 주고 사서 농민에게는 공짜로 줘요. 돈이 나가기만 해서 「재정 파탄」이라며 한민당이 반대했어요</span></div></li></ol>
   <div class="ls-box" style="margin-top:12px"><b>토지 개혁 한 줄로</b><p>· 좌익(북한): 무상 몰수·무상 분배</p><p>· 좌우 합작 7원칙: 유상 매수(조건부 몰수)·무상 분배 → 한민당 반대(재정 파탄)</p><p>· 남한 농지 개혁(1949): 유상 매수·유상 분배</p></div>`;
+
+  // 11/25 선생님 «선생님 각 과목별 분석을 모달로도 띄워 줘, 어떤 스타일이신지, 어디서 틀렸는지 … 꼼꼼하고 읽기 쉽게 … 모달 보고 나서도 배너에 박아»
+  //   → 2학기 1차 시험지·정답표(source/exams/jy_2026_2mid) 분석. 알림 창은 한눈 표, 자세한 건 과목별 화면(jyRep)
+  const JY_REP = [
+    { k: 'kor', n: '국어', full: '공통국어2', sc: '91.88', wr: '5번 · 25번',
+      st: ['27문제 모두 객관식이고 서술형은 없어요.', '「적절하지 않은 것」 고르기가 19문제로 대부분이에요.', '틀린 선지는 <b>주어나 대상을 살짝 바꿔요.</b> 예: 뻐꾸기가 농부를 재촉한 것을 화자가 한 일로 바꿔요.', '교과서 고전시가에 <b>교과서 밖 작품</b>(가시리, 현대시 등)을 붙여 비교시켜요.', '중세 국어가 6문제(19~24번)예요. 보기로 새 규칙을 주고 적용하게 하고, 배점이 높아요.', '비문학 두 지문은 모두 교과서 밖이고 <b>가장 어려워요</b>. 실험 해석, 그래프 계산이 나와요.'],
+      wx: [['5번', '「님」이라는 말만 보고 골랐어요. 황진이 시조는 연인을 그리워하는 마음인데, 고른 ②는 자연을 임처럼 반기는 시였어요.'], ['25번', '밀의 외적 제재(남의 눈)와 내적 제재(양심)를 실험에 연결하지 못했어요. 기부가 늘어난 건 이름을 공개해서지, 양심이 강해져서가 아니에요.']],
+      do: ['「적절하지 않은 것」은 선지마다 <b>누가, 무엇을</b> 했는지 지문에서 다시 찾아 맞춰 봐요.', '시에 「님」이 나오면 사람인지 자연인지부터 확인해요.', '비문학은 개념 두 개를 실험·그래프에 대입하는 문제를 하루 한 세트씩 풀어요.'] },
+    { k: 'sci', n: '통합과학', full: '통합과학2', sc: '88.08', wr: '15번 · 22번 · 27번',
+      st: ['28문제 모두 객관식이에요. 그중 <b>23문제가 「옳은 것만 있는 대로」 ㄱㄴㄷ 고르기</b>예요.', '「옳지 않은 것」 문제는 없어요. 함정은 보기 문장 속 <b>한 군데(시대, 원인, 변인)</b>만 바꾸는 방식이에요.', '거의 모든 문제에 그림, 그래프, 표가 붙어요.', '배점이 가장 높은 건 <b>이온 수 그래프 계산</b>, 항생제 내성, 실험 변인 문제예요.', '다른 단원 지식을 끼워 넣어요. 에너지 문제에 지질 시대가 나왔어요.'],
+      wx: [['15번', '맞는 보기 ㄱ을 지웠어요. 부모에게 없던 형질이 자손에게 나오는 건 유전자 조합 때문이라 ㄱ도 맞아요.'], ['22번', '이온 수 그래프에서 비율 계산을 끝까지 못 했어요. 시험에서 가장 어려운 문제였어요.'], ['27번', '석탄은 고생대(석탄기)에 가장 많이 만들어졌어요. 에너지 문제에 끼워 넣은 지질 시대 함정에 걸렸어요.']],
+      do: ['「있는 대로」는 확실한 것만 고르지 말고 <b>보기마다 ○✕를 다 적어요.</b>', '이온 수 계산은 매일 한 문제씩 끝까지 풀어요.', '보기 문장에 나온 시대, 원인, 변인에 밑줄을 긋고 하나씩 확인해요.'] },
+    { k: 'soc', n: '통합사회', full: '통합사회2', sc: '100', wr: '없음',
+      st: ['선택형 22문제와 논술형 3문제가 나와요.', '자료가 다양해요. 메일, 근로계약서, 통계표, 순서도, 신문 기사가 나와요.', '<b>사상가 이름을 숨기고 글만 줘요</b>(롤스, 노직, 왈처 등). 선지에서 갑과 을의 입장을 바꿔 끼워요.', '「최초로」, 「모두」, 「무제한적」 같은 단정하는 말과 <b>비슷한 용어 바꿔치기</b>가 함정이에요.', '학생 답을 채점해서 점수를 묻는 문제가 2개 나와요.', '근로 관련 숫자(연소 근로자 하루 7시간, 휴게 시간)를 구체적으로 물어요. 논술형은 개념 이름을 써요.'],
+      wx: [],
+      do: ['다 맞았어요. 지금 공부하는 방식 그대로 가요.', '사상가는 이름 없이 글만 보고 누구인지 맞히는 연습을 이어 가요.'] },
+    { k: 'math', n: '수학', full: '공통수학2', sc: '91.2', wr: '14번 · 20번',
+      st: ['25문제 모두 객관식이고, <b>번호가 커질수록 배점이 올라요</b>(3점에서 5점).', '도형의 방정식 16문제, 집합 9문제, 함수는 25번 하나였어요.', '1~10번은 공식 대입, 11~19번은 개념 두 개 연결, <b>20~25번이 킬러</b>예요.', '킬러는 조건 (가)(나)(다) 상자 꼴이에요. 그림을 거의 안 줘서 직접 그려야 해요.'],
+      wx: [['14번', '두 직선이 수직이라는 조건(ac = −1)을 마지막 식에 넣지 않았어요. 계산 실수예요.'], ['20번', '원이 점 (1, 1)을 지나는 경우를 빠뜨렸어요. 경우를 다 나누지 않았어요.']],
+      do: ['킬러는 풀기 전에 <b>나올 수 있는 경우를 먼저 다 적어요.</b>', '답을 고르기 전에 문제의 조건을 하나씩 다시 대입해 봐요.'] },
+    { k: 'hist', n: '한국사', full: '한국사2', sc: '74.42', wr: '6번 ~ 11번 (6문제 연속)',
+      st: ['25문제 모두 객관식이고, 거의 모든 문제가 <b>사료</b>(신문 기사, 강령, 선언문)예요.', '배점이 높은 건 「있는 대로 고르기」, <b>순서 배열, 두 사건 사이</b> 문제예요. 연도를 외워야 풀려요.', '함정은 <b>인물·단체 바꿔치기</b>(이륭양행 조지 쇼를 황기환으로)와 비슷한 시기 사건 섞기(6·10 만세와 광주 학생 운동)예요.', '사료 속 인물을 맞힌 뒤 보기를 고르게 해서 <b>두 번 꼬아요.</b>'],
+      wx: [['6~11번', '시험지 2쪽에 몰려 <b>연속으로 틀렸어요.</b> 실수가 아니라 1920~40년대 단체와 연도를 아직 덜 외운 거예요.'], ['6번', '공출(1930~40년대) 시기에 1919년 위임 통치 청원을 넣었어요.'], ['7번', '국민 징용령(1939)과 학도 지원병제(1943) 사이 연도를 몰랐어요.'], ['8번', '이륭양행 경영자를 바꿔 쓴 함정을 못 봤어요.'], ['9번', '신간회 보기를 하나만 골랐어요. 「있는 대로」인데 확실한 것만 골랐어요.'], ['10번', '조선 청년 총동맹(1924)과 조선 농민 총동맹(1927) 순서를 바꿨어요.'], ['11번', '강우규를 의열단으로 착각했어요. 강우규는 대한 국민 노인 동맹단이에요.']],
+      do: ['<b>연표 한 장</b>을 만들고 사건마다 연도를 붙여 외워요.', '단체는 <b>누가, 언제, 무엇을</b> 세 칸으로 정리해요.', '앱의 한국사 모고 2회(12/9)에 이 꼴 문제를 많이 넣었어요.'] },
+  ];
+  function jyRepBand() {
+    if (U.who !== '정윤' || TUTOR || today() > '2026-12-18') return '';
+    return `<button type="button" class="c12 ts-band jr-ban" data-jyrep="kor"><span class="ts-band-ic jr-ic">${ic('bulb')}</span><span class="ts-band-t"><b>경화여고 과목 선생님 출제 스타일 완벽 분석</b><span>2학기 1차 시험지로 과목마다 선생님이 내는 꼴과 내가 틀린 곳을 정리했어요</span></span><span class="ts-band-go">보기</span></button>`;
+  }
+  function jyRepTable() {
+    return `<div class="jr-tbl">${JY_REP.map((x) => `<button type="button" class="jr-row" data-jyrep="${x.k}"><b>${x.n}</b><span class="jr-sc">${x.sc}점</span><span class="jr-wr">${x.wx.length ? '틀린 문제 ' + x.wr : '다 맞았어요'}</span><span class="jr-go">›</span></button>`).join('')}</div>`;
+  }
+  function jyRep(k) {
+    const draw = (k) => { const x = JY_REP.find((y) => y.k === k) || JY_REP[0];
+      return `<div class="jr"><h2 class="jr-h">선생님 출제 스타일 분석</h2><p class="sub">경화여고 2학년 2학기 1차 시험지와 학교 정답표로 정리했어요</p>
+        <div class="jr-tabs">${JY_REP.map((y) => `<button type="button" class="${y.k === x.k ? 'on' : ''}" data-jrk="${y.k}">${y.n}</button>`).join('')}</div>
+        <section class="jr-top"><span>${x.full}</span><b>${x.sc}<small>점</small></b><em>${x.wx.length ? '틀린 문제 ' + x.wr : '다 맞았어요'}</em></section>
+        <section class="jr-sec"><h3>선생님은 이렇게 내요</h3><ul>${x.st.map((t) => `<li>${t}</li>`).join('')}</ul></section>
+        ${x.wx.length ? `<section class="jr-sec"><h3>내가 틀린 곳</h3>${x.wx.map(([a, t]) => `<div class="jr-w"><span>${a}</span><p>${t}</p></div>`).join('')}</section>` : ''}
+        <section class="jr-sec jr-do"><h3>기말엔 이렇게</h3><ul>${x.do.map((t) => `<li>${t}</li>`).join('')}</ul></section>
+        <p class="tiny jr-f">영어 시험지 사진을 보내 주면 영어도 넣을게요</p></div>`; };
+    const mount = (el) => { $$('[data-jrk]', el).forEach((b) => (b.onclick = () => { const sc = $('.jr', el).closest('.sheet'); $('.jr', el).outerHTML = draw(b.dataset.jrk); mount(el); if (sc) sc.scrollTop = 0; })); };
+    sheet(draw(k), (el) => mount(el));
+  }
+  document.addEventListener('click', (e) => { const b = e.target.closest('[data-jyrep]'); if (!b) return; e.preventDefault(); const k = b.dataset.jyrep; if (b.closest('.gdm')) { const ok = $('#gdm-ok'); if (ok) ok.click(); } setTimeout(() => jyRep(k), b.closest('.gdm') ? 380 : 0); });
   const QNA = U.who === '정윤' ? [
+    { id: 'rep25', date: '2026-11-25', t: '선생님 출제 스타일 분석', ban: '경화여고 과목 선생님 출제 스타일 완벽 분석', sub: '2학기 1차 시험지 · 학교 정답표로 정리했어요', html: '<p>과목마다 선생님이 내는 꼴이 달라요. 과목을 누르면 <b>선생님 스타일, 내가 틀린 곳, 기말 공부법</b>이 나와요.</p>' + jyRepTable() + '<p class="tiny" style="margin-top:12px">홈 배너에도 계속 있어요. 언제든 다시 볼 수 있어요.</p>' },
     { id: 'mk25', date: '2026-11-25', t: '모고 문제 더 있어?', ban: '기말 모고를 과목마다 하나씩 더 넣었어요', sub: '한국사·국어 모고 2회 · 통합과학·통합사회 모고 3회', html: '<p>2학기 1차 시험지와 정답표를 보고, <b>우리 학교 선생님 꼴 그대로</b> 모고를 하나씩 더 만들었어요. 실제 시험보다 조금 더 어렵게 냈어요.</p><p>· 12/9 한국사 모고 2회 (25문제), 지난 시험에서 틀린 독립운동 단체·인물, 순서 배열, 두 사건 사이 문제를 많이 넣었어요<br>· 12/10 국어 모고 2회 (27문제)<br>· 12/11 통합과학 모고 3회 (28문제)<br>· 12/12 통합사회 모고 3회 (25문제)</p><p>3회독 양은 그대로예요. 모고만 늘었어요.</p>' },
     { id: 'p82', sj: 'eng', date: '2026-11-25', t: '12강 Practice 01, 해석을 봐도 이해가 안 가 (통합된 문학? 교과 영역 문해력 전략?)', ban: '올림포스 12강 Practice 01 질문에 답했어요', sub: '올림포스 12강 Practice 01 · literacy', fix: { fin: 'eng-p082', sel: '.ol-guide' }, html: '<p><b>먼저 하나: literacy는 「문학」이 아니라 「문해력」이에요.</b> 문학은 literature예요. 철자가 비슷해서 헷갈리기 쉬워요. literacy는 글을 읽고, 쓰고, 말하고, 듣는 언어 능력 전체예요.</p><p><b>① 「넓게는 읽기, 쓰기를 통합한」이 왜 나와?</b><br>broadly conceived as integrated reading, writing, speaking, and listening은 바로 앞의 literacy를 풀어 주는 말이에요. 「여기서 말하는 문해력은 읽기만이 아니라 읽기·쓰기·말하기·듣기를 다 합친 넓은 뜻이야」라고 정의해 주는 거예요. 그래서 「교사 절반만 문해력 교육 연수를 받는다」에서 그 연수가 네 가지를 다 가르치는 연수라는 뜻이 돼요.</p><p><b>② 교과 영역 문해력 전략(content-area literacy strategies)이 뭐야?</b><br>content area는 과학, 사회, 수학 같은 <b>각 과목</b>이에요. 그러니까 「과목 글을 읽고 쓰는 방법」이에요. 예를 들면 과학 교과서에서 핵심어 찾는 법, 그래프 읽는 법, 사회 서술형 답 쓰는 법이에요. 국어·영어 선생님만이 아니라 과학 선생님도 과학 글 읽는 법을 가르쳐야 한다는 뜻이에요.</p><p><b>글 흐름 한 줄씩</b><br>· 중학년에는 이야기 글에서 설명 글로 넘어가서 읽기가 어려워져요.<br>· 그런데 중학교에 가면 정식 읽기 수업이 끝나요.<br>· 교사도 문해력 교육 연수를 절반만 받아서 과목 글 읽는 법을 잘 못 가르쳐요.<br>· 그러니 <b>모든 과목 선생님이 자기 과목에 언어 능력(읽기·쓰기)을 넣어 가르쳐야 해요</b>. 그래서 정답은 ② integrate the language arts into their subjects예요.</p><p>다음에도 모르는 문장은 그 문장을 끌어서 「질문」을 누르면 바로 물어볼 수 있어요.</p>', links: [{ k: 'fin', cid: 'eng-p082' }] },
     { id: 'sc25b', date: '2026-11-25', t: '화학 중화반응 안나오고 계속 똑같은 것만 나와', ban: '오늘의 과학 반복, 회독 순서 고쳤어요', sub: '오늘의 과학 · 한국사·통합사회·통합과학 회독 날짜', fix: { tab: 'hw', txt: ['과학 개념'] }, html: '<p>말해 줘서 정말 고마워요. 기말 범위 개념을 한 바퀴 다 본 뒤로는 <b>첫 개념(산·염기)만 매일 다시</b> 나오고 있었어요. 제 잘못이에요.</p><p>이제는 <b>그 주 통합과학 2회독에서 하는 개념</b>(이번 주는 중화 반응·산화 환원)이 먼저 나오고, 어제·그제 본 건 안 나와요. 기말 범위인데 빠져 있던 산화·환원, 생태계, 온실 효과·엘니뇨도 넣었어요.</p><p>과목 전체를 다시 맞춰 봤어요. <b>2회독을 하기도 전에 같은 내용의 3회독이 먼저 나오던 곳</b>이 있었어요. 숙제 양은 그대로 두고 날짜만 바꿨어요.</p><p>· 한국사 3회독 부교재 문제는 2회독 이틀 뒤부터 나와요(11/27부터). 오늘은 한국사 3회독이 없어요.<br>· 통합사회 Ⅲ단원 탐구 자료(2회독)는 11/28로 당기고, 3회독 세계화 함정은 12/7로 미뤘어요.<br>· 통합과학 3회독은 2회독이 다 끝난 뒤에 나와요.</p><p>이미 한 숙제는 그대로 끝난 걸로 남아요.</p>', links: [] },
@@ -9410,7 +9456,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251005'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251123'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

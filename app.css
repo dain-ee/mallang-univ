@@ -5590,3 +5590,28 @@ mark.mk.mk-out { transition: opacity .2s, background-size .2s; opacity: .2; }
 .ol-guide h4 { margin: 14px 0 6px; font-size: 14px; color: var(--t2); }
 .ol-guide p { margin: 0 0 8px; font-size: 15px; line-height: 1.75; word-break: keep-all; }
 .ol-guide ol { margin: 0; padding-left: 20px; } .ol-guide li { margin: 0 0 6px; font-size: 15px; line-height: 1.7; word-break: keep-all; }
+
+/* 11/25 정윤 선생님 출제 스타일 분석 */
+.jr-ic { background: var(--blue-soft); color: var(--blue); }
+.jr-tbl { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.jr-row { display: grid; grid-template-columns: 64px 64px 1fr 16px; align-items: center; gap: 8px; width: 100%; padding: 12px 14px; border: 0; border-radius: 12px; background: var(--fill); font: inherit; font-size: 14px; text-align: left; color: var(--t1); cursor: pointer; transition: transform .15s; }
+.jr-row:active { transform: scale(.98); }
+.jr-sc { font-weight: 700; } .jr-wr { color: var(--t2); font-size: 13px; } .jr-go { color: var(--t3); font-size: 18px; }
+.jr-h { margin: 4px 0 2px; font-size: 20px; }
+.jr-tabs { display: flex; gap: 6px; overflow-x: auto; margin: 14px 0 12px; padding-bottom: 2px; }
+.jr-tabs button { flex: none; padding: 8px 14px; border: 0; border-radius: 999px; background: var(--fill); color: var(--t2); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: background .2s, color .2s; }
+.jr-tabs button.on { background: var(--t1); color: var(--card); }
+.jr-top { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; padding: 16px; border-radius: 16px; background: var(--fill); animation: gdmIn .3s both; }
+.jr-top span { width: 100%; font-size: 13px; color: var(--t2); }
+.jr-top b { font-size: 30px; line-height: 1.1; } .jr-top small { font-size: 15px; margin-left: 2px; }
+.jr-top em { font-style: normal; font-size: 14px; color: var(--t2); }
+.jr-sec { margin-top: 20px; animation: gdmIn .35s .05s both; }
+.jr-sec h3 { margin: 0 0 8px; font-size: 16px; }
+.jr-sec ul { margin: 0; padding-left: 18px; }
+.jr-sec li { margin: 0 0 8px; font-size: 15px; line-height: 1.7; word-break: keep-all; }
+.jr-w { display: flex; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+.jr-w:first-of-type { border-top: 0; padding-top: 2px; }
+.jr-w span { flex: none; min-width: 52px; font-size: 13px; font-weight: 700; color: var(--t2); padding-top: 2px; }
+.jr-w p { margin: 0; font-size: 15px; line-height: 1.7; word-break: keep-all; }
+.jr-do { padding: 14px 16px 6px; border-radius: 16px; background: var(--blue-soft); }
+.jr-f { margin: 16px 0 4px; text-align: center; }
