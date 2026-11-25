@@ -607,6 +607,7 @@
     return close;
   }
   function closeSheet() {
+    if (closeSheet.lock) return;
     const root = $('#sheet-root'); if (!root.firstChild || root.classList.contains('out')) return;
     document.body.style.overflow = '';
     if (sheet.dirty) { sheet.dirty = false; const y = scrollY; render(); scrollTo(0, y); }
@@ -2613,7 +2614,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611252035', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611252044', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2970,17 +2971,17 @@
     const L = rngOpen(); if (!L.length || UI.run || UI.tab !== 'home') { rngModal.on = false; return; }
     const a = L[0]; rngModal.on = true;
     sheet(`<div class="gdm"><span class="gdm-n">범위 확인 ${RNG_ASK.length - L.length + 1} / ${RNG_ASK.length}</span><h2>이것도 시험 범위인가요?</h2><p class="sub">${esc(a.sj)} · ${esc(a.t)}</p><div class="gdm-b"><p>${esc(a.w)}</p><p>애매해서 일단 숙제에 넣어 뒀어요. 범위가 아니면 빼 줄게요.</p></div><div class="cta-bar"><button class="btn primary big block" id="rng-y" type="button">범위 맞아요</button><button class="btn soft big block" id="rng-n" type="button" style="margin-top:8px">범위 아니에요</button></div></div>`, (el, close) => {
-      const next = () => { if (rngOpen().length) rngModal(); else { rngModal.on = false; close(); render(); } };
+      const next = () => { if (rngOpen().length) rngModal(); else { rngModal.on = false; closeSheet.lock = false; close(); render(); } };
       $('#rng-y', el).onclick = () => { rngPut(a, 'yes'); toast('고마워요 · 그대로 둘게요'); next(); };
       $('#rng-n', el).onclick = () => {
         sheet(`<div class="gdm"><h2>진짜 확실한가요?</h2><p class="sub">${esc(a.sj)} · ${esc(a.t)}</p><div class="gdm-b"><p>범위가 아니라고 하면 이 숙제를 <b>뺄게요.</b> 시험에 나오면 못 풀 수도 있어요.</p><p>선생님 공지나 프린트로 확인했으면 빼도 돼요. 「뺀 숙제」에서 되돌릴 수도 있어요.</p></div><div class="cta-bar"><button class="btn primary big block" id="rng-go" type="button">네, 확실해요 · 빼 주세요</button><button class="btn soft big block" id="rng-back" type="button" style="margin-top:8px">잘 모르겠어요 · 다시 볼게요</button></div></div>`, (el2, close2) => {
-          $('#rng-go', el2).onclick = () => { rngPut(a, 'no'); toast('뺐어요 · 「뺀 숙제」에서 되돌릴 수 있어요'); if (rngOpen().length) rngModal(); else { rngModal.on = false; close2(); render(); } };
+          $('#rng-go', el2).onclick = () => { rngPut(a, 'no'); toast('뺐어요 · 「뺀 숙제」에서 되돌릴 수 있어요'); if (rngOpen().length) rngModal(); else { rngModal.on = false; closeSheet.lock = false; close2(); render(); } };
           $('#rng-back', el2).onclick = () => rngModal();
-          $('.sh-x', el2).addEventListener('click', () => { rngModal.skip = true; rngModal.on = false; });
+          closeSheet.lock = true; const x2 = $('.sh-x', el2); if (x2) x2.style.visibility = 'hidden';
         });
       };
-      $('.sh-x', el).addEventListener('click', () => { rngModal.skip = true; rngModal.on = false; });
-      const bg = $('.sheet-bg'); if (bg) bg.addEventListener('click', () => { rngModal.skip = true; rngModal.on = false; });
+      // 11/25 «범위 확인은 무조건 누를 때까지 떠야 돼» → 닫기(X)·바깥 누르기로는 안 닫혀요. 답해야 닫혀요
+      closeSheet.lock = true; const x = $('.sh-x', el); if (x) x.style.visibility = 'hidden';
     });
   }
   function finCard() {
@@ -5636,11 +5637,11 @@
   }
   document.addEventListener('click', (e) => { if (GN && e.target.closest && e.target.closest('[data-gnopen]')) gnSheet(false); });
   const pang = () => setTimeout(() => { try { boom(innerWidth / 2, innerHeight * 0.3, 2); fanfare(); } catch (e) {} }, 320);
-  function gnNeed() { return !!GN && !TUTOR && !TEACHER && !PEEK && S.gnSeen !== GN.v && !gnModal.skip && !UI.run && UI.tab === 'home' && !sheetOn(); }
+  function gnNeed() { return !!GN && !TUTOR && !TEACHER && S.gnSeen !== GN.v && !gnModal.skip && !UI.run && UI.tab === 'home' && !sheetOn(); }
   function gnModal() { if (!gnNeed()) return; S.gnSeen = GN.v; save('gnSeen'); gnSheet(true); pang(); }
   // 11/25 «리포트도 배너에서 하지 말고 처음에 가자마자 모달로 팡, 거기서 확인하면 더 이상 안 뜨게» → 어제 공부 리포트(drOpen)는 배너 없이 창으로 한 번
   const sheetOn = () => { const r = $('#sheet-root'); return !!(r && r.firstChild && !r.classList.contains('out')); };
-  function jrNeed() { if (TUTOR || TEACHER || PEEK || UI.run || UI.tab !== 'home' || sheetOn()) return false; const d = drDay(), st = drStat(d); return (st.tot >= 10 || st.n) && drSeen() !== drMark(d); }
+  function jrNeed() { if (TUTOR || TEACHER || UI.run || UI.tab !== 'home' || sheetOn()) return false; const d = drDay(), st = drStat(d); return (st.tot >= 10 || st.n) && drSeen() !== drMark(d); }
   function jrModal() { if (!jrNeed()) return; drOpen(); pang(); setTimeout(() => [$('.sheet .sh-x'), $('.sheet-bg')].forEach((x) => x && x.addEventListener('click', () => setTimeout(render, 450))), 60); }  // 닫으면 다음 창(굿노트)이 이어서 떠요
   function jyRepBand() {
     if (U.who !== '정윤' || TUTOR || today() > '2026-12-18') return '';
@@ -9626,7 +9627,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611252035'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611252044'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
