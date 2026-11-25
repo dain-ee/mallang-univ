@@ -2607,7 +2607,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611251658', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611251701', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5490,7 +5490,7 @@
       st: ['27문제 모두 객관식이고 서술형은 없어요.', '「적절하지 않은 것」 고르기가 19문제로 대부분이에요.', '틀린 선지는 <b>주어나 대상을 살짝 바꿔요.</b> 예: 뻐꾸기가 농부를 재촉한 것을 화자가 한 일로 바꿔요.', '교과서 고전시가에 <b>교과서 밖 작품</b>(가시리, 현대시 등)을 붙여 비교시켜요.', '중세 국어가 6문제(19~24번)예요. 보기로 새 규칙을 주고 적용하게 하고, 배점이 높아요.', '비문학 두 지문은 모두 교과서 밖이고 <b>가장 어려워요</b>. 실험 해석, 그래프 계산이 나와요.'],
       wx: [['5번', '「님」이라는 말만 보고 골랐어요. 황진이 시조는 연인을 그리워하는 마음인데, 고른 ②는 자연을 임처럼 반기는 시였어요.'], ['25번', '밀의 외적 제재(남의 눈)와 내적 제재(양심)를 실험에 연결하지 못했어요. 기부가 늘어난 건 이름을 공개해서지, 양심이 강해져서가 아니에요.']],
       do: ['「적절하지 않은 것」은 선지마다 <b>누가, 무엇을</b> 했는지 지문에서 다시 찾아 맞춰 봐요.', '시에 「님」이 나오면 사람인지 자연인지부터 확인해요.', '비문학은 개념 두 개를 실험·그래프에 대입하는 문제를 하루 한 세트씩 풀어요.'] },
-    { k: 'eng', n: '영어', full: '공통영어2', sc: '사진 없음', src: '2학기 1차 정답표 · 1학기 2차 시험지(정윤 답) · 작년 2학기 1차 기출로 봤어요', wr: '15번 · 논술형 4번 (1학기 2차)',
+    { k: 'eng', n: '영어', full: '공통영어2', sc: '2학기 점수 없음', src: '2학기 1차 정답표 · 1학기 2차 내 시험지 · 작년 2학기 1차 기출로 봤어요', wr: '15번 · 논술형 4·5번 (1학기 2차)',
       st: ['선택형 25문제(80점)와 <b>논술형 5문제(20점, 4점씩)</b>예요. 논술형은 부분 점수가 있어요.', '수능 유형이 다 나와요. 내용 일치, 함축 의미, 제목, 빈칸, 순서, 문장 넣기, 무관한 문장, 요약문까지 두세 문제씩이에요.', '<b>어법이 4문제 연속</b>(밑줄 5개 중 틀린 것)이고 어휘 문제도 2개예요. 동명사·분사, 관계사, 수 일치, 수동태, 재귀대명사를 물어요.', '빈칸 선지에 <b>정답을 뒤집은 선지</b>(A rather than B ↔ B rather than A)를 꼭 넣어요.', '논술형은 <b>보기 단어 배열</b>, 어형 바꿔 쓰기, 강조 구문 같은 조건 영작, 요약문 (A)(B) 채우기예요. 2학기 1차도 요약문·영작 5문제였어요.'],
       wx: [['15번', '빈칸에 a performance rather than an act of communication을 골랐어요. 정답은 반대인 an act of communication rather than a performance예요. 뒤집은 선지 함정이에요.'], ['논술형 4번', '「It was among the dense seaweed forests <b>where</b> I met an octopus」로 썼어요. 강조 구문은 <b>It was ~ that</b>이라 where가 아니라 that이에요.'], ['논술형 5번', '(B)를 지문 문장(bring more hardship than the inflation)으로 옮겨 썼어요. 정답은 cause hardship for borrowers였어요. 요약문은 지문 말을 그대로 쓰기보다 <b>누구에게 어떤 일이</b> 생기는지 줄여 써요.']],
       do: ['빈칸은 고르기 전에 <b>정답과 반대로 뒤집은 선지</b>가 있는지 먼저 찾아요.', '어법은 밑줄마다 동사인지 준동사인지, 주어가 단수인지 복수인지 적어 가며 풀어요.', '강조 구문(It is ~ that), 분사 구문은 교과서·올림포스 문장으로 직접 써 봐요.', '요약문은 지문 말을 2~6단어로 줄여 쓰는 연습을 해요. 앱의 교과서 3회독(12/4~12/8)이 시험지 꼴 서답형이에요.'] },
@@ -9493,7 +9493,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251658'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251701'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
