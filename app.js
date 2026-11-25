@@ -2607,7 +2607,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611251139', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611251648', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -9042,14 +9042,15 @@
     sheet(`<div class="m3-gs">${cu.lesson ? chLesson(cu) : `<div class="card"><div class="q-no">Unit ${esc(cu.unit)}</div><h1 class="h1">${esc(cu.title)}</h1><p>${esc(cu.concept || '')}</p></div>`}</div><button class="btn primary big block" data-chgo type="button">이 유닛 문제 풀러 가기 ›</button>`, (el, close) => { $('[data-chgo]', el).onclick = () => { close(); startTask('cl:ch:' + n); }; });
   }
   // 11/24 «드래그하면 마일드 형광펜 색깔로 줄이나 형광펜 그을 수 있게» → 글자를 끌면 색 고르는 띠가 뜨고, 형광펜·밑줄이 남아요 (S.mk, 화면마다)
+  let m3Ctx = null;  // 11/25 «정윤이한테 밑줄 하이라이트 질문 필기 넣으라고 했더니» → 문장 분석 화면도 같은 막대, 「담기」는 막대 안 단추로
   const MK_C = ['y', 'p', 'b', 'g', 'v'], MK_BL = 'p, li, td, th, h1, h2, h3, figcaption, summary, .oly-given, .t, .d';
   const mkKey = () => [UI.tab || '', (UI.run && UI.run.kind) || '', (UI.run && (UI.run.id || UI.run.k)) || ''].join('|');
-  const mkBlk = (n) => { const e = n.nodeType === 1 ? n : n.parentElement; return e && e.closest('main') && !e.closest('textarea, input, button, nav, .sx[data-lt], [contenteditable]') ? e.closest(MK_BL) : null; };
+  const mkBlk = (n) => { const e = n.nodeType === 1 ? n : n.parentElement; return e && e.closest('main') && !e.closest('textarea, input, button, nav, [contenteditable]') ? e.closest(MK_BL) : null; };
   const mkTexts = (blk) => { const w = document.createTreeWalker(blk, NodeFilter.SHOW_TEXT), o = []; let n; while ((n = w.nextNode())) o.push(n); return o; };
   function mkWrap(blk, m) {
     const T = mkTexts(blk), full = T.map((n) => n.nodeValue).join(''); let at = -1; for (let k = 0; k <= (m.o || 0); k++) { at = full.indexOf(m.t, at + 1); if (at < 0) return false; }
     let pos = 0; const end = at + m.t.length;
-    for (const n of T) { const a = pos, b = pos + n.nodeValue.length; pos = b; if (b <= at || a >= end) continue; if (n.parentElement.closest('mark.mk')) continue;
+    for (const n of T) { const a = pos, b = pos + n.nodeValue.length; pos = b; if (b <= at || a >= end) continue; if (n.parentElement.closest('mark.mk, sup, .sx-cut, .sx-n')) continue;
       const r = document.createRange(); r.setStart(n, Math.max(0, at - a)); r.setEnd(n, Math.min(n.nodeValue.length, end - a)); const mk = document.createElement('mark'); mk.className = `mk mk-${m.c}${m.u ? ' mk-u' : ''}`; mk.dataset.mk = m.id; try { r.surroundContents(mk); } catch (e) { /* 겹친 표시는 건너뛰어요 */ } }
     return true;
   }
@@ -9083,7 +9084,7 @@
     const hide = () => { bar.hidden = true; cur = null; };
     // 11/24 «밑줄 하이라이트 두 개 있게, 밑줄 누르면 하이라이트로 바뀌지 말고» → 형광펜 줄과 밑줄 줄을 따로
     const draw = () => { const row = (u, lb) => `<div class="mk-row"><span class="mk-lb">${lb}</span>${MK_C.map((c, i) => `<button type="button" class="mk-sw mk-${c}${u ? ' mk-u' : ''}" data-mkc="${c}" data-mku="${u}" aria-label="${lb} 색 ${i + 1}"><i>가</i></button>`).join('')}</div>`;
-      bar.innerHTML = `${row(0, '형광펜')}${row(1, '밑줄')}<div class="mk-row mk-acts">${U.who === '윤건' ? '' : '<button type="button" class="mk-md mk-ask" data-mka="q">질문</button>'}<button type="button" class="mk-md" data-mka="m">필기</button></div>`; bar.dataset.mode = ''; };
+      bar.innerHTML = `${row(0, '형광펜')}${row(1, '밑줄')}<div class="mk-row mk-acts">${U.who === '윤건' ? '' : '<button type="button" class="mk-md mk-ask" data-mka="q">질문</button>'}<button type="button" class="mk-md" data-mka="m">필기</button>${m3Ctx ? '<button type="button" class="mk-md" data-mka="put">+ 담기</button>' : ''}</div>`; bar.dataset.mode = ''; };
     const form = (k) => { bar.dataset.mode = 'form'; bar.innerHTML = `<div class="mk-form"><p class="mk-sel">${esc(cur.sel.slice(0, 80))}${cur.sel.length > 80 ? '…' : ''}</p><textarea id="mk-ta" rows="3" placeholder="${k === 'q' ? '이 부분에서 궁금한 것을 적어요' : '이 문장 옆에 적을 필기를 써요'}"></textarea><div class="mk-fb"><button type="button" class="mk-md" data-mkx>취소</button><button type="button" class="mk-md mk-go" data-mksend="${k}">${k === 'q' ? '질문 보내기' : '필기 붙이기'}</button></div></div>`; place(cur.rect); setTimeout(() => { const t = $('#mk-ta', bar); if (t) t.focus(); }, 50); };
     const addMark = (c, nid) => { const key = mkKey(); S.mk = S.mk || {}; const L = (S.mk[key] || []).slice(), rg = cur.rg, G = new Map(), root = rg.commonAncestorContainer.nodeType === 1 ? rg.commonAncestorContainer : rg.commonAncestorContainer.parentElement, w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n;
       while ((n = w.nextNode())) { if (!rg.intersectsNode(n)) continue; const blk = mkBlk(n); if (!blk) continue; const a = n === rg.startContainer ? rg.startOffset : 0, z = n === rg.endContainer ? rg.endOffset : n.nodeValue.length; if (z <= a) continue; if (!G.has(blk)) G.set(blk, { t: '', first: n, a }); G.get(blk).t += n.nodeValue.slice(a, z); }
@@ -9114,6 +9115,7 @@
     bar.addEventListener('pointerdown', (e) => { if (!e.target.closest('textarea')) e.preventDefault(); });
     bar.addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b || !cur) return;
+      if (b.dataset.mka === 'put') { const c = m3Ctx; bar.dataset.mode = ''; hide(); window.getSelection().removeAllRanges(); if (c) m3Add(c.u, c.lt, c.t, '', c.si); return; }
       if (b.dataset.mka) { form(b.dataset.mka); return; }
       if (b.dataset.mkx != null) { bar.dataset.mode = ''; hide(); return; }
       if (b.dataset.mksend) { send(b.dataset.mksend); return; }
@@ -9139,13 +9141,13 @@
   (() => {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'm3-sel'; b.textContent = '+ 담기'; b.hidden = true; document.body.appendChild(b);
     let ctx = null;
-    const hide = () => { b.hidden = true; ctx = null; };
+    const hide = () => { b.hidden = true; ctx = null; m3Ctx = null; };
     document.addEventListener('selectionchange', () => { clearTimeout(b.t); b.t = setTimeout(() => {
       const sel = window.getSelection(), t = sel && String(sel).trim(); if (!t || !sel.rangeCount) return hide();
       const n = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement), sec = n && n.closest('.sx[data-lt]'); if (!sec || n.closest('textarea,input')) return hide();
       const fr = sel.getRangeAt(0).cloneContents(); fr.querySelectorAll('sup, .sx-cut, .sx-l, button').forEach((e) => e.remove()); const tt = fr.textContent.replace(/\s+/g, ' ').trim() || t;  // S·V 꼬리표·끊어 읽기 / 는 빼요
-      const ss = n.closest('[data-si]'); ctx = { u: sec.dataset.mu, lt: sec.dataset.lt, t: tt, si: ss ? ss.dataset.si : null }; const r = sel.getRangeAt(0).getBoundingClientRect();
-      b.hidden = false; b.style.left = Math.max(8, Math.min(innerWidth - 96, r.left + r.width / 2 - 44)) + 'px'; b.style.top = Math.min(innerHeight - 56, r.bottom + 10) + 'px';
+      const ss = n.closest('[data-si]'); ctx = { u: sec.dataset.mu, lt: sec.dataset.lt, t: tt, si: ss ? ss.dataset.si : null }; m3Ctx = ctx; return;  // 떠 있는 담기 단추 대신 막대 안 「+ 담기」
+      const r = sel.getRangeAt(0).getBoundingClientRect(); b.hidden = false; b.style.left = Math.max(8, Math.min(innerWidth - 96, r.left + r.width / 2 - 44)) + 'px'; b.style.top = Math.min(innerHeight - 56, r.bottom + 10) + 'px';
     }, 150); });
     b.addEventListener('pointerdown', (e) => e.preventDefault());
     b.addEventListener('click', () => { if (!ctx) return; const c = ctx; hide(); window.getSelection().removeAllRanges(); m3Add(c.u, c.lt, c.t, '', c.si); });
@@ -9317,7 +9319,12 @@
     return L.length ? { L, sc } : null;
   }
   function ygDid(n, date) {
-    const d = dRowD(n) || {}, J0 = (d.jwt || {})[date]; if (!J0 || (rOf(n).lesson || {}).tests) return null;  // 11/8 지원도 jwt 를 써서 윤건 것으로 잘못 잡히던 것
+    const d = dRowD(n) || {}, J0 = (d.jwt || {})[date]; if ((rOf(n).lesson || {}).tests) return null;
+    if (!J0) {  // 11/25 «윤건이 어제 딱 클릭했는데 왜 이렇게 나오냐 · 자동으로 들어가게 하지 않았어?» → 수업 계획 기록(jwt)이 없는 날도 그날 수업에서 푼 문제로 채워요
+      if (n !== '윤건') return null;
+      const R0 = nxRecs(n, date).filter((x) => new RegExp(`^l[csw]:${date}(:|$)`).test(String(x.id))).sort((a, b) => a.at - b.at); if (!R0.length) return null;
+      const L0 = R0.map((x) => `${String(x.title || '').replace(/^\d+\/\d+ /, '')} ${x.ok}/${x.n}`), big = R0.slice().sort((a, b) => b.n - a.n)[0];
+      return { units: [], L: L0, sc: { score: String(big.ok), total: String(big.n), title: String(big.title || '').replace(/ · .*$/, '') } }; }  // 11/8 지원도 jwt 를 써서 윤건 것으로 잘못 잡히던 것
     const J = { ...J0, ...(n === '윤건' ? YG_JWT_FIX[date] || {} : {}) }, cd = (uid) => { const c = (NXU[uid] || {}).code || uid, m = /^e(\d+)$/.exec(c); return m ? `${m[1]}과` : c; };
     // 11/15 «오늘 본 시험은 윤건이 리포트 이야기야»: 줄마다 그날 본 점수를 붙여요
     const RS = nxRecs(n, date).filter((x) => String(x.id).includes(date)), rec = (id) => RS.find((x) => x.id === id), scT = (r) => (r ? ` ${r.ok}/${r.n}` : '');  // 11/15 «이렇게 리포트하지 말라고 했잖아»: e7 같은 안쪽 코드 대신 「영어 7과」  // 11/15 수업 범위 고친 것(매3영 빼기·본문 문제)도 리포트에
@@ -9480,7 +9487,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251139'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251648'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
