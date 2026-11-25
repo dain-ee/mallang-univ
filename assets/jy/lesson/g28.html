@@ -146,7 +146,7 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 <div class="cols"><div style="background:#f1ecff"><h3 style="color:#6b4fc8">새로운 에너지 (신)</h3><div id="rnNew"></div></div><div style="background:#e9f9f1"><h3 style="color:#03b26c">재생 에너지</h3><div id="rnRe"></div></div></div>
 <div class="box" id="rnTxt">위 낱말을 하나씩 눌러 보세요.</div>
 <p style="margin-top:10px"><b>연료 전지·수소 에너지는 새로운 에너지</b>예요. 재생 에너지가 아니에요.</p>
-<p><b>지열, 조력</b>은 근원이 태양이 아니지만(26강) 그래도 <b>재생 에너지</b>예요. 근원과 재생 여부는 <b>다른 기준</b>이에요.</p>
+<p><b>지열, 조력</b>도 <b>재생 에너지</b>예요 (교과서 115쪽: 햇빛, 물, 지열, 강수, 바람, 해양, 생물 유기체).</p>
 <p class="hint">우리나라는 태양광 발전, 풍력 발전의 비중을 높이려고 노력해요.</p></div>
 </section>
 
@@ -230,11 +230,11 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 
 <!-- 10 꼬리표 -->
 <section class="pane" data-t="꼬리표" data-out="1">
-<div class="card"><span class="step pp">정윤 꼬리표</span><h2>방향 · 등급 · 근원</h2>
+<div class="card"><span class="step pp">정윤 꼬리표</span><h2>방향 · 등급 · 분류</h2>
 <ul class="tag">
 <li><b>효율 함정</b><span>100 %인 기구는 없어요. 기술이 발달해도 마찬가지예요.</span><span>에너지는 「사라지는」 게 아니라 「쓸모없는 열로 흩어지는」 것이에요.</span><span>효율은 <strong>유용한 쪽</strong> 비율: 내연 기관 18 % (82 %는 열).</span></li>
 <li><b>등급</b><span>에너지 소비 효율 <strong>1등급 = 가장 좋음</strong> (5등급이 가장 낮아요).</span></li>
-<li><b>신 vs 재생</b><span>연료 전지·수소 에너지 = 새로운 에너지 (재생 아님)</span><span>지열·조력 = 재생 가능한 에너지지만 근원은 태양이 아니에요 (26강)</span></li>
+<li><b>신 vs 재생</b><span>연료 전지·수소 에너지 = 새로운 에너지 (재생 아님)</span><span>지열·조력도 재생 가능한 에너지예요</span></li>
 <li><b>직접 vs 터빈</b><span>태양광, 연료 전지 = 발전기 없이 직접 전기</span><span>풍력, 수력, 조력, 지열 = 터빈 + 발전기 (전자기 유도)</span></li>
 <li><b>방향</b><span>가속 = 전기 → 운동, 회생 제동(감속) = 운동 → 전기</span><span>열병합 발전은 효율을 <strong>높여요</strong> (51 % → 75 %)</span></li>
 </ul></div>
@@ -439,7 +439,7 @@ inits[1]=()=>{['carA','carB'].forEach(id=>{const ds=$(id).querySelectorAll('div'
   hydro:{n:'수력',ch:['물의 위치 에너지','운동 에너지','전기 에너지'],col:[C.grn,'#f59f00',C.blue],dir:0,txt:'댐에 모인 <b>높은 곳의 물</b>이 떨어지면서 터빈을 돌리고, 발전기가 전기를 만들어요.',
    d(){el('path',{d:'M16,70 L170,70 L170,260 L16,260 Z',fill:'#d0ebff'},sv);el('path',{d:'M170,40 L196,40 L220,260 L170,260 Z',fill:'#adb5bd'},sv);tx(sv,93,60,'높은 곳의 물',{'font-size':16,fill:'#1c7ed6'});
     el('path',{class:'fw',d:'M170,225 C230,225 250,160 300,160',stroke:'#339af0','stroke-width':9,fill:'none'},sv);tg(330,160);}},
-  tide:{n:'조력',ch:['해수면 높이차','운동 에너지','전기 에너지'],col:[C.grn,'#f59f00',C.blue],dir:0,txt:'<b>밀물과 썰물</b>로 바다와 안쪽의 <b>해수면 높이가 달라지면</b>, 그 차이로 물이 흐르며 터빈을 돌려요. 밀물·썰물은 주로 <b>달의 인력</b> 때문이라 근원이 태양이 아니에요.',
+  tide:{n:'조력',ch:['해수면 높이차','운동 에너지','전기 에너지'],col:[C.grn,'#f59f00',C.blue],dir:0,txt:'<b>밀물과 썰물</b>로 바다와 안쪽의 <b>해수면 높이가 달라지면</b>, 그 차이로 물이 흐르며 터빈을 돌려요. 밀물·썰물은 주로 <b>달의 인력</b> 때문이에요.',
    d(){const me=++tok;el('circle',{cx:50,cy:40,r:20,fill:'#e9ecef',stroke:'#adb5bd','stroke-width':2},sv);tx(sv,80,46,'달의 인력',{'font-size':15,fill:C.t3,'text-anchor':'start'});
     const sea=el('rect',{x:16,y:150,width:190,height:110,fill:'#a5d8ff'},sv);el('rect',{x:206,y:110,width:30,height:150,fill:'#868e96'},sv);const bay=el('rect',{x:236,y:170,width:120,height:90,fill:'#d0ebff'},sv);
     tx(sv,110,280-4,'바다',{'font-size':16,fill:'#1c7ed6'});tx(sv,296,276,'안쪽',{'font-size':16,fill:'#1c7ed6'});
@@ -457,7 +457,7 @@ inits[1]=()=>{['carA','carB'].forEach(id=>{const ds=$(id).querySelectorAll('div'
     const t=el('g',{class:'tb',style:'transform-origin:270px 70px'},sv);for(let i=0;i<6;i++)el('rect',{x:268,y:52,width:4,height:18,rx:2,fill:'#212529',transform:`rotate(${i*60} 270 70)`},t);
     el('line',{x1:276,y1:70,x2:350,y2:70,stroke:'#495057','stroke-width':4},sv);el('rect',{x:350,y:44,width:90,height:52,rx:8,fill:'#e8f3ff',stroke:C.blue,'stroke-width':2},sv);tx(sv,395,76,'발전기',{'font-size':17,fill:C.blue});
     el('path',{class:'fw',d:'M440,70 L500,70',stroke:C.org,'stroke-width':5,fill:'none'},sv);tx(sv,530,76,'전기',{'font-size':17,fill:C.org});tx(sv,270,40,'터빈',{'font-size':15});}},
-  geo:{n:'지열',ch:['땅속의 열에너지','전기 에너지 · 난방'],col:[C.red,C.blue],dir:0,txt:'<b>땅속 고온의 지하수나 지하의 열</b>로 난방을 하거나, 그 열로 만든 증기로 터빈을 돌려 전기를 만들어요. 지열도 근원이 태양이 아니에요.',
+  geo:{n:'지열',ch:['땅속의 열에너지','전기 에너지 · 난방'],col:[C.red,C.blue],dir:0,txt:'<b>땅속 고온의 지하수나 지하의 열</b>로 난방을 하거나, 그 열로 만든 증기로 터빈을 돌려 전기를 만들어요.',
    d(){el('rect',{x:16,y:135,width:568,height:135,fill:'#e9d8c4'},sv);el('rect',{x:16,y:215,width:568,height:55,fill:'#ffa8a8'},sv);tx(sv,450,250,'땅속 고온의 열 · 지하수',{'font-size':16,fill:'#c92a2a'});el('line',{x1:16,y1:135,x2:584,y2:135,stroke:'#868e96','stroke-width':3},sv);tx(sv,40,125,'땅 위',{'font-size':15,fill:C.t3,'text-anchor':'start','font-weight':600});tx(sv,40,160,'땅속',{'font-size':15,fill:'#8c6d46','text-anchor':'start','font-weight':600});
     el('path',{class:'fw',d:'M120,240 L120,70 L160,70',stroke:C.red,'stroke-width':7,fill:'none'},sv);tx(sv,140,190,'뜨거운 물·증기',{'font-size':15,fill:C.red,'text-anchor':'start'});
     tg(190,70);}},

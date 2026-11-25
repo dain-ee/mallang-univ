@@ -350,7 +350,7 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 
 <!-- 11 전력 -->
 <section class="pane" data-t="전력·전력량" data-out="1">
-<div class="card"><span class="step pp">교과서 밖 · 개념완성 대비</span><h2>전력 P = VI, 전력량 = 전력 × 시간</h2>
+<div class="card"><span class="step pp">공식 카드 · 전력량 문제용 (교과서 116쪽 Wh 날개)</span><h2>전력 P = VI, 전력량 = 전력 × 시간</h2>
 <div class="sl"><label>기구 전력</label><input type="range" min="1" max="22" value="11" id="wP"><output id="wPo"></output></div>
 <div class="sl"><label>쓴 시간</label><input type="range" min="1" max="10" value="2" id="wH"><output id="wHo"></output></div>
 <div class="grid2"><div class="box"><span class="hint">흐르는 전류 (220 V)</span><div class="big" id="wI"></div></div><div class="box"><span class="hint">전력량</span><div class="big" id="wE"></div></div></div>
@@ -360,7 +360,7 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 </section>
 
 <!-- 12 송전 -->
-<section class="pane" data-t="송전·손실" data-out="1">
+<section class="pane-off" hidden data-t="송전·손실">
 <div class="card"><span class="step pp">교과서 밖 · 개념완성 대비</span><h2>전압을 높이면 손실이 확 줄어요</h2>
 <div class="sl"><label>전압 몇 배</label><input type="range" min="1" max="10" value="1" id="tV"><output id="tVo"></output></div>
 <svg id="tx" viewBox="0 0 600 200"></svg>
@@ -373,7 +373,7 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 </section>
 
 <!-- 13 변압기 -->
-<section class="pane" data-t="변압기" data-out="1">
+<section class="pane-off" hidden data-t="변압기">
 <div class="card"><span class="step pp">교과서 밖 · 개념완성 대비</span><h2>감은 수로 전압을 바꿔요</h2>
 <div class="sl"><label>1차 감은 수</label><input type="range" min="1" max="10" value="1" id="xN1"><output id="xN1o"></output></div>
 <div class="sl"><label>2차 감은 수</label><input type="range" min="1" max="10" value="5" id="xN2"><output id="xN2o"></output></div>
@@ -384,13 +384,11 @@ table{border-collapse:collapse;width:100%;font-size:14px;margin-top:10px}td,th{b
 </section>
 
 <!-- 14 꼬리표 -->
-<section class="pane" data-t="꼬리표" data-out="1">
-<div class="card"><span class="step pp">정윤 꼬리표</span><h2>몇 배 · 단위 · 방향</h2>
+<section class="pane" data-t="꼬리표">
+<div class="card"><span class="step pp">정윤 꼬리표</span><h2>단위 · 헷갈리는 짝</h2>
 <ul class="tag">
-<li><b>몇 배</b><span>전압 n배 → 전류 1/n → 손실 1/n² (1/n 아님)</span><span>감은 수 n배 → 전압 n배, 전류 1/n배</span></li>
 <li><b>단위</b><span>W = 전력(1초), Wh·kWh·J = 전력량(시간 동안)</span><span>1 kWh = 3.6×10⁶ J</span></li>
-<li><b>높임과 낮춤</b><span>발전소 쪽 변압기: 2차 감은 수 &gt; 1차 (전압 높임)</span><span>주상 변압기: 2차 감은 수 &lt; 1차 (전압 낮춤)</span></li>
-<li><b>헷갈리는 짝</b><span>발전기 = 전자기 유도(운동 → 전기), 전동기 = 전류가 받는 힘(전기 → 운동)</span><span>핵발전 = 핵분열, 태양 = 핵융합</span></li>
+<li><b>헷갈리는 짝</b><span>발전기 = 전자기 유도(운동 → 전기), 전동기 = 전류가 받는 힘(전기 → 운동)</span><span>핵발전 = 핵분열 (무거운 원자핵이 쪼개짐, 108쪽 날개)</span></li>
 </ul></div>
 </section>
 </main>
@@ -938,7 +936,7 @@ function show(i,scroll){panes.forEach((p,j)=>p.classList.toggle('on',i===j));[..
    el('g',{},sv);const a=el('g',{class:'sm1'},sv);el('circle',{class:'ma',cx:280,cy:110,r:20,fill:'#ff922b'},a);el('circle',{class:'mb',cx:320,cy:110,r:20,fill:'#ff922b'},a);
    el('circle',{class:'fl',cx:300,cy:110,r:40,fill:'#ffd43b',opacity:0},sv);el('circle',{class:'mg',cx:300,cy:110,r:32,fill:'#f76707'},sv);
    tx(sv,300,215,'가벼운 원자핵 둘 → 무거운 원자핵 하나 + 에너지',{'font-size':14,fill:'#4e5968'});
-   $('nucTxt').innerHTML='<b>핵융합</b>: 가벼운 원자핵 두 개 이상이 합쳐져요 → <b>태양</b>이 빛나는 까닭';}}
+   $('nucTxt').innerHTML='<b>핵융합</b>: 가벼운 원자핵 두 개 이상이 합쳐져 무거운 원자핵이 돼요 (108쪽 날개)';}}
  document.querySelectorAll('[data-nk]').forEach(b=>b.onclick=()=>{k=b.dataset.nk;document.querySelectorAll('[data-nk]').forEach(x=>x.classList.toggle('sel',x===b));draw();});draw();})();
 
 /* 10 sort */
