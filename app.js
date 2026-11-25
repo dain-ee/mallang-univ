@@ -1187,7 +1187,7 @@
   const MANS = D.mathans || {};
   const EB_EXAM = (() => { const d = ((D.events || []).find((e) => /기말/.test(e.title || '') && e.date >= '2026-11-01') || {}).date; return d && d >= '2026-12-14' ? d : '2026-12-14'; })();
   // 11/24 «여기 반영된 거 맞아?» 기말 회독 카드가 모든 과목을 한 날짜(12/10)로 재서 「기말보다 늦어요」가 잘못 떴어요 → 과목마다 실제 시험 날 (학교 공지 12/14~18)
-  const EX_SJ = { hist: '2026-12-14', soc: '2026-12-15', eng: '2026-12-16', engt: '2026-12-16', kor: '2026-12-17', sci: '2026-12-18' }, exOf = (sj) => EX_SJ[String(sj || '').replace(/\d+$/, '')] || EB_EXAM;  // 11/24 학교 공지(경기 광주 경화여고 교육통신): 1학년 2학기 2차 정기시험 12/14~12/18. 12/10은 다른 학교(대구) 계획서에서 온 잘못된 날짜
+  const EX_SJ = { hist: '2026-12-14', soc: '2026-12-15', eng: '2026-12-16', engt: '2026-12-16', engtb: '2026-12-16', kor: '2026-12-17', sci: '2026-12-18' }, exOf = (sj) => EX_SJ[String(sj || '').replace(/\d+$/, '')] || EB_EXAM;  // 11/24 학교 공지(경기 광주 경화여고 교육통신): 1학년 2학기 2차 정기시험 12/14~12/18. 12/10은 다른 학교(대구) 계획서에서 온 잘못된 날짜
   // ───────── 인강: 정윤이가 고른 강의를 요일·하루 몇 강으로 나눠 오늘 할 일에 넣어요 (2026-10-25) ─────────
   // 강의 상태는 사이트에서 읽어 온 진도로 시작하고, 앱에서 「들었어요 / 안 들을래요」로 바꿔요. 순서대로 안 들어도 돼요
   const INK = (D.inkang && D.inkang.courses) || [];
@@ -2607,7 +2607,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611251911', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611251914', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2935,6 +2935,8 @@
     const line = (n, w, k, N, end, st) => { const fin = k >= N, g = fin ? 0 : gapOf(end);
       return `<span class="yf-r ${fin ? 'on' : ''}"><b>${n}</b><i>${w}</i>${fin ? '끝 ✓' : `<span class="num">${k}/${N}</span> · ${st && st > t ? `${+st.slice(5, 7)}/${+st.slice(8)}부터 · ` : ''}${+end.slice(5, 7)}/${+end.slice(8)} · ${g > 0 ? `기말 <b class="num">${g}일</b> 전` : '<b class="red">기말보다 늦어요</b>'}`}</span>`; };
     const of = (n, w, L, isD) => { if (!L.length) return ''; const ds = L.map((x) => x.day).sort(); return line(n, w, L.filter(isD).length, L.length, ds[ds.length - 1], ds[0]); };
+    if (sj === 'engtb') { const A = (k) => R2S.filter((x) => x.sj === k), dn = (x) => !!r2sDoneDay(x);  // 11/25 «기말 회독에 영어 교과서도»
+      return `<div class="yf-rs">${[of('1회독', '', A('engt'), dn), of('2회독', '', A('engt2'), dn), of('3회독', '', A('engt3'), dn), of('논술형', '', A('engn').filter((x) => /^EN/.test(x.id)), dn)].join('')}</div>`; }
     if (sj === 'sci') { const A = (k) => R2S.filter((x) => x.sj === k), dn = (x) => !!r2sDoneDay(x), T3 = A('sci3');
       return `<div class="yf-rs">${[of('1회독', '', A('sci'), dn), of('2회독', '', A('sci2'), dn), of('3회독', '', T3.filter((x) => !x.x.mock), dn), of('모고', '', T3.filter((x) => x.x.mock), dn)].join('')}</div>`; }
     const z = finLag(sj), R = [line('1회독', '', k1, n1, z ? z.end : t)];
@@ -2949,9 +2951,16 @@
     return `<section class="card c12"><div class="card-h"><h2>${ic('books')} 기말 회독</h2>${(() => { const x = typeof EB_EXAM === 'string' && EB_EXAM ? dday(EB_EXAM) : null; return x != null && x >= 0 ? `<span class="tag">기말 ${x ? 'D-' + x : '오늘'}</span>` : '<span class="tiny">선생님이 날마다 나눠서 내요</span>'; })()}</div><div class="list">${FIN.map((f) => {
       const L = FIN_ALL.filter((x) => x.subj === f.subj), k = L.filter(finDone).length, t = T.filter((x) => x.subj === f.subj), tl = t.filter((x) => !finDone(x)).length, nm = f.subj === 'eng' ? '올림포스' : f.name;
       return `<div class="li btnlike" data-task="fin:${f.subj}"><div class="ico">${ic(k >= L.length ? 'ok' : f.subj === 'hist' ? 'scroll' : 'books')}</div>${(() => { const z = finLag(f.subj), g = z ? finGap(z.end, f.subj) : 1; return `<div class="body"><div class="t">${esc(nm)}${tsTg([z && z.n ? [`밀림 ${z.n}개`, 'red'] : null, g <= 0 ? [g < 0 ? '기말보다 늦어요' : '기말 당일 끝', 'red'] : null])}</div><div class="d">${t.length ? (tl ? `오늘 ${tl}개 남았어요` : '오늘 것 끝') : '오늘은 없어요'} · ${z ? `<span class="nw">${md(z.end)} 끝 · 기말 <b class="num">${g > 0 ? `D-${g}` : g === 0 ? 'D-day' : `D+${-g}`}</b></span>` : '다 끝냈어요'}</div>${finRounds(f.subj, k, L.length)}</div>`; })()}${tsEnd(k, L.length)}</div>`;
-    }).join('')}${sciFinRow()}${wqFinRow()}</div></section>`;
+    }).join('')}${engtFinRow()}${sciFinRow()}${wqFinRow()}</div></section>`;
   }
   // 11/16 통합과학은 개념(FIN)이 없어서 회독 덩어리(R2S sci·sci2·sci3)로만 한 줄. 누르면 다음에 할 덩어리를 열어요
+  // 11/25 영어 교과서(Unit 4 본문 89~93쪽) 회독 줄: 1회독 engt · 2회독 engt2 · 3회독 engt3 · 교과서 논술형 EN
+  function engtFinRow() {
+    const L = R2S.filter((x) => /^engt/.test(x.sj) || (x.sj === 'engn' && /^EN/.test(x.id))); if (!L.length) return '';
+    const t = today(), td = L.filter((x) => x.day === t), tl = td.filter((x) => !r2sDone(x)).length, lag = L.filter((x) => x.day < t && !r2sDone(x)).length, k = L.filter(r2sDone).length;
+    const nx = L.filter((x) => !r2sDone(x)).sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0))[0];
+    return `<div class="li btnlike" ${nx ? `data-task="r2s:${esc(nx.id)}"` : ''}><div class="ico">${ic(nx ? 'books' : 'ok')}</div><div class="body"><div class="t">영어 교과서${tsTg([lag ? [`밀림 ${lag}개`, 'red'] : null])}</div><div class="d">${td.length ? (tl ? `오늘 ${tl}개 남았어요` : '오늘 것 끝') : '오늘은 없어요'}${nx ? ` · 다음 ${esc(r2sLab(nx))} · ${esc(nx.x.title)}` : ' · 다 끝냈어요'}</div>${finRounds('engtb')}</div>${tsEnd(k, L.length)}</div>`;
+  }
   function sciFinRow() {
     const L = R2S.filter((x) => /^sci/.test(x.sj)); if (!L.length) return '';
     const t = today(), td = L.filter((x) => x.day === t), tl = td.filter((x) => !r2sDone(x)).length, lag = L.filter((x) => x.day < t && !r2sDone(x)).length, k = L.filter(r2sDone).length;
@@ -9510,7 +9519,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251911'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611251914'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
