@@ -1054,7 +1054,7 @@
     const real = tasks.filter((t) => t.icon !== 'party' && !t.memo); const doneN = real.filter((t) => t.done).length, frac = real.length ? doneN / real.length : (off ? 1 : 0);
     const R = 80, L = Math.PI * R;
     const todo = `<section class="card tight ${cls}"><div class="card-h"><h3>${DAY_OFF() ? `${DAY_OFF() === -1 ? '어제' : md(today())} 할 일` : '오늘 할 일'}</h3>${DAY_OFF() ? '<button class="more" data-dayoff="0">오늘로</button>' : ''}<button class="more" data-go="hw">숙제</button></div>
-      <div class="arch"><svg viewBox="0 0 200 100"><path d="M20 96 A80 80 0 0 1 180 96" fill="none" stroke="var(--fill)" stroke-width="12" stroke-linecap="round"/><path class="ring-arc" d="M20 96 A80 80 0 0 1 180 96" fill="none" stroke="var(--blue)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L * (1 - frac)}"/></svg><div class="c"><span class="tiny">오늘</span><br><b class="num">${Math.round(frac * 100)}%</b> <span class="muted">완료</span></div></div>
+      <div class="arch"><svg viewBox="0 0 200 100"><path d="M20 92 A80 80 0 0 1 180 92" fill="none" stroke="var(--fill)" stroke-width="12" stroke-linecap="round"/><path class="ring-arc" d="M20 92 A80 80 0 0 1 180 92" fill="none" stroke="var(--blue)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L * (1 - frac)}"/></svg><div class="c"><span class="tiny">오늘</span><br><b class="num">${Math.round(frac * 100)}%</b> <span class="muted">완료</span></div></div>
       <div class="list">${tasks.length ? tasks.map((t) => `<div class="li btnlike" ${t.hw ? `data-hwopen="${esc(t.hw)}"` : `data-task="${t.k}"`}><div class="ico">${ic(t.done ? 'ok' : t.icon)}</div><div class="body"><div class="t">${t.hw && LVJ ? lvStepTag((S.hw || []).find((h) => h.id === t.hw)) : ''}${esc(t.t)}${tsTg([t.late && !t.done ? ['밀림', 'red'] : null, ...(t.tg || [])])}</div><div class="d">${esc(t.d)}</div></div>${myRowTm(t.hw ? 'hw:' + t.hw : t.k, t.done, t.t)}</div>`).join('') : `<div class="empty">${ic('party')}<b>오늘 할 일이 없어요</b></div>`}</div></section>`;
     return inline ? todo : clockWidget() + pomoCard('pm-rail') + hotCard('') + todo + ddayWidget();
   }
@@ -2614,7 +2614,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611252203', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611252205', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2936,6 +2936,11 @@
     const rd = $('#pf-redo'); if (rd) rd.onclick = () => { finS().ans[x.id] = {}; save('fin'); top(); };
   }
   // 11/15 «정윤이 1회차 2회차 3회차를 시킨 것 같은데» → 과목마다 몇 회독째인지 카드에 한 줄로 보여요
+  function finAllR(sj) {  // 1회독 말고 그 과목 회독 숙제 전부 ({day, dn})
+    const r2s = (k) => R2S.filter((x) => x.sj === k).map((x) => ({ day: x.day, dn: !!r2sDoneDay(x) }));
+    if (sj === 'eng') return [...R2.map((x) => ({ day: x.day, dn: !!r2DoneDay(x) })), ...R3.map((x) => ({ day: x.day, dn: !!r3DoneDay(x) })), ...R3M.map((m) => ({ day: m.day, dn: !!mkGet(m.id).fin }))];
+    return [...r2s(sj), ...r2s(sj + '3'), ...(sj === 'hist' ? BN.map((x) => ({ day: x.day, dn: !!bnDoneDay(x) })) : [])];
+  }
   function finRounds(sj, k1, n1) {
     // 11/15 «윤건이는 되게 보기 편하게 잘해 놨던데» → 윤건이 「학교 내신 공부」 회독 줄(yf-rs) 꼴 그대로: 회차 · 무엇 · 한 것/전체 · 끝나는 날 · 기말 며칠 전
     const t = today(), gapOf = (d) => Math.round((new Date(exOf(sj) + 'T00:00:00') - new Date(d + 'T00:00:00')) / 864e5);
@@ -2990,7 +2995,9 @@
     const T = finToday();
     return `<section class="card c12"><div class="card-h"><h2>${ic('books')} 기말 회독</h2>${(() => { const x = typeof EB_EXAM === 'string' && EB_EXAM ? dday(EB_EXAM) : null; return x != null && x >= 0 ? `<span class="tag">기말 ${x ? 'D-' + x : '오늘'}</span>` : '<span class="tiny">선생님이 날마다 나눠서 내요</span>'; })()}</div><div class="list">${FIN.map((f) => {
       const L = FIN_ALL.filter((x) => x.subj === f.subj), k = L.filter(finDone).length, t = T.filter((x) => x.subj === f.subj), tl = t.filter((x) => !finDone(x)).length, nm = f.subj === 'eng' ? '올림포스' : f.name;
-      return `<div class="li btnlike" data-task="fin:${f.subj}"><div class="ico">${ic(k >= L.length ? 'ok' : f.subj === 'hist' ? 'scroll' : 'books')}</div>${(() => { const z = finLag(f.subj), g = z ? finGap(z.end, f.subj) : 1; return `<div class="body"><div class="t">${esc(nm)}${tsTg([z && z.n ? [`밀림 ${z.n}개`, 'red'] : null, g <= 0 ? [g < 0 ? '기말보다 늦어요' : '기말 당일 끝', 'red'] : null])}</div><div class="d">${t.length ? (tl ? `오늘 ${tl}개 남았어요` : '오늘 것 끝') : '오늘은 없어요'} · ${z ? `<span class="nw">${md(z.end)} 끝 · 기말 <b class="num">${g > 0 ? `D-${g}` : g === 0 ? 'D-day' : `D+${-g}`}</b></span>` : '다 끝냈어요'}</div>${finRounds(f.subj, k, L.length)}</div>`; })()}${tsEnd(k, L.length)}</div>`;
+      // 11/25 «오늘 없다고 하는데 아직 있는데» → 1회독만 보지 말고 2·3회독·모고·백지까지 오늘 몫과 밀린 것을 세요
+      const A = finAllR(f.subj), d0 = today(), td = A.filter((x) => x.day === d0), tdl = tl + td.filter((x) => !x.dn).length, lagR = A.filter((x) => x.day < d0 && !x.dn).length, allDone = k >= L.length && A.every((x) => x.dn);
+      return `<div class="li btnlike" data-task="fin:${f.subj}"><div class="ico">${ic(allDone ? 'ok' : f.subj === 'hist' ? 'scroll' : 'books')}</div>${(() => { const z = finLag(f.subj), g = z ? finGap(z.end, f.subj) : 1, lagN = ((z && z.n) || 0) + lagR; return `<div class="body"><div class="t">${esc(nm)}${tsTg([lagN ? [`밀림 ${lagN}개`, 'red'] : null, g <= 0 ? [g < 0 ? '기말보다 늦어요' : '기말 당일 끝', 'red'] : null])}</div><div class="d">${t.length || td.length ? (tdl ? `오늘 ${tdl}개 남았어요` : '오늘 것 끝') : lagR ? `밀린 것 ${lagR}개` : '오늘은 없어요'} · ${z ? `<span class="nw">${md(z.end)} 끝 · 기말 <b class="num">${g > 0 ? `D-${g}` : g === 0 ? 'D-day' : `D+${-g}`}</b></span>` : allDone ? '다 끝냈어요' : '1회독 끝'}</div>${finRounds(f.subj, k, L.length)}</div>`; })()}${tsEnd(k, L.length)}</div>`;
     }).join('')}${engtFinRow()}${sciFinRow()}${wqFinRow()}</div></section>`;
   }
   // 11/16 통합과학은 개념(FIN)이 없어서 회독 덩어리(R2S sci·sci2·sci3)로만 한 줄. 누르면 다음에 할 덩어리를 열어요
@@ -9628,7 +9635,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611252203'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611252205'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

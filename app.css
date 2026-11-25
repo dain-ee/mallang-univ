@@ -5653,3 +5653,5 @@ mark.mk.mk-out { transition: opacity .2s, background-size .2s; opacity: .2; }
 .gn-ban .ts-band-ic.gn-ic img { width: 30px; height: 30px; }
 .gnm .gn-h { display: flex; align-items: center; gap: 10px; }
 .gnm .gn-h img { width: 34px; height: 34px; border-radius: 9px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); flex: none; }
+a.dy-home, a.dy-home:visited { text-decoration: none; color: inherit; }
+a.dy-home .pm-h-t { color: var(--t1, #191f28); }
