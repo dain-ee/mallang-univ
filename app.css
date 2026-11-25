@@ -60,7 +60,7 @@ img.ic { width: 1.25em; height: 1.25em; vertical-align: -0.25em; }
 .tabs button { display: flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 15px; font-weight: 600; color: var(--t3); background: none; border: 0; border-radius: 12px; }
 .tabs button:hover { background: var(--fill); color: var(--t2); }
 .tabs button.on { color: var(--t1); background: var(--card); }
-.tabs .cnt, .tabbar .cnt { min-width: 18px; padding: 0 5px; font-size: 11px; font-weight: 700; line-height: 18px; color: #fff; background: var(--red); border-radius: 9px; text-align: center; }
+.tabs .cnt, .tabbar .cnt { white-space: nowrap; box-sizing: border-box; min-width: 18px; padding: 0 5px; font-size: 11px; font-weight: 700; line-height: 18px; color: #fff; background: var(--red); border-radius: 9px; text-align: center; }
 .me { margin-left: auto; display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 12px; font-size: 14px; font-weight: 600; color: var(--t2); background: var(--card); border: 0; border-radius: 99px; }
 .me .av { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 12px; font-weight: 800; }
 .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: flex; height: calc(var(--tab-h) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: var(--card); border-top: 1px solid var(--line); border-radius: 20px 20px 0 0; }
@@ -68,7 +68,7 @@ img.ic { width: 1.25em; height: 1.25em; vertical-align: -0.25em; }
 .tabbar button img { width: 24px; height: 24px; filter: grayscale(1) opacity(.45); transition: filter .2s, transform .2s; }
 .tabbar button.on { color: var(--t1); }
 .tabbar button.on img { filter: none; transform: translateY(-1px); }
-.tabbar .cnt { position: absolute; top: 6px; left: calc(50% + 6px); }
+.tabbar .cnt { position: absolute; top: 6px; left: calc(50% + 6px); width: max-content; }  /* 11/25 좁은 칸에서 16이 1·6 두 줄로 쪼개짐 */
 
 .main { max-width: 1280px; margin: 0 auto; padding: 8px 20px calc(var(--tab-h) + 40px + env(safe-area-inset-bottom)); }
 @media (min-width: 900px) {
