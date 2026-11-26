@@ -2622,7 +2622,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611270003', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611270020', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -3732,7 +3732,9 @@
   // 기록: S.r2s.a[덩어리 id] = { rc, rd, q0~, k0~, x0~(다시 푼 결과), xe0~(서술형 모범 답 다시 봄) } · 쓴 답은 300자까지만
   function r2sS() { S.r2s = S.r2s || {}; S.r2s.a = S.r2s.a || {}; return S.r2s; }
   function r2sA(id) { const a = r2sS().a; return (a[id] = a[id] || {}); }
-  function r2sGet(id) { return ((S.r2s || {}).a || {})[id] || {}; }
+  // 11/27 정윤 카톡 «그림도 없고 뜻 설명도 없어서 문제가 이상한 것 같아» → 고친 문제(파일의 fixAt)는 그 전에 푼 답만 가려서 그 문제만 다시 풀어요. 다른 칸 기록은 그대로
+  const R2S_FIX = {}; R2S.forEach((x) => x.x.qs.forEach((q, i) => { if (q.fixAt) (R2S_FIX[x.id] = R2S_FIX[x.id] || {})[i] = q.fixAt; }));
+  function r2sGet(id) { const A = ((S.r2s || {}).a || {})[id] || {}, F = R2S_FIX[id]; if (!F) return A; let o = null; for (const [i, t] of Object.entries(F)) for (const k of ['q', 'x', 'xe']) { const v = A[k + i]; if (v && (v.at || 0) < t) { o = o || { ...A }; delete o[k + i]; } } return o || A; }
   function r2sOf(id) { return R2S.find((x) => x.id === id); }
   const r2sNm = (x) => R2S_SUBJ[x.sj].name;
   function r2sWrong(x) { const A = r2sGet(x.id); return x.x.qs.map((q, i) => i).filter((i) => { const a = A['q' + i]; if (!a || a.ok) return false; return x.x.qs[i].type === 'essay' ? !A['xe' + i] : !(A['x' + i] && (A['x' + i].ok || A['x' + i].n >= 3)); }); }
@@ -5824,7 +5826,7 @@
   // 11/25 선생님 «들어오자마자 모달 띄워서 바로 들어가서 어디가 고쳐졌는지 살짝 불빛·라인» → 알림에 fix: { tab, txt:[찾을 글자] } 를 달면 그 화면으로 가서 옅은 점선 + 「바뀐 곳」 칩을 6초 보여 주고 사라져요
   function fixGo(f) {
     // 11/25 «다른 앱 알림처럼 그 댓글까지 스크롤이 알아서 내려와서 그 부분만» → f.fin 이면 그 지문 화면으로, f.sel 이면 그 요소에 표시
-    if (f.fin) { const c = FIN_ALL.find((x) => x.id === f.fin); UI.tab = 'hw'; UI.run = c ? { kind: 'fin', cid: f.fin, read: !!finDone(c) } : null; } else { UI.run = null; UI.tab = f.tab || 'hw'; }
+    if (f.r2s) { const x = r2sOf(f.r2s); UI.tab = 'hw'; UI.run = x ? { kind: 'r2s', cid: f.r2s, st: r2sSt(x), ...(f.i != null && !r2sGet(f.r2s)['q' + f.i] && r2sSt(x) === 'q' ? { i: f.i } : {}) } : null; } else if (f.fin) { const c = FIN_ALL.find((x) => x.id === f.fin); UI.tab = 'hw'; UI.run = c ? { kind: 'fin', cid: f.fin, read: !!finDone(c) } : null; } else { UI.run = null; UI.tab = f.tab || 'hw'; }
     render(); window.scrollTo(0, 0);
     let n = 0; const find = () => { const T = [].concat(f.txt || []); const els = f.sel ? $$(f.sel).filter((e) => e.offsetParent) : $$('main .li').filter((e) => { const h = $('.t', e); return e.offsetParent && h && T.some((x) => h.innerText.trim().startsWith(x)); }); for (const d of els) if (d.tagName === 'DETAILS') d.open = true; const leaf = els.filter((e) => !els.some((o) => o !== e && e.contains(o))); if (!leaf.length) { if (n++ < 10) setTimeout(find, 300); return; }
       leaf.forEach((e, i) => { e.classList.remove('fix-hl'); void e.offsetWidth; e.classList.add('fix-hl'); if (!$('.fix-chip', e)) { const c = document.createElement('span'); c.className = 'fix-chip'; c.textContent = '바뀐 곳'; e.appendChild(c); } setTimeout(() => { e.classList.remove('fix-hl'); const c = $('.fix-chip', e); if (c) c.remove(); }, 7600); if (!i) e.scrollIntoView({ block: 'center', behavior: 'smooth' }); }); };
@@ -9701,7 +9703,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611270003'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611270020'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
