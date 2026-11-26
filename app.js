@@ -2622,7 +2622,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611262338', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611262342', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -5691,6 +5691,7 @@
     if (inM) { gdMark(gdModal.cur); gdModal.on = false; closeSheet(); }  // 알림 창에서 누르면 그 알림만 읽음 → 과목 화면 → 닫으면 남은 알림이 이어서 떠요
     setTimeout(() => jyRep(k, inM), inM ? 380 : 0); });
   const QNA = U.who === '정윤' ? [
+    { id: 'ask26', date: '2026-11-26', t: '글자 끌어서 질문했는데 답이 안 와요', ban: '질문하면 바로 답이 와요', sub: '글자 끌어서 질문하기', html: '<p>새벽에 보낸 「왜 exciting?」 질문에 답이 안 갔어요. 답을 받다가 한 번 실패하면 다시 묻지 않게 되어 있었어요. 제 잘못이에요.</p><p>이제는 실패해도 바로 다시 묻고, 그래도 안 되면 앱을 열 때마다 다시 물어서 답을 채워요. 그 질문도 곧 질문 탭에 답이 와요.</p>', links: [] },
     { id: 'rep25e', date: '2026-11-25', t: '선생님 출제 스타일에 영어도 넣었어요', ban: '선생님 출제 스타일 분석에 영어 추가', sub: '올해 2학기 1차 시험지 · 1학기 1차·2차 시험지로 정리했어요', html: '<p>영어 선생님은 <b>서답형 5문제(20점)</b>를 내고, 올림포스 지문을 <b>책과 다른 유형</b>으로 바꿔 내요. 어휘는 반대말 바꿔치기, 빈칸은 부정어로 뜻 뒤집기가 함정이에요. 어렵게 낸다면 어떻게 낼지도 정리했어요. 내가 틀린 곳과 기말 공부법도 정리했어요.</p>' + jyRepTable() },
     { id: 'rep25', date: '2026-11-25', t: '선생님 출제 스타일 분석', ban: '경화여고 과목 선생님 출제 스타일 완벽 분석', sub: '2학기 1차 시험지 · 학교 정답표로 정리했어요', html: '<p>과목마다 선생님이 내는 꼴이 달라요. 과목을 누르면 <b>선생님 스타일, 내가 틀린 곳, 기말 공부법</b>이 나와요.</p>' + jyRepTable() + '<p class="tiny" style="margin-top:12px">홈 배너에도 계속 있어요. 언제든 다시 볼 수 있어요.</p>' },
     { id: 'mk25', date: '2026-11-25', t: '모고 문제 더 있어?', ban: '기말 모고를 과목마다 하나씩 더 넣었어요', sub: '한국사·국어 모고 2회 · 통합과학·통합사회 모고 3회', html: '<p>2학기 1차 시험지와 정답표를 보고, <b>우리 학교 선생님 꼴 그대로</b> 모고를 하나씩 더 만들었어요. 실제 시험보다 조금 더 어렵게 냈어요.</p><p>· 12/9 한국사 모고 2회 (25문제), 지난 시험에서 틀린 독립운동 단체·인물, 순서 배열, 두 사건 사이 문제를 많이 넣었어요<br>· 12/11 국어 모고 2회 (27문제)<br>· 12/11 통합과학 모고 3회 (28문제)<br>· 12/12 통합사회 모고 3회 (선택형 22 + 논술형 3, 실제 시험과 같은 꼴)</p><p>3회독 양은 그대로예요. 모고만 늘었어요.</p>' },
@@ -9700,7 +9701,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611262338'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611262342'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
