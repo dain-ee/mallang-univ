@@ -2622,7 +2622,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611261727', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611262306', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -8650,6 +8650,7 @@
   const ypMaybe = (u) => !!YF && (YF.later || []).includes(u.id);  // 기말일 수도 있는 뒤 단원: 학교 범위가 나오면 넣어요 (11/4)
   let YP_EXCL = null;  // 11/15 범위가 늘 때(fit.freeze) 늘기 전 계획을 한 번 더 짜려고 잠깐 빼는 단원
   const ypFin = (u) => !!YF && (YF.units || []).includes(u.id) && !ypMaybe(u) && !(YP_EXCL && YP_EXCL.has(u.id));
+  const ypReU = (u) => !!(NXD.re && [...((NXD.re.add || {}).units || []), ...Object.keys((NXD.re.add || {}).lessons || {})].includes(u.id)), ypFinV = (u) => ypFin(u) || ypReU(u), ypMaybeV = (u) => ypMaybe(u) && !ypReU(u);  // 화면 표시용: 11/26 범위에 새로 든 단원(국어 4)도 기말 범위로
   const ypDd = (a, b) => Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 864e5);
   // 소주제 묶음: 사회·과학은 정리의 소주제(section)마다, 영어는 단어·의사소통·문법·본문. 한 묶음 = 개념 → 빈칸 → 문제(쉬운 것부터)
   // (10/30 «개념을 그날그날 조금씩 나눠서 개념·빈칸·문제, 하루 개념 쭉·빈칸 쭉은 정말 안 좋아»). 문제의 소주제(sec)는 build.py 가 붙여요
@@ -8808,7 +8809,7 @@
   };
   const ypAll = () => (() => { const A = (NXD.fit || {}).add; if (!A) return ypRaw(false); const old = ypRaw(true), ids = new Set(old.map((x) => x.id)), all = ypRaw(false); return old.concat(all.filter((x) => !ids.has(x.id) && !/^yp:[^:]+:L\d+:\d+$/.test(x.id) || (!ids.has(x.id) && !old.some((o) => x.id.startsWith(o.id.replace(/:\d+$/, '') + ':')))).map((x) => (x.day > YF.end ? x : { ...x, day: '9999-12-31', _new: 1 }))); })().concat(ppBuild());
   // 11/15 윤건 «과학 우주» → 별과 우주(s8)를 넣어요. 지난 날(FZ.day 전)은 넣기 전 계획 그대로 두고, 그 과목만 FZ.day 부터 남은 것 + 새 단원을 다시 나눠요
-  const YP = (() => {
+  const YP0 = (() => {
     const FZ = (NXD.fit || {}).freeze; if (!FZ) return ypFit(ypAll());
     YP_EXCL = new Set(FZ.units); const old = ypFit(ypAll()); YP_EXCL = null;
     const sj = new Set((NXD.subjects || []).filter((sb) => sb.units.some((u) => FZ.units.includes(u.id))).map((sb) => sb.key));
@@ -8845,6 +8846,35 @@
     return OUT.filter((it) => !(it.day > '2026-11-17' && /^pp:(mw7|mc7|mg7b)(?![a-z0-9])/.test(String(it.id)))).concat(WSI).filter((it) => !ecOut(it)).map((it) => { const mv = EC && (EC.move || {})[String(it.id).replace(/^pp:/, '')]; return mv && it.day >= EC.from ? { ...it, day: mv } : it; })
       .map((it) => (EC && EC.satSun && it.day >= EC.satSun && dowOf(it.day) === 6 ? { ...it, day: addD(it.day, 1) } : it));  // 11/21 윤건 토요일(수업 날)은 밀린 것만, 그 몫은 일요일로
   })();
+  // 11/26 윤건 학교 기말 안내(12/16~18): 국어 120~211쪽(4단원 더함) · 역사 147~163·172~175쪽(Ⅴ-3 ③ 중국 더함, Ⅴ-2 ④ 쑥쑥 생각 넓히기 뺌) · 과학 우주 탐사 뺌
+  //   선생님 «필요 없는 거 다 빼고 · 영어 빼고 다른 과목 공부량이 적어» → NXD.re: drop 소단원은 지난 날(밀림)까지 빼요. from 날부터 영어·외우기(pp:)는 그대로,
+  //   국어·역사·과학 남은 것 + 새로 넣은 것을 from~to 공부하는 날(토요일 빼고)에 과목마다 고르게 다시 나눠요. 끝낸 것·푼 기록은 그대로예요
+  function ypRe(L) {
+    const R = NXD.re; if (!R || !YF) return L;
+    const DR = R.drop || {}, unitOf = (it) => it.unit || (NXSETS[it.id] || {}).unit;
+    const dropIt = (it) => { const u = unitOf(it), ks = DR[u]; if (!ks) return false; const m = /^yp:[^:]+:L(\d+)(?::|$)/.exec(String(it.id)); if (m) return ks.includes(+m[1]); const pk = it.p || (/^yp:[^:]+:(t\d+):/.exec(String(it.id)) || [])[1]; const U = NXU[u]; return !!(U && pk && ks.includes((U.tsec || {})[pk])); };
+    const AD = R.add || {}, sv = { units: YF.units, later: YF.later, lessons: YF.lessons };
+    let NEW = [];
+    try {
+      YF.units = [...new Set([...(YF.units || []), ...(AD.units || []), ...Object.keys(AD.lessons || {})])]; YF.later = (YF.later || []).filter((x) => !(AD.units || []).includes(x)); YF.lessons = { ...(YF.lessons || {}), ...(AD.lessons || {}) };
+      const have = new Set(L.map((x) => x.id));
+      NEW = ypRaw(false).filter((it) => ((AD.units || []).includes(it.unit) || (AD.lessons || {})[it.unit]) && !have.has(it.id));
+    } finally { Object.assign(YF, sv); }
+    const ENG = (it) => it.subj === 'eng' || it.subj === 'm3' || String(it.id).startsWith('pp:');
+    const done = (it) => it.qs.length && it.qs.every((q) => nxS().a[q.i]);
+    const keep = [], mv = [];
+    for (const it of L) { if (dropIt(it)) continue; if (!ENG(it) && it.day >= R.from && !done(it)) mv.push(it); else keep.push(it); }
+    const DD = []; for (let d = R.from; d <= R.to; d = addD(d, 1)) if (dowOf(d) !== 6) DD.push(d);
+    const rdk = (it) => (it.hd ? 2 : it.p === 'L' || it.p === 'Lh' ? 0 : 1), w = (it) => it.qs.length + (it.p === 'L' || it.p === 'Lh' ? 8 : 0);
+    const G = {}; [...mv.map((it, i) => ({ it, i, o: it.day })), ...NEW.map((it, i) => ({ it, i: 1e4 + i, o: '9' }))  /* 새로 든 것은 같은 판(개념·응용·심화) 안에서 원래 있던 것 뒤에 */].forEach((x) => (G[x.it.subj] = G[x.it.subj] || []).push(x));
+    const out = [];
+    for (const sj in G) {
+      const A = G[sj].sort((a, b) => rdk(a.it) - rdk(b.it) || (a.o < b.o ? -1 : a.o > b.o ? 1 : a.i - b.i)).map((x) => x.it), W = A.reduce((t, it) => t + w(it), 0) || 1; let acc = 0;
+      for (const it of A) { out.push({ ...it, day: DD[Math.min(DD.length - 1, Math.floor(((acc + w(it) * 0.5) / W) * DD.length))] }); acc += w(it); }
+    }
+    return keep.concat(out);
+  }
+  const YP = ypRe(YP0);
   // 천일문·매3영 매일 (11/1~11/15, 수업 날 토요일도 숙제): 하루에 천일문 한 유닛 + 매3영 지문 3개(지문마다 단어 → 문제 → 문장 구조)
   //   (10/31 «천일문 매 unit 하고 문제 풀기, 매3영도 하루에 3-4개, 단어 먼저·문제 먼저·문장 하나씩 구조 분석»)
   function ppBuild() {
@@ -9380,7 +9410,7 @@
     const rs = inner && NXSETS[UI.run.id], q0 = rs && (rs.qs[0] || {}).i, runStep = rs && (steps.find((x) => x.id === rs.id || (x.L && (x.L.c === rs.id || x.L.q === rs.id))) || steps.find((x) => x.k === 'set' && NXSETS[x.id].qs.some((q) => q.i === q0)));
     const cur = inner ? runStep : steps.find((x) => x.k === tab), CL = cur && cur.L, sub = CL ? (inner ? (rs.id === CL.c ? 'c' : 'q') : UI.stP || (CL.rd ? (nxS().a[stLRead(u, CL)] ? 'm' : 'n') : stLNext(u, CL))) : null;
     const uBtn = (x) => { const g = ['c', 'q', 'x'].map((p) => NXSETS[`${x.id}:${p}`]).filter(Boolean).map(nxProg), n = g.reduce((a, y) => a + y.n, 0), d = g.reduce((a, y) => a + y.d, 0); return `<button type="button" class="st-u ${x.id === UI.stU ? 'on' : ''}" data-stunit="${esc(x.id)}" aria-current="${x.id === UI.stU}"><span class="st-no">${esc(x.subj === 'eng' ? x.code : x.code)}</span><span class="st-ut">${esc(x.title)}</span><span class="st-pc num">${n ? Math.round((d / n) * 100) + '%' : ''}</span></button>${x.subj === 'm3' && x.id === UI.stU && u ? `<div class="st-uk">${steps.map((y) => { const g = y.k === 'set' ? nxProg(NXSETS[y.id]) : null, dn = y.L ? stLDone(u, y.L) : g ? g.d >= g.n : false; return `<button type="button" class="${y === cur ? 'on' : ''} ${dn ? 'done' : ''}" ${y.k === 'set' ? `data-nx="${esc(y.id)}"` : `data-stt="${y.k}"`}>${dn ? ic('ok') : '<i></i>'}${esc(y.name)}</button>`; }).join('')}</div>` : ''}`; };  // 지문은 왼쪽 Day 밑에 펼쳐서 (10/31 «여기서 드롭다운으로 가던지»)
-    const wsFin = (x) => x.ws && sb.units.some((y) => y.id + 'w' === x.id && ypFin(y)), fin = sb.units.filter((x) => ypFin(x) || wsFin(x)), may = sb.units.filter(ypMaybe), old = sb.units.filter((x) => !ypFin(x) && !wsFin(x) && !ypMaybe(x));  // 11/17 7과 학교 학습지는 7과 바로 밑(기말 범위)
+    const wsFin = (x) => x.ws && sb.units.some((y) => y.id + 'w' === x.id && ypFinV(y)), fin = sb.units.filter((x) => ypFinV(x) || wsFin(x)), may = sb.units.filter(ypMaybeV), old = sb.units.filter((x) => !ypFinV(x) && !wsFin(x) && !ypMaybeV(x));  // 11/17 7과 학교 학습지는 7과 바로 밑(기말 범위)
     const side = `<nav class="st-side" aria-label="과목과 단원"><div class="seg st-subj">${SB.map((x) => `<button type="button" class="${x.key === sb.key ? 'on' : ''}" data-sts="${x.key}">${esc(x.name)}</button>`).join('')}</div>
       <div class="st-ul">${fin.length ? `<div class="eyebrow st-lh">기말 범위</div>${fin.map(uBtn).join('')}` : ''}${may.length ? `<div class="eyebrow st-lh">기말 범위 나오면</div>${may.map(uBtn).join('')}` : ''}${old.length ? `<div class="eyebrow st-lh">${fin.length ? '지난 범위' : '단원'}</div>${old.map(uBtn).join('')}` : ''}</div></nav>`;
     const sti = inner ? steps.indexOf(runStep) : steps.findIndex((x) => x.k === tab), nxt = inner ? null : steps[sti + 1];
@@ -9411,7 +9441,7 @@
     // 11/3 숙제에서 연 단계는 그 단계만 (옆 2·3·4 단추는 «없애 주는 게 덜 헷갈리지 않을까») · 「단원 전체 보기」로 다 펴요
     const stPick = () => `<label class="st-pick"><select data-stpick aria-label="지문 고르기">${steps.map((x, i) => { const dn = x.L ? stLDone(u, x.L) : x.k === 'set' ? (() => { const g = nxProg(NXSETS[x.id]); return g.d >= g.n; })() : false; return `<option value="${x.k === 'set' ? 'nx:' + esc(x.id) : esc(x.k)}" ${x === cur ? 'selected' : ''}>${dn ? '✓ ' : ''}${esc(x.name)}</option>`; }).join('')}</select></label>`;
     const RD = !!(u && UI.clRun && CL && CL.rd);
-    const body = !u ? '' : `<section class="card st-head ${inner ? 'run' : ''}"><div class="row between"><span class="tiny">${esc(NX_SN[u.subj])} ${esc(u.code)}</span>${ypFin(u) || (u.ws && NXU[u.id.replace(/w$/, '')] && ypFin(NXU[u.id.replace(/w$/, '')])) ? '<span class="tag red">기말 범위</span>' : ypMaybe(u) ? '<span class="tag">기말일 수도</span>' : u.subj === 'm3' ? '' : '<span class="tag">지난 범위</span>'}</div>${u.subj === 'm3' ? `<div class="st-th"><h2 class="st-t">${esc(u.title)}</h2>${stPick()}</div>` : `<h2 class="st-t">${esc(u.title)}</h2>`}${u.sub && !(u.subj === 'm3' && inner) ? `<p class="sub">${esc(u.sub)}</p>` : ''}
+    const body = !u ? '' : `<section class="card st-head ${inner ? 'run' : ''}"><div class="row between"><span class="tiny">${esc(NX_SN[u.subj])} ${esc(u.code)}</span>${ypFinV(u) || (u.ws && NXU[u.id.replace(/w$/, '')] && ypFinV(NXU[u.id.replace(/w$/, '')])) ? '<span class="tag red">기말 범위</span>' : ypMaybeV(u) ? '<span class="tag">기말일 수도</span>' : u.subj === 'm3' ? '' : '<span class="tag">지난 범위</span>'}</div>${u.subj === 'm3' ? `<div class="st-th"><h2 class="st-t">${esc(u.title)}</h2>${stPick()}</div>` : `<h2 class="st-t">${esc(u.title)}</h2>`}${u.sub && !(u.subj === 'm3' && inner) ? `<p class="sub">${esc(u.sub)}</p>` : ''}
         ${u.subj === 'm3' || stOnly ? '' /* 11/4 «숙제할 때는 아예 빼라니까, 헷갈린다고. 공부할 때는 기존처럼 다 나오면 되지만» */ : UI.clRun && CL && CL.rd ? `<div class="st-steps" role="list" aria-label="본문 문단">${steps.filter((x) => x.L && x.L.rd).map((x) => `<button type="button" class="st-step ${x === cur ? 'on' : ''} ${stLDone(u, x.L) ? 'done' : ''}" data-stt="${x.k}"><span class="st-sn num">${stLDone(u, x.L) ? '✓' : x.L.pi + 1}</span><span class="st-sl">${esc(x.L.m3)}</span></button>`).join('')}</div>` : `<div class="st-steps" role="list" aria-label="공부 순서">${steps.map(stepBtn).join('')}${u.papers.length || (u.print || []).length ? `<button type="button" class="st-step ${tab === 'qs' ? 'on' : ''}" data-stt="qs"><span class="st-sn">${ic('memo')}</span><span class="st-sl">${(u.print || []).length ? '프린트·시험지' : '시험지별'}</span></button>` : ''}</div>`}
         ${hwDone ? '' : lsub}${!hwDone && (tab === 'notes' || tab === 'terms' || (CL && sub === 'n' && !inner)) ? `<div class="row between st-tools">${CL && CL.m3 ? `<span class="tiny">${UI.sxAll ? '구조와 해석이 다 보여요' : '문장마다 혼자 읽어 보고 구조 보기 → 해석 스티커 차례로 열어요'}</span><button type="button" class="btn sm ${UI.sxAll ? 'primary' : ''}" data-sxall aria-pressed="${!!UI.sxAll}">${UI.sxAll ? '다시 가리기' : '다 펼치기'}</button>` : `<span class="tiny">${u.subj === 'eng' && tab !== 'terms' ? '「가리고 외우기」를 켜면 우리말 뜻이 가려져요' : tab !== 'terms' ? '굵은 말이 빈칸에 나와요' : '눌러서 가렸다 보였다 해요'}</span><button type="button" class="btn sm ${UI.stHide ? 'primary' : ''}" data-sthide aria-pressed="${!!UI.stHide}">${UI.stHide ? '가린 것 다 보기' : '가리고 외우기'}</button>`}</div>` : ''}</section>
       ${inner ? `<div class="st-run">${inner}</div>` : hwDone ? doneHtml : m3go || (CL ? stNotes(u, CL) || '<div class="card empty"><b>정리가 아직 없어요</b></div>' : tab === 'notes' ? stNotes(u) || '<div class="card empty"><b>정리가 아직 없어요</b></div>' : tab === 'terms' ? stTerms(u) : tab === 'memo' ? m3Board(u) : tab === 'order' ? stOrder(u) : stParts(u))}${hwDone ? '' : nextBar}`;
@@ -9648,7 +9678,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611261727'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611262306'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
