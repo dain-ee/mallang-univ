@@ -2614,7 +2614,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611260925', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611260943', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2990,13 +2990,18 @@
       closeSheet.lock = true; const x = $('.sh-x', el); if (x) x.style.visibility = 'hidden';
     });
   }
+  // 11/26 «아직도 동기화가 안 된다니까» → 기말 회독 카드의 오늘·밀림 수를 「오늘 할 것」 목록(todayTasks)에서 그대로 세요
+  let FIN_TT = null;
+  const ttSubj = (t) => { const k = t.k || ''; if (/^(r2|r3|r3m):/.test(k)) return 'eng'; if (k.startsWith('fin:')) return k.slice(4); if (k.startsWith('bn:') || k.startsWith('map:')) return 'hist';
+    if (k.startsWith('r2s:')) { const x = R2S.find((y) => y.id === k.slice(4)); if (!x) return ''; if (/^engt/.test(x.sj) || (x.sj === 'engn' && /교과서/.test(x.x.title || ''))) return 'engtb'; if (x.sj === 'engn') return 'eng'; return (x.sj.match(/^(kor|soc|hist|sci)/) || [, x.sj])[1]; } return ''; };
+  const ttOf = (sj, no1) => { const T = (FIN_TT || []).filter((t) => !t.memo && ttSubj(t) === sj && !(no1 && String(t.k).startsWith('fin:'))); return { n: T.length, left: T.filter((t) => !t.done && !t.late).length, lag: T.filter((t) => !t.done && t.late).length }; };
   function finCard() {
     if (!FIN_ON) return '';
-    const T = finToday();
+    const T = finToday(); try { FIN_TT = todayTasks().tasks; } catch (e) { FIN_TT = []; }
     return `<section class="card c12"><div class="card-h"><h2>${ic('books')} 기말 회독</h2>${(() => { const x = typeof EB_EXAM === 'string' && EB_EXAM ? dday(EB_EXAM) : null; return x != null && x >= 0 ? `<span class="tag">기말 ${x ? 'D-' + x : '오늘'}</span>` : '<span class="tiny">선생님이 날마다 나눠서 내요</span>'; })()}</div><div class="list">${FIN.map((f) => {
       const L = FIN_ALL.filter((x) => x.subj === f.subj), k = L.filter(finDone).length, t = T.filter((x) => x.subj === f.subj), tl = t.filter((x) => !finDone(x)).length, nm = f.subj === 'eng' ? '올림포스' : f.name;
       // 11/25 «오늘 없다고 하는데 아직 있는데» → 1회독만 보지 말고 2·3회독·모고·백지까지 오늘 몫과 밀린 것을 세요
-      const A = finAllR(f.subj), d0 = today(), td = A.filter((x) => x.day === d0), tdl = tl + td.filter((x) => !x.dn).length, lagR = A.filter((x) => x.day < d0 && !x.dn).length, allDone = k >= L.length && A.every((x) => x.dn);
+      const A = finAllR(f.subj), O = ttOf(f.subj, true), td = { length: t.length + O.n }, tdl = tl + O.left, lagR = O.lag, allDone = k >= L.length && A.every((x) => x.dn);
       return `<div class="li btnlike" data-task="fin:${f.subj}"><div class="ico">${ic(allDone ? 'ok' : f.subj === 'hist' ? 'scroll' : 'books')}</div>${(() => { const z = finLag(f.subj), g = z ? finGap(z.end, f.subj) : 1, lagN = ((z && z.n) || 0) + lagR; return `<div class="body"><div class="t">${esc(nm)}${tsTg([lagN ? [`밀림 ${lagN}개`, 'red'] : null, g <= 0 ? [g < 0 ? '기말보다 늦어요' : '기말 당일 끝', 'red'] : null])}</div><div class="d">${t.length || td.length ? (tdl ? `오늘 ${tdl}개 남았어요` : '오늘 것 끝') : lagR ? `밀린 것 ${lagR}개` : '오늘은 없어요'} · ${z ? `<span class="nw">${md(z.end)} 끝 · 기말 <b class="num">${g > 0 ? `D-${g}` : g === 0 ? 'D-day' : `D+${-g}`}</b></span>` : allDone ? '다 끝냈어요' : '1회독 끝'}</div>${finRounds(f.subj, k, L.length)}</div>`; })()}${tsEnd(k, L.length)}</div>`;
     }).join('')}${engtFinRow()}${sciFinRow()}${wqFinRow()}</div></section>`;
   }
@@ -3004,13 +3009,13 @@
   // 11/25 영어 교과서(Unit 4 본문 89~93쪽) 회독 줄: 1회독 engt · 2회독 engt2 · 3회독 engt3 · 교과서 논술형 EN
   function engtFinRow() {
     const L = R2S.filter((x) => /^engt/.test(x.sj) || (x.sj === 'engn' && /^EN/.test(x.id) && /교과서/.test(x.x.title || ''))); if (!L.length) return '';
-    const t = today(), td = L.filter((x) => x.day === t), tl = td.filter((x) => !r2sDone(x)).length, lag = L.filter((x) => x.day < t && !r2sDone(x)).length, k = L.filter(r2sDone).length;
+    const O = ttOf('engtb'), td = { length: O.n }, tl = O.left, lag = O.lag, k = L.filter(r2sDone).length;
     const nx = L.filter((x) => !r2sDone(x)).sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0))[0];
     return `<div class="li btnlike" ${nx ? `data-task="r2s:${esc(nx.id)}"` : ''}><div class="ico">${ic(nx ? 'books' : 'ok')}</div><div class="body"><div class="t">영어 교과서${tsTg([lag ? [`밀림 ${lag}개`, 'red'] : null])}</div><div class="d">${td.length ? (tl ? `오늘 ${tl}개 남았어요` : '오늘 것 끝') : '오늘은 없어요'}${nx ? ` · 다음 ${esc(r2sLab(nx))} · ${esc(nx.x.title)}` : ' · 다 끝냈어요'}</div>${finRounds('engtb')}</div>${tsEnd(k, L.length)}</div>`;
   }
   function sciFinRow() {
     const L = R2S.filter((x) => /^sci/.test(x.sj)); if (!L.length) return '';
-    const t = today(), td = L.filter((x) => x.day === t), tl = td.filter((x) => !r2sDone(x)).length, lag = L.filter((x) => x.day < t && !r2sDone(x)).length, k = L.filter(r2sDone).length;
+    const O = ttOf('sci'), td = { length: O.n }, tl = O.left, lag = O.lag, k = L.filter(r2sDone).length;
     const nx = L.filter((x) => !r2sDone(x)).sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0))[0];
     return `<div class="li btnlike" ${nx ? `data-task="r2s:${esc(nx.id)}"` : ''}><div class="ico">${ic(nx ? 'sci' : 'ok')}</div><div class="body"><div class="t">통합과학${tsTg([lag ? [`밀림 ${lag}개`, 'red'] : null])}</div><div class="d">${td.length ? (tl ? `오늘 ${tl}개 남았어요` : '오늘 것 끝') : '오늘은 없어요'}${nx ? ` · 다음 ${esc(r2sLab(nx))} · ${esc(nx.x.title)}` : ' · 다 끝냈어요'}</div>${finRounds('sci')}</div>${tsEnd(k, L.length)}</div>`;
   }
@@ -9635,7 +9640,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611260925'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611260943'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

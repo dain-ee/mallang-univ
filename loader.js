@@ -29,7 +29,8 @@ window.__boot = [];
     } catch (e) {}
     busy = false;
   };
-  setTimeout(() => chk(true), 1500);
+  // 11/26 «딱 들어가면 잘 안 나와, 몇 번 해야 나와» → 1.5초 뒤에 보면 화면이 다 뜬 뒤에 다시 열려서 두 번 기다렸어요. 바로 봐요
+  setTimeout(() => chk(true), 0);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) chk(true); });
   setInterval(() => chk(false), 180000);
 })();
@@ -92,10 +93,13 @@ window.__boot = [];
     let tabWho = ''; try { tabWho = tch ? sessionStorage.getItem('mu:who') || '' : ''; } catch (e) {}
     const who = tabWho || st.who || '정윤', CK = tabWho ? CKEY + ':' + who : CKEY;
     let data = null;
-    try {
+    // 11/26 이 버전 묶음을 이미 받아 둔 기기면 3MB 를 다시 받지 않고 바로 열어요 (예전엔 열 때마다 새로 받았어요)
+    const myV = (((document.querySelector('script[src*="loader.js?v="]') || {}).src || '').match(/v=(\d+)/) || [])[1] || '';
+    try { const c = JSON.parse(localStorage.getItem(CK) || 'null'); if (c && myV && c.version === myV) data = c; } catch (e) {}
+    if (!data) try {
       // 선생님은 고른 학생의 묶음을 받아요 (학생 바꾸기). 없으면 예전 묶음
-      let r = tch ? await fetch('c/' + (await hex('univ:' + st.syncKey + ':' + who)).slice(0, 20) + '.bin?v=' + Date.now()) : null;
-      if (!r || !r.ok) r = await fetch('c/' + (await hex('univ:' + st.syncKey)).slice(0, 20) + '.bin?v=' + Date.now());
+      let r = tch ? await fetch('c/' + (await hex('univ:' + st.syncKey + ':' + who)).slice(0, 20) + '.bin?v=' + (myV || Date.now()), myV ? { cache: 'force-cache' } : {}) : null;
+      if (!r || !r.ok) r = await fetch('c/' + (await hex('univ:' + st.syncKey)).slice(0, 20) + '.bin?v=' + (myV || Date.now()), myV ? { cache: 'force-cache' } : {});
       if (!r.ok) throw new Error('content ' + r.status);
       data = JSON.parse(await gunzip(await decrypt(new Uint8Array(await r.arrayBuffer()), await hex(st.syncKey))));
       // 자리가 모자라면 낡은 사본을 지워 학생 기록 자리를 남겨요 (11/1)
