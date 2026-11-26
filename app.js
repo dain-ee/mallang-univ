@@ -2622,7 +2622,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611262306', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611262338', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -2968,23 +2968,25 @@
   // 11/25 선생님 «일단 넣은 다음에 정윤이한테 범위가 맞나요? … 아니라고 하면 그냥 지워지면 되는 거지. 지워지기 전에 진짜 확실한가요? 한 번 더» → 범위가 애매한 세트를 정윤이가 확인해요 (S.rng, 아니면 S.drop 으로 빠져요)
   const RNG_ASK = [
     { id: 'P25', k: 'r2s:P25', sj: '통합과학', t: '태양 핵융합 문제', w: '교과서 119쪽 1번, 부교재(개념완성) 120쪽 1~6번·137쪽에 태양 핵융합 문제가 있어요. 26강 「태양 에너지의 생성과 전환」은 뺐는데, 이 쪽 문제도 시험 범위인가요?' },
+    // 11/26 윤건 채팅 «과학 우주탐사 시험범위 아니에요» ↔ 학교 안내문 과학 229~298쪽(258~259쪽 빼고): 둔촌중 비상(임태훈) 교과서면 우주 탐사는 288~294쪽이라 범위 안 → 선생님 «걔가 잘못한 걸 수도 있으니까 정윤이처럼 물어봐» (답할 때까지 창이 안 닫혀요)
+    { id: 'YGS8', who: '윤건', yg: { s8: [4] }, sj: '과학', t: 'Ⅷ 별과 우주 · 우주 탐사 (288~294쪽)', w: '학교 안내문에는 과학 범위가 「229~298쪽 (258~259쪽 제외)」이라고 돼 있어요. 교과서에서 우주 탐사는 288~294쪽이라 이 범위 안에 들어가요. 채팅에서는 우주 탐사가 범위가 아니라고 했는데, 학교 선생님이 따로 빼라고 하셨나요?' },
     { id: 'EN4', k: 'r2s:EN4', sj: '영어', t: '올림포스 111·112쪽 Practice', w: '공지엔 「59~110쪽」인데, 111·112쪽은 13~16강 뒤에 붙은 서술형·논술형 Practice예요. 이 두 쪽도 시험 범위인가요?' },
   ];
   function rngCard() {
-    if (U.who !== '정윤') return '';
-    const R = S.rng || {}, L = RNG_ASK.filter((a) => R2S.some((x) => x.id === a.id));
+    const R = S.rng || {}, L = rngMine();
     if (!L.length) return '';
     const open = L.filter((a) => !R[a.id]);
     if (!open.length) return '';  // 11/25 «이미 한 건데 왜 아직 있어» → 다 답하면 카드도 사라져요
     if (!TEACHER && !PEEK) return '';  // 11/25 «차라리 모달로 처음에 띄워» → 정윤이에겐 창(rngModal)으로, 카드는 선생님 보기에서 답 확인용
     return `<section class="card c12 rng-card"><h3>범위 확인해 주세요</h3><p class="sub">애매해서 일단 넣어 둔 것이에요. 범위가 아니면 빼 줄게요.</p><div class="list">${L.map((a) => { const v = R[a.id]; return `<div class="li"><div class="body"><div class="t">${esc(a.sj)} · ${esc(a.t)}</div><div class="d">${esc(a.w)}</div>${v ? `<div class="d" style="margin-top:4px"><b>${v.v === 'yes' ? '범위 맞아요' : '범위 아니에요 · 뺐어요'}</b> · ${md(dateOf(v.at))}</div>` : ''}</div>${v || TEACHER ? '' : `<div style="display:flex;gap:6px;flex-shrink:0"><button type="button" class="btn sm primary" data-rng="${a.id}" data-rv="yes">맞아요</button><button type="button" class="btn sm soft" data-rng="${a.id}" data-rv="no">아니에요</button></div>`}</div>`; }).join('')}</div></section>`;
   }
-  function rngPut(a, v) { S.rng = S.rng || {}; S.rng[a.id] = { v, at: Date.now() }; if (v === 'no') { S.drop = S.drop || {}; S.drop[a.k] = { at: Date.now(), t: `${a.sj} · ${a.t} (범위 아님)` }; save('rng', 'drop'); } else save('rng'); }
-  function rngOpen() { const R = S.rng || {}; return U.who === '정윤' && !TEACHER ? RNG_ASK.filter((a) => !R[a.id] && R2S.some((x) => x.id === a.id)) : []; }
+  function rngPut(a, v) { S.rng = S.rng || {}; S.rng[a.id] = { v, at: Date.now() }; if (a.yg) { save('rng'); if (v === 'no') setTimeout(() => location.reload(), 900); return; } if (v === 'no') { S.drop = S.drop || {}; S.drop[a.k] = { at: Date.now(), t: `${a.sj} · ${a.t} (범위 아님)` }; save('rng', 'drop'); } else save('rng'); }
+  const rngMine = () => RNG_ASK.filter((a) => (a.who ? U.who === a.who : U.who === '정윤' && R2S.some((x) => x.id === a.id)));
+  function rngOpen() { const R = S.rng || {}; return !TEACHER ? rngMine().filter((a) => !R[a.id]) : []; }
   function rngModal() {
     const L = rngOpen(); if (!L.length || UI.run || UI.tab !== 'home') { rngModal.on = false; return; }
     const a = L[0]; rngModal.on = true;
-    sheet(`<div class="gdm"><span class="gdm-n">범위 확인 ${RNG_ASK.length - L.length + 1} / ${RNG_ASK.length}</span><h2>이것도 시험 범위인가요?</h2><p class="sub">${esc(a.sj)} · ${esc(a.t)}</p><div class="gdm-b"><p>${esc(a.w)}</p><p>애매해서 일단 숙제에 넣어 뒀어요. 범위가 아니면 빼 줄게요.</p></div><div class="cta-bar"><button class="btn primary big block" id="rng-y" type="button">범위 맞아요</button><button class="btn soft big block" id="rng-n" type="button" style="margin-top:8px">범위 아니에요</button></div></div>`, (el, close) => {
+    sheet(`<div class="gdm"><span class="gdm-n">범위 확인 ${rngMine().length - L.length + 1} / ${rngMine().length}</span><h2>이것도 시험 범위인가요?</h2><p class="sub">${esc(a.sj)} · ${esc(a.t)}</p><div class="gdm-b"><p>${esc(a.w)}</p><p>애매해서 일단 숙제에 넣어 뒀어요. 범위가 아니면 빼 줄게요.</p></div><div class="cta-bar"><button class="btn primary big block" id="rng-y" type="button">범위 맞아요</button><button class="btn soft big block" id="rng-n" type="button" style="margin-top:8px">범위 아니에요</button></div></div>`, (el, close) => {
       const next = () => { if (rngOpen().length) rngModal(); else { rngModal.on = false; closeSheet.lock = false; close(); render(); } };
       $('#rng-y', el).onclick = () => { rngPut(a, 'yes'); toast('고마워요 · 그대로 둘게요'); next(); };
       $('#rng-n', el).onclick = () => {
@@ -8851,7 +8853,8 @@
   //   국어·역사·과학 남은 것 + 새로 넣은 것을 from~to 공부하는 날(토요일 빼고)에 과목마다 고르게 다시 나눠요. 끝낸 것·푼 기록은 그대로예요
   function ypRe(L) {
     const R = NXD.re; if (!R || !YF) return L;
-    const DR = R.drop || {}, unitOf = (it) => it.unit || (NXSETS[it.id] || {}).unit;
+    const DR = { ...(R.drop || {}) }; for (const a of RNG_ASK) if (a.yg && U.who === a.who && ((S.rng || {})[a.id] || {}).v === 'no') for (const [u, ks] of Object.entries(a.yg)) DR[u] = [...(DR[u] || []), ...ks];  // 범위 확인에서 「아니에요」한 소단원
+    const unitOf = (it) => it.unit || (NXSETS[it.id] || {}).unit;
     const dropIt = (it) => { const u = unitOf(it), ks = DR[u]; if (!ks) return false; const m = /^yp:[^:]+:L(\d+)(?::|$)/.exec(String(it.id)); if (m) return ks.includes(+m[1]); const pk = it.p || (/^yp:[^:]+:(t\d+):/.exec(String(it.id)) || [])[1]; const U = NXU[u]; return !!(U && pk && ks.includes((U.tsec || {})[pk])); };
     const AD = R.add || {}, sv = { units: YF.units, later: YF.later, lessons: YF.lessons };
     let NEW = [];
@@ -8862,16 +8865,24 @@
     } finally { Object.assign(YF, sv); }
     const ENG = (it) => it.subj === 'eng' || it.subj === 'm3' || String(it.id).startsWith('pp:');
     const done = (it) => it.qs.length && it.qs.every((q) => nxS().a[q.i]);
+    // 11/26 «애가 소화할 수 있는 양이야?» → 실제로 하루 75문제쯤(많은 날 105) 풀어요. 밀린 것까지 모아 from~to 에 하루 양이 고르게(외우기 카드는 반만 쳐요)
     const keep = [], mv = [];
-    for (const it of L) { if (dropIt(it)) continue; if (!ENG(it) && it.day >= R.from && !done(it)) mv.push(it); else keep.push(it); }
+    for (const it of L) { if (dropIt(it)) continue; if (!ENG(it) && !done(it)) mv.push(it);  /* 밀린 국어·역사·과학도 같이 다시 나눠요 */ else keep.push(it); }
     const DD = []; for (let d = R.from; d <= R.to; d = addD(d, 1)) if (dowOf(d) !== 6) DD.push(d);
-    const rdk = (it) => (it.hd ? 2 : it.p === 'L' || it.p === 'Lh' ? 0 : 1), w = (it) => it.qs.length + (it.p === 'L' || it.p === 'Lh' ? 8 : 0);
-    const G = {}; [...mv.map((it, i) => ({ it, i, o: it.day })), ...NEW.map((it, i) => ({ it, i: 1e4 + i, o: '9' }))  /* 새로 든 것은 같은 판(개념·응용·심화) 안에서 원래 있던 것 뒤에 */].forEach((x) => (G[x.it.subj] = G[x.it.subj] || []).push(x));
-    const out = [];
-    for (const sj in G) {
-      const A = G[sj].sort((a, b) => rdk(a.it) - rdk(b.it) || (a.o < b.o ? -1 : a.o > b.o ? 1 : a.i - b.i)).map((x) => x.it), W = A.reduce((t, it) => t + w(it), 0) || 1; let acc = 0;
-      for (const it of A) { out.push({ ...it, day: DD[Math.min(DD.length - 1, Math.floor(((acc + w(it) * 0.5) / W) * DD.length))] }); acc += w(it); }
-    }
+    const rdk = (it) => (it.hd ? 2 : it.p === 'L' || it.p === 'Lh' ? 0 : 1), w = (it) => String(it.id).startsWith('pp:') ? it.qs.length / 2 : it.qs.length + (it.p === 'L' || it.p === 'Lh' ? 8 : 0);
+    const G = {}; [...mv.map((it, i) => ({ it, i, o: it.day })), ...NEW.map((it, i) => ({ it, i: 1e4 + i, o: '9' }))].forEach((x) => (G[x.it.subj] = G[x.it.subj] || []).push(x));  /* 새로 든 것은 같은 판(개념·응용·심화) 안에서 원래 있던 것 뒤에 */
+    const Q = {}; for (const sj in G) Q[sj] = G[sj].sort((a, b) => rdk(a.it) - rdk(b.it) || (a.o < b.o ? -1 : a.o > b.o ? 1 : a.i - b.i)).map((x) => x.it);
+    const fx = {}; for (const it of keep) if (DD.includes(it.day) && !done(it)) fx[it.day] = (fx[it.day] || 0) + w(it);
+    const MW = Object.values(Q).flat().reduce((t, it) => t + w(it), 0), B = (MW + DD.reduce((t, d) => t + (fx[d] || 0), 0)) / DD.length;
+    const SW = {}; for (const sj in Q) SW[sj] = Q[sj].reduce((t, it) => t + w(it), 0) || 1;
+    const out = [], got = {};
+    DD.forEach((d, j) => { let load = fx[d] || 0; const last = j === DD.length - 1;
+      const full = new Set();
+      for (let guard = 0; guard < 200; guard++) {  // 과목마다 제 몫만큼 뒤처진 과목부터 하나씩 · 그 과목 다음 것이 안 들어가면 다른 과목으로
+        const sj = Object.keys(Q).filter((k) => Q[k].length && !full.has(k)).sort((x, y) => ((got[x] || 0) / SW[x]) - ((got[y] || 0) / SW[y]))[0]; if (!sj) break;
+        const it = Q[sj][0], x = w(it); if (!last && load > 0 && load + x > B + 6) { full.add(sj); continue; }
+        Q[sj].shift(); out.push({ ...it, day: d }); load += x; got[sj] = (got[sj] || 0) + x; }
+    });
     return keep.concat(out);
   }
   const YP = ypRe(YP0);
@@ -9284,6 +9295,19 @@
       const all = Object.values(S.mk).reduce((n2, x) => n2 + x.length, 0); if (all > 200) { const k0 = Object.keys(S.mk).find((k) => k !== key && S.mk[k].length); if (k0) delete S.mk[k0]; }
       if (L.length) S.mk[key] = L; };
     const scrTitle = () => { const h = $('main h1, main h2, main .r2s-ct, main h3'); return h ? h.textContent.trim().slice(0, 80) : ''; };
+    // 11/26 «API로 연결했는데 왜 질문이 바로 안 돼?» → 정윤이 새벽 질문이 한 번 실패하고 그대로 남았어요(함수는 멀쩡). 실패하면 두 번 더 바로 묻고,
+    //   그래도 못 받은 질문은 앱을 열 때마다 뒤에서 다시 물어 답을 채워요(7일 안 · 질문마다 6번까지)
+    async function askAi(e, ctx) {
+      let a = '';
+      for (let t = 0; t < 3 && !a; t++) {
+        if (t) await new Promise((r) => setTimeout(r, 1500 * t));
+        try { if (localStorage.getItem('mu:offline') === '1' || !U.sync) break; const r = await fetch(`${U.sync.url}/functions/v1/univ-ask`, { method: 'POST', headers: { apikey: U.sync.key, Authorization: `Bearer ${U.sync.key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ student: U.who, code: U.key, q: e.body, sel: e.sel, ctx: ctx || e.ctx || '', title: e.title }) }); const j = await r.json().catch(() => ({})); a = j.a || ''; if (j.error === 'denied' || j.error === 'limit' || j.error === 'refusal') break; } catch (x) {}
+      }
+      const L = (S.ask || []).slice(), i = L.findIndex((x) => x.id === e.id);
+      if (i >= 0) { L[i] = a ? { ...L[i], a: a.slice(0, 1500), aat: Date.now() } : { ...L[i], ctx: (ctx || L[i].ctx || '').slice(0, 1500), tries: (L[i].tries || 0) + 1 }; S.ask = L; save('ask'); if (a) mkApply(); }
+      return a;
+    }
+    setTimeout(async () => { if (TEACHER || PEEK) return; for (const e of (S.ask || []).filter((x) => x.k === 'q' && !x.a && Date.now() - x.at < 7 * 864e5 && (x.tries || 0) < 6).slice(0, 5)) { const a = await askAi(e); if (a && UI.tab === 'qna') render(); } }, 6000);
     async function send(k) {
       const body = ($('#mk-ta', bar).value || '').trim(); if (!body) { toast(k === 'q' ? '궁금한 것을 적어 주세요' : '필기를 적어 주세요'); return; }
       const blk = mkBlk(cur.rg.startContainer), ctx = blk ? ((blk.closest('section, .card, .qwrap') || blk).textContent || '').replace(/\s+/g, ' ').trim().slice(0, 3000) : '';
@@ -9291,9 +9315,7 @@
       S.ask = [e, ...(S.ask || [])].slice(0, 60); addMark(k === 'q' ? 'b' : 'y', e.id); save('ask', 'mk'); mkApply(); window.getSelection().removeAllRanges();
       if (k === 'm') { bar.dataset.mode = ''; hide(); toast('필기를 문장 아래에 붙였어요'); return; }
       bar.dataset.mode = 'form'; bar.innerHTML = `<div class="mk-form"><p class="mk-sel">${esc(e.body)}</p><p class="mk-wait"><i></i><i></i><i></i> 답을 쓰고 있어요</p></div>`;
-      let a = '', why = '';
-      try { if (localStorage.getItem('mu:offline') === '1' || !U.sync) throw new Error('off'); const r = await fetch(`${U.sync.url}/functions/v1/univ-ask`, { method: 'POST', headers: { apikey: U.sync.key, Authorization: `Bearer ${U.sync.key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ student: U.who, code: U.key, q: e.body, sel: e.sel, ctx, title: e.title }) }); const j = await r.json().catch(() => ({})); a = j.a || ''; why = j.error || ''; } catch (x) { why = 'net'; }
-      if (a) { const L = (S.ask || []).slice(), i = L.findIndex((x) => x.id === e.id); if (i >= 0) { L[i] = { ...L[i], a: a.slice(0, 1500), aat: Date.now() }; S.ask = L; save('ask'); mkApply(); } }
+      const a = await askAi(e, ctx);
       bar.innerHTML = `<div class="mk-form"><p class="mk-sel">${esc(e.body)}</p><div class="mk-ans">${a ? esc(a).replace(/\n/g, '<br>') : '지금은 바로 답을 못 받았어요. 질문은 질문 탭에 남겨 뒀고, 선생님이 보고 답해 줄게요.'}</div><div class="mk-fb"><button type="button" class="mk-md" data-mkx>닫기</button><button type="button" class="mk-md mk-go" data-mkqna>질문 탭에서 보기</button></div></div>`; if (cur && cur.rect) place(cur.rect);
     }
     const place = (r) => { bar.hidden = false; const w = bar.offsetWidth || 280; bar.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px'; bar.style.top = Math.min(innerHeight - 64, r.bottom + 12) + 'px'; };
@@ -9678,7 +9700,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611262306'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611262338'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
