@@ -5692,3 +5692,15 @@ a.dy-home .pm-h-t { color: var(--t1, #191f28); }
 .gn-cvi img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .35s; }
 .gn-cvi img.on { opacity: 1; }
 .gn-cv b { font-size: 13px; margin-top: 4px; } .gn-cv small { font-size: 11.5px; line-height: 1.45; color: var(--t3, #8b95a1); }
+
+/* 11/27 못 한 숙제 카드 다시 · 선생님 한마디 카드와 같은 결 */
+.miss-card.mc2 { padding: 18px 24px; }
+.mc2-eb { font-size: 13px; font-weight: 600; color: var(--t3); margin: 0 0 6px; }
+.miss-card.mc2 .miss-it { padding: 10px 0; gap: 14px; }
+.miss-card.mc2 .miss-it:first-child { padding-top: 2px; }
+.mc2-ic { flex: none; width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: var(--fill, #f2f4f6); color: var(--t2); }
+.mc2-ic svg { width: 22px; height: 22px; }
+.miss-card.mc2 .miss-it .t { font-size: 17px; }
+.miss-card.mc2 .miss-b .btn { height: 44px; padding: 0 18px; border-radius: 12px; font-size: 15px; }
+.miss-card.mc2 .miss-b .btn.x-ic { width: 44px; padding: 0; }
+@media (max-width: 640px) { .miss-card.mc2 { padding: 16px 18px; } .miss-card.mc2 .miss-b { padding-left: 58px; } }

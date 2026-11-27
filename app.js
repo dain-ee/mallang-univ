@@ -177,7 +177,24 @@
     const now = Date.now(); S._at = S._at || {}; if (pulled) for (const k of keys) S._at[k] = now;
     if (ROLE_T && (keys.includes('hw') || keys.includes('gifts'))) { pushNew(U.who, save.snap, S); save.snap = pushIds(S); }
     keepS();
-    clearTimeout(pushT); pushT = setTimeout(() => { pushT = null; sync(); }, 1200);
+    sySchedule();
+  }
+  // ───────── 서버 저장 줄이기 (11/27 서버가 몇 시간씩 멈춤: 답 하나 적을 때마다 기록 통째(450KB)를 받고 올려서 univ_put 11만 번, 1분마다도 통째로 받고 올림) ─────────
+  // ① 적고 8초 조용하면(계속 적어도 30초 안에) 한 번에 올려요. 화면을 닫거나 넘어가면 바로 올려요
+  // ② 서버가 가진 것과 달라진 칸(키)만 올려요(univ_patch). 서버가 그 칸을 내가 마지막에 본 뒤로 바꿨으면 거절하고 그 칸을 돌려줘요 → 예전처럼 합쳐서 다시 올려요
+  // ③ 받아 오기는 켤 때 통째로, 그 뒤로는 돌아올 때·1분마다 바뀐 칸만(univ_pull). 올리기 전마다 받지 않아요
+  // ④ 안 되면 5초·15초·1분·5분 간격으로만 다시 해요 (한 기기가 959번 다시 보낸 일)
+  // 서버에 새 함수가 아직 없으면(404) 예전처럼 받고→합치고→통째로 올리되, 모아서 한 번만, 바뀐 게 있을 때만 해요
+  const SY_IDLE = 8000, SY_MAX = 30000, SY_BACK = [5000, 15000, 60000, 300000];
+  const syHas = { patch: null, pull: null };  // null 모름 · true 있음 · false 없음(예전 방식)
+  let syShadow = new Map(), syBase = {}, syFull = false, syLastPull = 0, syFirst = 0, syFails = 0, syRetryAt = 0, syAgain = 0, syRedraw = false;
+  // 칸 비교용 글자: 키 순서를 맞춰요 (서버 jsonb 는 키 순서를 바꿔 돌려줘서 그냥 비교하면 늘 「바뀜」이 돼요)
+  const syCanon = (v) => { if (v === null || typeof v !== 'object') return v === undefined || typeof v === 'function' ? undefined : JSON.stringify(v); if (typeof v.toJSON === 'function') return syCanon(v.toJSON()); if (Array.isArray(v)) return '[' + v.map((x) => { const c = syCanon(x); return c === undefined ? 'null' : c; }).join(',') + ']'; let o = ''; for (const k of Object.keys(v).sort()) { const c = syCanon(v[k]); if (c !== undefined) o += (o ? ',' : '') + JSON.stringify(k) + ':' + c; } return '{' + o + '}'; };
+  const syDirty = () => Object.keys(S).filter((k) => k !== '_at' && S[k] !== undefined && syShadow.get(k) !== syCanon(S[k]));
+  function sySchedule() {
+    const now = Date.now(); if (!syFirst) syFirst = now;
+    const at = Math.max(Math.min(now + SY_IDLE, syFirst + SY_MAX), syRetryAt);
+    clearTimeout(pushT); pushT = setTimeout(() => { pushT = null; sync(); }, Math.max(0, at - now));
   }
   async function rpc(fn, body) {
     if (localStorage.getItem('mu:offline') === '1') throw new Error('offline test');  // 테스트: 서버를 건드리지 않아요
@@ -185,7 +202,7 @@
     const bd = JSON.stringify(body), go = () => fetch(`${U.sync.url}/rest/v1/rpc/${fn}`, { method: 'POST', keepalive: new TextEncoder().encode(bd).length < 60000, headers: { apikey: U.sync.key, Authorization: `Bearer ${U.sync.key}`, 'Content-Type': 'application/json' }, body: bd });
     // 인터넷이 잠깐 끊겨 요청이 아예 못 나가면 1.5초 뒤 한 번 더 보내요 (10/28 선생님 「저장이 안 됐어요」: 서버에는 요청이 도착한 적이 없었어요)
     let r; try { r = await go(); } catch (e) { await new Promise((ok) => setTimeout(ok, 1500)); r = await go(); }
-    if (!r.ok) throw new Error(fn + ' ' + r.status);
+    if (!r.ok) { const er = new Error(fn + ' ' + r.status); er.status = r.status; throw er; }
     const t = await r.text(); return t ? JSON.parse(t) : null;
   }
   let syncing = false;
@@ -207,10 +224,10 @@
     const m = Math.round((Date.now() - saveFailAt) / 60000), net = navigator.onLine === false;
     b.className = 'save-bar';
     b.innerHTML = `<span>${net ? '인터넷이 끊겨서 이 기기에만 있어요' : '서버에 저장이 안 되고 있어요'}${m >= 1 ? ` · ${m}분째` : ''}<br><small>이 기기를 닫지 말고 인터넷을 확인해 주세요</small></span><button type="button">다시 저장</button>`;
-    b.querySelector('button').onclick = () => { b.querySelector('button').textContent = '저장하는 중'; sync(); };
-    if (!saveRetry) saveRetry = setInterval(() => { if (saveSt.off) sync(); }, 30000);
+    b.querySelector('button').onclick = () => { b.querySelector('button').textContent = '저장하는 중'; syRetryAt = 0; sync(); };
+    if (!saveRetry) saveRetry = setInterval(() => { if (saveSt.off) saveBar(); }, 30000);  // 다시 보내기는 sync 의 늦춰 가며 다시(5초·15초·1분·5분)가 맡고, 여기는 「n분째」만 고쳐요
   }
-  addEventListener('online', () => { if (saveSt.off) sync(); });
+  addEventListener('online', () => { if (saveSt.off) { syRetryAt = 0; sync(); } });
   // 화면을 닫거나 다른 앱으로 넘어가면 기다리던 저장을 바로 보냄
   const flush = () => { if (pushT) { clearTimeout(pushT); pushT = null; sync(); } };
   addEventListener('pagehide', flush);
@@ -234,28 +251,75 @@
   // 글자를 쓰는 중이면 안 그려요 (쓰던 답이 지워져요). 그때는 단추마다 누를 때 기록을 다시 찾아요
   const typing = () => !!document.activeElement?.matches('input, textarea, select, [contenteditable]');
   function syncRedraw() { if (!typing()) render(); }
-  async function sync(redraw) {
-    if (syncing) { clearTimeout(pushT); pushT = setTimeout(sync, 1500); return; }
-    syncing = true;
-    try {
-      const remote = await rpc('univ_get', { p_student: U.who, p_code: U.key });
-      let changed = false;
-      if (remote && remote._at) {
-        S._at = S._at || {};
-        for (const k of Object.keys(remote._at)) {
-          const r = remote._at[k] || 0, l = S._at[k] || 0;
-          if (MERGE[k] && remote[k] && S[k]) { const m = MERGE[k](remote[k], S[k], r >= l); if (JSON.stringify(m) !== JSON.stringify(S[k])) { changed = true; S[k] = patchIn(S[k], m); } S._at[k] = Math.max(r, l); }
-          else if (r > l) { S[k] = patchIn(S[k], remote[k]); S._at[k] = r; changed = true; }
-        }
+  // 받아 온 것(통째 또는 바뀐 칸만)을 지금 기록에 합쳐요. 칸마다 더 새것(_at), MERGE 가 있는 칸은 둘을 합쳐요
+  function syMerge(remote, part) {
+    let changed = false; if (!remote) return false;
+    const rat = remote._at || {}; S._at = S._at || {};
+    for (const k of Object.keys(rat)) {
+      if (k === '_at' || (part && !(k in remote))) continue;
+      const r = rat[k] || 0, l = S._at[k] || 0;
+      if (MERGE[k] && remote[k] && S[k]) { const m = MERGE[k](remote[k], S[k], r >= l); if (JSON.stringify(m) !== JSON.stringify(S[k])) { changed = true; S[k] = patchIn(S[k], m); } S._at[k] = Math.max(r, l); }
+      else if (r > l) { S[k] = patchIn(S[k], remote[k]); S._at[k] = r; changed = true; }
+      syBase[k] = r; syShadow.set(k, syCanon(remote[k]));
+    }
+    if (!part) for (const k of Object.keys(remote)) if (k !== '_at' && !(k in rat)) syShadow.set(k, syCanon(remote[k]));  // 시각이 없는 옛 칸
+    return changed;
+  }
+  async function syPull(full) {
+    let remote, part = false;
+    if (!full && syFull && syHas.pull !== false) {
+      try { remote = await rpc('univ_pull', { p_student: U.who, p_code: U.key, p_base: syBase }); part = true; syHas.pull = true; }
+      catch (e) { if (e.status !== 404) throw e; syHas.pull = false; }
+    }
+    if (!part) { remote = await rpc('univ_get', { p_student: U.who, p_code: U.key }); syShadow = new Map(); syBase = {}; }
+    const changed = syMerge(remote, part);
+    if (!part) syFull = true;
+    pulled = true; syLastPull = Date.now();
+    return changed;
+  }
+  // 달라진 칸만 올려요. 서버가 그 사이 바뀌어 거절하면 합치고 다시 (세 번까지)
+  async function syPush() {
+    for (let i = 0; i < 5; i++) {
+      const ks = syDirty(); if (!ks.length) return false;
+      if (syHas.patch !== false) {
+        const data = { _at: {} }, bs = {}, sent = new Map();
+        for (const k of ks) { data[k] = S[k]; sent.set(k, syCanon(S[k])); if (S._at && S._at[k]) data._at[k] = S._at[k]; bs[k] = syBase[k] || 0; }
+        let r;
+        try { r = await rpc('univ_patch', { p_student: U.who, p_code: U.key, p_data: data, p_base: bs }); syHas.patch = true; }
+        catch (e) { if (e.status !== 404) throw e; syHas.patch = false; continue; }
+        if (r && r.ok === false) { if (r.conflict && syMerge(r.conflict, true)) { keepS(); syRedraw = true; } continue; }
+        for (const [k, c] of sent) { syShadow.set(k, c); if (data._at[k]) syBase[k] = Math.max(syBase[k] || 0, data._at[k]); }
+        return true;
       }
-      pulled = true;
-      if (PEEK) { syncing = false; if (changed) syncRedraw(); return; } // 미리보기: 받아 오기만
-      keepS();
+      // 예전 방식(서버에 univ_patch 가 없을 때): 바로 전에 받아 합친 뒤 통째로 올려요
+      if (Date.now() - syLastPull > 1500) { if (await syPull(true)) { keepS(); syRedraw = true; } if (!syDirty().length) return false; }
+      const snap = new Map(Object.keys(S).filter((k) => k !== '_at').map((k) => [k, syCanon(S[k])])), at = { ...(S._at || {}) };
       await rpc('univ_put', { p_student: U.who, p_code: U.key, p_data: S });
+      syShadow = snap; syBase = at;
+      return true;
+    }
+    throw new Error('univ_patch 계속 엇갈림');
+  }
+  // sync(true): 받아 오고(바뀐 칸만) + 올릴 게 있으면 올려요. sync(): 올릴 게 있으면 올리기만 (처음이면 먼저 통째로 받아요)
+  async function sync(pullNow) {
+    if (syncing) { syAgain |= pullNow ? 2 : 1; return; }
+    syncing = true; clearTimeout(pushT); pushT = null; syFirst = 0;
+    let changed = false;
+    try {
+      if (pullNow || !syFull) changed = await syPull(!syFull);
+      if (PEEK) { syncing = false; if (changed) syncRedraw(); return; } // 미리보기: 받아 오기만
+      if (changed) keepS();
+      await syPush();
+      syFails = 0; syRetryAt = 0;
       saveSt.at = Date.now(); saveSt.off = false; paintSaveSt();
-      if (changed) syncRedraw();
-    } catch (e) { /* 연결이 안 되면 이 기기에만 저장하고, 다음에 다시 맞춤 */ if (Object.keys(S._at || {}).length) pulled = true; try { const b = new TextEncoder().encode(JSON.stringify(S)).length; S._syncErr = { at: Date.now(), msg: String((e && e.message) || e).slice(0, 120), n: ((S._syncErr || {}).n || 0) + 1, kb: Math.round(b / 1024), ua: navigator.userAgent.slice(0, 80) }; keepS(); } catch (e2) {} /* 저장 실패를 기록에 남겨요. 다음에 저장되면 서버에 같이 올라가서 선생님 맥의 감시(scripts/monitor.py)가 알려요 (11/1 «끊기는 일은 이제 없어야 해») */ saveSt.off = true; saveSt.wait = false; paintSaveSt(); }
+    } catch (e) { /* 연결이 안 되면 이 기기에만 저장하고, 다음에 다시 맞춤 */ if (Object.keys(S._at || {}).length) pulled = true; try { const b = new TextEncoder().encode(JSON.stringify(S)).length; S._syncErr = { at: Date.now(), msg: String((e && e.message) || e).slice(0, 120), n: ((S._syncErr || {}).n || 0) + 1, kb: Math.round(b / 1024), ua: navigator.userAgent.slice(0, 80) }; keepS(); } catch (e2) {} /* 저장 실패를 기록에 남겨요. 다음에 저장되면 서버에 같이 올라가서 선생님 맥의 감시(scripts/monitor.py)가 알려요 (11/1 «끊기는 일은 이제 없어야 해») */ saveSt.off = true; saveSt.wait = false; paintSaveSt();
+      // 늦춰 가며 다시: 5초 → 15초 → 1분 → 5분 (11/27 실패한 기기가 959번 바로바로 다시 보내 서버를 더 막았어요)
+      const d = SY_BACK[Math.min(syFails, SY_BACK.length - 1)]; syFails++; syRetryAt = Date.now() + d;
+      if (!PEEK) { clearTimeout(pushT); pushT = setTimeout(() => { pushT = null; sync(); }, d); }
+    }
     syncing = false;
+    if (changed || syRedraw) { syRedraw = false; syncRedraw(); }
+    if (syAgain) { const a = syAgain; syAgain = 0; if (Date.now() >= syRetryAt) sync(a & 2 ? true : undefined); }
   }
 
   // ───────── 계산 ─────────
@@ -1443,11 +1507,12 @@
     const L = myMissed(); if (!L.length) return '';
     const avg = myAvg(), u = (it) => (it.unit === '쪽' ? '쪽' : '문제'), ds = [...new Set(L.map((x) => x.d))];
     if (DAY_OFF() || dowOf(today()) === 0) return '';  // 일요일은 밀린 것 하는 날이라 안 물어요 (10/31) · 지난 날을 보는 중엔 안 띄워요: 그날 기준 「전날」을 물어서 헷갈려요 (10/29)
-    const mx = Math.max(...L.map((x) => x.n)), when = mx > 1 ? `${md(L.find((x) => x.n === mx).first)}부터 ${mx}일째` : ds.length === 1 ? `${md(ds[0])} ${DOW[dowOf(ds[0])]}요일에` : '지난번에';  // 다 보여 줘요 (3개만 보이고 「3개」라 해서 나머지가 있는 줄 몰랐어요 10/28)
+    const mx = Math.max(...L.map((x) => x.n)), when = L.length > 1 ? `${L.length}개` : mx > 1 ? `${md(L[0].first)}부터` : ds.length === 1 ? `${md(ds[0])} ${DOW[dowOf(ds[0])]}요일` : '지난번';  // 다 보여 줘요 (3개만 보이고 「3개」라 해서 나머지가 있는 줄 몰랐어요 10/28)
     // 11/7 선생님 «너무 안 이쁘다, 토스처럼»: 줄마다 큰 단추 하나 + 「⋯」(미루기·했어요는 아래에서 올라와요)
-    return `<section class="card c12 miss-card"><div class="card-h"><h2>${when} 못 한 숙제가 있어요</h2><span class="tiny">${L.length}개</span></div><div class="list">${L.map(({ it, d, was, now, nd, left, over, n, first }) => `<div class="li miss-it"><div class="body"><div class="t">${esc(it.book)}${tsTg([n > 1 ? [`${n}일째`, 'red'] : null, !nd && over ? ['마감 지남', 'red'] : null, nd && avg && now > avg ? ['평소보다 많아요', ''] : null])}</div>
-      <div class="d">${n <= 1 && ds.length > 1 ? `${md(d)} 몫 · ` : ''}${nd ? `남은 ${nd}일에 하루 <b>${now}${u(it)}</b>씩` : over ? `${left}${u(it)} 남았어요` : '마감까지 남은 날이 없어요'}</div></div>
-      <div class="miss-b"><button class="btn sm primary" type="button" data-miss="split|${esc(it.id)}|${d}">${nd ? '나눠 하기' : '오늘 할게요'}</button><button class="btn sm x-ic" type="button" data-xmore="${esc(it.book)}" aria-label="더 보기">⋯</button><button hidden type="button" data-xm="${over ? '마감 미루기' : '하루 미루기'}" data-miss="push|${esc(it.id)}|${d}"></button><button hidden type="button" data-xm="이미 했어요" data-miss="did|${esc(it.id)}|${d}|${was}"></button>${it.from != null ? `<button hidden type="button" data-xm="몇 문제만 못 풀었어요" data-miss="part|${esc(it.id)}|${d}|${was}"></button>` : ''}</div></div>`).join('')}</div></section>`;
+    // 11/27 선생님 «3일째 못 한 숙제 있다는 거 너무 별로야, 디자인» → 옆 「선생님 한마디」처럼 아이콘 · 이름 · 단추 한 줄, 빨간 꼬리표 대신 작은 머리글
+    return `<section class="card c12 miss-card mc2"><div class="mc2-eb">못 한 숙제 · ${when}</div><div class="list">${L.map(({ it, d, was, now, nd, left, over, n }) => `<div class="li miss-it"><div class="mc2-ic">${ic('clock')}</div><div class="body"><div class="t">${esc(it.book)}</div>
+      <div class="d">${n > 1 ? `${n}일째 밀렸어요 · ` : ds.length > 1 ? `${md(d)} 몫 · ` : ''}${nd ? `남은 ${nd}일, 하루 <b>${now}${u(it)}</b>씩${avg && now > avg ? ' (평소보다 많아요)' : ''}` : over ? `마감 지남 · <b>${left}${u(it)}</b> 남았어요` : '마감까지 남은 날이 없어요'}</div></div>
+      <div class="miss-b"><button class="btn primary" type="button" data-miss="split|${esc(it.id)}|${d}">${nd ? '나눠 하기' : '오늘 할게요'}</button><button class="btn x-ic" type="button" data-xmore="${esc(it.book)}" aria-label="더 보기">⋯</button><button hidden type="button" data-xm="${over ? '마감 미루기' : '하루 미루기'}" data-miss="push|${esc(it.id)}|${d}"></button><button hidden type="button" data-xm="이미 했어요" data-miss="did|${esc(it.id)}|${d}|${was}"></button>${it.from != null ? `<button hidden type="button" data-xm="몇 문제만 못 풀었어요" data-miss="part|${esc(it.id)}|${d}|${was}"></button>` : ''}</div></div>`).join('')}</div></section>`;
   }
 
   // ───────── 밀린 것 한눈에 (간트) ─────────
@@ -2554,13 +2619,24 @@
     if (!hw.length && !gifts.length) return;
     setTimeout(() => { try { if (localStorage.getItem('mu:offline') === '1') return; fetch(`${U.sync.url}/functions/v1/univ-push`, { method: 'POST', keepalive: true, headers: { apikey: U.sync.key, Authorization: `Bearer ${U.sync.key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'rec', student: name, code: U.key, hw, gifts }) }).catch(() => {}); } catch (e) {} }, 1500);
   }
+  // 11/27: 통째로 올리지 않고 고친 칸만 올려요(univ_patch). 그 사이 학생 기기가 같은 칸을 바꿨으면 서버가 거절 → 새로 받아 다시 고쳐요
   async function dPut(name, key, fn) {
-    const d = (await rpc('univ_get', { p_student: name, p_code: U.key })) || {};
-    const before = pushIds(d), out = fn(d), now = Date.now(); d._at = { ...(d._at || {}) }; for (const k of [].concat(key)) d._at[k] = now;
-    await rpc('univ_put', { p_student: name, p_code: U.key, p_data: d });
-    pushNew(name, before, d);
-    const row = (roster.rows || []).find((x) => x.r.name === name); if (row) row.d = d;
-    return out;
+    for (let i = 0; ; i++) {
+      const d = (await rpc('univ_get', { p_student: name, p_code: U.key })) || {};
+      const at0 = { ...(d._at || {}) }, was = new Map(Object.keys(d).filter((k) => k !== '_at').map((k) => [k, syCanon(d[k])]));
+      const before = pushIds(d), out = fn(d), now = Date.now(), ks = [].concat(key); d._at = { ...(d._at || {}) }; for (const k of ks) d._at[k] = now;
+      let done = false;
+      if (syHas.patch !== false) {
+        const p = { _at: {} }, bs = {};
+        for (const k of Object.keys(d)) if (k !== '_at' && d[k] !== undefined && (ks.includes(k) || was.get(k) !== syCanon(d[k]))) { p[k] = d[k]; bs[k] = at0[k] || 0; if (ks.includes(k)) p._at[k] = now; }
+        try { const r = await rpc('univ_patch', { p_student: name, p_code: U.key, p_data: p, p_base: bs }); syHas.patch = true; if (r && r.ok === false) { if (i < 3) continue; throw new Error('학생 기기와 엇갈려요'); } done = true; }
+        catch (e) { if (e.status !== 404) throw e; syHas.patch = false; }
+      }
+      if (!done) await rpc('univ_put', { p_student: name, p_code: U.key, p_data: d });
+      pushNew(name, before, d);
+      const row = (roster.rows || []).find((x) => x.r.name === name); if (row) row.d = d;
+      return out;
+    }
   }
   async function hwPush(name, item) {
     if (name === U.who) { S.hw = S.hw || []; S.hw.push(item); save('hw'); return; }
@@ -2622,7 +2698,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611271329', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611271746', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -6800,9 +6876,12 @@
   // 학생들 기록을 선생님 코드로 읽어 와서 한눈에 (보기만, 저장 안 함)
   const roster = { at: 0, rows: null };
   function rosterLoad() {
-    if (!TEACHER || ROSTER.length < 2 || Date.now() - roster.at < 60000) return;
+    if (!TEACHER || ROSTER.length < 2 || Date.now() - roster.at < (syHas.pull === false ? 180000 : 60000)) return;
     roster.at = Date.now();
-    Promise.all(ROSTER.map((r) => rpc('univ_get', { p_student: r.name, p_code: U.key }).then((d) => ({ r, d })).catch(() => ({ r, d: null })))).then((rows) => { roster.rows = rows; if (DASH_ONLY && !UI.run) { const a = document.activeElement; if (a && a.matches && a.matches('#main input, #main textarea')) a.addEventListener('blur', () => render(), { once: true }); else render(); } });
+    // 11/27: 한 번 받은 학생은 바뀐 칸만 받아요(univ_pull). 예전엔 1분마다 학생 수 × 450KB 를 통째로 받았어요
+    const old = new Map((roster.rows || []).map((x) => [x.r.name, x.d]));
+    const one = async (r) => { const o = old.get(r.name); if (o && o._at && syHas.pull !== false) { try { const p = await rpc('univ_pull', { p_student: r.name, p_code: U.key, p_base: o._at }); syHas.pull = true; if (!p) return p; const { _at, ...rest } = p; return { ...o, ...rest, _at: _at || o._at }; } catch (e) { if (e.status !== 404) throw e; syHas.pull = false; } } return rpc('univ_get', { p_student: r.name, p_code: U.key }); };
+    Promise.all(ROSTER.map((r) => one(r).then((d) => ({ r, d })).catch(() => ({ r, d: old.has(r.name) ? old.get(r.name) : null })))).then((rows) => { roster.rows = rows; if (DASH_ONLY && !UI.run) { const a = document.activeElement; if (a && a.matches && a.matches('#main input, #main textarea')) a.addEventListener('blur', () => render(), { once: true }); else render(); } });
   }
   function rosterCard() {
     rosterLoad(); if (ROSTER.length < 2) return '';
@@ -8442,6 +8521,14 @@
     sq: [{ h: '수업 전 · 현재완료 4가지 용법', ids: ['e8pp'] }, { h: '7과 의사소통 · 학교 학습지 ①② → 기출비·선생님 스타일', ids: ['ws7c1r2', 'ws7c2r2', 'e7cx'] }, { h: '8과 문법 · 학교 학습지 꼴 → 기출비 상·중상', ids: ['e8gw', 'e8gx'] }, { h: '8과 본문 · 학교 학습지 꼴 → 기출비 상·중상', ids: ['e8rw', 'e8rx'] }],
     qx: [{ id: 'e8xm', title: '8과 본문 · 학교 스타일 중 15문제', sub: '선생님 스타일 실전 1·2회 본문 지문 문제 · 중', from: ['e8:t1', 'e8:t2'], lv: [2], k: 15 },
       { id: 'e8xh', title: '8과 본문 · 학교 스타일 상 15문제', sub: '선생님 스타일 실전·심화 본문 지문 문제 · 상', from: ['e8:t1', 'e8:t2', 'e8:t7'], lv: [3], k: 15 }] };
+  // 11/27 선생님 «영어 문제는 수업으로 나중에 할 거야 · 남은 화·토 수업에 시험 직전까지 다 분배 · 윤건이는 본문만 외우면 돼» → 기말 계획 영어 문제 세트를 남은 수업 6번에
+  const YGE = (h, ids) => ({ m3: [], off: ['lw'], lt: [], sq: [{ h, ids }] });
+  YG_JWT_FIX['2026-11-28'] = { m3: [], off: ['lw'], lt: [], noWs: 1, sq: [{ h: '수업 전 시험 · 7·8과 섞은 진짜 시험지 15문제', ids: ['rx78'] }, { h: '7과 · 단어 · 의사소통 · 본문 선생님 스타일', ids: ['yp:e7:t3:0', 'yp:e7:t4:0', 'yp:e7:t6:0'] }] };  // 11/27 «시험은 7-8과 혼합 15개, 진짜 시험 문제 · 학습지는 저번에 했잖아» → 학습지 빼고(noWs)
+  YG_JWT_FIX['2026-12-01'] = YGE('7과 · 선생님 스타일 실전 1회', ['yp:e7:t1:0']);
+  YG_JWT_FIX['2026-12-05'] = YGE('7과 실전 2회 · 8과 본문 선생님 스타일', ['yp:e7:t2:0', 'yp:e8:t6:0']);
+  YG_JWT_FIX['2026-12-08'] = YGE('8과 실전 1회 · 7과 심화', ['yp:e8:t1:0', 'yp:e7:t7:0']);
+  YG_JWT_FIX['2026-12-12'] = YGE('8과 · 선생님 스타일 실전 2회', ['yp:e8:t2:0']);
+  YG_JWT_FIX['2026-12-15'] = YGE('8과 심화 · 시험 전날', ['yp:e8:t7:0']);
   const ygPlan = (date) => { const o = { ...(((LS0.tests || {})[date]) || {}), ...(((S.jwt || {})[date]) || {}), ...(YG_JWT_FIX[date] || {}) }; return { units: (o.units || []).length ? o.units.map(Number) : null, days: (o.days || []).length ? o.days.map(Number) : null, m3: (o.m3 || []).length ? o.m3.map(Number) : null, tu: (o.tu || []).length ? o.tu.map(Number) : null, gr: (o.gr || []).length ? o.gr.map(String) : null, gt: (o.gt || []).length ? o.gt.map(String) : null, tx: (o.tx || []).length ? o.tx.map(String) : null, off: o.off || [], rq: (o.rq || []).map(String), gl: o.gl || {}, gx: (o.gx || []).map(String), lt: (o.lt || []).map(String), rqa: o.rqa || [], wsLast: !!o.wsLast, noWs: !!o.noWs, wsDone: !!o.wsDone, qx: o.qx || [], sq: o.sq || [], tp: o.tp || {}, n: o.n || 15, wn: o.wn || 20, mn: o.mn || 10 }; };
   const M3U = () => ((NXD.subjects || []).find((x) => x.key === 'm3') || {}).units || [];
   // 11/12 «이번엔 천일문 시험이 아니라 지난 수업 7과 문법으로 · 개념 물어보는 거 한 문제 · 한 과에 문법이 2개 있는데 한 판에 있는 걸 한 문제로»
@@ -8504,7 +8591,7 @@
       const qs = pool.slice(0, A.k); for (const q of qs) if (!NXQ[q.i]) NXQ[q.i] = { q, set: id }; const x = mk(id, A.title, A.sub, qs); if (x) out.rq.push(x); }
     // 11/24 «안 한 것들 하면서 · 의사소통 8단원 뒤에 문제 여러 개 문법 학습지 꼴 그대로 하고, 뒤에 기출비에서 갖고 온 문제 상·중상 · 본문도 마찬가지»
     //   → jwt[날짜].sq = [{ h: 소제목, ids: [NXD.rq 묶음 id …] }] 를 적힌 순서대로 (학습지 꼴 묶음은 읽기 화면 learn 부터)
-    out.sq = (P.sq || []).map((G) => ({ h: G.h || '', xs: (G.ids || []).map((sid) => { const R = (NXD.rq || []).find((x) => x.id === sid); if (!R) return NXSETS['pp:' + sid] || null; const id = `lc:${date}:${sid}`; for (const q of R.qs) if (!NXQ[q.i]) NXQ[q.i] = { q, set: id }; return mk(id, R.title, R.sub, R.qs, R.learn); }).filter(Boolean) })).filter((G) => G.xs.length);
+    out.sq = (P.sq || []).map((G) => ({ h: G.h || '', xs: (G.ids || []).map((sid) => { const R = (NXD.rq || []).find((x) => x.id === sid); if (!R) return NXSETS['pp:' + sid] || NXSETS[sid] || null;  /* 11/27 기말 계획 세트(yp:…)도 수업 카드에 */ const id = `lc:${date}:${sid}`; for (const q of R.qs) if (!NXQ[q.i]) NXQ[q.i] = { q, set: id }; return mk(id, R.title, R.sub, R.qs, R.learn); }).filter(Boolean) })).filter((G) => G.xs.length);
     return out;
   }
   // 11/17 «수업도 남은 거 위에 숙제나 오답처럼 띄워 달라는 거야» → 오늘 수업에서 아직 안 끝낸 줄 수를 수업 탭 숫자로
@@ -8853,7 +8940,7 @@
     // 학습지 세트는 계획 나누기가 끝난 뒤 정한 날에 붙여요 (다른 줄 날짜는 그대로)
     const WSI = Object.entries(NXD.wsd || {}).flatMap(([d, L]) => L.map((s0) => NXSETS['pp:' + s0.id]).filter(Boolean).map((S0) => ({ id: S0.id, subj: 'eng', p: 'rv', qs: S0.qs, title: S0.title, sub: S0.sub, day: d })));
     // 11/19 선생님 «윤건이 영어 줄여 · 8과 5·6 단어 의사소통은 내지 마 · 숙제 학습지는 아예 빼, 수업 시간으로» → NXD.ecut 줄은 from 날부터 숙제에서 빼요 (학습지는 토요일 수업 카드 NXD.wscl)
-    const EC = NXD.ecut, ecR = EC ? (EC.drop || []).map((x) => new RegExp(x)) : [], ecA = EC ? (EC.all || []).map((x) => new RegExp(x)) : [], ecOut = (it) => EC && ((it.day >= EC.from && ecR.some((r) => r.test(String(it.id)))) || ecA.some((r) => r.test(String(it.id))));  // all: 지난 날 몫(밀림)까지
+    const EC = NXD.ecut, ecR = EC ? (EC.drop || []).map((x) => new RegExp(x)) : [], ecA = EC ? (EC.all || []).map((x) => new RegExp(x)) : [], ecD2 = EC && EC.drop2 ? { from: EC.drop2.from, re: EC.drop2.re.map((x) => new RegExp(x)) } : null, ecOut = (it) => EC && ((it.day >= EC.from && ecR.some((r) => r.test(String(it.id)))) || ecA.some((r) => r.test(String(it.id))) || (ecD2 && ecD2.re.some((r) => r.test(String(it.id))) && (it.day >= ecD2.from || !(it.qs || []).some((q) => nxS().a[q.i]))));  // 11/27 «영어 문제는 수업으로 · 윤건이는 본문만 외우면 돼» → drop2: from 날부터(안 건드린 밀림까지) 영어 문제 세트를 숙제에서 빼요  // all: 지난 날 몫(밀림)까지
     return OUT.filter((it) => !(it.day > '2026-11-17' && /^pp:(mw7|mc7|mg7b)(?![a-z0-9])/.test(String(it.id)))).concat(WSI).filter((it) => !ecOut(it)).map((it) => { const mv = EC && (EC.move || {})[String(it.id).replace(/^pp:/, '')]; return mv && it.day >= EC.from ? { ...it, day: mv } : it; })
       .map((it) => (EC && EC.satSun && it.day >= EC.satSun && dowOf(it.day) === 6 ? { ...it, day: addD(it.day, 1) } : it));  // 11/21 윤건 토요일(수업 날)은 밀린 것만, 그 몫은 일요일로
   })();
@@ -9709,7 +9796,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611271329'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611271746'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
@@ -11945,8 +12032,9 @@
   if (STU_TAB) document.title = `${U.who} · ${BRAND}`;
   afterSwitch();
   sync(true).finally(() => { if (!S.profile.uni && !TEACHER && !PEEK && !TUTOR && !D.iv) setTimeout(uniSheet, 600); });
-  setInterval(() => sync(true), 60000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(true); });
+  // 받아 오기: 보고 있을 때만 1분마다 바뀐 칸만 (서버에 univ_pull 이 없으면 3분마다 통째로), 돌아오면 30초 지났을 때만
+  setInterval(() => { if (document.hidden || syncing || Date.now() < syRetryAt) return; if (Date.now() - syLastPull >= (syHas.pull === false ? 180000 : 60000) - 1000) sync(true); }, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - syLastPull > 30000 && Date.now() >= syRetryAt) sync(true); });
   // 선생님 보기에서 테마 확인용: ?theme=dark
 })();
 
