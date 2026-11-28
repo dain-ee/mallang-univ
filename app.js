@@ -2698,7 +2698,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611281801', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611281826', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7996,10 +7996,10 @@
   const nxProg = (s) => { const a = nxStore(s), n = s.qs.length, d = s.qs.filter((q) => a[q.i]).length; return { n, d, ok: s.qs.filter((q) => (a[q.i] || {}).ok).length, fx: s.qs.filter((q) => nxFx(q.i, a[q.i])).length, ps: nxBl(s.qs, a) || nxPs(s.qs, a) }; };
   const nxWdGot = (m, id) => { const r = nxS().wd[`${m}:${id}`]; return !!r && r.s >= (r.w ? 2 : 1); };
   const nxTime = (ms) => { if (!ms || ms > 3 * 3600e3) return ''; const t = Math.round(ms / 1000), m = Math.floor(t / 60), s = t % 60; return m ? `${m}분${s ? ` ${s}초` : ''}` : `${s}초`; };  // 11/21 «7분 60초» 고침
-  function nxStart(id, back, keep) { if (!NXSETS[id] && /^ls:/.test(id)) nxLesson(id.slice(3)); if (!NXSETS[id] && /^lw:/.test(id)) nxWord(id.slice(3)); if (/^l[smw]:/.test(id) && YG_CLS && !nxS().lq[id]) ygTest(id);  // 윤건: 열기 전엔 범위가 바뀌었을 수 있어요
+  function nxStart(id, back, keep) { const pp = UI.nxPaper; UI.nxPaper = 0; if (!NXSETS[id] && /^ls:/.test(id)) nxLesson(id.slice(3)); if (!NXSETS[id] && /^lw:/.test(id)) nxWord(id.slice(3)); if (/^l[smw]:/.test(id) && YG_CLS && !nxS().lq[id]) ygTest(id);  // 윤건: 열기 전엔 범위가 바뀌었을 수 있어요
     const s0 = NXSETS[id]; if (!s0) return toast('이 시험은 아직 준비 중이에요');
     if (s0.kind === 'lesson') { const x = nxS(); if (!ROLE_T && s0.date !== nxDay(nxNow()) && !nxLast(id)) return toast(s0.date > nxDay(nxNow()) ? '수업 시간에 열려요' : '이 수업은 닫혔어요'); if (!x.lq[id]) { x.lq[id] = s0.qs.map((q) => [q.i, q.perm, q.g]); const ks = Object.keys(x.lq).sort(); for (const k of ks.slice(0, -30)) { delete x.lq[k]; delete x.la[k]; } save('nx'); } }
-    UI.tab = back || 'exam'; UI.run = { kind: NXSETS[id].kind === 'words' ? 'nxw' : 'nx', id, back: back || 'exam' }; render(); if (!keep) window.scrollTo(0, 0); }
+    UI.tab = back || 'exam'; UI.run = { kind: NXSETS[id].kind === 'words' ? 'nxw' : 'nx', id, back: back || 'exam', ...(pp && YG_CLS && (back || 'exam') === 'exam' ? { pp: 1 } : {}) }; render(); if (!keep) window.scrollTo(0, 0); }
   function nxFinish(s, ok, n) {
     const x = nxS(), st = (x.st[s.id] = x.st[s.id] || {}); if (st.fin) return; const at = Date.now(); st.fin = at;
     { const b = nxBl(s.qs, nxStore(s)); if (b) [ok, n] = b; }
@@ -8111,6 +8111,7 @@
     const x = nxS(), store = nxStore(s, r), qs = r.only ? s.qs.filter((q) => r.only.includes(q.i)) : s.qs, n = qs.length;
     let cur = r.cur != null && r.cur < n ? r.cur : qs.findIndex((q) => !store[q.i]);
     const dn = qs.filter((q) => store[q.i]).length, sub = r.only ? '틀린 것만 다시' : s.sub || (s.subj ? NX_SN[s.subj] : '');
+    if (r.pp && !r.only && nxpOk(s) && (cur >= 0 || r.rv || r.pg != null)) return nxPaper(s, r, store, qs, sub);  // 11/28 윤건 수업 카드: 학습지 한 장씩
     if (cur < 0) {
       const ok = qs.filter((q) => store[q.i].ok).length;
       if (!r.tmp) nxFinish(s, ok, n);
@@ -8142,9 +8143,109 @@
     return `<div class="nx-wrap ${v.psg ? 'wide' : ''}">${nxTop(s, cur + 1, n, sub, dn / n, `<button class="btn sm ${r.omr ? 'soft' : ''}" data-nxomr type="button" aria-expanded="${!!r.omr}">${r.omr ? '접기' : '전체 문제 보기'}</button>`)}${omr}
       ${v.psg ? `<div class="nx-split ${fresh ? 'nx-in' : ''}">${v.psg}<div class="nx-side">${side}</div></div>` : `<div class="nx-one ${fresh ? 'nx-in' : ''}">${side}</div>`}${cta}</div>`;
   }
+  // 한 문제 기록 (한 문제씩 풀 때와 학습지 한 장 채점이 같이 써요): 기록 칸 · 시작 시각 · 오답 노트
+  function nxRec(s, r, q, ok, v, sc) {
+    const store = nxStore(s, r), x = nxS();  // 누를 때 다시 찾아요 (서버 맞춤 뒤 옛 기록에 적지 않게 10/26)
+    store[q.i] = { ok, v, at: Date.now(), ...(sc ? { sc } : {}) };
+    if (r.tmp && sc) nxParaKeep(q.i, sc);
+    if (!r.tmp) { const st = (x.st[s.id] = x.st[s.id] || {}); if (!st.t0) st.t0 = Date.now(); }
+    const wid = 'nx:' + q.i;
+    if (!ok) addWrong(wid, { src: 'nx', qi: q.i, set: s.id, subj: q.subj || s.subj, subjName: NX_SN[q.subj || s.subj] || '영어', area: s.kind === 'mock' ? s.title : `${(NXU[s.unit || (NXSETS[(NXQ[q.i] || {}).set] || {}).unit] || {}).code || ''} ${q.cat || ''}`.trim(), sub: plain(q.q).slice(0, 40), title: `${s.title} ${(q.n || s.qs.indexOf(q) + 1)}번` });
+    else { gotIt(wid); if (S.wrong && S.wrong[wid]) clearWrong(wid); }
+    if (ok) UI.jgRun = (UI.jgRun || 0) + 1; else UI.jgRun = 0;  // 소리·팡팡은 cheerCheck 가 (10/31)
+  }
+  // 11/28 선생님 «윤건이 오늘 수업 … 그냥 학습지랑 똑같이 학습지 페이지를 한 장씩 구성해, 한 문제씩 푸는 게 아니라 · UI 예쁘고 설명도 읽고 싶게»
+  //   → 수업 탭 카드(sq 묶음)에서 연 객관식 세트만 학습지 한 장(5문제 안팎, 같은 지문은 한 상자로 묶고 장을 안 넘겨요)씩 풀어요
+  //   번호를 누르고 「이 장 채점」 → 문제 번호에 동그라미·빗금(시험지 꼴 xpMk) + 문제마다 해설 카드(핵심 한 줄 · 근거 문장 형광펜 · 내가 고른 것이 왜 아닌지) → 「다음 장」
+  //   기록은 한 문제씩 풀 때와 같은 칸(nxStore)에 같은 꼴 { ok, v, at } 로 써요(nxRec). 채점 전 고른 번호는 이 기기(mu:nxpp:…)에 바로 저장돼요
+  const nxpOk = (s) => s.qs.length > 1 && s.qs.every((q) => q.t === 'mc' && Array.isArray(q.ch) && q.ch.length > 1);
+  const nxpLong = (q) => !!q.p && (q.p.length > 70 || /\n/.test(q.p));
+  function nxpPages(qs) {
+    const grp = []; qs.forEach((q, k) => { const g = grp[grp.length - 1]; if (g && nxpLong(q) && qs[g[g.length - 1]].p === q.p) g.push(k); else grp.push([k]); });
+    const PG = [[]]; let n = 0, w = 0;
+    for (const g of grp) { const q0 = qs[g[0]], gw = g.length + (nxpLong(q0) ? Math.min(1.5, q0.p.length / 700) : 0); if (PG[PG.length - 1].length && (n >= 5 || n + g.length > 6 || w + gw > 8)) { PG.push([]); n = 0; w = 0; } PG[PG.length - 1].push(g); n += g.length; w += gw; }
+    const cn = (x) => x.flat().length; if (PG.length > 1 && cn(PG[PG.length - 1]) <= 2 && cn(PG[PG.length - 2]) + cn(PG[PG.length - 1]) <= 7) PG.push([...PG.pop(), ...PG.pop()].sort((a, b) => a[0] - b[0]));  // 끝에 한두 문제만 남으면 앞 장에 붙여요
+    return PG;
+  }
+  const nxpKey = (s) => `mu:nxpp:${U.who}:${s.id}`;
+  const nxpGet = (s) => { try { return JSON.parse(localStorage.getItem(nxpKey(s)) || '{}') || {}; } catch (e) { return {}; } };
+  const nxpPut = (s, P) => { try { localStorage.setItem(nxpKey(s), JSON.stringify(P)); } catch (e) {} };
+  const NXP_CN = '①②③④⑤⑥⑦⑧⑨⑩';
+  // 해설 글: 따옴표로 든 영어는 영어 글씨로 살짝 띄워요
+  const nxpFmt = (t) => esc(t).replace(/&quot;([^&]{2,}?)&quot;/g, '<span class="nxp-en">$1</span>');
+  function nxpExp(q, pick, ok, k) {
+    let body = String(q.exp || '').replace(/^\s*정답\s*[①-⑩](?:\s*[,·]\s*[①-⑩])*\s*[·:]?\s*/, '');
+    const src = (body.match(/\((시험지 \d+번)\)\s*$/) || body.match(/^\s*(시험지 \d+번)\s*$/) || [])[1] || '';
+    body = body.replace(/\s*\(시험지 \d+번\)\s*$/, '').replace(/^\s*시험지 \d+번\s*$/, '').trim();
+    const ss = body ? body.replace(/([요다]\.)\s+/g, '$1\u0001').split('\u0001').map((x) => x.trim()).filter(Boolean) : [];
+    const ans = String(q.ch[q.a] || '').replace(/^[①-⑩]\s*/, '');
+    const head = ss.shift() || `정답은 ${NXP_CN[q.a]} ${ans} 예요.`;
+    const mi = !ok && pick != null ? ss.findIndex((t) => t.includes(NXP_CN[pick])) : -1, why = mi >= 0 ? ss.splice(mi, 1)[0] : '';
+    // 근거 문장: 해설이 든 영어 구절을 지문에서 찾아 그 문장에 형광펜을 칠해요 (못 찾으면 안 보여요)
+    let ev = '';
+    if (nxpLong(q)) {
+      const nq = (x) => String(x).replace(/<[^>]+>/g, '').replace(/[’‘]/g, "'").replace(/[“”]/g, '"');
+      const P = nq(q.p), sents = P.replace(/([.!?]["']?)\s+(?=[A-Z"(ⓐ-ⓩ①-⑩])/g, '$1\u0001').split(/\u0001|\n+/).map((x) => x.trim()).filter(Boolean);
+      const E = nq(q.exp || ''), qd = [...E.matchAll(/"([^"]{4,})"/g)].map((m) => m[1]), bare = [...E.replace(/"[^"]*"/g, ' ').matchAll(/[A-Za-z][A-Za-z']*(?:[ ,]+[A-Za-z][A-Za-z']*)+|[A-Za-z]{5,}/g)].map((m) => m[0]);
+      const fr = [...qd, ...bare].map((x) => x.replace(/[.,]$/, '').trim()).filter((x) => /[A-Za-z]{3}/.test(x)).sort((a, b) => b.length - a.length);
+      for (const f of fr) { const lo = f.toLowerCase(), sn = sents.find((x) => x.toLowerCase().includes(lo)); if (!sn) continue;
+        const e = esc(sn), ef = esc(f), at = e.toLowerCase().indexOf(ef.toLowerCase()); if (at < 0) continue;
+        ev = `${e.slice(0, at)}<mark>${e.slice(at, at + ef.length)}</mark>${e.slice(at + ef.length)}`; break; }
+    }
+    const mine = pick != null ? String(q.ch[pick] || '').replace(/^[①-⑩]\s*/, '') : '';
+    return `<div class="nxp-ex ${ok ? 'ok' : 'no'}" style="--i:${k}">
+      <div class="nxp-ex-top"><span class="nxp-pill ans">정답 ${NXP_CN[q.a]}</span>${ok ? '<span class="nxp-pill good">맞았어요</span>' : pick != null ? `<span class="nxp-pill my">내 답 ${NXP_CN[pick]}</span>` : ''}${q.cat ? `<span class="nxp-cat">${esc(q.cat)}</span>` : ''}</div>
+      <p class="nxp-h">${nxpFmt(head)}</p>
+      ${ev ? `<div class="nxp-ev"><span class="nxp-lab">근거 문장</span><p>${ev}</p></div>` : ''}
+      ${!ok && pick != null ? `<div class="nxp-why"><span class="nxp-lab">${why ? `내가 고른 ${NXP_CN[pick]}, 왜 아닐까` : '내가 고른 것과 정답'}</span>${why ? `<p>${nxpFmt(why)}</p>` : `<p class="nxp-cmp no"><b>${NXP_CN[pick]}</b><span>${q.html ? esc(mine) : rich(mine)}</span></p><p class="nxp-cmp"><b>${NXP_CN[q.a]}</b><span>${q.html ? esc(ans) : rich(ans)}</span></p>`}</div>` : ''}
+      ${q.trap ? `<div class="nxp-why"><span class="nxp-lab">함정</span><p>${nxpFmt(q.trap)}</p></div>` : ''}
+      ${ss.length ? `<ul class="nxp-more">${ss.map((t) => `<li>${nxpFmt(t)}</li>`).join('')}</ul>` : ''}
+      ${src ? `<span class="nxp-src">${esc(src)}</span>` : ''}</div>`;
+  }
+  function nxPaper(s, r, store, qs, sub) {
+    const PG = nxpPages(qs), P = nxpGet(s), doneP = (pg) => pg.flat().every((k) => store[qs[k].i]);
+    let p = r.pg != null && r.pg < PG.length ? r.pg : r.rv ? 0 : PG.findIndex((pg) => !doneP(pg)); if (p < 0) p = 0; r.pg = p;
+    const pg = PG[p], ks = pg.flat(), graded = ks.every((k) => store[qs[k].i]), okN = ks.filter((k) => (store[qs[k].i] || {}).ok).length;
+    const fresh = render.nxpPg !== `${s.id}:${p}:${graded ? 1 : 0}`; render.nxpPg = `${s.id}:${p}:${graded ? 1 : 0}`;
+    const dn = qs.filter((q) => store[q.i]).length, all = dn === qs.length;
+    const choices = (q, rec) => { const pk = rec ? +rec.v : P[q.i], short = q.ch.every((c) => String(c).replace(/<[^>]+>/g, '').length <= 16);
+      return `<div class="xp-ch nxp-ch ${short ? 'row' : ''}">${q.ch.map((c, k) => `<button type="button" class="xp-c ${pk === k ? 'on' : ''} ${rec && k === q.a ? 'ans' : ''} ${rec && pk === k && !rec.ok ? 'miss' : ''}" data-nxpk="${k}" ${rec ? 'disabled' : ''}><i>${k + 1}</i><span>${((t) => (q.html ? esc(t) : nxDlg(t)))(String(c).replace(/^[①-⑩]\s*/, ''))}</span></button>`).join('')}</div>`; };
+    const psg = (q) => `<div class="xp-text nxp-text">${q.html ? q.p : nxRich(q.p)}</div>`;
+    let ei = 0;
+    const one = (k, shared) => { const q = qs[k], rec = store[q.i], mk = rec ? (rec.ok ? 'o' : 'x') : '';
+      return `<div class="xp-q nxp-q ${rec ? 'done' : ''} ${mk ? 'mk-' + mk : ''}" data-nxq="${esc(q.i)}" data-n="${k + 1}"><p class="xp-stem"><b class="xp-n">${mk ? xpMk(mk === 'o') : ''}${k + 1}.</b> ${nxRich(q.q)}</p>${!shared && q.p ? (nxpLong(q) ? psg(q) : `<div class="xp-text nxp-text sm">${q.html ? q.p : nxRich(q.p)}</div>`) : ''}${choices(q, rec)}${rec ? nxpExp(q, rec.v != null ? +rec.v : null, rec.ok, ei++) : ''}</div>`; };
+    const body = pg.map((g) => g.length > 1 ? `<div class="xp-set nxp-set"><p class="xp-stem"><b>[${g[0] + 1}~${g[g.length - 1] + 1}]</b> 다음 글을 읽고 물음에 답하시오.</p>${psg(qs[g[0]])}</div>${g.map((k) => one(k, 1)).join('')}` : one(g[0], 0)).join('');
+    const tabs = PG.length > 1 ? `<div class="nxp-tabs" role="tablist">${PG.map((x, n) => { const d = doneP(x), o = x.flat().filter((k) => (store[qs[k].i] || {}).ok).length; return `<button type="button" role="tab" aria-selected="${n === p}" class="${n === p ? 'on' : ''} ${d ? 'dn' : ''}" data-nxpg="${n}"><b>${n + 1}장</b><small>${d ? `${o}/${x.flat().length}` : `${x.flat()[0] + 1}${x.flat().length > 1 ? `~${x.flat()[x.flat().length - 1] + 1}` : ''}번`}</small></button>`; }).join('')}</div>` : '';
+    const head = `<div class="nxp-head"><div class="nxp-hl"><span class="nxp-kick">학습지</span><b>${esc(s.title)}</b><small>${esc(sub)}</small></div><div class="nxp-hr">${graded ? `<span class="xp-score nxp-score">${okN}/${ks.length}</span>` : ''}<span class="xp-pg"><b>${p + 1}</b><small>${PG.length}장 중</small></span></div>${XP_PEN}</div>`;
+    const picked = ks.filter((k) => !store[qs[k].i] && P[qs[k].i] != null).length, left = ks.filter((k) => !store[qs[k].i]).length;
+    const nextP = PG.findIndex((x, n) => n > p && !doneP(x)), anyP = PG.findIndex((x) => !doneP(x));
+    const bar = !graded ? `<div class="cta-bar"><span class="xp-saved" id="xp-saved">${picked ? '고른 번호는 저장돼요' : '번호를 눌러 골라요'}</span><button class="btn primary big block" id="nxp-go" type="button">이 장 채점 · <span id="nxp-cnt" class="num">${picked}/${left}</span></button></div>`
+      : `<div class="cta-bar">${p > 0 ? '<button class="btn big" id="nxp-prev" type="button">‹ 앞 장</button>' : ''}<button class="btn primary big block" id="nxp-next" type="button" data-to="${r.rv ? (p < PG.length - 1 ? p + 1 : 'end') : nextP >= 0 ? nextP : anyP >= 0 ? anyP : 'end'}">${r.rv ? (p < PG.length - 1 ? '다음 장 ›' : '결과로 돌아가기') : nextP >= 0 ? `다음 장 · ${nextP + 1}장 ›` : anyP >= 0 ? `남은 ${anyP + 1}장 풀기 ›` : '결과 보기 ›'}</button></div>`;
+    const res = graded ? `<div class="nxp-res ${fresh ? 'in' : ''}"><b class="num">${okN}<small> / ${ks.length}</small></b><span>${okN === ks.length ? '이 장은 다 맞았어요. 해설로 한 번 더 확인해요' : `틀린 ${ks.length - okN}문제는 오답 노트에 들어갔어요. 아래 해설에서 근거 문장을 꼭 봐요`}</span></div>` : '';
+    return `<div class="nx-wrap nxp-wrap">${nxTop(s, dn, qs.length, sub, dn / qs.length)}${tabs}${res}<div class="xp-paper nxp-paper ${graded ? 'graded' : ''} ${fresh ? 'nxp-in' : ''}">${head}<div class="nxp-body">${body}</div><div class="nxp-foot">${esc(s.title)} · ${p + 1}장</div></div><div style="height:96px"></div>${bar}</div>`;
+  }
+  function nxpBind(s, r, qs) {
+    const P = nxpGet(s), x = nxS(), top = () => { render(); const w = $('main .nxp-wrap'); window.scrollTo({ top: 0, behavior: 'auto' }); if (w && !RM()) w.animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: 220 }); };
+    const cnt = () => { const L = $$('main .nxp-q:not(.done)'), n = L.filter((e) => P[e.dataset.nxq] != null).length, c = $('#nxp-cnt'), sv = $('#xp-saved'); if (c) c.textContent = `${n}/${L.length}`; if (sv) { sv.textContent = n ? '고른 번호는 저장돼요' : '번호를 눌러 골라요'; sv.classList.remove('pop'); void sv.offsetWidth; sv.classList.add('pop'); } };
+    $$('main .nxp-q:not(.done) [data-nxpk]').forEach((b) => (b.onclick = () => { const el = b.closest('.nxp-q'), qi = el.dataset.nxq, k = +b.dataset.nxpk;
+      P[qi] = k; nxpPut(s, P); if (!r.tmp) { const st = (x.st[s.id] = x.st[s.id] || {}); if (!st.t0) st.t0 = Date.now(); }
+      $$('[data-nxpk]', el).forEach((c) => c.classList.toggle('on', c === b)); el.classList.remove('nxp-need'); cnt(); }));
+    $$('[data-nxpg]').forEach((b) => (b.onclick = () => { r.pg = +b.dataset.nxpg; top(); }));
+    const go = $('#nxp-go'); if (go) go.onclick = () => {
+      const els = $$('main .nxp-q:not(.done)'), miss = els.filter((e) => P[e.dataset.nxq] == null);
+      if (miss.length) { toast(`${miss.map((e) => e.dataset.n).join(', ')}번을 아직 안 골랐어요`); miss.forEach((e) => { e.classList.remove('nxp-need'); void e.offsetWidth; e.classList.add('nxp-need'); }); miss[0].scrollIntoView({ block: 'center', behavior: RM() ? 'auto' : 'smooth' }); return; }
+      let o = 0; for (const e of els) { const q = qs.find((y) => y.i === e.dataset.nxq); if (!q) continue; const k = P[q.i], ok = k === q.a; if (ok) o++; nxRec(s, r, q, ok, k); delete P[q.i]; }
+      nxpPut(s, P); save('nx');
+      const store = nxStore(s, r); if (!r.tmp && qs.every((q) => store[q.i])) nxFinish(s, qs.filter((q) => store[q.i].ok).length, qs.length);
+      render(); const w = $('main .nxp-paper'); if (w) w.scrollIntoView({ block: 'start', behavior: RM() ? 'auto' : 'smooth' });
+      if (!RM() && o === els.length && els.length) setTimeout(() => boom(innerWidth / 2, innerHeight * 0.3, 2), 350);
+    };
+    const pv = $('#nxp-prev'); if (pv) pv.onclick = () => { r.pg = Math.max(0, (r.pg || 0) - 1); top(); };
+    const nx = $('#nxp-next'); if (nx) nx.onclick = () => { const to = nx.dataset.to; if (to === 'end') { r.pg = null; r.rv = false; r.omr = false; r.cur = null; } else r.pg = +to; top(); };
+  }
   function nxBind() {
     const r = UI.run;
-    $$('[data-nx]').forEach((b) => (b.onclick = () => (b.closest('.st-steps, .st-next, .st-lsub, .st-uk') ? stKeep(() => nxStart(b.dataset.nx, 'study', true)) : nxStart(b.dataset.nx, UI.tab === 'hw' || UI.tab === 'study' ? UI.tab : ((UI.clRun = UI.tab === 'exam' ? 1 : UI.clRun), 'exam')))));
+    $$('[data-nx]').forEach((b) => (b.onclick = () => (UI.nxPaper = b.dataset.nxpaper ? 1 : 0, b.closest('.st-steps, .st-next, .st-lsub, .st-uk') ? stKeep(() => nxStart(b.dataset.nx, 'study', true)) : nxStart(b.dataset.nx, UI.tab === 'hw' || UI.tab === 'study' ? UI.tab : ((UI.clRun = UI.tab === 'exam' ? 1 : UI.clRun), 'exam')))));
     $$('[data-nxst]').forEach((b) => (b.onclick = () => { const u = NXU[(NXSETS[(UI.run || {}).id] || {}).unit]; if (!u) return; UI.stS = u.subj; UI.stU = u.id; UI.stT = b.dataset.nxst; UI.run = null; UI.tab = 'study'; render(); window.scrollTo(0, 0); }));
     $$('[data-nxu]').forEach((b) => (b.onclick = () => { UI.nxUnit = b.dataset.nxu || null; render(); window.scrollTo(0, 0); }));
     $$('[data-nxs]').forEach((b) => (b.onclick = () => { UI.nxSubj = b.dataset.nxs; UI.nxUnit = null; render(); }));
@@ -8154,6 +8255,7 @@
     { const b = $('[data-nxlearned]'); if (b) b.onclick = () => { const x = nxS(), st = (x.st[s.id] = x.st[s.id] || {}); st.learned = Date.now(); if (s.learn && s.learn.nk === 'comm') st.dlg = 1; save('nx'); r.learn = false; render(); window.scrollTo(0, 0); }; const a = $('[data-nxlearn]'); if (a) a.onclick = () => { r.learn = true; render(); window.scrollTo(0, 0); }; const sv = $('[data-nxsv]'); if (sv) sv.onclick = () => { UI.nxSv = !UI.nxSv; render(); }; if (r.inLearn) return; }
     if (r.kind === 'nxw') return nxwBind(s);
     const x = nxS(), store = nxStore(s, r), qs = r.only ? s.qs.filter((q) => r.only.includes(q.i)) : s.qs;
+    if ($('main .nxp-paper')) return nxpBind(s, r, qs);
     const om = $('[data-nxomr]'); if (om) om.onclick = () => { r.omr = !r.omr; render(); };
     $$('[data-nxj]').forEach((b) => (b.onclick = () => { r.cur = +b.dataset.nxj; render(); }));
     const re = $('[data-nxre]'); if (re) re.onclick = () => { for (const q of s.qs) { delete x.a[q.i]; delete NXPG[q.i]; } delete x.st[s.id]; save('nx'); UI.run = { kind: 'nx', id: s.id, back: r.back }; render(); window.scrollTo(0, 0); };
@@ -8166,14 +8268,7 @@
     if (store[q.i]) return;
     r.cur = cur;
     nxBindQ(q, (ok, v, sc) => {
-      const store = nxStore(s, r), x = nxS();  // 누를 때 다시 찾아요 (서버 맞춤 뒤 옛 기록에 적지 않게 10/26)
-      store[q.i] = { ok, v, at: Date.now(), ...(sc ? { sc } : {}) };
-      if (r.tmp && sc) nxParaKeep(q.i, sc);
-      if (!r.tmp) { const st = (x.st[s.id] = x.st[s.id] || {}); if (!st.t0) st.t0 = Date.now(); }
-      const wid = 'nx:' + q.i;
-      if (!ok) addWrong(wid, { src: 'nx', qi: q.i, set: s.id, subj: q.subj || s.subj, subjName: NX_SN[q.subj || s.subj] || '영어', area: s.kind === 'mock' ? s.title : `${(NXU[s.unit || (NXSETS[(NXQ[q.i] || {}).set] || {}).unit] || {}).code || ''} ${q.cat || ''}`.trim(), sub: plain(q.q).slice(0, 40), title: `${s.title} ${(q.n || s.qs.indexOf(q) + 1)}번` });
-      else { gotIt(wid); if (S.wrong && S.wrong[wid]) clearWrong(wid); }
-      if (ok) UI.jgRun = (UI.jgRun || 0) + 1; else UI.jgRun = 0;  // 소리·팡팡은 cheerCheck 가 (10/31)
+      nxRec(s, r, q, ok, v, sc);
       save('nx'); render(); seeVerdict();
       if (innerWidth < 900) { const vd = $('main .nx-vd'); if (vd) vd.scrollIntoView({ block: 'center', behavior: RM() ? 'auto' : 'smooth' }); }
     });
@@ -8635,7 +8730,7 @@
       return `<div class="li ${canC ? 'btnlike' : 'is-lock'} ${rdOk ? 'is-done' : ''}" ${canC ? `data-task="cl:rd:${esc(u.id)}:${L.k}"` : 'aria-disabled="true"'}><div class="ico">${ic(rdOk ? 'ok' : canC ? 'memo' : '1f512')}</div><div class="body"><div class="t">${esc(u.code || '')} 본문 ${esc(L.m3)} · ${(((u.notes || {}).passages || [])[L.pi] || {}).sents ? u.notes.passages[L.pi].sents.length + '문장 · ' : ''}문장 분석하고 필기</div><div class="d">${n ? `필기 ${n}개 · 다음 숙제로 다시 떠올려요` : '문장마다 구조를 보고, 단어를 끌거나 문장 밑에 필기해요'}</div></div>${canC ? '<span class="chev"></span>' : ''}</div>`; }));
     if (rdRows.length) CS.tx = [];
     const wsH = `<div class="eyebrow" style="margin:4px 0 6px">학교 학습지 · 수업 시간에 같이 풀어요</div>${CS.ws.map((x) => crow(x, 'memo')).join('')}<div style="height:10px"></div>`;
-    const clsRows = CS.sq.length || CS.rqa.length || CS.gr.length || CS.tx.length || CS.rq.length || CS.ws.length || rdRows.length ? `${CS.sq.map((G) => `<div class="eyebrow" style="margin:4px 0 6px">${esc(G.h)}</div>${G.xs.map((x) => crow(x, /기출/.test(x.title) ? 'pencil' : 'memo')).join('')}<div style="height:10px"></div>`).join('')}${CS.rqa.length ? `<div class="eyebrow" style="margin:4px 0 6px">지난 수업에서 못 한 것 · 먼저 해요</div>${CS.rqa.map((x) => crow(x, 'eng')).join('')}<div style="height:10px"></div>` : ''}${CS.ws.length && !P.wsLast ? wsH : ''}${CS.gr.length ? `<div class="eyebrow" style="margin:4px 0 6px">문법 · 개념 복습하고 단계별로 다시 풀기</div>${CS.gr.map((x) => crow(x, 'pencil')).join('')}` : ''}${rdRows.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 문장 분석하고 필기</div>${rdRows.join('')}` : CS.tx.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 필기하고 외우기</div>${CS.tx.map((x) => crow(x, 'eng')).join('')}` : ''}${CS.rq.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 학교 시험 꼴 문제</div>${CS.rq.map((x) => crow(x, 'eng')).join('')}` : ''}${CS.ws.length && P.wsLast ? '<div style="height:14px"></div>' + wsH : ''}` : '';
+    const clsRows = CS.sq.length || CS.rqa.length || CS.gr.length || CS.tx.length || CS.rq.length || CS.ws.length || rdRows.length ? `${CS.sq.map((G) => `<div class="eyebrow" style="margin:4px 0 6px">${esc(G.h)}</div>${G.xs.map((x) => crow(x, /기출/.test(x.title) ? 'pencil' : 'memo').replace(' data-nx=', ' data-nxpaper="1" data-nx=')).join('')}<div style="height:10px"></div>`).join('')}${CS.rqa.length ? `<div class="eyebrow" style="margin:4px 0 6px">지난 수업에서 못 한 것 · 먼저 해요</div>${CS.rqa.map((x) => crow(x, 'eng')).join('')}<div style="height:10px"></div>` : ''}${CS.ws.length && !P.wsLast ? wsH : ''}${CS.gr.length ? `<div class="eyebrow" style="margin:4px 0 6px">문법 · 개념 복습하고 단계별로 다시 풀기</div>${CS.gr.map((x) => crow(x, 'pencil')).join('')}` : ''}${rdRows.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 문장 분석하고 필기</div>${rdRows.join('')}` : CS.tx.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 필기하고 외우기</div>${CS.tx.map((x) => crow(x, 'eng')).join('')}` : ''}${CS.rq.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 학교 시험 꼴 문제</div>${CS.rq.map((x) => crow(x, 'eng')).join('')}` : ''}${CS.ws.length && P.wsLast ? '<div style="height:14px"></div>' + wsH : ''}` : '';
     const B = { h1: P.tu || P.gt || P.lt.length ? '수업 전 시험' : '단어 시험', tests: `<div class="list">${CS.lt.map((x) => crow(x, 'books')).join('')}${!P.off.includes('ls') && (P.tu || P.gt || nxS().lq['ls:' + sl.date]) ? row('ls', P.gt ? '문법 시험' : '천일문 시험') : ''}${P.off.includes('lw') ? '' : row('lw', '단어 시험')}</div>`, items: chRows || m3Rows || clsRows || grRows || txRows ? `<div class="list">${chRows}${m3Rows}${clsRows || txRows + grRows}</div>` : '', sub2: '누르면 그 단원이 열려요' };
     if (bare) return B;
     return `<section class="card c6 jw-cl yg-cl"><div class="card-h"><h2>${ic('cal')} ${when} 수업</h2><span class="tag ${sl.open ? 'blue' : ''}">${sl.open ? '수업 중' : `${esc(timeKo(sl.time) || '')} 시작`}</span></div>
@@ -9796,7 +9891,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611281801'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611281826'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

@@ -5704,3 +5704,82 @@ a.dy-home .pm-h-t { color: var(--t1, #191f28); }
 .miss-card.mc2 .miss-b .btn { height: 44px; padding: 0 18px; border-radius: 12px; font-size: 15px; }
 .miss-card.mc2 .miss-b .btn.x-ic { width: 44px; padding: 0; }
 @media (max-width: 640px) { .miss-card.mc2 { padding: 16px 18px; } .miss-card.mc2 .miss-b { padding-left: 58px; } }
+
+/* 11/28 윤건 수업 카드 · 학습지 한 장씩 (시험지 꼴 .xp-* 를 그대로 쓰고 한 단으로) · 종이 안은 늘 흰 종이라 색은 고정값 */
+.nxp-wrap { max-width: 820px; margin: 0 auto; }
+.nxp-tabs { display: flex; gap: 8px; overflow-x: auto; margin: 12px 0 0; padding: 2px 0 4px; scrollbar-width: none; }
+.nxp-tabs::-webkit-scrollbar { display: none; }
+.nxp-tabs button { flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--t2); font: inherit; cursor: pointer; transition: background .18s, border-color .18s, transform .18s; -webkit-tap-highlight-color: transparent; }
+.nxp-tabs button:active { transform: scale(.96); }
+.nxp-tabs b { font-size: 14px; font-weight: 700; color: var(--t1); }
+.nxp-tabs small { font-size: 12px; color: var(--t3); font-variant-numeric: tabular-nums; }
+.nxp-tabs button.on { border-color: var(--blue); background: var(--blue-soft); }
+.nxp-tabs button.on b { color: var(--blue-d); }
+.nxp-tabs button.dn small::before { content: '✓ '; color: var(--green); font-weight: 700; }
+.nxp-res { display: flex; align-items: center; gap: 16px; margin: 12px 0 0; padding: 16px 20px; border-radius: var(--r-card); background: var(--card); }
+.nxp-res.in { animation: okPop .45s var(--spring) both; }
+.nxp-res b { flex: none; font-size: 32px; font-weight: 800; color: var(--t1); letter-spacing: -0.02em; }
+.nxp-res b small { font-size: 18px; color: var(--t3); font-weight: 700; }
+.nxp-res span { font-size: 14px; line-height: 1.55; color: var(--t2); }
+.nxp-paper { margin-top: 12px; padding: 28px 34px 16px; font-size: 15px; line-height: 1.65; }
+.nxp-paper.nxp-in { animation: viewIn .35s var(--ease) both; }
+.nxp-head { position: relative; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; padding: 0 0 12px; margin: 0 0 22px; border-bottom: 2px solid #111; font-family: "Yet", "Pretendard", -apple-system, "Apple SD Gothic Neo", sans-serif; }
+.nxp-hl { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.nxp-kick { width: fit-content; margin: 0 0 6px; padding: 1px 9px; border: 1px solid #111; font-size: 12px; font-weight: 700; letter-spacing: .3em; }
+.nxp-hl b { font-size: 20px; font-weight: 800; line-height: 1.35; letter-spacing: -0.01em; }
+.nxp-hl small { font-size: 13px; color: #555; }
+.nxp-hr { display: flex; align-items: center; gap: 14px; flex: none; }
+.xp-score.nxp-score { position: static; display: inline-block; font-size: 34px; line-height: 1; animation: nxpStamp .5s var(--spring) both; }
+@keyframes nxpStamp { from { opacity: 0; transform: rotate(-9deg) scale(1.6); } to { opacity: 1; transform: rotate(-9deg) scale(1); } }
+.nxp-body .xp-q { margin: 0 0 30px; scroll-margin: 90px; }
+.nxp-body .xp-set { margin: 0 0 12px; }
+.nxp-body .xp-stem { font-size: 15.5px; }
+.nxp-text { white-space: pre-wrap; line-height: 1.75; font-size: 15px; padding: 10px 12px; }
+.nxp-text u, .nxp-ch u { text-decoration: underline; text-underline-offset: 3px; }
+.nxp-ch { margin-top: 6px; }
+.nxp-ch .xp-c { padding: 6px 8px; font-size: 15px; transition: background .15s; }
+.nxp-ch .xp-c i { width: 1.45em; height: 1.45em; margin-top: .05em; font-size: .85em; }
+.nxp-ch .xp-c.on i { animation: tapPop .3s var(--spring); }
+.nxp-q:not(.done) .xp-c:hover { background: #f4f6f9; }
+.graded .xp-c.miss span, .nxp-q.done .xp-c.miss span { text-decoration: line-through; text-decoration-color: rgba(224, 53, 61, .7); text-decoration-thickness: 1.5px; }
+.nxp-q.done .xp-c.ans i { border-color: #e5484d; box-shadow: 0 0 0 1px #e5484d; color: #e5484d; background: none; }
+.nxp-q.done .xp-c.on.ans i { background: #111; color: #fff; box-shadow: 0 0 0 2px #e5484d; }
+.nxp-q.nxp-need { animation: shake .4s; }
+.nxp-q.nxp-need .xp-stem { background: linear-gradient(transparent 60%, #ffe8a3 60%); }
+.nxp-q .xp-mk path { stroke-dasharray: 220; animation: nxpDraw .6s ease-out both; }
+@keyframes nxpDraw { from { stroke-dashoffset: 220; } to { stroke-dashoffset: 0; } }
+.nxp-foot { margin: 6px 0 0; padding: 8px 0 0; border-top: 1.5px solid #111; text-align: center; font: 600 12px "Yet", "Pretendard", -apple-system, sans-serif; color: #555; }
+/* 해설 카드: 핵심 한 줄 → 근거 문장(형광펜) → 내가 고른 것이 왜 아닌지 → 더 보기 */
+.nxp-ex { margin: 14px 0 0; padding: 16px 18px; border-radius: 16px; background: #f6f8fb; color: #191f28; font-family: "Yet", "Pretendard", -apple-system, "Apple SD Gothic Neo", sans-serif; animation: waveIn .5s var(--ease) both; animation-delay: calc(var(--i, 0) * 90ms); }
+.nxp-ex.no { background: #fff7f5; }
+.nxp-ex-top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 10px; }
+.nxp-pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; line-height: 1.5; }
+.nxp-pill.ans { background: #e8f3ff; color: #1b64da; }
+.nxp-pill.good { background: #e5f8ef; color: #03a061; }
+.nxp-pill.my { background: #ffe9e9; color: #d6303e; }
+.nxp-cat { margin-left: auto; font-size: 12px; color: #8b95a1; }
+.nxp-h { margin: 0; font-size: 16.5px; font-weight: 700; line-height: 1.6; letter-spacing: -0.01em; color: #191f28; }
+.nxp-en { padding: 1px 6px; border-radius: 6px; background: rgba(0, 0, 0, .05); font-family: 'Georgia', 'AppleMyungjo', serif; font-weight: 500; font-size: .97em; }
+.nxp-ev, .nxp-why { margin: 12px 0 0; padding: 12px 14px; border-radius: 12px; background: #fff; }
+.nxp-why { background: #fff4dc; }
+.nxp-lab { display: block; margin: 0 0 4px; font-size: 12px; font-weight: 700; color: #8b95a1; letter-spacing: .02em; }
+.nxp-why .nxp-lab { color: #b56d00; }
+.nxp-ev p, .nxp-why p { margin: 0; font-size: 15px; line-height: 1.7; color: #333d4b; }
+.nxp-ev p { font-family: 'Georgia', 'AppleMyungjo', serif; }
+.nxp-ev mark { color: inherit; background: linear-gradient(transparent 52%, #ffe066 52%) no-repeat; background-size: 100% 100%; padding: 0 2px; font-weight: 700; animation: nxpMark .7s .35s var(--ease) both; animation-delay: calc(var(--i, 0) * 90ms + 350ms); }
+@keyframes nxpMark { from { background-size: 0% 100%; } to { background-size: 100% 100%; } }
+.nxp-more { margin: 10px 0 0; padding: 0 0 0 18px; font-size: 14px; line-height: 1.7; color: #4e5968; }
+.nxp-more li { margin: 2px 0; }
+.nxp-src { display: block; margin: 10px 0 0; font-size: 12px; color: #b0b8c1; }
+@media (max-width: 760px) {
+  .nxp-paper, .nxp-paper.graded { padding: 18px 14px 12px; }
+  .nxp-hl b { font-size: 17px; }
+  .xp-score.nxp-score { font-size: 28px; }
+  .nxp-ex { padding: 14px 14px; }
+  .nxp-h { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { .nxp-ex, .nxp-ev mark, .nxp-q .xp-mk path, .xp-score.nxp-score, .nxp-paper.nxp-in, .nxp-res.in { animation: none; } }
+.nxp-why p.nxp-cmp { display: flex; gap: 8px; align-items: baseline; margin: 2px 0 0; }
+.nxp-cmp b { flex: none; font-weight: 700; color: #1b64da; }
+.nxp-cmp.no b { color: #8b95a1; }
+.nxp-cmp.no span { color: #8b95a1; text-decoration: line-through; text-decoration-color: rgba(224, 53, 61, .6); }
