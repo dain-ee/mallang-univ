@@ -2698,7 +2698,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611281832', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611281840', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -8158,12 +8158,12 @@
   //   → 수업 탭 카드(sq 묶음)에서 연 객관식 세트만 학습지 한 장(5문제 안팎, 같은 지문은 한 상자로 묶고 장을 안 넘겨요)씩 풀어요
   //   번호를 누르고 「이 장 채점」 → 문제 번호에 동그라미·빗금(시험지 꼴 xpMk) + 문제마다 해설 카드(핵심 한 줄 · 근거 문장 형광펜 · 내가 고른 것이 왜 아닌지) → 「다음 장」
   //   기록은 한 문제씩 풀 때와 같은 칸(nxStore)에 같은 꼴 { ok, v, at } 로 써요(nxRec). 채점 전 고른 번호는 이 기기(mu:nxpp:…)에 바로 저장돼요
-  const nxpOk = (s) => s.qs.length > 1 && s.qs.every((q) => q.t === 'mc' && Array.isArray(q.ch) && q.ch.length > 1);
+  const nxpOk = (s) => s.qs.length > 1 && s.qs.every((q) => (q.t === 'mc' && Array.isArray(q.ch) && q.ch.length > 1) || (q.t === 'para' && Array.isArray(q.ps)) || ((q.t === 'short' || q.t === 'blank') && Array.isArray(q.a) && q.a.length));  // 학교 학습지(쓰기·문단 빈칸 섞임)도
   const nxpLong = (q) => !!q.p && (q.p.length > 70 || /\n/.test(q.p));
   function nxpPages(qs) {
     const grp = []; qs.forEach((q, k) => { const g = grp[grp.length - 1]; if (g && nxpLong(q) && qs[g[g.length - 1]].p === q.p) g.push(k); else grp.push([k]); });
     const PG = [[]]; let n = 0, w = 0;
-    for (const g of grp) { const q0 = qs[g[0]], gw = g.length + (nxpLong(q0) ? Math.min(1.5, q0.p.length / 700) : 0); if (PG[PG.length - 1].length && (n >= 5 || n + g.length > 6 || w + gw > 8)) { PG.push([]); n = 0; w = 0; } PG[PG.length - 1].push(g); n += g.length; w += gw; }
+    for (const g of grp) { const q0 = qs[g[0]], gw = g.reduce((u, k) => u + (qs[k].t === 'para' ? 1 + qs[k].ps.length * 0.3 : 1), 0) + (nxpLong(q0) ? Math.min(1.5, q0.p.length / 700) : 0); if (PG[PG.length - 1].length && (n >= 5 || n + g.length > 6 || w + gw > 8)) { PG.push([]); n = 0; w = 0; } PG[PG.length - 1].push(g); n += g.length; w += gw; }
     const cn = (x) => x.flat().length; if (PG.length > 1 && cn(PG[PG.length - 1]) <= 2 && cn(PG[PG.length - 2]) + cn(PG[PG.length - 1]) <= 7) PG.push([...PG.pop(), ...PG.pop()].sort((a, b) => a[0] - b[0]));  // 끝에 한두 문제만 남으면 앞 장에 붙여요
     return PG;
   }
@@ -8202,40 +8202,103 @@
       ${ss.length ? `<ul class="nxp-more">${ss.map((t) => `<li>${nxpFmt(t)}</li>`).join('')}</ul>` : ''}
       ${src ? `<span class="nxp-src">${esc(src)}</span>` : ''}</div>`;
   }
+  // 11/28 «학습지를 그거(한 장씩)로 해서 오늘 수업으로 넣어» → 학교 학습지 세트(쓰기·문단 빈칸·고르기 섞임)도 같은 학습지 장으로
+  //   채점은 한 문제씩 풀 때(nxBindQ)와 같은 규칙: 고르기 = 번호, 쓰기·빈칸 = nxCheck, 문단 빈칸 = 문장마다 sc · 값은 ' ‖ ' 로 이어요
+  const nxpBlanks = (q) => q.ps.map((x) => [...String(x.s).matchAll(/\{([^}]+)\}/g)].map((m) => m[1]));
+  const nxpHead = (q) => { const L = String(q.q || '').split('\n'); return q.t !== 'mc' && q.t !== 'para' && L.length > 1 ? [L[0], L.slice(1).join('\n')] : ['', String(q.q || '')]; };
+  // 칸마다 정답 (한글 자판 확인용)
+  const nxpAns = (q) => q.t === 'para' ? nxpBlanks(q).flat() : q.t === 'blank' ? q.a : (nxParts(q) || [q.a.join(' ')]);
+  function nxpGrade(q, vals) {
+    if (q.t === 'para') { const B = nxpBlanks(q), sc = [], V = []; let k = 0; B.forEach((A) => { if (!A.length) { sc.push(null); return; } const v = A.map(() => vals[k++] || ''); V.push(...v); sc.push(v.every((x) => x.trim()) && A.every((a, b) => nxAlts(a).includes(nxKey(v[b])))); }); return { ok: sc.every((x) => x !== false), v: V.join(' ‖ '), sc }; }
+    if (!vals.some((x) => String(x).trim())) return { ok: false, v: '' };  // 비우고 채점 = 「모르겠어요」와 같아요
+    return { ok: nxCheck(q, vals), v: vals.join(' ‖ ') };
+  }
+  // 쓰기·빈칸 해설 카드: 정답 → 핵심 한 줄 → 내가 쓴 답(맞은 것 같으면 「내 답도 맞아요」) · 문단 빈칸은 틀린 문장을 정답 넣어 다시 보여 줘요
+  function nxpExpW(q, rec, k) {
+    const ok = !!rec.ok, typed = String(rec.v || '').split(' ‖ ').filter((x) => x.trim()).join(' / ');
+    let pills = `${ok ? `<span class="nxp-pill good">${rec.self ? '맞은 걸로 했어요' : '맞았어요'}</span>` : '<span class="nxp-pill my">다시 봐요</span>'}`, body = '';
+    if (q.t === 'para') {
+      const B = nxpBlanks(q), sc = rec.sc || [], n = B.filter((A) => A.length).length, o = sc.filter((x) => x === true).length;
+      const sen = (x) => esc(x.s).replace(/\{([^}]+)\}/g, '<mark>$1</mark>');
+      const bad = q.ps.filter((x, j) => B[j].length && sc[j] !== true && !ok), tips = q.ps.filter((x, j) => B[j].length && x.note);
+      pills = `<span class="nxp-pill ${o === n || ok ? 'good' : 'my'}">${ok ? n : o}/${n}문장 맞힘</span>`;
+      body = `<p class="nxp-h">${ok ? '빈칸을 다 맞혔어요. 짚어 둘 표현만 한 번 더 봐요.' : `틀린 ${bad.length}문장에 정답을 넣었어요. 소리 내서 한 번 읽어요.`}</p>
+        ${bad.length > 3 ? '<p class="nxp-alt" style="margin:8px 0 0">틀린 문장이 많아서 세 문장만 모았어요. 나머지는 위 빨간 칸에 정답이 있어요</p>' : ''}${bad.slice(0, 3).map((x) => `<div class="nxp-ev"><p>${sen(x)}</p>${x.ko ? `<span class="nxp-ko">${esc(x.ko)}</span>` : ''}${x.note ? `<span class="nxp-tip">${esc(x.note)}</span>` : ''}</div>`).join('')}
+        ${ok && tips.length ? `<ul class="nxp-more">${tips.map((x) => `<li><span class="nxp-en">${esc(x.s.replace(/[{}]/g, ''))}</span> ${esc(x.note)}</li>`).join('')}</ul>` : ''}`;
+    } else {
+      const ps = q.t === 'short' ? nxParts(q) : null, ans = q.t === 'blank' ? q.a.join(' / ') : ps ? ps.map((p, i) => `(${i + 1}) ${p}`).join('  ') : String(q.a[0] || '');
+      const alt = q.t === 'short' && !ps ? q.a.slice(1).filter((a) => nxKey(a) !== nxKey(q.a[0])).slice(0, 2) : [];
+      const qk = nxKey(q.q), seg = String(q.exp || '').split(/\s+·\s+/).map((t) => t.trim()).filter((t) => t && nxKey(t) !== nxKey(ans) && !(nxKey(t).length > 8 && qk.includes(nxKey(t))));
+      const head = seg.shift() || '';
+      body = `${head ? `<p class="nxp-h">${nxpFmt(head)}</p>` : ''}
+        <div class="nxp-ev"><span class="nxp-lab">정답</span><p>${esc(ans)}${alt.length ? `<span class="nxp-alt"> 또는 ${alt.map(esc).join(', ')}</span>` : ''}</p></div>
+        ${!ok ? `<div class="nxp-why"><span class="nxp-lab">내가 쓴 답</span><p>${typed ? `<s>${esc(typed)}</s>` : '안 썼어요'}</p>${typed ? `<button class="nxp-self" data-nxpself="${esc(q.i)}" type="button">내 답도 맞아요</button>` : ''}</div>` : ''}
+        ${seg.length ? `<ul class="nxp-more">${seg.map((t) => `<li>${nxpFmt(t)}</li>`).join('')}</ul>` : ''}`;
+    }
+    return `<div class="nxp-ex ${ok ? 'ok' : 'no'}" style="--i:${k}"><div class="nxp-ex-top">${pills}${q.cat ? `<span class="nxp-cat">${esc(q.cat)}</span>` : ''}</div>${body}</div>`;
+  }
   function nxPaper(s, r, store, qs, sub) {
     const PG = nxpPages(qs), P = nxpGet(s), doneP = (pg) => pg.flat().every((k) => store[qs[k].i]);
     let p = r.pg != null && r.pg < PG.length ? r.pg : r.rv ? 0 : PG.findIndex((pg) => !doneP(pg)); if (p < 0) p = 0; r.pg = p;
     const pg = PG[p], ks = pg.flat(), graded = ks.every((k) => store[qs[k].i]), okN = ks.filter((k) => (store[qs[k].i] || {}).ok).length;
     const fresh = render.nxpPg !== `${s.id}:${p}:${graded ? 1 : 0}`; render.nxpPg = `${s.id}:${p}:${graded ? 1 : 0}`;
-    const dn = qs.filter((q) => store[q.i]).length, all = dn === qs.length;
+    const dn = qs.filter((q) => store[q.i]).length;
     const choices = (q, rec) => { const pk = rec ? +rec.v : P[q.i], short = q.ch.every((c) => String(c).replace(/<[^>]+>/g, '').length <= 16);
       return `<div class="xp-ch nxp-ch ${short ? 'row' : ''}">${q.ch.map((c, k) => `<button type="button" class="xp-c ${pk === k ? 'on' : ''} ${rec && k === q.a ? 'ans' : ''} ${rec && pk === k && !rec.ok ? 'miss' : ''}" data-nxpk="${k}" ${rec ? 'disabled' : ''}><i>${k + 1}</i><span>${((t) => (q.html ? esc(t) : nxDlg(t)))(String(c).replace(/^[①-⑩]\s*/, ''))}</span></button>`).join('')}</div>`; };
     const psg = (q) => `<div class="xp-text nxp-text">${q.html ? q.p : nxRich(q.p)}</div>`;
-    let ei = 0;
-    const one = (k, shared) => { const q = qs[k], rec = store[q.i], mk = rec ? (rec.ok ? 'o' : 'x') : '';
-      return `<div class="xp-q nxp-q ${rec ? 'done' : ''} ${mk ? 'mk-' + mk : ''}" data-nxq="${esc(q.i)}" data-n="${k + 1}"><p class="xp-stem"><b class="xp-n">${mk ? xpMk(mk === 'o') : ''}${k + 1}.</b> ${nxRich(q.q)}</p>${!shared && q.p ? (nxpLong(q) ? psg(q) : `<div class="xp-text nxp-text sm">${q.html ? q.p : nxRich(q.p)}</div>`) : ''}${choices(q, rec)}${rec ? nxpExp(q, rec.v != null ? +rec.v : null, rec.ok, ei++) : ''}</div>`; };
+    // 쓰는 칸: 고른 적 있는 글자(P[q.i])를 채워 두고, 채점 뒤엔 정답·내 답을 그 자리에
+    const wIn = (k, a, D, w) => `<input class="nx-bl nxp-bl" data-nxin="${k}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" value="${esc(D[k] || '')}" style="width:${w || Math.max(3.5, String(a).length * 0.62 + 1.6)}em" aria-label="빈칸 ${k + 1}">`;
+    const wOut = (a, v, ok) => `<span class="nx-bl-r ${ok ? 'ok' : 'no'}"><b>${esc(a)}</b>${!ok && String(v || '').trim() ? `<s>${esc(v)}</s>` : ''}</span>`;
+    const write = (q, rec) => { const D = Array.isArray(P[q.i]) ? P[q.i] : [], V = rec ? String(rec.v || '').split(' ‖ ') : [];
+      if (q.t === 'para') { const B = nxpBlanks(q); let k = 0;
+        return `<div class="nxp-para">${q.ps.map((x, j) => { let bi = 0; const sc = rec ? (rec.sc || [])[j] : null, html = esc(x.s).replace(/\{([^}]+)\}/g, (m, a) => { const i = k++, raw = B[j][bi++] || a; if (!rec) return wIn(i, raw, D); return wOut(raw, V[i], rec.ok || nxAlts(raw).includes(nxKey(V[i]))); });
+          return `<div class="nxp-ln ${sc === true ? 'ok' : sc === false ? 'no' : ''}"><p class="nxp-s">${html}</p>${x.ko ? `<span class="nxp-ko">${esc(x.ko)}</span>` : ''}${sc != null ? `<i class="nxp-sm" aria-hidden="true">${sc ? '✓' : '✕'}</i>` : ''}</div>`; }).join('')}</div>`; }
+      if (q.t === 'blank') { let k = 0; return `<p class="nxp-s nxp-given">${esc(nxpHead(q)[1]).replace(/\{([^}]+)\}/g, (m, a) => { const i = k++, raw = q.a[i] || a; return rec ? wOut(raw, V[i], nxAlts(raw).includes(nxKey(V[i]))) : wIn(i, raw, D); })}</p>`; }
+      const ps = nxParts(q) || [''];
+      if (rec) return '';
+      return `<div class="nxp-wrs">${ps.map((x, i) => `<label class="nxp-wr">${ps.length > 1 ? `<span>(${i + 1})</span>` : '<span>→</span>'}<input data-nxin="${i}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" value="${esc(D[i] || '')}" placeholder="${ps.length > 1 ? `(${i + 1})의 답` : '여기에 써요'}"></label>`).join('')}</div>`; };
+    let ei = 0, lastH = '';
+    const one = (k, shared) => { const q = qs[k], rec = store[q.i], mk = rec ? (rec.ok ? 'o' : 'x') : '', [h, stem] = nxpHead(q);
+      const sec = h && h !== lastH ? `<p class="nxp-sec">${nxRich(h)}</p>` : ''; lastH = h || lastH;
+      const st = q.t === 'blank' ? '' : q.t === 'short' && h ? `<span class="nxp-given">${nxRich(stem.replace(/^\s*\d+\.\s*/, ''))}</span>` : nxRich(stem);
+      return `${sec}<div class="xp-q nxp-q nxp-${q.t} ${rec ? 'done' : ''} ${mk ? 'mk-' + mk : ''}" data-nxq="${esc(q.i)}" data-n="${k + 1}"><p class="xp-stem"><b class="xp-n">${mk ? xpMk(mk === 'o') : ''}${k + 1}.</b> ${st}</p>${q.t === 'mc' && !shared && q.p ? (nxpLong(q) ? psg(q) : `<div class="xp-text nxp-text sm">${q.html ? q.p : nxRich(q.p)}</div>`) : ''}${q.t === 'mc' ? choices(q, rec) : write(q, rec)}${rec ? (q.t === 'mc' ? nxpExp(q, rec.v != null ? +rec.v : null, rec.ok, ei++) : nxpExpW(q, rec, ei++)) : ''}</div>`; };
     const body = pg.map((g) => g.length > 1 ? `<div class="xp-set nxp-set"><p class="xp-stem"><b>[${g[0] + 1}~${g[g.length - 1] + 1}]</b> 다음 글을 읽고 물음에 답하시오.</p>${psg(qs[g[0]])}</div>${g.map((k) => one(k, 1)).join('')}` : one(g[0], 0)).join('');
     const tabs = PG.length > 1 ? `<div class="nxp-tabs" role="tablist">${PG.map((x, n) => { const d = doneP(x), o = x.flat().filter((k) => (store[qs[k].i] || {}).ok).length; return `<button type="button" role="tab" aria-selected="${n === p}" class="${n === p ? 'on' : ''} ${d ? 'dn' : ''}" data-nxpg="${n}"><b>${n + 1}장</b><small>${d ? `${o}/${x.flat().length}` : `${x.flat()[0] + 1}${x.flat().length > 1 ? `~${x.flat()[x.flat().length - 1] + 1}` : ''}번`}</small></button>`; }).join('')}</div>` : '';
     const head = `<div class="nxp-head"><div class="nxp-hl"><span class="nxp-kick">학습지</span><b>${esc(s.title)}</b><small>${esc(sub)}</small></div><div class="nxp-hr">${graded ? `<span class="xp-score nxp-score">${okN}/${ks.length}</span>` : ''}<span class="xp-pg"><b>${p + 1}</b><small>${PG.length}장 중</small></span></div>${XP_PEN}</div>`;
-    const picked = ks.filter((k) => !store[qs[k].i] && P[qs[k].i] != null).length, left = ks.filter((k) => !store[qs[k].i]).length;
-    const nextP = PG.findIndex((x, n) => n > p && !doneP(x)), anyP = PG.findIndex((x) => !doneP(x));
-    const bar = !graded ? `<div class="cta-bar"><span class="xp-saved" id="xp-saved">${picked ? '고른 번호는 저장돼요' : '번호를 눌러 골라요'}</span><button class="btn primary big block" id="nxp-go" type="button">이 장 채점 · <span id="nxp-cnt" class="num">${picked}/${left}</span></button></div>`
+    const has = (q) => q.t === 'mc' ? P[q.i] != null : Array.isArray(P[q.i]) && P[q.i].some((x) => String(x || '').trim());
+    const picked = ks.filter((k) => !store[qs[k].i] && has(qs[k])).length, left = ks.filter((k) => !store[qs[k].i]).length;
+    const nextP = PG.findIndex((x, n) => n > p && !doneP(x)), anyP = PG.findIndex((x) => !doneP(x)), allMc = ks.every((k) => qs[k].t === 'mc');
+    const bar = !graded ? `<div class="cta-bar"><span class="xp-saved" id="xp-saved">${picked ? (allMc ? '고른 번호는 저장돼요' : '쓴 답은 저장돼요') : allMc ? '번호를 눌러 골라요' : '빈칸에 쓰고 번호를 골라요'}</span><button class="btn primary big block" id="nxp-go" type="button">이 장 채점 · <span id="nxp-cnt" class="num">${picked}/${left}</span></button></div>`
       : `<div class="cta-bar">${p > 0 ? '<button class="btn big" id="nxp-prev" type="button">‹ 앞 장</button>' : ''}<button class="btn primary big block" id="nxp-next" type="button" data-to="${r.rv ? (p < PG.length - 1 ? p + 1 : 'end') : nextP >= 0 ? nextP : anyP >= 0 ? anyP : 'end'}">${r.rv ? (p < PG.length - 1 ? '다음 장 ›' : '결과로 돌아가기') : nextP >= 0 ? `다음 장 · ${nextP + 1}장 ›` : anyP >= 0 ? `남은 ${anyP + 1}장 풀기 ›` : '결과 보기 ›'}</button></div>`;
-    const res = graded ? `<div class="nxp-res ${fresh ? 'in' : ''}"><b class="num">${okN}<small> / ${ks.length}</small></b><span>${okN === ks.length ? '이 장은 다 맞았어요. 해설로 한 번 더 확인해요' : `틀린 ${ks.length - okN}문제는 오답 노트에 들어갔어요. 아래 해설에서 근거 문장을 꼭 봐요`}</span></div>` : '';
+    const res = graded ? `<div class="nxp-res ${fresh ? 'in' : ''}"><b class="num">${okN}<small> / ${ks.length}</small></b><span>${okN === ks.length ? '이 장은 다 맞았어요. 해설로 한 번 더 확인해요' : `틀린 ${ks.length - okN}문제는 오답 노트에 들어갔어요. 아래 해설에서 정답을 꼭 봐요`}</span></div>` : '';
     return `<div class="nx-wrap nxp-wrap">${nxTop(s, dn, qs.length, sub, dn / qs.length)}${tabs}${res}<div class="xp-paper nxp-paper ${graded ? 'graded' : ''} ${fresh ? 'nxp-in' : ''}">${head}<div class="nxp-body">${body}</div><div class="nxp-foot">${esc(s.title)} · ${p + 1}장</div></div><div style="height:96px"></div>${bar}</div>`;
   }
   function nxpBind(s, r, qs) {
     const P = nxpGet(s), x = nxS(), top = () => { render(); const w = $('main .nxp-wrap'); window.scrollTo({ top: 0, behavior: 'auto' }); if (w && !RM()) w.animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: 220 }); };
-    const cnt = () => { const L = $$('main .nxp-q:not(.done)'), n = L.filter((e) => P[e.dataset.nxq] != null).length, c = $('#nxp-cnt'), sv = $('#xp-saved'); if (c) c.textContent = `${n}/${L.length}`; if (sv) { sv.textContent = n ? '고른 번호는 저장돼요' : '번호를 눌러 골라요'; sv.classList.remove('pop'); void sv.offsetWidth; sv.classList.add('pop'); } };
+    const qOf = (el) => qs.find((y) => y.i === el.dataset.nxq), has = (el) => { const v = P[el.dataset.nxq]; return Array.isArray(v) ? v.some((t) => String(t || '').trim()) : v != null; };
+    const t0 = () => { if (!r.tmp) { const st = (x.st[s.id] = x.st[s.id] || {}); if (!st.t0) st.t0 = Date.now(); } };
+    const cnt = () => { const L = $$('main .nxp-q:not(.done)'), n = L.filter(has).length, c = $('#nxp-cnt'), sv = $('#xp-saved'); if (c) c.textContent = `${n}/${L.length}`; if (sv) { sv.textContent = n ? '저장돼요' : '빈칸에 쓰고 번호를 골라요'; sv.classList.remove('pop'); void sv.offsetWidth; sv.classList.add('pop'); } };
     $$('main .nxp-q:not(.done) [data-nxpk]').forEach((b) => (b.onclick = () => { const el = b.closest('.nxp-q'), qi = el.dataset.nxq, k = +b.dataset.nxpk;
-      P[qi] = k; nxpPut(s, P); if (!r.tmp) { const st = (x.st[s.id] = x.st[s.id] || {}); if (!st.t0) st.t0 = Date.now(); }
+      P[qi] = k; nxpPut(s, P); t0();
       $$('[data-nxpk]', el).forEach((c) => c.classList.toggle('on', c === b)); el.classList.remove('nxp-need'); cnt(); }));
+    const ins = $$('main .nxp-q:not(.done) [data-nxin]');
+    ins.forEach((inp, n) => { const el = inp.closest('.nxp-q');
+      inp.oninput = () => { P[el.dataset.nxq] = $$('[data-nxin]', el).map((y) => y.value); nxpPut(s, P); t0(); el.classList.remove('nxp-need'); cnt(); };
+      inp.onkeydown = (e) => { if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return; e.preventDefault(); e.stopPropagation(); const nx = ins[n + 1]; if (nx) nx.focus(); else inp.blur(); }; });
     $$('[data-nxpg]').forEach((b) => (b.onclick = () => { r.pg = +b.dataset.nxpg; top(); }));
+    // 「내 답도 맞아요」: 한 문제씩 풀 때(data-nxself)와 같아요
+    $$('[data-nxpself]').forEach((b) => (b.onclick = () => { const qi = b.dataset.nxpself, st = nxStore(s, r); if (!st[qi]) return; st[qi] = { ...st[qi], ok: true, self: 1 }; const wid = 'nx:' + qi; if (S.wrong && S.wrong[wid]) clearWrong(wid); save('nx'); const y = window.scrollY; render(); window.scrollTo(0, y); }));
     const go = $('#nxp-go'); if (go) go.onclick = () => {
-      const els = $$('main .nxp-q:not(.done)'), miss = els.filter((e) => P[e.dataset.nxq] == null);
-      if (miss.length) { toast(`${miss.map((e) => e.dataset.n).join(', ')}번을 아직 안 골랐어요`); miss.forEach((e) => { e.classList.remove('nxp-need'); void e.offsetWidth; e.classList.add('nxp-need'); }); miss[0].scrollIntoView({ block: 'center', behavior: RM() ? 'auto' : 'smooth' }); return; }
-      let o = 0; for (const e of els) { const q = qs.find((y) => y.i === e.dataset.nxq); if (!q) continue; const k = P[q.i], ok = k === q.a; if (ok) o++; nxRec(s, r, q, ok, k); delete P[q.i]; }
-      nxpPut(s, P); save('nx');
+      const els = $$('main .nxp-q:not(.done)'), miss = els.filter((e) => qOf(e) && qOf(e).t === 'mc' && P[e.dataset.nxq] == null), empty = els.filter((e) => qOf(e) && qOf(e).t !== 'mc' && !has(e));
+      const flag = (L) => { L.forEach((e) => { e.classList.remove('nxp-need'); void e.offsetWidth; e.classList.add('nxp-need'); }); L[0].scrollIntoView({ block: 'center', behavior: RM() ? 'auto' : 'smooth' }); };
+      if (miss.length) { toast(`${miss.map((e) => e.dataset.n).join(', ')}번을 아직 안 골랐어요`); return flag(miss); }
+      for (const e of els) { const q = qOf(e); if (!q || q.t === 'mc') continue; const A = nxpAns(q), bad = $$('[data-nxin]', e).find((y, k) => /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(y.value) && !/[가-힣]/.test(A[k] || A[0] || '')); if (bad) { toast('한글 자판이에요. 영어로 바꿔서 써요'); bad.focus(); return; } }
+      const pk = `${s.id}:${r.pg}`; if (empty.length && r.nxpWarn !== pk) { r.nxpWarn = pk; toast(`${empty.map((e) => e.dataset.n).join(', ')}번이 비어 있어요. 모르면 한 번 더 누르면 채점해요`); return flag(empty); }
+      let o = 0; for (const e of els) { const q = qOf(e); if (!q) continue;
+        if (q.t === 'mc') { const k = P[q.i], ok = k === q.a; if (ok) o++; nxRec(s, r, q, ok, k); }
+        else { const g = nxpGrade(q, $$('[data-nxin]', e).map((y) => y.value)); if (g.ok) o++; nxRec(s, r, q, g.ok, g.v, g.sc); }
+        delete P[q.i]; }
+      nxpPut(s, P); save('nx'); if (o) ding(1);
       const store = nxStore(s, r); if (!r.tmp && qs.every((q) => store[q.i])) nxFinish(s, qs.filter((q) => store[q.i].ok).length, qs.length);
       render(); const w = $('main .nxp-paper'); if (w) w.scrollIntoView({ block: 'start', behavior: RM() ? 'auto' : 'smooth' });
       if (!RM() && o === els.length && els.length) setTimeout(() => boom(innerWidth / 2, innerHeight * 0.3, 2), 350);
@@ -8729,7 +8792,7 @@
     const rdRows = (P.tx || []).map((id) => NXU[id]).filter(Boolean).flatMap((u) => stLessons(u).filter((L) => L.rd && (!P.tp[u.id] || P.tp[u.id].includes(L.pi))).map((L) => { const n = m3Memos(u, L.m3).length, rdOk = !!nxS().a[stLRead(u, L)];
       return `<div class="li ${canC ? 'btnlike' : 'is-lock'} ${rdOk ? 'is-done' : ''}" ${canC ? `data-task="cl:rd:${esc(u.id)}:${L.k}"` : 'aria-disabled="true"'}><div class="ico">${ic(rdOk ? 'ok' : canC ? 'memo' : '1f512')}</div><div class="body"><div class="t">${esc(u.code || '')} 본문 ${esc(L.m3)} · ${(((u.notes || {}).passages || [])[L.pi] || {}).sents ? u.notes.passages[L.pi].sents.length + '문장 · ' : ''}문장 분석하고 필기</div><div class="d">${n ? `필기 ${n}개 · 다음 숙제로 다시 떠올려요` : '문장마다 구조를 보고, 단어를 끌거나 문장 밑에 필기해요'}</div></div>${canC ? '<span class="chev"></span>' : ''}</div>`; }));
     if (rdRows.length) CS.tx = [];
-    const wsH = `<div class="eyebrow" style="margin:4px 0 6px">학교 학습지 · 수업 시간에 같이 풀어요</div>${CS.ws.map((x) => crow(x, 'memo')).join('')}<div style="height:10px"></div>`;
+    const wsH = `<div class="eyebrow" style="margin:4px 0 6px">학교 학습지 · 수업 시간에 같이 풀어요</div>${CS.ws.map((x) => crow(x, 'memo').replace(' data-nx=', ' data-nxpaper="1" data-nx=')).join('')}<div style="height:10px"></div>`;
     const clsRows = CS.sq.length || CS.rqa.length || CS.gr.length || CS.tx.length || CS.rq.length || CS.ws.length || rdRows.length ? `${CS.sq.map((G) => `<div class="eyebrow" style="margin:4px 0 6px">${esc(G.h)}</div>${G.xs.map((x) => crow(x, /기출/.test(x.title) ? 'pencil' : 'memo').replace(' data-nx=', ' data-nxpaper="1" data-nx=')).join('')}<div style="height:10px"></div>`).join('')}${CS.rqa.length ? `<div class="eyebrow" style="margin:4px 0 6px">지난 수업에서 못 한 것 · 먼저 해요</div>${CS.rqa.map((x) => crow(x, 'eng')).join('')}<div style="height:10px"></div>` : ''}${CS.ws.length && !P.wsLast ? wsH : ''}${CS.gr.length ? `<div class="eyebrow" style="margin:4px 0 6px">문법 · 개념 복습하고 단계별로 다시 풀기</div>${CS.gr.map((x) => crow(x, 'pencil')).join('')}` : ''}${rdRows.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 문장 분석하고 필기</div>${rdRows.join('')}` : CS.tx.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 필기하고 외우기</div>${CS.tx.map((x) => crow(x, 'eng')).join('')}` : ''}${CS.rq.length ? `<div class="eyebrow" style="margin:14px 0 6px">본문 · 학교 시험 꼴 문제</div>${CS.rq.map((x) => crow(x, 'eng')).join('')}` : ''}${CS.ws.length && P.wsLast ? '<div style="height:14px"></div>' + wsH : ''}` : '';
     const B = { h1: P.tu || P.gt || P.lt.length ? '수업 전 시험' : '단어 시험', tests: `<div class="list">${CS.lt.map((x) => crow(x, 'books')).join('')}${!P.off.includes('ls') && (P.tu || P.gt || nxS().lq['ls:' + sl.date]) ? row('ls', P.gt ? '문법 시험' : '천일문 시험') : ''}${P.off.includes('lw') ? '' : row('lw', '단어 시험')}</div>`, items: chRows || m3Rows || clsRows || grRows || txRows ? `<div class="list">${chRows}${m3Rows}${clsRows || txRows + grRows}</div>` : '', sub2: '누르면 그 단원이 열려요' };
     if (bare) return B;
@@ -9891,7 +9954,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611281832'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611281840'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });

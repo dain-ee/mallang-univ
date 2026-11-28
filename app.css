@@ -5783,3 +5783,30 @@ a.dy-home .pm-h-t { color: var(--t1, #191f28); }
 .nxp-cmp b { flex: none; font-weight: 700; color: #1b64da; }
 .nxp-cmp.no b { color: #8b95a1; }
 .nxp-cmp.no span { color: #8b95a1; text-decoration: line-through; text-decoration-color: rgba(224, 53, 61, .6); }
+/* 11/28 학교 학습지도 한 장씩: 소제목 · 쓰는 줄 · 문단 빈칸 */
+.nxp-sec { margin: 6px 0 14px; padding: 6px 10px; border-left: 3px solid #111; background: #f5f5f3; font: 700 14.5px/1.55 "Yet", "Pretendard", -apple-system, "Apple SD Gothic Neo", sans-serif; white-space: pre-wrap; }
+.nxp-given { white-space: pre-wrap; }
+.nxp-body .xp-stem .nxp-given { display: inline; }
+.nxp-wrs { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 0 1.4em; }
+.nxp-wr { display: flex; align-items: baseline; gap: 8px; }
+.nxp-wr span { flex: none; font-weight: 700; color: #555; }
+.nxp-wr input { flex: 1; min-width: 0; padding: 6px 2px; border: 0; border-bottom: 1.5px solid #111; border-radius: 0; background: transparent; font: 16px/1.5 'Georgia', 'AppleMyungjo', serif; color: #111; outline: none; transition: border-color .15s, background .15s; }
+.nxp-wr input:focus { border-bottom-color: #3182f6; background: #f3f8ff; }
+.nxp-para { margin: 8px 0 0 1.4em; }
+.nxp-ln { position: relative; padding: 6px 28px 6px 0; border-bottom: 1px dashed #ddd; }
+.nxp-ln:last-child { border-bottom: 0; }
+.nxp-s { margin: 0; line-height: 2.1; }
+.nxp-paper .nx-bl.nxp-bl { height: 30px; font-size: 15.5px; background: #f3f8ff; border-bottom-color: #3182f6; }
+.nxp-paper .nx-bl-r { vertical-align: baseline; }
+.nxp-paper .nx-bl-r b { padding: 1px 8px; font-weight: 700; }
+.nxp-paper .nx-bl-r s { font-size: 12px; color: #8b95a1; }
+.nxp-ko { display: block; font: 13px/1.5 "Yet", "Pretendard", -apple-system, sans-serif; color: #6b7684; }
+.nxp-sm { position: absolute; right: 4px; top: 8px; font-style: normal; font-weight: 800; color: #03a061; animation: okIcon .4s var(--spring) both; }
+.nxp-ln.no .nxp-sm { color: #e0353d; }
+.nxp-tip { display: block; margin-top: 6px; font: 600 13px/1.5 "Yet", "Pretendard", -apple-system, sans-serif; color: #1b64da; }
+.nxp-ev .nxp-ko { margin-top: 2px; }
+.nxp-alt { font-size: 13px; color: #8b95a1; }
+.nxp-why s { text-decoration-color: rgba(224, 53, 61, .7); color: #6b7684; }
+.nxp-self { margin-top: 8px; padding: 6px 12px; border: 1px solid #e5e8eb; border-radius: 999px; background: #fff; font: 600 13px "Yet", "Pretendard", -apple-system, sans-serif; color: #4e5968; cursor: pointer; transition: transform .15s; }
+.nxp-self:active { transform: scale(.95); }
+@media (max-width: 760px) { .nxp-wrs, .nxp-para { margin-left: 0; } }
