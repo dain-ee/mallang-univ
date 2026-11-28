@@ -2698,7 +2698,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611282037', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611282254', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -7935,7 +7935,7 @@
       stem = `<div class="nx-word">${esc(q.q)}</div>${q.t === 'wen' && q.w.ex ? `<p class="nx-wex">${esc(q.w.ex).replace(new RegExp('\\b' + q.w.en.split(' ')[0].slice(0, Math.max(3, q.w.en.split(' ')[0].length - 2)).replace(/[^a-z]/gi, '') + '\\w*', 'i'), '<span class="nx-gap"></span>')}</p>` : ''}`;
       ans = rec ? '' : `<div class="nx-in-row"><input class="inp" data-nxin="0" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${q.t === 'wko' ? '뜻을 한글로 써요' : '영어로 써요'}"><button class="btn primary" id="nx-go" type="button">확인</button></div>`;
     } else {
-      stem = `<h2 class="nx-q">${nxRich(q.q)}</h2>${q.p && !long ? `<div class="nx-box">${nxRich(q.p)}</div>` : ''}`;
+      stem = `<h2 class="nx-q">${nxRich(q.q)}</h2>${[].concat(q.img || []).map((src) => `<img class="q-img" style="margin-top:10px" src="${esc(src)}" alt="문제 그림" loading="lazy">`).join('')}${q.p && !long ? `<div class="nx-box">${nxRich(q.p)}</div>` : ''}`;
       if (q.t === 'mc') {
         const ok = rec && rec.ok, pk = rec ? +rec.v : null;
         ans = `<div class="choices nx-ch">${q.ch.map((c, k) => { const cls = !rec ? '' : k === pk && ok ? 'nx-good' : k === pk ? 'wrong' : k === q.a ? 'right' : 'nx-dim'; return `<button class="choice ${cls}" data-nxp="${k}" type="button" ${rec ? 'disabled' : ''}><span class="n">${k + 1}</span><span class="ct">${((c) => (q.html ? esc(c) : nxDlg(c)))(String(c).replace(/^[①-⑩]\s*/, ''))}</span>${rec && k === q.a && !ok ? '<em class="nx-ans">정답</em>' : ''}</button>`; }).join('')}</div>`;
@@ -8261,7 +8261,7 @@
     const one = (k, shared) => { const q = qs[k], rec = store[q.i], mk = rec ? (rec.ok ? 'o' : 'x') : '', [h, stem] = nxpHead(q);
       const sec = h && h !== lastH ? `<p class="nxp-sec">${nxRich(h)}</p>` : ''; lastH = h || lastH;
       const st = q.t === 'blank' ? '' : q.t === 'short' && h ? `<span class="nxp-given">${nxRich(stem.replace(/^\s*\d+\.\s*/, ''))}</span>` : nxRich(stem);
-      return `${sec}<div class="xp-q nxp-q nxp-${q.t} ${rec ? 'done' : ''} ${mk ? 'mk-' + mk : ''}" data-nxq="${esc(q.i)}" data-n="${k + 1}"><p class="xp-stem"><b class="xp-n">${mk ? xpMk(mk === 'o') : ''}${k + 1}.</b> ${st}</p>${q.t === 'mc' && !shared && q.p ? (nxpLong(q) ? psg(q) : `<div class="xp-text nxp-text sm">${q.html ? q.p : nxRich(q.p)}</div>`) : ''}${q.t === 'mc' ? choices(q, rec) : write(q, rec)}${rec ? (q.t === 'mc' ? nxpExp(q, rec.v != null ? +rec.v : null, rec.ok, ei++) : nxpExpW(q, rec, ei++)) : ''}</div>`; };
+      return `${sec}<div class="xp-q nxp-q nxp-${q.t} ${rec ? 'done' : ''} ${mk ? 'mk-' + mk : ''}" data-nxq="${esc(q.i)}" data-n="${k + 1}"><p class="xp-stem"><b class="xp-n">${mk ? xpMk(mk === 'o') : ''}${k + 1}.</b> ${st}</p>${[].concat(q.img || []).map((src) => `<img class="q-img xp-img" style="margin:6px 0 8px" src="${esc(src)}" alt="문제 그림" loading="lazy">`).join('')}${q.t === 'mc' && !shared && q.p ? (nxpLong(q) ? psg(q) : `<div class="xp-text nxp-text sm">${q.html ? q.p : nxRich(q.p)}</div>`) : ''}${q.t === 'mc' ? choices(q, rec) : write(q, rec)}${rec ? (q.t === 'mc' ? nxpExp(q, rec.v != null ? +rec.v : null, rec.ok, ei++) : nxpExpW(q, rec, ei++)) : ''}</div>`; };
     const body = pg.map((g) => g.length > 1 ? `<div class="xp-set nxp-set"><p class="xp-stem"><b>[${g[0] + 1}~${g[g.length - 1] + 1}]</b> 다음 글을 읽고 물음에 답하시오.</p>${psg(qs[g[0]])}</div>${g.map((k) => one(k, 1)).join('')}` : one(g[0], 0)).join('');
     const tabs = PG.length > 1 ? `<div class="nxp-tabs" role="tablist">${PG.map((x, n) => { const d = doneP(x), o = x.flat().filter((k) => (store[qs[k].i] || {}).ok).length; return `<button type="button" role="tab" aria-selected="${n === p}" class="${n === p ? 'on' : ''} ${d ? 'dn' : ''}" data-nxpg="${n}"><b>${n + 1}장</b><small>${d ? `${o}/${x.flat().length}` : `${x.flat()[0] + 1}${x.flat().length > 1 ? `~${x.flat()[x.flat().length - 1] + 1}` : ''}번`}</small></button>`; }).join('')}</div>` : '';
     const head = `<div class="nxp-head"><div class="nxp-hl"><span class="nxp-kick">학습지</span><b>${esc(s.title)}</b><small>${esc(sub)}</small></div><div class="nxp-hr">${graded ? `<span class="xp-score nxp-score">${okN}/${ks.length}</span>` : ''}<span class="xp-pg"><b>${p + 1}</b><small>${PG.length}장 중</small></span></div>${XP_PEN}</div>`;
@@ -9954,7 +9954,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611282037'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611282254'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
