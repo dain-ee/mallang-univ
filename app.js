@@ -2698,7 +2698,7 @@
   const gAll = () => { const L = [...(S.gifts || [])], g = S.gift || {}; if (g.skin && !L.some((x) => x.skin === g.skin)) L.push(g); return L; };
   const gLive = () => gAll().filter((x) => !x.x || x.open);  // x: 선생님이 거둬들인 선물 (지우지 않고 표시만 해야 다른 기기와 합칠 때 안 되살아나요)
   const gPend = () => gLive().filter((x) => x.skin && !x.open && SKINS[x.skin] && !owned().includes(x.skin));
-  const ASSET_V = '202611281826', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
+  const ASSET_V = '202611281832', av = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + ASSET_V;  // 펫 그림 주소에 빌드 판을 붙여요 (같은 이름이라 옛 그림이 캐시에 남았어요 10/29)
   const skinPic = (k) => av(k === 'ghost' ? 'assets/ghost/idle.png' : `assets/pets/${k}/idle.png`);
   function giftCard() {
     if (!TEACHER) return '';
@@ -8618,7 +8618,7 @@
       { id: 'e8xh', title: '8과 본문 · 학교 스타일 상 15문제', sub: '선생님 스타일 실전·심화 본문 지문 문제 · 상', from: ['e8:t1', 'e8:t2', 'e8:t7'], lv: [3], k: 15 }] };
   // 11/27 선생님 «영어 문제는 수업으로 나중에 할 거야 · 남은 화·토 수업에 시험 직전까지 다 분배 · 윤건이는 본문만 외우면 돼» → 기말 계획 영어 문제 세트를 남은 수업 6번에
   const YGE = (h, ids) => ({ m3: [], off: ['lw'], lt: [], sq: [{ h, ids }] });
-  YG_JWT_FIX['2026-11-28'] = { m3: [], off: ['lw'], lt: [], noWs: 1, sq: [{ h: '수업 전 시험 · 7·8과 섞은 진짜 시험지 15문제', ids: ['rx78'] }, { h: '7과 · 단어 · 의사소통 · 본문 선생님 스타일', ids: ['yp:e7:t3:0', 'yp:e7:t4:0', 'yp:e7:t6:0'] }, { h: '7과 문법 · 본문 · 기출비 상·중상', ids: ['cf7g', 'cf7r'] }] };  // 11/28 «오늘 수업 왜 이렇게 없어» → 7과 문법 25·본문 35 더함  // 11/27 «시험은 7-8과 혼합 15개, 진짜 시험 문제 · 학습지는 저번에 했잖아» → 학습지 빼고(noWs)
+  YG_JWT_FIX['2026-11-28'] = { m3: [], off: ['lw'], lt: [], sq: [{ h: '수업 전 시험 · 7·8과 섞은 진짜 시험지 15문제', ids: ['rx78'] }, { h: '7과 · 단어 · 의사소통 · 본문 선생님 스타일', ids: ['yp:e7:t3:0', 'yp:e7:t4:0', 'yp:e7:t6:0'] }, { h: '7과 문법 · 본문 · 기출비 상·중상', ids: ['cf7g', 'cf7r'] }] };  // 11/28 «오늘 수업 왜 이렇게 없어» → 7과 문법 25·본문 35 더함  // 11/27 «시험은 7-8과 혼합 15개, 진짜 시험 문제 · 학습지는 저번에 했잖아» → 학습지 빼고(noWs)
   YG_JWT_FIX['2026-12-01'] = YGE('7과 · 선생님 스타일 실전 1회', ['yp:e7:t1:0']);
   YG_JWT_FIX['2026-12-05'] = YGE('7과 실전 2회 · 8과 본문 선생님 스타일', ['yp:e7:t2:0', 'yp:e8:t6:0']);
   YG_JWT_FIX['2026-12-08'] = YGE('8과 실전 1회 · 7과 심화', ['yp:e8:t1:0', 'yp:e7:t7:0']);
@@ -9891,7 +9891,7 @@
     });
   }
   // 리포트 그림: 말랑 리포트(tutoring-report)의 renderer.js 를 그대로 써요 → 카톡으로 공유(휴대폰) · 그림 복사(PC)
-  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611281826'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  const loadReport = () => window.Report ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'report.js?v=202611281832'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   async function reportSheet(id) {
     const L = cls().list.find((l) => l.id === id); if (!L) return;
     reportOpen({ name: NM(), L, total: nthTotal(L.date), book: L.book || LS0.book || '', who: LS0.parent || '어머니', sent: () => { L.sent = Date.now(); save('cls'); render(); } });
